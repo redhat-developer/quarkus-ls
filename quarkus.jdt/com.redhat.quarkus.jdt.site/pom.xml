@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<artifactId>parent</artifactId>
-		<groupId>com.redhat.quarkus.jdt</groupId>
+		<groupId>com.redhat.quarkus</groupId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>com.redhat.quarkus.jdt.site</artifactId>

@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.quarkus.jdt.core;
+package com.redhat.quarkus.commons;
 
 import java.util.List;
 

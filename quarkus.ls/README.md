@@ -1,1 +1,0 @@
-This project is the Quarkus Language Server

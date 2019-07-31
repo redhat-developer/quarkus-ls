@@ -9,7 +9,7 @@
 *******************************************************************************/
 package com.redhat.quarkus.jdt.core.ls;
 
-import com.redhat.quarkus.jdt.core.ExtendedConfigDescriptionBuildItem;
+import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.jdt.core.JDTQuarkusManager;
 
 import java.util.ArrayList;

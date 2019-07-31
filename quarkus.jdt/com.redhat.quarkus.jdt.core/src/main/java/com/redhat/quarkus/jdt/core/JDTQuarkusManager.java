@@ -40,6 +40,9 @@ import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 
+import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
+import com.redhat.quarkus.commons.QuarkusProjectInfo;
+
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 
