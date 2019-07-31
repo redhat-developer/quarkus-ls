@@ -27,7 +27,7 @@
 					<finalName>${project.artifactId}</finalName>
 					<archive>
 						<manifest>
-							<mainClass>lsp4quarkus.App</mainClass>
+							<mainClass>com.redhat.quarkus.ls.QuarkusServerLauncher</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
