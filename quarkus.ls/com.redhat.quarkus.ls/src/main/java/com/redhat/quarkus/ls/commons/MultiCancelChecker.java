@@ -7,15 +7,28 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.quarkus.ls;
+package com.redhat.quarkus.ls.commons;
 
-import org.eclipse.lsp4j.services.LanguageClient;
+import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 /**
- * Quarkus language client API.
+ * Multiple cancel checker.
  * 
  * @author Angelo ZERR
  *
  */
-public interface QuarkusLanguageClient extends LanguageClient, QuarkusProjectInfoProvider {
+public class MultiCancelChecker implements CancelChecker {
+
+	private CancelChecker[] checkers;
+
+	public MultiCancelChecker(CancelChecker... checkers) {
+		this.checkers = checkers;
+	}
+
+	@Override
+	public void checkCanceled() {
+		for (CancelChecker cancelChecker : checkers) {
+			cancelChecker.checkCanceled();
+		}
+	}
 }

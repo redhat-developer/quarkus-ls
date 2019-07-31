@@ -1,3 +1,12 @@
+/*******************************************************************************
+* Copyright (c) 2019 Red Hat Inc. and others.
+* All rights reserved. This program and the accompanying materials
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v20.html
+*
+* Contributors:
+*     Red Hat Inc. - initial API and implementation
+*******************************************************************************/
 package com.redhat.quarkus.ls;
 
 import static org.eclipse.lsp4j.jsonrpc.CompletableFutures.computeAsync;
@@ -16,18 +25,27 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
+import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.ParentProcessWatcher.ProcessLanguageServer;
+import com.redhat.quarkus.services.QuarkusLanguageService;
 
-public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageServer {
-	
+/**
+ * Quarkus language server.
+ *
+ */
+public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageServer, QuarkusProjectInfoProvider {
+
 	private static final Logger LOGGER = Logger.getLogger(QuarkusLanguageServer.class.getName());
-	
-	private TextDocumentService textDocumentService;
-	private WorkspaceService workspaceService;
+
+	private final QuarkusLanguageService quarkusLanguageService;
+	private final TextDocumentService textDocumentService;
+	private final WorkspaceService workspaceService;
+
 	private Integer parentProcessId;
 	private QuarkusLanguageClient languageClient;
-	
+
 	public QuarkusLanguageServer() {
+		quarkusLanguageService = new QuarkusLanguageService();
 		textDocumentService = new QuarkusTextDocumentService(this);
 		workspaceService = new QuarkusWorkspaceService();
 	}
@@ -54,9 +72,9 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 		serverCapabilities.setFoldingRangeProvider(false);
 		serverCapabilities.setTypeHierarchyProvider(false);
 		serverCapabilities.setCallHierarchyProvider(false);
-		
+
 		InitializeResult initializeResult = new InitializeResult(serverCapabilities);
-		
+
 		return CompletableFuture.completedFuture(initializeResult);
 	}
 
@@ -66,14 +84,13 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 
 	public void exit() {
 		exit(0);
-		
+
 	}
-	
+
 	@Override
 	public void exit(int exitCode) {
 		System.exit(exitCode);
 	}
-
 
 	public TextDocumentService getTextDocumentService() {
 		return this.textDocumentService;
@@ -82,11 +99,11 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 	public WorkspaceService getWorkspaceService() {
 		return this.workspaceService;
 	}
-	
+
 	public QuarkusLanguageClient getLanguageClient() {
 		return languageClient;
 	}
-	
+
 	public void setClient(LanguageClient languageClient) {
 		this.languageClient = (QuarkusLanguageClient) languageClient;
 	}
@@ -94,6 +111,15 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 	@Override
 	public long getParentProcessId() {
 		return parentProcessId != null ? parentProcessId : 0;
+	}
+
+	public QuarkusLanguageService getQuarkusLanguageService() {
+		return quarkusLanguageService;
+	}
+
+	@Override
+	public CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(String documentURI) {
+		return languageClient.getQuarkusProjectInfo(documentURI);
 	}
 
 }

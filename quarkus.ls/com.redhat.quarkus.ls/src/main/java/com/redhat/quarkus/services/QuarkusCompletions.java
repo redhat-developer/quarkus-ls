@@ -9,29 +9,30 @@
 *******************************************************************************/
 package com.redhat.quarkus.services;
 
+import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.TextDocument;
 
 /**
- * The Quarkus language service.
+ * The Quarkus completions
  * 
  * @author Angelo ZERR
  *
  */
-public class QuarkusLanguageService {
-
-	private final QuarkusCompletions completions;
-
-	public QuarkusLanguageService() {
-		this.completions = new QuarkusCompletions();
-	}
+class QuarkusCompletions {
 
 	public CompletionList doComplete(TextDocument document, Position position, QuarkusProjectInfo projectInfo,
 			CancelChecker cancelChecker) {
-		return completions.doComplete(document, position, projectInfo, cancelChecker);
+		CompletionList list = new CompletionList();
+		for (ExtendedConfigDescriptionBuildItem property : projectInfo.getProperties()) {
+			CompletionItem item = new CompletionItem(property.getPropertyName());
+			list.getItems().add(item);
+		}
+		return list;
 	}
 }
