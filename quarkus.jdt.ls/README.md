@@ -1,0 +1,1 @@
+This project is the Quarkus JDT LS Extensions
