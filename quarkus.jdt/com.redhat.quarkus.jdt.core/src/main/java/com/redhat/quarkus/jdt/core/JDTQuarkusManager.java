@@ -72,6 +72,7 @@ public class JDTQuarkusManager {
 
 	public QuarkusProjectInfo getQuarkusProjectInfo(IJavaProject project) {
 		QuarkusProjectInfo info = new QuarkusProjectInfo();
+		info.setProjectName(project.getProject().getName());
 		List<ExtendedConfigDescriptionBuildItem> quarkusProperties = new ArrayList<>();
 
 		SearchPattern pattern = createQuarkusConfigSearchPattern();
@@ -97,6 +98,8 @@ public class JDTQuarkusManager {
 			// TODO Auto-generated catch block
 			// e.printStackTrace();
 		}
+		
+		// FIXME: manage isQuarkusProject
 		info.setQuarkusProject(quarkusProperties.size() > 0);
 		info.setProperties(quarkusProperties);
 		return info;
@@ -297,7 +300,7 @@ public class JDTQuarkusManager {
 
 	private static IJavaSearchScope createSearchScope(IJavaProject project) throws JavaModelException {
 		return SearchEngine.createJavaSearchScope(new IJavaElement[] { project },
-				/*IJavaSearchScope.SOURCES |*/ IJavaSearchScope.APPLICATION_LIBRARIES);
+				/* IJavaSearchScope.SOURCES | */ IJavaSearchScope.APPLICATION_LIBRARIES);
 	}
 
 	private static SearchPattern createQuarkusConfigSearchPattern() {

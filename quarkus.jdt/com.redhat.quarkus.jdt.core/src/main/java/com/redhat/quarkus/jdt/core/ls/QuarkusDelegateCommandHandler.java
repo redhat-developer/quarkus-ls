@@ -9,14 +9,14 @@
 *******************************************************************************/
 package com.redhat.quarkus.jdt.core.ls;
 
-import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
-import com.redhat.quarkus.jdt.core.JDTQuarkusManager;
-
-import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
+import org.eclipse.jdt.ls.core.internal.JDTUtils;
+
+import com.redhat.quarkus.jdt.core.JDTQuarkusManager;
 
 /**
  * 
@@ -25,12 +25,22 @@ import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
  */
 public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 
-	public static final String COMMAND_ID = "com.redhat.jdtls.quarkus.quarkus.jdt.ls.samplecommand";
+	public static final String PROJECT_INFO_COMMAND_ID = "quarkus.java.projectInfo";
 
 	@Override
 	public Object executeCommand(String commandId, List<Object> arguments, IProgressMonitor progress) throws Exception {
-		if (COMMAND_ID.equals(commandId)) {
-			String projectName = (String) arguments.get(0);
+		if (PROJECT_INFO_COMMAND_ID.equals(commandId)) {
+			String applicationPropertiesUri = arguments.size() > 0 ? (String) arguments.get(0) : null;
+			if (applicationPropertiesUri == null) {
+				throw new UnsupportedOperationException(String.format(
+						"Command '%s' must be call with one String argument (application.properties URI)!", commandId));
+			}
+			IFile file = JDTUtils.findFile(applicationPropertiesUri);
+			if (file == null) {
+				throw new UnsupportedOperationException(
+						String.format("Cannot find IFile for '%s'", applicationPropertiesUri));
+			}
+			String projectName = file.getProject().getName();
 			return JDTQuarkusManager.getInstance().getQuarkusProjectInfo(projectName);
 		}
 		throw new UnsupportedOperationException(String.format("Unsupported command '%s'!", commandId));
