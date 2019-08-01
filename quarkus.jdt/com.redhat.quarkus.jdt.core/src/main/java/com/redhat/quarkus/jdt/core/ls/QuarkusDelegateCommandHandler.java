@@ -12,7 +12,9 @@ package com.redhat.quarkus.jdt.core.ls;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 
@@ -49,8 +51,11 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 	 * @param commandId
 	 * @param progress
 	 * @return
+	 * @throws CoreException
+	 * @throws JavaModelException
 	 */
-	private static Object getQuarkusProjectInfo(List<Object> arguments, String commandId, IProgressMonitor progress) {
+	private static Object getQuarkusProjectInfo(List<Object> arguments, String commandId, IProgressMonitor progress)
+			throws JavaModelException, CoreException {
 		Object firstArgs = arguments.size() > 0 ? arguments.get(0) : null;
 		if (!(firstArgs instanceof QuarkusProjectInfoParams)) {
 			throw new UnsupportedOperationException(
@@ -71,9 +76,9 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 		}
 		String projectName = file.getProject().getName();
 		// Get converter to use for JavaDoc
-
+		DocumentationConverter converter = getDocumentationConverter(params.getDocumentationFormat());
 		return JDTQuarkusManager.getInstance().getQuarkusProjectInfo(projectName,
-				getDocumentationConverter(params.getDocumentationFormat()), progress);
+				converter, progress);
 	}
 
 	/**
