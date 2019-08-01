@@ -10,6 +10,7 @@
 package com.redhat.quarkus.jdt.core.ls;
 
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -18,7 +19,6 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 
-import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 import com.redhat.quarkus.jdt.core.DocumentationConverter;
 import com.redhat.quarkus.jdt.core.JDTQuarkusManager;
 
@@ -56,14 +56,13 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 	 */
 	private static Object getQuarkusProjectInfo(List<Object> arguments, String commandId, IProgressMonitor progress)
 			throws JavaModelException, CoreException {
-		Object firstArgs = arguments.size() > 0 ? arguments.get(0) : null;
-		if (!(firstArgs instanceof QuarkusProjectInfoParams)) {
+		Map<String, Object> obj = arguments.size() > 0 ? (Map<String, Object>) arguments.get(0) : null;
+		if (obj == null) {
 			throw new UnsupportedOperationException(
 					String.format("Command '%s' must be call with one QuarkusProjectInfoParams argument!", commandId));
 		}
-		QuarkusProjectInfoParams params = (QuarkusProjectInfoParams) firstArgs;
 		// Get project name from the application.properties URI
-		String applicationPropertiesUri = params.getUri();
+		String applicationPropertiesUri = (String) obj.get("uri");
 		if (applicationPropertiesUri == null) {
 			throw new UnsupportedOperationException(String.format(
 					"Command '%s' must be call with required QuarkusProjectInfoParams.uri (application.properties URI)!",
@@ -76,9 +75,9 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 		}
 		String projectName = file.getProject().getName();
 		// Get converter to use for JavaDoc
-		DocumentationConverter converter = getDocumentationConverter(params.getDocumentationFormat());
-		return JDTQuarkusManager.getInstance().getQuarkusProjectInfo(projectName,
-				converter, progress);
+		String[] documentationFormat = (String[]) obj.get("documentationFormat");
+		DocumentationConverter converter = getDocumentationConverter(documentationFormat);
+		return JDTQuarkusManager.getInstance().getQuarkusProjectInfo(projectName, converter, progress);
 	}
 
 	/**
@@ -89,9 +88,13 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 	 * @return the proper documentation converter according the given
 	 *         <code>documentationFormat</code>.
 	 */
-	private static DocumentationConverter getDocumentationConverter(List<String> documentationFormat) {
-		if (documentationFormat != null && documentationFormat.contains(MARKDOWN)) {
-			// TODO manage MARKDOWN converter
+	private static DocumentationConverter getDocumentationConverter(String[] documentationFormat) {
+		if (documentationFormat != null) {
+			for (String format : documentationFormat) {
+				if (format.equals(MARKDOWN)) {
+					// TODO manage MARKDOWN converter
+				}
+			}
 		}
 		return DocumentationConverter.DEFAULT_CONVERTER;
 	}

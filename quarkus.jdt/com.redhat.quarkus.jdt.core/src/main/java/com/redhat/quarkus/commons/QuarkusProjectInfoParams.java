@@ -27,6 +27,9 @@ public class QuarkusProjectInfoParams {
 	 */
 	private List<String> documentationFormat;
 
+	public QuarkusProjectInfoParams() {
+	}
+
 	public QuarkusProjectInfoParams(String uri, List<String> documentationFormat) {
 		setUri(uri);
 		setDocumentationFormat(documentationFormat);
