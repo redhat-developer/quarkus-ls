@@ -41,7 +41,7 @@ class QuarkusProjectInfoCache extends HashMap<String /* Document URI */, Quarkus
 	 */
 	public CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(QuarkusProjectInfoParams params) {
 		// Search project info in cache
-		QuarkusProjectInfo projectInfo = super.get(params);
+		QuarkusProjectInfo projectInfo = super.get(params.getUri());
 		if (projectInfo == null) {
 			// not found in cache, load the project info from the JDT LS Extension
 			return provider.getQuarkusProjectInfo(params).thenApplyAsync(info ->
