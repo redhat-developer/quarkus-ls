@@ -26,6 +26,7 @@ import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
+import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 import com.redhat.quarkus.ls.commons.ParentProcessWatcher.ProcessLanguageServer;
 import com.redhat.quarkus.services.QuarkusLanguageService;
 
@@ -118,8 +119,8 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 	}
 
 	@Override
-	public CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(String documentURI) {
-		return languageClient.getQuarkusProjectInfo(documentURI);
+	public CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(QuarkusProjectInfoParams params) {
+		return languageClient.getQuarkusProjectInfo(params);
 	}
 
 }

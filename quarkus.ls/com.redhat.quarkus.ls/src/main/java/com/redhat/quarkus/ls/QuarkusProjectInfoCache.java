@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
+import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 
 /**
  * Quarkus project information cache.
@@ -34,18 +35,21 @@ class QuarkusProjectInfoCache extends HashMap<String /* Document URI */, Quarkus
 	 * Returns as promise the Quarkus project information for the given
 	 * application.properties URI.
 	 * 
-	 * @param documentURI the URI of the application.properties.
+	 * @param params the URI of the application.properties.
 	 * @return as promise the Quarkus project information for the given
 	 *         application.properties URI.
 	 */
-	public CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(String documentURI) {
+	public CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(QuarkusProjectInfoParams params) {
 		// Search project info in cache
-		QuarkusProjectInfo projectInfo = super.get(documentURI);
+		QuarkusProjectInfo projectInfo = super.get(params);
 		if (projectInfo == null) {
 			// not found in cache, load the project info from the JDT LS Extension
-			return provider.getQuarkusProjectInfo(documentURI).thenApplyAsync(info ->
+			return provider.getQuarkusProjectInfo(params).thenApplyAsync(info ->
 			// information was loaded, update the cache
-			QuarkusProjectInfoCache.this.put(documentURI, info));
+			{
+				QuarkusProjectInfoCache.this.put(params.getUri(), info);
+				return info;
+			});
 		}
 		// Returns the cached project info
 		return CompletableFuture.completedFuture(projectInfo);

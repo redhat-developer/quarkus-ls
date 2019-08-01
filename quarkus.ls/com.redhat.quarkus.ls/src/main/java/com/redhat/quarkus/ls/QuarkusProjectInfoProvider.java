@@ -14,6 +14,7 @@ import java.util.concurrent.CompletableFuture;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
+import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 
 /**
  * Quarkus project information provider..
@@ -24,13 +25,11 @@ import com.redhat.quarkus.commons.QuarkusProjectInfo;
 public interface QuarkusProjectInfoProvider {
 
 	/**
-	 * Returns the Quarkus project information for the given
-	 * <code>documentURI</code>.
+	 * Returns the Quarkus project information for the given <code>params</code>.
 	 * 
-	 * @param documentURI the document URI
-	 * @return the Quarkus project information for the given
-	 *         <code>documentURI</code>.
+	 * @param params the Quarkus project information parameters
+	 * @return the Quarkus project information for the given <code>params</code>.
 	 */
 	@JsonRequest("quarkus/projectInfo")
-	CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(String documentURI);
+	CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(QuarkusProjectInfoParams paramsURI);
 }

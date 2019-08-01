@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IField;
@@ -65,40 +65,43 @@ public class JDTQuarkusManager {
 		return INSTANCE;
 	}
 
-	public QuarkusProjectInfo getQuarkusProjectInfo(String projectName) {
+	/**
+	 * Returns the Quarkus project information for the given Eclipse
+	 * <code>projectName</code>.
+	 * 
+	 * @param projectName the Eclipse project name
+	 * @param converter   the documentation converter to convert JavaDoc in a format
+	 *                    like Markdown
+	 * @param monitor     the progress monitor
+	 * @return the Quarkus project information for the given Eclipse
+	 *         <code>projectName</code>.
+	 * @throws CoreException
+	 * @throws JavaModelException
+	 */
+	public QuarkusProjectInfo getQuarkusProjectInfo(String projectName, DocumentationConverter converter,
+			IProgressMonitor monitor) throws JavaModelException, CoreException {
 		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
-		return getQuarkusProjectInfo(javaProject);
-	}
 
-	public QuarkusProjectInfo getQuarkusProjectInfo(IJavaProject project) {
 		QuarkusProjectInfo info = new QuarkusProjectInfo();
-		info.setProjectName(project.getProject().getName());
+		info.setProjectName(javaProject.getProject().getName());
 		List<ExtendedConfigDescriptionBuildItem> quarkusProperties = new ArrayList<>();
 
 		SearchPattern pattern = createQuarkusConfigSearchPattern();
 		SearchEngine engine = new SearchEngine();
-		try {
-			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
-					createSearchScope(project), new SearchRequestor() {
+		engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
+				createSearchScope(javaProject), new SearchRequestor() {
 
-						@Override
-						public void acceptSearchMatch(SearchMatch match) throws CoreException {
-							Object element = match.getElement();
-							if (element instanceof IAnnotatable && element instanceof IJavaElement) {
-								IJavaElement javaElement = (IJavaElement) element;
-								processQuarkusAnnotation(javaElement, quarkusProperties);
-							}
+					@Override
+					public void acceptSearchMatch(SearchMatch match) throws CoreException {
+						Object element = match.getElement();
+						if (element instanceof IAnnotatable && element instanceof IJavaElement) {
+							IJavaElement javaElement = (IJavaElement) element;
+							processQuarkusAnnotation(javaElement, quarkusProperties, converter);
 						}
+					}
 
-					}, new NullProgressMonitor());
-		} catch (JavaModelException e) {
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
-		}
-		
+				}, monitor);
+
 		// FIXME: manage isQuarkusProject
 		info.setQuarkusProject(quarkusProperties.size() > 0);
 		info.setProperties(quarkusProperties);
@@ -106,19 +109,21 @@ public class JDTQuarkusManager {
 	}
 
 	private void processQuarkusAnnotation(IJavaElement javaElement,
-			List<ExtendedConfigDescriptionBuildItem> quarkusProperties) throws JavaModelException {
+			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, DocumentationConverter converter)
+			throws JavaModelException {
 		IAnnotation[] annotations = ((IAnnotatable) javaElement).getAnnotations();
 		for (IAnnotation annotation : annotations) {
 			if (CONFIG_PROPERTY_ANNOTATION.contentEquals(annotation.getElementName())) {
-				processConfigProperty(javaElement, annotation, quarkusProperties);
+				processConfigProperty(javaElement, annotation, quarkusProperties, converter);
 			} else if (CONFIG_ROOT_ANNOTATION.contentEquals(annotation.getElementName())) {
-				processConfigRoot(javaElement, annotation, quarkusProperties);
+				processConfigRoot(javaElement, annotation, quarkusProperties, converter);
 			}
 		}
 	}
 
 	private static void processConfigRoot(IJavaElement javaElement, IAnnotation annotation,
-			List<ExtendedConfigDescriptionBuildItem> quarkusProperties) throws JavaModelException {
+			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, DocumentationConverter converter)
+			throws JavaModelException {
 		ConfigPhase configPhase = getConfigPhase(annotation);
 		String configRootAnnotationName = getConfigRootName(annotation);
 		String extension = getExtensionName(getSimpleName(javaElement.getElementName()), configRootAnnotationName,
@@ -127,11 +132,12 @@ public class JDTQuarkusManager {
 			return;
 		}
 		String baseKey = "quarkus." + extension;
-		processConfigGroup(javaElement, baseKey, quarkusProperties);
+		processConfigGroup(javaElement, baseKey, quarkusProperties, converter);
 	}
 
 	private static void processConfigGroup(IJavaElement javaElement, String baseKey,
-			List<ExtendedConfigDescriptionBuildItem> quarkusProperties) throws JavaModelException {
+			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, DocumentationConverter converter)
+			throws JavaModelException {
 		if (javaElement.getElementType() == IJavaElement.TYPE) {
 			IJavaElement parent = javaElement.getParent();
 			if (parent.getElementType() == IJavaElement.CLASS_FILE) {
@@ -169,12 +175,13 @@ public class JDTQuarkusManager {
 						final IAnnotation configGroupAnnotation = getAnnotation((IAnnotatable) fieldClass,
 								CONFIG_GROUP_ANNOTATION);
 						if (configGroupAnnotation != null) {
-							processConfigGroup(fieldClass, subKey, quarkusProperties);
+							processConfigGroup(fieldClass, subKey, quarkusProperties, converter);
 						} else {
 
 							String propertyName = subKey;
 							String type = fieldClass != null ? fieldClass.getFullyQualifiedName() : null;
 							String docs = null;
+							docs = converter.convert(docs);
 							String source = field.getDeclaringType().getFullyQualifiedName() + "#"
 									+ field.getElementName();
 
@@ -265,7 +272,7 @@ public class JDTQuarkusManager {
 	}
 
 	private static void processConfigProperty(IJavaElement javaElement, IAnnotation annotation,
-			List<ExtendedConfigDescriptionBuildItem> quarkusProperties) {
+			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, DocumentationConverter converter) {
 		String name = javaElement.getElementName();
 		// getAnnotation(java, annotationName)
 		System.err.println(name);

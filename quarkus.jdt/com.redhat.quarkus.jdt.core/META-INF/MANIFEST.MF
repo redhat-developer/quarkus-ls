@@ -11,4 +11,5 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.resources
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
-Export-Package: com.redhat.quarkus.jdt.core
+Export-Package: com.redhat.quarkus.commons,
+ com.redhat.quarkus.jdt.core

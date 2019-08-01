@@ -26,6 +26,7 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
+import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.ls.commons.TextDocuments;
 import com.redhat.quarkus.services.QuarkusLanguageService;
@@ -76,16 +77,22 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 
 	@Override
 	public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
-		String uri = params.getTextDocument().getUri();
-		return projectInfoCache.getQuarkusProjectInfo(uri).thenApplyAsync(projectInfo -> {
+		QuarkusProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument(), null);
+		return projectInfoCache.getQuarkusProjectInfo(projectInfoParams).thenApplyAsync(projectInfo -> {
 			if (!projectInfo.isQuarkusProject()) {
 				return Either.forRight(new CompletionList());
 			}
+			String uri = params.getTextDocument().getUri();
 			TextDocument document = documents.get(uri);
 			CompletionList list = getQuarkusLanguageService().doComplete(document, params.getPosition(), projectInfo,
 					null);
 			return Either.forRight(list);
 		});
+	}
+
+	private static QuarkusProjectInfoParams createProjectInfoParams(TextDocumentIdentifier id,
+			List<String> documentationFormat) {
+		return new QuarkusProjectInfoParams(id.getUri(), documentationFormat);
 	}
 
 	private QuarkusLanguageService getQuarkusLanguageService() {
