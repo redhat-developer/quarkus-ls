@@ -10,6 +10,7 @@
 package com.redhat.quarkus.ls;
 
 import static org.eclipse.lsp4j.jsonrpc.CompletableFutures.computeAsync;
+import static com.redhat.quarkus.utils.VersionHelper.getVersion;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -52,7 +53,7 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 	}
 
 	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-		LOGGER.info("Inside initialize");
+		LOGGER.info("Initializing Quarkus server " + getVersion() + " with " + System.getProperty("java.home"));
 		this.parentProcessId = params.getProcessId();
 		ServerCapabilities serverCapabilities = new ServerCapabilities();
 		serverCapabilities.setTextDocumentSync(TextDocumentSyncKind.Incremental);
