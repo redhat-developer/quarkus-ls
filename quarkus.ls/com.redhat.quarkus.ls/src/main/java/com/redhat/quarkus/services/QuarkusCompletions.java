@@ -13,14 +13,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.InsertTextFormat;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
+import com.redhat.quarkus.ls.commons.SnippetsBuilder;
 import com.redhat.quarkus.ls.commons.TextDocument;
+import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 import com.redhat.quarkus.utils.PropertiesScannerUtils;
 import com.redhat.quarkus.utils.PropertiesScannerUtils.PropertiesToken;
 
@@ -35,7 +39,7 @@ class QuarkusCompletions {
 	private static final Logger LOGGER = Logger.getLogger(QuarkusCompletions.class.getName());
 
 	public CompletionList doComplete(TextDocument document, Position position, QuarkusProjectInfo projectInfo,
-			CancelChecker cancelChecker) {
+			QuarkusCompletionSettings completionSettings, CancelChecker cancelChecker) {
 		CompletionList list = new CompletionList();
 		String text = document.getText();
 		int offset;
@@ -53,11 +57,11 @@ class QuarkusCompletions {
 			break;
 		case KEY:
 			// completion on property key
-			collectPropertyKeySuggestions(document, token, projectInfo, list);
+			collectPropertyKeySuggestions(document, token, projectInfo, completionSettings, list);
 			break;
 		case VALUE:
 			// completion on property value
-			collectPropertyValueSuggestions(document, token, projectInfo, list);
+			collectPropertyValueSuggestions(document, token, projectInfo, completionSettings, list);
 			break;
 		}
 		return list;
@@ -66,15 +70,30 @@ class QuarkusCompletions {
 	/**
 	 * Collect property keys.
 	 * 
-	 * @param document    the document
-	 * @param token       the token
-	 * @param projectInfo the Quarkus project information
-	 * @param list        the completion list to fill
+	 * @param document           the document
+	 * @param token              the token
+	 * @param projectInfo        the Quarkus project information
+	 * @param completionSettings the completion settings
+	 * @param list               the completion list to fill
 	 */
 	private static void collectPropertyKeySuggestions(TextDocument document, PropertiesToken token,
-			QuarkusProjectInfo projectInfo, CompletionList list) {
+			QuarkusProjectInfo projectInfo, QuarkusCompletionSettings completionSettings, CompletionList list) {
+		boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
 		for (ExtendedConfigDescriptionBuildItem property : projectInfo.getProperties()) {
+
 			CompletionItem item = new CompletionItem(property.getPropertyName());
+			item.setKind(CompletionItemKind.Property);
+			if (snippetsSupported) {
+				StringBuilder insertText = new StringBuilder();
+				insertText.append(property.getPropertyName());
+				insertText.append(' '); // TODO: this space should be configured in format setings
+				insertText.append('=');
+				insertText.append(' '); // TODO: this space should be configured in format settings
+				SnippetsBuilder.tabstops(0, insertText);
+				item.setInsertText(insertText.toString());
+				item.setInsertTextFormat(InsertTextFormat.Snippet);
+			}
+
 			list.getItems().add(item);
 		}
 	}
@@ -82,13 +101,14 @@ class QuarkusCompletions {
 	/**
 	 * Collect property values.
 	 * 
-	 * @param document    the document
-	 * @param token       the token
-	 * @param projectInfo the Quarkus project information
-	 * @param list        the completion list to fill
+	 * @param document           the document
+	 * @param token              the token
+	 * @param projectInfo        the Quarkus project information
+	 * @param completionSettings the completion settings
+	 * @param list               the completion list to fill
 	 */
 	private static void collectPropertyValueSuggestions(TextDocument document, PropertiesToken token,
-			QuarkusProjectInfo projectInfo, CompletionList list) {
+			QuarkusProjectInfo projectInfo, QuarkusCompletionSettings completionSettings, CompletionList list) {
 
 	}
 }

@@ -39,7 +39,7 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 	private static final Logger LOGGER = Logger.getLogger(QuarkusLanguageServer.class.getName());
 
 	private final QuarkusLanguageService quarkusLanguageService;
-	private final TextDocumentService textDocumentService;
+	private final QuarkusTextDocumentService textDocumentService;
 	private final WorkspaceService workspaceService;
 
 	private Integer parentProcessId;
@@ -74,8 +74,9 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 		serverCapabilities.setTypeHierarchyProvider(false);
 		serverCapabilities.setCallHierarchyProvider(false);
 
+		textDocumentService.updateClientCapabilities(params.getCapabilities());
+		
 		InitializeResult initializeResult = new InitializeResult(serverCapabilities);
-
 		return CompletableFuture.completedFuture(initializeResult);
 	}
 

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
@@ -22,6 +23,7 @@ import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.lsp4j.TextDocumentClientCapabilities;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
@@ -30,6 +32,7 @@ import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.ls.commons.TextDocuments;
 import com.redhat.quarkus.services.QuarkusLanguageService;
+import com.redhat.quarkus.settings.SharedSettings;
 
 /**
  * Quarkus text document service.
@@ -43,10 +46,25 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 
 	private final QuarkusLanguageServer quarkusLanguageServer;
 
+	private final SharedSettings sharedSettings;
+
 	public QuarkusTextDocumentService(QuarkusLanguageServer quarkusLanguageServer) {
 		this.quarkusLanguageServer = quarkusLanguageServer;
 		this.documents = new TextDocuments<TextDocument>();
 		this.projectInfoCache = new QuarkusProjectInfoCache(quarkusLanguageServer);
+		this.sharedSettings = new SharedSettings();
+	}
+
+	/**
+	 * Update shared settings from the client capabilities.
+	 * 
+	 * @param capabilities the client capabilities
+	 */
+	public void updateClientCapabilities(ClientCapabilities capabilities) {
+		TextDocumentClientCapabilities textDocumentClientCapabilities = capabilities.getTextDocument();
+		if (textDocumentClientCapabilities != null) {
+			sharedSettings.getCompletionSettings().setCapabilities(textDocumentClientCapabilities.getCompletion());
+		}
 	}
 
 	@Override
@@ -85,7 +103,7 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 			String uri = params.getTextDocument().getUri();
 			TextDocument document = documents.get(uri);
 			CompletionList list = getQuarkusLanguageService().doComplete(document, params.getPosition(), projectInfo,
-					null);
+					sharedSettings.getCompletionSettings(), null);
 			return Either.forRight(list);
 		});
 	}

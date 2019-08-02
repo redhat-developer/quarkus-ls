@@ -12,7 +12,9 @@ package com.redhat.quarkus.services;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.eclipse.lsp4j.CompletionCapabilities;
 import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionItemCapabilities;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.Position;
@@ -24,6 +26,7 @@ import com.google.gson.Gson;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.TextDocument;
+import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 
 /**
  * Quarkus assert
@@ -63,8 +66,15 @@ public class QuarkusAssert {
 		TextDocument document = new TextDocument(value, fileURI != null ? fileURI : "application.properties");
 		Position position = document.positionAt(offset);
 
+		// Add snippet support for completion
+		QuarkusCompletionSettings completionSettings = new QuarkusCompletionSettings();
+		CompletionItemCapabilities completionItemCapabilities = new CompletionItemCapabilities();
+		completionItemCapabilities.setSnippetSupport(true);
+		CompletionCapabilities completionCapabilities = new CompletionCapabilities(completionItemCapabilities);
+		completionSettings.setCapabilities(completionCapabilities);
+
 		QuarkusLanguageService languageService = new QuarkusLanguageService();
-		CompletionList list = languageService.doComplete(document, position, projectInfo, () -> {
+		CompletionList list = languageService.doComplete(document, position, projectInfo, completionSettings, () -> {
 		});
 
 		// no duplicate labels

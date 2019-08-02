@@ -15,6 +15,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.TextDocument;
+import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 
 /**
  * The Quarkus language service.
@@ -31,7 +32,7 @@ public class QuarkusLanguageService {
 	}
 
 	public CompletionList doComplete(TextDocument document, Position position, QuarkusProjectInfo projectInfo,
-			CancelChecker cancelChecker) {
-		return completions.doComplete(document, position, projectInfo, cancelChecker);
+			QuarkusCompletionSettings completionSettings, CancelChecker cancelChecker) {
+		return completions.doComplete(document, position, projectInfo, completionSettings, cancelChecker);
 	}
 }
