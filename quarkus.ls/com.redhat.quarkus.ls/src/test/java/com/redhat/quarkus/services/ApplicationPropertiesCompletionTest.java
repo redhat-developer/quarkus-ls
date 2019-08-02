@@ -25,8 +25,35 @@ import com.redhat.quarkus.ls.commons.BadLocationException;
 public class ApplicationPropertiesCompletionTest {
 
 	@Test
+	public void completionOnComments() throws BadLocationException {
+		String value = "#|";
+		testCompletionFor(value, 0);
+
+		value = " #|";
+		testCompletionFor(value, 0);
+	}
+
+	@Test
 	public void completionOnKey() throws BadLocationException {
 		String value = "|";
 		testCompletionFor(value, c("quarkus.http.cors", "quarkus.http.cors"));
+
+		value = " |";
+		testCompletionFor(value, c("quarkus.http.cors", "quarkus.http.cors"));
+
+		value = " quarkus.http.co|rs = ";
+		testCompletionFor(value, c("quarkus.http.cors", "quarkus.http.cors"));
+
+		value = " quarkus.http.co|rs = ";
+		testCompletionFor(value, c("quarkus.http.cors", "quarkus.http.cors"));
+
+		value = " quarkus.http.cors =| ";
+		testCompletionFor(value, 0);
+	}
+
+	@Test
+	public void completionOnValue() throws BadLocationException {
+		String value = "quarkus.http.cors = | ";
+		testCompletionFor(value, 0);
 	}
 }

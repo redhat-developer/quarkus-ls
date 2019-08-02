@@ -47,7 +47,12 @@ public class QuarkusAssert {
 	// ------------------- Completion assert
 
 	public static void testCompletionFor(String value, CompletionItem... expectedItems) throws BadLocationException {
-		testCompletionFor(value, null, null, getDefaultQuarkusProjectInfo(), expectedItems);
+		testCompletionFor(value, null, expectedItems);
+	}
+
+	public static void testCompletionFor(String value, Integer expectedCount, CompletionItem... expectedItems)
+			throws BadLocationException {
+		testCompletionFor(value, null, expectedCount, getDefaultQuarkusProjectInfo(), expectedItems);
 	}
 
 	public static void testCompletionFor(String value, String fileURI, Integer expectedCount,
