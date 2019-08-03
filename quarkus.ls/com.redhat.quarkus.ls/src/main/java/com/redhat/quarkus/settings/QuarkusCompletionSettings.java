@@ -39,4 +39,17 @@ public class QuarkusCompletionSettings {
 				&& completionCapabilities.getCompletionItem().getSnippetSupport() != null
 				&& completionCapabilities.getCompletionItem().getSnippetSupport();
 	}
+
+	/**
+	 * Returns <code>true</code> if the client support the given documentation
+	 * format and <code>false</code> otherwise.
+	 * 
+	 * @return <code>true</code> if the client support the given documentation
+	 *         format and <code>false</code> otherwise.
+	 */
+	public boolean isDocumentationFormatSupported(String documentationFormat) {
+		return completionCapabilities != null && completionCapabilities.getCompletionItem() != null
+				&& completionCapabilities.getCompletionItem().getDocumentationFormat() != null
+				&& completionCapabilities.getCompletionItem().getDocumentationFormat().contains(documentationFormat);
+	}
 }

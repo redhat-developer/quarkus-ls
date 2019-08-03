@@ -16,6 +16,7 @@ import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.InsertTextFormat;
+import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
@@ -25,6 +26,7 @@ import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.SnippetsBuilder;
 import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.settings.QuarkusCompletionSettings;
+import com.redhat.quarkus.utils.DocumentationUtils;
 import com.redhat.quarkus.utils.PropertiesScannerUtils;
 import com.redhat.quarkus.utils.PropertiesScannerUtils.PropertiesToken;
 
@@ -78,22 +80,30 @@ class QuarkusCompletions {
 	 */
 	private static void collectPropertyKeySuggestions(TextDocument document, PropertiesToken token,
 			QuarkusProjectInfo projectInfo, QuarkusCompletionSettings completionSettings, CompletionList list) {
+
 		boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
+		boolean markdownSupprted = completionSettings.isDocumentationFormatSupported(MarkupKind.MARKDOWN);
+
 		for (ExtendedConfigDescriptionBuildItem property : projectInfo.getProperties()) {
 
 			CompletionItem item = new CompletionItem(property.getPropertyName());
 			item.setKind(CompletionItemKind.Property);
 			if (snippetsSupported) {
+				String defaultValue = property.getDefaultValue();
 				StringBuilder insertText = new StringBuilder();
 				insertText.append(property.getPropertyName());
-				insertText.append(' '); // TODO: this space should be configured in format setings
+				insertText.append(' '); // TODO: this space should be configured in format settings
 				insertText.append('=');
 				insertText.append(' '); // TODO: this space should be configured in format settings
-				SnippetsBuilder.tabstops(0, insertText);
+				if (defaultValue != null) {
+					SnippetsBuilder.placeholders(0, defaultValue, insertText);
+				} else {
+					SnippetsBuilder.tabstops(0, insertText);
+				}
 				item.setInsertText(insertText.toString());
 				item.setInsertTextFormat(InsertTextFormat.Snippet);
 			}
-
+			item.setDocumentation(DocumentationUtils.getDocumentation(property, markdownSupprted));
 			list.getItems().add(item);
 		}
 	}
