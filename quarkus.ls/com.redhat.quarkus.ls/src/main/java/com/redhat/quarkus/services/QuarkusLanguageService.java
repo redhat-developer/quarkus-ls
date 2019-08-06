@@ -63,5 +63,4 @@ public class QuarkusLanguageService {
 			QuarkusHoverSettings hoverSettings) {
 		return hover.doHover(document, position, projectInfo, hoverSettings);
 	}
-
 }

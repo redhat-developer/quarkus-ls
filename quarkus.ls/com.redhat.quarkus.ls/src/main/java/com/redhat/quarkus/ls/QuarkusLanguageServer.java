@@ -12,15 +12,13 @@ package com.redhat.quarkus.ls;
 import static org.eclipse.lsp4j.jsonrpc.CompletableFutures.computeAsync;
 import static com.redhat.quarkus.utils.VersionHelper.getVersion;
 
-import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
-import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
+import org.eclipse.lsp4j.InitializedParams;
 import org.eclipse.lsp4j.ServerCapabilities;
-import org.eclipse.lsp4j.TextDocumentSyncKind;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
@@ -30,6 +28,8 @@ import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 import com.redhat.quarkus.ls.commons.ParentProcessWatcher.ProcessLanguageServer;
 import com.redhat.quarkus.services.QuarkusLanguageService;
+import com.redhat.quarkus.settings.capabilities.QuarkusCapabilityManager;
+import com.redhat.quarkus.settings.capabilities.ServerCapabilitiesInitializer;
 
 /**
  * Quarkus language server.
@@ -45,6 +45,7 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 
 	private Integer parentProcessId;
 	private QuarkusLanguageClient languageClient;
+	private QuarkusCapabilityManager capabilityManager;
 
 	public QuarkusLanguageServer() {
 		quarkusLanguageService = new QuarkusLanguageService();
@@ -52,33 +53,35 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 		workspaceService = new QuarkusWorkspaceService();
 	}
 
+	@Override
 	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
 		LOGGER.info("Initializing Quarkus server " + getVersion() + " with " + System.getProperty("java.home"));
+
 		this.parentProcessId = params.getProcessId();
-		ServerCapabilities serverCapabilities = new ServerCapabilities();
-		serverCapabilities.setTextDocumentSync(TextDocumentSyncKind.Incremental);
-		serverCapabilities.setHoverProvider(true);
-		serverCapabilities.setCompletionProvider(new CompletionOptions(false, Collections.emptyList()));
-		serverCapabilities.setDefinitionProvider(false);
-		serverCapabilities.setTypeDefinitionProvider(false);
-		serverCapabilities.setImplementationProvider(false);
-		serverCapabilities.setReferencesProvider(false);
-		serverCapabilities.setDocumentHighlightProvider(false);
-		serverCapabilities.setDocumentSymbolProvider(false);
-		serverCapabilities.setWorkspaceSymbolProvider(false);
-		serverCapabilities.setCodeActionProvider(false);
-		serverCapabilities.setDocumentFormattingProvider(true);
-		serverCapabilities.setDocumentRangeFormattingProvider(true);
-		serverCapabilities.setRenameProvider(false);
-		serverCapabilities.setColorProvider(false);
-		serverCapabilities.setFoldingRangeProvider(false);
-		serverCapabilities.setTypeHierarchyProvider(false);
-		serverCapabilities.setCallHierarchyProvider(false);
+
+		capabilityManager.setClientCapabilities(params.getCapabilities());
 
 		textDocumentService.updateClientCapabilities(params.getCapabilities());
+
+		ServerCapabilities serverCapabilities = ServerCapabilitiesInitializer.getNonDynamicServerCapabilities(
+			capabilityManager.getClientCapabilities());
 		
 		InitializeResult initializeResult = new InitializeResult(serverCapabilities);
 		return CompletableFuture.completedFuture(initializeResult);
+	}
+
+	/*
+	 * Registers all capabilities that do not support client side preferences to
+	 * turn on/off
+	 *
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.lsp4j.services.LanguageServer#initialized(org.eclipse.lsp4j.
+	 * InitializedParams)
+	 */
+	@Override
+	public void initialized(InitializedParams params) {
+		capabilityManager.initializeCapabilities();
 	}
 
 	public CompletableFuture<Object> shutdown() {
@@ -107,8 +110,13 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 		return languageClient;
 	}
 
+	public QuarkusCapabilityManager getCapabilityManager() {
+		return capabilityManager;
+	}
+
 	public void setClient(LanguageClient languageClient) {
 		this.languageClient = (QuarkusLanguageClient) languageClient;
+		this.capabilityManager = new QuarkusCapabilityManager(languageClient);
 	}
 
 	@Override

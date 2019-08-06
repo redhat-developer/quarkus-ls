@@ -39,6 +39,7 @@ import com.redhat.quarkus.ls.commons.ModelTextDocuments;
 import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.services.QuarkusLanguageService;
+import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 import com.redhat.quarkus.settings.SharedSettings;
 
 /**
