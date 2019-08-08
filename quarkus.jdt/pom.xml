@@ -17,8 +17,8 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <tycho.version>1.4.0</tycho.version>
     <tycho.extras.version>1.4.0</tycho.extras.version>
-    <tycho.scmUrl>scm:git:https://github.com/CHANGE/ME.git</tycho.scmUrl>
-    <tycho.generateSourceReferences>false</tycho.generateSourceReferences>
+    <tycho.scmUrl>scm:git:https://github.com/redhat-developer/quarkus-ls</tycho.scmUrl>
+    <tycho.generateSourceReferences>true</tycho.generateSourceReferences>
     <jdt.ls.version>0.41.0.20190726144529</jdt.ls.version>
     <tycho.test.platformArgs />
     <tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
@@ -26,7 +26,7 @@
 
     <!-- Code coverage -->
     <jacoco.version>0.7.9</jacoco.version>
-    <coverage.filter>org.eclipse.jdt.ls.*</coverage.filter>
+    <coverage.filter>com.redhat.quarkus.jdt.*</coverage.filter>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <jacoco.destFile>${project.build.directory}/jacoco.exec</jacoco.destFile>
     <sonar.jacoco.reportPath>${jacoco.destFile}</sonar.jacoco.reportPath>
@@ -34,9 +34,9 @@
 
   <repositories>
     <repository>
-      <id>2019-03</id>
+      <id>2019-06</id>
       <layout>p2</layout>
-      <url>http://download.eclipse.org/releases/2019-03</url>
+      <url>http://download.eclipse.org/releases/2019-06</url>
     </repository>
     <repository>
       <id>jdt.ls.p2</id>
@@ -100,7 +100,7 @@
           <artifactId>tycho-surefire-plugin</artifactId>
           <version>${tycho.version}</version>
           <configuration>
-            <useUIHarness>true</useUIHarness>
+            <useUIHarness>false</useUIHarness>
             <argLine>${tycho.test.jvmArgs}</argLine>
             <!-- kill test JVM if tests take more than 1 minute (60 seconds) to finish -->
             <forkedProcessTimeoutInSeconds>60</forkedProcessTimeoutInSeconds>

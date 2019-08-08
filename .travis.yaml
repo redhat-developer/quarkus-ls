@@ -1,0 +1,19 @@
+language: java
+
+jdk:
+- openjdk8
+
+before_cache:
+- rm -rf $HOME/.m2/repository/**/*-SNAPSHOT
+
+cache:
+  directories:
+  - "$HOME/.m2/repository"
+  - "$HOME/.m2/wrapper"
+
+script:
+- "cd quarkus.jdt && ./mvnw clean verify -DskipTests"
+- "cd ../quarkus.ls/com.redhat.quarkus.ls && ./mvnw clean verify"
+
+notifications:
+  email: true

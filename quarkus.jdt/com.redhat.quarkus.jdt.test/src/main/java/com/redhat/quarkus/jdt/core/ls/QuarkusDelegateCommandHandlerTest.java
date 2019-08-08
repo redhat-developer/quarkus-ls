@@ -1,6 +1,7 @@
 package com.redhat.quarkus.jdt.core.ls;
 
 import static org.junit.Assert.assertEquals;
+import com.redhat.quarkus.jdt.core.ls.QuarkusDelegateCommandHandler;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +21,6 @@ public class QuarkusDelegateCommandHandlerTest {
 
 	@Test
 	public void veryStupidTest() throws Exception {
-		assertEquals("Hello World", commandHandler.executeCommand(QuarkusDelegateCommandHandler.COMMAND_ID, null, null));
+		assertEquals("quarkus.java.projectInfo", QuarkusDelegateCommandHandler.PROJECT_INFO_COMMAND_ID);
 	}
 }

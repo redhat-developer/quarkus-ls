@@ -15,6 +15,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
 		<dev.build.timestamp>${maven.build.timestamp}</dev.build.timestamp>
+		<lsp4j.version>0.7.2</lsp4j.version>
 	</properties>
 
 	<build>
@@ -50,7 +51,6 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.1.1</version>
 				<configuration>
 					<descriptors combine.children="append">
 						<descriptor>src/assembly/distribution.xml</descriptor>
@@ -79,12 +79,22 @@
 		<dependency>
 			<groupId>org.eclipse.lsp4j</groupId>
 			<artifactId>org.eclipse.lsp4j</artifactId>
-			<version>0.7.2</version>
+			<version>${lsp4j.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.errorprone</groupId>
+					<artifactId>error_prone_annotations</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>animal-sniffer-annotations</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.lsp4j</groupId>
 			<artifactId>org.eclipse.lsp4j.jsonrpc</artifactId>
-			<version>0.7.2</version>
+			<version>${lsp4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
