@@ -18,9 +18,11 @@ package com.redhat.quarkus.settings;
 public class SharedSettings {
 
 	private final QuarkusCompletionSettings completionSettings;
+	private final QuarkusHoverSettings hoverSettings;
 
 	public SharedSettings() {
 		this.completionSettings = new QuarkusCompletionSettings();
+		this.hoverSettings = new QuarkusHoverSettings();
 	}
 
 	/**
@@ -30,5 +32,14 @@ public class SharedSettings {
 	 */
 	public QuarkusCompletionSettings getCompletionSettings() {
 		return completionSettings;
+	}
+
+	/**
+	 * Returns the hover settings.
+	 * 
+	 * @return the hover settings.
+	 */
+	public QuarkusHoverSettings getHoverSettings() {
+		return hoverSettings;
 	}
 }

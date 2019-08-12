@@ -57,7 +57,7 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 		this.parentProcessId = params.getProcessId();
 		ServerCapabilities serverCapabilities = new ServerCapabilities();
 		serverCapabilities.setTextDocumentSync(TextDocumentSyncKind.Incremental);
-		serverCapabilities.setHoverProvider(false);
+		serverCapabilities.setHoverProvider(true);
 		serverCapabilities.setCompletionProvider(new CompletionOptions(false, Collections.emptyList()));
 		serverCapabilities.setDefinitionProvider(false);
 		serverCapabilities.setTypeDefinitionProvider(false);

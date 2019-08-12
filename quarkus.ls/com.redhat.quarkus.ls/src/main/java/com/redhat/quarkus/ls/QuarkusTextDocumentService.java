@@ -22,9 +22,11 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
+import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
+import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
@@ -64,6 +66,7 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		TextDocumentClientCapabilities textDocumentClientCapabilities = capabilities.getTextDocument();
 		if (textDocumentClientCapabilities != null) {
 			sharedSettings.getCompletionSettings().setCapabilities(textDocumentClientCapabilities.getCompletion());
+			sharedSettings.getHoverSettings().setCapabilities(textDocumentClientCapabilities.getHover());
 		}
 	}
 
@@ -105,6 +108,21 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 			CompletionList list = getQuarkusLanguageService().doComplete(document, params.getPosition(), projectInfo,
 					sharedSettings.getCompletionSettings(), null);
 			return Either.forRight(list);
+		});
+	}
+
+	@Override
+	public CompletableFuture<Hover> hover(TextDocumentPositionParams params) {
+
+		QuarkusProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument(), null);
+		return projectInfoCache.getQuarkusProjectInfo(projectInfoParams).thenApplyAsync(projectInfo -> {
+			if (!projectInfo.isQuarkusProject()) {
+				return new Hover();
+			}
+			
+			String uri = params.getTextDocument().getUri();
+			TextDocument document = documents.get(uri);
+			return getQuarkusLanguageService().doHover(document, params.getPosition(), projectInfo, sharedSettings.getHoverSettings());
 		});
 	}
 

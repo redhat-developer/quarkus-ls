@@ -121,7 +121,7 @@ public class PropertiesScannerUtils {
 			return new PropertiesToken(startLineOffset, text.length() - 1, PropertiesTokenType.COMMENTS);
 		case KEY:
 			// In key type, end offset is the end of line or '='
-			for (int i = startLineOffset; i < text.length() - startLineOffset; i++) {
+			for (int i = startLineOffset; i < text.length(); i++) {
 				char c = text.charAt(i);
 				if (c == '=' || c == '\r' || c == '\n') {
 					return new PropertiesToken(startLineOffset, i - 1, PropertiesTokenType.KEY);
