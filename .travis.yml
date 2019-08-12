@@ -12,7 +12,7 @@ cache:
   - "$HOME/.m2/wrapper"
 
 script:
-- "cd quarkus.jdt && ./mvnw clean verify -DskipTests"
+- "cd quarkus.jdt && ./mvnw clean verify"
 - "cd ../quarkus.ls/com.redhat.quarkus.ls && ./mvnw clean verify"
 
 notifications:
