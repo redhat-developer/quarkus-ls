@@ -24,7 +24,7 @@ package com.redhat.quarkus.utils;
 public class PropertiesScannerUtils {
 
 	public static enum PropertiesTokenType {
-		COMMENTS, KEY, VALUE;
+		COMMENTS, KEY, VALUE, EQUALS;
 	}
 
 	/**
@@ -86,20 +86,23 @@ public class PropertiesScannerUtils {
 		// Search the token type (Comments, key, value) at the given offset
 		PropertiesTokenType type = null;
 		boolean stop = false;
-		for (int i = startLineOffset; i < offset && !stop; i++) {
+
+		for (int i = startLineOffset; i <= offset && i < text.length() && !stop; i++) {
 			char c = text.charAt(i);
 			switch (c) {
 			case ' ':
 				break;
 			case '#':
-				if (type == null) {
-					type = PropertiesTokenType.COMMENTS;
-					stop = true;
-				}
+				type = PropertiesTokenType.COMMENTS;
+				stop = true;
 				break;
 			case '=':
-				type = PropertiesTokenType.VALUE;
-				stop = true;
+				if (i == offset) {
+					type = PropertiesTokenType.EQUALS;	
+				} else {
+					type = PropertiesTokenType.VALUE;
+					stop = true;
+				}
 				break;
 			default:
 				type = PropertiesTokenType.KEY;
@@ -123,7 +126,7 @@ public class PropertiesScannerUtils {
 			// In key type, end offset is the end of line or '='
 			for (int i = startLineOffset; i < text.length(); i++) {
 				char c = text.charAt(i);
-				if (c == '=' || c == '\r' || c == '\n') {
+				if (c == '#' || c == '=' || c == '\r' || c == '\n') {
 					return new PropertiesToken(startLineOffset, i - 1, PropertiesTokenType.KEY);
 				}
 			}
@@ -153,6 +156,8 @@ public class PropertiesScannerUtils {
 				}
 			}
 			return new PropertiesToken(tokenStartOffset, text.length() - 1, PropertiesTokenType.VALUE);
+		case EQUALS:
+			return new PropertiesToken(offset, offset + 1, PropertiesTokenType.EQUALS);
 		default:
 			return new PropertiesToken(startLineOffset, text.length() - 1, PropertiesTokenType.KEY);
 		}

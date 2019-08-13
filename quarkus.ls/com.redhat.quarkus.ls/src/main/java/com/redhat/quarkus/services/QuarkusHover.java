@@ -26,7 +26,6 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
 
 /**
  * Retreives hover documentation and creating Hover object

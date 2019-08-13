@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.ClientCapabilities;
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionParams;
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
@@ -50,6 +53,8 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 
 	private final SharedSettings sharedSettings;
 
+	private boolean codeActionLiteralSupport;
+
 	public QuarkusTextDocumentService(QuarkusLanguageServer quarkusLanguageServer) {
 		this.quarkusLanguageServer = quarkusLanguageServer;
 		this.documents = new TextDocuments<TextDocument>();
@@ -64,6 +69,10 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 	 */
 	public void updateClientCapabilities(ClientCapabilities capabilities) {
 		TextDocumentClientCapabilities textDocumentClientCapabilities = capabilities.getTextDocument();
+		
+		codeActionLiteralSupport = textDocumentClientCapabilities.getCodeAction() != null
+			&& textDocumentClientCapabilities.getCodeAction().getCodeActionLiteralSupport() != null;
+
 		if (textDocumentClientCapabilities != null) {
 			sharedSettings.getCompletionSettings().setCapabilities(textDocumentClientCapabilities.getCompletion());
 			sharedSettings.getHoverSettings().setCapabilities(textDocumentClientCapabilities.getHover());
@@ -126,6 +135,25 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		});
 	}
 
+	@Override
+	public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActionParams params) {
+		String uri = params.getTextDocument().getUri();
+		TextDocument document = documents.get(uri);
+
+		List<CodeAction> codeActions = getQuarkusLanguageService()
+		.doCodeActions(params.getContext(), params.getRange(), document);
+
+		List<Either<Command, CodeAction>> results = new ArrayList<>();
+
+		if (codeActionLiteralSupport) {
+			for (CodeAction codeAction: codeActions) {
+				results.add(Either.forRight(codeAction));
+			}
+		}
+
+		return CompletableFuture.completedFuture(results);
+	}
+
 	private static QuarkusProjectInfoParams createProjectInfoParams(TextDocumentIdentifier id,
 			List<String> documentationFormat) {
 		return new QuarkusProjectInfoParams(id.getUri(), documentationFormat);
@@ -136,7 +164,9 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 	}
 
 	private void triggerValidationFor(TextDocument document) {
-		// TODO: implement validation for application.properties
+		getQuarkusLanguageService().publishDiagnostics(document,
+				params -> quarkusLanguageServer.getLanguageClient().publishDiagnostics(params),
+				sharedSettings.getValidationSettings());
 	}
 
 }

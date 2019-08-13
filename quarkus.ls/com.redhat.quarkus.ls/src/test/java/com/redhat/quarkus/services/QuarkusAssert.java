@@ -9,24 +9,12 @@
 *******************************************************************************/
 package com.redhat.quarkus.services;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.eclipse.lsp4j.CompletionCapabilities;
-import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.CompletionItemCapabilities;
-import org.eclipse.lsp4j.CompletionList;
-import org.eclipse.lsp4j.Hover;
-import org.eclipse.lsp4j.HoverCapabilities;
-import org.eclipse.lsp4j.MarkedString;
-import org.eclipse.lsp4j.MarkupContent;
-import org.eclipse.lsp4j.MarkupKind;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.TextEdit;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import org.junit.Assert;
 
 import com.google.gson.Gson;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
@@ -34,6 +22,28 @@ import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 import com.redhat.quarkus.settings.QuarkusHoverSettings;
+import com.redhat.quarkus.settings.QuarkusValidationSettings;
+
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionContext;
+import org.eclipse.lsp4j.CompletionCapabilities;
+import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionItemCapabilities;
+import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.HoverCapabilities;
+import org.eclipse.lsp4j.MarkedString;
+import org.eclipse.lsp4j.MarkupContent;
+import org.eclipse.lsp4j.MarkupKind;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.TextDocumentEdit;
+import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
+import org.eclipse.lsp4j.WorkspaceEdit;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.junit.Assert;
 
 /**
  * Quarkus assert
@@ -187,7 +197,7 @@ public class QuarkusAssert {
 		HoverCapabilities capabilities = new HoverCapabilities(Arrays.asList(MarkupKind.MARKDOWN), false);
 		hoverSettings.setCapabilities(capabilities);
 		
-		assertHover(value, null, getDefaultQuarkusProjectInfo(), hoverSettings, expectedHoverLabel, expectedHoverOffset);
+		assertHover(value, getDefaultQuarkusProjectInfo(), hoverSettings, expectedHoverLabel, expectedHoverOffset);
 	}
 
 	public static void assertHoverPlaintext(String value, String expectedHoverLabel, 
@@ -197,16 +207,16 @@ public class QuarkusAssert {
 		HoverCapabilities capabilities = new HoverCapabilities(Arrays.asList(MarkupKind.PLAINTEXT), false);
 		hoverSettings.setCapabilities(capabilities);
 
-		assertHover(value, null, getDefaultQuarkusProjectInfo(), hoverSettings, expectedHoverLabel, expectedHoverOffset);
+		assertHover(value, getDefaultQuarkusProjectInfo(), hoverSettings, expectedHoverLabel, expectedHoverOffset);
 	}
 
-	public static void assertHover(String value, String fileURI, QuarkusProjectInfo projectInfo, 
+	public static void assertHover(String value, QuarkusProjectInfo projectInfo, 
 			QuarkusHoverSettings hoverSettings, String expectedHoverLabel, Integer expectedHoverOffset) throws BadLocationException {
 		
 		int offset = value.indexOf("|");
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
-		TextDocument document = new TextDocument(value, fileURI != null ? fileURI : "test://test/test.html");
+		TextDocument document = new TextDocument(value, "application.properties");
 		Position position = document.positionAt(offset);
 		QuarkusLanguageService languageService = new QuarkusLanguageService();
 
@@ -231,6 +241,96 @@ public class QuarkusAssert {
 			return null;
 		}
 		return contents.getRight().getValue();
+	}
+
+	// ------------------- Diagnostics assert
+
+	public static void testDiagnosticsFor(String content, Diagnostic... expected) {
+
+		TextDocument document = new TextDocument(content, "application.properties");
+		QuarkusLanguageService languageService = new QuarkusLanguageService();
+
+		QuarkusValidationSettings validationSettings = new QuarkusValidationSettings();
+
+		List<Diagnostic> actual = languageService.doDiagnostics(document, validationSettings);
+
+		if (expected == null) {
+			assertTrue(actual.isEmpty());
+			return;
+		}
+
+		actual = actual.stream().map(d -> {
+			Diagnostic simpler = new Diagnostic(d.getRange(), "");
+			simpler.setCode(d.getCode());
+			return simpler;
+		}).collect(Collectors.toList());
+
+		Assert.assertEquals(Arrays.asList(expected), actual);
+	}
+
+	public static Diagnostic d(int startLine, int startCharacter, int endLine, int endCharacter, String code) {
+		return new Diagnostic(r(startLine, startCharacter, endLine, endCharacter), "", null, null, code);
+	}
+
+	public static Range r(int startLine, int startCharacter, int endLine, int endCharacter) {
+		return new Range(
+			new Position(startLine, startCharacter),
+			new Position(endLine, endCharacter)
+		);
+	}
+
+	// ------------------- CodeAction assert
+
+	public static void testCodeActionsFor(String content, Diagnostic diagnostic, CodeAction... expected) {
+		TextDocument document = new TextDocument(content, "application.properties");
+		QuarkusLanguageService languageService = new QuarkusLanguageService();
+
+		CodeActionContext context = new CodeActionContext();
+		context.setDiagnostics(Arrays.asList(diagnostic));
+		Range range = diagnostic.getRange();
+
+		List<CodeAction> actual = languageService.doCodeActions(context, range, document);
+		assertCodeActions(actual, expected);
+	}
+
+	public static void assertCodeActions(List<CodeAction> actual, CodeAction... expected) {
+		actual.stream().forEach(ca -> {
+			// we don't want to compare title, etc
+			ca.setCommand(null);
+			ca.setKind(null);
+			ca.setTitle("");
+			if (ca.getDiagnostics() != null) {
+				ca.getDiagnostics().forEach(d -> {
+					d.setSeverity(null);
+					d.setMessage("");
+					d.setSource(null);
+				});
+			}
+		});
+
+		Assert.assertEquals(expected.length, actual.size());
+		Assert.assertArrayEquals(expected, actual.toArray());
+	}
+
+	public static CodeAction ca(Diagnostic d, TextEdit te) {
+		CodeAction codeAction = new CodeAction();
+		codeAction.setTitle("");
+		codeAction.setDiagnostics(Arrays.asList(d));
+
+		VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier("application.properties", 0);
+
+		TextDocumentEdit textDocumentEdit = new TextDocumentEdit(versionedTextDocumentIdentifier,
+				Collections.singletonList(te));
+		WorkspaceEdit workspaceEdit = new WorkspaceEdit(Collections.singletonList(Either.forLeft(textDocumentEdit)));
+		codeAction.setEdit(workspaceEdit);
+		return codeAction;
+	}
+
+	public static TextEdit te(int startLine, int startCharacter, int endLine, int endCharacter, String newText) {
+		TextEdit textEdit = new TextEdit();
+		textEdit.setNewText(newText);
+		textEdit.setRange(r(startLine, startCharacter, endLine, endCharacter));
+		return textEdit;
 	}
 
 }

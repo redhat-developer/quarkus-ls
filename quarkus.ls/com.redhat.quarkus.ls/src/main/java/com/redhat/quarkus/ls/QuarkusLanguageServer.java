@@ -66,7 +66,7 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 		serverCapabilities.setDocumentHighlightProvider(false);
 		serverCapabilities.setDocumentSymbolProvider(false);
 		serverCapabilities.setWorkspaceSymbolProvider(false);
-		serverCapabilities.setCodeActionProvider(false);
+		serverCapabilities.setCodeActionProvider(true);
 		serverCapabilities.setDocumentFormattingProvider(true);
 		serverCapabilities.setDocumentRangeFormattingProvider(true);
 		serverCapabilities.setRenameProvider(false);
