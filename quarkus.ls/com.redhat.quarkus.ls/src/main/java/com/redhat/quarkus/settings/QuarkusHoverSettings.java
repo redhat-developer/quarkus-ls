@@ -34,7 +34,7 @@ public class QuarkusHoverSettings {
 	 * @return <code>true</code> if the client support the given documentation
 	 *         format and <code>false</code> otherwise.
 	 */
-	public boolean isDocumentationFormatSupported(String documentationFormat) {
+	public boolean isContentFormatSupported(String documentationFormat) {
 		return capabilities.getContentFormat() != null
 				&& capabilities.getContentFormat().contains(documentationFormat);
 	}

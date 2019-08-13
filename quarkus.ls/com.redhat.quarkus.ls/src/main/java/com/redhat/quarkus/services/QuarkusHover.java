@@ -18,6 +18,7 @@ import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.settings.QuarkusHoverSettings;
 import com.redhat.quarkus.utils.DocumentationUtils;
+import com.redhat.quarkus.utils.PositionUtils;
 import com.redhat.quarkus.utils.PropertiesScannerUtils;
 import com.redhat.quarkus.utils.PropertiesScannerUtils.PropertiesToken;
 
@@ -25,7 +26,11 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
 
+/**
+ * Retreives hover documentation and creating Hover object
+ */
 class QuarkusHover {
 
 	private static final Logger LOGGER = Logger.getLogger(QuarkusCompletions.class.getName());
@@ -41,15 +46,16 @@ class QuarkusHover {
 	 */
 	public Hover doHover(TextDocument document, Position position, QuarkusProjectInfo projectInfo,
 			QuarkusHoverSettings hoverSettings) {
-		Hover hover = new Hover();
-		String text = document.getText();
+
 		int offset;
 		try {
 			offset = document.offsetAt(position);
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In QuarkusHover, position error", e);
-			return hover;
+			return null;
 		}
+
+		String text = document.getText();
 		int startLineOffset = offset - position.getCharacter();
 		PropertiesToken token = PropertiesScannerUtils.getTokenAt(text, startLineOffset, offset);
 		
@@ -59,26 +65,26 @@ class QuarkusHover {
 				break;
 			case KEY:
 				// hover documentation on property key
-				collectPropertyKeyDocumentation(document, token, projectInfo, hoverSettings, hover);
-				break;
+				return getPropertyKeyHover(document, token, projectInfo, hoverSettings);
 			case VALUE:
 				// no hover documentation
 				break;
 			}
-		return hover;
+
+		return null;
 	}
 
 	/**
-	 * Collect the documentation for property key represented by token
+	 * Returns the documentation hover for property key represented by <code>token</code>
 	 * 
 	 * @param document      the document
 	 * @param token         the token representing the property key being hovered
 	 * @param projectInfo   the Quarkus project information
 	 * @param hoverSettings the hover settings
-	 * @param hover         the hover object to fill with documentation
+	 * @return the documentation hover for property key represented by token
 	 */
-	private static void collectPropertyKeyDocumentation(TextDocument document, PropertiesToken token, QuarkusProjectInfo projectInfo, 
-			QuarkusHoverSettings hoverSettings, Hover hover) {
+	private static Hover getPropertyKeyHover(TextDocument document, PropertiesToken token, QuarkusProjectInfo projectInfo, 
+			QuarkusHoverSettings hoverSettings) {
 
 		String keyName = null;
 		try {
@@ -88,15 +94,19 @@ class QuarkusHover {
 			keyName = line.substring(0, keyLength).trim();
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In QuarkusHover, position error", e);
+			return null;
 		}
 		
-		boolean markdownSupported = hoverSettings.isDocumentationFormatSupported(MarkupKind.MARKDOWN);
+		Hover hover = new Hover();
+		boolean markdownSupported = hoverSettings.isContentFormatSupported(MarkupKind.MARKDOWN);
 		for (ExtendedConfigDescriptionBuildItem property : projectInfo.getProperties()) {
 			if (keyName.equals(property.getPropertyName())) {
 				MarkupContent markupContent = DocumentationUtils.getDocumentation(property, markdownSupported);
 				hover.setContents(markupContent);
-				return;
+				hover.setRange(PositionUtils.createRange(token.getStart(), token.getEnd(), document));
+				return hover;
 			}
 		}
+		return null;
 	}
 }

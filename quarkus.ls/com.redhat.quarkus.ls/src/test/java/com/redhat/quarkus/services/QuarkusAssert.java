@@ -9,6 +9,7 @@
 *******************************************************************************/
 package com.redhat.quarkus.services;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,10 +17,15 @@ import org.eclipse.lsp4j.CompletionCapabilities;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemCapabilities;
 import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.HoverCapabilities;
+import org.eclipse.lsp4j.MarkedString;
 import org.eclipse.lsp4j.MarkupContent;
+import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.junit.Assert;
 
 import com.google.gson.Gson;
@@ -27,6 +33,7 @@ import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.settings.QuarkusCompletionSettings;
+import com.redhat.quarkus.settings.QuarkusHoverSettings;
 
 /**
  * Quarkus assert
@@ -169,6 +176,61 @@ public class QuarkusAssert {
 
 	public static CompletionItem c(String label, String newText, Range range, String filterText) {
 		return c(label, new TextEdit(range, newText), filterText);
+	}
+
+	// ------------------- Hover assert
+
+	public static void assertHoverMarkdown(String value, String expectedHoverLabel, 
+			Integer expectedHoverOffset) throws BadLocationException {
+		
+		QuarkusHoverSettings hoverSettings = new QuarkusHoverSettings();
+		HoverCapabilities capabilities = new HoverCapabilities(Arrays.asList(MarkupKind.MARKDOWN), false);
+		hoverSettings.setCapabilities(capabilities);
+		
+		assertHover(value, null, getDefaultQuarkusProjectInfo(), hoverSettings, expectedHoverLabel, expectedHoverOffset);
+	}
+
+	public static void assertHoverPlaintext(String value, String expectedHoverLabel, 
+			Integer expectedHoverOffset) throws BadLocationException {
+
+		QuarkusHoverSettings hoverSettings = new QuarkusHoverSettings();
+		HoverCapabilities capabilities = new HoverCapabilities(Arrays.asList(MarkupKind.PLAINTEXT), false);
+		hoverSettings.setCapabilities(capabilities);
+
+		assertHover(value, null, getDefaultQuarkusProjectInfo(), hoverSettings, expectedHoverLabel, expectedHoverOffset);
+	}
+
+	public static void assertHover(String value, String fileURI, QuarkusProjectInfo projectInfo, 
+			QuarkusHoverSettings hoverSettings, String expectedHoverLabel, Integer expectedHoverOffset) throws BadLocationException {
+		
+		int offset = value.indexOf("|");
+		value = value.substring(0, offset) + value.substring(offset + 1);
+
+		TextDocument document = new TextDocument(value, fileURI != null ? fileURI : "test://test/test.html");
+		Position position = document.positionAt(offset);
+		QuarkusLanguageService languageService = new QuarkusLanguageService();
+
+
+		Hover hover = languageService.doHover(document, position, projectInfo, hoverSettings);
+		if (expectedHoverLabel == null) {
+			Assert.assertNull(hover);
+		} else {
+			String actualHoverLabel = getHoverLabel(hover);
+			Assert.assertEquals(expectedHoverLabel, actualHoverLabel);
+			if (expectedHoverOffset != null) {
+				Assert.assertNotNull(hover.getRange());
+				Assert.assertNotNull(hover.getRange().getStart());
+				Assert.assertEquals(expectedHoverOffset.intValue(), hover.getRange().getStart().getCharacter());
+			}
+		}
+	}
+
+	private static String getHoverLabel(Hover hover) {
+		Either<List<Either<String, MarkedString>>, MarkupContent> contents = hover != null ? hover.getContents() : null;
+		if (contents == null) {
+			return null;
+		}
+		return contents.getRight().getValue();
 	}
 
 }
