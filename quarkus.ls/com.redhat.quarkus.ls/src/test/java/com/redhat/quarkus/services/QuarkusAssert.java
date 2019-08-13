@@ -56,16 +56,16 @@ public class QuarkusAssert {
 
 	// ------------------- Completion assert
 
-	public static void testCompletionFor(String value, CompletionItem... expectedItems) throws BadLocationException {
-		testCompletionFor(value, null, expectedItems);
+	public static void testCompletionFor(String value, boolean snippetSupport, CompletionItem... expectedItems) throws BadLocationException {
+		testCompletionFor(value, snippetSupport, null, expectedItems);
 	}
 
-	public static void testCompletionFor(String value, Integer expectedCount, CompletionItem... expectedItems)
+	public static void testCompletionFor(String value, boolean snippetSupport, Integer expectedCount, CompletionItem... expectedItems)
 			throws BadLocationException {
-		testCompletionFor(value, null, expectedCount, getDefaultQuarkusProjectInfo(), expectedItems);
+		testCompletionFor(value, snippetSupport, null, expectedCount, getDefaultQuarkusProjectInfo(), expectedItems);
 	}
 
-	public static void testCompletionFor(String value, String fileURI, Integer expectedCount,
+	public static void testCompletionFor(String value, boolean snippetSupport, String fileURI, Integer expectedCount,
 			QuarkusProjectInfo projectInfo, CompletionItem... expectedItems) throws BadLocationException {
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
@@ -76,7 +76,7 @@ public class QuarkusAssert {
 		// Add snippet support for completion
 		QuarkusCompletionSettings completionSettings = new QuarkusCompletionSettings();
 		CompletionItemCapabilities completionItemCapabilities = new CompletionItemCapabilities();
-		completionItemCapabilities.setSnippetSupport(true);
+		completionItemCapabilities.setSnippetSupport(snippetSupport);
 		CompletionCapabilities completionCapabilities = new CompletionCapabilities(completionItemCapabilities);
 		completionSettings.setCapabilities(completionCapabilities);
 
@@ -121,15 +121,15 @@ public class QuarkusAssert {
 		 * expected.getd); } if (expected.kind) { Assert.assertEquals(match.kind,
 		 * expected.kind); }
 		 */
-		if (expected.getTextEdit() != null && match.getTextEdit() != null) {
-			if (expected.getTextEdit().getNewText() != null) {
-				Assert.assertEquals(expected.getTextEdit().getNewText(), match.getTextEdit().getNewText());
-			}
-			Range r = expected.getTextEdit().getRange();
-			if (r != null && r.getStart() != null && r.getEnd() != null) {
-				Assert.assertEquals(expected.getTextEdit().getRange(), match.getTextEdit().getRange());
-			}
+		// if (expected.getTextEdit() != null && match.getTextEdit() != null) {
+		if (expected.getTextEdit().getNewText() != null) {
+			Assert.assertEquals(expected.getTextEdit().getNewText(), match.getTextEdit().getNewText());
 		}
+		Range r = expected.getTextEdit().getRange();
+		if (r != null && r.getStart() != null && r.getEnd() != null) {
+			Assert.assertEquals(expected.getTextEdit().getRange(), match.getTextEdit().getRange());
+		}
+		// }
 		if (expected.getFilterText() != null && match.getFilterText() != null) {
 			Assert.assertEquals(expected.getFilterText(), match.getFilterText());
 		}
@@ -166,50 +166,50 @@ public class QuarkusAssert {
 		return item;
 	}
 
-	public static CompletionItem c(String label, String newText) {
-		return c(label, newText, null);
+	public static CompletionItem c(String label, String newText, Range range) {
+		return c(label, new TextEdit(range, newText), null);
 	}
 
-	public static CompletionItem c(String label, String newText, String filterText) {
-		return c(label, newText, new Range(), filterText);
-	}
-
-	public static CompletionItem c(String label, String newText, Range range, String filterText) {
-		return c(label, new TextEdit(range, newText), filterText);
+	public static Range r(int line, int startChar, int endChar) {
+		Position start = new Position(line, startChar);
+		Position end = new Position(line, endChar);
+		return new Range(start, end);
 	}
 
 	// ------------------- Hover assert
 
-	public static void assertHoverMarkdown(String value, String expectedHoverLabel, 
-			Integer expectedHoverOffset) throws BadLocationException {
-		
+	public static void assertHoverMarkdown(String value, String expectedHoverLabel, Integer expectedHoverOffset)
+			throws BadLocationException {
+
 		QuarkusHoverSettings hoverSettings = new QuarkusHoverSettings();
 		HoverCapabilities capabilities = new HoverCapabilities(Arrays.asList(MarkupKind.MARKDOWN), false);
 		hoverSettings.setCapabilities(capabilities);
-		
-		assertHover(value, null, getDefaultQuarkusProjectInfo(), hoverSettings, expectedHoverLabel, expectedHoverOffset);
+
+		assertHover(value, null, getDefaultQuarkusProjectInfo(), hoverSettings, expectedHoverLabel,
+				expectedHoverOffset);
 	}
 
-	public static void assertHoverPlaintext(String value, String expectedHoverLabel, 
-			Integer expectedHoverOffset) throws BadLocationException {
+	public static void assertHoverPlaintext(String value, String expectedHoverLabel, Integer expectedHoverOffset)
+			throws BadLocationException {
 
 		QuarkusHoverSettings hoverSettings = new QuarkusHoverSettings();
 		HoverCapabilities capabilities = new HoverCapabilities(Arrays.asList(MarkupKind.PLAINTEXT), false);
 		hoverSettings.setCapabilities(capabilities);
 
-		assertHover(value, null, getDefaultQuarkusProjectInfo(), hoverSettings, expectedHoverLabel, expectedHoverOffset);
+		assertHover(value, null, getDefaultQuarkusProjectInfo(), hoverSettings, expectedHoverLabel,
+				expectedHoverOffset);
 	}
 
-	public static void assertHover(String value, String fileURI, QuarkusProjectInfo projectInfo, 
-			QuarkusHoverSettings hoverSettings, String expectedHoverLabel, Integer expectedHoverOffset) throws BadLocationException {
-		
+	public static void assertHover(String value, String fileURI, QuarkusProjectInfo projectInfo,
+			QuarkusHoverSettings hoverSettings, String expectedHoverLabel, Integer expectedHoverOffset)
+			throws BadLocationException {
+
 		int offset = value.indexOf("|");
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
 		TextDocument document = new TextDocument(value, fileURI != null ? fileURI : "test://test/test.html");
 		Position position = document.positionAt(offset);
 		QuarkusLanguageService languageService = new QuarkusLanguageService();
-
 
 		Hover hover = languageService.doHover(document, position, projectInfo, hoverSettings);
 		if (expectedHoverLabel == null) {

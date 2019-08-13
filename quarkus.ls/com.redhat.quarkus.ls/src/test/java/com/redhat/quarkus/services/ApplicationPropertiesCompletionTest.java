@@ -10,6 +10,7 @@
 package com.redhat.quarkus.services;
 
 import static com.redhat.quarkus.services.QuarkusAssert.c;
+import static com.redhat.quarkus.services.QuarkusAssert.r;
 import static com.redhat.quarkus.services.QuarkusAssert.testCompletionFor;
 
 import org.junit.Test;
@@ -27,33 +28,51 @@ public class ApplicationPropertiesCompletionTest {
 	@Test
 	public void completionOnComments() throws BadLocationException {
 		String value = "#|";
-		testCompletionFor(value, 0);
+		testCompletionFor(value, true, 0);
 
 		value = " #|";
-		testCompletionFor(value, 0);
+		testCompletionFor(value, true, 0);
 	}
 
 	@Test
 	public void completionOnKey() throws BadLocationException {
 		String value = "|";
-		testCompletionFor(value, c("quarkus.http.cors", "quarkus.http.cors"));
+		testCompletionFor(value, false, c("quarkus.http.cors", "quarkus.http.cors = false", r(0, 0, 0)));
+		testCompletionFor(value, true, c("quarkus.http.cors", "quarkus.http.cors = ${1|false,true|}", r(0, 0, 0)));
 
 		value = " |";
-		testCompletionFor(value, c("quarkus.http.cors", "quarkus.http.cors"));
+		testCompletionFor(value, false, c("quarkus.http.cors", "quarkus.http.cors = false", r(0, 0, 1)));
+		testCompletionFor(value, true, c("quarkus.http.cors", "quarkus.http.cors = ${1|false,true|}", r(0, 0, 1)));
 
 		value = " quarkus.http.co|rs = ";
-		testCompletionFor(value, c("quarkus.http.cors", "quarkus.http.cors"));
-
-		value = " quarkus.http.co|rs = ";
-		testCompletionFor(value, c("quarkus.http.cors", "quarkus.http.cors"));
+		testCompletionFor(value, false, c("quarkus.http.cors", "quarkus.http.cors = false", r(0, 0, 21)));
+		testCompletionFor(value, true, c("quarkus.http.cors", "quarkus.http.cors = ${1|false,true|}", r(0, 0, 21)));
 
 		value = " quarkus.http.cors =| ";
-		testCompletionFor(value, 0);
+		testCompletionFor(value, true, 0);
 	}
 
 	@Test
 	public void completionOnValue() throws BadLocationException {
 		String value = "quarkus.http.cors = | ";
-		testCompletionFor(value, 0);
+		testCompletionFor(value, true, 0);
 	}
+
+	@Test
+	public void completionOnKeyWithEnums() throws BadLocationException {
+		String value = "|";
+		// OverflowAction enum type
+		testCompletionFor(value, false,
+				c("quarkus.log.console.async.overflow", "quarkus.log.console.async.overflow = BLOCK", r(0, 0, 0)));
+		testCompletionFor(value, true, c("quarkus.log.console.async.overflow",
+				"quarkus.log.console.async.overflow = ${1|BLOCK,DISCARD|}", r(0, 0, 0)));
+
+		// Boolean type
+		testCompletionFor(value, false,
+				c("quarkus.datasource.enable-metrics", "quarkus.datasource.enable-metrics = false", r(0, 0, 0)));
+		testCompletionFor(value, true, c("quarkus.datasource.enable-metrics",
+				"quarkus.datasource.enable-metrics = ${1|false,true|}", r(0, 0, 0)));
+
+	}
+
 }
