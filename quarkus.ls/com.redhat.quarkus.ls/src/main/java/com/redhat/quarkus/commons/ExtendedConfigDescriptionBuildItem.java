@@ -184,4 +184,8 @@ public class ExtendedConfigDescriptionBuildItem {
 	public boolean isAvailableAtRun() {
 		return phase == CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED || phase == CONFIG_PHASE_RUN_TIME;
 	}
+
+	public boolean isBooleanType() {
+		return "boolean".equals(getType()) || "java.lang.Boolean".equals(getType());
+	}
 }
