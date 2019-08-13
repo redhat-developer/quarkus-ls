@@ -40,8 +40,19 @@ public class QuarkusLanguageService {
 		return completions.doComplete(document, position, projectInfo, completionSettings, cancelChecker);
 	}
 
+	/**
+	 * Returns Hover object for the currently hovered token
+	 * 
+	 * @param document      the document
+	 * @param position      the hover position
+	 * @param projectInfo   the Quarkus project information
+	 * @param hoverSettings the hover settings
+	 * @return Hover object for the currently hovered token
+	 */
 	public Hover doHover(TextDocument document, Position position, QuarkusProjectInfo projectInfo,
 			QuarkusHoverSettings hoverSettings) {
 		return hover.doHover(document, position, projectInfo, hoverSettings);
 	}
+
+	
 }

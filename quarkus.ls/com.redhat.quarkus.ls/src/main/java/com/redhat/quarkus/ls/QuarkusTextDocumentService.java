@@ -117,7 +117,7 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		QuarkusProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument(), null);
 		return projectInfoCache.getQuarkusProjectInfo(projectInfoParams).thenApplyAsync(projectInfo -> {
 			if (!projectInfo.isQuarkusProject()) {
-				return new Hover();
+				return null;
 			}
 			
 			String uri = params.getTextDocument().getUri();

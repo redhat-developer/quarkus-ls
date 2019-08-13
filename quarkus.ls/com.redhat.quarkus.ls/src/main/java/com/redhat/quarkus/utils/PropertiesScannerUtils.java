@@ -132,19 +132,27 @@ public class PropertiesScannerUtils {
 			// In value type, end offset is the end of line only if there are not a '\'
 			// character before (multi value)
 			boolean lastCharIsBackSlash = false;
-			for (int i = startLineOffset; i < text.length() - startLineOffset; i++) {
+			boolean reachedEquals = false;
+			int tokenStartOffset = startLineOffset;
+
+			for (int i = startLineOffset; i < text.length(); i++) {
 				char c = text.charAt(i);
 				if (c == '\\') {
 					lastCharIsBackSlash = true;
 				} else if (c == '\r' || c == '\n') {
 					if (!lastCharIsBackSlash) {
-						return new PropertiesToken(startLineOffset, i - 1, PropertiesTokenType.VALUE);
+						return new PropertiesToken(tokenStartOffset, i - 1, PropertiesTokenType.VALUE);
 					}
+				} else if (c == '=') {
+					reachedEquals = true;
 				} else {
 					lastCharIsBackSlash = false;
+					if (c != ' ' && reachedEquals && tokenStartOffset == startLineOffset) {
+						tokenStartOffset = i;
+					}
 				}
 			}
-			return new PropertiesToken(startLineOffset, text.length() - 1, PropertiesTokenType.VALUE);
+			return new PropertiesToken(tokenStartOffset, text.length() - 1, PropertiesTokenType.VALUE);
 		default:
 			return new PropertiesToken(startLineOffset, text.length() - 1, PropertiesTokenType.KEY);
 		}
