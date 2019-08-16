@@ -64,6 +64,13 @@ public class TextDocument extends TextDocumentItem {
 		return lineTracker.getPositionAt(position);
 	}
 
+	public Range lineRangeAt(int position) throws BadLocationException {
+		ILineTracker lineTracker = getLineTracker();
+		Line line = lineTracker.getLineInformationOfOffset(position);
+		int lineNumber = lineTracker.getLineNumberOfOffset(position);
+		return new Range(new Position(lineNumber, 0), new Position(lineNumber, line.length));
+	}
+
 	public int offsetAt(Position position) throws BadLocationException {
 		ILineTracker lineTracker = getLineTracker();
 		return lineTracker.getOffsetAt(position);
@@ -188,4 +195,5 @@ public class TextDocument extends TextDocumentItem {
 			}
 		}
 	}
+
 }

@@ -32,6 +32,7 @@ import com.google.gson.Gson;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.TextDocument;
+import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 import com.redhat.quarkus.settings.QuarkusHoverSettings;
 
@@ -56,12 +57,13 @@ public class QuarkusAssert {
 
 	// ------------------- Completion assert
 
-	public static void testCompletionFor(String value, boolean snippetSupport, CompletionItem... expectedItems) throws BadLocationException {
+	public static void testCompletionFor(String value, boolean snippetSupport, CompletionItem... expectedItems)
+			throws BadLocationException {
 		testCompletionFor(value, snippetSupport, null, expectedItems);
 	}
 
-	public static void testCompletionFor(String value, boolean snippetSupport, Integer expectedCount, CompletionItem... expectedItems)
-			throws BadLocationException {
+	public static void testCompletionFor(String value, boolean snippetSupport, Integer expectedCount,
+			CompletionItem... expectedItems) throws BadLocationException {
 		testCompletionFor(value, snippetSupport, null, expectedCount, getDefaultQuarkusProjectInfo(), expectedItems);
 	}
 
@@ -71,7 +73,8 @@ public class QuarkusAssert {
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
 		TextDocument document = new TextDocument(value, fileURI != null ? fileURI : "application.properties");
-		Position position = document.positionAt(offset);
+		PropertiesModel model = PropertiesModel.parse(document);
+		Position position = model.positionAt(offset);
 
 		// Add snippet support for completion
 		QuarkusCompletionSettings completionSettings = new QuarkusCompletionSettings();
@@ -81,7 +84,7 @@ public class QuarkusAssert {
 		completionSettings.setCapabilities(completionCapabilities);
 
 		QuarkusLanguageService languageService = new QuarkusLanguageService();
-		CompletionList list = languageService.doComplete(document, position, projectInfo, completionSettings, () -> {
+		CompletionList list = languageService.doComplete(model, position, projectInfo, completionSettings, () -> {
 		});
 
 		// no duplicate labels
@@ -208,10 +211,12 @@ public class QuarkusAssert {
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
 		TextDocument document = new TextDocument(value, fileURI != null ? fileURI : "test://test/test.html");
-		Position position = document.positionAt(offset);
+		PropertiesModel model = PropertiesModel.parse(document);
+		Position position = model.positionAt(offset);
+
 		QuarkusLanguageService languageService = new QuarkusLanguageService();
 
-		Hover hover = languageService.doHover(document, position, projectInfo, hoverSettings);
+		Hover hover = languageService.doHover(model, position, projectInfo, hoverSettings);
 		if (expectedHoverLabel == null) {
 			Assert.assertNull(hover);
 		} else {

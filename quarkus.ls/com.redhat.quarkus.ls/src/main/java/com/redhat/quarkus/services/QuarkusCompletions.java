@@ -29,11 +29,10 @@ import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.SnippetsBuilder;
-import com.redhat.quarkus.ls.commons.TextDocument;
+import com.redhat.quarkus.model.Node;
+import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 import com.redhat.quarkus.utils.DocumentationUtils;
-import com.redhat.quarkus.utils.PropertiesScannerUtils;
-import com.redhat.quarkus.utils.PropertiesScannerUtils.PropertiesToken;
 
 /**
  * The Quarkus completions
@@ -44,36 +43,46 @@ import com.redhat.quarkus.utils.PropertiesScannerUtils.PropertiesToken;
 class QuarkusCompletions {
 
 	private static final Logger LOGGER = Logger.getLogger(QuarkusCompletions.class.getName());
+
 	private static final Collection<String> BOOLEAN_ENUMS = Collections
 			.unmodifiableCollection(Arrays.asList("false", "true"));
 
-	public CompletionList doComplete(TextDocument document, Position position, QuarkusProjectInfo projectInfo,
+	/**
+	 * Returns completion list for the given position
+	 * 
+	 * @param document           the properties model document
+	 * @param position           the position where completion was triggereds
+	 * @param projectInfo        the Quarkus project information
+	 * @param completionSettings the completion settings
+	 * @param cancelChecker      the cancel checker
+	 * @return completion list for the given position
+	 */
+	public CompletionList doComplete(PropertiesModel document, Position position, QuarkusProjectInfo projectInfo,
 			QuarkusCompletionSettings completionSettings, CancelChecker cancelChecker) {
 		CompletionList list = new CompletionList();
-		String text = document.getText();
-		String lineText = null;
-		int offset;
+		Node node = null;
 		try {
-			offset = document.offsetAt(position);
-			lineText = document.lineText(position.getLine());
+			node = document.findNodeAt(position);
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In QuarkusCompletion, position error", e);
 			return list;
 		}
-		int startLineOffset = offset - position.getCharacter();
-		PropertiesToken token = PropertiesScannerUtils.getTokenAt(text, startLineOffset, offset);
-		switch (token.getType()) {
+		if (node == null) {
+			return list;
+		}
+
+		switch (node.getNodeType()) {
 		case COMMENTS:
 			// no completions
 			break;
-		case KEY:
-			// completion on property key
-			collectPropertyKeySuggestions(document, position.getLine(), lineText.length(), projectInfo,
-					completionSettings, list);
-			break;
-		case VALUE:
+		case ASSIGN:
+		case PROPERTY_VALUE:
 			// completion on property value
-			collectPropertyValueSuggestions(document, token, projectInfo, completionSettings, list);
+			collectPropertyValueSuggestions(node, projectInfo, completionSettings, list);
+			break;
+		default:
+			// completion on property key
+			collectPropertyKeySuggestions(node, projectInfo, completionSettings, list);
 			break;
 		}
 		return list;
@@ -82,17 +91,24 @@ class QuarkusCompletions {
 	/**
 	 * Collect property keys.
 	 * 
-	 * @param document           the document
-	 * @param token              the token
+	 * @param node               the property key node
 	 * @param projectInfo        the Quarkus project information
 	 * @param completionSettings the completion settings
 	 * @param list               the completion list to fill
 	 */
-	private static void collectPropertyKeySuggestions(TextDocument document, int line, int endCharacter,
-			QuarkusProjectInfo projectInfo, QuarkusCompletionSettings completionSettings, CompletionList list) {
+	private static void collectPropertyKeySuggestions(Node node, QuarkusProjectInfo projectInfo,
+			QuarkusCompletionSettings completionSettings, CompletionList list) {
 
 		boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
 		boolean markdownSupprted = completionSettings.isDocumentationFormatSupported(MarkupKind.MARKDOWN);
+
+		Range range = null;
+		try {
+			range = node.getDocument().lineRangeAt(node.getStart());
+		} catch (BadLocationException e) {
+			LOGGER.log(Level.SEVERE, "In QuarkusCompletion#collectPropertyKeySuggestions, position error", e);
+			return;
+		}
 
 		for (ExtendedConfigDescriptionBuildItem property : projectInfo.getProperties()) {
 
@@ -131,7 +147,6 @@ class QuarkusCompletions {
 				}
 			}
 
-			Range range = new Range(new Position(line, 0), new Position(line, endCharacter));
 			TextEdit textEdit = new TextEdit(range, insertText.toString());
 			item.setTextEdit(textEdit);
 
@@ -184,14 +199,13 @@ class QuarkusCompletions {
 	/**
 	 * Collect property values.
 	 * 
-	 * @param document           the document
-	 * @param token              the token
+	 * @param node               the property value node
 	 * @param projectInfo        the Quarkus project information
 	 * @param completionSettings the completion settings
 	 * @param list               the completion list to fill
 	 */
-	private static void collectPropertyValueSuggestions(TextDocument document, PropertiesToken token,
-			QuarkusProjectInfo projectInfo, QuarkusCompletionSettings completionSettings, CompletionList list) {
+	private static void collectPropertyValueSuggestions(Node node, QuarkusProjectInfo projectInfo,
+			QuarkusCompletionSettings completionSettings, CompletionList list) {
 
 	}
 }
