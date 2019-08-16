@@ -11,7 +11,9 @@ package com.redhat.quarkus.ls;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
 
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.CompletionItem;
@@ -27,12 +29,15 @@ import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
+import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
+import com.redhat.quarkus.ls.commons.ModelTextDocument;
+import com.redhat.quarkus.ls.commons.ModelTextDocuments;
 import com.redhat.quarkus.ls.commons.TextDocument;
-import com.redhat.quarkus.ls.commons.TextDocuments;
+import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.services.QuarkusLanguageService;
 import com.redhat.quarkus.settings.SharedSettings;
 
@@ -42,7 +47,7 @@ import com.redhat.quarkus.settings.SharedSettings;
  */
 public class QuarkusTextDocumentService implements TextDocumentService {
 
-	private final TextDocuments<TextDocument> documents;
+	private final ModelTextDocuments<PropertiesModel> documents;
 
 	private final QuarkusProjectInfoCache projectInfoCache;
 
@@ -52,7 +57,9 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 
 	public QuarkusTextDocumentService(QuarkusLanguageServer quarkusLanguageServer) {
 		this.quarkusLanguageServer = quarkusLanguageServer;
-		this.documents = new TextDocuments<TextDocument>();
+		this.documents = new ModelTextDocuments<PropertiesModel>((document, cancelChecker) -> {
+			return PropertiesModel.parse(document);
+		});
 		this.projectInfoCache = new QuarkusProjectInfoCache(quarkusLanguageServer);
 		this.sharedSettings = new SharedSettings();
 	}
@@ -98,31 +105,40 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 
 	@Override
 	public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
+		// Get Quarkus project information which stores all available Quarkus
+		// properties
 		QuarkusProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument(), null);
-		return projectInfoCache.getQuarkusProjectInfo(projectInfoParams).thenApplyAsync(projectInfo -> {
+		return projectInfoCache.getQuarkusProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
 			if (!projectInfo.isQuarkusProject()) {
-				return Either.forRight(new CompletionList());
+				return CompletableFuture.completedFuture(Either.forRight(new CompletionList()));
 			}
-			String uri = params.getTextDocument().getUri();
-			TextDocument document = documents.get(uri);
-			CompletionList list = getQuarkusLanguageService().doComplete(document, params.getPosition(), projectInfo,
-					sharedSettings.getCompletionSettings(), null);
-			return Either.forRight(list);
+			// then get the Properties model document
+			return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
+				// then return completion by using the Quarkus project information and the
+				// Properties model document
+				CompletionList list = getQuarkusLanguageService().doComplete(document, params.getPosition(),
+						projectInfo, sharedSettings.getCompletionSettings(), null);
+				return Either.forRight(list);
+			});
 		});
 	}
 
 	@Override
 	public CompletableFuture<Hover> hover(TextDocumentPositionParams params) {
-
+		// Get Quarkus project information which stores all available Quarkus
+		// properties
 		QuarkusProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument(), null);
-		return projectInfoCache.getQuarkusProjectInfo(projectInfoParams).thenApplyAsync(projectInfo -> {
+		return projectInfoCache.getQuarkusProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
 			if (!projectInfo.isQuarkusProject()) {
 				return null;
 			}
-			
-			String uri = params.getTextDocument().getUri();
-			TextDocument document = documents.get(uri);
-			return getQuarkusLanguageService().doHover(document, params.getPosition(), projectInfo, sharedSettings.getHoverSettings());
+			// then get the Properties model document
+			return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
+				// then return hover by using the Quarkus project information and the
+				// Properties model document
+				return getQuarkusLanguageService().doHover(document, params.getPosition(), projectInfo,
+						sharedSettings.getHoverSettings());
+			});
 		});
 	}
 
@@ -139,4 +155,42 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		// TODO: implement validation for application.properties
 	}
 
+	/**
+	 * Returns the text document from the given uri.
+	 * 
+	 * @param uri the uri
+	 * @return the text document from the given uri.
+	 */
+	public ModelTextDocument<PropertiesModel> getDocument(String uri) {
+		return documents.get(uri);
+	}
+
+	/**
+	 * Returns the properties model for a given uri in a future and then apply the
+	 * given function.
+	 * 
+	 * @param <R>
+	 * @param documentIdentifier the document indetifier.
+	 * @param code               a bi function that accepts a {@link CancelChecker}
+	 *                           and parsed {@link PropertiesModel} and returns the
+	 *                           to be computed value
+	 * @return the properties model for a given uri in a future and then apply the
+	 *         given function.
+	 */
+	public <R> CompletableFuture<R> getPropertiesModel(TextDocumentIdentifier documentIdentifier,
+			BiFunction<CancelChecker, PropertiesModel, R> code) {
+		return computeModelAsync(getDocument(documentIdentifier.getUri()).getModel(), code);
+	}
+
+	private static <R, M> CompletableFuture<R> computeModelAsync(CompletableFuture<M> loadModel,
+			BiFunction<CancelChecker, M, R> code) {
+		CompletableFuture<CancelChecker> start = new CompletableFuture<>();
+		CompletableFuture<R> result = start.thenCombineAsync(loadModel, code);
+		CancelChecker cancelIndicator = () -> {
+			if (result.isCancelled())
+				throw new CancellationException();
+		};
+		start.complete(cancelIndicator);
+		return result;
+	}
 }

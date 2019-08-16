@@ -15,7 +15,7 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
-import com.redhat.quarkus.ls.commons.TextDocument;
+import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 import com.redhat.quarkus.settings.QuarkusHoverSettings;
 
@@ -35,7 +35,17 @@ public class QuarkusLanguageService {
 		this.hover = new QuarkusHover();
 	}
 
-	public CompletionList doComplete(TextDocument document, Position position, QuarkusProjectInfo projectInfo,
+	/**
+	 * Returns completion list for the given position
+	 * 
+	 * @param document           the properties model document
+	 * @param position           the position where completion was triggereds
+	 * @param projectInfo        the Quarkus project information
+	 * @param completionSettings the completion settings
+	 * @param cancelChecker the cancel checker
+	 * @return completion list for the given position
+	 */
+	public CompletionList doComplete(PropertiesModel document, Position position, QuarkusProjectInfo projectInfo,
 			QuarkusCompletionSettings completionSettings, CancelChecker cancelChecker) {
 		return completions.doComplete(document, position, projectInfo, completionSettings, cancelChecker);
 	}
@@ -43,16 +53,15 @@ public class QuarkusLanguageService {
 	/**
 	 * Returns Hover object for the currently hovered token
 	 * 
-	 * @param document      the document
+	 * @param document      the properties model document
 	 * @param position      the hover position
 	 * @param projectInfo   the Quarkus project information
 	 * @param hoverSettings the hover settings
 	 * @return Hover object for the currently hovered token
 	 */
-	public Hover doHover(TextDocument document, Position position, QuarkusProjectInfo projectInfo,
+	public Hover doHover(PropertiesModel document, Position position, QuarkusProjectInfo projectInfo,
 			QuarkusHoverSettings hoverSettings) {
 		return hover.doHover(document, position, projectInfo, hoverSettings);
 	}
 
-	
 }

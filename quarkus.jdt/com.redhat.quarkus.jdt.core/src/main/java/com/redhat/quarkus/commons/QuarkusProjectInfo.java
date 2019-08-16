@@ -87,4 +87,23 @@ public class QuarkusProjectInfo {
 		this.properties = properties;
 	}
 
+	/**
+	 * Returns the Quarkus property from the given property name and null otherwise.
+	 * 
+	 * @param propertyName the property name
+	 * @return the Quarkus property from the given property name and null otherwise.
+	 */
+	public ExtendedConfigDescriptionBuildItem getProperty(String propertyName) {
+		for (ExtendedConfigDescriptionBuildItem property : properties) {
+			if (propertyName.equals(property.getPropertyName())) {
+				return property;
+			}
+		}
+		// TODO: retrieve Map property
+		// Ex : quarkus.log.category."com.lordofthejars".level property name should
+		// return
+		// quarkus.log.category.{*}.level Quarkus property
+		return null;
+	}
+
 }
