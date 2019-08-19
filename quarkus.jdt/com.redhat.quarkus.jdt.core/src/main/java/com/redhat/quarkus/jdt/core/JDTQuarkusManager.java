@@ -414,7 +414,7 @@ public class JDTQuarkusManager {
 								if ((rawTypeParameters[0].trim().equals("java.lang.String"))) {
 									// The key Map must be a String
 									processMap(field, subKey, rawTypeParameters[1], docs, location, source, configPhase,
-											quarkusProperties);
+											converter, javadocCache, quarkusProperties, monitor);
 								}
 							} else if (isList(fieldTypeName)) {
 								addField(propertyName, type, defaultValue, docs, location, source, enumerations,
@@ -532,21 +532,23 @@ public class JDTQuarkusManager {
 		return rawTypeParameters;
 	}
 
-	private static void processMap(IField field, String baseKey, String mapValueClass, String docs, String location, String source,
-			ConfigPhase configPhase, List<ExtendedConfigDescriptionBuildItem> quarkusProperties) {
+	private static void processMap(IField field, String baseKey, String mapValueClass, String docs, String location,
+			String source, ConfigPhase configPhase, DocumentationConverter converter,
+			Map<IPackageFragmentRoot, Properties> javadocCache,
+			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, IProgressMonitor monitor)
+			throws JavaModelException {
 		final String subKey = baseKey + ".{*}";
 		if ("java.util.Map".equals(mapValueClass)) {
 			// ignore, Map must be parameterized
 		} else if (isMap(mapValueClass)) {
 			String[] rawTypeParameters = getRawTypeParameters(mapValueClass);
-			processMap(field, subKey, rawTypeParameters[1], docs, location, source, configPhase, quarkusProperties);
+			processMap(field, subKey, rawTypeParameters[1], docs, location, source, configPhase, converter,
+					javadocCache, quarkusProperties, monitor);
 		} else if (isOptionnal(mapValueClass)) {
 			// Optionals are not allowed as a map value type
 		} else {
-			String propertyName = subKey;
-			// TODO: manage Map....
-			addField(propertyName, "java.util.Map<java.lang.String," + mapValueClass + ">", null, docs, location,
-					source, null, configPhase, quarkusProperties);
+			IType type = findType(field.getJavaProject(), mapValueClass);
+			processConfigGroup(type, subKey, configPhase, converter, javadocCache, quarkusProperties, monitor);
 		}
 	}
 
@@ -657,7 +659,6 @@ public class JDTQuarkusManager {
 							for (IJarEntryResource r : children) {
 								if ("quarkus-javadoc.properties".equals(r.getName())) {
 									return r;
-
 								}
 							}
 						}

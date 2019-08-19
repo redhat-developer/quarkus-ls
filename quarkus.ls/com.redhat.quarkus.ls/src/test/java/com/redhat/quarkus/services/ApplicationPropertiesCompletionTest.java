@@ -53,6 +53,15 @@ public class ApplicationPropertiesCompletionTest {
 	}
 
 	@Test
+	public void completionOnKeyMap() throws BadLocationException {
+		String value = "quarkus.log.category|";
+		testCompletionFor(value, false,
+				c("quarkus.log.category.{*}.min-level", "quarkus.log.category.\"\".min-level = inherit", r(0, 0, 20)));
+		testCompletionFor(value, true, c("quarkus.log.category.{*}.min-level",
+				"quarkus.log.category.\"${1:key}\".min-level = ${0:inherit}", r(0, 0, 20)));
+	}
+
+	@Test
 	public void completionOnValue() throws BadLocationException {
 		String value = "quarkus.http.cors = | ";
 		testCompletionFor(value, true, 0);

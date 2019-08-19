@@ -63,25 +63,25 @@ public class JDTQuarkusManagerTest {
 						CONFIG_PHASE_BUILD_TIME),
 
 				// io.quarkus.deployment.index.ApplicationArchiveBuildStep$IndexDependencyConfiguration
-				p("quarkus.index-dependency.{*}",
-						"java.util.Map<java.lang.String,io.quarkus.deployment.index.IndexDependencyConfig>",
-						"Artifacts on the class path that should also be indexed, which will allow classes in the index to be\n processed by Quarkus processors",
+				// -> Map<String, IndexDependencyConfig>
+				p("quarkus.index-dependency.{*}.classifier",
+						"java.lang.String",
+						"The maven classifier of the artifact to index",
 						QUARKUS_CORE_DEPLOYMENT_JAR,
-						"io.quarkus.deployment.index.ApplicationArchiveBuildStep$IndexDependencyConfiguration#indexDependency",
-						CONFIG_PHASE_BUILD_TIME)
-
-				/** FIXME: manage Map<String, IndexDependencyConfig>
-				p("quarkus.application.name", "java.lang.String", "The maven classifier of the artifact to index",
-						QUARKUS_CORE_DEPLOYMENT_JAR, "io.quarkus.deployment.index.IndexDependencyConfig#classifier",
+						"io.quarkus.deployment.index.IndexDependencyConfig#classifier",
 						CONFIG_PHASE_BUILD_TIME),
-				p("quarkus.application.name", "java.lang.String", "The maven artifactId of the artifact to index",
-						QUARKUS_CORE_DEPLOYMENT_JAR, "io.quarkus.deployment.index.IndexDependencyConfig#artifactId",
+				p("quarkus.index-dependency.{*}.artifact-id",
+						"java.lang.String",
+						"The maven artifactId of the artifact to index",
+						QUARKUS_CORE_DEPLOYMENT_JAR,
+						"io.quarkus.deployment.index.IndexDependencyConfig#artifactId",
 						CONFIG_PHASE_BUILD_TIME),
-				p("quarkus.application.name", "java.lang.String", "The maven groupId of the artifact to index",
-						QUARKUS_CORE_DEPLOYMENT_JAR, "io.quarkus.deployment.index.IndexDependencyConfig#groupId",
-						CONFIG_PHASE_BUILD_TIME)
-				*/
-				
+				p("quarkus.index-dependency.{*}.group-id",
+						"java.lang.String",
+						"The maven groupId of the artifact to index",
+						QUARKUS_CORE_DEPLOYMENT_JAR,
+						"io.quarkus.deployment.index.IndexDependencyConfig#groupId",
+						CONFIG_PHASE_BUILD_TIME)				
 				);
 	}
 
