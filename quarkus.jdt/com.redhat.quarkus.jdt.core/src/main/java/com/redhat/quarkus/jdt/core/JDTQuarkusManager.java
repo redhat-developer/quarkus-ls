@@ -453,8 +453,9 @@ public class JDTQuarkusManager {
 	 */
 	private static String getJavadoc(IField field, Map<IPackageFragmentRoot, Properties> javadocCache,
 			IProgressMonitor monitor) throws JavaModelException {
+		// TODO: get Javadoc from source anad attached doc by processing Javadoc tag as markdown
 		// Try to get javadoc from sources
-		String javadoc = findJavadocFromSource(field);
+		/*String javadoc = findJavadocFromSource(field);
 		if (javadoc != null) {
 			return javadoc;
 		}
@@ -462,7 +463,7 @@ public class JDTQuarkusManager {
 		javadoc = field.getAttachedJavadoc(monitor);
 		if (javadoc != null) {
 			return javadoc;
-		}
+		}*/		
 		// Try to get the javadoc inside the META-INF/quarkus-javadoc.properties of the
 		// JAR
 		IPackageFragmentRoot packageRoot = (IPackageFragmentRoot) field.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
