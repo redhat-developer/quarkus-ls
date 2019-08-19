@@ -103,7 +103,7 @@ class QuarkusCompletions {
 			Collection<String> enums = getEnums(property);
 
 			StringBuilder insertText = new StringBuilder();
-			insertText.append(property.getPropertyName());
+			insertText.append(getPropertyName(property.getPropertyName(), snippetsSupported));
 			insertText.append(' '); // TODO: this space should be configured in format settings
 			insertText.append('=');
 			insertText.append(' '); // TODO: this space should be configured in format settings
@@ -139,6 +139,30 @@ class QuarkusCompletions {
 			item.setDocumentation(DocumentationUtils.getDocumentation(property, markdownSupprted));
 			list.getItems().add(item);
 		}
+	}
+
+	private static String getPropertyName(String propertyName, boolean snippetsSupported) {
+		int index = propertyName.indexOf("{*}");
+		if (index != -1) {
+			int i = 1;
+			String current = propertyName;
+			StringBuilder newName = new StringBuilder();
+			while (index != -1) {
+				newName.append(current.substring(0, index));
+				current = current.substring(index + 3, current.length());
+				newName.append("\"");
+				if (snippetsSupported) {
+					newName.append("${");
+					newName.append(i++);
+					newName.append(":key}");
+				}
+				newName.append("\"");
+				index = current.indexOf("{*}");
+			}
+			newName.append(current);
+			return newName.toString();
+		}
+		return propertyName;
 	}
 
 	/**
