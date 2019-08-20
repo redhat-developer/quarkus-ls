@@ -8,7 +8,7 @@
 		"name": "Debug (Attach) - Remote",
 		"request": "attach",
 		"hostName": "localhost",
-		"port": 1054,
+		"port": 1064,
 		"projectName": "com.redhat.quarkus.ls"
 	}]
 }
