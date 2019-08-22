@@ -60,9 +60,11 @@ class QuarkusCompletions {
 	public CompletionList doComplete(PropertiesModel document, Position position, QuarkusProjectInfo projectInfo,
 			QuarkusCompletionSettings completionSettings, CancelChecker cancelChecker) {
 		CompletionList list = new CompletionList();
+		int offset = -1;
 		Node node = null;
 		try {
-			node = document.findNodeAt(position);
+			offset = document.offsetAt(position);
+			node = document.findNodeAt(offset);
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In QuarkusCompletion, position error", e);
 			return list;
@@ -82,7 +84,7 @@ class QuarkusCompletions {
 			break;
 		default:
 			// completion on property key
-			collectPropertyKeySuggestions(node, projectInfo, completionSettings, list);
+			collectPropertyKeySuggestions(offset, document, projectInfo, completionSettings, list);
 			break;
 		}
 		return list;
@@ -91,12 +93,12 @@ class QuarkusCompletions {
 	/**
 	 * Collect property keys.
 	 * 
-	 * @param node               the property key node
+	 * @param offset               the property key node
 	 * @param projectInfo        the Quarkus project information
 	 * @param completionSettings the completion settings
 	 * @param list               the completion list to fill
 	 */
-	private static void collectPropertyKeySuggestions(Node node, QuarkusProjectInfo projectInfo,
+	private static void collectPropertyKeySuggestions(int offset, PropertiesModel model, QuarkusProjectInfo projectInfo,
 			QuarkusCompletionSettings completionSettings, CompletionList list) {
 
 		boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
@@ -104,7 +106,7 @@ class QuarkusCompletions {
 
 		Range range = null;
 		try {
-			range = node.getDocument().lineRangeAt(node.getStart());
+			range = model.getDocument().lineRangeAt(offset);
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In QuarkusCompletion#collectPropertyKeySuggestions, position error", e);
 			return;
