@@ -1,4 +1,13 @@
-package com.redhat.quarkus.jdt.core.ls;
+/*******************************************************************************
+* Copyright (c) 2019 Red Hat Inc. and others.
+* All rights reserved. This program and the accompanying materials
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v20.html
+*
+* Contributors:
+*     Red Hat Inc. - initial API and implementation
+*******************************************************************************/
+package com.redhat.quarkus.jdt.internal.core;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -16,9 +25,11 @@ public class QuarkusActivator implements BundleActivator {
 
 	public void start(BundleContext context) throws Exception {
 		plugin = this;
+		QuarkusClasspathListenerManager.getInstance().initialize();
 	}
 
 	public void stop(BundleContext context) throws Exception {
+		QuarkusClasspathListenerManager.getInstance().destroy();
 		plugin = null;
 	}
 

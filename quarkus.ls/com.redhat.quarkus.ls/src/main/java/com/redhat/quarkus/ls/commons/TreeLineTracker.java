@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.eclipse.lsp4j.Position;
+
 import com.redhat.quarkus.ls.commons.ListLineTracker.DelimiterInfo;
 
 /**

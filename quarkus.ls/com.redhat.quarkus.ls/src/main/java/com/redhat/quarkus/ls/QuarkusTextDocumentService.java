@@ -11,6 +11,7 @@ package com.redhat.quarkus.ls;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
@@ -39,7 +40,6 @@ import com.redhat.quarkus.ls.commons.ModelTextDocuments;
 import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.services.QuarkusLanguageService;
-import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 import com.redhat.quarkus.settings.SharedSettings;
 
 /**
@@ -193,5 +193,9 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		};
 		start.complete(cancelIndicator);
 		return result;
+	}
+
+	public void classpathChanged(Set<String> projects) {
+		projectInfoCache.classpathChanged(projects);
 	}
 }

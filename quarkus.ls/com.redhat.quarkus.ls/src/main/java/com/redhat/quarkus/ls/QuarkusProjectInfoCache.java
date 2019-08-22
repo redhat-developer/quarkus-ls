@@ -10,7 +10,11 @@
 package com.redhat.quarkus.ls;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
@@ -21,14 +25,15 @@ import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
  * @author Angelo ZERR
  *
  */
-class QuarkusProjectInfoCache extends HashMap<String /* Document URI */, QuarkusProjectInfo> {
+class QuarkusProjectInfoCache {
 
-	private static final long serialVersionUID = 1L;
+	private final Map<String /* Document URI */, QuarkusProjectInfo> cache;
 
 	private final QuarkusProjectInfoProvider provider;
 
 	public QuarkusProjectInfoCache(QuarkusProjectInfoProvider provider) {
 		this.provider = provider;
+		this.cache = new HashMap<>();
 	}
 
 	/**
@@ -41,18 +46,26 @@ class QuarkusProjectInfoCache extends HashMap<String /* Document URI */, Quarkus
 	 */
 	public CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(QuarkusProjectInfoParams params) {
 		// Search project info in cache
-		QuarkusProjectInfo projectInfo = super.get(params.getUri());
+		QuarkusProjectInfo projectInfo = cache.get(params.getUri());
 		if (projectInfo == null) {
 			// not found in cache, load the project info from the JDT LS Extension
 			return provider.getQuarkusProjectInfo(params).thenApplyAsync(info ->
 			// information was loaded, update the cache
 			{
-				QuarkusProjectInfoCache.this.put(params.getUri(), info);
+				cache.put(params.getUri(), info);
 				return info;
 			});
 		}
 		// Returns the cached project info
 		return CompletableFuture.completedFuture(projectInfo);
+	}
+
+	public List<String> classpathChanged(Set<String> projects) {
+		List<String> uris = cache.entrySet().stream()
+				.filter(entry -> projects.contains(entry.getValue().getProjectURI())).map(Map.Entry::getKey)
+				.collect(Collectors.toList());
+		uris.forEach(cache::remove);
+		return uris;
 	}
 
 }
