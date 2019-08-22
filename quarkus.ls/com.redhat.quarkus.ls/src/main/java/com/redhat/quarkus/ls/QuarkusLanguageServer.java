@@ -9,9 +9,10 @@
 *******************************************************************************/
 package com.redhat.quarkus.ls;
 
-import static org.eclipse.lsp4j.jsonrpc.CompletableFutures.computeAsync;
 import static com.redhat.quarkus.utils.VersionHelper.getVersion;
+import static org.eclipse.lsp4j.jsonrpc.CompletableFutures.computeAsync;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
@@ -131,6 +132,11 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 	@Override
 	public CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(QuarkusProjectInfoParams params) {
 		return languageClient.getQuarkusProjectInfo(params);
+	}
+	
+	@Override
+	public void classpathChanged(Set<String> projects) {
+		textDocumentService.classpathChanged(projects);
 	}
 
 }

@@ -21,7 +21,7 @@ public class QuarkusProjectInfo {
 
 	private boolean quarkusProject;
 
-	private String projectName;
+	private String projectURI;
 
 	private List<ExtendedConfigDescriptionBuildItem> properties;
 
@@ -48,21 +48,23 @@ public class QuarkusProjectInfo {
 	}
 
 	/**
-	 * Returns the project name.
+	 * Returns the project URI.
 	 * 
-	 * @return the project name.
+	 * @return the project URI.
 	 */
-	public String getProjectName() {
-		return projectName;
+
+	public String getProjectURI() {
+		return projectURI;
 	}
 
 	/**
-	 * Set the project name.
+	 * Set the project URI.
 	 * 
-	 * @param projectName the project name.
+	 * @param projectURI the project URI.
 	 */
-	public void setProjectName(String projectName) {
-		this.projectName = projectName;
+
+	public void setProjectURI(String projectURI) {
+		this.projectURI = projectURI;
 	}
 
 	/**

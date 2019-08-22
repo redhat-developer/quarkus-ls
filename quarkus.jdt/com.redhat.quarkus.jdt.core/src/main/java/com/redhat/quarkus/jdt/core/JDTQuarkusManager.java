@@ -9,6 +9,11 @@
 *******************************************************************************/
 package com.redhat.quarkus.jdt.core;
 
+import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_GROUP_ANNOTATION;
+import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_ITEM_ANNOTATION;
+import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_PROPERTY_ANNOTATION;
+import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_ROOT_ANNOTATION;
+import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.QUARKUS_PREFIX;
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.runtime.util.StringUtil.join;
@@ -48,6 +53,7 @@ import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
+import com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusUtils;
 
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
@@ -61,23 +67,14 @@ import io.quarkus.runtime.annotations.ConfigPhase;
  */
 public class JDTQuarkusManager {
 
-	/**
-	 * Quarkus prefix used in the Quarkus property.
-	 */
-	private static final String QUARKUS_PREFIX = "quarkus.";
-
-	/**
-	 * The Quarkus Config* annotations
-	 */
-	private static final String CONFIG_ROOT_ANNOTATION = "io.quarkus.runtime.annotations.ConfigRoot";
-	private static final String CONFIG_GROUP_ANNOTATION = "io.quarkus.runtime.annotations.ConfigGroup";
-	private static final String CONFIG_ITEM_ANNOTATION = "io.quarkus.runtime.annotations.ConfigItem";
-	private static final String CONFIG_PROPERTY_ANNOTATION = "org.eclipse.microprofile.config.inject.ConfigProperty";
-
 	private static final JDTQuarkusManager INSTANCE = new JDTQuarkusManager();
 
 	public static JDTQuarkusManager getInstance() {
 		return INSTANCE;
+	}
+
+	private JDTQuarkusManager() {
+
 	}
 
 	/**
@@ -108,7 +105,7 @@ public class JDTQuarkusManager {
 		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
 
 		QuarkusProjectInfo info = new QuarkusProjectInfo();
-		info.setProjectName(javaProject.getProject().getName());
+		info.setProjectURI(JDTQuarkusUtils.getProjectURI(javaProject));
 
 		List<ExtendedConfigDescriptionBuildItem> quarkusProperties = new ArrayList<>();
 		Map<IPackageFragmentRoot, Properties> javadocCache = new HashMap();
@@ -453,17 +450,14 @@ public class JDTQuarkusManager {
 	 */
 	private static String getJavadoc(IField field, Map<IPackageFragmentRoot, Properties> javadocCache,
 			IProgressMonitor monitor) throws JavaModelException {
-		// TODO: get Javadoc from source anad attached doc by processing Javadoc tag as markdown
+		// TODO: get Javadoc from source anad attached doc by processing Javadoc tag as
+		// markdown
 		// Try to get javadoc from sources
-		/*String javadoc = findJavadocFromSource(field);
-		if (javadoc != null) {
-			return javadoc;
-		}
-		// Try to get attached javadoc
-		javadoc = field.getAttachedJavadoc(monitor);
-		if (javadoc != null) {
-			return javadoc;
-		}*/		
+		/*
+		 * String javadoc = findJavadocFromSource(field); if (javadoc != null) { return
+		 * javadoc; } // Try to get attached javadoc javadoc =
+		 * field.getAttachedJavadoc(monitor); if (javadoc != null) { return javadoc; }
+		 */
 		// Try to get the javadoc inside the META-INF/quarkus-javadoc.properties of the
 		// JAR
 		IPackageFragmentRoot packageRoot = (IPackageFragmentRoot) field.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);

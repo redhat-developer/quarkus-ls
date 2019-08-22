@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.5"?>
 <plugin>
+
    <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
-      <delegateCommandHandler class="com.redhat.quarkus.jdt.core.ls.QuarkusDelegateCommandHandler">
+      <delegateCommandHandler class="com.redhat.quarkus.jdt.internal.core.ls.QuarkusDelegateCommandHandler">
             <command id="quarkus.java.projectInfo"/>
        </delegateCommandHandler>
    </extension>
+
 </plugin>

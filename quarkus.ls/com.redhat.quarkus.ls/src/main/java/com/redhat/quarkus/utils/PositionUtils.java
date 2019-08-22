@@ -9,10 +9,10 @@
 *******************************************************************************/
 package com.redhat.quarkus.utils;
 
+import org.eclipse.lsp4j.Range;
+
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.TextDocument;
-
-import org.eclipse.lsp4j.Range;
 
 public class PositionUtils {
 
