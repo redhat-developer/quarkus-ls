@@ -5,7 +5,7 @@ Bundle-SymbolicName: com.redhat.quarkus.jdt.test
 Bundle-Version: 0.0.1.qualifier
 Fragment-Host: com.redhat.quarkus.jdt.core;bundle-version="0.0.1"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Require-Bundle: org.eclipse.jdt.junit4.runtime;bundle-version="1.1.0",
- org.junit;bundle-version="4.12",
+Require-Bundle: org.junit;bundle-version="4.12",
  org.apache.commons.io,
- org.apache.commons.lang3
+ org.apache.commons.lang3,
+ org.eclipse.jdt.ls.core

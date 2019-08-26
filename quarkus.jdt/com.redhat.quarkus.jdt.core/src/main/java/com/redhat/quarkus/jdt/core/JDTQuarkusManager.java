@@ -13,6 +13,7 @@ import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_GROUP
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_ITEM_ANNOTATION;
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_PROPERTY_ANNOTATION;
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_ROOT_ANNOTATION;
+import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.QUARKUS_JAVADOC_PROPERTIES;
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.QUARKUS_PREFIX;
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
@@ -41,7 +42,6 @@ import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.SearchMatch;
@@ -53,6 +53,7 @@ import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
+import com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusSearchUtils;
 import com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusUtils;
 
 import io.quarkus.runtime.annotations.ConfigItem;
@@ -108,13 +109,14 @@ public class JDTQuarkusManager {
 		info.setProjectURI(JDTQuarkusUtils.getProjectURI(javaProject));
 
 		List<ExtendedConfigDescriptionBuildItem> quarkusProperties = new ArrayList<>();
-		Map<IPackageFragmentRoot, Properties> javadocCache = new HashMap();
+		Map<IPackageFragmentRoot, Properties> javadocCache = new HashMap<>();
 
 		// Scan Quarkus annotations Config* by using Java eclipse search engine.
-		SearchPattern pattern = createQuarkusConfigSearchPattern();
+		SearchPattern pattern = JDTQuarkusSearchUtils.createQuarkusConfigSearchPattern();
 		SearchEngine engine = new SearchEngine();
-		engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
-				createSearchScope(javaProject), new SearchRequestor() {
+		IJavaSearchScope scope = JDTQuarkusSearchUtils.createQuarkusSearchScope(javaProject);
+		engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
+				new SearchRequestor() {
 
 					@Override
 					public void acceptSearchMatch(SearchMatch match) throws CoreException {
@@ -642,42 +644,7 @@ public class JDTQuarkusManager {
 
 	private static IJarEntryResource findJavadocFromQuakusJavadocProperties(IPackageFragmentRoot packageRoot)
 			throws JavaModelException {
-		Object[] resources = packageRoot.getNonJavaResources();
-		if (resources != null) {
-			for (Object object : resources) {
-				if (object instanceof IJarEntryResource) {
-					IJarEntryResource res = (IJarEntryResource) object;
-					if ("META-INF".equals(res.getName())) {
-						IJarEntryResource[] children = res.getChildren();
-						if (children != null) {
-							for (IJarEntryResource r : children) {
-								if ("quarkus-javadoc.properties".equals(r.getName())) {
-									return r;
-								}
-							}
-						}
-						return null;
-					}
-				}
-			}
-		}
-		return null;
+		return JDTQuarkusSearchUtils.findPropertiesResource(packageRoot, QUARKUS_JAVADOC_PROPERTIES);
 	}
 
-	private static IJavaSearchScope createSearchScope(IJavaProject project) throws JavaModelException {
-		return SearchEngine.createJavaSearchScope(new IJavaElement[] { project },
-				/* IJavaSearchScope.SOURCES | */ IJavaSearchScope.APPLICATION_LIBRARIES);
-	}
-
-	private static SearchPattern createQuarkusConfigSearchPattern() {
-		// Pattern to search @ConfigRoot annotation
-		SearchPattern configRootPattern = SearchPattern.createPattern(CONFIG_ROOT_ANNOTATION,
-				IJavaSearchConstants.ANNOTATION_TYPE, IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE,
-				SearchPattern.R_EXACT_MATCH);
-		// Pattern to search @ConfigProperty annotation
-		SearchPattern configPropertyPattern = SearchPattern.createPattern(CONFIG_PROPERTY_ANNOTATION,
-				IJavaSearchConstants.ANNOTATION_TYPE, IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE,
-				SearchPattern.R_EXACT_MATCH);
-		return SearchPattern.createOrPattern(configRootPattern, configPropertyPattern);
-	}
 }

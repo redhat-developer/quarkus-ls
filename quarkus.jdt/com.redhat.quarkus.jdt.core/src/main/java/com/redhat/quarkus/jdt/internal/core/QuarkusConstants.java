@@ -34,6 +34,7 @@ public class QuarkusConstants {
 	 * Quarkus properties file embedded in the Quarkus JAR.
 	 */
 	public static final String QUARKUS_JAVADOC_PROPERTIES = "quarkus-javadoc.properties";
+	public static final String QUARKUS_EXTENSION_PROPERTIES = "quarkus-extension.properties";
 
 	/**
 	 * Quarkus client commands

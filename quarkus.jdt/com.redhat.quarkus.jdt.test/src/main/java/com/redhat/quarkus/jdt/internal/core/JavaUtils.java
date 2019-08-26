@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.quarkus.jdt.core;
+package com.redhat.quarkus.jdt.internal.core;
 
 import java.io.File;
 import java.io.IOException;

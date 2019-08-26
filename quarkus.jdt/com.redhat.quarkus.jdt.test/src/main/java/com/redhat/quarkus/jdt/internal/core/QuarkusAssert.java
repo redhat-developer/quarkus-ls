@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.quarkus.jdt.core;
+package com.redhat.quarkus.jdt.internal.core;
 
 import java.util.List;
 import java.util.stream.Collectors;
