@@ -20,7 +20,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.redhat.quarkus.jdt.core.JavaUtils;
 import com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusUtils;
 
 /**

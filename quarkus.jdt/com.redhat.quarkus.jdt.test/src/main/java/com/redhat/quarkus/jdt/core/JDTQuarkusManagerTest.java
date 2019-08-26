@@ -10,10 +10,10 @@
 package com.redhat.quarkus.jdt.core;
 
 import static com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem.CONFIG_PHASE_BUILD_TIME;
-import static com.redhat.quarkus.jdt.core.JavaUtils.createJavaProject;
-import static com.redhat.quarkus.jdt.core.JavaUtils.getJarPath;
-import static com.redhat.quarkus.jdt.core.QuarkusAssert.assertProperties;
-import static com.redhat.quarkus.jdt.core.QuarkusAssert.p;
+import static com.redhat.quarkus.jdt.internal.core.JavaUtils.createJavaProject;
+import static com.redhat.quarkus.jdt.internal.core.JavaUtils.getJarPath;
+import static com.redhat.quarkus.jdt.internal.core.QuarkusAssert.assertProperties;
+import static com.redhat.quarkus.jdt.internal.core.QuarkusAssert.p;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
