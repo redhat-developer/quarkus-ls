@@ -48,7 +48,7 @@ public class ApplicationPropertiesCompletionTest {
 		testCompletionFor(value, false, c("quarkus.http.cors", "quarkus.http.cors=false", r(0, 0, 21)));
 		testCompletionFor(value, true, c("quarkus.http.cors", "quarkus.http.cors=${1|false,true|}", r(0, 0, 21)));
 
-		value = " quarkus.http.cors =| ";
+		value = " quarkus.application.name =| ";
 		testCompletionFor(value, true, 0);
 	}
 
@@ -73,9 +73,27 @@ public class ApplicationPropertiesCompletionTest {
 	}
 
 	@Test
-	public void completionOnValue() throws BadLocationException {
-		String value = "quarkus.http.cors = | ";
+	public void completionOnValueNoCompletionItems() throws BadLocationException {
+		String value = "quarkus.application.name = | ";
 		testCompletionFor(value, true, 0);
+	}
+
+	@Test
+	public void completionOnValueOnAssign() throws BadLocationException {
+		String value = "quarkus.log.console.async.overflow=| ";
+		testCompletionFor(value, true, c("BLOCK", "BLOCK", r(0, 35, 36)), c("DISCARD", "DISCARD", r(0, 35, 36)));
+	}
+
+	@Test
+	public void completionOnValueOnPropertyValue() throws BadLocationException {
+		String value = "quarkus.log.console.async.overflow=BLO| ";
+		testCompletionFor(value, true, c("BLOCK", "BLOCK", r(0, 35, 39)));
+	}
+
+	@Test
+	public void completionOnValueBetweenPropertyValue() throws BadLocationException {
+		String value = "quarkus.log.console.async.overflow=B|L";
+		testCompletionFor(value, true, c("BLOCK", "BLOCK", r(0, 35, 37)));
 	}
 
 	@Test
