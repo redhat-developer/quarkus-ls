@@ -15,6 +15,18 @@ import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
+import com.redhat.quarkus.commons.QuarkusProjectInfo;
+import com.redhat.quarkus.ls.commons.BadLocationException;
+import com.redhat.quarkus.ls.commons.SnippetsBuilder;
+import com.redhat.quarkus.ls.commons.TextDocument;
+import com.redhat.quarkus.model.Node;
+import com.redhat.quarkus.model.PropertiesModel;
+import com.redhat.quarkus.model.Property;
+import com.redhat.quarkus.model.PropertyKey;
+import com.redhat.quarkus.settings.QuarkusCompletionSettings;
+import com.redhat.quarkus.utils.DocumentationUtils;
+
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionList;
@@ -24,15 +36,6 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
-
-import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
-import com.redhat.quarkus.commons.QuarkusProjectInfo;
-import com.redhat.quarkus.ls.commons.BadLocationException;
-import com.redhat.quarkus.ls.commons.SnippetsBuilder;
-import com.redhat.quarkus.model.Node;
-import com.redhat.quarkus.model.PropertiesModel;
-import com.redhat.quarkus.settings.QuarkusCompletionSettings;
-import com.redhat.quarkus.utils.DocumentationUtils;
 
 /**
  * The Quarkus completions
@@ -80,7 +83,7 @@ class QuarkusCompletions {
 		case ASSIGN:
 		case PROPERTY_VALUE:
 			// completion on property value
-			collectPropertyValueSuggestions(node, projectInfo, completionSettings, list);
+			collectPropertyValueSuggestions(node, document, projectInfo, completionSettings, list);
 			break;
 		default:
 			// completion on property key
@@ -102,7 +105,7 @@ class QuarkusCompletions {
 			QuarkusCompletionSettings completionSettings, CompletionList list) {
 
 		boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
-		boolean markdownSupprted = completionSettings.isDocumentationFormatSupported(MarkupKind.MARKDOWN);
+		boolean markdownSupported = completionSettings.isDocumentationFormatSupported(MarkupKind.MARKDOWN);
 
 		Range range = null;
 		try {
@@ -151,7 +154,7 @@ class QuarkusCompletions {
 			item.setTextEdit(textEdit);
 
 			item.setInsertTextFormat(snippetsSupported ? InsertTextFormat.Snippet : InsertTextFormat.PlainText);
-			item.setDocumentation(DocumentationUtils.getDocumentation(property, markdownSupprted));
+			item.setDocumentation(DocumentationUtils.getDocumentation(property, markdownSupported));
 			list.getItems().add(item);
 		}
 	}
@@ -209,8 +212,77 @@ class QuarkusCompletions {
 	 * @param completionSettings the completion settings
 	 * @param list               the completion list to fill
 	 */
-	private static void collectPropertyValueSuggestions(Node node, QuarkusProjectInfo projectInfo,
-			QuarkusCompletionSettings completionSettings, CompletionList list) {
+	private static void collectPropertyValueSuggestions(Node node, PropertiesModel model,
+			QuarkusProjectInfo projectInfo, QuarkusCompletionSettings completionSettings, CompletionList list) {
 
+		Node parent = node.getParent();
+		if (parent != null && parent.getNodeType() != Node.NodeType.PROPERTY) {
+			return;
+		}
+
+		PropertyKey key = getPropertyKeyFromProperty((Property) parent);
+
+		if (key == null) {
+			return;
+		}
+
+		String keyText = key.getText().trim();
+
+		ExtendedConfigDescriptionBuildItem property = 
+			projectInfo.getProperty(keyText);
+
+		Collection<String> enums = getEnums(property);
+
+		if (enums != null && !enums.isEmpty()) {
+			for (String e: enums) {
+				list.getItems().add(getValueCompletionItem(e, node, model));
+			}
+		}
+	}
+
+	/**
+	 * Returns the <code>PropertyKey</code> object associated with 
+	 * <code>property</code>.
+	 * 
+	 * @param property the property to find the <code>PropertyKey</code> for
+	 * @return         the <code>PropertyKey</code> object associated with 
+	 * <code>property</code>
+	 */
+	private static PropertyKey getPropertyKeyFromProperty(Property property) {
+		Node key = property.getKey();
+
+		if (key == null) {
+			return null;
+		}
+
+		return (PropertyKey) key;
+	}
+
+	/**
+	 * Returns the <code>CompletionItem</code> which offers completion for value
+	 * completion for <code>value</code> at the start offset of <code>node</code>.
+	 * 
+	 * @param value the value for completion
+	 * @param node  the node where its start offset is where value completion occurs
+	 * @param model the property model
+	 * @return      the value completion item
+	 */
+	private static CompletionItem getValueCompletionItem(String value, Node node, PropertiesModel model) {
+		CompletionItem completionItem = new CompletionItem(value);
+		completionItem.setKind(CompletionItemKind.Value);
+
+		Range range = null;
+		try {
+			TextDocument doc = model.getDocument();
+			int startOffset = node.getStart();
+			range = doc.lineRangeAt(startOffset);
+			range.setStart(doc.positionAt(startOffset));
+		} catch (BadLocationException e) {
+			LOGGER.log(Level.SEVERE, "In QuarkusCompletion#getEnumCompletionItem, position error", e);
+		}
+
+		TextEdit textEdit = new TextEdit(range, value);
+		completionItem.setTextEdit(textEdit);
+		return completionItem;
 	}
 }
