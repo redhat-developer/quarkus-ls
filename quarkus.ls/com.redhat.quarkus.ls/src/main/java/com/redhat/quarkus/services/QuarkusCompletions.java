@@ -93,7 +93,7 @@ class QuarkusCompletions {
 	/**
 	 * Collect property keys.
 	 * 
-	 * @param offset               the property key node
+	 * @param offset             the property key node
 	 * @param projectInfo        the Quarkus project information
 	 * @param completionSettings the completion settings
 	 * @param list               the completion list to fill
@@ -156,7 +156,18 @@ class QuarkusCompletions {
 		}
 	}
 
+	/**
+	 * Returns the property name to insert when completion is applied.
+	 * 
+	 * @param propertyName      the property name
+	 * @param snippetsSupported true if snippet is supported and false otherwise.
+	 * @return the property name to insert when completion is applied.
+	 */
 	private static String getPropertyName(String propertyName, boolean snippetsSupported) {
+		if (!snippetsSupported) {
+			return propertyName;
+		}
+		// Snippet is supported, replace {*} property map with ${key} placeholder.
 		int index = propertyName.indexOf("{*}");
 		if (index != -1) {
 			int i = 1;
@@ -165,13 +176,7 @@ class QuarkusCompletions {
 			while (index != -1) {
 				newName.append(current.substring(0, index));
 				current = current.substring(index + 3, current.length());
-				newName.append("\"");
-				if (snippetsSupported) {
-					newName.append("${");
-					newName.append(i++);
-					newName.append(":key}");
-				}
-				newName.append("\"");
+				SnippetsBuilder.placeholders(i++, "key", newName);
 				index = current.indexOf("{*}");
 			}
 			newName.append(current);
