@@ -122,9 +122,7 @@ class QuarkusCompletions {
 
 			StringBuilder insertText = new StringBuilder();
 			insertText.append(getPropertyName(property.getPropertyName(), snippetsSupported));
-			insertText.append(' '); // TODO: this space should be configured in format settings
-			insertText.append('=');
-			insertText.append(' '); // TODO: this space should be configured in format settings
+			insertText.append('='); // TODO: spaces around the equals sign should be configured in format settings
 
 			if (enums != null && enums.size() > 0) {
 				// Enumerations
