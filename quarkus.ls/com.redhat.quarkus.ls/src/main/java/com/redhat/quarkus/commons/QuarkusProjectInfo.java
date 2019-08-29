@@ -90,15 +90,32 @@ public class QuarkusProjectInfo {
 	}
 
 	/**
-	 * Returns the Quarkus property from the given property name and null otherwise.
+	 * Returns the Quarkus property and profile information from the given property
+	 * name and null otherwise.
 	 * 
 	 * @param propertyName the property name
-	 * @return the Quarkus property from the given property name and null otherwise.
+	 * @return the Quarkus property and profile information from the given property
+	 *         name and null otherwise.
 	 */
-	public ExtendedConfigDescriptionBuildItem getProperty(String propertyName) {
+	public PropertyInfo getProperty(String propertyName) {
+		String profile = null;
+		if (propertyName.charAt(0) == '%') {
+			// property starts with profile (ex : %dev.property-name)
+			int dotIndex = propertyName.indexOf('.');
+			profile = propertyName.substring(1, dotIndex != -1 ? dotIndex : propertyName.length());
+			if (dotIndex == -1) {
+				return new PropertyInfo(null, profile);
+			}
+			propertyName = propertyName.substring(dotIndex + 1, propertyName.length());
+		}
+
+		if (propertyName.isEmpty()) {
+			return new PropertyInfo(null, profile);
+		}
+
 		for (ExtendedConfigDescriptionBuildItem property : properties) {
 			if (propertyName.equals(property.getPropertyName())) {
-				return property;
+				return new PropertyInfo(property, profile);
 			}
 		}
 		// TODO: retrieve Map property
