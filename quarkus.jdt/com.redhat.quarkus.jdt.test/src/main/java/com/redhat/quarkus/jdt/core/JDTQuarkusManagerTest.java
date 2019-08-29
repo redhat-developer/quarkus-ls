@@ -27,7 +27,7 @@ import com.redhat.quarkus.commons.QuarkusProjectInfo;
  * @author Angelo ZERR
  *
  */
-public class JDTQuarkusManagerTest {
+public class JDTQuarkusManagerTest extends BaseJDTQuarkusManagerTest {
 
 	private static final String QUARKUS_CORE_DEPLOYMENT_JAR = getJarPath("quarkus-core-deployment-0.19.1.jar.test");
 
@@ -43,7 +43,7 @@ public class JDTQuarkusManagerTest {
 						"The name of the application.\n If not set, defaults to the name of the project.",
 						QUARKUS_CORE_DEPLOYMENT_JAR, "io.quarkus.deployment.ApplicationConfig#name",
 						CONFIG_PHASE_BUILD_TIME),
-				
+
 				p("quarkus.application.version", "java.lang.String",
 						"The version of the application.\n If not set, defaults to the version of the project",
 						QUARKUS_CORE_DEPLOYMENT_JAR, "io.quarkus.deployment.ApplicationConfig#version",
@@ -52,7 +52,7 @@ public class JDTQuarkusManagerTest {
 				// io.quarkus.deployment.JniProcessor$JniConfig
 				p("quarkus.jni.enable", "boolean", "Enable JNI support.", QUARKUS_CORE_DEPLOYMENT_JAR,
 						"io.quarkus.deployment.JniProcessor$JniConfig#enable", CONFIG_PHASE_BUILD_TIME),
-				
+
 				p("quarkus.jni.library-paths", "java.util.List<java.lang.String>", "Paths of library to load.",
 						QUARKUS_CORE_DEPLOYMENT_JAR, "io.quarkus.deployment.JniProcessor$JniConfig#libraryPaths",
 						CONFIG_PHASE_BUILD_TIME),
@@ -64,25 +64,15 @@ public class JDTQuarkusManagerTest {
 
 				// io.quarkus.deployment.index.ApplicationArchiveBuildStep$IndexDependencyConfiguration
 				// -> Map<String, IndexDependencyConfig>
-				p("quarkus.index-dependency.{*}.classifier",
-						"java.lang.String",
-						"The maven classifier of the artifact to index",
-						QUARKUS_CORE_DEPLOYMENT_JAR,
-						"io.quarkus.deployment.index.IndexDependencyConfig#classifier",
-						CONFIG_PHASE_BUILD_TIME),
-				p("quarkus.index-dependency.{*}.artifact-id",
-						"java.lang.String",
-						"The maven artifactId of the artifact to index",
-						QUARKUS_CORE_DEPLOYMENT_JAR,
-						"io.quarkus.deployment.index.IndexDependencyConfig#artifactId",
-						CONFIG_PHASE_BUILD_TIME),
-				p("quarkus.index-dependency.{*}.group-id",
-						"java.lang.String",
-						"The maven groupId of the artifact to index",
-						QUARKUS_CORE_DEPLOYMENT_JAR,
-						"io.quarkus.deployment.index.IndexDependencyConfig#groupId",
-						CONFIG_PHASE_BUILD_TIME)				
-				);
+				p("quarkus.index-dependency.{*}.classifier", "java.lang.String",
+						"The maven classifier of the artifact to index", QUARKUS_CORE_DEPLOYMENT_JAR,
+						"io.quarkus.deployment.index.IndexDependencyConfig#classifier", CONFIG_PHASE_BUILD_TIME),
+				p("quarkus.index-dependency.{*}.artifact-id", "java.lang.String",
+						"The maven artifactId of the artifact to index", QUARKUS_CORE_DEPLOYMENT_JAR,
+						"io.quarkus.deployment.index.IndexDependencyConfig#artifactId", CONFIG_PHASE_BUILD_TIME),
+				p("quarkus.index-dependency.{*}.group-id", "java.lang.String",
+						"The maven groupId of the artifact to index", QUARKUS_CORE_DEPLOYMENT_JAR,
+						"io.quarkus.deployment.index.IndexDependencyConfig#groupId", CONFIG_PHASE_BUILD_TIME));
 	}
 
 }

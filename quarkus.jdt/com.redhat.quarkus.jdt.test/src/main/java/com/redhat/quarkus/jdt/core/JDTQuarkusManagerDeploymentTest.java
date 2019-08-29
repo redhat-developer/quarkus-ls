@@ -25,12 +25,11 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
-import com.redhat.quarkus.jdt.core.DocumentationConverter;
-import com.redhat.quarkus.jdt.core.JDTQuarkusManager;
 import com.redhat.quarkus.jdt.internal.core.JobHelpers;
 import com.redhat.quarkus.jdt.internal.core.utils.DependencyUtil;
 
@@ -43,12 +42,58 @@ import com.redhat.quarkus.jdt.internal.core.utils.DependencyUtil;
  * @author Angelo ZERR
  *
  */
-public class JDTQuarkusManagerDeploymentTest {
+public class JDTQuarkusManagerDeploymentTest extends BaseJDTQuarkusManagerTest {
 
 	@Test
 	public void hibernateOrmResteasy() throws Exception {
+		QuarkusProjectInfo info = getQuarkusProjectInfo("hibernate-orm-resteasy");
+
+		File f = DependencyUtil.getArtifact("io.quarkus", "quarkus-hibernate-orm-deployment", "0.19.1", null);
+		Assert.assertNotNull("Test existing of quarkus-hibernate-orm-deployment*.jar", f);
+
+		assertProperties(info,
+
+				// io.quarkus.hibernate.orm.deployment.HibernateOrmConfig
+				p("quarkus.hibernate-orm.dialect", "java.util.Optional<java.lang.String>",
+						"The hibernate ORM dialect class name", f.getAbsolutePath(),
+						"io.quarkus.hibernate.orm.deployment.HibernateOrmConfig#dialect", CONFIG_PHASE_BUILD_TIME));
+	}
+
+	@Test
+	public void allQuarkusExtensions() throws Exception {
+		QuarkusProjectInfo info = getQuarkusProjectInfo("all-quarkus-extensions");
+
+		File keycloakJARFile = DependencyUtil.getArtifact("io.quarkus", "quarkus-keycloak-deployment", "0.21.1", null);
+		Assert.assertNotNull("Test existing of quarkus-keycloak-deployment*.jar", keycloakJARFile);
+		File hibernateJARFile = DependencyUtil.getArtifact("io.quarkus", "quarkus-hibernate-orm-deployment", "0.21.1",
+				null);
+		Assert.assertNotNull("Test existing of quarkus-hibernate-orm-deployment*.jar", hibernateJARFile);
+
+		assertProperties(info,
+
+				// Test with Map<String, String>
+				// https://github.com/quarkusio/quarkus/blob/0.21/extensions/keycloak/deployment/src/main/java/io/quarkus/keycloak/KeycloakConfig.java#L308
+				p("quarkus.keycloak.credentials.jwt.{*}", "java.lang.String",
+						"The settings for client authentication with signed JWT", keycloakJARFile.getAbsolutePath(),
+						"io.quarkus.keycloak.KeycloakConfig$KeycloakConfigCredentials#jwt", CONFIG_PHASE_BUILD_TIME),
+
+				// Test with Map<String, Map<String, Map<String, String>>>
+				// https://github.com/quarkusio/quarkus/blob/0.21/extensions/keycloak/deployment/src/main/java/io/quarkus/keycloak/KeycloakConfig.java#L469
+				p("quarkus.keycloak.policy-enforcer.paths.{*}.claim-information-point.{*}.{*}.{*}", "java.lang.String",
+						"", keycloakJARFile.getAbsolutePath(),
+						"io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer$ClaimInformationPointConfig#complexConfig",
+						CONFIG_PHASE_BUILD_TIME),
+
+				// io.quarkus.hibernate.orm.deployment.HibernateOrmConfig
+				p("quarkus.hibernate-orm.dialect", "java.util.Optional<java.lang.String>",
+						"The hibernate ORM dialect class name", hibernateJARFile.getAbsolutePath(),
+						"io.quarkus.hibernate.orm.deployment.HibernateOrmConfig#dialect", CONFIG_PHASE_BUILD_TIME));
+	}
+
+	private static QuarkusProjectInfo getQuarkusProjectInfo(String projectName)
+			throws CoreException, Exception, JavaModelException {
 		// Load existing "hibernate-orm-resteasy" maven project
-		IPath path = new Path(new File("projects/maven/hibernate-orm-resteasy/.project").getAbsolutePath());
+		IPath path = new Path(new File("projects/maven/" + projectName + "/.project").getAbsolutePath());
 		IProjectDescription description = ResourcesPlugin.getWorkspace().loadProjectDescription(path);
 		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(description.getName());
 		project.create(description, null);
@@ -84,19 +129,10 @@ public class JDTQuarkusManagerDeploymentTest {
 
 		QuarkusProjectInfo info = JDTQuarkusManager.getInstance().getQuarkusProjectInfo(project.getName(),
 				DocumentationConverter.DEFAULT_CONVERTER, new NullProgressMonitor());
-
-		File f = DependencyUtil.getArtifact("io.quarkus", "quarkus-hibernate-orm-deployment", "0.19.1", null);
-		Assert.assertNotNull("Test existing of quarkus-hibernate-orm-deployment*.jar", f);
-
-		assertProperties(info,
-
-				// io.quarkus.hibernate.orm.deployment.HibernateOrmConfig
-				p("quarkus.hibernate-orm.dialect", "java.util.Optional<java.lang.String>",
-						"The hibernate ORM dialect class name", f.getAbsolutePath(),
-						"io.quarkus.hibernate.orm.deployment.HibernateOrmConfig#dialect", CONFIG_PHASE_BUILD_TIME));
+		return info;
 	}
 
-	protected void waitForBackgroundJobs(IProgressMonitor monitor) throws Exception {
+	private static void waitForBackgroundJobs(IProgressMonitor monitor) throws Exception {
 		JobHelpers.waitForJobsToComplete(monitor);
 	}
 }

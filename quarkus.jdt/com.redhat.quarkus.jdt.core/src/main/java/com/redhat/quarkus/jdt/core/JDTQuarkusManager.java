@@ -23,10 +23,13 @@ import static io.quarkus.runtime.util.StringUtil.lowerCaseFirst;
 import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -70,6 +73,10 @@ public class JDTQuarkusManager {
 
 	private static final JDTQuarkusManager INSTANCE = new JDTQuarkusManager();
 
+	private static final Logger LOGGER = Logger.getLogger(JDTQuarkusManager.class.getName());
+
+	private static final List<String> NUMBER_TYPES = Arrays.asList("short", "int", "long", "double", "float");
+
 	public static JDTQuarkusManager getInstance() {
 		return INSTANCE;
 	}
@@ -108,29 +115,41 @@ public class JDTQuarkusManager {
 		QuarkusProjectInfo info = new QuarkusProjectInfo();
 		info.setProjectURI(JDTQuarkusUtils.getProjectURI(javaProject));
 
-		List<ExtendedConfigDescriptionBuildItem> quarkusProperties = new ArrayList<>();
-		Map<IPackageFragmentRoot, Properties> javadocCache = new HashMap<>();
+		long startTime = System.currentTimeMillis();
+		if (LOGGER.isLoggable(Level.INFO)) {
+			LOGGER.info("Start computing Quarkus properties for '" + info.getProjectURI() + "' project.");
+		}
+		try {
+			List<ExtendedConfigDescriptionBuildItem> quarkusProperties = new ArrayList<>();
+			Map<IPackageFragmentRoot, Properties> javadocCache = new HashMap<>();
 
-		// Scan Quarkus annotations Config* by using Java eclipse search engine.
-		SearchPattern pattern = JDTQuarkusSearchUtils.createQuarkusConfigSearchPattern();
-		SearchEngine engine = new SearchEngine();
-		IJavaSearchScope scope = JDTQuarkusSearchUtils.createQuarkusSearchScope(javaProject);
-		engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
-				new SearchRequestor() {
+			// Scan Quarkus annotations Config* by using Java eclipse search engine.
+			SearchPattern pattern = JDTQuarkusSearchUtils.createQuarkusConfigSearchPattern();
+			SearchEngine engine = new SearchEngine();
+			IJavaSearchScope scope = JDTQuarkusSearchUtils.createQuarkusSearchScope(javaProject);
+			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
+					new SearchRequestor() {
 
-					@Override
-					public void acceptSearchMatch(SearchMatch match) throws CoreException {
-						Object element = match.getElement();
-						if (element instanceof IAnnotatable && element instanceof IJavaElement) {
-							IJavaElement javaElement = (IJavaElement) element;
-							processQuarkusAnnotation(javaElement, converter, javadocCache, quarkusProperties, monitor);
+						@Override
+						public void acceptSearchMatch(SearchMatch match) throws CoreException {
+							Object element = match.getElement();
+							if (element instanceof IAnnotatable && element instanceof IJavaElement) {
+								IJavaElement javaElement = (IJavaElement) element;
+								processQuarkusAnnotation(javaElement, converter, javadocCache, quarkusProperties,
+										monitor);
+							}
 						}
-					}
-				}, monitor);
+					}, monitor);
 
-		// FIXME: manage isQuarkusProject
-		info.setQuarkusProject(quarkusProperties.size() > 0);
-		info.setProperties(quarkusProperties);
+			// FIXME: manage isQuarkusProject
+			info.setQuarkusProject(quarkusProperties.size() > 0);
+			info.setProperties(quarkusProperties);
+		} finally {
+			if (LOGGER.isLoggable(Level.INFO)) {
+				LOGGER.info("End computing Quarkus properties for '" + info.getProjectURI() + "' project in "
+						+ (System.currentTimeMillis() - startTime) + "ms.");
+			}
+		}
 		return info;
 	}
 
@@ -147,14 +166,20 @@ public class JDTQuarkusManager {
 	 */
 	private void processQuarkusAnnotation(IJavaElement javaElement, DocumentationConverter converter,
 			Map<IPackageFragmentRoot, Properties> javadocCache,
-			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, IProgressMonitor monitor)
-			throws JavaModelException {
-		IAnnotation[] annotations = ((IAnnotatable) javaElement).getAnnotations();
-		for (IAnnotation annotation : annotations) {
-			if (CONFIG_PROPERTY_ANNOTATION.contentEquals(annotation.getElementName())) {
-				processConfigProperty(javaElement, annotation, converter, javadocCache, quarkusProperties, monitor);
-			} else if (CONFIG_ROOT_ANNOTATION.contentEquals(annotation.getElementName())) {
-				processConfigRoot(javaElement, annotation, converter, javadocCache, quarkusProperties, monitor);
+			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, IProgressMonitor monitor) {
+		try {
+			IAnnotation[] annotations = ((IAnnotatable) javaElement).getAnnotations();
+			for (IAnnotation annotation : annotations) {
+				if (CONFIG_PROPERTY_ANNOTATION.contentEquals(annotation.getElementName())) {
+					processConfigProperty(javaElement, annotation, converter, javadocCache, quarkusProperties, monitor);
+				} else if (CONFIG_ROOT_ANNOTATION.contentEquals(annotation.getElementName())) {
+					processConfigRoot(javaElement, annotation, converter, javadocCache, quarkusProperties, monitor);
+				}
+			}
+		} catch (Exception e) {
+			if (LOGGER.isLoggable(Level.SEVERE)) {
+				LOGGER.log(Level.SEVERE, "Cannot compute Quarkus properties for the Java element '"
+						+ javaElement.getElementName() + "'.", e);
 			}
 		}
 	}
@@ -363,73 +388,64 @@ public class JDTQuarkusManager {
 							processConfigGroup(fieldClass, subKey, configPhase, converter, javadocCache,
 									quarkusProperties, monitor);
 						} else {
-							String propertyName = subKey;
-
-							// Class type
-							String type = fieldClass != null ? fieldClass.getFullyQualifiedName() : fieldTypeName;
-
-							// Javadoc
-							String docs = getJavadoc(field, javadocCache, monitor);
-							docs = converter.convert(docs);
-
-							// Location (JAR, src)
-							IPackageFragmentRoot packageRoot = (IPackageFragmentRoot) field
-									.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
-							String location = packageRoot.getPath().toString();
-
-							// field and class source
-							String source = field.getDeclaringType().getFullyQualifiedName() + "#"
-									+ field.getElementName();
-
-							// Enumerations
-							List<String> enumerations = getEnumerations(fieldClass);
-
-							// Default value for primitive type
-							if ("boolean".equals(fieldTypeName)) {
-								addField(propertyName, type,
-										ConfigItem.NO_DEFAULT.equals(defaultValue) ? "false" : defaultValue, docs,
-										location, source, enumerations, configPhase, quarkusProperties);
-							} else if ("int".equals(fieldTypeName)) {
-								addField(propertyName, type,
-										ConfigItem.NO_DEFAULT.equals(defaultValue) ? "0" : defaultValue, docs, location,
-										source, enumerations, configPhase, quarkusProperties);
-							} else if ("long".equals(fieldTypeName)) {
-								addField(propertyName, type,
-										ConfigItem.NO_DEFAULT.equals(defaultValue) ? "0" : defaultValue, docs, location,
-										source, enumerations, configPhase, quarkusProperties);
-							} else if ("double".equals(fieldTypeName)) {
-								addField(propertyName, type,
-										ConfigItem.NO_DEFAULT.equals(defaultValue) ? "0" : defaultValue, docs, location,
-										source, enumerations, configPhase, quarkusProperties);
-							} else if ("float".equals(fieldTypeName)) {
-								addField(propertyName, type,
-										ConfigItem.NO_DEFAULT.equals(defaultValue) ? "0" : defaultValue, docs, location,
-										source, enumerations, configPhase, quarkusProperties);
-							} else if (isMap(fieldTypeName)) {
-								// FIXME: find better mean to check field is a Map
-								// this code works only if user uses Map as declaration and not if it declare
-								// HashMap for instance
-								String[] rawTypeParameters = getRawTypeParameters(fieldTypeName);
-								if ((rawTypeParameters[0].trim().equals("java.lang.String"))) {
-									// The key Map must be a String
-									processMap(field, subKey, rawTypeParameters[1], docs, location, source, configPhase,
-											converter, javadocCache, quarkusProperties, monitor);
-								}
-							} else if (isList(fieldTypeName)) {
-								addField(propertyName, type, defaultValue, docs, location, source, enumerations,
-										configPhase, quarkusProperties);
-							} else if (isOptionnal(fieldTypeName)) {
-								ExtendedConfigDescriptionBuildItem item = addField(propertyName, type, defaultValue,
-										docs, location, source, enumerations, configPhase, quarkusProperties);
-								item.setRequired(false);
-							} else {
-								addField(propertyName, type, defaultValue, docs, location, source, enumerations,
-										configPhase, quarkusProperties);
-							}
+							addField(field, fieldTypeName, fieldClass, subKey, defaultValue, converter, javadocCache,
+									configPhase, quarkusProperties, monitor);
 						}
 					}
 				}
 			}
+		}
+	}
+
+	private static void addField(IField field, String fieldTypeName, IType fieldClass, String propertyName,
+			String defaultValue, DocumentationConverter converter, Map<IPackageFragmentRoot, Properties> javadocCache,
+			ConfigPhase configPhase, List<ExtendedConfigDescriptionBuildItem> quarkusProperties,
+			IProgressMonitor monitor) throws JavaModelException {
+
+		// Class type
+		String type = fieldClass != null ? fieldClass.getFullyQualifiedName() : fieldTypeName;
+
+		// Javadoc
+		String docs = getJavadoc(field, javadocCache, monitor);
+		docs = converter.convert(docs);
+
+		// Location (JAR, src)
+		IPackageFragmentRoot packageRoot = (IPackageFragmentRoot) field.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
+		String location = packageRoot.getPath().toString();
+
+		// field and class source
+		String source = field.getDeclaringType().getFullyQualifiedName() + "#" + field.getElementName();
+
+		// Enumerations
+		List<String> enumerations = getEnumerations(fieldClass);
+
+		// Default value for primitive type
+		if ("boolean".equals(fieldTypeName)) {
+			addField(propertyName, type, ConfigItem.NO_DEFAULT.equals(defaultValue) ? "false" : defaultValue, docs,
+					location, source, enumerations, configPhase, quarkusProperties);
+		} else if (isNumber(fieldTypeName)) {
+			addField(propertyName, type, ConfigItem.NO_DEFAULT.equals(defaultValue) ? "0" : defaultValue, docs,
+					location, source, enumerations, configPhase, quarkusProperties);
+		} else if (isMap(fieldTypeName)) {
+			// FIXME: find better mean to check field is a Map
+			// this code works only if user uses Map as declaration and not if they declare
+			// HashMap for instance
+			String[] rawTypeParameters = getRawTypeParameters(fieldTypeName);
+			if ((rawTypeParameters[0].trim().equals("java.lang.String"))) {
+				// The key Map must be a String
+				processMap(field, propertyName, rawTypeParameters[1], docs, location, source, configPhase, converter,
+						javadocCache, quarkusProperties, monitor);
+			}
+		} else if (isList(fieldTypeName)) {
+			addField(propertyName, type, defaultValue, docs, location, source, enumerations, configPhase,
+					quarkusProperties);
+		} else if (isOptionnal(fieldTypeName)) {
+			ExtendedConfigDescriptionBuildItem item = addField(propertyName, type, defaultValue, docs, location, source,
+					enumerations, configPhase, quarkusProperties);
+			item.setRequired(false);
+		} else {
+			addField(propertyName, type, defaultValue, docs, location, source, enumerations, configPhase,
+					quarkusProperties);
 		}
 	}
 
@@ -523,9 +539,10 @@ public class JDTQuarkusManager {
 
 	private static String[] getRawTypeParameters(String fieldTypeName) {
 		int start = fieldTypeName.indexOf("<") + 1;
-		int end = fieldTypeName.indexOf(">");
-		String[] rawTypeParameters = fieldTypeName.substring(start, end).split(",");
-		return rawTypeParameters;
+		int end = fieldTypeName.lastIndexOf(">");
+		String keyValue = fieldTypeName.substring(start, end);
+		int index = keyValue.indexOf(',');
+		return new String[] { keyValue.substring(0, index), keyValue.substring(index + 1, keyValue.length()) };
 	}
 
 	private static void processMap(IField field, String baseKey, String mapValueClass, String docs, String location,
@@ -544,7 +561,15 @@ public class JDTQuarkusManager {
 			// Optionals are not allowed as a map value type
 		} else {
 			IType type = findType(field.getJavaProject(), mapValueClass);
-			processConfigGroup(type, subKey, configPhase, converter, javadocCache, quarkusProperties, monitor);
+			if (type == null) {
+				// This case comes from when mapValueClass is:
+				// - Simple type, like java.lang.String
+				// - Type which cannot be found (bad classpath?)
+				addField(field, mapValueClass, null, subKey, null, converter, javadocCache, configPhase,
+						quarkusProperties, monitor);
+			} else {
+				processConfigGroup(type, subKey, configPhase, converter, javadocCache, quarkusProperties, monitor);
+			}
 		}
 	}
 
@@ -554,6 +579,10 @@ public class JDTQuarkusManager {
 
 	private static boolean isList(String valueClass) {
 		return valueClass.startsWith("java.util.List<");
+	}
+
+	private static boolean isNumber(String valueClass) {
+		return NUMBER_TYPES.contains(valueClass);
 	}
 
 	private static ExtendedConfigDescriptionBuildItem addField(String propertyName, String type, String defaultValue,
