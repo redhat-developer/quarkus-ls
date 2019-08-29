@@ -17,7 +17,7 @@ import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.Position;
 
-import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
+import com.redhat.quarkus.commons.PropertyInfo;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.model.Node;
@@ -32,7 +32,7 @@ import com.redhat.quarkus.utils.PositionUtils;
  */
 class QuarkusHover {
 
-	private static final Logger LOGGER = Logger.getLogger(QuarkusCompletions.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(QuarkusHover.class.getName());
 
 	/**
 	 * Returns Hover object for the currently hovered token
@@ -87,10 +87,11 @@ class QuarkusHover {
 		String propertyName = ((PropertyKey) node).getText();
 		boolean markdownSupported = hoverSettings.isContentFormatSupported(MarkupKind.MARKDOWN);
 		// retrieve Quarkus property from the project information
-		ExtendedConfigDescriptionBuildItem property = projectInfo.getProperty(propertyName);
-		if (property != null) {
+		PropertyInfo propertyInfo = projectInfo.getProperty(propertyName);
+		if (propertyInfo != null && propertyInfo.getProperty() != null) {
 			// Quarkus property, found, display her documentation as hover
-			MarkupContent markupContent = DocumentationUtils.getDocumentation(property, markdownSupported);
+			MarkupContent markupContent = DocumentationUtils.getDocumentation(propertyInfo,
+					markdownSupported);
 			Hover hover = new Hover();
 			hover.setContents(markupContent);
 			hover.setRange(PositionUtils.createRange(node.getStart(), node.getEnd(), node.getDocument()));
