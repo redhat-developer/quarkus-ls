@@ -89,40 +89,4 @@ public class QuarkusProjectInfo {
 		this.properties = properties;
 	}
 
-	/**
-	 * Returns the Quarkus property and profile information from the given property
-	 * name and null otherwise.
-	 * 
-	 * @param propertyName the property name
-	 * @return the Quarkus property and profile information from the given property
-	 *         name and null otherwise.
-	 */
-	public PropertyInfo getProperty(String propertyName) {
-		String profile = null;
-		if (propertyName.charAt(0) == '%') {
-			// property starts with profile (ex : %dev.property-name)
-			int dotIndex = propertyName.indexOf('.');
-			profile = propertyName.substring(1, dotIndex != -1 ? dotIndex : propertyName.length());
-			if (dotIndex == -1) {
-				return new PropertyInfo(null, profile);
-			}
-			propertyName = propertyName.substring(dotIndex + 1, propertyName.length());
-		}
-
-		if (propertyName.isEmpty()) {
-			return new PropertyInfo(null, profile);
-		}
-
-		for (ExtendedConfigDescriptionBuildItem property : properties) {
-			if (propertyName.equals(property.getPropertyName())) {
-				return new PropertyInfo(property, profile);
-			}
-		}
-		// TODO: retrieve Map property
-		// Ex : quarkus.log.category."com.lordofthejars".level property name should
-		// return
-		// quarkus.log.category.{*}.level Quarkus property
-		return null;
-	}
-
 }
