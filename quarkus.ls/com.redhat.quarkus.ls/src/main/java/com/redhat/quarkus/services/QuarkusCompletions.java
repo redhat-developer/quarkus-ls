@@ -174,22 +174,7 @@ class QuarkusCompletions {
 		if (!snippetsSupported) {
 			return propertyName;
 		}
-		// Snippet is supported, replace {*} property map with ${key} placeholder.
-		int index = propertyName.indexOf("{*}");
-		if (index != -1) {
-			int i = 1;
-			String current = propertyName;
-			StringBuilder newName = new StringBuilder();
-			while (index != -1) {
-				newName.append(current.substring(0, index));
-				current = current.substring(index + 3, current.length());
-				SnippetsBuilder.placeholders(i++, "key", newName);
-				index = current.indexOf("{*}");
-			}
-			newName.append(current);
-			return newName.toString();
-		}
-		return propertyName;
+		return QuarkusPropertiesUtils.formatPropertyForCompletion(propertyName);
 	}
 
 	/**
