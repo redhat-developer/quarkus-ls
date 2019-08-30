@@ -26,6 +26,7 @@ import com.redhat.quarkus.model.PropertyKey;
 import com.redhat.quarkus.settings.QuarkusHoverSettings;
 import com.redhat.quarkus.utils.DocumentationUtils;
 import com.redhat.quarkus.utils.PositionUtils;
+import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
 
 /**
  * Retreives hover documentation and creating Hover object
@@ -87,11 +88,10 @@ class QuarkusHover {
 		String propertyName = ((PropertyKey) node).getText();
 		boolean markdownSupported = hoverSettings.isContentFormatSupported(MarkupKind.MARKDOWN);
 		// retrieve Quarkus property from the project information
-		PropertyInfo propertyInfo = projectInfo.getProperty(propertyName);
+		PropertyInfo propertyInfo = QuarkusPropertiesUtils.getProperty(propertyName, projectInfo);
 		if (propertyInfo != null && propertyInfo.getProperty() != null) {
 			// Quarkus property, found, display her documentation as hover
-			MarkupContent markupContent = DocumentationUtils.getDocumentation(propertyInfo,
-					markdownSupported);
+			MarkupContent markupContent = DocumentationUtils.getDocumentation(propertyInfo, markdownSupported);
 			Hover hover = new Hover();
 			hover.setContents(markupContent);
 			hover.setRange(PositionUtils.createRange(node.getStart(), node.getEnd(), node.getDocument()));

@@ -38,7 +38,7 @@ public class ApplicationPropertiesHoverTest {
 				+ System.lineSeparator() + System.lineSeparator() + //
 				" * Type: `java.lang.String`" + System.lineSeparator() + //
 				" * Phase: `buildtime`" + System.lineSeparator() + //
-				" * Location: `quarkus-core-deployment-0.19.1.jar`" + System.lineSeparator() + //
+				" * Location: `quarkus-core-deployment-0.21.1.jar`" + System.lineSeparator() + //
 				" * Source: `io.quarkus.deployment.ApplicationConfig#name`";
 		assertHoverMarkdown(value, hoverLabel, 0);
 	};
@@ -51,7 +51,7 @@ public class ApplicationPropertiesHoverTest {
 				+ System.lineSeparator() + System.lineSeparator() + //
 				"Type: java.lang.String" + System.lineSeparator() + //
 				"Phase: buildtime" + System.lineSeparator() + //
-				"Location: quarkus-core-deployment-0.19.1.jar" + System.lineSeparator() + //
+				"Location: quarkus-core-deployment-0.21.1.jar" + System.lineSeparator() + //
 				"Source: io.quarkus.deployment.ApplicationConfig#name";
 		assertHoverPlaintext(value, hoverLabel, 0);
 	};
@@ -64,7 +64,7 @@ public class ApplicationPropertiesHoverTest {
 				+ System.lineSeparator() + System.lineSeparator() + //
 				" * Type: `java.lang.String`" + System.lineSeparator() + //
 				" * Phase: `buildtime`" + System.lineSeparator() + //
-				" * Location: `quarkus-core-deployment-0.19.1.jar`" + System.lineSeparator() + //
+				" * Location: `quarkus-core-deployment-0.21.1.jar`" + System.lineSeparator() + //
 				" * Source: `io.quarkus.deployment.ApplicationConfig#name`";
 		assertHoverMarkdown(value, hoverLabel, 0);
 	};
@@ -77,7 +77,7 @@ public class ApplicationPropertiesHoverTest {
 				+ System.lineSeparator() + System.lineSeparator() + //
 				" * Type: `java.lang.String`" + System.lineSeparator() + //
 				" * Phase: `buildtime`" + System.lineSeparator() + //
-				" * Location: `quarkus-core-deployment-0.19.1.jar`" + System.lineSeparator() + //
+				" * Location: `quarkus-core-deployment-0.21.1.jar`" + System.lineSeparator() + //
 				" * Source: `io.quarkus.deployment.ApplicationConfig#name`";
 		assertHoverMarkdown(value, hoverLabel, 0);
 	};
@@ -90,7 +90,7 @@ public class ApplicationPropertiesHoverTest {
 				+ System.lineSeparator() + System.lineSeparator() + //
 				" * Type: `java.lang.String`" + System.lineSeparator() + //
 				" * Phase: `buildtime`" + System.lineSeparator() + //
-				" * Location: `quarkus-core-deployment-0.19.1.jar`" + System.lineSeparator() + //
+				" * Location: `quarkus-core-deployment-0.21.1.jar`" + System.lineSeparator() + //
 				" * Source: `io.quarkus.deployment.ApplicationConfig#name`";
 		assertHoverMarkdown(value, hoverLabel, 0);
 	};
@@ -115,8 +115,21 @@ public class ApplicationPropertiesHoverTest {
 				" * Profile: `dev`" + System.lineSeparator() + //
 				" * Type: `java.lang.String`" + System.lineSeparator() + //
 				" * Phase: `buildtime`" + System.lineSeparator() + //
-				" * Location: `quarkus-core-deployment-0.19.1.jar`" + System.lineSeparator() + //
+				" * Location: `quarkus-core-deployment-0.21.1.jar`" + System.lineSeparator() + //
 				" * Source: `io.quarkus.deployment.ApplicationConfig#name`";
+		assertHoverMarkdown(value, hoverLabel, 0);
+	};
+
+	@Test
+	public void testQuarkusKeyMap() throws BadLocationException {
+		String value = "quar|kus.log.category.\"com.lordofthejars\".level=DEBUG";
+		String hoverLabel = "**quarkus.log.category.{*}.level**" + System.lineSeparator() + System.lineSeparator() + //
+				"The log level level for this category" + System.lineSeparator() + System.lineSeparator() + //
+				" * Type: `java.lang.String`" + System.lineSeparator() + //
+				" * Default: `inherit`" + System.lineSeparator() + //
+				" * Phase: `runtime`" + System.lineSeparator() + //
+				" * Location: `quarkus-core-0.21.1.jar`" + System.lineSeparator() + //
+				" * Source: `io.quarkus.runtime.logging.CategoryConfig#level`";
 		assertHoverMarkdown(value, hoverLabel, 0);
 	};
 }

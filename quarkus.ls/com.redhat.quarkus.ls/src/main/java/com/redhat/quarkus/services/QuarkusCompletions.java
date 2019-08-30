@@ -37,6 +37,7 @@ import com.redhat.quarkus.model.Property;
 import com.redhat.quarkus.model.PropertyKey;
 import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 import com.redhat.quarkus.utils.DocumentationUtils;
+import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
 
 /**
  * The Quarkus completions
@@ -231,7 +232,7 @@ class QuarkusCompletions {
 
 		String keyText = key.getText().trim();
 
-		PropertyInfo propertyInfo = projectInfo.getProperty(keyText);
+		PropertyInfo propertyInfo = QuarkusPropertiesUtils.getProperty(keyText, projectInfo);
 		if (propertyInfo != null && propertyInfo.getProperty() != null) {
 			Collection<String> enums = getEnums(propertyInfo.getProperty());
 			if (enums != null && !enums.isEmpty()) {

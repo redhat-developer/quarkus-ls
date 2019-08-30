@@ -101,7 +101,7 @@ public class ApplicationPropertiesCompletionTest {
 		String value = "|";
 		// OverflowAction enum type
 		testCompletionFor(value, false,
-				c("quarkus.log.console.async.overflow", "quarkus.log.console.async.overflow=BLOCK", r(0, 0, 0)));
+				c("quarkus.log.console.async.overflow", "quarkus.log.console.async.overflow=block", r(0, 0, 0)));
 		testCompletionFor(value, true, c("quarkus.log.console.async.overflow",
 				"quarkus.log.console.async.overflow=${1|BLOCK,DISCARD|}", r(0, 0, 0)));
 
