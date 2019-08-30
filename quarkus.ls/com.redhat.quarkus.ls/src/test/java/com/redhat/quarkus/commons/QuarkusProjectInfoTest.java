@@ -10,6 +10,8 @@
 package com.redhat.quarkus.commons;
 
 import static com.redhat.quarkus.services.QuarkusAssert.getDefaultQuarkusProjectInfo;
+import static com.redhat.quarkus.utils.QuarkusPropertiesUtils.formatPropertyForMarkdown;
+import static com.redhat.quarkus.utils.QuarkusPropertiesUtils.formatPropertyForCompletion;
 import static com.redhat.quarkus.utils.QuarkusPropertiesUtils.getProperty;
 
 import org.junit.Assert;
@@ -105,4 +107,53 @@ public class QuarkusProjectInfoTest {
 				property.getProperty().getPropertyName());
 	}
 
+	@Test
+	public void simpleFormatPropertyForMarkdown() {
+		String actual = formatPropertyForMarkdown("quarkus.thread-pool.core-threads");
+		Assert.assertEquals("quarkus.thread-pool.core-threads", actual);
+	}
+
+	@Test
+	public void mapFormatPropertyForMarkdown() {
+		String actual = formatPropertyForMarkdown(
+				"quarkus.log.category.{*}.level");
+		Assert.assertEquals("quarkus.log.category.\\{\\*\\}.level", actual);
+
+		actual = formatPropertyForMarkdown(
+				"quarkus.keycloak.credentials.jwt.{*}");
+		Assert.assertEquals("quarkus.keycloak.credentials.jwt.\\{\\*\\}", actual);
+		
+		actual = formatPropertyForMarkdown(
+				"quarkus.keycloak.policy-enforcer.claim-information-point.{*}.{*}.{*}");
+		Assert.assertEquals("quarkus.keycloak.policy-enforcer.claim-information-point.\\{\\*\\}.\\{\\*\\}.\\{\\*\\}", actual);
+		
+		actual = formatPropertyForMarkdown(
+				"quarkus.keycloak.policy-enforcer.paths.{*}.claim-information-point.{*}.{*}");
+		Assert.assertEquals("quarkus.keycloak.policy-enforcer.paths.\\{\\*\\}.claim-information-point.\\{\\*\\}.\\{\\*\\}", actual);		
+	}
+	
+	@Test
+	public void simpleFormatPropertyForCompletion() {
+		String actual = formatPropertyForCompletion("quarkus.thread-pool.core-threads");
+		Assert.assertEquals("quarkus.thread-pool.core-threads", actual);
+	}
+
+	@Test
+	public void mapFormatPropertyForCompletion() {
+		String actual = formatPropertyForCompletion(
+				"quarkus.log.category.{*}.level");
+		Assert.assertEquals("quarkus.log.category.${1:key}.level", actual);
+
+		actual = formatPropertyForCompletion(
+				"quarkus.keycloak.credentials.jwt.{*}");
+		Assert.assertEquals("quarkus.keycloak.credentials.jwt.${1:key}", actual);
+		
+		actual = formatPropertyForCompletion(
+				"quarkus.keycloak.policy-enforcer.claim-information-point.{*}.{*}.{*}");
+		Assert.assertEquals("quarkus.keycloak.policy-enforcer.claim-information-point.${1:key}.${2:key}.${3:key}", actual);
+		
+		actual = formatPropertyForCompletion(
+				"quarkus.keycloak.policy-enforcer.paths.{*}.claim-information-point.{*}.{*}");
+		Assert.assertEquals("quarkus.keycloak.policy-enforcer.paths.${1:key}.claim-information-point.${2:key}.${3:key}", actual);		
+	}
 }

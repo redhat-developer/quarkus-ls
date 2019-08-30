@@ -10,6 +10,8 @@
 
 package com.redhat.quarkus.utils;
 
+import static com.redhat.quarkus.utils.QuarkusPropertiesUtils.formatPropertyForMarkdown;
+
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 
@@ -56,7 +58,7 @@ public class DocumentationUtils {
 		if (markdown) {
 			documentation.append("**");
 		}
-		documentation.append(item.getPropertyName());
+		documentation.append(markdown ? formatPropertyForMarkdown(item.getPropertyName()) : item.getPropertyName());
 		if (markdown) {
 			documentation.append("**");
 		}

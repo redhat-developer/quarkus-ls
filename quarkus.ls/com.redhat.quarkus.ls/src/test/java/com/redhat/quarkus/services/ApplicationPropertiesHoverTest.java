@@ -123,7 +123,7 @@ public class ApplicationPropertiesHoverTest {
 	@Test
 	public void testQuarkusKeyMap() throws BadLocationException {
 		String value = "quar|kus.log.category.\"com.lordofthejars\".level=DEBUG";
-		String hoverLabel = "**quarkus.log.category.{*}.level**" + System.lineSeparator() + System.lineSeparator() + //
+		String hoverLabel = "**quarkus.log.category.\\{\\*\\}.level**" + System.lineSeparator() + System.lineSeparator() + //
 				"The log level level for this category" + System.lineSeparator() + System.lineSeparator() + //
 				" * Type: `java.lang.String`" + System.lineSeparator() + //
 				" * Default: `inherit`" + System.lineSeparator() + //
