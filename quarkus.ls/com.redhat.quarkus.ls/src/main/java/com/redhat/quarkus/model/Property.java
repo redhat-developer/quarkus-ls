@@ -17,20 +17,20 @@ package com.redhat.quarkus.model;
  */
 public class Property extends Node {
 
-	private Node key;
+	private PropertyKey key;
 	private Node delimiterAssign;
-	private Node value;
+	private PropertyValue value;
 
 	/**
 	 * Returns the node key and null otherwise.
 	 * 
 	 * @return the node key and null otherwise.
 	 */
-	public Node getKey() {
+	public PropertyKey getKey() {
 		return key;
 	}
 
-	void setKey(Node key) {
+	void setKey(PropertyKey key) {
 		this.key = key;
 		key.parent = this;
 	}
@@ -40,11 +40,11 @@ public class Property extends Node {
 	 * 
 	 * @return the node value and null otherwise.
 	 */
-	public Node getValue() {
+	public PropertyValue getValue() {
 		return value;
 	}
 
-	void setValue(Node value) {
+	void setValue(PropertyValue value) {
 		this.value = value;
 		value.parent = this;
 	}
@@ -64,16 +64,55 @@ public class Property extends Node {
 	}
 
 	/**
-	 * Returns the property name and null otherwise.
+	 * Returns the property key (profile + property name) and null otherwise.
 	 * 
-	 * @return the property name and null otherwise.
+	 * @return the property key (profile + property name) and null otherwise.
 	 */
-	public String getPropertyName() {
+	public String getPropertyKey() {
 		Node key = getKey();
 		if (key == null) {
 			return null;
 		}
 		return key.getText();
+	}
+
+	/**
+	 * Returns the profile of the property key and null otherwise.
+	 * 
+	 * <ul>
+	 * <li>'%dev.key' will return 'dev'.</li>
+	 * <li>'key' will return null.</li>
+	 * </ul>
+	 * 
+	 * @return the profile of the property key and null otherwise.
+	 */
+	public String getProfile() {
+		PropertyKey key = getKey();
+		if (key == null) {
+			return null;
+		}
+		return key.getProfile();
+	}
+
+	/**
+	 * Returns the property name without the profile of the property key and null
+	 * otherwise.
+	 * 
+	 * <ul>
+	 * <li>'%dev.' will return null.</li>
+	 * <li>'%dev.key' will return 'key'.</li>
+	 * <li>'key' will return 'key'.</li>
+	 * </ul>
+	 * 
+	 * @return the property name without the profile of the property key and null
+	 *         otherwise.
+	 */
+	public String getPropertyName() {
+		PropertyKey key = getKey();
+		if (key == null) {
+			return null;
+		}
+		return key.getPropertyName();
 	}
 
 	/**

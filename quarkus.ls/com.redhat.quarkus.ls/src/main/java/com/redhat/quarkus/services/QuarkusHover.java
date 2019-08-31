@@ -17,7 +17,7 @@ import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.Position;
 
-import com.redhat.quarkus.commons.PropertyInfo;
+import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.model.Node;
@@ -85,13 +85,16 @@ class QuarkusHover {
 	 */
 	private static Hover getPropertyKeyHover(Node node, QuarkusProjectInfo projectInfo,
 			QuarkusHoverSettings hoverSettings) {
-		String propertyName = ((PropertyKey) node).getText();
+		PropertyKey key = ((PropertyKey) node);
 		boolean markdownSupported = hoverSettings.isContentFormatSupported(MarkupKind.MARKDOWN);
 		// retrieve Quarkus property from the project information
-		PropertyInfo propertyInfo = QuarkusPropertiesUtils.getProperty(propertyName, projectInfo);
-		if (propertyInfo != null && propertyInfo.getProperty() != null) {
+		String propertyName = key.getPropertyName();
+
+		ExtendedConfigDescriptionBuildItem item = QuarkusPropertiesUtils.getProperty(propertyName, projectInfo);
+		if (item != null) {
 			// Quarkus property, found, display her documentation as hover
-			MarkupContent markupContent = DocumentationUtils.getDocumentation(propertyInfo, markdownSupported);
+			MarkupContent markupContent = DocumentationUtils.getDocumentation(item, key.getProfile(),
+					markdownSupported);
 			Hover hover = new Hover();
 			hover.setContents(markupContent);
 			hover.setRange(PositionUtils.createRange(node.getStart(), node.getEnd(), node.getDocument()));

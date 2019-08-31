@@ -12,8 +12,13 @@ package com.redhat.quarkus.services;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
@@ -26,12 +31,12 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
-import com.redhat.quarkus.commons.PropertyInfo;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.SnippetsBuilder;
 import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.model.Node;
+import com.redhat.quarkus.model.Node.NodeType;
 import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.model.Property;
 import com.redhat.quarkus.model.PropertyKey;
@@ -48,6 +53,8 @@ import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
 class QuarkusCompletions {
 
 	private static final Logger LOGGER = Logger.getLogger(QuarkusCompletions.class.getName());
+
+	private static final List<String> DEFAULT_PROFILES = Arrays.asList("dev", "prod", "test");
 
 	private static final Collection<String> BOOLEAN_ENUMS = Collections
 			.unmodifiableCollection(Arrays.asList("false", "true"));
@@ -89,7 +96,7 @@ class QuarkusCompletions {
 			break;
 		default:
 			// completion on property key
-			collectPropertyKeySuggestions(offset, document, projectInfo, completionSettings, list);
+			collectPropertyKeySuggestions(offset, node, document, projectInfo, completionSettings, list);
 			break;
 		}
 		return list;
@@ -99,12 +106,13 @@ class QuarkusCompletions {
 	 * Collect property keys.
 	 * 
 	 * @param offset             the property key node
+	 * @param node
 	 * @param projectInfo        the Quarkus project information
 	 * @param completionSettings the completion settings
 	 * @param list               the completion list to fill
 	 */
-	private static void collectPropertyKeySuggestions(int offset, PropertiesModel model, QuarkusProjectInfo projectInfo,
-			QuarkusCompletionSettings completionSettings, CompletionList list) {
+	private static void collectPropertyKeySuggestions(int offset, Node node, PropertiesModel model,
+			QuarkusProjectInfo projectInfo, QuarkusCompletionSettings completionSettings, CompletionList list) {
 
 		boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
 		boolean markdownSupported = completionSettings.isDocumentationFormatSupported(MarkupKind.MARKDOWN);
@@ -117,8 +125,37 @@ class QuarkusCompletions {
 			return;
 		}
 
-		// TODO : get the profile of the property where completion was triggered
-		String profil = null;
+		String profile = null;
+		if (node != null && node.getNodeType() == NodeType.PROPERTY_KEY) {
+			PropertyKey key = (PropertyKey) node;
+			if (key.isBeforeProfile(offset)) {
+				// Collect all existing profiles declared in application.properties
+				Set<String> profiles = model.getChildren().stream().filter(n -> n.getNodeType() == NodeType.PROPERTY)
+						.map(n -> {
+							Property property = (Property) n;
+							return property.getProfile();
+						}).filter(Objects::nonNull).filter(not(String::isEmpty)).distinct().collect(Collectors.toSet());
+				// merge existings profiles with default profiles.
+				profiles.addAll(DEFAULT_PROFILES);
+				// Completion on profiles
+				for (String p : profiles) {
+					CompletionItem item = new CompletionItem(p);
+					item.setKind(CompletionItemKind.Struct);
+					String insertText = new StringBuilder("%").append(p).toString();
+
+					TextEdit textEdit = new TextEdit(range, insertText);
+					item.setTextEdit(textEdit);
+					item.setInsertTextFormat(InsertTextFormat.PlainText);
+					item.setFilterText(insertText);
+
+					list.getItems().add(item);
+				}
+				return;
+			}
+			profile = key.getProfile();
+		}
+
+		// Completion on Quarkus properties
 		for (ExtendedConfigDescriptionBuildItem property : projectInfo.getProperties()) {
 
 			CompletionItem item = new CompletionItem(property.getPropertyName());
@@ -128,7 +165,16 @@ class QuarkusCompletions {
 			Collection<String> enums = getEnums(property);
 
 			StringBuilder insertText = new StringBuilder();
+			if (profile != null) {
+				insertText.append('%');
+				insertText.append(profile);
+				insertText.append('.');
+			}
 			insertText.append(getPropertyName(property.getPropertyName(), snippetsSupported));
+
+			String filterText = insertText.toString();
+			item.setFilterText(filterText);
+
 			insertText.append('='); // TODO: spaces around the equals sign should be configured in format settings
 
 			if (enums != null && enums.size() > 0) {
@@ -158,9 +204,13 @@ class QuarkusCompletions {
 			item.setTextEdit(textEdit);
 
 			item.setInsertTextFormat(snippetsSupported ? InsertTextFormat.Snippet : InsertTextFormat.PlainText);
-			item.setDocumentation(DocumentationUtils.getDocumentation(property, profil, markdownSupported));
+			item.setDocumentation(DocumentationUtils.getDocumentation(property, profile, markdownSupported));
 			list.getItems().add(item);
 		}
+	}
+
+	private static <T> Predicate<T> not(Predicate<T> t) {
+		return t.negate();
 	}
 
 	/**
@@ -208,42 +258,18 @@ class QuarkusCompletions {
 		if (parent != null && parent.getNodeType() != Node.NodeType.PROPERTY) {
 			return;
 		}
+		Property property = (Property) parent;
+		String propertyName = property.getPropertyName();
 
-		PropertyKey key = getPropertyKeyFromProperty((Property) parent);
-
-		if (key == null) {
-			return;
-		}
-
-		String keyText = key.getText().trim();
-
-		PropertyInfo propertyInfo = QuarkusPropertiesUtils.getProperty(keyText, projectInfo);
-		if (propertyInfo != null && propertyInfo.getProperty() != null) {
-			Collection<String> enums = getEnums(propertyInfo.getProperty());
+		ExtendedConfigDescriptionBuildItem item = QuarkusPropertiesUtils.getProperty(propertyName, projectInfo);
+		if (item != null) {
+			Collection<String> enums = getEnums(item);
 			if (enums != null && !enums.isEmpty()) {
 				for (String e : enums) {
 					list.getItems().add(getValueCompletionItem(e, node, model));
 				}
 			}
 		}
-	}
-
-	/**
-	 * Returns the <code>PropertyKey</code> object associated with
-	 * <code>property</code>.
-	 * 
-	 * @param property the property to find the <code>PropertyKey</code> for
-	 * @return the <code>PropertyKey</code> object associated with
-	 *         <code>property</code>
-	 */
-	private static PropertyKey getPropertyKeyFromProperty(Property property) {
-		Node key = property.getKey();
-
-		if (key == null) {
-			return null;
-		}
-
-		return (PropertyKey) key;
 	}
 
 	/**

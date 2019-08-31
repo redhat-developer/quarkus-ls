@@ -16,7 +16,6 @@ import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
-import com.redhat.quarkus.commons.PropertyInfo;
 
 /**
  * Utility for documentation.
@@ -26,18 +25,6 @@ public class DocumentationUtils {
 
 	private DocumentationUtils() {
 
-	}
-
-	/**
-	 * Returns the documentation of the given Quarkus property.
-	 * 
-	 * @param propertyInfo the Quarkus property and profile information.
-	 * @param markdown     true if documentation must be formatted as markdown and
-	 *                     false otherwise.
-	 * @return the documentation of the given Quarkus property.
-	 */
-	public static MarkupContent getDocumentation(PropertyInfo propertyInfo, boolean markdown) {
-		return getDocumentation(propertyInfo.getProperty(), propertyInfo.getProfile(), markdown);
 	}
 
 	/**
