@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.function.BiConsumer;
 
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
-import com.redhat.quarkus.commons.PropertyInfo;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.SnippetsBuilder;
 
@@ -32,35 +31,22 @@ public class QuarkusPropertiesUtils {
 			newName) -> SnippetsBuilder.placeholders(i++, "key", newName);
 
 	/**
-	 * Returns the Quarkus property and profile information from the given property
-	 * name and null otherwise.
+	 * Returns the Quarkus property from the given property name and null otherwise.
 	 * 
 	 * @param propertyName the property name
-	 * @param info         the quarkus project information which hosts teh Quarkus
+	 * @param info         the quarkus project information which hosts the Quarkus
 	 *                     properties.
-	 * @return the Quarkus property and profile information from the given property
-	 *         name and null otherwise.
+	 * @return the Quarkus property from the given property name and null otherwise.
 	 */
-	public static PropertyInfo getProperty(String propertyName, QuarkusProjectInfo info) {
+	public static ExtendedConfigDescriptionBuildItem getProperty(String propertyName, QuarkusProjectInfo info) {
 		Collection<ExtendedConfigDescriptionBuildItem> properties = info.getProperties();
-		String profile = null;
-		if (propertyName.charAt(0) == '%') {
-			// property starts with profile (ex : %dev.property-name)
-			int dotIndex = propertyName.indexOf('.');
-			profile = propertyName.substring(1, dotIndex != -1 ? dotIndex : propertyName.length());
-			if (dotIndex == -1) {
-				return new PropertyInfo(null, profile);
-			}
-			propertyName = propertyName.substring(dotIndex + 1, propertyName.length());
-		}
-
-		if (propertyName.isEmpty()) {
-			return new PropertyInfo(null, profile);
+		if (propertyName == null || propertyName.isEmpty()) {
+			return null;
 		}
 
 		for (ExtendedConfigDescriptionBuildItem property : properties) {
 			if (match(propertyName, property.getPropertyName())) {
-				return new PropertyInfo(property, profile);
+				return property;
 			}
 		}
 		return null;
@@ -83,7 +69,7 @@ public class QuarkusPropertiesUtils {
 	 * @return true if the given property name matches the given pattern and false
 	 *         otherwise.
 	 */
-	public static boolean match(String propertyName, String pattern) {
+	private static boolean match(String propertyName, String pattern) {
 		int i2 = 0;
 		int len = Math.max(propertyName.length(), pattern.length());
 		for (int i1 = 0; i1 < len; i1++) {

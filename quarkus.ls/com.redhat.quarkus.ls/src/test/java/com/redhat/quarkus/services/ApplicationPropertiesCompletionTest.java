@@ -113,4 +113,31 @@ public class ApplicationPropertiesCompletionTest {
 
 	}
 
+	@Test
+	public void completionOnProfil() throws BadLocationException {
+		String value = "%|";
+		testCompletionFor(value, true, 3, c("dev", "%dev", r(0, 0, 1)), //
+				c("prod", "%prod", r(0, 0, 1)), //
+				c("test", "%test", r(0, 0, 1)));
+
+		value = "%st|aging.";
+		testCompletionFor(value, true, 4, c("staging", "%staging", r(0, 0, 9)), //
+				c("dev", "%dev", r(0, 0, 9)), //
+				c("prod", "%prod", r(0, 0, 9)), //
+				c("test", "%test", r(0, 0, 9)));
+
+		value = "%staging|.";
+		testCompletionFor(value, true, 4, c("staging", "%staging", r(0, 0, 9)), //
+				c("dev", "%dev", r(0, 0, 9)), //
+				c("prod", "%prod", r(0, 0, 9)), //
+				c("test", "%test", r(0, 0, 9)));
+	}
+
+	@Test
+	public void completionAfterProfil() throws BadLocationException {
+		String value = "%dev.|";
+		testCompletionFor(value, false, c("quarkus.http.cors", "%dev.quarkus.http.cors=false", r(0, 0, 5)));
+		testCompletionFor(value, true, c("quarkus.http.cors", "%dev.quarkus.http.cors=${1|false,true|}", r(0, 0, 5)));
+	}
+
 }

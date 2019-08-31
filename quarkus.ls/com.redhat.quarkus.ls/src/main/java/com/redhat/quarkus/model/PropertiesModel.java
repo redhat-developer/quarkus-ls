@@ -63,7 +63,7 @@ public class PropertiesModel extends Node {
 
 		@Override
 		public void startPropertyName(ParseContext context) {
-			Node key = new PropertyKey();
+			PropertyKey key = new PropertyKey();
 			key.setStart(context.getLocationOffset());
 			property.setKey(key);
 		}
@@ -76,7 +76,7 @@ public class PropertiesModel extends Node {
 
 		@Override
 		public void startPropertyValue(ParseContext context) {
-			Node value = new PropertyValue();
+			PropertyValue value = new PropertyValue();
 			value.setStart(context.getLocationOffset());
 			property.setValue(value);
 		}

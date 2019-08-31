@@ -10,12 +10,16 @@
 package com.redhat.quarkus.commons;
 
 import static com.redhat.quarkus.services.QuarkusAssert.getDefaultQuarkusProjectInfo;
-import static com.redhat.quarkus.utils.QuarkusPropertiesUtils.formatPropertyForMarkdown;
 import static com.redhat.quarkus.utils.QuarkusPropertiesUtils.formatPropertyForCompletion;
-import static com.redhat.quarkus.utils.QuarkusPropertiesUtils.getProperty;
+import static com.redhat.quarkus.utils.QuarkusPropertiesUtils.formatPropertyForMarkdown;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.redhat.quarkus.model.PropertiesModel;
+import com.redhat.quarkus.model.Property;
+import com.redhat.quarkus.model.PropertyKey;
+import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
 
 /**
  * Test for {@link QuarkusProjectInfo}.
@@ -49,7 +53,6 @@ public class QuarkusProjectInfoTest {
 		Assert.assertNotNull(property);
 		Assert.assertEquals("dev", property.getProfile());
 		Assert.assertNull(property.getProperty());
-
 	}
 
 	@Test
@@ -115,23 +118,22 @@ public class QuarkusProjectInfoTest {
 
 	@Test
 	public void mapFormatPropertyForMarkdown() {
-		String actual = formatPropertyForMarkdown(
-				"quarkus.log.category.{*}.level");
+		String actual = formatPropertyForMarkdown("quarkus.log.category.{*}.level");
 		Assert.assertEquals("quarkus.log.category.\\{\\*\\}.level", actual);
 
-		actual = formatPropertyForMarkdown(
-				"quarkus.keycloak.credentials.jwt.{*}");
+		actual = formatPropertyForMarkdown("quarkus.keycloak.credentials.jwt.{*}");
 		Assert.assertEquals("quarkus.keycloak.credentials.jwt.\\{\\*\\}", actual);
-		
-		actual = formatPropertyForMarkdown(
-				"quarkus.keycloak.policy-enforcer.claim-information-point.{*}.{*}.{*}");
-		Assert.assertEquals("quarkus.keycloak.policy-enforcer.claim-information-point.\\{\\*\\}.\\{\\*\\}.\\{\\*\\}", actual);
-		
+
+		actual = formatPropertyForMarkdown("quarkus.keycloak.policy-enforcer.claim-information-point.{*}.{*}.{*}");
+		Assert.assertEquals("quarkus.keycloak.policy-enforcer.claim-information-point.\\{\\*\\}.\\{\\*\\}.\\{\\*\\}",
+				actual);
+
 		actual = formatPropertyForMarkdown(
 				"quarkus.keycloak.policy-enforcer.paths.{*}.claim-information-point.{*}.{*}");
-		Assert.assertEquals("quarkus.keycloak.policy-enforcer.paths.\\{\\*\\}.claim-information-point.\\{\\*\\}.\\{\\*\\}", actual);		
+		Assert.assertEquals(
+				"quarkus.keycloak.policy-enforcer.paths.\\{\\*\\}.claim-information-point.\\{\\*\\}.\\{\\*\\}", actual);
 	}
-	
+
 	@Test
 	public void simpleFormatPropertyForCompletion() {
 		String actual = formatPropertyForCompletion("quarkus.thread-pool.core-threads");
@@ -140,20 +142,26 @@ public class QuarkusProjectInfoTest {
 
 	@Test
 	public void mapFormatPropertyForCompletion() {
-		String actual = formatPropertyForCompletion(
-				"quarkus.log.category.{*}.level");
+		String actual = formatPropertyForCompletion("quarkus.log.category.{*}.level");
 		Assert.assertEquals("quarkus.log.category.${1:key}.level", actual);
 
-		actual = formatPropertyForCompletion(
-				"quarkus.keycloak.credentials.jwt.{*}");
+		actual = formatPropertyForCompletion("quarkus.keycloak.credentials.jwt.{*}");
 		Assert.assertEquals("quarkus.keycloak.credentials.jwt.${1:key}", actual);
-		
-		actual = formatPropertyForCompletion(
-				"quarkus.keycloak.policy-enforcer.claim-information-point.{*}.{*}.{*}");
-		Assert.assertEquals("quarkus.keycloak.policy-enforcer.claim-information-point.${1:key}.${2:key}.${3:key}", actual);
-		
+
+		actual = formatPropertyForCompletion("quarkus.keycloak.policy-enforcer.claim-information-point.{*}.{*}.{*}");
+		Assert.assertEquals("quarkus.keycloak.policy-enforcer.claim-information-point.${1:key}.${2:key}.${3:key}",
+				actual);
+
 		actual = formatPropertyForCompletion(
 				"quarkus.keycloak.policy-enforcer.paths.{*}.claim-information-point.{*}.{*}");
-		Assert.assertEquals("quarkus.keycloak.policy-enforcer.paths.${1:key}.claim-information-point.${2:key}.${3:key}", actual);		
+		Assert.assertEquals("quarkus.keycloak.policy-enforcer.paths.${1:key}.claim-information-point.${2:key}.${3:key}",
+				actual);
 	}
+
+	private static PropertyInfo getProperty(String text, QuarkusProjectInfo info) {
+		PropertiesModel model = PropertiesModel.parse(text, "application.properties");
+		PropertyKey key = (PropertyKey) ((Property) model.getChildren().get(0)).getKey();
+		return new PropertyInfo(QuarkusPropertiesUtils.getProperty(key.getPropertyName(), info), key.getProfile());
+	}
+
 }
