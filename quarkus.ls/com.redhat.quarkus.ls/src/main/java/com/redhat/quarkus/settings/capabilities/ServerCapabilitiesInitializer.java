@@ -33,15 +33,15 @@ public class ServerCapabilitiesInitializer {
 	 * @return ServerCapabilities object
 	 */
 	public static ServerCapabilities getNonDynamicServerCapabilities(ClientCapabilitiesWrapper clientCapabilities) {
-		
+
 		ServerCapabilities serverCapabilities = new ServerCapabilities();
 		serverCapabilities.setTextDocumentSync(TextDocumentSyncKind.Incremental);
 		serverCapabilities.setHoverProvider(!clientCapabilities.isHoverDynamicRegistered());
-
 		if (!clientCapabilities.isCompletionDynamicRegistrationSupported()) {
 			serverCapabilities.setCompletionProvider(DEFAULT_COMPLETION_OPTIONS);
 		}
-		
+		serverCapabilities
+				.setDocumentSymbolProvider(!clientCapabilities.isDocumentSymbolDynamicRegistrationSupported());
 		return serverCapabilities;
 	}
 }

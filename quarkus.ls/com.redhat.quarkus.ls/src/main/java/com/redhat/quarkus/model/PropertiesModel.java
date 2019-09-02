@@ -187,4 +187,8 @@ public class PropertiesModel extends Node {
 		return document.getText();
 	}
 
+	public String getDocumentURI() {
+		return getDocument().getUri();
+	}
+
 }

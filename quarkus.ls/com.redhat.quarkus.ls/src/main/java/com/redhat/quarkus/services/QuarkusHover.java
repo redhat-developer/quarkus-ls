@@ -29,7 +29,7 @@ import com.redhat.quarkus.utils.PositionUtils;
 import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
 
 /**
- * Retreives hover documentation and creating Hover object
+ * Retrieves hover documentation and creating Hover object
  */
 class QuarkusHover {
 

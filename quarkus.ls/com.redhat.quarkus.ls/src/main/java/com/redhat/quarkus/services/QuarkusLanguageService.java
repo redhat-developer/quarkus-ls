@@ -9,9 +9,12 @@
 *******************************************************************************/
 package com.redhat.quarkus.services;
 
+import java.util.List;
+
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
@@ -28,10 +31,12 @@ import com.redhat.quarkus.settings.QuarkusHoverSettings;
 public class QuarkusLanguageService {
 
 	private final QuarkusCompletions completions;
+	private final QuarkusSymbolsProvider symbolsProvider;
 	private final QuarkusHover hover;
 
 	public QuarkusLanguageService() {
 		this.completions = new QuarkusCompletions();
+		this.symbolsProvider = new QuarkusSymbolsProvider();
 		this.hover = new QuarkusHover();
 	}
 
@@ -42,7 +47,7 @@ public class QuarkusLanguageService {
 	 * @param position           the position where completion was triggereds
 	 * @param projectInfo        the Quarkus project information
 	 * @param completionSettings the completion settings
-	 * @param cancelChecker the cancel checker
+	 * @param cancelChecker      the cancel checker
 	 * @return completion list for the given position
 	 */
 	public CompletionList doComplete(PropertiesModel document, Position position, QuarkusProjectInfo projectInfo,
@@ -63,4 +68,16 @@ public class QuarkusLanguageService {
 			QuarkusHoverSettings hoverSettings) {
 		return hover.doHover(document, position, projectInfo, hoverSettings);
 	}
+
+	/**
+	 * Returns symbol information list for the given properties model.
+	 * 
+	 * @param document      the properties model document
+	 * @param cancelChecker the cancel checker
+	 * @return symbol information list for the given properties model.
+	 */
+	public List<SymbolInformation> findSymbolInformations(PropertiesModel document, CancelChecker cancelChecker) {
+		return symbolsProvider.findSymbolInformations(document, cancelChecker);
+	}
+
 }

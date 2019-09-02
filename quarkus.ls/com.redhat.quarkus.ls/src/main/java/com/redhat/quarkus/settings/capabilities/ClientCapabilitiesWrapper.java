@@ -17,7 +17,7 @@ import org.eclipse.lsp4j.TextDocumentClientCapabilities;
 public class ClientCapabilitiesWrapper {
 
 	private boolean v3Supported;
-	
+
 	private ClientCapabilities capabilities;
 
 	public ClientCapabilitiesWrapper() {
@@ -43,7 +43,11 @@ public class ClientCapabilitiesWrapper {
 	public boolean isHoverDynamicRegistered() {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getHover());
 	}
-	
+
+	public boolean isDocumentSymbolDynamicRegistrationSupported() {
+		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getDocumentSymbol());
+	}
+
 	private boolean isDynamicRegistrationSupported(DynamicRegistrationCapabilities capability) {
 		return capability != null && capability.getDynamicRegistration() != null
 				&& capability.getDynamicRegistration().booleanValue();
