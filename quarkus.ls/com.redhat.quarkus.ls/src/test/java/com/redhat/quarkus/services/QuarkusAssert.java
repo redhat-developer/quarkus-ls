@@ -20,11 +20,14 @@ import org.eclipse.lsp4j.CompletionItemCapabilities;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverCapabilities;
+import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.MarkedString;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.SymbolInformation;
+import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.junit.Assert;
@@ -73,8 +76,7 @@ public class QuarkusAssert {
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
-		TextDocument document = new TextDocument(value, fileURI != null ? fileURI : "application.properties");
-		PropertiesModel model = PropertiesModel.parse(document);
+		PropertiesModel model = parse(value, fileURI);
 		Position position = model.positionAt(offset);
 
 		// Add snippet support for completion
@@ -102,7 +104,7 @@ public class QuarkusAssert {
 		}
 		if (expectedItems != null) {
 			for (CompletionItem item : expectedItems) {
-				assertCompletion(list, item, document, offset);
+				assertCompletion(list, item, model.getDocument(), offset);
 			}
 		}
 	}
@@ -211,8 +213,7 @@ public class QuarkusAssert {
 		int offset = value.indexOf("|");
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
-		TextDocument document = new TextDocument(value, fileURI != null ? fileURI : "test://test/test.html");
-		PropertiesModel model = PropertiesModel.parse(document);
+		PropertiesModel model = parse(value, fileURI);
 		Position position = model.positionAt(offset);
 
 		QuarkusLanguageService languageService = new QuarkusLanguageService();
@@ -237,6 +238,38 @@ public class QuarkusAssert {
 			return null;
 		}
 		return contents.getRight().getValue();
+	}
+
+	// ------------------- SymbolInformation assert
+
+	public static void testSymbolInformationsFor(String value, SymbolInformation... expected) {
+		testSymbolInformationsFor(value, null, expected);
+	}
+
+	public static void testSymbolInformationsFor(String value, String fileURI, SymbolInformation... expected) {
+
+		PropertiesModel model = parse(value, fileURI);
+
+		QuarkusLanguageService languageService = new QuarkusLanguageService();
+
+		List<SymbolInformation> actual = languageService.findSymbolInformations(model, () -> {
+		});
+		assertSymbolInformations(actual, expected);
+
+	}
+
+	public static SymbolInformation s(final String name, final SymbolKind kind, final String uri, final Range range) {
+		return new SymbolInformation(name, kind, new Location(uri, range));
+	}
+
+	public static void assertSymbolInformations(List<SymbolInformation> actual, SymbolInformation... expected) {
+		Assert.assertEquals(expected.length, actual.size());
+		Assert.assertArrayEquals(expected, actual.toArray());
+	}
+
+	private static PropertiesModel parse(String text, String uri) {
+		TextDocument document = new TextDocument(text, uri != null ? uri : "application.properties");
+		return PropertiesModel.parse(document);
 	}
 
 }

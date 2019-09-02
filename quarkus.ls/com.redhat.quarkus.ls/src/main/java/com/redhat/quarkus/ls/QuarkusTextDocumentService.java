@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.CompletionItem;
@@ -25,8 +26,11 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
+import org.eclipse.lsp4j.DocumentSymbol;
+import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
@@ -140,6 +144,20 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 				return getQuarkusLanguageService().doHover(document, params.getPosition(), projectInfo,
 						sharedSettings.getHoverSettings());
 			});
+		});
+	}
+
+	@Override
+	public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(
+			DocumentSymbolParams params) {
+		return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
+			return getQuarkusLanguageService().findSymbolInformations(document, cancelChecker) //
+					.stream() //
+					.map(s -> {
+						Either<SymbolInformation, DocumentSymbol> e = Either.forLeft(s);
+						return e;
+					}) //
+					.collect(Collectors.toList());
 		});
 	}
 
