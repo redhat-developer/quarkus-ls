@@ -97,7 +97,7 @@ class QuarkusHover {
 					markdownSupported);
 			Hover hover = new Hover();
 			hover.setContents(markupContent);
-			hover.setRange(PositionUtils.createRange(node.getStart(), node.getEnd(), node.getDocument()));
+			hover.setRange(PositionUtils.createRange(node));
 			return hover;
 		}
 		return null;

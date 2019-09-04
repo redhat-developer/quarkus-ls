@@ -29,6 +29,10 @@ import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 import com.redhat.quarkus.ls.commons.ParentProcessWatcher.ProcessLanguageServer;
 import com.redhat.quarkus.services.QuarkusLanguageService;
+import com.redhat.quarkus.settings.AllQuarkusSettings;
+import com.redhat.quarkus.settings.InitializationOptionsSettings;
+import com.redhat.quarkus.settings.QuarkusGeneralClientSettings;
+import com.redhat.quarkus.settings.QuarkusSymbolSettings;
 import com.redhat.quarkus.settings.capabilities.QuarkusCapabilityManager;
 import com.redhat.quarkus.settings.capabilities.ServerCapabilitiesInitializer;
 
@@ -51,7 +55,7 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 	public QuarkusLanguageServer() {
 		quarkusLanguageService = new QuarkusLanguageService();
 		textDocumentService = new QuarkusTextDocumentService(this);
-		workspaceService = new QuarkusWorkspaceService();
+		workspaceService = new QuarkusWorkspaceService(this);
 	}
 
 	@Override
@@ -61,12 +65,13 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 		this.parentProcessId = params.getProcessId();
 
 		capabilityManager.setClientCapabilities(params.getCapabilities());
+		updateSettings(InitializationOptionsSettings.getSettings(params));
 
 		textDocumentService.updateClientCapabilities(params.getCapabilities());
 
-		ServerCapabilities serverCapabilities = ServerCapabilitiesInitializer.getNonDynamicServerCapabilities(
-			capabilityManager.getClientCapabilities());
-		
+		ServerCapabilities serverCapabilities = ServerCapabilitiesInitializer
+				.getNonDynamicServerCapabilities(capabilityManager.getClientCapabilities());
+
 		InitializeResult initializeResult = new InitializeResult(serverCapabilities);
 		return CompletableFuture.completedFuture(initializeResult);
 	}
@@ -83,6 +88,27 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 	@Override
 	public void initialized(InitializedParams params) {
 		capabilityManager.initializeCapabilities();
+	}
+
+	/**
+	 * Update Quarkus settings configured from the client.
+	 * 
+	 * @param initializationOptionsSettings the Quarkus settings
+	 */
+	public synchronized void updateSettings(Object initializationOptionsSettings) {
+		if (initializationOptionsSettings == null) {
+			return;
+		}
+		// Update client settings
+		initializationOptionsSettings = AllQuarkusSettings.getQuarkusToolsSettings(initializationOptionsSettings);
+		QuarkusGeneralClientSettings quarkusClientSettings = QuarkusGeneralClientSettings
+				.getGeneralQuarkusSettings(initializationOptionsSettings);
+		if (quarkusClientSettings != null) {
+			QuarkusSymbolSettings newSymbols = quarkusClientSettings.getSymbols();
+			if (newSymbols != null) {
+				textDocumentService.updateSymbolSettings(newSymbols);
+			}
+		}
 	}
 
 	public CompletableFuture<Object> shutdown() {
@@ -133,7 +159,7 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 	public CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(QuarkusProjectInfoParams params) {
 		return languageClient.getQuarkusProjectInfo(params);
 	}
-	
+
 	@Override
 	public void classpathChanged(Set<String> projects) {
 		textDocumentService.classpathChanged(projects);

@@ -13,6 +13,7 @@ import org.eclipse.lsp4j.Range;
 
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.TextDocument;
+import com.redhat.quarkus.model.Node;
 
 public class PositionUtils {
 
@@ -22,5 +23,9 @@ public class PositionUtils {
 		} catch (BadLocationException e) {
 			return null;
 		}
+	}
+	
+	public static Range createRange(Node node) {
+		return PositionUtils.createRange(node.getStart(), node.getEnd(), node.getDocument());
 	}
 }

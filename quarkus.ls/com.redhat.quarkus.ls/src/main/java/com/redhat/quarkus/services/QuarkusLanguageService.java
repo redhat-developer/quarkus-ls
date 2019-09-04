@@ -12,6 +12,7 @@ package com.redhat.quarkus.services;
 import java.util.List;
 
 import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.SymbolInformation;
@@ -80,4 +81,14 @@ public class QuarkusLanguageService {
 		return symbolsProvider.findSymbolInformations(document, cancelChecker);
 	}
 
+	/**
+	 * Returns document symbol list for the given properties model.
+	 * 
+	 * @param document      the properties model document
+	 * @param cancelChecker the cancel checker
+	 * @return document symbol list for the given properties model.
+	 */
+	public List<DocumentSymbol> findDocumentSymbols(PropertiesModel document, CancelChecker cancelChecker) {
+		return symbolsProvider.findDocumentSymbols(document, cancelChecker);
+	}
 }
