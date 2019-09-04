@@ -10,6 +10,7 @@
 package com.redhat.quarkus.services;
 
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import org.eclipse.lsp4j.CompletionCapabilities;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemCapabilities;
 import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverCapabilities;
 import org.eclipse.lsp4j.Location;
@@ -263,6 +265,38 @@ public class QuarkusAssert {
 	}
 
 	public static void assertSymbolInformations(List<SymbolInformation> actual, SymbolInformation... expected) {
+		Assert.assertEquals(expected.length, actual.size());
+		Assert.assertArrayEquals(expected, actual.toArray());
+	}
+
+	// ------------------- DocumentSymbol assert
+
+	public static void testDocumentSymbolsFor(String value, DocumentSymbol... expected) {
+		testDocumentSymbolsFor(value, null, expected);
+	}
+
+	public static void testDocumentSymbolsFor(String value, String fileURI, DocumentSymbol... expected) {
+
+		PropertiesModel model = parse(value, fileURI);
+
+		QuarkusLanguageService languageService = new QuarkusLanguageService();
+
+		List<DocumentSymbol> actual = languageService.findDocumentSymbols(model, () -> {
+		});
+		assertDocumentSymbols(actual, expected);
+
+	}
+
+	public static DocumentSymbol ds(final String name, final SymbolKind kind, final Range range, final String detail) {
+		return ds(name, kind, range, detail, new ArrayList<>());
+	}
+
+	public static DocumentSymbol ds(final String name, final SymbolKind kind, final Range range, final String detail,
+			final List<DocumentSymbol> children) {
+		return new DocumentSymbol(name, kind, range, range, detail, children);
+	}
+
+	public static void assertDocumentSymbols(List<DocumentSymbol> actual, DocumentSymbol... expected) {
 		Assert.assertEquals(expected.length, actual.size());
 		Assert.assertArrayEquals(expected, actual.toArray());
 	}

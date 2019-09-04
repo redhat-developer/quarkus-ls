@@ -44,6 +44,7 @@ import com.redhat.quarkus.ls.commons.ModelTextDocuments;
 import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.services.QuarkusLanguageService;
+import com.redhat.quarkus.settings.QuarkusSymbolSettings;
 import com.redhat.quarkus.settings.SharedSettings;
 
 /**
@@ -59,6 +60,8 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 	private final QuarkusLanguageServer quarkusLanguageServer;
 
 	private final SharedSettings sharedSettings;
+
+	private boolean hierarchicalDocumentSymbolSupport;
 
 	public QuarkusTextDocumentService(QuarkusLanguageServer quarkusLanguageServer) {
 		this.quarkusLanguageServer = quarkusLanguageServer;
@@ -79,6 +82,9 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		if (textDocumentClientCapabilities != null) {
 			sharedSettings.getCompletionSettings().setCapabilities(textDocumentClientCapabilities.getCompletion());
 			sharedSettings.getHoverSettings().setCapabilities(textDocumentClientCapabilities.getHover());
+			hierarchicalDocumentSymbolSupport = textDocumentClientCapabilities.getDocumentSymbol() != null
+					&& textDocumentClientCapabilities.getDocumentSymbol().getHierarchicalDocumentSymbolSupport() != null
+					&& textDocumentClientCapabilities.getDocumentSymbol().getHierarchicalDocumentSymbolSupport();
 		}
 	}
 
@@ -151,6 +157,15 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 	public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(
 			DocumentSymbolParams params) {
 		return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
+			if (hierarchicalDocumentSymbolSupport && sharedSettings.getSymbolSettings().isShowAsTree()) {
+				return getQuarkusLanguageService().findDocumentSymbols(document, cancelChecker) //
+						.stream() //
+						.map(s -> {
+							Either<SymbolInformation, DocumentSymbol> e = Either.forRight(s);
+							return e;
+						}) //
+						.collect(Collectors.toList());
+			}
 			return getQuarkusLanguageService().findSymbolInformations(document, cancelChecker) //
 					.stream() //
 					.map(s -> {
@@ -215,5 +230,14 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 
 	public void classpathChanged(Set<String> projects) {
 		projectInfoCache.classpathChanged(projects);
+	}
+
+	public void updateSymbolSettings(QuarkusSymbolSettings newSettings) {
+		QuarkusSymbolSettings symbolSettings = sharedSettings.getSymbolSettings();
+		symbolSettings.setShowAsTree(newSettings.isShowAsTree());
+	}
+
+	public SharedSettings getSharedSettings() {
+		return sharedSettings;
 	}
 }

@@ -19,9 +19,15 @@ import org.eclipse.lsp4j.services.WorkspaceService;
  */
 public class QuarkusWorkspaceService implements WorkspaceService {
 
+	private final QuarkusLanguageServer quarkusLanguageServer;
+
+	public QuarkusWorkspaceService(QuarkusLanguageServer quarkusLanguageServer) {
+		this.quarkusLanguageServer = quarkusLanguageServer;
+	}
+
 	@Override
 	public void didChangeConfiguration(DidChangeConfigurationParams params) {
-
+		quarkusLanguageServer.updateSettings(params.getSettings());
 	}
 
 	@Override
