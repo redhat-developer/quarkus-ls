@@ -89,7 +89,7 @@ public abstract class Node {
 	 * 
 	 * @return the owner properties model
 	 */
-	protected PropertiesModel getOwnerModel() {
+	public PropertiesModel getOwnerModel() {
 		Node parent = this.parent;
 		while (parent != null) {
 			if (parent.getNodeType() == NodeType.DOCUMENT) {

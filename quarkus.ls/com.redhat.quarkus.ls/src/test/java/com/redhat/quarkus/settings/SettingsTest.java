@@ -23,24 +23,33 @@ import com.google.gson.JsonObject;
  */
 public class SettingsTest {
 
-	private final String json = "{\r\n" + //
-			"        \"settings\": {\r\n" + //
-			"            \"quarkus\": {\r\n" + //
-			"                \"tools\": {\r\n" + //
-			"                    \"trace\": {\r\n" + //
-			"                        \"server\": \"verbose\"\r\n" + //
-			"                    },\r\n" + //
-			"                    \"starter\": {\r\n" + //
-			"                        \"api\": \"http://code.quarkus.io/api\",\r\n" + //
-			"                        \"defaults\": {}\r\n" + //
-			"                    },\r\n" + //
-			"                    \"symbols\": {\r\n" + //
-			"                        \"showAsTree\": true\r\n" + //
-			"                    }\r\n" + //
-			"                }\r\n" + //
-			"            }\r\n" + //
-			"        }\r\n" + //
-			"    }";
+	private final String json = "{\r\n" + 
+			"    \"settings\": {\r\n" + 
+			"        \"quarkus\": {\r\n" + 
+			"            \"tools\": {\r\n" + 
+			"                \"trace\": {\r\n" + 
+			"                    \"server\": \"verbose\"\r\n" + 
+			"                },\r\n" + 
+			"                \"starter\": {\r\n" + 
+			"                    \"api\": \"http://code.quarkus.io/api\",\r\n" + 
+			"                    \"defaults\": {}\r\n" + 
+			"                },\r\n" + 
+			"                \"symbols\": {\r\n" + 
+			"                    \"showAsTree\": true\r\n" + 
+			"                },\r\n" + 
+			"                \"validation\": {\r\n" + 
+			"                    \"enabled\": \"true\",\r\n" + 
+			"                    \"unknown\": {\r\n" + 
+			"                        \"severity\": \"error\",\r\n" + 
+			"                        \"excluded\": [\r\n" + 
+			"                            \"abcd\"\r\n" + 
+			"                        ]\r\n" + 
+			"                    }\r\n" + 
+			"                }\r\n" + 
+			"            }\r\n" + 
+			"        }\r\n" + 
+			"    }\r\n" + 
+			"}";
 
 	@Test
 	public void initializationOptionsSettings() {
@@ -61,6 +70,9 @@ public class SettingsTest {
 		assertNotNull(settings.getSymbols());
 		assertEquals(true, settings.getSymbols().isShowAsTree());
 
+		// Validation
+		assertNotNull(settings.getValidation());
+		assertEquals("error", settings.getValidation().getUnknown().getSeverity());
 	}
 
 	private static InitializeParams createInitializeParams(String json) {

@@ -19,6 +19,8 @@ import org.eclipse.lsp4j.CompletionCapabilities;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemCapabilities;
 import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverCapabilities;
@@ -41,6 +43,7 @@ import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 import com.redhat.quarkus.settings.QuarkusHoverSettings;
+import com.redhat.quarkus.settings.QuarkusValidationSettings;
 
 /**
  * Quarkus assert
@@ -51,6 +54,8 @@ import com.redhat.quarkus.settings.QuarkusHoverSettings;
 public class QuarkusAssert {
 
 	private static QuarkusProjectInfo DEFAULT_PROJECT;
+
+	private static final String QUARKUS_DIAGNOSTIC_SOURCE = "quarkus";
 
 	public static QuarkusProjectInfo getDefaultQuarkusProjectInfo() {
 		if (DEFAULT_PROJECT == null) {
@@ -179,11 +184,14 @@ public class QuarkusAssert {
 	}
 
 	public static Range r(int line, int startChar, int endChar) {
-		Position start = new Position(line, startChar);
-		Position end = new Position(line, endChar);
-		return new Range(start, end);
+		return r(line, startChar, line, endChar);
 	}
 
+	public static Range r(int startLine, int startChar, int endLine, int endChar) {
+		Position start = new Position(startLine, startChar);
+		Position end = new Position(endLine, endChar);
+		return new Range(start, end);
+	}
 	// ------------------- Hover assert
 
 	public static void assertHoverMarkdown(String value, String expectedHoverLabel, Integer expectedHoverOffset)
@@ -276,15 +284,11 @@ public class QuarkusAssert {
 	}
 
 	public static void testDocumentSymbolsFor(String value, String fileURI, DocumentSymbol... expected) {
-
 		PropertiesModel model = parse(value, fileURI);
-
 		QuarkusLanguageService languageService = new QuarkusLanguageService();
-
 		List<DocumentSymbol> actual = languageService.findDocumentSymbols(model, () -> {
 		});
 		assertDocumentSymbols(actual, expected);
-
 	}
 
 	public static DocumentSymbol ds(final String name, final SymbolKind kind, final Range range, final String detail) {
@@ -299,6 +303,55 @@ public class QuarkusAssert {
 	public static void assertDocumentSymbols(List<DocumentSymbol> actual, DocumentSymbol... expected) {
 		Assert.assertEquals(expected.length, actual.size());
 		Assert.assertArrayEquals(expected, actual.toArray());
+	}
+
+	// ------------------- Diagnostics assert
+
+	public static void testDiagnosticsFor(String value, QuarkusProjectInfo projectInfo, Diagnostic... expected) {
+		QuarkusValidationSettings validationSettings = new QuarkusValidationSettings();
+		testDiagnosticsFor(value, projectInfo, validationSettings, expected);
+	}
+
+	public static void testDiagnosticsFor(String value, QuarkusProjectInfo projectInfo,
+			QuarkusValidationSettings validationSettings, Diagnostic... expected) {
+		testDiagnosticsFor(value, null, null, projectInfo, validationSettings, expected);
+	}
+
+	public static void testDiagnosticsFor(String value, Integer expectedCount, QuarkusProjectInfo projectInfo,
+			QuarkusValidationSettings validationSettings, Diagnostic... expected) {
+		testDiagnosticsFor(value, null, expectedCount, projectInfo, validationSettings, expected);
+	}
+
+	public static void testDiagnosticsFor(String value, String fileURI, Integer expectedCount,
+			QuarkusProjectInfo projectInfo, QuarkusValidationSettings validationSettings, Diagnostic... expected) {
+		PropertiesModel model = parse(value, fileURI);
+		QuarkusLanguageService languageService = new QuarkusLanguageService();
+		List<Diagnostic> actual = languageService.doDiagnostics(model, projectInfo, validationSettings, () -> {
+		});
+		if (expectedCount != null) {
+			Assert.assertEquals(expectedCount.intValue(), actual.size());
+		}
+		assertDiagnostics(actual, expected);
+	}
+
+	public static void assertDiagnostics(List<Diagnostic> actual, Diagnostic... expected) {
+		assertDiagnostics(actual, Arrays.asList(expected));
+	}
+
+	public static void assertDiagnostics(List<Diagnostic> actual, List<Diagnostic> expected) {
+		List<Diagnostic> received = actual;
+		Assert.assertEquals("Unexpected diagnostics:\n" + actual, expected, received);
+	}
+
+	public static Diagnostic d(int line, int startCharacter, int endCharacter, String message,
+			DiagnosticSeverity severity, ValidationType code) {
+		return d(line, startCharacter, line, endCharacter, message, severity, code);
+	}
+
+	public static Diagnostic d(int startLine, int startCharacter, int endLine, int endCharacter, String message,
+			DiagnosticSeverity severity, ValidationType code) {
+		return new Diagnostic(r(startLine, startCharacter, endLine, endCharacter), message, severity,
+				QUARKUS_DIAGNOSTIC_SOURCE, code.name());
 	}
 
 	private static PropertiesModel parse(String text, String uri) {

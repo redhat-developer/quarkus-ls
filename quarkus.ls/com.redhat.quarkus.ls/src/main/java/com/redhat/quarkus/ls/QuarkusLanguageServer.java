@@ -33,6 +33,7 @@ import com.redhat.quarkus.settings.AllQuarkusSettings;
 import com.redhat.quarkus.settings.InitializationOptionsSettings;
 import com.redhat.quarkus.settings.QuarkusGeneralClientSettings;
 import com.redhat.quarkus.settings.QuarkusSymbolSettings;
+import com.redhat.quarkus.settings.QuarkusValidationSettings;
 import com.redhat.quarkus.settings.capabilities.QuarkusCapabilityManager;
 import com.redhat.quarkus.settings.capabilities.ServerCapabilitiesInitializer;
 
@@ -107,6 +108,10 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 			QuarkusSymbolSettings newSymbols = quarkusClientSettings.getSymbols();
 			if (newSymbols != null) {
 				textDocumentService.updateSymbolSettings(newSymbols);
+			}
+			QuarkusValidationSettings newValidation = quarkusClientSettings.getValidation();
+			if (newValidation != null) {
+				textDocumentService.updateValidationSettings(newValidation);
 			}
 		}
 	}

@@ -173,7 +173,7 @@ public class PropertiesModel extends Node {
 	}
 
 	@Override
-	protected PropertiesModel getOwnerModel() {
+	public PropertiesModel getOwnerModel() {
 		return this;
 	}
 

@@ -41,10 +41,10 @@ import org.eclipse.lsp4j.services.TextDocumentService;
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 import com.redhat.quarkus.ls.commons.ModelTextDocument;
 import com.redhat.quarkus.ls.commons.ModelTextDocuments;
-import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.services.QuarkusLanguageService;
 import com.redhat.quarkus.settings.QuarkusSymbolSettings;
+import com.redhat.quarkus.settings.QuarkusValidationSettings;
 import com.redhat.quarkus.settings.SharedSettings;
 
 /**
@@ -90,13 +90,13 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 
 	@Override
 	public void didOpen(DidOpenTextDocumentParams params) {
-		TextDocument document = documents.onDidOpenTextDocument(params);
+		ModelTextDocument<PropertiesModel> document = documents.onDidOpenTextDocument(params);
 		triggerValidationFor(document);
 	}
 
 	@Override
 	public void didChange(DidChangeTextDocumentParams params) {
-		TextDocument document = documents.onDidChangeTextDocument(params);
+		ModelTextDocument<PropertiesModel> document = documents.onDidChangeTextDocument(params);
 		triggerValidationFor(document);
 	}
 
@@ -178,15 +178,36 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 
 	private static QuarkusProjectInfoParams createProjectInfoParams(TextDocumentIdentifier id,
 			List<String> documentationFormat) {
-		return new QuarkusProjectInfoParams(id.getUri(), documentationFormat);
+		return createProjectInfoParams(id.getUri(), documentationFormat);
+	}
+
+	private static QuarkusProjectInfoParams createProjectInfoParams(String uri, List<String> documentationFormat) {
+		return new QuarkusProjectInfoParams(uri, documentationFormat);
 	}
 
 	private QuarkusLanguageService getQuarkusLanguageService() {
 		return quarkusLanguageServer.getQuarkusLanguageService();
 	}
 
-	private void triggerValidationFor(TextDocument document) {
-		// TODO: implement validation for application.properties
+	private void triggerValidationFor(ModelTextDocument<PropertiesModel> document) {
+		// Get Quarkus project information which stores all available Quarkus
+		// properties
+		QuarkusProjectInfoParams projectInfoParams = createProjectInfoParams(document.getUri(), null);
+		projectInfoCache.getQuarkusProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
+			if (!projectInfo.isQuarkusProject()) {
+				return null;
+			}
+			// then get the Properties model document
+			return getPropertiesModel(document, (cancelChecker, model) -> {
+				// then return do validation by using the Quarkus project information and the
+				// Properties model document
+				List<Diagnostic> diagnostics = getQuarkusLanguageService().doDiagnostics(model, projectInfo,
+						getSharedSettings().getValidationSettings(), cancelChecker);
+				quarkusLanguageServer.getLanguageClient()
+						.publishDiagnostics(new PublishDiagnosticsParams(model.getDocumentURI(), diagnostics));
+				return null;
+			});
+		});
 	}
 
 	/**
@@ -213,7 +234,24 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 	 */
 	public <R> CompletableFuture<R> getPropertiesModel(TextDocumentIdentifier documentIdentifier,
 			BiFunction<CancelChecker, PropertiesModel, R> code) {
-		return computeModelAsync(getDocument(documentIdentifier.getUri()).getModel(), code);
+		return getPropertiesModel(getDocument(documentIdentifier.getUri()), code);
+	}
+
+	/**
+	 * Returns the properties model for a given uri in a future and then apply the
+	 * given function.
+	 * 
+	 * @param <R>
+	 * @param documentIdentifier the document indetifier.
+	 * @param code               a bi function that accepts a {@link CancelChecker}
+	 *                           and parsed {@link PropertiesModel} and returns the
+	 *                           to be computed value
+	 * @return the properties model for a given uri in a future and then apply the
+	 *         given function.
+	 */
+	public <R> CompletableFuture<R> getPropertiesModel(ModelTextDocument<PropertiesModel> document,
+			BiFunction<CancelChecker, PropertiesModel, R> code) {
+		return computeModelAsync(document.getModel(), code);
 	}
 
 	private static <R, M> CompletableFuture<R> computeModelAsync(CompletableFuture<M> loadModel,
@@ -237,7 +275,18 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		symbolSettings.setShowAsTree(newSettings.isShowAsTree());
 	}
 
+	public void updateValidationSettings(QuarkusValidationSettings newValidation) {
+		// Update validation settings
+		QuarkusValidationSettings validation = sharedSettings.getValidationSettings();
+		validation.update(newValidation);
+		// trigger validation for all application.properties
+		documents.all().stream().forEach(document -> {
+			triggerValidationFor(document);
+		});
+	}
+
 	public SharedSettings getSharedSettings() {
 		return sharedSettings;
 	}
+
 }
