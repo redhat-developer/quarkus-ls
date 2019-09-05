@@ -12,6 +12,7 @@ package com.redhat.quarkus.services;
 import java.util.List;
 
 import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
@@ -22,6 +23,7 @@ import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 import com.redhat.quarkus.settings.QuarkusHoverSettings;
+import com.redhat.quarkus.settings.QuarkusValidationSettings;
 
 /**
  * The Quarkus language service.
@@ -34,11 +36,13 @@ public class QuarkusLanguageService {
 	private final QuarkusCompletions completions;
 	private final QuarkusSymbolsProvider symbolsProvider;
 	private final QuarkusHover hover;
+	private final QuarkusDiagnostics diagnostics;
 
 	public QuarkusLanguageService() {
 		this.completions = new QuarkusCompletions();
 		this.symbolsProvider = new QuarkusSymbolsProvider();
 		this.hover = new QuarkusHover();
+		this.diagnostics = new QuarkusDiagnostics();
 	}
 
 	/**
@@ -90,5 +94,20 @@ public class QuarkusLanguageService {
 	 */
 	public List<DocumentSymbol> findDocumentSymbols(PropertiesModel document, CancelChecker cancelChecker) {
 		return symbolsProvider.findDocumentSymbols(document, cancelChecker);
+	}
+
+	/**
+	 * Validate the given application.properties <code>document</code> by using the
+	 * given Quarkus properties metadata <code>projectInfo</code>.
+	 * 
+	 * @param document           the properties model.
+	 * @param projectInfo        the Quarkus properties
+	 * @param validationSettings the validation settings.
+	 * @param cancelChecker            the cancel checker.
+	 * @return the result of the validation.
+	 */
+	public List<Diagnostic> doDiagnostics(PropertiesModel document, QuarkusProjectInfo projectInfo,
+			QuarkusValidationSettings validationSettings, CancelChecker cancelChecker) {
+		return diagnostics.doDiagnostics(document, projectInfo, validationSettings, cancelChecker);
 	}
 }

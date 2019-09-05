@@ -20,11 +20,13 @@ public class SharedSettings {
 	private final QuarkusCompletionSettings completionSettings;
 	private final QuarkusHoverSettings hoverSettings;
 	private final QuarkusSymbolSettings symbolSettings;
+	private final QuarkusValidationSettings validationSettings;
 
 	public SharedSettings() {
 		this.completionSettings = new QuarkusCompletionSettings();
 		this.hoverSettings = new QuarkusHoverSettings();
 		this.symbolSettings = new QuarkusSymbolSettings();
+		this.validationSettings = new QuarkusValidationSettings();
 	}
 
 	/**
@@ -52,5 +54,14 @@ public class SharedSettings {
 	 */
 	public QuarkusSymbolSettings getSymbolSettings() {
 		return symbolSettings;
+	}
+
+	/**
+	 * Returns the validation settings.
+	 * 
+	 * @return the validation settings.
+	 */
+	public QuarkusValidationSettings getValidationSettings() {
+		return validationSettings;
 	}
 }
