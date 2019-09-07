@@ -439,7 +439,7 @@ public class JDTQuarkusManager {
 		} else if (isList(fieldTypeName)) {
 			addField(propertyName, type, defaultValue, docs, location, source, enumerations, configPhase,
 					quarkusProperties);
-		} else if (isOptionnal(fieldTypeName)) {
+		} else if (isOptional(fieldTypeName)) {
 			ExtendedConfigDescriptionBuildItem item = addField(propertyName, type, defaultValue, docs, location, source,
 					enumerations, configPhase, quarkusProperties);
 			item.setRequired(false);
@@ -533,8 +533,8 @@ public class JDTQuarkusManager {
 		return enumerations;
 	}
 
-	private static boolean isOptionnal(String fieldTypeName) {
-		return fieldTypeName.startsWith("java.util.Optionnal<");
+	private static boolean isOptional(String fieldTypeName) {
+		return fieldTypeName.startsWith("java.util.Optional<");
 	}
 
 	private static String[] getRawTypeParameters(String fieldTypeName) {
@@ -557,7 +557,7 @@ public class JDTQuarkusManager {
 			String[] rawTypeParameters = getRawTypeParameters(mapValueClass);
 			processMap(field, subKey, rawTypeParameters[1], docs, location, source, configPhase, converter,
 					javadocCache, quarkusProperties, monitor);
-		} else if (isOptionnal(mapValueClass)) {
+		} else if (isOptional(mapValueClass)) {
 			// Optionals are not allowed as a map value type
 		} else {
 			IType type = findType(field.getJavaProject(), mapValueClass);
