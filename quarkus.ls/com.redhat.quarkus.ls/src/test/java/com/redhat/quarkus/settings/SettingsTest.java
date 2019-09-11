@@ -73,6 +73,7 @@ public class SettingsTest {
 		// Validation
 		assertNotNull(settings.getValidation());
 		assertEquals("error", settings.getValidation().getUnknown().getSeverity());
+		assertEquals("error", settings.getValidation().getSyntax().getSeverity());
 	}
 
 	private static InitializeParams createInitializeParams(String json) {
