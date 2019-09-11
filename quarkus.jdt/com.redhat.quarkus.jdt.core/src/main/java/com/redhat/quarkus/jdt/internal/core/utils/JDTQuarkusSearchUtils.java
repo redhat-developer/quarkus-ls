@@ -26,6 +26,7 @@ import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.search.BasicSearchEngine;
 import org.eclipse.jdt.internal.core.search.JavaSearchScope;
 
+import com.redhat.quarkus.commons.QuarkusPropertiesScope;
 import com.redhat.quarkus.jdt.internal.core.QuarkusDeploymentJavaProject;
 
 /**
@@ -74,17 +75,20 @@ public class JDTQuarkusSearchUtils {
 	 * deployment-artifact=io.quarkus\:quarkus-hibernate-orm-deployment\:0.21.1
 	 * </ul>
 	 * 
-	 * @param project the Quarkus project
+	 * @param project         the Quarkus project
+	 * @param propertiesScope
 	 * @return the JDT search scope for Quarkus project.
 	 * @throws JavaModelException
 	 */
-	public static IJavaSearchScope createQuarkusSearchScope(IJavaProject project) throws JavaModelException {
-		// Create a Jav aproject which collect all deployments JARs.
+	public static IJavaSearchScope createQuarkusSearchScope(IJavaProject project,
+			QuarkusPropertiesScope propertiesScope) throws JavaModelException {
+		int scope = propertiesScope == QuarkusPropertiesScope.sources ? IJavaSearchScope.SOURCES
+				: IJavaSearchScope.SOURCES | IJavaSearchScope.APPLICATION_LIBRARIES;
+		// Create a Java project which collects all deployments JARs.
 		QuarkusDeploymentJavaProject fakeProject = new QuarkusDeploymentJavaProject(project,
 				QuarkusDeploymentJavaProject.MAVEN_ARTIFACT_RESOLVER);
 		// Search in the given project and deployment JAR's.
-		return createJavaSearchScope(fakeProject, false, fakeProject.getElementsToSearch(),
-				/* IJavaSearchScope.SOURCES | */ IJavaSearchScope.APPLICATION_LIBRARIES);
+		return createJavaSearchScope(fakeProject, false, fakeProject.getElementsToSearch(propertiesScope), scope);
 	}
 
 	public static IJarEntryResource findPropertiesResource(IPackageFragmentRoot packageRoot, String propertiesFileName)

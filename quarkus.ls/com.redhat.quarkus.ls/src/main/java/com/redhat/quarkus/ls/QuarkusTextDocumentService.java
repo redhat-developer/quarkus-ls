@@ -10,8 +10,8 @@
 package com.redhat.quarkus.ls;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
@@ -39,6 +39,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
+import com.redhat.quarkus.commons.QuarkusPropertiesChangeEvent;
 import com.redhat.quarkus.ls.commons.ModelTextDocument;
 import com.redhat.quarkus.ls.commons.ModelTextDocuments;
 import com.redhat.quarkus.model.PropertiesModel;
@@ -55,7 +56,7 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 
 	private final ModelTextDocuments<PropertiesModel> documents;
 
-	private final QuarkusProjectInfoCache projectInfoCache;
+	private QuarkusProjectInfoCache projectInfoCache;
 
 	private final QuarkusLanguageServer quarkusLanguageServer;
 
@@ -68,7 +69,6 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		this.documents = new ModelTextDocuments<PropertiesModel>((document, cancelChecker) -> {
 			return PropertiesModel.parse(document);
 		});
-		this.projectInfoCache = new QuarkusProjectInfoCache(quarkusLanguageServer);
 		this.sharedSettings = new SharedSettings();
 	}
 
@@ -119,8 +119,8 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		// Get Quarkus project information which stores all available Quarkus
 		// properties
 		QuarkusProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument(), null);
-		return projectInfoCache.getQuarkusProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
-			if (!projectInfo.isQuarkusProject()) {
+		return getProjectInfoCache().getQuarkusProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
+			if (projectInfo.getProperties().isEmpty()) {
 				return CompletableFuture.completedFuture(Either.forRight(new CompletionList()));
 			}
 			// then get the Properties model document
@@ -139,8 +139,8 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		// Get Quarkus project information which stores all available Quarkus
 		// properties
 		QuarkusProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument(), null);
-		return projectInfoCache.getQuarkusProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
-			if (!projectInfo.isQuarkusProject()) {
+		return getProjectInfoCache().getQuarkusProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
+			if (projectInfo.getProperties().isEmpty()) {
 				return null;
 			}
 			// then get the Properties model document
@@ -193,8 +193,8 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		// Get Quarkus project information which stores all available Quarkus
 		// properties
 		QuarkusProjectInfoParams projectInfoParams = createProjectInfoParams(document.getUri(), null);
-		projectInfoCache.getQuarkusProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
-			if (!projectInfo.isQuarkusProject()) {
+		getProjectInfoCache().getQuarkusProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
+			if (projectInfo.getProperties().isEmpty()) {
 				return null;
 			}
 			// then get the Properties model document
@@ -266,8 +266,14 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		return result;
 	}
 
-	public void classpathChanged(Set<String> projects) {
-		projectInfoCache.classpathChanged(projects);
+	public void quarkusPropertiesChanged(QuarkusPropertiesChangeEvent event) {
+		Collection<String> uris = getProjectInfoCache().quarkusPropertiesChanged(event);
+		for (String uri : uris) {
+			ModelTextDocument<PropertiesModel> document = getDocument(uri);
+			if (document != null) {
+				triggerValidationFor(document);
+			}
+		}
 	}
 
 	public void updateSymbolSettings(QuarkusSymbolSettings newSettings) {
@@ -279,7 +285,7 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		// Update validation settings
 		QuarkusValidationSettings validation = sharedSettings.getValidationSettings();
 		validation.update(newValidation);
-		// trigger validation for all application.properties
+		// trigger validation for all opened application.properties
 		documents.all().stream().forEach(document -> {
 			triggerValidationFor(document);
 		});
@@ -287,6 +293,20 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 
 	public SharedSettings getSharedSettings() {
 		return sharedSettings;
+	}
+
+	private QuarkusProjectInfoCache getProjectInfoCache() {
+		if (projectInfoCache == null) {
+			createProjectInfoCache();
+		}
+		return projectInfoCache;
+	}
+
+	private synchronized void createProjectInfoCache() {
+		if (projectInfoCache != null) {
+			return;
+		}
+		projectInfoCache = new QuarkusProjectInfoCache(quarkusLanguageServer.getLanguageClient());
 	}
 
 }

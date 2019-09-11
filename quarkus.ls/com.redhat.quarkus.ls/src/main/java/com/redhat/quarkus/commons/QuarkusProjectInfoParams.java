@@ -21,11 +21,9 @@ public class QuarkusProjectInfoParams {
 
 	private String uri;
 
-	/**
-	 * Client supports the following content formats for the documentation property.
-	 * The order describes the preferred format of the client.
-	 */
 	private List<String> documentationFormat;
+
+	private QuarkusPropertiesScope scope;
 
 	public QuarkusProjectInfoParams() {
 	}
@@ -69,4 +67,21 @@ public class QuarkusProjectInfoParams {
 		this.documentationFormat = documentationFormat;
 	}
 
+	/**
+	 * Returns the search scope to collect the Quarkus properties.
+	 * 
+	 * @return the search scope to collect the Quarkus properties.
+	 */
+	public QuarkusPropertiesScope getScope() {
+		return scope;
+	}
+
+	/**
+	 * Set the search scope to collect the Quarkus properties.
+	 * 
+	 * @param scope the search scope to collect the Quarkus properties.
+	 */
+	public void setScope(QuarkusPropertiesScope scope) {
+		this.scope = scope;
+	}
 }

@@ -32,6 +32,21 @@ public class QuarkusAssert {
 	 * @param expected the expected Quarkus properties.
 	 */
 	public static void assertProperties(QuarkusProjectInfo info, ExtendedConfigDescriptionBuildItem... expected) {
+		assertProperties(info, null, expected);
+	}
+
+	/**
+	 * Assert Quarkus properties.
+	 * 
+	 * @param info          the Quarkus project information
+	 * @param expectedCount Quarkus properties expected count.
+	 * @param expected      the expected Quarkus properties.
+	 */
+	public static void assertProperties(QuarkusProjectInfo info, Integer expectedCount,
+			ExtendedConfigDescriptionBuildItem... expected) {
+		if (expectedCount != null) {
+			Assert.assertEquals(expectedCount.intValue(), info.getProperties().size());
+		}
 		for (ExtendedConfigDescriptionBuildItem item : expected) {
 			assertProperty(info, item);
 		}
@@ -64,6 +79,8 @@ public class QuarkusAssert {
 				actual.getSource());
 		Assert.assertEquals("Test 'phase' for '" + expected.getPropertyName() + "'", expected.getPhase(),
 				actual.getPhase());
+		Assert.assertEquals("Test 'default value' for '" + expected.getPropertyName() + "'", expected.getDefaultValue(),
+				actual.getDefaultValue());
 	}
 
 	/**
@@ -75,10 +92,11 @@ public class QuarkusAssert {
 	 * @param location     the location (JAR, sources)
 	 * @param source       the source (class + field)
 	 * @param phase        the ConfigPhase.
+	 * @param defaultValue the default value
 	 * @return
 	 */
 	public static ExtendedConfigDescriptionBuildItem p(String propertyName, String type, String docs, String location,
-			String source, int phase) {
+			String source, int phase, String defaultValue) {
 		ExtendedConfigDescriptionBuildItem item = new ExtendedConfigDescriptionBuildItem();
 		item.setPropertyName(propertyName);
 		item.setType(type);
@@ -86,6 +104,7 @@ public class QuarkusAssert {
 		item.setLocation(location);
 		item.setSource(source);
 		item.setPhase(phase);
+		item.setDefaultValue(defaultValue);
 		return item;
 	}
 

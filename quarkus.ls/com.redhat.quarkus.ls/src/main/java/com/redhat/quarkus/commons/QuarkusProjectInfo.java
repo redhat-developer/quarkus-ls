@@ -19,33 +19,9 @@ import java.util.List;
  */
 public class QuarkusProjectInfo {
 
-	private boolean quarkusProject;
-
 	private String projectURI;
 
 	private List<ExtendedConfigDescriptionBuildItem> properties;
-
-	/**
-	 * Returns <code>true</code> if the project is a Quarkus project and
-	 * <code>false</code> otherwise.
-	 * 
-	 * @return <code>true</code> if the project is a Quarkus project and
-	 *         <code>false</code> otherwise.
-	 */
-	public boolean isQuarkusProject() {
-		return quarkusProject;
-	}
-
-	/**
-	 * Set <code>true</code> if the project is a Quarkus project and
-	 * <code>false</code> otherwise.
-	 * 
-	 * @param quarkusProject <code>true</code> if the project is a Quarkus project
-	 *                       and <code>false</code> otherwise.
-	 */
-	public void setQuarkusProject(boolean quarkusProject) {
-		this.quarkusProject = quarkusProject;
-	}
 
 	/**
 	 * Returns the project URI.

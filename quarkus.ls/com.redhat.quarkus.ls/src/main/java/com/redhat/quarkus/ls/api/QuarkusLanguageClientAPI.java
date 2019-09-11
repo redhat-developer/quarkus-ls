@@ -7,18 +7,17 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.quarkus.jdt.internal.core;
+package com.redhat.quarkus.ls.api;
 
-import java.util.Collection;
+import org.eclipse.lsp4j.services.LanguageClient;
+
+import com.redhat.quarkus.ls.QuarkusProjectInfoProvider;
 
 /**
- * A classpath change listener.
+ * Quarkus language client API.
  * 
  * @author Angelo ZERR
  *
  */
-@FunctionalInterface
-public interface IClasspathChangedListener {
-
-	void classpathChanged(Collection<String> projectsToUpdate);
+public interface QuarkusLanguageClientAPI extends LanguageClient, QuarkusProjectInfoProvider {
 }

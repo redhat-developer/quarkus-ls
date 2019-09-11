@@ -34,6 +34,8 @@ public class ExtendedConfigDescriptionBuildItem {
 	private String docs;
 
 	private String extensionName;
+	private String location;
+	private String source;
 	private Boolean required;
 	private int phase;
 	private List<String> enums;
@@ -68,6 +70,22 @@ public class ExtendedConfigDescriptionBuildItem {
 
 	public void setDocs(String docs) {
 		this.docs = docs;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	public String getLocation() {
+		return location;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
 	}
 
 	public String getExtensionName() {
@@ -118,9 +136,11 @@ public class ExtendedConfigDescriptionBuildItem {
 		result = prime * result + ((docs == null) ? 0 : docs.hashCode());
 		result = prime * result + ((enums == null) ? 0 : enums.hashCode());
 		result = prime * result + ((extensionName == null) ? 0 : extensionName.hashCode());
+		result = prime * result + ((location == null) ? 0 : location.hashCode());
 		result = prime * result + phase;
 		result = prime * result + ((propertyName == null) ? 0 : propertyName.hashCode());
 		result = prime * result + ((required == null) ? 0 : required.hashCode());
+		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
 	}
@@ -154,6 +174,11 @@ public class ExtendedConfigDescriptionBuildItem {
 				return false;
 		} else if (!extensionName.equals(other.extensionName))
 			return false;
+		if (location == null) {
+			if (other.location != null)
+				return false;
+		} else if (!location.equals(other.location))
+			return false;
 		if (phase != other.phase)
 			return false;
 		if (propertyName == null) {
@@ -165,6 +190,11 @@ public class ExtendedConfigDescriptionBuildItem {
 			if (other.required != null)
 				return false;
 		} else if (!required.equals(other.required))
+			return false;
+		if (source == null) {
+			if (other.source != null)
+				return false;
+		} else if (!source.equals(other.source))
 			return false;
 		if (type == null) {
 			if (other.type != null)

@@ -7,15 +7,18 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.quarkus.ls;
+package com.redhat.quarkus.jdt.core;
 
-import org.eclipse.lsp4j.services.LanguageClient;
+import com.redhat.quarkus.commons.QuarkusPropertiesChangeEvent;
 
 /**
- * Quarkus language client API.
+ * A quarkus properties change listener.
  * 
  * @author Angelo ZERR
  *
  */
-public interface QuarkusLanguageClient extends LanguageClient, QuarkusProjectInfoProvider {
+@FunctionalInterface
+public interface IQuarkusPropertiesChangedListener {
+
+	void quarkusPropertiesChanged(QuarkusPropertiesChangeEvent event);
 }

@@ -12,7 +12,6 @@ package com.redhat.quarkus.ls;
 import static com.redhat.quarkus.utils.VersionHelper.getVersion;
 import static org.eclipse.lsp4j.jsonrpc.CompletableFutures.computeAsync;
 
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
@@ -25,8 +24,9 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
-import com.redhat.quarkus.commons.QuarkusProjectInfo;
-import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
+import com.redhat.quarkus.commons.QuarkusPropertiesChangeEvent;
+import com.redhat.quarkus.ls.api.QuarkusLanguageClientAPI;
+import com.redhat.quarkus.ls.api.QuarkusLanguageServerAPI;
 import com.redhat.quarkus.ls.commons.ParentProcessWatcher.ProcessLanguageServer;
 import com.redhat.quarkus.services.QuarkusLanguageService;
 import com.redhat.quarkus.settings.AllQuarkusSettings;
@@ -41,7 +41,7 @@ import com.redhat.quarkus.settings.capabilities.ServerCapabilitiesInitializer;
  * Quarkus language server.
  *
  */
-public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageServer, QuarkusProjectInfoProvider {
+public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageServer, QuarkusLanguageServerAPI {
 
 	private static final Logger LOGGER = Logger.getLogger(QuarkusLanguageServer.class.getName());
 
@@ -50,7 +50,7 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 	private final WorkspaceService workspaceService;
 
 	private Integer parentProcessId;
-	private QuarkusLanguageClient languageClient;
+	private QuarkusLanguageClientAPI languageClient;
 	private QuarkusCapabilityManager capabilityManager;
 
 	public QuarkusLanguageServer() {
@@ -116,13 +116,14 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 		}
 	}
 
+	@Override
 	public CompletableFuture<Object> shutdown() {
 		return computeAsync(cc -> new Object());
 	}
 
+	@Override
 	public void exit() {
 		exit(0);
-
 	}
 
 	@Override
@@ -138,7 +139,7 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 		return this.workspaceService;
 	}
 
-	public QuarkusLanguageClient getLanguageClient() {
+	public QuarkusLanguageClientAPI getLanguageClient() {
 		return languageClient;
 	}
 
@@ -147,7 +148,7 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 	}
 
 	public void setClient(LanguageClient languageClient) {
-		this.languageClient = (QuarkusLanguageClient) languageClient;
+		this.languageClient = (QuarkusLanguageClientAPI) languageClient;
 		this.capabilityManager = new QuarkusCapabilityManager(languageClient);
 	}
 
@@ -161,13 +162,8 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 	}
 
 	@Override
-	public CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(QuarkusProjectInfoParams params) {
-		return languageClient.getQuarkusProjectInfo(params);
-	}
-
-	@Override
-	public void classpathChanged(Set<String> projects) {
-		textDocumentService.classpathChanged(projects);
+	public void quarkusPropertiesChanged(QuarkusPropertiesChangeEvent event) {
+		textDocumentService.quarkusPropertiesChanged(event);
 	}
 
 }

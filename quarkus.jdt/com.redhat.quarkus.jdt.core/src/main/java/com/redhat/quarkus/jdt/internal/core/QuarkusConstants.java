@@ -39,7 +39,7 @@ public class QuarkusConstants {
 	/**
 	 * Quarkus client commands
 	 */
-	public static final String QUARKUS_CLASSPATH_CHANGED_COMMAND = "quarkusTools.classpathChanged";
+	public static final String QUARKUS_PROPERTIES_CHANGED_COMMAND = "quarkusTools.quarkusPropertiesChanged";
 
 	private QuarkusConstants() {
 	}

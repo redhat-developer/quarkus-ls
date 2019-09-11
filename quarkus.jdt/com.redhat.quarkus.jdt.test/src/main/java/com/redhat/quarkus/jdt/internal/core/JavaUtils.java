@@ -125,7 +125,7 @@ public class JavaUtils {
 
 	}
 
-	private static File getWorkingProjectDirectory() throws IOException {
+	public static File getWorkingProjectDirectory() throws IOException {
 		File dir = new File("target", "workingProjects");
 		FileUtils.forceMkdir(dir);
 		return dir;
