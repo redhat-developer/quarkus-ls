@@ -9,7 +9,7 @@
 *******************************************************************************/
 package com.redhat.quarkus.jdt.internal.core.ls;
 
-import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.QUARKUS_CLASSPATH_CHANGED_COMMAND;
+import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.QUARKUS_PROPERTIES_CHANGED_COMMAND;
 
 import java.util.List;
 import java.util.Map;
@@ -22,10 +22,11 @@ import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 
+import com.redhat.quarkus.commons.QuarkusPropertiesScope;
 import com.redhat.quarkus.jdt.core.DocumentationConverter;
+import com.redhat.quarkus.jdt.core.IQuarkusPropertiesChangedListener;
 import com.redhat.quarkus.jdt.core.JDTQuarkusManager;
-import com.redhat.quarkus.jdt.internal.core.IClasspathChangedListener;
-import com.redhat.quarkus.jdt.internal.core.QuarkusClasspathListenerManager;
+import com.redhat.quarkus.jdt.internal.core.QuarkusPropertiesListenerManager;
 
 /**
  * 
@@ -36,9 +37,9 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 
 	public static final String PROJECT_INFO_COMMAND_ID = "quarkus.java.projectInfo";
 
-	private static final IClasspathChangedListener LISTENER = (projectsToUpdate) -> {
+	private static final IQuarkusPropertiesChangedListener LISTENER = (event) -> {
 		JavaLanguageServerPlugin.getInstance().getClientConnection()
-				.executeClientCommand(QUARKUS_CLASSPATH_CHANGED_COMMAND, projectsToUpdate);
+				.executeClientCommand(QUARKUS_PROPERTIES_CHANGED_COMMAND, event);
 	};
 
 	/**
@@ -49,7 +50,7 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 	public QuarkusDelegateCommandHandler() {
 		// Add a classpath changed listener to execute client command
 		// "quarkusTools.classpathChanged"
-		QuarkusClasspathListenerManager.getInstance().addClasspathChangedListener(LISTENER);
+		QuarkusPropertiesListenerManager.getInstance().addQuarkusPropertiesChangedListener(LISTENER);
 	}
 
 	@Override
@@ -91,10 +92,12 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 					String.format("Cannot find IFile for '%s'", applicationPropertiesUri));
 		}
 		String projectName = file.getProject().getName();
+		Number scope = (Number) obj.get("scope");
+		QuarkusPropertiesScope propertiesScope =  QuarkusPropertiesScope.forValue(scope.intValue());
 		// Get converter to use for JavaDoc
 		String[] documentationFormat = (String[]) obj.get("documentationFormat");
 		DocumentationConverter converter = getDocumentationConverter(documentationFormat);
-		return JDTQuarkusManager.getInstance().getQuarkusProjectInfo(projectName, converter, progress);
+		return JDTQuarkusManager.getInstance().getQuarkusProjectInfo(projectName, propertiesScope, converter, progress);
 	}
 
 	/**

@@ -97,8 +97,13 @@ public class QuarkusAssert {
 		CompletionList list = languageService.doComplete(model, position, projectInfo, completionSettings, () -> {
 		});
 
+		assertCompletions(list, expectedCount, expectedItems);
+	}
+
+	public static void assertCompletions(CompletionList actual, Integer expectedCount,
+			CompletionItem... expectedItems) {
 		// no duplicate labels
-		List<String> labels = list.getItems().stream().map(i -> i.getLabel()).sorted().collect(Collectors.toList());
+		List<String> labels = actual.getItems().stream().map(i -> i.getLabel()).sorted().collect(Collectors.toList());
 		String previous = null;
 		for (String label : labels) {
 			Assert.assertTrue(
@@ -107,17 +112,16 @@ public class QuarkusAssert {
 			previous = label;
 		}
 		if (expectedCount != null) {
-			Assert.assertEquals(expectedCount.intValue(), list.getItems().size());
+			Assert.assertEquals(expectedCount.intValue(), actual.getItems().size());
 		}
 		if (expectedItems != null) {
 			for (CompletionItem item : expectedItems) {
-				assertCompletion(list, item, model.getDocument(), offset);
+				assertCompletion(actual, item);
 			}
 		}
 	}
 
-	private static void assertCompletion(CompletionList completions, CompletionItem expected, TextDocument document,
-			int offset) {
+	private static void assertCompletion(CompletionList completions, CompletionItem expected) {
 		List<CompletionItem> matches = completions.getItems().stream().filter(completion -> {
 			return expected.getLabel().equals(completion.getLabel());
 		}).collect(Collectors.toList());
@@ -153,34 +157,16 @@ public class QuarkusAssert {
 
 	}
 
-	public static CompletionItem c(String label, TextEdit textEdit, String filterText, String documentation) {
-		return c(label, textEdit, filterText, documentation, null);
-	}
-
-	public static CompletionItem c(String label, TextEdit textEdit, String filterText, String documentation,
-			String kind) {
-		CompletionItem item = new CompletionItem();
-		item.setLabel(label);
-		item.setFilterText(filterText);
-		item.setTextEdit(textEdit);
-		if (kind == null) {
-			item.setDocumentation(documentation);
-		} else {
-			item.setDocumentation(new MarkupContent(kind, documentation));
-		}
-		return item;
-	}
-
-	public static CompletionItem c(String label, TextEdit textEdit, String filterText) {
-		CompletionItem item = new CompletionItem();
-		item.setLabel(label);
-		item.setFilterText(filterText);
-		item.setTextEdit(textEdit);
-		return item;
-	}
-
 	public static CompletionItem c(String label, String newText, Range range) {
 		return c(label, new TextEdit(range, newText), null);
+	}
+
+	private static CompletionItem c(String label, TextEdit textEdit, String filterText) {
+		CompletionItem item = new CompletionItem();
+		item.setLabel(label);
+		item.setFilterText(filterText);
+		item.setTextEdit(textEdit);
+		return item;
 	}
 
 	public static Range r(int line, int startChar, int endChar) {

@@ -7,10 +7,12 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.quarkus.jdt.internal.core;
+package com.redhat.quarkus.jdt.core;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+
+import com.redhat.quarkus.jdt.internal.core.QuarkusPropertiesListenerManager;
 
 /**
  * The activator class controls the Quarkus JDT LS Extension plug-in life cycle
@@ -25,11 +27,11 @@ public class QuarkusActivator implements BundleActivator {
 
 	public void start(BundleContext context) throws Exception {
 		plugin = this;
-		QuarkusClasspathListenerManager.getInstance().initialize();
+		QuarkusPropertiesListenerManager.getInstance().initialize();
 	}
 
 	public void stop(BundleContext context) throws Exception {
-		QuarkusClasspathListenerManager.getInstance().destroy();
+		QuarkusPropertiesListenerManager.getInstance().destroy();
 		plugin = null;
 	}
 
@@ -40,5 +42,23 @@ public class QuarkusActivator implements BundleActivator {
 	 */
 	public static QuarkusActivator getDefault() {
 		return plugin;
+	}
+
+	/**
+	 * Add the given quarkus properties changed listener.
+	 * 
+	 * @param listener the listener to add
+	 */
+	public void addQuarkusPropertiesChangedListener(IQuarkusPropertiesChangedListener listener) {
+		QuarkusPropertiesListenerManager.getInstance().addQuarkusPropertiesChangedListener(listener);
+	}
+
+	/**
+	 * Remove the given quarkus properties changed listener.
+	 * 
+	 * @param listener the listener to remove
+	 */
+	public void removeQuarkusPropertiesChangedListener(IQuarkusPropertiesChangedListener listener) {
+		QuarkusPropertiesListenerManager.getInstance().removeQuarkusPropertiesChangedListener(listener);
 	}
 }

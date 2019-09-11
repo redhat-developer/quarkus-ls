@@ -26,6 +26,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.ExternalJavaProject;
 
+import com.redhat.quarkus.commons.QuarkusPropertiesScope;
 import com.redhat.quarkus.jdt.internal.core.utils.DependencyUtil;
 import com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusSearchUtils;
 
@@ -119,17 +120,27 @@ public class QuarkusDeploymentJavaProject extends ExternalJavaProject {
 	}
 
 	/**
-	 * Returns the java elements to search:
+	 * Returns the java elements to search according the scope:
 	 * 
+	 * <ul>
+	 * <li>sources scope: only Quarkus Java project</li>
+	 * <li>classpatch scope:
 	 * <ul>
 	 * <li>the Quarkus project</li>
 	 * <li>all deployment JARs</li>
 	 * </ul>
+	 * </li>
+	 * </ul>
+	 *
+	 * @param propertiesScope
 	 * 
 	 * @return the java elements to search
 	 * @throws JavaModelException
 	 */
-	public IJavaElement[] getElementsToSearch() throws JavaModelException {
+	public IJavaElement[] getElementsToSearch(QuarkusPropertiesScope propertiesScope) throws JavaModelException {
+		if (propertiesScope == QuarkusPropertiesScope.sources) {
+			return new IJavaElement[] { rootProject };
+		}
 		IPackageFragmentRoot[] roots = super.getPackageFragmentRoots();
 		IJavaElement[] elements = new IJavaElement[1 + roots.length];
 		elements[0] = rootProject;

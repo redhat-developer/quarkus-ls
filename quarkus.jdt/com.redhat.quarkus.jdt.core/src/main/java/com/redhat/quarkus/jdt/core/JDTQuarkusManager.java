@@ -56,6 +56,7 @@ import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
+import com.redhat.quarkus.commons.QuarkusPropertiesScope;
 import com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusSearchUtils;
 import com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusUtils;
 
@@ -99,17 +100,18 @@ public class JDTQuarkusManager {
 	 * https://github.com/quarkusio/quarkus/blob/master/core/deployment/src/main/java/io/quarkus/deployment/configuration/ConfigDefinition.java
 	 * </p>
 	 * 
-	 * @param projectName the Eclipse project name
-	 * @param converter   the documentation converter to convert JavaDoc in a format
-	 *                    like Markdown
-	 * @param monitor     the progress monitor
+	 * @param projectName     the Eclipse project name
+	 * @param propertiesScope the search scope
+	 * @param converter       the documentation converter to convert JavaDoc in a
+	 *                        format like Markdown
+	 * @param monitor         the progress monitor
 	 * @return the Quarkus project information for the given Eclipse
 	 *         <code>projectName</code>.
 	 * @throws CoreException
 	 * @throws JavaModelException
 	 */
-	public QuarkusProjectInfo getQuarkusProjectInfo(String projectName, DocumentationConverter converter,
-			IProgressMonitor monitor) throws JavaModelException, CoreException {
+	public QuarkusProjectInfo getQuarkusProjectInfo(String projectName, QuarkusPropertiesScope propertiesScope,
+			DocumentationConverter converter, IProgressMonitor monitor) throws JavaModelException, CoreException {
 		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
 
 		QuarkusProjectInfo info = new QuarkusProjectInfo();
@@ -126,7 +128,7 @@ public class JDTQuarkusManager {
 			// Scan Quarkus annotations Config* by using Java eclipse search engine.
 			SearchPattern pattern = JDTQuarkusSearchUtils.createQuarkusConfigSearchPattern();
 			SearchEngine engine = new SearchEngine();
-			IJavaSearchScope scope = JDTQuarkusSearchUtils.createQuarkusSearchScope(javaProject);
+			IJavaSearchScope scope = JDTQuarkusSearchUtils.createQuarkusSearchScope(javaProject, propertiesScope);
 			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
 					new SearchRequestor() {
 
@@ -140,9 +142,6 @@ public class JDTQuarkusManager {
 							}
 						}
 					}, monitor);
-
-			// FIXME: manage isQuarkusProject
-			info.setQuarkusProject(quarkusProperties.size() > 0);
 			info.setProperties(quarkusProperties);
 		} finally {
 			if (LOGGER.isLoggable(Level.INFO)) {
@@ -170,9 +169,11 @@ public class JDTQuarkusManager {
 		try {
 			IAnnotation[] annotations = ((IAnnotatable) javaElement).getAnnotations();
 			for (IAnnotation annotation : annotations) {
-				if (CONFIG_PROPERTY_ANNOTATION.contentEquals(annotation.getElementName())) {
+				if (CONFIG_PROPERTY_ANNOTATION.equals(annotation.getElementName())
+						|| CONFIG_PROPERTY_ANNOTATION.endsWith(annotation.getElementName())) {
 					processConfigProperty(javaElement, annotation, converter, javadocCache, quarkusProperties, monitor);
-				} else if (CONFIG_ROOT_ANNOTATION.contentEquals(annotation.getElementName())) {
+				} else if (CONFIG_ROOT_ANNOTATION.equals(annotation.getElementName())
+						|| CONFIG_ROOT_ANNOTATION.endsWith(annotation.getElementName())) {
 					processConfigRoot(javaElement, annotation, converter, javadocCache, quarkusProperties, monitor);
 				}
 			}
@@ -197,12 +198,23 @@ public class JDTQuarkusManager {
 	 * @param javadocCache
 	 * @param quarkusProperties        the properties to fill.
 	 * @param monitor                  the progress monitor.
+	 * @throws JavaModelException
 	 */
 	private static void processConfigProperty(IJavaElement javaElement, IAnnotation configPropertyAnnotation,
 			DocumentationConverter converter, Map<IPackageFragmentRoot, Properties> javadocCache,
-			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, IProgressMonitor monitor) {
-		// TODO: implement collect of @ConfigProperty
-
+			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, IProgressMonitor monitor)
+			throws JavaModelException {
+		if (javaElement.getElementType() == IJavaElement.FIELD) {
+			String propertyName = getAnnotationMemberValue(configPropertyAnnotation, "name");
+			if (propertyName != null && !propertyName.isEmpty()) {
+				IField field = (IField) javaElement;
+				String fieldTypeName = getResolvedTypeName(field);
+				IType fieldClass = findType(field.getJavaProject(), fieldTypeName);
+				String defaultValue = getAnnotationMemberValue(configPropertyAnnotation, "defaultValue");
+				addField(field, fieldTypeName, fieldClass, propertyName, defaultValue, converter, javadocCache, null,
+						quarkusProperties, monitor);
+			}
+		}
 	}
 
 	// ------------- Process Quarkus ConfigRoot -------------
@@ -600,7 +612,9 @@ public class JDTQuarkusManager {
 		property.setExtensionName(getExtensionName(location));
 		property.setLocation(location);
 		property.setSource(source);
-		property.setPhase(getPhase(configPhase));
+		if (configPhase != null) {
+			property.setPhase(getPhase(configPhase));
+		}
 		property.setEnums(enums);
 
 		quarkusProperties.add(property);

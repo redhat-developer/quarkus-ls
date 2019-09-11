@@ -72,12 +72,12 @@ public class ExtendedConfigDescriptionBuildItem {
 		this.docs = docs;
 	}
 
-	public String getExtensionName() {
-		return extensionName;
+	public String getSource() {
+		return source;
 	}
 
-	public void setExtensionName(String extensionName) {
-		this.extensionName = extensionName;
+	public void setSource(String source) {
+		this.source = source;
 	}
 
 	public String getLocation() {
@@ -88,12 +88,12 @@ public class ExtendedConfigDescriptionBuildItem {
 		this.location = location;
 	}
 
-	public String getSource() {
-		return source;
+	public String getExtensionName() {
+		return extensionName;
 	}
 
-	public void setSource(String source) {
-		this.source = source;
+	public void setExtensionName(String extensionName) {
+		this.extensionName = extensionName;
 	}
 
 	public Boolean isRequired() {
@@ -135,8 +135,8 @@ public class ExtendedConfigDescriptionBuildItem {
 		result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
 		result = prime * result + ((docs == null) ? 0 : docs.hashCode());
 		result = prime * result + ((enums == null) ? 0 : enums.hashCode());
-		result = prime * result + ((location == null) ? 0 : location.hashCode());
 		result = prime * result + ((extensionName == null) ? 0 : extensionName.hashCode());
+		result = prime * result + ((location == null) ? 0 : location.hashCode());
 		result = prime * result + phase;
 		result = prime * result + ((propertyName == null) ? 0 : propertyName.hashCode());
 		result = prime * result + ((required == null) ? 0 : required.hashCode());
@@ -169,15 +169,15 @@ public class ExtendedConfigDescriptionBuildItem {
 				return false;
 		} else if (!enums.equals(other.enums))
 			return false;
-		if (location == null) {
-			if (other.location != null)
-				return false;
-		} else if (!location.equals(other.location))
-			return false;
 		if (extensionName == null) {
 			if (other.extensionName != null)
 				return false;
 		} else if (!extensionName.equals(other.extensionName))
+			return false;
+		if (location == null) {
+			if (other.location != null)
+				return false;
+		} else if (!location.equals(other.location))
 			return false;
 		if (phase != other.phase)
 			return false;

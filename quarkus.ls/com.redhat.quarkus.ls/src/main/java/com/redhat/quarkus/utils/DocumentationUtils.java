@@ -86,7 +86,7 @@ public class DocumentationUtils {
 		case ExtendedConfigDescriptionBuildItem.CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED:
 			return "buildtime & runtime";
 		default:
-			return "buildtime";
+			return null;
 		}
 	}
 

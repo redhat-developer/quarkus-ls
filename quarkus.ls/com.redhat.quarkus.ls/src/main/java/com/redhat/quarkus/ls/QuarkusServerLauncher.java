@@ -21,6 +21,7 @@ import org.eclipse.lsp4j.launch.LSPLauncher.Builder;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageServer;
 
+import com.redhat.quarkus.ls.api.QuarkusLanguageClientAPI;
 import com.redhat.quarkus.ls.commons.ParentProcessWatcher;
 
 /**
@@ -60,7 +61,7 @@ public class QuarkusServerLauncher {
 	 */
 	public static Launcher<LanguageClient> createServerLauncher(LanguageServer server, InputStream in, OutputStream out,
 			ExecutorService executorService, Function<MessageConsumer, MessageConsumer> wrapper) {
-		return new Builder<LanguageClient>().setLocalService(server).setRemoteInterface(QuarkusLanguageClient.class) // Set
+		return new Builder<LanguageClient>().setLocalService(server).setRemoteInterface(QuarkusLanguageClientAPI.class) // Set
 																														// client
 																														// as
 																														// Quarkus

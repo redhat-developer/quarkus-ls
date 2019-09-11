@@ -9,10 +9,8 @@
 *******************************************************************************/
 package com.redhat.quarkus.ls;
 
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import org.eclipse.lsp4j.jsonrpc.services.JsonNotification;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
@@ -33,8 +31,6 @@ public interface QuarkusProjectInfoProvider {
 	 * @return the Quarkus project information for the given <code>params</code>.
 	 */
 	@JsonRequest("quarkus/projectInfo")
-	CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(QuarkusProjectInfoParams paramsURI);
+	CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(QuarkusProjectInfoParams params);
 
-	@JsonNotification("quarkus/classpathChanged")
-	void classpathChanged(Set<String> projects);
 }
