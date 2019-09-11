@@ -33,8 +33,7 @@ public class ExtendedConfigDescriptionBuildItem {
 	private String defaultValue;
 	private String docs;
 
-	private String location;
-	private String source;
+	private String extensionName;
 	private Boolean required;
 	private int phase;
 	private List<String> enums;
@@ -71,90 +70,12 @@ public class ExtendedConfigDescriptionBuildItem {
 		this.docs = docs;
 	}
 
-	public String getLocation() {
-		return location;
+	public String getExtensionName() {
+		return extensionName;
 	}
 
-	public void setLocation(String location) {
-		this.location = location;
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
-		result = prime * result + ((docs == null) ? 0 : docs.hashCode());
-		result = prime * result + ((enums == null) ? 0 : enums.hashCode());
-		result = prime * result + ((location == null) ? 0 : location.hashCode());
-		result = prime * result + phase;
-		result = prime * result + ((propertyName == null) ? 0 : propertyName.hashCode());
-		result = prime * result + ((required == null) ? 0 : required.hashCode());
-		result = prime * result + ((source == null) ? 0 : source.hashCode());
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ExtendedConfigDescriptionBuildItem other = (ExtendedConfigDescriptionBuildItem) obj;
-		if (defaultValue == null) {
-			if (other.defaultValue != null)
-				return false;
-		} else if (!defaultValue.equals(other.defaultValue))
-			return false;
-		if (docs == null) {
-			if (other.docs != null)
-				return false;
-		} else if (!docs.equals(other.docs))
-			return false;
-		if (enums == null) {
-			if (other.enums != null)
-				return false;
-		} else if (!enums.equals(other.enums))
-			return false;
-		if (location == null) {
-			if (other.location != null)
-				return false;
-		} else if (!location.equals(other.location))
-			return false;
-		if (phase != other.phase)
-			return false;
-		if (propertyName == null) {
-			if (other.propertyName != null)
-				return false;
-		} else if (!propertyName.equals(other.propertyName))
-			return false;
-		if (required == null) {
-			if (other.required != null)
-				return false;
-		} else if (!required.equals(other.required))
-			return false;
-		if (source == null) {
-			if (other.source != null)
-				return false;
-		} else if (!source.equals(other.source))
-			return false;
-		if (type == null) {
-			if (other.type != null)
-				return false;
-		} else if (!type.equals(other.type))
-			return false;
-		return true;
-	}
-
-	public String getSource() {
-		return source;
-	}
-
-	public void setSource(String source) {
-		this.source = source;
+	public void setExtensionName(String extensionName) {
+		this.extensionName = extensionName;
 	}
 
 	public Boolean isRequired() {
@@ -188,4 +109,69 @@ public class ExtendedConfigDescriptionBuildItem {
 	public boolean isBooleanType() {
 		return "boolean".equals(getType()) || "java.lang.Boolean".equals(getType());
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
+		result = prime * result + ((docs == null) ? 0 : docs.hashCode());
+		result = prime * result + ((enums == null) ? 0 : enums.hashCode());
+		result = prime * result + ((extensionName == null) ? 0 : extensionName.hashCode());
+		result = prime * result + phase;
+		result = prime * result + ((propertyName == null) ? 0 : propertyName.hashCode());
+		result = prime * result + ((required == null) ? 0 : required.hashCode());
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ExtendedConfigDescriptionBuildItem other = (ExtendedConfigDescriptionBuildItem) obj;
+		if (defaultValue == null) {
+			if (other.defaultValue != null)
+				return false;
+		} else if (!defaultValue.equals(other.defaultValue))
+			return false;
+		if (docs == null) {
+			if (other.docs != null)
+				return false;
+		} else if (!docs.equals(other.docs))
+			return false;
+		if (enums == null) {
+			if (other.enums != null)
+				return false;
+		} else if (!enums.equals(other.enums))
+			return false;
+		if (extensionName == null) {
+			if (other.extensionName != null)
+				return false;
+		} else if (!extensionName.equals(other.extensionName))
+			return false;
+		if (phase != other.phase)
+			return false;
+		if (propertyName == null) {
+			if (other.propertyName != null)
+				return false;
+		} else if (!propertyName.equals(other.propertyName))
+			return false;
+		if (required == null) {
+			if (other.required != null)
+				return false;
+		} else if (!required.equals(other.required))
+			return false;
+		if (type == null) {
+			if (other.type != null)
+				return false;
+		} else if (!type.equals(other.type))
+			return false;
+		return true;
+	}
+
 }
