@@ -71,18 +71,8 @@ public class DocumentationUtils {
 		// Config Phase
 		addParameter("Phase", getPhaseLabel(item.getPhase()), documentation, markdown);
 
-		// Location
-		String location = item.getLocation();
-		if (location != null) {
-			int slashIndex = location.lastIndexOf('/');
-			if (slashIndex != -1) {
-				location = location.substring(slashIndex + 1, location.length());
-			}
-			addParameter("Location", location, documentation, markdown);
-		}
-
-		// Source
-		addParameter("Source", item.getSource(), documentation, markdown);
+		// Extension name
+		addParameter("Extension", item.getExtensionName(), documentation, markdown);
 
 		return new MarkupContent(markdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT, documentation.toString());
 	}

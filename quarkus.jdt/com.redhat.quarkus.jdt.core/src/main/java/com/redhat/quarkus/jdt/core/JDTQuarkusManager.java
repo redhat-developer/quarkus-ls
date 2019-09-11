@@ -595,6 +595,9 @@ public class JDTQuarkusManager {
 		property.setDocs(docs);
 
 		// Extra properties
+
+		// TODO: get artifactId to manage extension name instead of using JAR name
+		property.setExtensionName(getExtensionName(location));
 		property.setLocation(location);
 		property.setSource(source);
 		property.setPhase(getPhase(configPhase));
@@ -602,6 +605,33 @@ public class JDTQuarkusManager {
 
 		quarkusProperties.add(property);
 		return property;
+	}
+
+	/**
+	 * Returns the extension name (ex: quarkus-core) from the given JAR location (ex
+	 * :
+	 * C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/0.21.1/quarkus-core-0.21.1.jar).
+	 * 
+	 * @param location the JAR location
+	 * @return the extension name (ex: quarkus-core) from the given JAR location.
+	 */
+	private static String getExtensionName(String location) {
+		if (location == null) {
+			return null;
+		}
+		if (!location.endsWith(".jar")) {
+			return null;
+		}
+		int start = location.lastIndexOf('/');
+		int end = location.lastIndexOf('-');
+		if (end == -1) {
+			end = location.lastIndexOf('.');
+		}
+		String extensionName = location.substring(start + 1, end);
+		if (extensionName.endsWith("-deployment")) {
+			extensionName = extensionName.substring(0, extensionName.length() - "-deployment".length());
+		}
+		return extensionName;
 	}
 
 	private static int getPhase(ConfigPhase configPhase) {
