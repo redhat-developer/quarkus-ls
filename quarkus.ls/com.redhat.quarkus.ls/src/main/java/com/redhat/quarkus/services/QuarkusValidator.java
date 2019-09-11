@@ -85,7 +85,10 @@ class QuarkusValidator {
 			// The syntax validation must be ignored for this property name
 			return;
 		}
-		// TODO : validate if there are an assign '='
+		if (property.getDelimiterAssign() == null) {
+			addDiagnostic("Missing equals sign after '" + propertyName + "'", property.getKey(), severity,
+			ValidationType.syntax.name());
+		}
 	}
 
 	private void validateDuplicateProperty(String propertyName, Property property) {

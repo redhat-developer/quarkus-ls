@@ -36,7 +36,7 @@ public class ApplicationPropertiesDiagnosticsTest {
 				"quarkus.datasource.password=quarkus_test\n" + //
 				"\n" + //
 				"       \n" + //
-				"quarkus.datasource.max-size\n" + //
+				"quarkus.datasource.max-size=20\n" + //
 				"quarkus.datasource.min-size=\n" + //
 				"unknown.property=X\n" + // <-- error
 				"quarkus.log.category.XXXXXXXXXXXXX.min-level=DEBUG\n" + // no error 'XXXXXXXXXXXXX' is a key
@@ -53,6 +53,21 @@ public class ApplicationPropertiesDiagnosticsTest {
 	};
 
 	@Test
+	public void validateUnknownPropertyMissingEquals() throws BadLocationException {
+		String value = "unknown.property\n" + //
+				"quarkus.datasource.min-size=\n" + //
+				"quarkus.log.category.\"XXXXXXXXXXXXX.YYYYYYYYYYYY\".min-level=DEBUG\n" + // no error
+																							// 'XXXXXXXXXXXXX.YYYYYYYYYYYY'
+																							// is a key
+				"\n" + //
+				"";
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(),
+				d(0, 0, 16, "Missing equals sign after 'unknown.property'", DiagnosticSeverity.Error, ValidationType.syntax),
+				d(0, 0, 16, "Unknown property 'unknown.property'", DiagnosticSeverity.Warning, ValidationType.unknown));
+	};
+
+
+	@Test
 	public void validateUnknownPropertiesAsError() throws BadLocationException {
 		String value = "# quarkus.datasource.url=jdbc:postgresql:quarkus_test\n" + //
 				"quarkus.datasource.driver=org.postgresql.Driver\n" + //
@@ -60,7 +75,7 @@ public class ApplicationPropertiesDiagnosticsTest {
 				"quarkus.datasource.password=quarkus_test\n" + //
 				"\n" + //
 				"       \n" + //
-				"quarkus.datasource.max-size\n" + //
+				"quarkus.datasource.max-size=20\n" + //
 				"quarkus.datasource.min-size=\n" + //
 				"unknown.property=X\n" + // <-- error
 				"quarkus.log.category.XXXXXXXXXXXXX.min-level=DEBUG\n" + // no error 'XXXXXXXXXXXXX' is a key
@@ -90,7 +105,7 @@ public class ApplicationPropertiesDiagnosticsTest {
 				"quarkus.datasource.password=quarkus_test\n" + //
 				"\n" + //
 				"       \n" + //
-				"quarkus.datasource.max-size\n" + //
+				"quarkus.datasource.max-size=20\n" + //
 				"quarkus.datasource.min-size=\n" + //
 				"unknown.property=X\n" + // <-- error
 				"quarkus.log.category.XXXXXXXXXXXXX.min-level=DEBUG\n" + // no error 'XXXXXXXXXXXXX' is a key
@@ -112,4 +127,29 @@ public class ApplicationPropertiesDiagnosticsTest {
 						DiagnosticSeverity.Error, ValidationType.unknown));
 	};
 
+
+	@Test
+	public void validateSyntaxMissingEquals() throws BadLocationException {
+		String value = "quarkus.http.cors true\n" + // <-- error
+				"quarkus.application.name=\"name\"\n" + //
+				"quarkus.datasource.username"; // <-- error
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
+				d(0, 0, 17, "Missing equals sign after 'quarkus.http.cors'", DiagnosticSeverity.Error, ValidationType.syntax), //
+				d(2, 0, 27, "Missing equals sign after 'quarkus.datasource.username'",
+						DiagnosticSeverity.Error, ValidationType.syntax));
+	};
+
+	@Test
+	public void validateSyntaxMissingEqualsComment() throws BadLocationException {
+		String value = "quarkus.http.cors=true\n" + //
+				"quarkus.application.name # ====";
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
+				d(1, 0, 24, "Missing equals sign after 'quarkus.application.name'", DiagnosticSeverity.Error, ValidationType.syntax));
+	};
 }
