@@ -13,9 +13,14 @@ import static com.redhat.quarkus.services.QuarkusAssert.c;
 import static com.redhat.quarkus.services.QuarkusAssert.r;
 import static com.redhat.quarkus.services.QuarkusAssert.testCompletionFor;
 
-import org.junit.Test;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
+import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
+
+import org.junit.Test;
 
 /**
  * Test with completion in 'application.properties' file.
@@ -140,4 +145,31 @@ public class ApplicationPropertiesCompletionTest {
 		testCompletionFor(value, true, c("quarkus.http.cors", "%dev.quarkus.http.cors=${1|false,true|}", r(0, 0, 5)));
 	}
 
+	@Test
+	public void noCompletionForExistingProperties() throws BadLocationException {
+
+		String value = "|";
+		
+		QuarkusProjectInfo projectInfo = new QuarkusProjectInfo();
+		List<ExtendedConfigDescriptionBuildItem> properties = new ArrayList<ExtendedConfigDescriptionBuildItem>();
+		ExtendedConfigDescriptionBuildItem p1 = new ExtendedConfigDescriptionBuildItem();
+		p1.setPropertyName("quarkus.http.cors");
+		properties.add(p1);
+		ExtendedConfigDescriptionBuildItem p2 = new ExtendedConfigDescriptionBuildItem();
+		p2.setPropertyName("quarkus.application.name");
+		properties.add(p2);
+
+		projectInfo.setProperties(properties);
+
+		testCompletionFor(value, false, null, 2, projectInfo, 
+				c("quarkus.http.cors", "quarkus.http.cors=", r(0, 0, 0)),
+				c("quarkus.application.name", "quarkus.application.name=", r(0, 0, 0)));
+
+		value = "quarkus.http.cors=false\r\n" + //
+				"|";
+		
+		testCompletionFor(value, false, null, 1, projectInfo,
+				c("quarkus.application.name", "quarkus.application.name=", r(1, 0, 0)));
+
+	}
 }
