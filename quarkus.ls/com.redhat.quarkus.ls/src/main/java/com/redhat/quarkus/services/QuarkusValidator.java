@@ -9,12 +9,10 @@
 *******************************************************************************/
 package com.redhat.quarkus.services;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
-import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.DiagnosticSeverity;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.jsonrpc.CancelChecker;
+import java.util.Map;
 
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
@@ -25,6 +23,11 @@ import com.redhat.quarkus.model.Property;
 import com.redhat.quarkus.settings.QuarkusValidationSettings;
 import com.redhat.quarkus.utils.PositionUtils;
 import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
+
+import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.DiagnosticSeverity;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 /**
  * Quarkus validator to validate properties declared in application.properties.
@@ -40,12 +43,14 @@ class QuarkusValidator {
 	private final List<Diagnostic> diagnostics;
 
 	private final QuarkusValidationSettings validationSettings;
+	private final Map<String, List<Property>> existingProperties;
 
 	public QuarkusValidator(QuarkusProjectInfo projectInfo, List<Diagnostic> diagnostics,
 			QuarkusValidationSettings validationSettings) {
 		this.projectInfo = projectInfo;
 		this.diagnostics = diagnostics;
 		this.validationSettings = validationSettings;
+		this.existingProperties = new HashMap<String, List<Property>>();
 	}
 
 	public void validate(PropertiesModel document, CancelChecker cancelChecker) {
@@ -58,6 +63,8 @@ class QuarkusValidator {
 				validateProperty((Property) node);
 			}
 		}
+
+		addDiagnosticsForDuplicates();
 	}
 
 	private void validateProperty(Property property) {
@@ -97,7 +104,12 @@ class QuarkusValidator {
 			// The duplicate validation must be ignored for this property name
 			return;
 		}
-		// TODO : store in the set the property to know if it already exsists
+
+		if (!existingProperties.containsKey(propertyName)) {
+			existingProperties.put(propertyName, new ArrayList<Property>());
+		}
+
+		existingProperties.get(propertyName).add(property);
 	}
 
 	private void validateUnknownProperty(String propertyName, Property property) {
@@ -125,6 +137,21 @@ class QuarkusValidator {
 		if (required != null && required) {
 			// TODO validate required property.
 		}
+	}
+
+	private void addDiagnosticsForDuplicates() {
+		existingProperties.forEach((propertyName, propertyList) -> {
+			if (propertyList.size() <= 1) {
+				return;
+			}
+
+			DiagnosticSeverity severity = validationSettings.getDuplicate().getDiagnosticSeverity(propertyName);
+
+			for (Property property: propertyList) {
+				addDiagnostic("Duplicate property '" + propertyName + "'", property.getKey(), severity,
+				ValidationType.duplicate.name());
+			}
+		});
 	}
 
 	private void addDiagnostic(String message, Node node, DiagnosticSeverity severity, String code) {
