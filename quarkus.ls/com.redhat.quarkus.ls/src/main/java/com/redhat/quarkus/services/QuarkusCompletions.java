@@ -12,6 +12,7 @@ package com.redhat.quarkus.services;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -155,8 +156,19 @@ class QuarkusCompletions {
 			profile = key.getProfile();
 		}
 
+		Set<String> existingProperties = getExistingProperties(model);
+
 		// Completion on Quarkus properties
 		for (ExtendedConfigDescriptionBuildItem property : projectInfo.getProperties()) {
+			String propertyName = property.getPropertyName();
+
+			if (existingProperties.contains(propertyName) &&
+				node.getNodeType() == NodeType.PROPERTY_KEY &&
+				!((PropertyKey) node).getPropertyName().equals(propertyName)) {
+				// don't add completion items for properties that already exist
+				// unless current node has a key equal to current property name
+				continue;
+			}
 
 			CompletionItem item = new CompletionItem(property.getPropertyName());
 			item.setKind(CompletionItemKind.Property);
@@ -208,16 +220,36 @@ class QuarkusCompletions {
 			list.getItems().add(item);
 		}
 	}
+ 
+
 
 	private static <T> Predicate<T> not(Predicate<T> t) {
 		return t.negate();
 	}
 
 	/**
+	 * Returns a set of property names for the properties in <code>model</code>.
+	 * @param model the <code>PropertiesModel</code> to get property names from
+	 * @return set of property names for the properties in <code>model</code>
+	 */
+	private static Set<String> getExistingProperties(PropertiesModel model) {
+		Set<String> set = new HashSet<String>();
+		for (Node child : model.getChildren()) {
+			if (child.getNodeType() == NodeType.PROPERTY) {
+				String name = ((Property) child).getPropertyName();
+				if (name != null && !name.isEmpty()) {
+					set.add(name);
+				}
+			}
+		}
+		return set;
+	}
+
+	/**
 	 * Returns the property name to insert when completion is applied.
 	 * 
-	 * @param propertyName      the property name
-	 * @param snippetsSupported true if snippet is supported and false otherwise.
+	 * @param propertyName       the property name
+	 * @param snippetsSupported  true if snippet is supported and false otherwise.
 	 * @return the property name to insert when completion is applied.
 	 */
 	private static String getPropertyName(String propertyName, boolean snippetsSupported) {
