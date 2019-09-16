@@ -13,12 +13,12 @@ import static com.redhat.quarkus.services.QuarkusAssert.d;
 import static com.redhat.quarkus.services.QuarkusAssert.getDefaultQuarkusProjectInfo;
 import static com.redhat.quarkus.services.QuarkusAssert.testDiagnosticsFor;
 
-import org.eclipse.lsp4j.DiagnosticSeverity;
-import org.junit.Test;
-
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.settings.QuarkusValidationSettings;
 import com.redhat.quarkus.settings.QuarkusValidationTypeSettings;
+
+import org.eclipse.lsp4j.DiagnosticSeverity;
+import org.junit.Test;
 
 /**
  * Test with diagnostics in 'application.properties' file.
@@ -380,8 +380,6 @@ public class ApplicationPropertiesDiagnosticsTest {
 		QuarkusValidationSettings settings = new QuarkusValidationSettings();
 
 		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
-
-		
 	}
 
 

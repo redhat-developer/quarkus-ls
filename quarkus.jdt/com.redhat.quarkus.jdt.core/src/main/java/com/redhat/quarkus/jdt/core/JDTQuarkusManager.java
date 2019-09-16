@@ -631,7 +631,7 @@ public class JDTQuarkusManager {
 	}
 
 	private static boolean isOptional(String fieldTypeName) {
-		return fieldTypeName.startsWith("java.util.Optional<");
+		return fieldTypeName.startsWith("java.util.Optional");
 	}
 
 	private static String[] getRawTypeParameters(String fieldTypeName) {
@@ -706,6 +706,7 @@ public class JDTQuarkusManager {
 		if (configPhase != null) {
 			property.setPhase(getPhase(configPhase));
 		}
+		property.setRequired(defaultValue == null);
 		property.setEnums(enums);
 
 		quarkusProperties.add(property);
