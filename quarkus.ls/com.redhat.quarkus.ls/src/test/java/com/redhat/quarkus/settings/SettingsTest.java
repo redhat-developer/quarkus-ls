@@ -75,6 +75,8 @@ public class SettingsTest {
 		assertEquals("error", settings.getValidation().getUnknown().getSeverity());
 		assertEquals("error", settings.getValidation().getSyntax().getSeverity());
 		assertEquals("warning", settings.getValidation().getDuplicate().getSeverity());
+		assertEquals("error", settings.getValidation().getValue().getSeverity());
+		assertEquals("none", settings.getValidation().getRequired().getSeverity());
 	}
 
 	private static InitializeParams createInitializeParams(String json) {

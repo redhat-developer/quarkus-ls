@@ -27,6 +27,7 @@ public class QuarkusValidationSettings {
 	private static final QuarkusValidationTypeSettings DEFAULT_UNKNOWN;
 	private static final QuarkusValidationTypeSettings DEFAULT_DUPLICATE;
 	private static final QuarkusValidationTypeSettings DEFAULT_VALUE;
+	private static final QuarkusValidationTypeSettings DEFAULT_REQUIRED;
 
 	static {
 		DEFAULT_SYNTAX = new QuarkusValidationTypeSettings();
@@ -37,6 +38,8 @@ public class QuarkusValidationSettings {
 		DEFAULT_DUPLICATE.setSeverity(Severity.warning.name());
 		DEFAULT_VALUE = new QuarkusValidationTypeSettings();
 		DEFAULT_VALUE.setSeverity(Severity.error.name());
+		DEFAULT_REQUIRED = new QuarkusValidationTypeSettings();
+		DEFAULT_REQUIRED.setSeverity(Severity.none.name());
 		DEFAULT = new QuarkusValidationSettings();
 		DEFAULT.updateDefault();
 	}
@@ -49,6 +52,7 @@ public class QuarkusValidationSettings {
 	private QuarkusValidationTypeSettings unknown;
 	private QuarkusValidationTypeSettings duplicate;
 	private QuarkusValidationTypeSettings value;
+	private QuarkusValidationTypeSettings required;
 
 	public QuarkusValidationSettings() {
 		setEnabled(true);
@@ -132,6 +136,16 @@ public class QuarkusValidationSettings {
 		this.updated = false;
 	}
 
+	public QuarkusValidationTypeSettings getRequired() {
+		updateDefault();
+		return required;
+	}
+
+	public void setRequired(QuarkusValidationTypeSettings required) {
+		this.required = required;
+		this.updated = false;
+	}
+
 	/**
 	 * Returns the settings for value of Quarkus properties validation.
 	 * 
@@ -163,6 +177,7 @@ public class QuarkusValidationSettings {
 		setUnknown(unknown != null ? unknown : DEFAULT_UNKNOWN);
 		setDuplicate(duplicate != null ? duplicate : DEFAULT_DUPLICATE);
 		setValue(value != null ? value : DEFAULT_VALUE);
+		setRequired(required != null ? required : DEFAULT_REQUIRED);
 		updated = true;
 	}
 
@@ -176,6 +191,7 @@ public class QuarkusValidationSettings {
 		this.setSyntax(newValidation.getSyntax());
 		this.setUnknown(newValidation.getUnknown());
 		this.setDuplicate(newValidation.getDuplicate());
+		this.setRequired(newValidation.getRequired());
 		this.setValue(newValidation.getValue());
 	}
 }

@@ -17,5 +17,5 @@ package com.redhat.quarkus.services;
  */
 public enum ValidationType {
 
-	syntax, unknown, duplicate, value;
+	syntax, unknown, duplicate, value, required;
 }

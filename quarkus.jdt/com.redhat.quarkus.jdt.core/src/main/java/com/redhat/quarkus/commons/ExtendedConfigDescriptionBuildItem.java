@@ -36,7 +36,7 @@ public class ExtendedConfigDescriptionBuildItem {
 	private String extensionName;
 	private String location;
 	private String source;
-	private Boolean required;
+	private boolean required;
 	private int phase;
 	private List<EnumItem> enums;
 
@@ -96,11 +96,11 @@ public class ExtendedConfigDescriptionBuildItem {
 		this.extensionName = extensionName;
 	}
 
-	public Boolean isRequired() {
+	public boolean isRequired() {
 		return required;
 	}
 
-	public void setRequired(Boolean required) {
+	public void setRequired(boolean required) {
 		this.required = required;
 	}
 
@@ -204,7 +204,7 @@ public class ExtendedConfigDescriptionBuildItem {
 		result = prime * result + ((location == null) ? 0 : location.hashCode());
 		result = prime * result + phase;
 		result = prime * result + ((propertyName == null) ? 0 : propertyName.hashCode());
-		result = prime * result + ((required == null) ? 0 : required.hashCode());
+		result = prime * result + (required ? 1 : 0);
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
@@ -251,10 +251,7 @@ public class ExtendedConfigDescriptionBuildItem {
 				return false;
 		} else if (!propertyName.equals(other.propertyName))
 			return false;
-		if (required == null) {
-			if (other.required != null)
-				return false;
-		} else if (!required.equals(other.required))
+		if (required != other.required)
 			return false;
 		if (source == null) {
 			if (other.source != null)

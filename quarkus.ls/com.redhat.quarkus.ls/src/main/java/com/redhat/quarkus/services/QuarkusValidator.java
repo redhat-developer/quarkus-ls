@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.model.Node;
@@ -66,6 +65,7 @@ class QuarkusValidator {
 		}
 
 		addDiagnosticsForDuplicates();
+		addDiagnosticsForMissingRequired(document);
 	}
 
 	private void validateProperty(Property property) {
@@ -240,6 +240,39 @@ class QuarkusValidator {
 						ValidationType.duplicate.name());
 			}
 		});
+	}
+
+	private void addDiagnosticsForMissingRequired(PropertiesModel document) {
+		for (ExtendedConfigDescriptionBuildItem property : projectInfo.getProperties()) {
+
+			String propertyName = property.getPropertyName();
+
+			DiagnosticSeverity severity = validationSettings.getRequired().getDiagnosticSeverity(propertyName);
+
+			if (severity != null && property.isRequired()) {
+				if (!existingProperties.containsKey(propertyName)) {
+					addDiagnostic("Missing required property '" + propertyName + "'", document, severity,
+					ValidationType.required.name());
+				} else {
+					addDiagnosticsForRequiredIfNoValue(propertyName, severity);
+				}
+			}
+		}
+	}
+
+	private void addDiagnosticsForRequiredIfNoValue(String propertyName, DiagnosticSeverity severity) {
+		List<Property> propertyList = existingProperties.get(propertyName);
+
+		for (Property property: propertyList) {
+			if (property.getValue() != null && !property.getValue().getValue().isEmpty()) {
+				return;
+			}
+		}
+
+		for (Property property: propertyList) {
+			addDiagnostic("Missing required property value for '" + propertyName + "'", property, severity,
+					ValidationType.required.name());
+		}
 	}
 
 	private void addDiagnostic(String message, Node node, DiagnosticSeverity severity, String code) {
