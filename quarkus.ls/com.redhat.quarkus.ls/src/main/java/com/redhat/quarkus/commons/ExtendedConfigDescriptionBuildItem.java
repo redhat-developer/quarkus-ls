@@ -155,7 +155,42 @@ public class ExtendedConfigDescriptionBuildItem {
 	}
 
 	public boolean isBooleanType() {
-		return "boolean".equals(getType()) || "java.lang.Boolean".equals(getType());
+		return "boolean".equals(getType()) ||
+		"java.lang.Boolean".equals(getType()) ||
+		"java.util.Optional<java.lang.Boolean>".equals(getType());
+	}
+	
+	public boolean isIntegerType() {
+		return "int".equals(getType()) ||
+		"java.lang.Integer".equals(getType()) ||
+		"java.util.OptionalInt".equals(getType()) ||
+		"java.util.Optional<java.lang.Integer>".equals(getType());
+	}
+
+	public boolean isFloatType() {
+		return "float".equals(getType()) ||
+		"java.lang.Float".equals(getType()) ||
+		"java.util.Optional<java.lang.Float>".equals(getType());
+	}
+
+	public boolean isLongType() {
+		return "long".equals(getType()) ||
+		"java.lang.Long".equals(getType()) ||
+		"java.util.OptionalLong".equals(getType()) ||
+		"java.util.Optional<java.lang.Long>".equals(getType());
+	}
+
+	public boolean isDoubleType() {
+		return "double".equals(getType()) ||
+		"java.lang.Double".equals(getType()) ||
+		"java.util.OptionalDouble".equals(getType()) ||
+		"java.util.Optional<java.lang.Double>".equals(getType());
+	}
+
+	public boolean isShortType() {
+		return "short".equals(getType()) ||
+		"java.lang.Short".equals(getType()) ||
+		"java.util.Optional<java.lang.Short>".equals(getType());
 	}
 
 	@Override
