@@ -36,7 +36,7 @@ public class QuarkusValidationSettings {
 		DEFAULT_DUPLICATE = new QuarkusValidationTypeSettings();
 		DEFAULT_DUPLICATE.setSeverity(Severity.warning.name());
 		DEFAULT_VALUE = new QuarkusValidationTypeSettings();
-		DEFAULT_VALUE.setSeverity(Severity.warning.name());
+		DEFAULT_VALUE.setSeverity(Severity.error.name());
 		DEFAULT = new QuarkusValidationSettings();
 		DEFAULT.updateDefault();
 	}

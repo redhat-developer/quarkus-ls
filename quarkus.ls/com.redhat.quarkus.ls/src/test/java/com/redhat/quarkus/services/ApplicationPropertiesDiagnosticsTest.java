@@ -246,4 +246,143 @@ public class ApplicationPropertiesDiagnosticsTest {
 				d(2, 0, 22, "Duplicate property '%dev.quarkus.http.port'", DiagnosticSeverity.Warning,
 						ValidationType.duplicate));
 	};
+
+	@Test
+	public void validateEnumValueNoError() throws BadLocationException {
+
+		String value = "quarkus.log.console.async.overflow=DISCARD\n" + //
+				"quarkus.log.file.async.overflow = BLOCK ";
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
+	};
+
+	@Test
+	public void validateEnumValueError() throws BadLocationException {
+
+		String value = "quarkus.log.console.async.overflow=error\n" + // <-- error
+				"quarkus.log.file.async.overflow = error"; // <-- error
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
+				d(0, 35, 40, "Invalid enum value: 'error' is invalid for type org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
+				DiagnosticSeverity.Error, ValidationType.value),
+				d(1, 34, 39, "Invalid enum value: 'error' is invalid for type org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
+				DiagnosticSeverity.Error, ValidationType.value));
+	};
+
+	@Test
+	public void validateIntValueNoError() throws BadLocationException {
+
+		String value = "quarkus.http.port=09010\n" + //
+				"quarkus.http.io-threads = 9\n" + //
+				"quarkus.http.test-ssl-port=43444\n" + //
+				"quarkus.thread-pool.core-threads  =  ";
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
+	};
+
+	@Test
+	public void validateIntValueError() throws BadLocationException {
+
+		String value = "quarkus.http.port=4.3\n" + // <-- int
+				"quarkus.http.io-threads = hello\n" + // <-- java.util.OptionalInt expected
+				"quarkus.http.test-ssl-port=DISCARD\n" + // <-- int
+				"quarkus.thread-pool.core-threads=false\n" + // <-- int
+				"quarkus.hibernate-orm.jdbc.statement-batch-size= error"; // <-- java.util.Optional<java.lang.Integer>
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
+				d(0, 18, 21, "Type mismatch: int expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(1, 26, 31, "Type mismatch: java.util.OptionalInt expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(2, 27, 34, "Type mismatch: int expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(3, 33, 38, "Type mismatch: int expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(4, 49, 54, "Type mismatch: java.util.Optional<java.lang.Integer> expected", DiagnosticSeverity.Error, ValidationType.value));
+	}
+
+	@Test
+	public void validateBooleanNoError() throws BadLocationException {
+
+		String value = "quarkus.http.cors  =   \n" + //
+				"quarkus.arc.auto-inject-fields=false\n" + //
+				"quarkus.ssl.native = true\n" + //
+				"quarkus.keycloak.policy-enforcer.lazy-load-paths=false";
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
+	}
+
+	@Test
+	public void validateBooleanError() throws BadLocationException {
+
+		String value = "quarkus.http.cors  =   DISCARD\n" + // <-- boolean
+				"quarkus.arc.auto-inject-fields=1.76\n" + // <-- boolean
+				"quarkus.ssl.native = hello\n" + // <-- java.util.Optional<java.lang.Boolean>
+				"quarkus.keycloak.policy-enforcer.lazy-load-paths=abc"; // <-- java.lang.Boolean
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
+				d(0, 23, 30, "Type mismatch: boolean expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(1, 31, 35, "Type mismatch: boolean expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(2, 21, 26, "Type mismatch: java.util.Optional<java.lang.Boolean> expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(3, 49, 52, "Type mismatch: java.lang.Boolean expected", DiagnosticSeverity.Error, ValidationType.value));
+	}
+
+	@Test
+	public void validateFloatNoError() throws BadLocationException {
+
+		String value = "quarkus.thread-pool.growth-resistance=0";
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
+
+		value = "quarkus.thread-pool.growth-resistance=0.4343";
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
+
+		value = "quarkus.thread-pool.growth-resistance=340.434";
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
+
+		value = "quarkus.thread-pool.growth-resistance=340.434f";
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
+
+		value = "quarkus.thread-pool.growth-resistance=";
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
+	}
+
+	@Test
+	public void validateFloatError() throws BadLocationException {
+
+		String value ="quarkus.thread-pool.growth-resistance=abc0.4343";
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
+				d(0, 38, 47, "Type mismatch: float expected", DiagnosticSeverity.Error, ValidationType.value));
+
+		value = "quarkus.thread-pool.growth-resistance=DISCARD";
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
+				d(0, 38, 45, "Type mismatch: float expected", DiagnosticSeverity.Error, ValidationType.value));
+
+		value = "quarkus.thread-pool.growth-resistance=hello";
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
+				d(0, 38, 43, "Type mismatch: float expected", DiagnosticSeverity.Error, ValidationType.value));
+	}
+
+	@Test
+	public void validateBuildTimeInjectValues() throws BadLocationException {
+
+		String value = "quarkus.http.cors = ${value.one}\n" + //
+			"quarkus.http.port=${value_two}\n" + //
+			"quarkus.ssl.native=    ${value-three}";
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
+
+		
+	}
+
+
 }

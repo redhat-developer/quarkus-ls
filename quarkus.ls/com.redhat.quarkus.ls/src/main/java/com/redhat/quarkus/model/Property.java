@@ -142,11 +142,11 @@ public class Property extends Node {
 	 * @return the property value and null otherwise.
 	 */
 	public String getPropertyValue() {
-		Node value = getValue();
+		PropertyValue value = getValue();
 		if (value == null) {
 			return null;
 		}
-		return value.getText();
+		return value.getValue();
 	}
 
 	@Override
