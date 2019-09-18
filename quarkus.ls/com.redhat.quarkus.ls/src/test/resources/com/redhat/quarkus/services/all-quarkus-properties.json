@@ -1,5 +1,4 @@
 {
-	"quarkusProject": true,
 	"projectURI": "C:\\Users\\azerr\\git\\quarkus-ls\\quarkus.jdt\\com.redhat.quarkus.jdt.test\\projects\\maven\\all-quarkus-extensions",
 	"properties": [
 		{
@@ -985,6 +984,24 @@
 			"phase": 2
 		},
 		{
+			"propertyName": "authMechanism",
+			"type": "java.lang.String",
+			"defaultValue": "BASIC",
+			"extensionName": "quarkus-elytron-security",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-elytron-security/0.21.1/quarkus-elytron-security-0.21.1.jar",
+			"source": "io.quarkus.elytron.security.runtime.AuthConfig#authMechanism",
+			"phase": 0
+		},
+		{
+			"propertyName": "realmName",
+			"type": "java.lang.String",
+			"defaultValue": "Quarkus",
+			"extensionName": "quarkus-elytron-security",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-elytron-security/0.21.1/quarkus-elytron-security-0.21.1.jar",
+			"source": "io.quarkus.elytron.security.runtime.AuthConfig#realmName",
+			"phase": 0
+		},
+		{
 			"propertyName": "quarkus.security.file.auth-mechanism",
 			"type": "java.lang.String",
 			"defaultValue": "BASIC",
@@ -1060,6 +1077,33 @@
 			"extensionName": "quarkus-elytron-security",
 			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-elytron-security/0.21.1/quarkus-elytron-security-0.21.1.jar",
 			"source": "io.quarkus.elytron.security.runtime.MPRealmConfig#enabled",
+			"phase": 2
+		},
+		{
+			"propertyName": "quarkus.security.embedded.users.{*}",
+			"type": "java.lang.String",
+			"docs": "The realm users user1\u003dpassword\\nuser2\u003dpassword2... mapping",
+			"extensionName": "quarkus-elytron-security",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-elytron-security/0.21.1/quarkus-elytron-security-0.21.1.jar",
+			"source": "io.quarkus.elytron.security.runtime.MPRealmConfig#users",
+			"phase": 2
+		},
+		{
+			"propertyName": "quarkus.security.embedded.roles.{*}",
+			"type": "java.lang.String",
+			"docs": "The realm roles user1\u003drole1,role2,...\\nuser2\u003drole1,role2,... mapping",
+			"extensionName": "quarkus-elytron-security",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-elytron-security/0.21.1/quarkus-elytron-security-0.21.1.jar",
+			"source": "io.quarkus.elytron.security.runtime.MPRealmConfig#roles",
+			"phase": 2
+		},
+		{
+			"propertyName": "quarkus.security.security-providers",
+			"type": "java.util.List\u003cjava.lang.String\u003e",
+			"docs": "List of security providers to enable for reflection",
+			"extensionName": "quarkus-elytron-security",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-elytron-security/0.21.1/quarkus-elytron-security-0.21.1.jar",
+			"source": "io.quarkus.elytron.security.runtime.SecurityConfig#securityProviders",
 			"phase": 2
 		},
 		{
@@ -3073,6 +3117,24 @@
 			"phase": 3
 		},
 		{
+			"propertyName": "quarkus.mongodb.credentials.auth-mechanism-properties.{*}",
+			"type": "java.lang.String",
+			"docs": "Allows passing authentication mechanism properties.",
+			"extensionName": "quarkus-mongodb-client",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-mongodb-client/0.21.1/quarkus-mongodb-client-0.21.1.jar",
+			"source": "io.quarkus.mongodb.runtime.CredentialConfig#authMechanismProperties",
+			"phase": 3
+		},
+		{
+			"propertyName": "quarkus.mongodb.max-wait-queue-size",
+			"type": "java.util.OptionalInt",
+			"docs": "Configures the maximum number of concurrent operations allowed to wait for a server to become available.\n All further operations will get an exception immediately.",
+			"extensionName": "quarkus-mongodb-client",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-mongodb-client/0.21.1/quarkus-mongodb-client-0.21.1.jar",
+			"source": "io.quarkus.mongodb.runtime.MongoClientConfig#maxWaitQueueSize",
+			"phase": 3
+		},
+		{
 			"propertyName": "quarkus.transaction-manager.node-name",
 			"type": "java.lang.String",
 			"defaultValue": "quarkus",
@@ -3651,6 +3713,183 @@
 			"phase": 1
 		},
 		{
+			"propertyName": "mp.jwt.verify.publickey",
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"defaultValue": "NONE",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#mpJwtPublicKey",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "mp.jwt.verify.issuer",
+			"type": "java.lang.String",
+			"defaultValue": "NONE",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#mpJwtIssuer",
+			"phase": 0
+		},
+		{
+			"propertyName": "mp.jwt.verify.publickey.location",
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"defaultValue": "NONE",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#mpJwtLocation",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "mp.jwt.verify.requireiss",
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"defaultValue": "true",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#mpJwtRequireIss",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "smallrye.jwt.token.header",
+			"type": "java.lang.String",
+			"defaultValue": "Authorization",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#tokenHeader",
+			"phase": 0
+		},
+		{
+			"propertyName": "smallrye.jwt.token.cookie",
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#tokenCookie",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "smallrye.jwt.token.kid",
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#tokenKeyId",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "smallrye.jwt.require.named-principal",
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"defaultValue": "false",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#requireNamedPrincipal",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "smallrye.jwt.claims.sub",
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#defaultSubClaim",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "smallrye.jwt.path.sub",
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#subPath",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "smallrye.jwt.claims.groups",
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#defaultGroupsClaim",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "smallrye.jwt.path.groups",
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#groupsPath",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "smallrye.jwt.expiration.grace",
+			"type": "java.util.Optional\u003cjava.lang.Integer\u003e",
+			"defaultValue": "60",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#expGracePeriodSecs",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "smallrye.jwt.jwks.refresh-interval",
+			"type": "java.util.Optional\u003cjava.lang.Integer\u003e",
+			"defaultValue": "60",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#jwksRefreshInterval",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "smallrye.jwt.whitelist.algorithms",
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"extensionName": "smallrye-jwt-1.1",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-jwt-1.1/2.0.1/smallrye-jwt-1.1-2.0.1.jar",
+			"source": "io.smallrye.jwt.config.JWTAuthContextInfoProvider#whitelistAlgorithms",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "amqp-port",
+			"type": "java.lang.Integer",
+			"defaultValue": "5672",
+			"extensionName": "smallrye-reactive-messaging-amqp-1.0",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/reactive/smallrye-reactive-messaging-amqp-1.0/0.0.10/smallrye-reactive-messaging-amqp-1.0-0.0.10.jar",
+			"source": "io.smallrye.reactive.messaging.amqp.AmqpConnector#configuredPort",
+			"phase": 0
+		},
+		{
+			"propertyName": "amqp-server",
+			"type": "java.lang.String",
+			"defaultValue": "localhost",
+			"extensionName": "smallrye-reactive-messaging-amqp-1.0",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/reactive/smallrye-reactive-messaging-amqp-1.0/0.0.10/smallrye-reactive-messaging-amqp-1.0-0.0.10.jar",
+			"source": "io.smallrye.reactive.messaging.amqp.AmqpConnector#configuredHost",
+			"phase": 0
+		},
+		{
+			"propertyName": "amqp-username",
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"extensionName": "smallrye-reactive-messaging-amqp-1.0",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/reactive/smallrye-reactive-messaging-amqp-1.0/0.0.10/smallrye-reactive-messaging-amqp-1.0-0.0.10.jar",
+			"source": "io.smallrye.reactive.messaging.amqp.AmqpConnector#configuredUsername",
+			"required": false,
+			"phase": 0
+		},
+		{
+			"propertyName": "amqp-password",
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"extensionName": "smallrye-reactive-messaging-amqp-1.0",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/reactive/smallrye-reactive-messaging-amqp-1.0/0.0.10/smallrye-reactive-messaging-amqp-1.0-0.0.10.jar",
+			"source": "io.smallrye.reactive.messaging.amqp.AmqpConnector#configuredPassword",
+			"required": false,
+			"phase": 0
+		},
+		{
 			"propertyName": "quarkus.vertx.caching",
 			"type": "boolean",
 			"defaultValue": "true",
@@ -4066,6 +4305,24 @@
 			"phase": 3
 		},
 		{
+			"propertyName": "MP_Fault_Tolerance_Metrics_Enabled",
+			"type": "java.lang.Boolean",
+			"defaultValue": "true",
+			"extensionName": "smallrye-fault-tolerance-2.0",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-fault-tolerance-2.0/1.0.1/smallrye-fault-tolerance-2.0-1.0.1.jar",
+			"source": "io.smallrye.faulttolerance.metrics.MetricsCollectorFactory#metricsEnabled",
+			"phase": 0
+		},
+		{
+			"propertyName": "kafka.bootstrap.servers",
+			"type": "java.lang.String",
+			"defaultValue": "localhost:9092",
+			"extensionName": "smallrye-reactive-messaging-kafka-1.0",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/reactive/smallrye-reactive-messaging-kafka-1.0/0.0.10/smallrye-reactive-messaging-kafka-1.0-0.0.10.jar",
+			"source": "io.smallrye.reactive.messaging.kafka.KafkaConnector#servers",
+			"phase": 0
+		},
+		{
 			"propertyName": "quarkus.http.cors",
 			"type": "boolean",
 			"docs": "Enable the CORS filter.",
@@ -4137,8 +4394,8 @@
 			"propertyName": "quarkus.http.ssl.certificate.file",
 			"type": "java.util.Optional\u003cjava.nio.file.Path\u003e",
 			"docs": "The file path to a server certificate or certificate chain in PEM format.",
-			"extensionName": "quarkus-core",
-			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/0.21.1/quarkus-core-0.21.1.jar",
+			"extensionName": "quarkus-undertow",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-undertow/0.21.1/quarkus-undertow-0.21.1.jar",
 			"source": "io.quarkus.runtime.configuration.ssl.CertificateConfig#file",
 			"required": false,
 			"phase": 3
@@ -4147,8 +4404,8 @@
 			"propertyName": "quarkus.http.ssl.certificate.key-file",
 			"type": "java.util.Optional\u003cjava.nio.file.Path\u003e",
 			"docs": "The file path to the corresponding certificate private key file in PEM format.",
-			"extensionName": "quarkus-core",
-			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/0.21.1/quarkus-core-0.21.1.jar",
+			"extensionName": "quarkus-undertow",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-undertow/0.21.1/quarkus-undertow-0.21.1.jar",
 			"source": "io.quarkus.runtime.configuration.ssl.CertificateConfig#keyFile",
 			"required": false,
 			"phase": 3
@@ -4157,8 +4414,8 @@
 			"propertyName": "quarkus.http.ssl.certificate.key-store-file",
 			"type": "java.util.Optional\u003cjava.nio.file.Path\u003e",
 			"docs": "An optional key store which holds the certificate information instead of specifying separate files.",
-			"extensionName": "quarkus-core",
-			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/0.21.1/quarkus-core-0.21.1.jar",
+			"extensionName": "quarkus-undertow",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-undertow/0.21.1/quarkus-undertow-0.21.1.jar",
 			"source": "io.quarkus.runtime.configuration.ssl.CertificateConfig#keyStoreFile",
 			"required": false,
 			"phase": 3
@@ -4167,8 +4424,8 @@
 			"propertyName": "quarkus.http.ssl.certificate.key-store-file-type",
 			"type": "java.util.Optional\u003cjava.lang.String\u003e",
 			"docs": "An optional parameter to specify type of the key store file. If not given, the type is automatically detected\n based on the file name.",
-			"extensionName": "quarkus-core",
-			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/0.21.1/quarkus-core-0.21.1.jar",
+			"extensionName": "quarkus-undertow",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-undertow/0.21.1/quarkus-undertow-0.21.1.jar",
 			"source": "io.quarkus.runtime.configuration.ssl.CertificateConfig#keyStoreFileType",
 			"required": false,
 			"phase": 3
@@ -4178,8 +4435,8 @@
 			"type": "java.lang.String",
 			"defaultValue": "password",
 			"docs": "A parameter to specify the password of the key store file. If not given, the default (\"password\") is used.",
-			"extensionName": "quarkus-core",
-			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/0.21.1/quarkus-core-0.21.1.jar",
+			"extensionName": "quarkus-undertow",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-undertow/0.21.1/quarkus-undertow-0.21.1.jar",
 			"source": "io.quarkus.runtime.configuration.ssl.CertificateConfig#keyStorePassword",
 			"phase": 3
 		},
@@ -4187,8 +4444,8 @@
 			"propertyName": "quarkus.http.ssl.cipher-suites",
 			"type": "java.util.Optional\u003corg.wildfly.security.ssl.CipherSuiteSelector\u003e",
 			"docs": "The cipher suites to use. If none is given, a reasonable default is selected.",
-			"extensionName": "quarkus-core",
-			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/0.21.1/quarkus-core-0.21.1.jar",
+			"extensionName": "quarkus-undertow",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-undertow/0.21.1/quarkus-undertow-0.21.1.jar",
 			"source": "io.quarkus.runtime.configuration.ssl.ServerSslConfig#cipherSuites",
 			"required": false,
 			"phase": 3
@@ -4198,8 +4455,8 @@
 			"type": "java.util.List\u003corg.wildfly.security.ssl.Protocol\u003e",
 			"defaultValue": "TLSv1.3,TLSv1.2",
 			"docs": "The list of protocols to explicitly enable.",
-			"extensionName": "quarkus-core",
-			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/0.21.1/quarkus-core-0.21.1.jar",
+			"extensionName": "quarkus-undertow",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-undertow/0.21.1/quarkus-undertow-0.21.1.jar",
 			"source": "io.quarkus.runtime.configuration.ssl.ServerSslConfig#protocols",
 			"phase": 3
 		},
@@ -4207,8 +4464,8 @@
 			"propertyName": "quarkus.http.ssl.provider-name",
 			"type": "java.util.Optional\u003cjava.lang.String\u003e",
 			"docs": "The SSL provider name to use. If none is given, the platform default is used.",
-			"extensionName": "quarkus-core",
-			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/0.21.1/quarkus-core-0.21.1.jar",
+			"extensionName": "quarkus-undertow",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-undertow/0.21.1/quarkus-undertow-0.21.1.jar",
 			"source": "io.quarkus.runtime.configuration.ssl.ServerSslConfig#providerName",
 			"required": false,
 			"phase": 3
@@ -4217,8 +4474,8 @@
 			"propertyName": "quarkus.http.ssl.session-cache-size",
 			"type": "java.util.OptionalInt",
 			"docs": "The SSL session cache size. If not given, the platform default is used.",
-			"extensionName": "quarkus-core",
-			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/0.21.1/quarkus-core-0.21.1.jar",
+			"extensionName": "quarkus-undertow",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-undertow/0.21.1/quarkus-undertow-0.21.1.jar",
 			"source": "io.quarkus.runtime.configuration.ssl.ServerSslConfig#sessionCacheSize",
 			"phase": 3
 		},
@@ -4226,8 +4483,8 @@
 			"propertyName": "quarkus.http.ssl.session-timeout",
 			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
 			"docs": "The SSL session cache timeout. If not given, the platform default is used.",
-			"extensionName": "quarkus-core",
-			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/0.21.1/quarkus-core-0.21.1.jar",
+			"extensionName": "quarkus-undertow",
+			"location": "C:/Users/azerr/.m2/repository/io/quarkus/quarkus-undertow/0.21.1/quarkus-undertow-0.21.1.jar",
 			"source": "io.quarkus.runtime.configuration.ssl.ServerSslConfig#sessionTimeout",
 			"required": false,
 			"phase": 3
@@ -4271,6 +4528,24 @@
 			"source": "io.quarkus.undertow.runtime.filters.CORSConfig#exposedHeaders",
 			"required": false,
 			"phase": 3
+		},
+		{
+			"propertyName": "io.smallrye.health.uncheckedExceptionDataStyle",
+			"type": "java.lang.String",
+			"defaultValue": "rootCause",
+			"extensionName": "smallrye-health-2.0",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-health-2.0/1.0.3/smallrye-health-2.0-1.0.3.jar",
+			"source": "io.smallrye.health.SmallRyeHealthReporter#uncheckedExceptionDataStyle",
+			"phase": 0
+		},
+		{
+			"propertyName": "io.smallrye.health.emptyChecksOutcome",
+			"type": "java.lang.String",
+			"defaultValue": "UP",
+			"extensionName": "smallrye-health-2.0",
+			"location": "C:/Users/azerr/.m2/repository/io/smallrye/smallrye-health-2.0/1.0.3/smallrye-health-2.0-1.0.3.jar",
+			"source": "io.smallrye.health.SmallRyeHealthReporter#emptyChecksOutcome",
+			"phase": 0
 		}
 	]
 }

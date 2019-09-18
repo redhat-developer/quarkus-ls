@@ -22,9 +22,9 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.io.MoreFiles;
@@ -40,20 +40,20 @@ import com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusUtils;
  */
 public class QuarkusPropertiesListenerManagerTest {
 
-	final Set<String> projects = new HashSet<>();
-	private IQuarkusPropertiesChangedListener listener = p -> {
+	private final static Set<String> projects = new HashSet<>();
+	private final static IQuarkusPropertiesChangedListener listener = p -> {
 		projects.addAll(p.getProjectURIs());
 	};
 
-	@Before
-	public void init() {
+	@BeforeClass
+	public static void init() {
 		cleanWorkinkingDir();
 		projects.clear();
 		QuarkusPropertiesListenerManager manager = QuarkusPropertiesListenerManager.getInstance();
 		manager.addQuarkusPropertiesChangedListener(listener);
 	}
 
-	private void cleanWorkinkingDir() {
+	private static void cleanWorkinkingDir() {
 		try {
 			File dir = JavaUtils.getWorkingProjectDirectory();
 			if (dir.exists()) {
@@ -64,8 +64,8 @@ public class QuarkusPropertiesListenerManagerTest {
 		}
 	}
 
-	@After
-	public void destroy() {
+	@AfterClass
+	public static void destroy() {
 		cleanWorkinkingDir();
 		QuarkusPropertiesListenerManager manager = QuarkusPropertiesListenerManager.getInstance();
 		manager.removeQuarkusPropertiesChangedListener(listener);
@@ -73,6 +73,7 @@ public class QuarkusPropertiesListenerManagerTest {
 
 	@Test
 	public void classpathChanged() throws Exception {
+		projects.clear();
 		Assert.assertEquals(0, projects.size());
 
 		// Create a Java project -> classpath changed
@@ -91,6 +92,7 @@ public class QuarkusPropertiesListenerManagerTest {
 
 	@Test
 	public void javaSourcesChanged() throws Exception {
+		projects.clear();
 		Assert.assertEquals(0, projects.size());
 
 		// Create a Java project -> classpath changed

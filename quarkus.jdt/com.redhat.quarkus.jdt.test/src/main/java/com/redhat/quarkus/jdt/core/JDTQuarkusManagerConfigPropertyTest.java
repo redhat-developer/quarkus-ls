@@ -45,17 +45,17 @@ public class JDTQuarkusManagerConfigPropertyTest extends BaseJDTQuarkusManagerTe
 				// GreetingResource
 				// @ConfigProperty(name = "greeting.message")
 				// String message;
-				p("greeting.message", "java.lang.String", null, "/application-configuration/src/main/java",
+				p(null, "greeting.message", "java.lang.String", null, "/application-configuration/src/main/java",
 						"org.acme.config.GreetingResource#message", 0, null),
 
 				// @ConfigProperty(name = "greeting.suffix" , defaultValue="!")
 				// String suffix;
-				p("greeting.suffix", "java.lang.String", null, "/application-configuration/src/main/java",
+				p(null, "greeting.suffix", "java.lang.String", null, "/application-configuration/src/main/java",
 						"org.acme.config.GreetingResource#suffix", 0, "!"),
 
 				// @ConfigProperty(name = "greeting.name")
 				// Optional<String> name;
-				p("greeting.name", "java.util.Optional", null, "/application-configuration/src/main/java",
+				p(null, "greeting.name", "java.util.Optional", null, "/application-configuration/src/main/java",
 						"org.acme.config.GreetingResource#name", 0, null));
 	}
 
@@ -69,17 +69,17 @@ public class JDTQuarkusManagerConfigPropertyTest extends BaseJDTQuarkusManagerTe
 				// GreetingResource
 				// @ConfigProperty(name = "greeting.message")
 				// String message;
-				p("greeting.message", "java.lang.String", null, "/application-configuration/src/main/java",
+				p(null, "greeting.message", "java.lang.String", null, "/application-configuration/src/main/java",
 						"org.acme.config.GreetingResource#message", 0, null),
 
 				// @ConfigProperty(name = "greeting.suffix" , defaultValue="!")
 				// String suffix;
-				p("greeting.suffix", "java.lang.String", null, "/application-configuration/src/main/java",
+				p(null, "greeting.suffix", "java.lang.String", null, "/application-configuration/src/main/java",
 						"org.acme.config.GreetingResource#suffix", 0, "!"),
 
 				// @ConfigProperty(name = "greeting.name")
 				// Optional<String> name;
-				p("greeting.name", "java.util.Optional", null, "/application-configuration/src/main/java",
+				p(null, "greeting.name", "java.util.Optional", null, "/application-configuration/src/main/java",
 						"org.acme.config.GreetingResource#name", 0, null));
 
 	}

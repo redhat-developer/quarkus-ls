@@ -69,6 +69,8 @@ public class QuarkusAssert {
 				1, matches.size());
 
 		ExtendedConfigDescriptionBuildItem actual = matches.get(0);
+		Assert.assertEquals("Test 'extension name' for '" + expected.getPropertyName() + "'",
+				expected.getExtensionName(), actual.getExtensionName());
 		Assert.assertEquals("Test 'type' for '" + expected.getPropertyName() + "'", expected.getType(),
 				actual.getType());
 		Assert.assertEquals("Test 'docs' for '" + expected.getPropertyName() + "'", expected.getDocs(),
@@ -86,18 +88,20 @@ public class QuarkusAssert {
 	/**
 	 * Returns an instance of Quarkus property.
 	 * 
-	 * @param propertyName the property name
-	 * @param type         the property class type
-	 * @param docs         the Javadoc
-	 * @param location     the location (JAR, sources)
-	 * @param source       the source (class + field)
-	 * @param phase        the ConfigPhase.
-	 * @param defaultValue the default value
+	 * @param extensionName Quarkus extension name
+	 * @param propertyName  the property name
+	 * @param type          the property class type
+	 * @param docs          the Javadoc
+	 * @param location      the location (JAR, sources)
+	 * @param source        the source (class + field)
+	 * @param phase         the ConfigPhase.
+	 * @param defaultValue  the default value
 	 * @return
 	 */
-	public static ExtendedConfigDescriptionBuildItem p(String propertyName, String type, String docs, String location,
-			String source, int phase, String defaultValue) {
+	public static ExtendedConfigDescriptionBuildItem p(String extensionName, String propertyName, String type,
+			String docs, String location, String source, int phase, String defaultValue) {
 		ExtendedConfigDescriptionBuildItem item = new ExtendedConfigDescriptionBuildItem();
+		item.setExtensionName(extensionName);
 		item.setPropertyName(propertyName);
 		item.setType(type);
 		item.setDocs(docs);

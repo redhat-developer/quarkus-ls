@@ -30,7 +30,7 @@ import com.redhat.quarkus.commons.QuarkusPropertiesScope;
  */
 public class JDTQuarkusManagerTest extends BaseJDTQuarkusManagerTest {
 
-	private static final String QUARKUS_CORE_DEPLOYMENT_JAR = getJarPath("quarkus-core-deployment-0.19.1.jar.test");
+	private static final String QUARKUS_CORE_DEPLOYMENT_JAR = getJarPath("quarkus-core-deployment-0.19.1.jar");
 
 	@Test
 	public void quarkusCoreDeploymentProperties() throws Exception {
@@ -40,38 +40,38 @@ public class JDTQuarkusManagerTest extends BaseJDTQuarkusManagerTest {
 		assertProperties(info,
 
 				// io.quarkus.deployment.ApplicationConfig
-				p("quarkus.application.name", "java.lang.String",
+				p("quarkus-core", "quarkus.application.name", "java.lang.String",
 						"The name of the application.\n If not set, defaults to the name of the project.",
 						QUARKUS_CORE_DEPLOYMENT_JAR, "io.quarkus.deployment.ApplicationConfig#name",
 						CONFIG_PHASE_BUILD_TIME, null),
 
-				p("quarkus.application.version", "java.lang.String",
+				p("quarkus-core", "quarkus.application.version", "java.lang.String",
 						"The version of the application.\n If not set, defaults to the version of the project",
 						QUARKUS_CORE_DEPLOYMENT_JAR, "io.quarkus.deployment.ApplicationConfig#version",
 						CONFIG_PHASE_BUILD_TIME, null),
 
 				// io.quarkus.deployment.JniProcessor$JniConfig
-				p("quarkus.jni.enable", "boolean", "Enable JNI support.", QUARKUS_CORE_DEPLOYMENT_JAR,
+				p("quarkus-core", "quarkus.jni.enable", "boolean", "Enable JNI support.", QUARKUS_CORE_DEPLOYMENT_JAR,
 						"io.quarkus.deployment.JniProcessor$JniConfig#enable", CONFIG_PHASE_BUILD_TIME, "false"),
 
-				p("quarkus.jni.library-paths", "java.util.List<java.lang.String>", "Paths of library to load.",
-						QUARKUS_CORE_DEPLOYMENT_JAR, "io.quarkus.deployment.JniProcessor$JniConfig#libraryPaths",
-						CONFIG_PHASE_BUILD_TIME, null),
+				p("quarkus-core", "quarkus.jni.library-paths", "java.util.List<java.lang.String>",
+						"Paths of library to load.", QUARKUS_CORE_DEPLOYMENT_JAR,
+						"io.quarkus.deployment.JniProcessor$JniConfig#libraryPaths", CONFIG_PHASE_BUILD_TIME, null),
 
 				// io.quarkus.deployment.SslProcessor$SslConfig
-				p("quarkus.ssl.native", "java.util.Optional<java.lang.Boolean>", "Enable native SSL support.",
-						QUARKUS_CORE_DEPLOYMENT_JAR, "io.quarkus.deployment.SslProcessor$SslConfig#native_",
-						CONFIG_PHASE_BUILD_TIME, null),
+				p("quarkus-core", "quarkus.ssl.native", "java.util.Optional<java.lang.Boolean>",
+						"Enable native SSL support.", QUARKUS_CORE_DEPLOYMENT_JAR,
+						"io.quarkus.deployment.SslProcessor$SslConfig#native_", CONFIG_PHASE_BUILD_TIME, null),
 
 				// io.quarkus.deployment.index.ApplicationArchiveBuildStep$IndexDependencyConfiguration
 				// -> Map<String, IndexDependencyConfig>
-				p("quarkus.index-dependency.{*}.classifier", "java.lang.String",
+				p("quarkus-core", "quarkus.index-dependency.{*}.classifier", "java.lang.String",
 						"The maven classifier of the artifact to index", QUARKUS_CORE_DEPLOYMENT_JAR,
 						"io.quarkus.deployment.index.IndexDependencyConfig#classifier", CONFIG_PHASE_BUILD_TIME, null),
-				p("quarkus.index-dependency.{*}.artifact-id", "java.lang.String",
+				p("quarkus-core", "quarkus.index-dependency.{*}.artifact-id", "java.lang.String",
 						"The maven artifactId of the artifact to index", QUARKUS_CORE_DEPLOYMENT_JAR,
 						"io.quarkus.deployment.index.IndexDependencyConfig#artifactId", CONFIG_PHASE_BUILD_TIME, null),
-				p("quarkus.index-dependency.{*}.group-id", "java.lang.String",
+				p("quarkus-core", "quarkus.index-dependency.{*}.group-id", "java.lang.String",
 						"The maven groupId of the artifact to index", QUARKUS_CORE_DEPLOYMENT_JAR,
 						"io.quarkus.deployment.index.IndexDependencyConfig#groupId", CONFIG_PHASE_BUILD_TIME, null));
 	}
