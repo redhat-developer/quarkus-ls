@@ -211,8 +211,15 @@ public class JDTQuarkusManager {
 				String fieldTypeName = getResolvedTypeName(field);
 				IType fieldClass = findType(field.getJavaProject(), fieldTypeName);
 				String defaultValue = getAnnotationMemberValue(configPropertyAnnotation, "defaultValue");
-				addField(field, fieldTypeName, fieldClass, propertyName, defaultValue, converter, javadocCache, null,
-						quarkusProperties, monitor);
+				// Location (JAR, src)
+				IPackageFragmentRoot packageRoot = (IPackageFragmentRoot) javaElement
+						.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
+				String location = packageRoot.getPath().toString();
+				// Quarkus Extension name
+				String extensionName = JDTQuarkusUtils.getExtensionName(location);
+
+				addField(location, extensionName, field, fieldTypeName, fieldClass, propertyName, defaultValue,
+						converter, javadocCache, null, quarkusProperties, monitor);
 			}
 		}
 	}
@@ -241,8 +248,16 @@ public class JDTQuarkusManager {
 		if (extension == null) {
 			return;
 		}
+		// Location (JAR, src)
+		IPackageFragmentRoot packageRoot = (IPackageFragmentRoot) javaElement
+				.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
+		String location = packageRoot.getPath().toString();
+		// Quarkus Extension name
+		String extensionName = JDTQuarkusUtils.getExtensionName(location);
+
 		String baseKey = QUARKUS_PREFIX + extension;
-		processConfigGroup(javaElement, baseKey, configPhase, converter, javadocCache, quarkusProperties, monitor);
+		processConfigGroup(location, extensionName, javaElement, baseKey, configPhase, converter, javadocCache,
+				quarkusProperties, monitor);
 	}
 
 	/**
@@ -346,6 +361,9 @@ public class JDTQuarkusManager {
 	 * Process Quarkus ConfigGroup annotation from the given
 	 * <code>javaElement</code>.
 	 * 
+	 * @param extensionName     the Quarkus extension name
+	 * @param location          the JAR/src location
+	 * 
 	 * @param javaElement       the class, field element which have a Quarkus
 	 *                          ConfigGroup annotations.
 	 * @param baseKey           the base key
@@ -356,8 +374,9 @@ public class JDTQuarkusManager {
 	 * @param monitor           the progress monitor.
 	 * @throws JavaModelException
 	 */
-	private static void processConfigGroup(IJavaElement javaElement, String baseKey, ConfigPhase configPhase,
-			DocumentationConverter converter, Map<IPackageFragmentRoot, Properties> javadocCache,
+	private static void processConfigGroup(String location, String extensionName, IJavaElement javaElement,
+			String baseKey, ConfigPhase configPhase, DocumentationConverter converter,
+			Map<IPackageFragmentRoot, Properties> javadocCache,
 			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, IProgressMonitor monitor)
 			throws JavaModelException {
 		if (javaElement.getElementType() == IJavaElement.TYPE) {
@@ -397,11 +416,11 @@ public class JDTQuarkusManager {
 						final IAnnotation configGroupAnnotation = getAnnotation((IAnnotatable) fieldClass,
 								CONFIG_GROUP_ANNOTATION);
 						if (configGroupAnnotation != null) {
-							processConfigGroup(fieldClass, subKey, configPhase, converter, javadocCache,
-									quarkusProperties, monitor);
+							processConfigGroup(location, extensionName, fieldClass, subKey, configPhase, converter,
+									javadocCache, quarkusProperties, monitor);
 						} else {
-							addField(field, fieldTypeName, fieldClass, subKey, defaultValue, converter, javadocCache,
-									configPhase, quarkusProperties, monitor);
+							addField(location, extensionName, field, fieldTypeName, fieldClass, subKey, defaultValue,
+									converter, javadocCache, configPhase, quarkusProperties, monitor);
 						}
 					}
 				}
@@ -409,10 +428,11 @@ public class JDTQuarkusManager {
 		}
 	}
 
-	private static void addField(IField field, String fieldTypeName, IType fieldClass, String propertyName,
-			String defaultValue, DocumentationConverter converter, Map<IPackageFragmentRoot, Properties> javadocCache,
-			ConfigPhase configPhase, List<ExtendedConfigDescriptionBuildItem> quarkusProperties,
-			IProgressMonitor monitor) throws JavaModelException {
+	private static void addField(String location, String extensionName, IField field, String fieldTypeName,
+			IType fieldClass, String propertyName, String defaultValue, DocumentationConverter converter,
+			Map<IPackageFragmentRoot, Properties> javadocCache, ConfigPhase configPhase,
+			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, IProgressMonitor monitor)
+			throws JavaModelException {
 
 		// Class type
 		String type = fieldClass != null ? fieldClass.getFullyQualifiedName() : fieldTypeName;
@@ -420,10 +440,6 @@ public class JDTQuarkusManager {
 		// Javadoc
 		String docs = getJavadoc(field, javadocCache, monitor);
 		docs = converter.convert(docs);
-
-		// Location (JAR, src)
-		IPackageFragmentRoot packageRoot = (IPackageFragmentRoot) field.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
-		String location = packageRoot.getPath().toString();
 
 		// field and class source
 		String source = field.getDeclaringType().getFullyQualifiedName() + "#" + field.getElementName();
@@ -434,10 +450,10 @@ public class JDTQuarkusManager {
 		// Default value for primitive type
 		if ("boolean".equals(fieldTypeName)) {
 			addField(propertyName, type, ConfigItem.NO_DEFAULT.equals(defaultValue) ? "false" : defaultValue, docs,
-					location, source, enumerations, configPhase, quarkusProperties);
+					location, extensionName, source, enumerations, configPhase, quarkusProperties);
 		} else if (isNumber(fieldTypeName)) {
 			addField(propertyName, type, ConfigItem.NO_DEFAULT.equals(defaultValue) ? "0" : defaultValue, docs,
-					location, source, enumerations, configPhase, quarkusProperties);
+					location, extensionName, source, enumerations, configPhase, quarkusProperties);
 		} else if (isMap(fieldTypeName)) {
 			// FIXME: find better mean to check field is a Map
 			// this code works only if user uses Map as declaration and not if they declare
@@ -445,18 +461,18 @@ public class JDTQuarkusManager {
 			String[] rawTypeParameters = getRawTypeParameters(fieldTypeName);
 			if ((rawTypeParameters[0].trim().equals("java.lang.String"))) {
 				// The key Map must be a String
-				processMap(field, propertyName, rawTypeParameters[1], docs, location, source, configPhase, converter,
-						javadocCache, quarkusProperties, monitor);
+				processMap(field, propertyName, rawTypeParameters[1], docs, location, extensionName, source,
+						configPhase, converter, javadocCache, quarkusProperties, monitor);
 			}
 		} else if (isList(fieldTypeName)) {
-			addField(propertyName, type, defaultValue, docs, location, source, enumerations, configPhase,
+			addField(propertyName, type, defaultValue, docs, location, extensionName, source, enumerations, configPhase,
 					quarkusProperties);
 		} else if (isOptional(fieldTypeName)) {
-			ExtendedConfigDescriptionBuildItem item = addField(propertyName, type, defaultValue, docs, location, source,
-					enumerations, configPhase, quarkusProperties);
+			ExtendedConfigDescriptionBuildItem item = addField(propertyName, type, defaultValue, docs, location,
+					extensionName, source, enumerations, configPhase, quarkusProperties);
 			item.setRequired(false);
 		} else {
-			addField(propertyName, type, defaultValue, docs, location, source, enumerations, configPhase,
+			addField(propertyName, type, defaultValue, docs, location, extensionName, source, enumerations, configPhase,
 					quarkusProperties);
 		}
 	}
@@ -558,7 +574,7 @@ public class JDTQuarkusManager {
 	}
 
 	private static void processMap(IField field, String baseKey, String mapValueClass, String docs, String location,
-			String source, ConfigPhase configPhase, DocumentationConverter converter,
+			String extensionName, String source, ConfigPhase configPhase, DocumentationConverter converter,
 			Map<IPackageFragmentRoot, Properties> javadocCache,
 			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, IProgressMonitor monitor)
 			throws JavaModelException {
@@ -567,22 +583,29 @@ public class JDTQuarkusManager {
 			// ignore, Map must be parameterized
 		} else if (isMap(mapValueClass)) {
 			String[] rawTypeParameters = getRawTypeParameters(mapValueClass);
-			processMap(field, subKey, rawTypeParameters[1], docs, location, source, configPhase, converter,
-					javadocCache, quarkusProperties, monitor);
+			processMap(field, subKey, rawTypeParameters[1], docs, location, extensionName, source, configPhase,
+					converter, javadocCache, quarkusProperties, monitor);
 		} else if (isOptional(mapValueClass)) {
 			// Optionals are not allowed as a map value type
 		} else {
 			IType type = findType(field.getJavaProject(), mapValueClass);
-			if (type == null) {
+			if (type == null || isPrimitiveType(mapValueClass)) {
 				// This case comes from when mapValueClass is:
 				// - Simple type, like java.lang.String
 				// - Type which cannot be found (bad classpath?)
-				addField(field, mapValueClass, null, subKey, null, converter, javadocCache, configPhase,
-						quarkusProperties, monitor);
+				addField(location, extensionName, field, mapValueClass, null, subKey, null, converter, javadocCache,
+						configPhase, quarkusProperties, monitor);
 			} else {
-				processConfigGroup(type, subKey, configPhase, converter, javadocCache, quarkusProperties, monitor);
+				processConfigGroup(location, extensionName, type, subKey, configPhase, converter, javadocCache,
+						quarkusProperties, monitor);
 			}
 		}
+	}
+
+	private static boolean isPrimitiveType(String valueClass) {
+		return valueClass.equals("java.lang.String") || valueClass.equals("java.lang.Boolean")
+				|| valueClass.equals("java.lang.Integer") || valueClass.equals("java.lang.Long")
+				|| valueClass.equals("java.lang.Double") || valueClass.equals("java.lang.Float");
 	}
 
 	private static boolean isMap(String mapValueClass) {
@@ -598,8 +621,8 @@ public class JDTQuarkusManager {
 	}
 
 	private static ExtendedConfigDescriptionBuildItem addField(String propertyName, String type, String defaultValue,
-			String docs, String location, String source, List<String> enums, ConfigPhase configPhase,
-			List<ExtendedConfigDescriptionBuildItem> quarkusProperties) {
+			String docs, String location, String extensionName, String source, List<String> enums,
+			ConfigPhase configPhase, List<ExtendedConfigDescriptionBuildItem> quarkusProperties) {
 		ExtendedConfigDescriptionBuildItem property = new ExtendedConfigDescriptionBuildItem();
 		property.setPropertyName(propertyName);
 		property.setType(type);
@@ -608,8 +631,7 @@ public class JDTQuarkusManager {
 
 		// Extra properties
 
-		// TODO: get artifactId to manage extension name instead of using JAR name
-		property.setExtensionName(getExtensionName(location));
+		property.setExtensionName(extensionName);
 		property.setLocation(location);
 		property.setSource(source);
 		if (configPhase != null) {
@@ -619,33 +641,6 @@ public class JDTQuarkusManager {
 
 		quarkusProperties.add(property);
 		return property;
-	}
-
-	/**
-	 * Returns the extension name (ex: quarkus-core) from the given JAR location (ex
-	 * :
-	 * C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/0.21.1/quarkus-core-0.21.1.jar).
-	 * 
-	 * @param location the JAR location
-	 * @return the extension name (ex: quarkus-core) from the given JAR location.
-	 */
-	private static String getExtensionName(String location) {
-		if (location == null) {
-			return null;
-		}
-		if (!location.endsWith(".jar")) {
-			return null;
-		}
-		int start = location.lastIndexOf('/');
-		int end = location.lastIndexOf('-');
-		if (end == -1) {
-			end = location.lastIndexOf('.');
-		}
-		String extensionName = location.substring(start + 1, end);
-		if (extensionName.endsWith("-deployment")) {
-			extensionName = extensionName.substring(0, extensionName.length() - "-deployment".length());
-		}
-		return extensionName;
 	}
 
 	private static int getPhase(ConfigPhase configPhase) {
