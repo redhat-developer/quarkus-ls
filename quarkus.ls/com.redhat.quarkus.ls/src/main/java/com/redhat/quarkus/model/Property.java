@@ -116,6 +116,27 @@ public class Property extends Node {
 	}
 
 	/**
+	 * Returns the property name with the profile of the property key and null
+	 * otherwise.
+	 * 
+	 * <ul>
+	 * <li>'%dev.' will return '%dev.'.</li>
+	 * <li>'%dev.key' will return '%dev.key'.</li>
+	 * <li>'key' will return 'key'.</li>
+	 * </ul>
+	 * 
+	 * @return the property name with the profile of the property key and null
+	 *         otherwise.
+	 */
+	public String getPropertyNameWithProfile() {
+		PropertyKey key = getKey();
+		if (key == null) {
+			return null;
+		}
+		return key.getPropertyNameWithProfile();
+	}
+
+	/**
 	 * Returns the property value and null otherwise.
 	 * 
 	 * @return the property value and null otherwise.

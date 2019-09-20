@@ -14,6 +14,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.DiagnosticSeverity;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.jsonrpc.CancelChecker;
+
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.model.Node;
@@ -23,11 +28,6 @@ import com.redhat.quarkus.model.Property;
 import com.redhat.quarkus.settings.QuarkusValidationSettings;
 import com.redhat.quarkus.utils.PositionUtils;
 import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
-
-import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.DiagnosticSeverity;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 /**
  * Quarkus validator to validate properties declared in application.properties.
@@ -68,20 +68,23 @@ class QuarkusValidator {
 	}
 
 	private void validateProperty(Property property) {
+		String propertyNameWithProfile = property.getPropertyNameWithProfile();
+		if (propertyNameWithProfile != null && !propertyNameWithProfile.isEmpty()) {
+			// Validate Syntax property
+			validateSyntaxProperty(propertyNameWithProfile, property);
+			// Validate Duplicate property
+			validateDuplicateProperty(propertyNameWithProfile, property);
+		}
+
 		String propertyName = property.getPropertyName();
 		if (propertyName != null && !propertyName.isEmpty()) {
-			// Validate Syntax property
-			validateSyntaxProperty(propertyName, property);
-			// Validate Duplicate property
-			validateDuplicateProperty(propertyName, property);
-
 			ExtendedConfigDescriptionBuildItem metadata = QuarkusPropertiesUtils.getProperty(propertyName, projectInfo);
 			if (metadata == null) {
 				// Validate Unknown property
-				validateUnknownProperty(propertyName, property);
+				validateUnknownProperty(propertyNameWithProfile, property);
 			} else {
 				// Validate property Value
-				validatePropertyValue(propertyName, metadata, property);
+				validatePropertyValue(propertyNameWithProfile, metadata, property);
 			}
 		}
 	}
@@ -94,7 +97,7 @@ class QuarkusValidator {
 		}
 		if (property.getDelimiterAssign() == null) {
 			addDiagnostic("Missing equals sign after '" + propertyName + "'", property.getKey(), severity,
-			ValidationType.syntax.name());
+					ValidationType.syntax.name());
 		}
 	}
 
@@ -147,9 +150,9 @@ class QuarkusValidator {
 
 			DiagnosticSeverity severity = validationSettings.getDuplicate().getDiagnosticSeverity(propertyName);
 
-			for (Property property: propertyList) {
+			for (Property property : propertyList) {
 				addDiagnostic("Duplicate property '" + propertyName + "'", property.getKey(), severity,
-				ValidationType.duplicate.name());
+						ValidationType.duplicate.name());
 			}
 		});
 	}
