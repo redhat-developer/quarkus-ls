@@ -24,6 +24,7 @@ import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotatable;
@@ -54,6 +56,7 @@ import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 
+import com.redhat.quarkus.commons.ClasspathKind;
 import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
@@ -87,6 +90,14 @@ public class JDTQuarkusManager {
 
 	}
 
+	public QuarkusProjectInfo getQuarkusProjectInfo(IFile file, QuarkusPropertiesScope propertiesScope,
+			DocumentationConverter converter, IProgressMonitor progress) throws JavaModelException, CoreException {
+		String projectName = file.getProject().getName();
+		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
+		ClasspathKind classpathKind = JDTQuarkusUtils.getClasspathKind(file, javaProject);
+		return getQuarkusProjectInfo(javaProject, propertiesScope, converter, classpathKind, progress);
+	}
+
 	/**
 	 * Returns the Quarkus project information for the given Eclipse
 	 * <code>projectName</code>. This method
@@ -111,13 +122,14 @@ public class JDTQuarkusManager {
 	 * @throws CoreException
 	 * @throws JavaModelException
 	 */
-	public QuarkusProjectInfo getQuarkusProjectInfo(String projectName, QuarkusPropertiesScope propertiesScope,
-			DocumentationConverter converter, IProgressMonitor monitor) throws JavaModelException, CoreException {
-		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
-
-		QuarkusProjectInfo info = new QuarkusProjectInfo();
-		info.setProjectURI(JDTQuarkusUtils.getProjectURI(javaProject));
-
+	public QuarkusProjectInfo getQuarkusProjectInfo(IJavaProject javaProject, QuarkusPropertiesScope propertiesScope,
+			DocumentationConverter converter, ClasspathKind classpathKind, IProgressMonitor monitor)
+			throws JavaModelException, CoreException {
+		QuarkusProjectInfo info = createInfo(javaProject, classpathKind);
+		if (classpathKind == ClasspathKind.NONE) {
+			info.setProperties(Collections.emptyList());
+			return info;
+		}
 		long startTime = System.currentTimeMillis();
 		if (LOGGER.isLoggable(Level.INFO)) {
 			LOGGER.info("Start computing Quarkus properties for '" + info.getProjectURI() + "' project.");
@@ -129,7 +141,8 @@ public class JDTQuarkusManager {
 			// Scan Quarkus annotations Config* by using Java eclipse search engine.
 			SearchPattern pattern = JDTQuarkusSearchUtils.createQuarkusConfigSearchPattern();
 			SearchEngine engine = new SearchEngine();
-			IJavaSearchScope scope = JDTQuarkusSearchUtils.createQuarkusSearchScope(javaProject, propertiesScope);
+			IJavaSearchScope scope = JDTQuarkusSearchUtils.createQuarkusSearchScope(javaProject, propertiesScope,
+					classpathKind == ClasspathKind.SRC);
 			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
 					new SearchRequestor() {
 
@@ -150,6 +163,13 @@ public class JDTQuarkusManager {
 						+ (System.currentTimeMillis() - startTime) + "ms.");
 			}
 		}
+		return info;
+	}
+
+	private static QuarkusProjectInfo createInfo(IJavaProject javaProject, ClasspathKind classpathKind) {
+		QuarkusProjectInfo info = new QuarkusProjectInfo();
+		info.setProjectURI(JDTQuarkusUtils.getProjectURI(javaProject));
+		info.setClasspathKind(classpathKind);
 		return info;
 	}
 

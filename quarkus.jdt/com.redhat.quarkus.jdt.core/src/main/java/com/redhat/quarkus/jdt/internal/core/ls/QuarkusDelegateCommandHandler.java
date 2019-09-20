@@ -91,13 +91,12 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 			throw new UnsupportedOperationException(
 					String.format("Cannot find IFile for '%s'", applicationPropertiesUri));
 		}
-		String projectName = file.getProject().getName();
 		Number scope = (Number) obj.get("scope");
-		QuarkusPropertiesScope propertiesScope =  QuarkusPropertiesScope.forValue(scope.intValue());
+		QuarkusPropertiesScope propertiesScope = QuarkusPropertiesScope.forValue(scope.intValue());
 		// Get converter to use for JavaDoc
 		String[] documentationFormat = (String[]) obj.get("documentationFormat");
 		DocumentationConverter converter = getDocumentationConverter(documentationFormat);
-		return JDTQuarkusManager.getInstance().getQuarkusProjectInfo(projectName, propertiesScope, converter, progress);
+		return JDTQuarkusManager.getInstance().getQuarkusProjectInfo(file, propertiesScope, converter, progress);
 	}
 
 	/**

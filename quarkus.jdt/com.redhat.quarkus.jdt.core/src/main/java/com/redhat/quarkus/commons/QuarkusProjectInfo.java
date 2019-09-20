@@ -21,6 +21,8 @@ public class QuarkusProjectInfo {
 
 	private String projectURI;
 
+	private ClasspathKind classpathKind;
+
 	private List<ExtendedConfigDescriptionBuildItem> properties;
 
 	/**
@@ -41,6 +43,14 @@ public class QuarkusProjectInfo {
 
 	public void setProjectURI(String projectURI) {
 		this.projectURI = projectURI;
+	}
+
+	public ClasspathKind getClasspathKind() {
+		return classpathKind;
+	}
+
+	public void setClasspathKind(ClasspathKind classpathKind) {
+		this.classpathKind = classpathKind;
 	}
 
 	/**

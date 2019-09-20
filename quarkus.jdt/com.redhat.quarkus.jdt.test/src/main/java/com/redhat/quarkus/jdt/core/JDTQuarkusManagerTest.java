@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 import org.junit.Test;
 
+import com.redhat.quarkus.commons.ClasspathKind;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
 
@@ -35,8 +36,9 @@ public class JDTQuarkusManagerTest extends BaseJDTQuarkusManagerTest {
 	@Test
 	public void quarkusCoreDeploymentProperties() throws Exception {
 		IJavaProject project = createJavaProject("test-quarkus", new String[] { QUARKUS_CORE_DEPLOYMENT_JAR });
-		QuarkusProjectInfo info = JDTQuarkusManager.getInstance().getQuarkusProjectInfo(project.getProject().getName(),
-				QuarkusPropertiesScope.classpath, DocumentationConverter.DEFAULT_CONVERTER, new NullProgressMonitor());
+		QuarkusProjectInfo info = JDTQuarkusManager.getInstance().getQuarkusProjectInfo(project,
+				QuarkusPropertiesScope.classpath, DocumentationConverter.DEFAULT_CONVERTER, ClasspathKind.SRC,
+				new NullProgressMonitor());
 		assertProperties(info,
 
 				// io.quarkus.deployment.ApplicationConfig

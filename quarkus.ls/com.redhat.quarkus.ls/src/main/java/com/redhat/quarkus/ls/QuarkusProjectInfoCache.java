@@ -10,11 +10,11 @@
 package com.redhat.quarkus.ls;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -83,7 +83,7 @@ class QuarkusProjectInfoCache {
 
 	public QuarkusProjectInfoCache(QuarkusProjectInfoProvider provider) {
 		this.provider = provider;
-		this.cache = new HashMap<>();
+		this.cache = new ConcurrentHashMap<>();
 	}
 
 	/**
