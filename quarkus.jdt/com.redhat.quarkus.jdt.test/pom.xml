@@ -12,4 +12,37 @@
 	<packaging>eclipse-test-plugin</packaging>
 	<name>quarkus.jdt.ls :: test</name>
 	<description>quarkus.jdt.ls Test Plugin</description>
+	<profiles>
+		<profile>
+			<id>macosx-jvm-flags</id>
+			<activation>
+				<os>
+					<family>mac</family>
+				</os>
+			</activation>
+			<properties>
+				<os.testArgs>-XstartOnFirstThread -noverify</os.testArgs>
+			</properties>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<groupId>org.eclipse.tycho</groupId>
+							<artifactId>tycho-surefire-plugin</artifactId>
+							<version>${tycho.version}</version>
+							<configuration>
+								<dependencies>
+									<dependency>
+										<artifactId>org.eclipse.jdt</artifactId>
+										<version>0.0.0</version>
+										<type>eclipse-feature</type>
+									</dependency>
+								</dependencies>
+							</configuration>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
+		</profile>
+	</profiles>
 </project>
