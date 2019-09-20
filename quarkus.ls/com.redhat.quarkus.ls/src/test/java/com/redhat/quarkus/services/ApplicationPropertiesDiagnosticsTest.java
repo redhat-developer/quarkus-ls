@@ -207,4 +207,31 @@ public class ApplicationPropertiesDiagnosticsTest {
 				d(2, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning, ValidationType.duplicate),
 				d(4, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning, ValidationType.duplicate));
 	};
+
+	@Test
+	public void validateDuplicatePropertyDifferentProfile() throws BadLocationException {
+		
+		String value = "quarkus.http.port=8080\n" + //
+				"%dev.quarkus.http.port=9090\n" + //
+				"%prod.quarkus.http.port=9090\n" + //
+				"quarkus.ssl.native=true";
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
+	};
+
+	@Test
+	public void validateDuplicatePropertySameProfile() throws BadLocationException {
+		
+		String value = "quarkus.http.port=8080\n" + // 
+				"%dev.quarkus.http.port=9090\n" + // <-- warning
+				"%dev.quarkus.http.port=9090"; // <-- warning
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
+		d(1, 0, 27, "Duplicate property '%dev.quarkus.http.port'", DiagnosticSeverity.Warning, ValidationType.duplicate),
+		d(2, 0, 27, "Duplicate property '%dev.quarkus.http.port'", DiagnosticSeverity.Warning, ValidationType.duplicate));
+	};
 }

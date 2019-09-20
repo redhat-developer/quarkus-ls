@@ -172,4 +172,41 @@ public class ApplicationPropertiesCompletionTest {
 				c("quarkus.application.name", "quarkus.application.name=", r(1, 0, 0)));
 
 	}
+
+	@Test
+	public void completionForExistingPropertiesDifferentProfile() throws BadLocationException {
+
+		String value = "|";
+		
+		QuarkusProjectInfo projectInfo = new QuarkusProjectInfo();
+		List<ExtendedConfigDescriptionBuildItem> properties = new ArrayList<ExtendedConfigDescriptionBuildItem>();
+		ExtendedConfigDescriptionBuildItem p1 = new ExtendedConfigDescriptionBuildItem();
+		p1.setPropertyName("quarkus.http.cors");
+		properties.add(p1);
+		ExtendedConfigDescriptionBuildItem p2 = new ExtendedConfigDescriptionBuildItem();
+		p2.setPropertyName("quarkus.application.name");
+		properties.add(p2);
+
+		projectInfo.setProperties(properties);
+
+		testCompletionFor(value, false, null, 2, projectInfo, 
+				c("quarkus.http.cors", "quarkus.http.cors=", r(0, 0, 0)),
+				c("quarkus.application.name", "quarkus.application.name=", r(0, 0, 0)));
+
+		value = "quarkus.http.cors=false\r\n" + //
+				"%dev.|";
+		
+		testCompletionFor(value, false, null, 2, projectInfo,
+				c("quarkus.http.cors", "%dev.quarkus.http.cors=", r(1, 0, 0)),
+				c("quarkus.application.name", "%dev.quarkus.application.name=", r(1, 0, 0)));
+
+		value = "quarkus.http.cors=false\r\n" + //
+				"%dev.quarkus.application.name\r\n" + //
+				"%prod.|";
+
+		testCompletionFor(value, false, null, 2, projectInfo,
+				c("quarkus.http.cors", "%prod.quarkus.http.cors=", r(2, 0, 0)),
+				c("quarkus.application.name", "%prod.quarkus.application.name=", r(2, 0, 0)));
+
+	}
 }
