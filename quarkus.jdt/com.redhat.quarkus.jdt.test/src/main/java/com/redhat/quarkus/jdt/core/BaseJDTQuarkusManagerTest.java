@@ -22,11 +22,14 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
+import com.redhat.quarkus.commons.ClasspathKind;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
 import com.redhat.quarkus.jdt.internal.core.JobHelpers;
@@ -60,6 +63,13 @@ public class BaseJDTQuarkusManagerTest {
 
 	protected static QuarkusProjectInfo getQuarkusProjectInfoFromMavenProject(String projectName,
 			QuarkusPropertiesScope scope) throws CoreException, Exception, JavaModelException {
+		IJavaProject javaProject = loadMavenProject(projectName);
+		QuarkusProjectInfo info = JDTQuarkusManager.getInstance().getQuarkusProjectInfo(javaProject, scope,
+				DocumentationConverter.DEFAULT_CONVERTER, ClasspathKind.SRC, new NullProgressMonitor());
+		return info;
+	}
+
+	public static IJavaProject loadMavenProject(String projectName) throws CoreException, Exception {
 		// Load existing "hibernate-orm-resteasy" maven project
 		IPath path = new Path(new File("projects/maven/" + projectName + "/.project").getAbsolutePath());
 		IProjectDescription description = ResourcesPlugin.getWorkspace().loadProjectDescription(path);
@@ -96,9 +106,8 @@ public class BaseJDTQuarkusManagerTest {
 		// property:
 		// deployment-artifact=io.quarkus\:quarkus-hibernate-orm-deployment\:0.21.1
 
-		QuarkusProjectInfo info = JDTQuarkusManager.getInstance().getQuarkusProjectInfo(project.getName(), scope,
-				DocumentationConverter.DEFAULT_CONVERTER, new NullProgressMonitor());
-		return info;
+		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
+		return javaProject;
 	}
 
 	private static void waitForBackgroundJobs(IProgressMonitor monitor) throws Exception {

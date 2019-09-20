@@ -60,9 +60,9 @@ public class QuarkusDeploymentJavaProject extends ExternalJavaProject {
 
 	private final IJavaProject rootProject;
 
-	public QuarkusDeploymentJavaProject(IJavaProject rootProject, ArtifactResolver artifactResolver)
+	public QuarkusDeploymentJavaProject(IJavaProject rootProject, ArtifactResolver artifactResolver, boolean excludeTestCode)
 			throws JavaModelException {
-		super(createDeploymentClasspath(rootProject, artifactResolver));
+		super(createDeploymentClasspath(rootProject, artifactResolver, excludeTestCode));
 		this.rootProject = rootProject;
 	}
 
@@ -72,15 +72,19 @@ public class QuarkusDeploymentJavaProject extends ExternalJavaProject {
 	 * @param project          the quarkus project
 	 * @param artifactResolver the artifact resolver to use to download deployment
 	 *                         JARs.
+	 * @param excludeTestCode 
 	 * @return the classpath of deployment JARs.
 	 * @throws JavaModelException
 	 */
-	private static IClasspathEntry[] createDeploymentClasspath(IJavaProject project, ArtifactResolver artifactResolver)
+	private static IClasspathEntry[] createDeploymentClasspath(IJavaProject project, ArtifactResolver artifactResolver, boolean excludeTestCode)
 			throws JavaModelException {
 		List<IClasspathEntry> externalJarEntries = new ArrayList<>();
 
 		IClasspathEntry[] entries = project.getResolvedClasspath(true);
 		for (IClasspathEntry entry : entries) {
+			if (excludeTestCode && entry.isTest()) {
+				continue;
+			}
 			switch (entry.getEntryKind()) {
 
 			case IClasspathEntry.CPE_LIBRARY:

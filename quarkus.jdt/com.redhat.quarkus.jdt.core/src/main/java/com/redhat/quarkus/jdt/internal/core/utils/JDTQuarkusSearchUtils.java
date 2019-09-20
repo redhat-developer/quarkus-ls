@@ -77,18 +77,20 @@ public class JDTQuarkusSearchUtils {
 	 * 
 	 * @param project         the Quarkus project
 	 * @param propertiesScope
+	 * @param excludeTestCode
 	 * @return the JDT search scope for Quarkus project.
 	 * @throws JavaModelException
 	 */
 	public static IJavaSearchScope createQuarkusSearchScope(IJavaProject project,
-			QuarkusPropertiesScope propertiesScope) throws JavaModelException {
+			QuarkusPropertiesScope propertiesScope, boolean excludeTestCode) throws JavaModelException {
 		int scope = propertiesScope == QuarkusPropertiesScope.sources ? IJavaSearchScope.SOURCES
 				: IJavaSearchScope.SOURCES | IJavaSearchScope.APPLICATION_LIBRARIES;
 		// Create a Java project which collects all deployments JARs.
-		QuarkusDeploymentJavaProject fakeProject = new QuarkusDeploymentJavaProject(project,
-				QuarkusDeploymentJavaProject.MAVEN_ARTIFACT_RESOLVER);
+		QuarkusDeploymentJavaProject fakeProject = new QuarkusDeploymentJavaProject(project, 
+				QuarkusDeploymentJavaProject.MAVEN_ARTIFACT_RESOLVER, excludeTestCode);
 		// Search in the given project and deployment JAR's.
-		return createJavaSearchScope(fakeProject, false, fakeProject.getElementsToSearch(propertiesScope), scope);
+		return createJavaSearchScope(fakeProject, excludeTestCode, fakeProject.getElementsToSearch(propertiesScope),
+				scope);
 	}
 
 	public static IJarEntryResource findPropertiesResource(IPackageFragmentRoot packageRoot, String propertiesFileName)
