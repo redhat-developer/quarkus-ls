@@ -68,6 +68,23 @@ public class PropertyKey extends Node {
 	}
 
 	/**
+	 * Returns the property name with the profile of the property key and null
+	 * otherwise.
+	 * 
+	 * <ul>
+	 * <li>'%dev.' will return '%dev.'.</li>
+	 * <li>'%dev.key' will return '%dev.key'.</li>
+	 * <li>'key' will return 'key'.</li>
+	 * </ul>
+	 * 
+	 * @return the property name with the profile of the property key and null
+	 *         otherwise.
+	 */
+	public String getPropertyNameWithProfile() {
+		return getText();
+	}
+
+	/**
 	 * Returns true if the given offset is before the profile and false otherwise.
 	 * 
 	 * @param offset the offset

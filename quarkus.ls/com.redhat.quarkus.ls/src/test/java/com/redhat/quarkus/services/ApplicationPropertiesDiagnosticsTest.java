@@ -13,13 +13,12 @@ import static com.redhat.quarkus.services.QuarkusAssert.d;
 import static com.redhat.quarkus.services.QuarkusAssert.getDefaultQuarkusProjectInfo;
 import static com.redhat.quarkus.services.QuarkusAssert.testDiagnosticsFor;
 
+import org.eclipse.lsp4j.DiagnosticSeverity;
+import org.junit.Test;
+
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.settings.QuarkusValidationSettings;
 import com.redhat.quarkus.settings.QuarkusValidationTypeSettings;
-
-import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.DiagnosticSeverity;
-import org.junit.Test;
 
 /**
  * Test with diagnostics in 'application.properties' file.
@@ -63,10 +62,10 @@ public class ApplicationPropertiesDiagnosticsTest {
 				"\n" + //
 				"";
 		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(),
-				d(0, 0, 16, "Missing equals sign after 'unknown.property'", DiagnosticSeverity.Error, ValidationType.syntax),
+				d(0, 0, 16, "Missing equals sign after 'unknown.property'", DiagnosticSeverity.Error,
+						ValidationType.syntax),
 				d(0, 0, 16, "Unknown property 'unknown.property'", DiagnosticSeverity.Warning, ValidationType.unknown));
 	};
-
 
 	@Test
 	public void validateUnknownPropertiesAsError() throws BadLocationException {
@@ -128,7 +127,6 @@ public class ApplicationPropertiesDiagnosticsTest {
 						DiagnosticSeverity.Error, ValidationType.unknown));
 	};
 
-
 	@Test
 	public void validateSyntaxMissingEquals() throws BadLocationException {
 		String value = "quarkus.http.cors true\n" + // <-- error
@@ -138,9 +136,10 @@ public class ApplicationPropertiesDiagnosticsTest {
 		QuarkusValidationSettings settings = new QuarkusValidationSettings();
 
 		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
-				d(0, 0, 17, "Missing equals sign after 'quarkus.http.cors'", DiagnosticSeverity.Error, ValidationType.syntax), //
-				d(2, 0, 27, "Missing equals sign after 'quarkus.datasource.username'",
-						DiagnosticSeverity.Error, ValidationType.syntax));
+				d(0, 0, 17, "Missing equals sign after 'quarkus.http.cors'", DiagnosticSeverity.Error,
+						ValidationType.syntax), //
+				d(2, 0, 27, "Missing equals sign after 'quarkus.datasource.username'", DiagnosticSeverity.Error,
+						ValidationType.syntax));
 	};
 
 	@Test
@@ -151,7 +150,8 @@ public class ApplicationPropertiesDiagnosticsTest {
 		QuarkusValidationSettings settings = new QuarkusValidationSettings();
 
 		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
-				d(1, 0, 24, "Missing equals sign after 'quarkus.application.name'", DiagnosticSeverity.Error, ValidationType.syntax));
+				d(1, 0, 24, "Missing equals sign after 'quarkus.application.name'", DiagnosticSeverity.Error,
+						ValidationType.syntax));
 	};
 
 	@Test
@@ -165,8 +165,10 @@ public class ApplicationPropertiesDiagnosticsTest {
 		QuarkusValidationSettings settings = new QuarkusValidationSettings();
 
 		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
-				d(0, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning, ValidationType.duplicate),
-				d(3, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning, ValidationType.duplicate));
+				d(0, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning,
+						ValidationType.duplicate),
+				d(3, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning,
+						ValidationType.duplicate));
 	};
 
 	@Test
@@ -182,9 +184,12 @@ public class ApplicationPropertiesDiagnosticsTest {
 		QuarkusValidationSettings settings = new QuarkusValidationSettings();
 
 		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
-				d(0, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning, ValidationType.duplicate),
-				d(3, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning, ValidationType.duplicate),
-				d(5, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning, ValidationType.duplicate));
+				d(0, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning,
+						ValidationType.duplicate),
+				d(3, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning,
+						ValidationType.duplicate),
+				d(5, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning,
+						ValidationType.duplicate));
 	};
 
 	@Test
@@ -201,10 +206,44 @@ public class ApplicationPropertiesDiagnosticsTest {
 		QuarkusValidationSettings settings = new QuarkusValidationSettings();
 
 		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
-				d(1, 0, 18, "Duplicate property 'quarkus.ssl.native'", DiagnosticSeverity.Warning, ValidationType.duplicate),
-				d(5, 0, 18, "Duplicate property 'quarkus.ssl.native'", DiagnosticSeverity.Warning, ValidationType.duplicate),
-				d(0, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning, ValidationType.duplicate),
-				d(2, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning, ValidationType.duplicate),
-				d(4, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning, ValidationType.duplicate));
+				d(1, 0, 18, "Duplicate property 'quarkus.ssl.native'", DiagnosticSeverity.Warning,
+						ValidationType.duplicate),
+				d(5, 0, 18, "Duplicate property 'quarkus.ssl.native'", DiagnosticSeverity.Warning,
+						ValidationType.duplicate),
+				d(0, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning,
+						ValidationType.duplicate),
+				d(2, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning,
+						ValidationType.duplicate),
+				d(4, 0, 17, "Duplicate property 'quarkus.http.port'", DiagnosticSeverity.Warning,
+						ValidationType.duplicate));
+	};
+
+	@Test
+	public void validateDuplicatePropertyDifferentProfile() throws BadLocationException {
+
+		String value = "quarkus.http.port=8080\n" + //
+				"%dev.quarkus.http.port=9090\n" + //
+				"%prod.quarkus.http.port=9090\n" + //
+				"quarkus.ssl.native=true";
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
+	};
+
+	@Test
+	public void validateDuplicatePropertySameProfile() throws BadLocationException {
+
+		String value = "quarkus.http.port=8080\n" + //
+				"%dev.quarkus.http.port=9090\n" + // <-- warning
+				"%dev.quarkus.http.port=9090"; // <-- warning
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
+				d(1, 0, 22, "Duplicate property '%dev.quarkus.http.port'", DiagnosticSeverity.Warning,
+						ValidationType.duplicate),
+				d(2, 0, 22, "Duplicate property '%dev.quarkus.http.port'", DiagnosticSeverity.Warning,
+						ValidationType.duplicate));
 	};
 }

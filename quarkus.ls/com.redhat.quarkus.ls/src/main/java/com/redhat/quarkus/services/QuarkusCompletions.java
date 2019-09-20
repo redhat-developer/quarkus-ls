@@ -161,10 +161,12 @@ class QuarkusCompletions {
 		// Completion on Quarkus properties
 		for (ExtendedConfigDescriptionBuildItem property : projectInfo.getProperties()) {
 			String propertyName = property.getPropertyName();
-
+			if (profile != null) {
+				propertyName = "%" + profile + "." + propertyName;
+			}
 			if (existingProperties.contains(propertyName) &&
 				node.getNodeType() == NodeType.PROPERTY_KEY &&
-				!((PropertyKey) node).getPropertyName().equals(propertyName)) {
+				!((PropertyKey) node).getPropertyNameWithProfile().equals(propertyName)) {
 				// don't add completion items for properties that already exist
 				// unless current node has a key equal to current property name
 				continue;
@@ -236,7 +238,7 @@ class QuarkusCompletions {
 		Set<String> set = new HashSet<String>();
 		for (Node child : model.getChildren()) {
 			if (child.getNodeType() == NodeType.PROPERTY) {
-				String name = ((Property) child).getPropertyName();
+				String name = ((Property) child).getPropertyNameWithProfile();
 				if (name != null && !name.isEmpty()) {
 					set.add(name);
 				}
