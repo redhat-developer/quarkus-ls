@@ -126,4 +126,12 @@ public class ApplicationPropertiesHoverTest {
 				" * Extension: `quarkus-core`";
 		assertHoverMarkdown(value, hoverLabel, 0);
 	};
+
+	@Test
+	public void hoverWithEnums() throws BadLocationException {
+		String value = "quarkus.log.console.async.overflow=BLO|CK";
+		// OverflowAction enum type
+		String hoverLabel = "**BLOCK**" + System.lineSeparator();
+		assertHoverMarkdown(value, hoverLabel, 35);
+	}
 }

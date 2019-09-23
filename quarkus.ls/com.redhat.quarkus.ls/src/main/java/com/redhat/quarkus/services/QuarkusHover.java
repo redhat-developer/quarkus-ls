@@ -17,12 +17,15 @@ import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.Position;
 
+import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.model.Node;
 import com.redhat.quarkus.model.PropertiesModel;
+import com.redhat.quarkus.model.Property;
 import com.redhat.quarkus.model.PropertyKey;
+import com.redhat.quarkus.model.PropertyValue;
 import com.redhat.quarkus.settings.QuarkusHoverSettings;
 import com.redhat.quarkus.utils.DocumentationUtils;
 import com.redhat.quarkus.utils.PositionUtils;
@@ -65,7 +68,7 @@ class QuarkusHover {
 		case ASSIGN:
 		case PROPERTY_VALUE:
 			// no hover documentation
-			return null;
+			return getPropertyValueHover(node, projectInfo, hoverSettings);
 		case PROPERTY_KEY:
 			// hover documentation on property key
 			return getPropertyKeyHover(node, projectInfo, hoverSettings);
@@ -95,6 +98,38 @@ class QuarkusHover {
 			// Quarkus property, found, display her documentation as hover
 			MarkupContent markupContent = DocumentationUtils.getDocumentation(item, key.getProfile(),
 					markdownSupported);
+			Hover hover = new Hover();
+			hover.setContents(markupContent);
+			hover.setRange(PositionUtils.createRange(node));
+			return hover;
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the documentation hover for property key represented by the property
+	 * key <code>node</code>
+	 * 
+	 * @param node          the property key node
+	 * @param projectInfo   the Quarkus project information
+	 * @param hoverSettings the hover settings
+	 * @return the documentation hover for property key represented by token
+	 */
+	private static Hover getPropertyValueHover(Node node, QuarkusProjectInfo projectInfo,
+			QuarkusHoverSettings hoverSettings) {
+		PropertyValue value = ((PropertyValue) node);
+		boolean markdownSupported = hoverSettings.isContentFormatSupported(MarkupKind.MARKDOWN);
+		// retrieve Quarkus property from the project information
+		String propertyValue = value.getValue();
+		if (propertyValue == null || propertyValue.isEmpty()) {
+			return null;
+		}
+		String propertyName = ((Property) (value.getParent())).getPropertyName();
+		ExtendedConfigDescriptionBuildItem item = QuarkusPropertiesUtils.getProperty(propertyName, projectInfo);
+		EnumItem enumItem = item != null ? item.getEnumItem(propertyValue) : null;
+		if (enumItem != null) {
+			// Quarkus property enumeration item, found, display her documentation as hover
+			MarkupContent markupContent = DocumentationUtils.getDocumentation(enumItem, markdownSupported);
 			Hover hover = new Hover();
 			hover.setContents(markupContent);
 			hover.setRange(PositionUtils.createRange(node));

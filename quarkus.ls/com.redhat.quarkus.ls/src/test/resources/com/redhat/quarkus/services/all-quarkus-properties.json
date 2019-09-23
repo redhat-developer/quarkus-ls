@@ -616,8 +616,12 @@
 			"source": "io.quarkus.runtime.logging.AsyncConfig#overflow",
 			"phase": 3,
 			"enums": [
-				"BLOCK",
-				"DISCARD"
+				{
+					"name": "BLOCK"
+				},
+				{
+					"name": "DISCARD"
+				}
 			]
 		},
 		{
@@ -697,8 +701,12 @@
 			"source": "io.quarkus.runtime.logging.AsyncConfig#overflow",
 			"phase": 3,
 			"enums": [
-				"BLOCK",
-				"DISCARD"
+				{
+					"name": "BLOCK"
+				},
+				{
+					"name": "DISCARD"
+				}
 			]
 		},
 		{
@@ -790,30 +798,78 @@
 			"source": "io.quarkus.runtime.logging.SyslogConfig#facility",
 			"phase": 3,
 			"enums": [
-				"KERNEL",
-				"USER_LEVEL",
-				"MAIL_SYSTEM",
-				"SYSTEM_DAEMONS",
-				"SECURITY",
-				"SYSLOGD",
-				"LINE_PRINTER",
-				"NETWORK_NEWS",
-				"UUCP",
-				"CLOCK_DAEMON",
-				"SECURITY2",
-				"FTP_DAEMON",
-				"NTP",
-				"LOG_AUDIT",
-				"LOG_ALERT",
-				"CLOCK_DAEMON2",
-				"LOCAL_USE_0",
-				"LOCAL_USE_1",
-				"LOCAL_USE_2",
-				"LOCAL_USE_3",
-				"LOCAL_USE_4",
-				"LOCAL_USE_5",
-				"LOCAL_USE_6",
-				"LOCAL_USE_7"
+				{
+					"name": "KERNEL"
+				},
+				{
+					"name": "USER_LEVEL"
+				},
+				{
+					"name": "MAIL_SYSTEM"
+				},
+				{
+					"name": "SYSTEM_DAEMONS"
+				},
+				{
+					"name": "SECURITY"
+				},
+				{
+					"name": "SYSLOGD"
+				},
+				{
+					"name": "LINE_PRINTER"
+				},
+				{
+					"name": "NETWORK_NEWS"
+				},
+				{
+					"name": "UUCP"
+				},
+				{
+					"name": "CLOCK_DAEMON"
+				},
+				{
+					"name": "SECURITY2"
+				},
+				{
+					"name": "FTP_DAEMON"
+				},
+				{
+					"name": "NTP"
+				},
+				{
+					"name": "LOG_AUDIT"
+				},
+				{
+					"name": "LOG_ALERT"
+				},
+				{
+					"name": "CLOCK_DAEMON2"
+				},
+				{
+					"name": "LOCAL_USE_0"
+				},
+				{
+					"name": "LOCAL_USE_1"
+				},
+				{
+					"name": "LOCAL_USE_2"
+				},
+				{
+					"name": "LOCAL_USE_3"
+				},
+				{
+					"name": "LOCAL_USE_4"
+				},
+				{
+					"name": "LOCAL_USE_5"
+				},
+				{
+					"name": "LOCAL_USE_6"
+				},
+				{
+					"name": "LOCAL_USE_7"
+				}
 			]
 		},
 		{
@@ -826,8 +882,12 @@
 			"source": "io.quarkus.runtime.logging.SyslogConfig#syslogType",
 			"phase": 3,
 			"enums": [
-				"RFC5424",
-				"RFC3164"
+				{
+					"name": "RFC5424"
+				},
+				{
+					"name": "RFC3164"
+				}
 			]
 		},
 		{
@@ -840,9 +900,15 @@
 			"source": "io.quarkus.runtime.logging.SyslogConfig#protocol",
 			"phase": 3,
 			"enums": [
-				"TCP",
-				"UDP",
-				"SSL_TCP"
+				{
+					"name": "TCP"
+				},
+				{
+					"name": "UDP"
+				},
+				{
+					"name": "SSL_TCP"
+				}
 			]
 		},
 		{
@@ -922,8 +988,12 @@
 			"source": "io.quarkus.runtime.logging.AsyncConfig#overflow",
 			"phase": 3,
 			"enums": [
-				"BLOCK",
-				"DISCARD"
+				{
+					"name": "BLOCK"
+				},
+				{
+					"name": "DISCARD"
+				}
 			]
 		},
 		{

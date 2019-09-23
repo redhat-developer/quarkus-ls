@@ -15,6 +15,7 @@ import static com.redhat.quarkus.utils.QuarkusPropertiesUtils.formatPropertyForM
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 
+import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 
 /**
@@ -106,6 +107,39 @@ public class DocumentationUtils {
 				documentation.append("`");
 			}
 		}
+	}
+
+	/**
+	 * Returns the documentation of the given enumeration item.
+	 * 
+	 * @param item     the enumeration item
+	 * @param markdown true if documentation must be formatted as markdown and false
+	 *                 otherwise.
+	 * @return the documentation of the given Quarkus property.
+	 */
+	public static MarkupContent getDocumentation(EnumItem item, boolean markdown) {
+
+		StringBuilder documentation = new StringBuilder();
+
+		// Title
+		if (markdown) {
+			documentation.append("**");
+		}
+		documentation.append(markdown ? formatPropertyForMarkdown(item.getName()) : item.getName());
+		if (markdown) {
+			documentation.append("**");
+		}
+		documentation.append(System.lineSeparator());
+
+		// Javadoc
+		String javaDoc = item.getDocs();
+		if (javaDoc != null) {
+			documentation.append(System.lineSeparator());
+			documentation.append(javaDoc);
+			documentation.append(System.lineSeparator());
+		}
+
+		return new MarkupContent(markdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT, documentation.toString());
 	}
 
 }

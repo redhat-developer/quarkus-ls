@@ -54,6 +54,7 @@ import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 
+import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
@@ -445,7 +446,7 @@ public class JDTQuarkusManager {
 		String source = field.getDeclaringType().getFullyQualifiedName() + "#" + field.getElementName();
 
 		// Enumerations
-		List<String> enumerations = getEnumerations(fieldClass);
+		List<EnumItem> enumerations = getEnumerations(fieldClass);
 
 		// Default value for primitive type
 		if ("boolean".equals(fieldTypeName)) {
@@ -546,15 +547,17 @@ public class JDTQuarkusManager {
 		return null;
 	}
 
-	private static List<String> getEnumerations(IType fieldClass) throws JavaModelException {
-		List<String> enumerations = null;
+	private static List<EnumItem> getEnumerations(IType fieldClass) throws JavaModelException {
+		List<EnumItem> enumerations = null;
 		if (fieldClass != null && fieldClass.isEnum()) {
 			enumerations = new ArrayList<>();
 			IJavaElement[] children = fieldClass.getChildren();
 			for (IJavaElement c : children) {
 				if (c.getElementType() == IJavaElement.FIELD && ((IField) c).isEnumConstant()) {
 					String enumName = ((IField) c).getElementName();
-					enumerations.add(enumName);
+					// TODO: extract Javadoc
+					String enumDocs = null;
+					enumerations.add(new EnumItem(enumName, enumDocs));
 				}
 			}
 		}
@@ -621,7 +624,7 @@ public class JDTQuarkusManager {
 	}
 
 	private static ExtendedConfigDescriptionBuildItem addField(String propertyName, String type, String defaultValue,
-			String docs, String location, String extensionName, String source, List<String> enums,
+			String docs, String location, String extensionName, String source, List<EnumItem> enums,
 			ConfigPhase configPhase, List<ExtendedConfigDescriptionBuildItem> quarkusProperties) {
 		ExtendedConfigDescriptionBuildItem property = new ExtendedConfigDescriptionBuildItem();
 		property.setPropertyName(propertyName);
