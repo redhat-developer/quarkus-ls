@@ -38,7 +38,7 @@ public class ExtendedConfigDescriptionBuildItem {
 	private String source;
 	private Boolean required;
 	private int phase;
-	private List<String> enums;
+	private List<EnumItem> enums;
 
 	public String getPropertyName() {
 		return propertyName;
@@ -104,12 +104,42 @@ public class ExtendedConfigDescriptionBuildItem {
 		this.required = required;
 	}
 
-	public void setEnums(List<String> enums) {
+	/**
+	 * Set the enumeration list of the property
+	 * 
+	 * @param enums the enumeration list of the property
+	 */
+	public void setEnums(List<EnumItem> enums) {
 		this.enums = enums;
 	}
 
-	public List<String> getEnums() {
+	/**
+	 * Returns the enumeration list of the property and null otherwise.
+	 * 
+	 * @return the enumeration list of the property and null otherwise.
+	 */
+	public List<EnumItem> getEnums() {
 		return enums;
+	}
+
+	/**
+	 * Returns the enumeration item from the given property value and null
+	 * otherwise.
+	 * 
+	 * @param propertyValue the property value.
+	 * @return the enumeration item from the given property value and null
+	 *         otherwise.
+	 */
+	public EnumItem getEnumItem(String propertyValue) {
+		if (enums == null) {
+			return null;
+		}
+		for (EnumItem enumItem : enums) {
+			if (enumItem.getName().equals(propertyValue)) {
+				return enumItem;
+			}
+		}
+		return null;
 	}
 
 	public int getPhase() {

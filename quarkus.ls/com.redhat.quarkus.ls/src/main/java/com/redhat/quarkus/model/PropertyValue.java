@@ -22,4 +22,14 @@ public class PropertyValue extends Node {
 		return NodeType.PROPERTY_VALUE;
 	}
 
+	/**
+	 * Returns the property value and null otherwise.
+	 * 
+	 * @return the property value and null otherwise
+	 */
+	public String getValue() {
+		String text = getText();
+		return text != null ? text.trim() : null;
+	}
+
 }

@@ -31,6 +31,7 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
@@ -57,8 +58,8 @@ class QuarkusCompletions {
 
 	private static final List<String> DEFAULT_PROFILES = Arrays.asList("dev", "prod", "test");
 
-	private static final Collection<String> BOOLEAN_ENUMS = Collections
-			.unmodifiableCollection(Arrays.asList("false", "true"));
+	private static final Collection<EnumItem> BOOLEAN_ENUMS = Collections
+			.unmodifiableCollection(Arrays.asList(new EnumItem("false", null), new EnumItem("true", null)));
 
 	/**
 	 * Returns completion list for the given position
@@ -164,9 +165,8 @@ class QuarkusCompletions {
 			if (profile != null) {
 				propertyName = "%" + profile + "." + propertyName;
 			}
-			if (existingProperties.contains(propertyName) &&
-				node.getNodeType() == NodeType.PROPERTY_KEY &&
-				!((PropertyKey) node).getPropertyNameWithProfile().equals(propertyName)) {
+			if (existingProperties.contains(propertyName) && node.getNodeType() == NodeType.PROPERTY_KEY
+					&& !((PropertyKey) node).getPropertyNameWithProfile().equals(propertyName)) {
 				// don't add completion items for properties that already exist
 				// unless current node has a key equal to current property name
 				continue;
@@ -176,7 +176,7 @@ class QuarkusCompletions {
 			item.setKind(CompletionItemKind.Property);
 
 			String defaultValue = property.getDefaultValue();
-			Collection<String> enums = getEnums(property);
+			Collection<EnumItem> enums = getEnums(property);
 
 			StringBuilder insertText = new StringBuilder();
 			if (profile != null) {
@@ -195,10 +195,11 @@ class QuarkusCompletions {
 				// Enumerations
 				if (snippetsSupported) {
 					// Because of LSP limitation, we cannot use default value with choice.
-					SnippetsBuilder.choice(1, enums, insertText);
+					SnippetsBuilder.choice(1, enums.stream().map(EnumItem::getName).collect(Collectors.toList()),
+							insertText);
 				} else {
 					// Plaintext: use default value or the first enum if no default value.
-					String defaultEnumValue = defaultValue != null ? defaultValue : enums.iterator().next();
+					String defaultEnumValue = defaultValue != null ? defaultValue : enums.iterator().next().getName();
 					insertText.append(defaultEnumValue);
 				}
 			} else if (defaultValue != null) {
@@ -222,8 +223,6 @@ class QuarkusCompletions {
 			list.getItems().add(item);
 		}
 	}
- 
-
 
 	private static <T> Predicate<T> not(Predicate<T> t) {
 		return t.negate();
@@ -231,6 +230,7 @@ class QuarkusCompletions {
 
 	/**
 	 * Returns a set of property names for the properties in <code>model</code>.
+	 * 
 	 * @param model the <code>PropertiesModel</code> to get property names from
 	 * @return set of property names for the properties in <code>model</code>
 	 */
@@ -250,8 +250,8 @@ class QuarkusCompletions {
 	/**
 	 * Returns the property name to insert when completion is applied.
 	 * 
-	 * @param propertyName       the property name
-	 * @param snippetsSupported  true if snippet is supported and false otherwise.
+	 * @param propertyName      the property name
+	 * @param snippetsSupported true if snippet is supported and false otherwise.
 	 * @return the property name to insert when completion is applied.
 	 */
 	private static String getPropertyName(String propertyName, boolean snippetsSupported) {
@@ -267,7 +267,7 @@ class QuarkusCompletions {
 	 * @param property the Quarkus property
 	 * @return the enums values according the property type
 	 */
-	private static Collection<String> getEnums(ExtendedConfigDescriptionBuildItem property) {
+	private static Collection<EnumItem> getEnums(ExtendedConfigDescriptionBuildItem property) {
 		if (property.getEnums() != null) {
 			return property.getEnums();
 		}
@@ -297,10 +297,11 @@ class QuarkusCompletions {
 
 		ExtendedConfigDescriptionBuildItem item = QuarkusPropertiesUtils.getProperty(propertyName, projectInfo);
 		if (item != null) {
-			Collection<String> enums = getEnums(item);
+			Collection<EnumItem> enums = getEnums(item);
 			if (enums != null && !enums.isEmpty()) {
-				for (String e : enums) {
-					list.getItems().add(getValueCompletionItem(e, node, model));
+				boolean markdownSupported = completionSettings.isDocumentationFormatSupported(MarkupKind.MARKDOWN);
+				for (EnumItem e : enums) {
+					list.getItems().add(getValueCompletionItem(e, node, model, markdownSupported));
 				}
 			}
 		}
@@ -310,12 +311,17 @@ class QuarkusCompletions {
 	 * Returns the <code>CompletionItem</code> which offers completion for value
 	 * completion for <code>value</code> at the start offset of <code>node</code>.
 	 * 
-	 * @param value the value for completion
-	 * @param node  the node where its start offset is where value completion occurs
-	 * @param model the property model
+	 * @param value             the value for completion
+	 * @param docs              the documentation for completion
+	 * @param node              the node where its start offset is where value
+	 *                          completion occurs
+	 * @param model             the property model
+	 * @param markdownSupported true if markdown is supported and false otherwise.
 	 * @return the value completion item
 	 */
-	private static CompletionItem getValueCompletionItem(String value, Node node, PropertiesModel model) {
+	private static CompletionItem getValueCompletionItem(EnumItem item, Node node, PropertiesModel model,
+			boolean markdownSupported) {
+		String value = item.getName();
 		CompletionItem completionItem = new CompletionItem(value);
 		completionItem.setKind(CompletionItemKind.Value);
 
@@ -331,6 +337,8 @@ class QuarkusCompletions {
 
 		TextEdit textEdit = new TextEdit(range, value);
 		completionItem.setTextEdit(textEdit);
+		completionItem.setDocumentation(DocumentationUtils.getDocumentation(item, markdownSupported));
+
 		return completionItem;
 	}
 }
