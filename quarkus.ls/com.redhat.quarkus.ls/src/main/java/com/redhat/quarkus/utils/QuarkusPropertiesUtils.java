@@ -48,7 +48,7 @@ public class QuarkusPropertiesUtils {
 		}
 
 		for (ExtendedConfigDescriptionBuildItem property : properties) {
-			if (match(propertyName, property.getPropertyName())) {
+			if (property != null && match(propertyName, property.getPropertyName())) {
 				return property;
 			}
 		}

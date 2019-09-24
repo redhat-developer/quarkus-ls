@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
@@ -39,12 +40,11 @@ class QuarkusProjectInfoCache {
 
 		private static final String JAR_EXTENSION = ".jar";
 
-		private final QuarkusProjectInfo delegate;
-
 		private boolean reloadFromSource;
 
 		public QuarkusProjectInfoWrapper(QuarkusProjectInfo delegate) {
-			this.delegate = delegate;
+			super.setProjectURI(delegate.getProjectURI());
+			super.setProperties(new CopyOnWriteArrayList<>(delegate.getProperties()));
 			this.reloadFromSource = false;
 		}
 
@@ -52,10 +52,6 @@ class QuarkusProjectInfoCache {
 		 * Clear the cache only for Quarkus properties coming from java sources.
 		 */
 		public void clearPropertiesFromSource() {
-			List<ExtendedConfigDescriptionBuildItem> propertiesFromJavaSource = getProperties().stream().filter(p -> {
-				return !p.getLocation().endsWith(JAR_EXTENSION);
-			}).collect(Collectors.toList());
-			getProperties().removeAll(propertiesFromJavaSource);
 			setReloadFromSource(true);
 		}
 
@@ -64,19 +60,16 @@ class QuarkusProjectInfoCache {
 		 * 
 		 * @param propertiesFromJavaSource properties to add in the cache.
 		 */
-		void update(List<ExtendedConfigDescriptionBuildItem> propertiesFromJavaSource) {
+		synchronized void update(List<ExtendedConfigDescriptionBuildItem> propertiesFromJavaSource) {
+			// remove old properties from Java sources
+			List<ExtendedConfigDescriptionBuildItem> oldPropertiesFromJavaSource = getProperties().stream()
+					.filter(p -> {
+						return p == null || !p.getLocation().endsWith(JAR_EXTENSION);
+					}).collect(Collectors.toList());
+			getProperties().removeAll(oldPropertiesFromJavaSource);
+			// add new properties from Java sources
 			getProperties().addAll(propertiesFromJavaSource);
 			setReloadFromSource(false);
-		}
-
-		@Override
-		public String getProjectURI() {
-			return delegate.getProjectURI();
-		}
-
-		@Override
-		public List<ExtendedConfigDescriptionBuildItem> getProperties() {
-			return delegate.getProperties();
 		}
 
 		private boolean isReloadFromSource() {

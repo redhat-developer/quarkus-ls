@@ -13,6 +13,8 @@ import static com.redhat.quarkus.services.QuarkusAssert.assertCompletions;
 import static com.redhat.quarkus.services.QuarkusAssert.c;
 import static com.redhat.quarkus.services.QuarkusAssert.r;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.eclipse.lsp4j.CompletionList;
@@ -21,6 +23,7 @@ import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentItem;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
@@ -84,6 +87,70 @@ public class QuarkusLanguageServerScopeChangedTest {
 		list = completion(PROJECT1_APPLICATION_PROPERTIES, server);
 		assertCompletions(list, 2, c("quarkus.application.name", "quarkus.application.name=", r(0, 0, 0)), //
 				c("greeting.suffix", "greeting.suffix=", r(0, 0, 0)));
+	}
+
+	@Test
+	public void javaSourcesChangedInThreadContext() throws InterruptedException, ExecutionException {
+		QuarkusLanguageServer server = createServer();
+		MockQuarkusLanguageClient client = (MockQuarkusLanguageClient) server.getLanguageClient();
+		// Initialize quarkus properties
+		client.changedClasspath(PROJECT1, property1FromJar, property2FromJar, property1FromSources);
+
+		didOpen(PROJECT1_APPLICATION_PROPERTIES, server);
+		CompletionList list = completion(PROJECT1_APPLICATION_PROPERTIES, server);
+		assertCompletions(list, 3, c("quarkus.application.name", "quarkus.application.name=", r(0, 0, 0)), //
+				c("quarkus.application.version", "quarkus.application.version=", r(0, 0, 0)), //
+				c("greeting.message", "greeting.message=", r(0, 0, 0)));
+
+		// Emulate change of classpath (Jar and Java sources)
+		client.changedClasspath(PROJECT1, property1FromJar, property1FromSources);
+		list = completion(PROJECT1_APPLICATION_PROPERTIES, server);
+		assertCompletions(list, 2, c("quarkus.application.name", "quarkus.application.name=", r(0, 0, 0)), //
+				c("greeting.message", "greeting.message=", r(0, 0, 0)));
+
+		// create a lot of thread which change java sources (update Quarkus properties)
+		// and execute completion (to recompute Quarkus properties)
+		List<Thread> threads = new ArrayList<>();
+		List<Integer> count = new ArrayList<>();
+		for (int i = 0; i < 1000; i++) {
+			Thread t1 = createChangedJavaSourcesThread(server, client);
+			threads.add(t1);
+			Thread t2 = createCompletionThread(server, client, count);
+			threads.add(t2);
+			t1.start();
+			t2.start();
+		}
+
+		for (Thread thread : threads) {
+			thread.join();
+		}
+		Integer max = count.stream().max(Math::max).get();
+		Assert.assertTrue(max <= 2);
+	}
+
+	private Thread createCompletionThread(QuarkusLanguageServer server, MockQuarkusLanguageClient client,
+			List<Integer> count) {
+		return new Thread(() -> {
+			try {
+				CompletionList list = completion(PROJECT1_APPLICATION_PROPERTIES, server);
+				synchronized (count) {
+					count.add(list.getItems().size());	
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+	}
+
+	private Thread createChangedJavaSourcesThread(QuarkusLanguageServer server, MockQuarkusLanguageClient client) {
+		return new Thread(() -> {
+			try {
+				// Emulate change of Java sources (add)
+				client.changedJavaSources(PROJECT1, property2FromSources);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
 	}
 
 	private static QuarkusLanguageServer createServer() {

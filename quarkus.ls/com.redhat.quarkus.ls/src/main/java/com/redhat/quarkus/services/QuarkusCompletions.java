@@ -161,6 +161,9 @@ class QuarkusCompletions {
 
 		// Completion on Quarkus properties
 		for (ExtendedConfigDescriptionBuildItem property : projectInfo.getProperties()) {
+			if (property == null) {
+				continue;
+			}
 			String propertyName = property.getPropertyName();
 			if (profile != null) {
 				propertyName = "%" + profile + "." + propertyName;
