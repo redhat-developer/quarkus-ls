@@ -87,7 +87,7 @@ public class JDTQuarkusSearchUtils {
 				: IJavaSearchScope.SOURCES | IJavaSearchScope.APPLICATION_LIBRARIES;
 		// Create a Java project which collects all deployments JARs.
 		QuarkusDeploymentJavaProject fakeProject = new QuarkusDeploymentJavaProject(project, 
-				QuarkusDeploymentJavaProject.MAVEN_ARTIFACT_RESOLVER, excludeTestCode);
+				QuarkusDeploymentJavaProject.DEFAULT_ARTIFACT_RESOLVER, excludeTestCode);
 		// Search in the given project and deployment JAR's.
 		return createJavaSearchScope(fakeProject, excludeTestCode, fakeProject.getElementsToSearch(propertiesScope),
 				scope);

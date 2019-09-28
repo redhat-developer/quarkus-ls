@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.MessageActionItem;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
@@ -18,7 +19,9 @@ import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 import com.redhat.quarkus.commons.QuarkusPropertiesChangeEvent;
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
+import com.redhat.quarkus.commons.QuarkusPropertyDefinitionParams;
 import com.redhat.quarkus.ls.api.QuarkusLanguageClientAPI;
+import com.redhat.quarkus.ls.api.QuarkusPropertyDefinitionProvider;
 
 public class MockQuarkusLanguageClient implements QuarkusLanguageClientAPI {
 
@@ -26,6 +29,8 @@ public class MockQuarkusLanguageClient implements QuarkusLanguageClientAPI {
 
 	private final Map<String, List<ExtendedConfigDescriptionBuildItem>> jarProperties;
 	private final Map<String, List<ExtendedConfigDescriptionBuildItem>> sourcesProperties;
+
+	private QuarkusPropertyDefinitionProvider provider;
 
 	public MockQuarkusLanguageClient(QuarkusLanguageServer languageServer) {
 		this.languageServer = languageServer;
@@ -129,6 +134,14 @@ public class MockQuarkusLanguageClient implements QuarkusLanguageClientAPI {
 		event.setType(QuarkusPropertiesScope.sources);
 		event.setProjectURIs(new HashSet<String>(Arrays.asList(projectURI)));
 		languageServer.quarkusPropertiesChanged(event);
+	}
+
+	@Override
+	public CompletableFuture<Location> getPropertyDefinition(QuarkusPropertyDefinitionParams params) {
+		if (provider == null) {
+			provider = new MockQuarkusPropertyDefinitionProvider();
+		}
+		return provider.getPropertyDefinition(params);
 	}
 
 }

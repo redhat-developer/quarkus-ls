@@ -42,6 +42,7 @@ public class ServerCapabilitiesInitializer {
 		}
 		serverCapabilities
 				.setDocumentSymbolProvider(!clientCapabilities.isDocumentSymbolDynamicRegistrationSupported());
+		serverCapabilities.setDefinitionProvider(!clientCapabilities.isDefinitionDynamicRegistered());
 		return serverCapabilities;
 	}
 }

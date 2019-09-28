@@ -7,30 +7,24 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.quarkus.ls;
+package com.redhat.quarkus.ls.api;
 
 import java.util.concurrent.CompletableFuture;
 
+import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 
-import com.redhat.quarkus.commons.QuarkusProjectInfo;
-import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
+import com.redhat.quarkus.commons.QuarkusPropertyDefinitionParams;
 
 /**
- * Quarkus project information provider..
+ * Quarkus property definition provider.
  * 
  * @author Angelo ZERR
  *
  */
-public interface QuarkusProjectInfoProvider {
+public interface QuarkusPropertyDefinitionProvider {
 
-	/**
-	 * Returns the Quarkus project information for the given <code>params</code>.
-	 * 
-	 * @param params the Quarkus project information parameters
-	 * @return the Quarkus project information for the given <code>params</code>.
-	 */
-	@JsonRequest("quarkus/projectInfo")
-	CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(QuarkusProjectInfoParams params);
+	@JsonRequest("quarkus/propertyDefinition")
+	CompletableFuture<Location> getPropertyDefinition(QuarkusPropertyDefinitionParams params);
 
 }

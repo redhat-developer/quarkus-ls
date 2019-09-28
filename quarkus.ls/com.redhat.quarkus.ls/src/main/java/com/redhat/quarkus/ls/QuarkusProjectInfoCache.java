@@ -23,6 +23,7 @@ import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 import com.redhat.quarkus.commons.QuarkusPropertiesChangeEvent;
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
+import com.redhat.quarkus.ls.api.QuarkusProjectInfoProvider;
 
 /**
  * Quarkus project information cache.

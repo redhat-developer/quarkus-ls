@@ -29,6 +29,8 @@ import org.eclipse.lsp4j.DidSaveTextDocumentParams;
 import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
@@ -64,6 +66,8 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 
 	private boolean hierarchicalDocumentSymbolSupport;
 
+	private boolean definitionLinkSupport;
+
 	public QuarkusTextDocumentService(QuarkusLanguageServer quarkusLanguageServer) {
 		this.quarkusLanguageServer = quarkusLanguageServer;
 		this.documents = new ModelTextDocuments<PropertiesModel>((document, cancelChecker) -> {
@@ -85,6 +89,9 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 			hierarchicalDocumentSymbolSupport = textDocumentClientCapabilities.getDocumentSymbol() != null
 					&& textDocumentClientCapabilities.getDocumentSymbol().getHierarchicalDocumentSymbolSupport() != null
 					&& textDocumentClientCapabilities.getDocumentSymbol().getHierarchicalDocumentSymbolSupport();
+			definitionLinkSupport = textDocumentClientCapabilities.getDefinition() != null
+					&& textDocumentClientCapabilities.getDefinition().getLinkSupport() != null
+					&& textDocumentClientCapabilities.getDefinition().getLinkSupport();
 		}
 	}
 
@@ -173,6 +180,22 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 						return e;
 					}) //
 					.collect(Collectors.toList());
+		});
+	}
+
+	@Override
+	public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(
+			TextDocumentPositionParams params) {
+		QuarkusProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument(), null);
+		return getProjectInfoCache().getQuarkusProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
+			if (projectInfo.getProperties().isEmpty()) {
+				return null;
+			}
+			// then get the Properties model document
+			return getDocument(params.getTextDocument().getUri()).getModel().thenComposeAsync(document -> {
+				return getQuarkusLanguageService().findDefinition(document, params.getPosition(), projectInfo,
+						quarkusLanguageServer.getLanguageClient(), definitionLinkSupport);
+			});
 		});
 	}
 

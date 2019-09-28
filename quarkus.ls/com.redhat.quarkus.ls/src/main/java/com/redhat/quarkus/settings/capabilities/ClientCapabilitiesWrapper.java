@@ -48,6 +48,10 @@ public class ClientCapabilitiesWrapper {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getDocumentSymbol());
 	}
 
+	public boolean isDefinitionDynamicRegistered() {
+		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getDefinition());
+	}
+
 	private boolean isDynamicRegistrationSupported(DynamicRegistrationCapabilities capability) {
 		return capability != null && capability.getDynamicRegistration() != null
 				&& capability.getDynamicRegistration().booleanValue();

@@ -11,13 +11,12 @@ package com.redhat.quarkus.ls.api;
 
 import org.eclipse.lsp4j.services.LanguageClient;
 
-import com.redhat.quarkus.ls.QuarkusProjectInfoProvider;
-
 /**
  * Quarkus language client API.
  * 
  * @author Angelo ZERR
  *
  */
-public interface QuarkusLanguageClientAPI extends LanguageClient, QuarkusProjectInfoProvider {
+public interface QuarkusLanguageClientAPI
+		extends LanguageClient, QuarkusProjectInfoProvider, QuarkusPropertyDefinitionProvider {
 }

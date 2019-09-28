@@ -61,6 +61,7 @@ import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
+import com.redhat.quarkus.jdt.internal.core.QuarkusDeploymentJavaProject;
 import com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusSearchUtils;
 import com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusUtils;
 
@@ -88,6 +89,51 @@ public class JDTQuarkusManager {
 
 	private JDTQuarkusManager() {
 
+	}
+
+	/**
+	 * Returns the Java field from the given property source
+	 * 
+	 * @param file           the application.properties file
+	 * @param propertySource the property source to find
+	 * @param progress       the progress monitor.
+	 * @return the Java field from the given property source
+	 * @throws JavaModelException
+	 * @throws CoreException
+	 */
+	public IField findDeclaredQuarkusProperty(IFile file, String propertySource, IProgressMonitor progress)
+			throws JavaModelException, CoreException {
+		String projectName = file.getProject().getName();
+		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
+		return findDeclaredQuarkusProperty(javaProject, propertySource, progress);
+	}
+
+	/**
+	 * Returns the Java field from the given property source
+	 * 
+	 * @param javaProject    the Java project
+	 * @param propertySource the property source to find
+	 * @param progress       the progress monitor.
+	 * @return the Java field from the given property sources
+	 * @throws JavaModelException
+	 */
+	public IField findDeclaredQuarkusProperty(IJavaProject javaProject, String propertySource,
+			IProgressMonitor progress) throws JavaModelException {
+		int index = propertySource.indexOf('#');
+		if (index == -1) {
+			return null;
+		}
+		String className = propertySource.substring(0, index);
+		String fieldName = propertySource.substring(index + 1, propertySource.length());
+		// Try to find type with standard classpath
+		IType type = javaProject.findType(className, progress);
+		if (type == null) {
+			// Not found, type could be included in deployment JAR which is not in classpath
+			// Try to find type from deployment JAR
+			type = new QuarkusDeploymentJavaProject(javaProject, QuarkusDeploymentJavaProject.DEFAULT_ARTIFACT_RESOLVER,
+					false).findType(className, progress);
+		}
+		return type.getField(fieldName);
 	}
 
 	public QuarkusProjectInfo getQuarkusProjectInfo(IFile file, QuarkusPropertiesScope propertiesScope,
