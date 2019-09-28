@@ -9,9 +9,11 @@ package com.redhat.quarkus.settings.capabilities;
 
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.COMPLETION_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_COMPLETION_OPTIONS;
+import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.DEFINITION_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.DOCUMENT_SYMBOL_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.HOVER_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_COMPLETION;
+import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_DEFINITION;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_DOCUMENT_SYMBOL;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_HOVER;
 
@@ -51,6 +53,9 @@ public class QuarkusCapabilityManager {
 		}
 		if (this.getClientCapabilities().isDocumentSymbolDynamicRegistrationSupported()) {
 			registerCapability(DOCUMENT_SYMBOL_ID, TEXT_DOCUMENT_DOCUMENT_SYMBOL);
+		}
+		if (this.getClientCapabilities().isDefinitionDynamicRegistered()) {
+			registerCapability(DEFINITION_ID, TEXT_DOCUMENT_DEFINITION);
 		}
 	}
 

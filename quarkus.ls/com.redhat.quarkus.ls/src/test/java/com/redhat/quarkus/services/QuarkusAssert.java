@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.CompletionCapabilities;
@@ -25,6 +26,7 @@ import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverCapabilities;
 import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.MarkedString;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
@@ -38,6 +40,8 @@ import org.junit.Assert;
 
 import com.google.gson.Gson;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
+import com.redhat.quarkus.ls.MockQuarkusPropertyDefinitionProvider;
+import com.redhat.quarkus.ls.api.QuarkusPropertyDefinitionProvider;
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.model.PropertiesModel;
@@ -55,6 +59,8 @@ public class QuarkusAssert {
 
 	private static QuarkusProjectInfo DEFAULT_PROJECT;
 
+	private static QuarkusPropertyDefinitionProvider DEFAULT_DEFINITION_PROVIDER;
+
 	private static final String QUARKUS_DIAGNOSTIC_SOURCE = "quarkus";
 
 	public static QuarkusProjectInfo getDefaultQuarkusProjectInfo() {
@@ -64,6 +70,13 @@ public class QuarkusAssert {
 					QuarkusProjectInfo.class);
 		}
 		return DEFAULT_PROJECT;
+	}
+
+	public static QuarkusPropertyDefinitionProvider getDefaultQuarkusPropertyDefinitionProvider() {
+		if (DEFAULT_DEFINITION_PROVIDER == null) {
+			DEFAULT_DEFINITION_PROVIDER = new MockQuarkusPropertyDefinitionProvider();
+		}
+		return DEFAULT_DEFINITION_PROVIDER;
 	}
 
 	// ------------------- Completion assert
@@ -288,6 +301,43 @@ public class QuarkusAssert {
 
 	public static void assertDocumentSymbols(List<DocumentSymbol> actual, DocumentSymbol... expected) {
 		Assert.assertEquals(expected.length, actual.size());
+		Assert.assertArrayEquals(expected, actual.toArray());
+	}
+
+	// ------------------- Definition assert
+
+	public static void testDefinitionFor(String value, LocationLink... expected)
+			throws BadLocationException, InterruptedException, ExecutionException {
+		testDefinitionFor(value, getDefaultQuarkusProjectInfo(), getDefaultQuarkusPropertyDefinitionProvider(),
+				expected);
+	}
+
+	public static void testDefinitionFor(String value, QuarkusProjectInfo projectInfo,
+			QuarkusPropertyDefinitionProvider definitionProvider, LocationLink... expected)
+			throws BadLocationException, InterruptedException, ExecutionException {
+		int offset = value.indexOf('|');
+		value = value.substring(0, offset) + value.substring(offset + 1);
+
+		QuarkusLanguageService languageService = new QuarkusLanguageService();
+		PropertiesModel document = parse(value, null);
+		Position position = document.positionAt(offset);
+
+		Either<List<? extends Location>, List<? extends LocationLink>> actual = languageService
+				.findDefinition(document, position, projectInfo, definitionProvider, true).get();
+		assertLocationLink(actual.getRight(), expected);
+
+	}
+
+	public static LocationLink ll(final String uri, final Range originRange, Range targetRange) {
+		return new LocationLink(uri, targetRange, targetRange, originRange);
+	}
+
+	public static void assertLocationLink(List<? extends LocationLink> actual, LocationLink... expected) {
+		Assert.assertEquals(expected.length, actual.size());
+		for (int i = 0; i < expected.length; i++) {
+			actual.get(i).setTargetUri(actual.get(i).getTargetUri().replaceAll("file:///", "file:/"));
+			expected[i].setTargetUri(expected[i].getTargetUri().replaceAll("file:///", "file:/"));
+		}
 		Assert.assertArrayEquals(expected, actual.toArray());
 	}
 

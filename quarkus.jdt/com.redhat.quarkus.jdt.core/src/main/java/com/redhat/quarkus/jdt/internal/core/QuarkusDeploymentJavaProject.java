@@ -11,11 +11,11 @@ package com.redhat.quarkus.jdt.internal.core;
 
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.QUARKUS_EXTENSION_PROPERTIES;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJarEntryResource;
@@ -27,7 +27,6 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.ExternalJavaProject;
 
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
-import com.redhat.quarkus.jdt.internal.core.utils.DependencyUtil;
 import com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusSearchUtils;
 
 /**
@@ -42,26 +41,19 @@ public class QuarkusDeploymentJavaProject extends ExternalJavaProject {
 	 * Artifact resolver API
 	 *
 	 */
-	@FunctionalInterface
 	public static interface ArtifactResolver {
 
-		String resolve(String groupId, String artifactId, String version);
+		String getArtifact(String groupId, String artifactId, String version);
+
+		String getSources(String groupId, String artifactId, String version);
 	}
 
-	public static final ArtifactResolver MAVEN_ARTIFACT_RESOLVER = (groupId, artifactId, version) -> {
-		File jarFile = null;
-		try {
-			jarFile = DependencyUtil.getArtifact(groupId, artifactId, version, null);
-		} catch (Exception e) {
-			return null;
-		}
-		return jarFile != null ? jarFile.toString() : null;
-	};
+	public static final ArtifactResolver DEFAULT_ARTIFACT_RESOLVER = new MavenArtifactResolver();
 
 	private final IJavaProject rootProject;
 
-	public QuarkusDeploymentJavaProject(IJavaProject rootProject, ArtifactResolver artifactResolver, boolean excludeTestCode)
-			throws JavaModelException {
+	public QuarkusDeploymentJavaProject(IJavaProject rootProject, ArtifactResolver artifactResolver,
+			boolean excludeTestCode) throws JavaModelException {
 		super(createDeploymentClasspath(rootProject, artifactResolver, excludeTestCode));
 		this.rootProject = rootProject;
 	}
@@ -72,12 +64,13 @@ public class QuarkusDeploymentJavaProject extends ExternalJavaProject {
 	 * @param project          the quarkus project
 	 * @param artifactResolver the artifact resolver to use to download deployment
 	 *                         JARs.
-	 * @param excludeTestCode 
+	 * @param excludeTestCode
+	 * @param downloadSources
 	 * @return the classpath of deployment JARs.
 	 * @throws JavaModelException
 	 */
-	private static IClasspathEntry[] createDeploymentClasspath(IJavaProject project, ArtifactResolver artifactResolver, boolean excludeTestCode)
-			throws JavaModelException {
+	private static IClasspathEntry[] createDeploymentClasspath(IJavaProject project, ArtifactResolver artifactResolver,
+			boolean excludeTestCode) throws JavaModelException {
 		List<IClasspathEntry> externalJarEntries = new ArrayList<>();
 
 		IClasspathEntry[] entries = project.getResolvedClasspath(true);
@@ -104,9 +97,17 @@ public class QuarkusDeploymentJavaProject extends ExternalJavaProject {
 							String groupId = result[0];
 							String artifactId = result[1];
 							String version = result[2];
-							String jarFile = artifactResolver.resolve(groupId, artifactId, version);
+							// Get or download deployment JAR
+							String jarFile = artifactResolver.getArtifact(groupId, artifactId, version);
 							if (jarFile != null) {
-								externalJarEntries.add(JavaCore.newLibraryEntry(new Path(jarFile), null, null));
+								IPath sourceAttachmentPath = null;
+								// Get or download deployment sources JAR
+								String sourceJarFile = artifactResolver.getSources(groupId, artifactId, version);
+								if (sourceJarFile != null) {
+									sourceAttachmentPath = new Path(sourceJarFile);
+								}
+								externalJarEntries
+										.add(JavaCore.newLibraryEntry(new Path(jarFile), sourceAttachmentPath, null));
 							}
 						}
 					}
@@ -153,5 +154,4 @@ public class QuarkusDeploymentJavaProject extends ExternalJavaProject {
 		}
 		return elements;
 	}
-
 }

@@ -13,14 +13,19 @@ import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.QUARKUS_PROP
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IClassFile;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
+import org.eclipse.jdt.ls.core.internal.managers.IBuildSupport;
+import org.eclipse.lsp4j.Location;
 
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
 import com.redhat.quarkus.jdt.core.DocumentationConverter;
@@ -36,6 +41,8 @@ import com.redhat.quarkus.jdt.internal.core.QuarkusPropertiesListenerManager;
 public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 
 	public static final String PROJECT_INFO_COMMAND_ID = "quarkus.java.projectInfo";
+
+	public static final String PROPERTY_DEFINITION_COMMAND_ID = "quarkus.java.propertyDefinition";
 
 	private static final IQuarkusPropertiesChangedListener LISTENER = (event) -> {
 		JavaLanguageServerPlugin.getInstance().getClientConnection()
@@ -57,8 +64,9 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 	public Object executeCommand(String commandId, List<Object> arguments, IProgressMonitor progress) throws Exception {
 		if (PROJECT_INFO_COMMAND_ID.equals(commandId)) {
 			return getQuarkusProjectInfo(arguments, commandId, progress);
+		} else if (PROPERTY_DEFINITION_COMMAND_ID.equals(commandId)) {
+			return findDeclaredQuarkusProperty(arguments, commandId, progress);
 		}
-
 		throw new UnsupportedOperationException(String.format("Unsupported command '%s'!", commandId));
 	}
 
@@ -74,7 +82,7 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 	 */
 	private static Object getQuarkusProjectInfo(List<Object> arguments, String commandId, IProgressMonitor progress)
 			throws JavaModelException, CoreException {
-		Map<String, Object> obj = arguments.size() > 0 ? (Map<String, Object>) arguments.get(0) : null;
+		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
 			throw new UnsupportedOperationException(
 					String.format("Command '%s' must be call with one QuarkusProjectInfoParams argument!", commandId));
@@ -116,6 +124,56 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 			}
 		}
 		return DocumentationConverter.DEFAULT_CONVERTER;
+	}
+
+	private static Location findDeclaredQuarkusProperty(List<Object> arguments, String commandId,
+			IProgressMonitor progress) throws CoreException {
+		Map<String, Object> obj = getFirst(arguments);
+		if (obj == null) {
+			throw new UnsupportedOperationException(String
+					.format("Command '%s' must be call with one QuarkusPropertyDefinitionParams argument!", commandId));
+		}
+		// Get project name from the application.properties URI
+		String applicationPropertiesUri = (String) obj.get("uri");
+		if (applicationPropertiesUri == null) {
+			throw new UnsupportedOperationException(String.format(
+					"Command '%s' must be call with required QuarkusPropertyDefinitionParams.uri (application.properties URI)!",
+					commandId));
+		}
+		IFile file = JDTUtils.findFile(applicationPropertiesUri);
+		if (file == null) {
+			throw new UnsupportedOperationException(
+					String.format("Cannot find IFile for '%s'", applicationPropertiesUri));
+		}
+		String propertySource = (String) obj.get("propertySource");
+		if (propertySource == null) {
+			throw new UnsupportedOperationException(String.format(
+					"Command '%s' must be call with required QuarkusPropertyDefinitionParams.propertySource!",
+					commandId));
+		}
+		return findQuarkusPropertyLocation(file, propertySource, progress);
+	}
+
+	public static Location findQuarkusPropertyLocation(IFile file, String propertySource, IProgressMonitor progress)
+			throws JavaModelException, CoreException {
+		IField field = JDTQuarkusManager.getInstance().findDeclaredQuarkusProperty(file, propertySource, progress);
+		if (field != null) {
+			IClassFile classFile = field.getClassFile();
+			if (classFile != null) {
+				// Try to download source if required
+				Optional<IBuildSupport> bs = JavaLanguageServerPlugin.getProjectsManager()
+						.getBuildSupport(file.getProject());
+				if (bs.isPresent()) {
+					bs.get().discoverSource(classFile, progress);
+				}
+			}
+			return JDTUtils.toLocation(field);
+		}
+		return null;
+	}
+
+	private static Map<String, Object> getFirst(List<Object> arguments) {
+		return arguments.isEmpty() ? null : (Map<String, Object>) arguments.get(0);
 	}
 
 }
