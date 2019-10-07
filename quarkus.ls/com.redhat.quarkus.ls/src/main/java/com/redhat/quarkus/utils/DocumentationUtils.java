@@ -12,11 +12,12 @@ package com.redhat.quarkus.utils;
 
 import static com.redhat.quarkus.utils.QuarkusPropertiesUtils.formatPropertyForMarkdown;
 
-import org.eclipse.lsp4j.MarkupContent;
-import org.eclipse.lsp4j.MarkupKind;
-
 import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
+
+import org.eclipse.lsp4j.MarkupContent;
+import org.eclipse.lsp4j.MarkupKind;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 /**
  * Utility for documentation.
@@ -142,4 +143,22 @@ public class DocumentationUtils {
 		return new MarkupContent(markdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT, documentation.toString());
 	}
 
+	/**
+	 * Returns the documentation content of <code>documentation</code>.
+	 * Returns null if documentation content does not exist.
+	 * @param documentation contains documentation content
+	 * @return the documentation content of <code>documentation</code>.
+	 */
+	public static String getDocumentationTextFromEither(Either<String, MarkupContent> documentation) {
+
+		if (documentation == null) {
+			return null;
+		}
+
+		if (documentation.isRight()) {
+			return documentation.getRight().getValue();
+		}
+
+		return documentation.getLeft();
+	}
 }

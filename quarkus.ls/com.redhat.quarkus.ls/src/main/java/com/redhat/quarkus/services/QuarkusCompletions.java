@@ -9,11 +9,8 @@
 *******************************************************************************/
 package com.redhat.quarkus.services;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -42,6 +39,7 @@ import com.redhat.quarkus.model.Node.NodeType;
 import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.model.Property;
 import com.redhat.quarkus.model.PropertyKey;
+import com.redhat.quarkus.services.QuarkusModel;
 import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 import com.redhat.quarkus.utils.DocumentationUtils;
 import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
@@ -55,11 +53,6 @@ import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
 class QuarkusCompletions {
 
 	private static final Logger LOGGER = Logger.getLogger(QuarkusCompletions.class.getName());
-
-	private static final List<String> DEFAULT_PROFILES = Arrays.asList("dev", "prod", "test");
-
-	private static final Collection<EnumItem> BOOLEAN_ENUMS = Collections
-			.unmodifiableCollection(Arrays.asList(new EnumItem("false", null), new EnumItem("true", null)));
 
 	/**
 	 * Returns completion list for the given position
@@ -138,7 +131,7 @@ class QuarkusCompletions {
 							return property.getProfile();
 						}).filter(Objects::nonNull).filter(not(String::isEmpty)).distinct().collect(Collectors.toSet());
 				// merge existings profiles with default profiles.
-				profiles.addAll(DEFAULT_PROFILES);
+				profiles.addAll(QuarkusModel.getDefaultProfileNames());
 				// Completion on profiles
 				for (String p : profiles) {
 					CompletionItem item = new CompletionItem(p);
@@ -149,7 +142,7 @@ class QuarkusCompletions {
 					item.setTextEdit(textEdit);
 					item.setInsertTextFormat(InsertTextFormat.PlainText);
 					item.setFilterText(insertText);
-
+					addDocumentationIfDefaultProfile(item, markdownSupported);
 					list.getItems().add(item);
 				}
 				return;
@@ -227,6 +220,22 @@ class QuarkusCompletions {
 		}
 	}
 
+	/**
+	 * Adds documentation to <code>item</code> if <code>item</code> represents a
+	 * default profile
+	 * @param item
+	 * @param markdown
+	 */
+	private static void addDocumentationIfDefaultProfile(CompletionItem item, boolean markdown) {
+
+		for (EnumItem profile: QuarkusModel.DEFAULT_PROFILES) {
+			if (profile.getName().equals(item.getLabel())) {
+				item.setDocumentation(DocumentationUtils.getDocumentation(profile, markdown));
+				break;
+			}
+		}
+	}
+
 	private static <T> Predicate<T> not(Predicate<T> t) {
 		return t.negate();
 	}
@@ -275,7 +284,7 @@ class QuarkusCompletions {
 			return property.getEnums();
 		}
 		if (property.isBooleanType()) {
-			return BOOLEAN_ENUMS;
+			return QuarkusModel.BOOLEAN_ENUMS;
 		}
 		return null;
 	}

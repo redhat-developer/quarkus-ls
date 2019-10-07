@@ -91,13 +91,44 @@ public class ApplicationPropertiesHoverTest {
 	};
 
 	@Test
-	public void onlyProfile() throws BadLocationException {
+	public void testDefaultProfileHover() throws BadLocationException {
+		String value = "%d|ev.quarkus.log.syslog.async.overflow=DISCARD";
+		String hoverLabelMarkdown = "**dev**\n\nProfile activated when in development mode (quarkus:dev).\n";
+		assertHoverMarkdown(value, hoverLabelMarkdown, 0);
+	}
+
+	@Test
+	public void testDefaultProfileHoverSpacesInFront() throws BadLocationException {
+		String value = "        %d|ev.quarkus.log.syslog.async.overflow=DISCARD";
+		String hoverLabelMarkdown = "**dev**\n\nProfile activated when in development mode (quarkus:dev).\n";
+		assertHoverMarkdown(value, hoverLabelMarkdown, 8);
+	}
+
+	@Test
+	public void testOnlyDefaultProfile() throws BadLocationException {
 		String value = "%de|v";
+		String hoverLabelMarkdown = "**dev**\n\nProfile activated when in development mode (quarkus:dev).\n";
+		assertHoverMarkdown(value, hoverLabelMarkdown, 0);
+
+		value = "|%prod";
+		hoverLabelMarkdown = "**prod**\n\nThe default profile when not running in development or test mode.\n";
+		assertHoverMarkdown(value, hoverLabelMarkdown, 0);
+
+		value = "%test|";
+		hoverLabelMarkdown = "**test**\n\nProfile activated when running tests.\n";
+		assertHoverMarkdown(value, hoverLabelMarkdown, 0);
+	};
+
+	@Test
+	public void testOnlyNonDefaultProfile() throws BadLocationException {
+		String value = "%hel|lo";
 		String hoverLabel = null;
 		assertHoverMarkdown(value, hoverLabel, 0);
 
-		value = "%de|v.";
-		hoverLabel = null;
+		value = "%hello|";
+		assertHoverMarkdown(value, hoverLabel, 0);
+
+		value = "|%hello";
 		assertHoverMarkdown(value, hoverLabel, 0);
 	};
 

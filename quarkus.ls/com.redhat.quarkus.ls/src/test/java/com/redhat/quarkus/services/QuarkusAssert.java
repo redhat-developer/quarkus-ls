@@ -48,6 +48,7 @@ import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 import com.redhat.quarkus.settings.QuarkusHoverSettings;
 import com.redhat.quarkus.settings.QuarkusValidationSettings;
+import com.redhat.quarkus.utils.DocumentationUtils;
 
 /**
  * Quarkus assert
@@ -165,20 +166,25 @@ public class QuarkusAssert {
 		}
 
 		if (expected.getDocumentation() != null) {
-			Assert.assertEquals(expected.getDocumentation(), match.getDocumentation());
+			Assert.assertEquals(DocumentationUtils.getDocumentationTextFromEither(expected.getDocumentation()), DocumentationUtils.getDocumentationTextFromEither(match.getDocumentation()));
 		}
 
 	}
 
 	public static CompletionItem c(String label, String newText, Range range) {
-		return c(label, new TextEdit(range, newText), null);
+		return c(label, newText, range, null);
 	}
 
-	private static CompletionItem c(String label, TextEdit textEdit, String filterText) {
+	public static CompletionItem c(String label, String newText, Range range, String documentation) {
+		return c(label, new TextEdit(range, newText), null, documentation != null ? Either.forLeft(documentation) : null);
+	}
+
+	private static CompletionItem c(String label, TextEdit textEdit, String filterText, Either<String, MarkupContent>  documentation) {
 		CompletionItem item = new CompletionItem();
 		item.setLabel(label);
 		item.setFilterText(filterText);
 		item.setTextEdit(textEdit);
+		item.setDocumentation(documentation);
 		return item;
 	}
 
