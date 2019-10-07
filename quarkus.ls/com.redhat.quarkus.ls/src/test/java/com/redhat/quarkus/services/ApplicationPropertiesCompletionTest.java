@@ -119,27 +119,27 @@ public class ApplicationPropertiesCompletionTest {
 	}
 
 	@Test
-	public void completionOnProfil() throws BadLocationException {
+	public void completionOnProfile() throws BadLocationException {
 		String value = "%|";
-		testCompletionFor(value, true, 3, c("dev", "%dev", r(0, 0, 1)), //
-				c("prod", "%prod", r(0, 0, 1)), //
-				c("test", "%test", r(0, 0, 1)));
+		testCompletionFor(value, true, 3, c("dev", "%dev", r(0, 0, 1), "dev\n\nProfile activated when in development mode (quarkus:dev).\n"), //
+				c("prod", "%prod", r(0, 0, 1), "prod\n\nThe default profile when not running in development or test mode.\n"), //
+				c("test", "%test", r(0, 0, 1), "test\n\nProfile activated when running tests.\n"));
 
 		value = "%st|aging.";
 		testCompletionFor(value, true, 4, c("staging", "%staging", r(0, 0, 9)), //
-				c("dev", "%dev", r(0, 0, 9)), //
-				c("prod", "%prod", r(0, 0, 9)), //
-				c("test", "%test", r(0, 0, 9)));
+				c("dev", "%dev", r(0, 0, 9), "dev\n\nProfile activated when in development mode (quarkus:dev).\n"), //
+				c("prod", "%prod", r(0, 0, 9), "prod\n\nThe default profile when not running in development or test mode.\n"), //
+				c("test", "%test", r(0, 0, 9), "test\n\nProfile activated when running tests.\n"));
 
 		value = "%staging|.";
 		testCompletionFor(value, true, 4, c("staging", "%staging", r(0, 0, 9)), //
-				c("dev", "%dev", r(0, 0, 9)), //
-				c("prod", "%prod", r(0, 0, 9)), //
-				c("test", "%test", r(0, 0, 9)));
+				c("dev", "%dev", r(0, 0, 9), "dev\n\nProfile activated when in development mode (quarkus:dev).\n"), //
+				c("prod", "%prod", r(0, 0, 9), "prod\n\nThe default profile when not running in development or test mode.\n"), //
+				c("test", "%test", r(0, 0, 9), "test\n\nProfile activated when running tests.\n"));
 	}
 
 	@Test
-	public void completionAfterProfil() throws BadLocationException {
+	public void completionAfterProfile() throws BadLocationException {
 		String value = "%dev.|";
 		testCompletionFor(value, false, c("quarkus.http.cors", "%dev.quarkus.http.cors=false", r(0, 0, 5)));
 		testCompletionFor(value, true, c("quarkus.http.cors", "%dev.quarkus.http.cors=${1|false,true|}", r(0, 0, 5)));
