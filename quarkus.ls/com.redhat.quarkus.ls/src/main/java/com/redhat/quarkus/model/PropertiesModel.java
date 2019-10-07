@@ -46,7 +46,7 @@ public class PropertiesModel extends Node {
 
 		@Override
 		public void startDocument(ParseContext context) {
-			model.setStart(context.getLocationOffset());
+			model.setStart(0);
 		}
 
 		@Override
