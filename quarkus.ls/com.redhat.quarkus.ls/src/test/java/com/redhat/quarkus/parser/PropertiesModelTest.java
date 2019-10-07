@@ -29,7 +29,7 @@ public class PropertiesModelTest {
 	public void parseCommentsAndTwoProperties() {
 		String text = " # comment \na = b\n c=d";
 		PropertiesModel model = PropertiesModel.parse(text, "application.properties");
-		Assert.assertEquals(model.getChildren().size(), 3);
+		assertModel(model, text.length(), 3);
 
 		Node comments = model.getChildren().get(0);
 		assertComments(comments, 1, 11, "# comment ");
@@ -46,7 +46,7 @@ public class PropertiesModelTest {
 	public void parsePropertyWithoutAssign() {
 		String text = " a";
 		PropertiesModel model = PropertiesModel.parse(text, "application.properties");
-		Assert.assertEquals(model.getChildren().size(), 1);
+		assertModel(model, text.length(), 1);
 
 		Node firstPropertyNode = model.getChildren().get(0);
 		assertProperty(firstPropertyNode, 1, 2, "a", -1, -1, -1, null);
@@ -57,13 +57,13 @@ public class PropertiesModelTest {
 	public void parsePropertyWithoutValue() {
 		String text = " a=";
 		PropertiesModel model = PropertiesModel.parse(text, "application.properties");
-		Assert.assertEquals(model.getChildren().size(), 1);
+		assertModel(model, text.length(), 1);
 
 		Node firstPropertyNode = model.getChildren().get(0);
 		assertProperty(firstPropertyNode, 1, 2, "a", 3, -1, -1, null);
 
 	}
-	
+
 	private static void assertComments(Node comments, int expectedStart, int expectedEnd, String expectedText) {
 		Assert.assertEquals(comments.getNodeType(), NodeType.COMMENTS);
 		Assert.assertEquals(expectedText, comments.getText());
@@ -106,4 +106,12 @@ public class PropertiesModelTest {
 		}
 
 	}
+
+	private static void assertModel(Node model, int expectedEnd, int expectedChildren) {
+		Assert.assertEquals(model.getNodeType(), NodeType.DOCUMENT);
+		Assert.assertEquals(model.getStart(), 0);
+		Assert.assertEquals(model.getEnd(), expectedEnd);
+		Assert.assertEquals(model.getChildren().size(), expectedChildren);
+	}
+
 }
