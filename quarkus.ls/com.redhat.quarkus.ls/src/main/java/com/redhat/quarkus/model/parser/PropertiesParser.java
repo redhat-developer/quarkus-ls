@@ -152,10 +152,6 @@ public class PropertiesParser implements ParseContext {
 		case PropertyName:
 			return isColonSeparator() || isWhiteSpace();
 		case PropertyValue:
-			if ((current == ';' || current == '#') && isWhiteSpace(last)) {
-				// Inline comment
-				return true;
-			}
 			return false;
 		default:
 			return isWhiteSpace();
@@ -177,6 +173,7 @@ public class PropertiesParser implements ParseContext {
 //					"Equals sign '==' missing after property name '" + name + "'",
 //					ErrorType.PROPERTY_ASSIGNMENT_MISSING);
 //			errorHandler.error(this, e);
+			skipUntilEndOfLine();
 		} else {
 			handler.delimiterAssign(this);
 			// property value
@@ -200,6 +197,12 @@ public class PropertiesParser implements ParseContext {
 
 	private void skipWhiteSpace() {
 		while (isWhiteSpace()) {
+			read();
+		}
+	}
+
+	private void skipUntilEndOfLine() {
+		while (!isNewLine() && !isEndOfText()) {
 			read();
 		}
 	}

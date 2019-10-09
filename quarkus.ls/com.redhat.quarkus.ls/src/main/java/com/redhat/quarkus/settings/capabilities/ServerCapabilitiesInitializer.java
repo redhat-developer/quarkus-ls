@@ -37,6 +37,9 @@ public class ServerCapabilitiesInitializer {
 		ServerCapabilities serverCapabilities = new ServerCapabilities();
 		serverCapabilities.setTextDocumentSync(TextDocumentSyncKind.Incremental);
 		serverCapabilities.setHoverProvider(!clientCapabilities.isHoverDynamicRegistered());
+		serverCapabilities.setDocumentFormattingProvider(!clientCapabilities.isFormattingDynamicRegistered());
+		serverCapabilities.setDocumentRangeFormattingProvider(
+			!clientCapabilities.isRangeFormattingDynamicRegistered());
 		if (!clientCapabilities.isCompletionDynamicRegistrationSupported()) {
 			serverCapabilities.setCompletionProvider(DEFAULT_COMPLETION_OPTIONS);
 		}

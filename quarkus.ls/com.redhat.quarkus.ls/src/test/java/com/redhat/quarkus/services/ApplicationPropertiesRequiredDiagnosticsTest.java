@@ -75,7 +75,7 @@ public class ApplicationPropertiesRequiredDiagnosticsTest {
 			"quarkus.second.optional.property=hello";
 		
 		testDiagnosticsFor(value, projectInfo, settings,
-		d(0, 0, 1, "Missing required property 'quarkus.required.property'", DiagnosticSeverity.Error, ValidationType.required));
+		d(0, 0, 1, 38, "Missing required property 'quarkus.required.property'", DiagnosticSeverity.Error, ValidationType.required));
 	}
 
 	@Test

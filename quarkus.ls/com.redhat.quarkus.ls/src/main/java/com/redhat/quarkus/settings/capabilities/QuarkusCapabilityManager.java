@@ -12,10 +12,14 @@ import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstan
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.DEFINITION_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.DOCUMENT_SYMBOL_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.HOVER_ID;
+import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.FORMATTING_ID;
+import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.RANGE_FORMATTING_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_COMPLETION;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_DEFINITION;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_DOCUMENT_SYMBOL;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_HOVER;
+import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_FORMATTING;
+import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_RANGE_FORMATTING;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -56,6 +60,14 @@ public class QuarkusCapabilityManager {
 		}
 		if (this.getClientCapabilities().isDefinitionDynamicRegistered()) {
 			registerCapability(DEFINITION_ID, TEXT_DOCUMENT_DEFINITION);
+		}
+		
+		if (this.getClientCapabilities().isFormattingDynamicRegistered()) {
+			registerCapability(FORMATTING_ID, TEXT_DOCUMENT_FORMATTING);
+		}
+
+		if (this.getClientCapabilities().isFormattingDynamicRegistered()) {
+			registerCapability(RANGE_FORMATTING_ID, TEXT_DOCUMENT_RANGE_FORMATTING);
 		}
 	}
 

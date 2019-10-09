@@ -32,6 +32,8 @@ public class QuarkusGeneralClientSettings {
 
 	private QuarkusValidationSettings validation;
 
+	private QuarkusFormattingSettings formatting;
+
 	/**
 	 * Returns the symbols settings.
 	 * 
@@ -66,6 +68,24 @@ public class QuarkusGeneralClientSettings {
 	 */
 	public void setValidation(QuarkusValidationSettings validation) {
 		this.validation = validation;
+	}
+
+	/**
+	 * Returns the formatting settings
+	 * 
+	 * @return the formatting settings
+	 */
+	public QuarkusFormattingSettings getFormatting() {
+		return formatting;
+	}
+
+	/**
+	 * Sets the formatting settings
+	 * 
+	 * @param formatting the formatting settings
+	 */
+	public void setFormatting(QuarkusFormattingSettings formatting) {
+		this.formatting = formatting;
 	}
 
 	/**
