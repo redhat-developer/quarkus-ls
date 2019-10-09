@@ -12,6 +12,14 @@ package com.redhat.quarkus.services;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import com.redhat.quarkus.commons.QuarkusProjectInfo;
+import com.redhat.quarkus.ls.api.QuarkusPropertyDefinitionProvider;
+import com.redhat.quarkus.model.PropertiesModel;
+import com.redhat.quarkus.settings.QuarkusCompletionSettings;
+import com.redhat.quarkus.settings.QuarkusFormattingSettings;
+import com.redhat.quarkus.settings.QuarkusHoverSettings;
+import com.redhat.quarkus.settings.QuarkusValidationSettings;
+
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DocumentSymbol;
@@ -19,16 +27,11 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
+import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
-
-import com.redhat.quarkus.commons.QuarkusProjectInfo;
-import com.redhat.quarkus.ls.api.QuarkusPropertyDefinitionProvider;
-import com.redhat.quarkus.model.PropertiesModel;
-import com.redhat.quarkus.settings.QuarkusCompletionSettings;
-import com.redhat.quarkus.settings.QuarkusHoverSettings;
-import com.redhat.quarkus.settings.QuarkusValidationSettings;
 
 /**
  * The Quarkus language service.
@@ -43,6 +46,7 @@ public class QuarkusLanguageService {
 	private final QuarkusHover hover;
 	private final QuarkusDefinition definition;
 	private final QuarkusDiagnostics diagnostics;
+	private final QuarkusFormatter formatter;
 
 	public QuarkusLanguageService() {
 		this.completions = new QuarkusCompletions();
@@ -50,6 +54,7 @@ public class QuarkusLanguageService {
 		this.hover = new QuarkusHover();
 		this.definition = new QuarkusDefinition();
 		this.diagnostics = new QuarkusDiagnostics();
+		this.formatter = new QuarkusFormatter();
 	}
 
 	/**
@@ -122,6 +127,32 @@ public class QuarkusLanguageService {
 			PropertiesModel document, Position position, QuarkusProjectInfo projectInfo,
 			QuarkusPropertyDefinitionProvider provider, boolean definitionLinkSupport) {
 		return definition.findDefinition(document, position, projectInfo, provider, definitionLinkSupport);
+	}
+
+	/**
+	 * Returns a <code>List<TextEdit></code> that formats the application.properties file
+	 * represented by <code>document</code>
+	 * @param document           the properties model
+	 * @param formattingSettings the client's formatting settings
+	 * @return a <code>List<TextEdit></code> that formats the application.properties file
+	 * represented by <code>document</code>
+	 */
+	public List<? extends TextEdit> doFormat(PropertiesModel document,
+			QuarkusFormattingSettings formattingSettings) {
+		return formatter.format(document, formattingSettings);
+	}
+
+	/**
+	 * Returns a <code>List<TextEdit></code> that formats the application.properties file
+	 * represented by <code>document</code>, for the given <code>range</code>
+	 * @param document           the properties model
+	 * @param range              the range specifying the lines to format
+	 * @param formattingSettings the client's formatting settings
+	 * @return
+	 */
+	public List<? extends TextEdit> doRangeFormat(PropertiesModel document, Range range,
+			QuarkusFormattingSettings formattingSettings) {
+		return formatter.format(document, range, formattingSettings);
 	}
 
 	/**

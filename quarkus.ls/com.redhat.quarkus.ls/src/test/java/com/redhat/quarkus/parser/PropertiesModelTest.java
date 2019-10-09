@@ -54,6 +54,16 @@ public class PropertiesModelTest {
 	}
 
 	@Test
+	public void parsePropertyValueWithPoundSign() {
+		String text = "a = value # value";
+		PropertiesModel model = PropertiesModel.parse(text, "application.properties");
+		assertModel(model, text.length(), 1);
+
+		Node firstPropertyNode = model.getChildren().get(0);
+		assertProperty(firstPropertyNode, 0, 1, "a", 3, 4, 17, "value # value");
+	}
+
+	@Test
 	public void parsePropertyWithoutValue() {
 		String text = " a=";
 		PropertiesModel model = PropertiesModel.parse(text, "application.properties");

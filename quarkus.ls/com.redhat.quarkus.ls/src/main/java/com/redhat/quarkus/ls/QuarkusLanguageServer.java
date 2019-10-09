@@ -31,6 +31,7 @@ import com.redhat.quarkus.ls.commons.ParentProcessWatcher.ProcessLanguageServer;
 import com.redhat.quarkus.services.QuarkusLanguageService;
 import com.redhat.quarkus.settings.AllQuarkusSettings;
 import com.redhat.quarkus.settings.InitializationOptionsSettings;
+import com.redhat.quarkus.settings.QuarkusFormattingSettings;
 import com.redhat.quarkus.settings.QuarkusGeneralClientSettings;
 import com.redhat.quarkus.settings.QuarkusSymbolSettings;
 import com.redhat.quarkus.settings.QuarkusValidationSettings;
@@ -112,6 +113,10 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 			QuarkusValidationSettings newValidation = quarkusClientSettings.getValidation();
 			if (newValidation != null) {
 				textDocumentService.updateValidationSettings(newValidation);
+			}
+			QuarkusFormattingSettings newFormatting = quarkusClientSettings.getFormatting();
+			if (newFormatting != null) {
+				textDocumentService.updateFormattingSettings(newFormatting);
 			}
 		}
 	}

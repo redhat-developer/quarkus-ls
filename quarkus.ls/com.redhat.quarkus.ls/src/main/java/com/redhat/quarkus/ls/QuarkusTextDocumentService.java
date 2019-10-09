@@ -17,6 +17,17 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
+import com.redhat.quarkus.commons.QuarkusPropertiesChangeEvent;
+import com.redhat.quarkus.ls.commons.ModelTextDocument;
+import com.redhat.quarkus.ls.commons.ModelTextDocuments;
+import com.redhat.quarkus.model.PropertiesModel;
+import com.redhat.quarkus.services.QuarkusLanguageService;
+import com.redhat.quarkus.settings.QuarkusFormattingSettings;
+import com.redhat.quarkus.settings.QuarkusSymbolSettings;
+import com.redhat.quarkus.settings.QuarkusValidationSettings;
+import com.redhat.quarkus.settings.SharedSettings;
+
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
@@ -26,6 +37,8 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
+import org.eclipse.lsp4j.DocumentFormattingParams;
+import org.eclipse.lsp4j.DocumentRangeFormattingParams;
 import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.Hover;
@@ -36,19 +49,10 @@ import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
+import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
-
-import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
-import com.redhat.quarkus.commons.QuarkusPropertiesChangeEvent;
-import com.redhat.quarkus.ls.commons.ModelTextDocument;
-import com.redhat.quarkus.ls.commons.ModelTextDocuments;
-import com.redhat.quarkus.model.PropertiesModel;
-import com.redhat.quarkus.services.QuarkusLanguageService;
-import com.redhat.quarkus.settings.QuarkusSymbolSettings;
-import com.redhat.quarkus.settings.QuarkusValidationSettings;
-import com.redhat.quarkus.settings.SharedSettings;
 
 /**
  * Quarkus text document service.
@@ -199,6 +203,21 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		});
 	}
 
+	@Override
+	public CompletableFuture<List<? extends TextEdit>> formatting(DocumentFormattingParams params) {
+		return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
+			return getQuarkusLanguageService().doFormat(document, sharedSettings.getFormattingSettings());
+		});
+	}
+
+	@Override
+	public CompletableFuture<List<? extends TextEdit>> rangeFormatting(DocumentRangeFormattingParams params) {
+		return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
+			return getQuarkusLanguageService().doRangeFormat(document, params.getRange(),
+					sharedSettings.getFormattingSettings());
+		});
+	}
+
 	private static QuarkusProjectInfoParams createProjectInfoParams(TextDocumentIdentifier id,
 			List<String> documentationFormat) {
 		return createProjectInfoParams(id.getUri(), documentationFormat);
@@ -312,6 +331,15 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 		documents.all().stream().forEach(document -> {
 			triggerValidationFor(document);
 		});
+	}
+
+	/**
+	 * Updates Quarkus formatting settings configured from the client.
+	 * @param newFormatting the new Quarkus formatting settings
+	 */
+	public void updateFormattingSettings(QuarkusFormattingSettings newFormatting) {
+		QuarkusFormattingSettings formatting = sharedSettings.getFormattingSettings();
+		formatting.setSurroundEqualsWithSpaces(newFormatting.isSurroundEqualsWithSpaces());
 	}
 
 	public SharedSettings getSharedSettings() {
