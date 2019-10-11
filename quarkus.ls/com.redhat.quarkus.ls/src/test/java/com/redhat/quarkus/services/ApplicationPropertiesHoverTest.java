@@ -93,29 +93,29 @@ public class ApplicationPropertiesHoverTest {
 	@Test
 	public void testDefaultProfileHover() throws BadLocationException {
 		String value = "%d|ev.quarkus.log.syslog.async.overflow=DISCARD";
-		String hoverLabelMarkdown = "**dev**\n\nProfile activated when in development mode (quarkus:dev).\n";
+		String hoverLabelMarkdown = "**dev**" + System.lineSeparator() + System.lineSeparator() + "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator();
 		assertHoverMarkdown(value, hoverLabelMarkdown, 0);
 	}
 
 	@Test
 	public void testDefaultProfileHoverSpacesInFront() throws BadLocationException {
 		String value = "        %d|ev.quarkus.log.syslog.async.overflow=DISCARD";
-		String hoverLabelMarkdown = "**dev**\n\nProfile activated when in development mode (quarkus:dev).\n";
+		String hoverLabelMarkdown = "**dev**" + System.lineSeparator() + System.lineSeparator() + "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator();
 		assertHoverMarkdown(value, hoverLabelMarkdown, 8);
 	}
 
 	@Test
 	public void testOnlyDefaultProfile() throws BadLocationException {
 		String value = "%de|v";
-		String hoverLabelMarkdown = "**dev**\n\nProfile activated when in development mode (quarkus:dev).\n";
+		String hoverLabelMarkdown = "**dev**" + System.lineSeparator() + System.lineSeparator() + "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator();
 		assertHoverMarkdown(value, hoverLabelMarkdown, 0);
 
 		value = "|%prod";
-		hoverLabelMarkdown = "**prod**\n\nThe default profile when not running in development or test mode.\n";
+		hoverLabelMarkdown = "**prod**" + System.lineSeparator() + System.lineSeparator() + "The default profile when not running in development or test mode." + System.lineSeparator();
 		assertHoverMarkdown(value, hoverLabelMarkdown, 0);
 
 		value = "%test|";
-		hoverLabelMarkdown = "**test**\n\nProfile activated when running tests.\n";
+		hoverLabelMarkdown = "**test**" + System.lineSeparator() + System.lineSeparator() + "Profile activated when running tests." + System.lineSeparator();
 		assertHoverMarkdown(value, hoverLabelMarkdown, 0);
 	};
 
