@@ -21,6 +21,8 @@ Features
 * [textDocument/completion](https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#textDocument_completion)
 * [textDocument/definition](https://microsoft.github.io/language-server-protocol/specifications/specification-3-14#textDocument_definition)
 * [textDocument/documentSymbol](https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#textDocument_documentSymbol)
+* [textDocument/formatting](https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#textDocument_formatting)
+* [textDocument/rangeFormatting](https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#textDocument_rangeFormatting)
 * [textDocument/hover](https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#textDocument_hover)
 * [textDocument/publishDiagnostics](https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#textDocument_publishDiagnostics)
 
