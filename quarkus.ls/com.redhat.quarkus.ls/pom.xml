@@ -108,13 +108,6 @@
 		</dependency>
 	</dependencies>
 	
-	<pluginRepositories>
-		<pluginRepository>
-			<id>tycho-snapshots</id>
-			<url>https://repo.eclipse.org/content/repositories/tycho-snapshots/</url>
-		</pluginRepository>
-	</pluginRepositories>
-
 	<distributionManagement>
  		<repository>
 			<id>${jboss.releases.repo.id}</id>
