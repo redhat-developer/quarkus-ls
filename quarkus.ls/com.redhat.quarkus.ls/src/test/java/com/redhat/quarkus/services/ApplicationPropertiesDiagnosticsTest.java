@@ -13,12 +13,12 @@ import static com.redhat.quarkus.services.QuarkusAssert.d;
 import static com.redhat.quarkus.services.QuarkusAssert.getDefaultQuarkusProjectInfo;
 import static com.redhat.quarkus.services.QuarkusAssert.testDiagnosticsFor;
 
+import org.eclipse.lsp4j.DiagnosticSeverity;
+import org.junit.Test;
+
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.settings.QuarkusValidationSettings;
 import com.redhat.quarkus.settings.QuarkusValidationTypeSettings;
-
-import org.eclipse.lsp4j.DiagnosticSeverity;
-import org.junit.Test;
 
 /**
  * Test with diagnostics in 'application.properties' file.
@@ -125,6 +125,29 @@ public class ApplicationPropertiesDiagnosticsTest {
 		testDiagnosticsFor(value, 1, getDefaultQuarkusProjectInfo(), settings,
 				d(10, 0, 57, "Unknown property 'quarkus.log.category.XXXXXXXXXXXXX.YYYYYYYYYYYY.min-level'",
 						DiagnosticSeverity.Error, ValidationType.unknown));
+	};
+
+	@Test
+	public void validateUnknownPropertiesExcludedWithPattern() throws BadLocationException {
+		String value = "com.mycompany.remoteServices.MyServiceClient/mp-rest/url=url\n" + //
+				"com.mycompany.remoteServices.MyServiceClient/mp-rest/uri=uri";
+
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+		QuarkusValidationTypeSettings unknown = new QuarkusValidationTypeSettings();
+		unknown.setSeverity("error");
+		settings.setUnknown(unknown);
+
+		// */mp-rest/url pattern --> only
+		// com.mycompany.remoteServices.MyServiceClient/mp-rest/url is ignored
+		unknown.setExcluded(new String[] { "*/mp-rest/url" });
+		testDiagnosticsFor(value, 1, getDefaultQuarkusProjectInfo(), settings,
+				d(1, 0, 56, "Unknown property 'com.mycompany.remoteServices.MyServiceClient/mp-rest/uri'",
+						DiagnosticSeverity.Error, ValidationType.unknown));
+
+		// */mp-rest/* pattern --> all errors are ignored
+		unknown.setExcluded(new String[] { "*/mp-rest/*" });
+		testDiagnosticsFor(value, 0, getDefaultQuarkusProjectInfo(), settings);
+
 	};
 
 	@Test
@@ -264,11 +287,12 @@ public class ApplicationPropertiesDiagnosticsTest {
 				"quarkus.log.file.async.overflow = error"; // <-- error
 
 		QuarkusValidationSettings settings = new QuarkusValidationSettings();
-		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
-				d(0, 35, 40, "Invalid enum value: 'error' is invalid for type org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings, d(0, 35, 40,
+				"Invalid enum value: 'error' is invalid for type org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
 				DiagnosticSeverity.Error, ValidationType.value),
-				d(1, 34, 39, "Invalid enum value: 'error' is invalid for type org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
-				DiagnosticSeverity.Error, ValidationType.value));
+				d(1, 34, 39,
+						"Invalid enum value: 'error' is invalid for type org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
+						DiagnosticSeverity.Error, ValidationType.value));
 	};
 
 	@Test
@@ -295,10 +319,12 @@ public class ApplicationPropertiesDiagnosticsTest {
 		QuarkusValidationSettings settings = new QuarkusValidationSettings();
 		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
 				d(0, 18, 21, "Type mismatch: int expected", DiagnosticSeverity.Error, ValidationType.value),
-				d(1, 26, 31, "Type mismatch: java.util.OptionalInt expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(1, 26, 31, "Type mismatch: java.util.OptionalInt expected", DiagnosticSeverity.Error,
+						ValidationType.value),
 				d(2, 27, 34, "Type mismatch: int expected", DiagnosticSeverity.Error, ValidationType.value),
 				d(3, 33, 38, "Type mismatch: int expected", DiagnosticSeverity.Error, ValidationType.value),
-				d(4, 49, 54, "Type mismatch: java.util.Optional<java.lang.Integer> expected", DiagnosticSeverity.Error, ValidationType.value));
+				d(4, 49, 54, "Type mismatch: java.util.Optional<java.lang.Integer> expected", DiagnosticSeverity.Error,
+						ValidationType.value));
 	}
 
 	@Test
@@ -325,8 +351,10 @@ public class ApplicationPropertiesDiagnosticsTest {
 		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
 				d(0, 23, 30, "Type mismatch: boolean expected", DiagnosticSeverity.Error, ValidationType.value),
 				d(1, 31, 35, "Type mismatch: boolean expected", DiagnosticSeverity.Error, ValidationType.value),
-				d(2, 21, 26, "Type mismatch: java.util.Optional<java.lang.Boolean> expected", DiagnosticSeverity.Error, ValidationType.value),
-				d(3, 49, 52, "Type mismatch: java.lang.Boolean expected", DiagnosticSeverity.Error, ValidationType.value));
+				d(2, 21, 26, "Type mismatch: java.util.Optional<java.lang.Boolean> expected", DiagnosticSeverity.Error,
+						ValidationType.value),
+				d(3, 49, 52, "Type mismatch: java.lang.Boolean expected", DiagnosticSeverity.Error,
+						ValidationType.value));
 	}
 
 	@Test
@@ -354,7 +382,7 @@ public class ApplicationPropertiesDiagnosticsTest {
 	@Test
 	public void validateFloatError() throws BadLocationException {
 
-		String value ="quarkus.thread-pool.growth-resistance=abc0.4343";
+		String value = "quarkus.thread-pool.growth-resistance=abc0.4343";
 
 		QuarkusValidationSettings settings = new QuarkusValidationSettings();
 
@@ -374,13 +402,12 @@ public class ApplicationPropertiesDiagnosticsTest {
 	public void validateBuildTimeInjectValues() throws BadLocationException {
 
 		String value = "quarkus.http.cors = ${value.one}\n" + //
-			"quarkus.http.port=${value_two}\n" + //
-			"quarkus.ssl.native=    ${value-three}";
+				"quarkus.http.port=${value_two}\n" + //
+				"quarkus.ssl.native=    ${value-three}";
 
 		QuarkusValidationSettings settings = new QuarkusValidationSettings();
 
 		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
 	}
-
 
 }

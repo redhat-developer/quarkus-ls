@@ -9,7 +9,13 @@
 *******************************************************************************/
 package com.redhat.quarkus.settings;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.eclipse.lsp4j.DiagnosticSeverity;
+
+import com.redhat.quarkus.utils.AntPathMatcher;
 
 /**
  * Quarkus validation type settings.
@@ -22,6 +28,38 @@ public class QuarkusValidationTypeSettings {
 	private String severity;
 
 	private String[] excluded;
+
+	private transient List<ExcludedProperty> excludedProperties;
+
+	private static class ExcludedProperty {
+
+		private final String pattern;
+		private final AntPathMatcher matcher;
+
+		public ExcludedProperty(String pattern, AntPathMatcher matcher) {
+			this.pattern = pattern;
+			this.matcher = matcher.isPattern(pattern) ? matcher : null;
+		}
+
+		/**
+		 * Returns true if the given property name matches the pattern and false
+		 * otherwise.
+		 * 
+		 * @param propertyName the property name.
+		 * @return true if the given property name matches the pattern and false
+		 *         otherwise.
+		 */
+		public boolean match(String propertyName) {
+			if (matcher != null) {
+				// the excluded property is a pattern, use pattern matcher to check the match
+				return matcher.match(pattern, propertyName);
+			}
+			// the excluded property is not a pattern, check if the property name is equal
+			// to the pattern
+			return pattern.equals(propertyName);
+		}
+
+	}
 
 	/**
 	 * Returns the severity of the validation type.
@@ -95,12 +133,43 @@ public class QuarkusValidationTypeSettings {
 		if (excluded == null) {
 			return false;
 		}
-		for (String pattern : excluded) {
-			if (pattern.equals(propertyName)) {
+		// Get compiled excluded properties
+		List<ExcludedProperty> excludedProperties = getExcludedProperties();
+		for (ExcludedProperty excluded : excludedProperties) {
+			// the property name matches an excluded pattern
+			if (excluded.match(propertyName)) {
 				return true;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Returns the compiled excluded properties.
+	 * 
+	 * @return the compiled excluded properties.
+	 */
+	private List<ExcludedProperty> getExcludedProperties() {
+		if (excludedProperties != null) {
+			return excludedProperties;
+		}
+		return createExcludedProperties();
+	}
+
+	/**
+	 * Create the compiled excluded properties.
+	 * 
+	 * @return the compiled excluded properties.
+	 */
+	private synchronized List<ExcludedProperty> createExcludedProperties() {
+		if (excludedProperties != null) {
+			return excludedProperties;
+		}
+		AntPathMatcher matcher = new AntPathMatcher();
+		matcher.setCachePatterns(true);
+		return Stream.of(excluded) //
+				.map(p -> new ExcludedProperty(p, matcher)) //
+				.collect(Collectors.toList());
 	}
 
 }
