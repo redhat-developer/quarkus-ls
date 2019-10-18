@@ -11,4 +11,8 @@
 	<artifactId>com.redhat.quarkus.jdt.site</artifactId>
 	<packaging>eclipse-repository</packaging>
 	<name>quarkus.jdt.ls :: update site</name>
+
+	<properties>
+		<skipDeployToJBossOrg>false</skipDeployToJBossOrg>
+	</properties>
 </project>
