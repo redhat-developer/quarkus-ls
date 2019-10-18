@@ -25,6 +25,8 @@ import com.redhat.quarkus.commons.QuarkusPropertyDefinitionParams;
 public interface QuarkusPropertyDefinitionProvider {
 
 	@JsonRequest("quarkus/propertyDefinition")
-	CompletableFuture<Location> getPropertyDefinition(QuarkusPropertyDefinitionParams params);
+	default CompletableFuture<Location> getPropertyDefinition(QuarkusPropertyDefinitionParams params) {
+		return CompletableFuture.completedFuture(null);
+	}
 
 }
