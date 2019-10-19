@@ -180,12 +180,12 @@
 			</activation>
 			<properties>
 				<jbosstoolsRelengPublishVersion>4.6.0</jbosstoolsRelengPublishVersion>
-				<deployScriptDir>${project.build.directory}/releng-scripts</deployScriptDir>
+				<deployScriptDir>${project.build.directory}/releng-scripts/sources</deployScriptDir>
 				<deployScript>${deployScriptDir}/publish/rsync.sh</deployScript>
 				<deploySourceFolder>${project.build.directory}/repository</deploySourceFolder>
 				<filemgmtJbossOrg>10.5.105.197</filemgmtJbossOrg>
 				<deployDestination>tools@${filemgmtJbossOrg}:downloads_htdocs/jbosstools</deployDestination>
-				<deployTargetFolder>vscode/snapshots/quarkus-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/</deployTargetFolder>
+				<deployTargetFolder>vscode/snapshots/builds/quarkus-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/</deployTargetFolder>
 				<deployNumbuildstokeep>2</deployNumbuildstokeep>
 				<deployNumbuildstolink>2</deployNumbuildstolink>
 				<deployThreshholdwhendelete>2</deployThreshholdwhendelete>
