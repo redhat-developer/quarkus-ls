@@ -31,6 +31,7 @@
     <jacoco.destFile>${project.build.directory}/jacoco.exec</jacoco.destFile>
     <sonar.jacoco.reportPath>${jacoco.destFile}</sonar.jacoco.reportPath>
     <skipDeployToJBossOrg>true</skipDeployToJBossOrg>
+    <surefire.timeout>600</surefire.timeout>
   </properties>
 
   <repositories>
@@ -104,7 +105,7 @@
             <useUIHarness>false</useUIHarness>
             <argLine>${tycho.test.jvmArgs}</argLine>
             <!-- kill test JVM if tests take more than 1 minute (60 seconds) to finish -->
-            <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
+	    <forkedProcessTimeoutInSeconds>${surefire.timeout}</forkedProcessTimeoutInSeconds>
           </configuration>
         </plugin>
       </plugins>
