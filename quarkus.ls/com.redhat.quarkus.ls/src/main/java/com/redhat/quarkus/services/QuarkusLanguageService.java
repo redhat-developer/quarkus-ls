@@ -12,14 +12,8 @@ package com.redhat.quarkus.services;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import com.redhat.quarkus.commons.QuarkusProjectInfo;
-import com.redhat.quarkus.ls.api.QuarkusPropertyDefinitionProvider;
-import com.redhat.quarkus.model.PropertiesModel;
-import com.redhat.quarkus.settings.QuarkusCompletionSettings;
-import com.redhat.quarkus.settings.QuarkusFormattingSettings;
-import com.redhat.quarkus.settings.QuarkusHoverSettings;
-import com.redhat.quarkus.settings.QuarkusValidationSettings;
-
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DocumentSymbol;
@@ -32,6 +26,14 @@ import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+
+import com.redhat.quarkus.commons.QuarkusProjectInfo;
+import com.redhat.quarkus.ls.api.QuarkusPropertyDefinitionProvider;
+import com.redhat.quarkus.model.PropertiesModel;
+import com.redhat.quarkus.settings.QuarkusCompletionSettings;
+import com.redhat.quarkus.settings.QuarkusFormattingSettings;
+import com.redhat.quarkus.settings.QuarkusHoverSettings;
+import com.redhat.quarkus.settings.QuarkusValidationSettings;
 
 /**
  * The Quarkus language service.
@@ -47,6 +49,7 @@ public class QuarkusLanguageService {
 	private final QuarkusDefinition definition;
 	private final QuarkusDiagnostics diagnostics;
 	private final QuarkusFormatter formatter;
+	private final QuarkusCodeActions codeActions;
 
 	public QuarkusLanguageService() {
 		this.completions = new QuarkusCompletions();
@@ -55,6 +58,7 @@ public class QuarkusLanguageService {
 		this.definition = new QuarkusDefinition();
 		this.diagnostics = new QuarkusDiagnostics();
 		this.formatter = new QuarkusFormatter();
+		this.codeActions = new QuarkusCodeActions();
 	}
 
 	/**
@@ -120,8 +124,8 @@ public class QuarkusLanguageService {
 	 * @param definitionLinkSupport true if {@link LocationLink} must be returned
 	 *                              and false otherwise.
 	 * @return as promise the Java field definition location of the property at the
-	 * given <code>position</code> of the given application.properties
-	 * <code>document</code>.
+	 *         given <code>position</code> of the given application.properties
+	 *         <code>document</code>.
 	 */
 	public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> findDefinition(
 			PropertiesModel document, Position position, QuarkusProjectInfo projectInfo,
@@ -130,21 +134,22 @@ public class QuarkusLanguageService {
 	}
 
 	/**
-	 * Returns a <code>List<TextEdit></code> that formats the application.properties file
-	 * represented by <code>document</code>
+	 * Returns a <code>List<TextEdit></code> that formats the application.properties
+	 * file represented by <code>document</code>
+	 * 
 	 * @param document           the properties model
 	 * @param formattingSettings the client's formatting settings
-	 * @return a <code>List<TextEdit></code> that formats the application.properties file
-	 * represented by <code>document</code>
+	 * @return a <code>List<TextEdit></code> that formats the application.properties
+	 *         file represented by <code>document</code>
 	 */
-	public List<? extends TextEdit> doFormat(PropertiesModel document,
-			QuarkusFormattingSettings formattingSettings) {
+	public List<? extends TextEdit> doFormat(PropertiesModel document, QuarkusFormattingSettings formattingSettings) {
 		return formatter.format(document, formattingSettings);
 	}
 
 	/**
-	 * Returns a <code>List<TextEdit></code> that formats the application.properties file
-	 * represented by <code>document</code>, for the given <code>range</code>
+	 * Returns a <code>List<TextEdit></code> that formats the application.properties
+	 * file represented by <code>document</code>, for the given <code>range</code>
+	 * 
 	 * @param document           the properties model
 	 * @param range              the range specifying the lines to format
 	 * @param formattingSettings the client's formatting settings
@@ -168,5 +173,22 @@ public class QuarkusLanguageService {
 	public List<Diagnostic> doDiagnostics(PropertiesModel document, QuarkusProjectInfo projectInfo,
 			QuarkusValidationSettings validationSettings, CancelChecker cancelChecker) {
 		return diagnostics.doDiagnostics(document, projectInfo, validationSettings, cancelChecker);
+	}
+
+	/**
+	 * Returns code actions for the given diagnostics of the application.properties
+	 * <code>document</code> by using the given Quarkus properties metadata
+	 * <code>projectInfo</code>.
+	 * 
+	 * @param context            the code action context
+	 * @param range              the range
+	 * @param document           the properties model.
+	 * @param projectInfo        the Quarkus properties
+	 * @param formattingSettings the formatting settings.
+	 * @return the result of the code actions.
+	 */
+	public List<CodeAction> doCodeActions(CodeActionContext context, Range range, PropertiesModel document,
+			QuarkusProjectInfo projectInfo, QuarkusFormattingSettings formattingSettings) {
+		return codeActions.doCodeActions(context, range, document, projectInfo, formattingSettings);
 	}
 }

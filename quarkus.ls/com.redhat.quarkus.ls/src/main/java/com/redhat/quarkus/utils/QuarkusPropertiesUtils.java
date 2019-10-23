@@ -141,4 +141,16 @@ public class QuarkusPropertiesUtils {
 		}
 		return propertyName;
 	}
+
+	/**
+	 * Returns true if the given property name is a mapped property and false
+	 * otherwise.
+	 * 
+	 * @param propertyName the property name
+	 * @return true if the given property name is a mapped property and false
+	 *         otherwise.
+	 */
+	public static boolean isMappedProperty(String propertyName) {
+		return propertyName.indexOf("{*}") != -1;
+	}
 }

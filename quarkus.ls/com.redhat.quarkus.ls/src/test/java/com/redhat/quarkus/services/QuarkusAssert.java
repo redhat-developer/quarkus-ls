@@ -12,24 +12,13 @@ package com.redhat.quarkus.services;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import com.google.gson.Gson;
-import com.redhat.quarkus.commons.QuarkusProjectInfo;
-import com.redhat.quarkus.ls.MockQuarkusPropertyDefinitionProvider;
-import com.redhat.quarkus.ls.api.QuarkusPropertyDefinitionProvider;
-import com.redhat.quarkus.ls.commons.BadLocationException;
-import com.redhat.quarkus.ls.commons.TextDocument;
-import com.redhat.quarkus.model.PropertiesModel;
-import com.redhat.quarkus.settings.QuarkusCompletionSettings;
-import com.redhat.quarkus.settings.QuarkusFormattingSettings;
-import com.redhat.quarkus.settings.QuarkusHoverSettings;
-import com.redhat.quarkus.settings.QuarkusValidationSettings;
-import com.redhat.quarkus.utils.DocumentationUtils;
-import com.redhat.quarkus.utils.PositionUtils;
-
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.CompletionCapabilities;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemCapabilities;
@@ -48,9 +37,26 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
+import org.eclipse.lsp4j.TextDocumentEdit;
 import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
+import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.junit.Assert;
+
+import com.google.gson.Gson;
+import com.redhat.quarkus.commons.QuarkusProjectInfo;
+import com.redhat.quarkus.ls.MockQuarkusPropertyDefinitionProvider;
+import com.redhat.quarkus.ls.api.QuarkusPropertyDefinitionProvider;
+import com.redhat.quarkus.ls.commons.BadLocationException;
+import com.redhat.quarkus.ls.commons.TextDocument;
+import com.redhat.quarkus.model.PropertiesModel;
+import com.redhat.quarkus.settings.QuarkusCompletionSettings;
+import com.redhat.quarkus.settings.QuarkusFormattingSettings;
+import com.redhat.quarkus.settings.QuarkusHoverSettings;
+import com.redhat.quarkus.settings.QuarkusValidationSettings;
+import com.redhat.quarkus.utils.DocumentationUtils;
+import com.redhat.quarkus.utils.PositionUtils;
 
 /**
  * Quarkus assert
@@ -168,7 +174,8 @@ public class QuarkusAssert {
 		}
 
 		if (expected.getDocumentation() != null) {
-			Assert.assertEquals(DocumentationUtils.getDocumentationTextFromEither(expected.getDocumentation()), DocumentationUtils.getDocumentationTextFromEither(match.getDocumentation()));
+			Assert.assertEquals(DocumentationUtils.getDocumentationTextFromEither(expected.getDocumentation()),
+					DocumentationUtils.getDocumentationTextFromEither(match.getDocumentation()));
 		}
 
 	}
@@ -178,10 +185,12 @@ public class QuarkusAssert {
 	}
 
 	public static CompletionItem c(String label, String newText, Range range, String documentation) {
-		return c(label, new TextEdit(range, newText), null, documentation != null ? Either.forLeft(documentation) : null);
+		return c(label, new TextEdit(range, newText), null,
+				documentation != null ? Either.forLeft(documentation) : null);
 	}
 
-	private static CompletionItem c(String label, TextEdit textEdit, String filterText, Either<String, MarkupContent>  documentation) {
+	private static CompletionItem c(String label, TextEdit textEdit, String filterText,
+			Either<String, MarkupContent> documentation) {
 		CompletionItem item = new CompletionItem();
 		item.setLabel(label);
 		item.setFilterText(filterText);
@@ -351,6 +360,10 @@ public class QuarkusAssert {
 
 	// ------------------- Diagnostics assert
 
+	public static void testDiagnosticsFor(String value, Diagnostic... expected) {
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), expected);
+	}
+
 	public static void testDiagnosticsFor(String value, QuarkusProjectInfo projectInfo, Diagnostic... expected) {
 		QuarkusValidationSettings validationSettings = new QuarkusValidationSettings();
 		testDiagnosticsFor(value, projectInfo, validationSettings, expected);
@@ -398,16 +411,75 @@ public class QuarkusAssert {
 				QUARKUS_DIAGNOSTIC_SOURCE, code.name());
 	}
 
+	// ------------------- CodeAction assert
+
+	public static void testCodeActionsFor(String value, Diagnostic diagnostic, CodeAction... expected) {
+		testCodeActionsFor(value, diagnostic, getDefaultQuarkusProjectInfo(), expected);
+	}
+
+	public static void testCodeActionsFor(String value, Diagnostic diagnostic, QuarkusProjectInfo projectInfo,
+			CodeAction... expected) {
+		PropertiesModel model = parse(value, null);
+		QuarkusLanguageService languageService = new QuarkusLanguageService();
+
+		CodeActionContext context = new CodeActionContext();
+		context.setDiagnostics(Arrays.asList(diagnostic));
+		Range range = diagnostic.getRange();
+
+		List<CodeAction> actual = languageService.doCodeActions(context, range, model, projectInfo,
+				new QuarkusFormattingSettings());
+		assertCodeActions(actual, expected);
+	}
+
+	public static void assertCodeActions(List<CodeAction> actual, CodeAction... expected) {
+		actual.stream().forEach(ca -> {
+			// we don't want to compare title, etc
+			ca.setCommand(null);
+			ca.setKind(null);
+			if (ca.getDiagnostics() != null) {
+				ca.getDiagnostics().forEach(d -> {
+					d.setSeverity(null);
+					d.setMessage("");
+					d.setSource(null);
+				});
+			}
+		});
+
+		Assert.assertEquals(expected.length, actual.size());
+		Assert.assertArrayEquals(expected, actual.toArray());
+	}
+
+	public static CodeAction ca(String title, Diagnostic d, TextEdit te) {
+		CodeAction codeAction = new CodeAction();
+		codeAction.setTitle(title);
+		codeAction.setDiagnostics(Arrays.asList(d));
+
+		VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier(
+				"application.properties", 0);
+
+		TextDocumentEdit textDocumentEdit = new TextDocumentEdit(versionedTextDocumentIdentifier,
+				Collections.singletonList(te));
+		WorkspaceEdit workspaceEdit = new WorkspaceEdit(Collections.singletonList(Either.forLeft(textDocumentEdit)));
+		codeAction.setEdit(workspaceEdit);
+		return codeAction;
+	}
+
+	public static TextEdit te(int startLine, int startCharacter, int endLine, int endCharacter, String newText) {
+		TextEdit textEdit = new TextEdit();
+		textEdit.setNewText(newText);
+		textEdit.setRange(r(startLine, startCharacter, endLine, endCharacter));
+		return textEdit;
+	}
+
 	// ------------------- Formatting assert
-	
+
 	public static void assertFormat(String value, String expected, boolean insertSpaces) {
 		QuarkusFormattingSettings formattingSettings = new QuarkusFormattingSettings();
 		formattingSettings.setSurroundEqualsWithSpaces(insertSpaces);
 		assertFormat(value, expected, formattingSettings);
 	}
 
-	public static void assertFormat(String value, String expected,
-			QuarkusFormattingSettings formattingSettings) {
+	public static void assertFormat(String value, String expected, QuarkusFormattingSettings formattingSettings) {
 
 		PropertiesModel model = parse(value, null);
 		QuarkusLanguageService languageService = new QuarkusLanguageService();
@@ -417,15 +489,15 @@ public class QuarkusAssert {
 		Assert.assertEquals(expected, formatted);
 	}
 
-	public static void assertRangeFormat(String value, String expected, boolean insertSpaces) 
+	public static void assertRangeFormat(String value, String expected, boolean insertSpaces)
 			throws BadLocationException {
 		QuarkusFormattingSettings formattingSettings = new QuarkusFormattingSettings();
 		formattingSettings.setSurroundEqualsWithSpaces(insertSpaces);
 		assertRangeFormat(value, expected, formattingSettings);
 	}
 
-	public static void assertRangeFormat(String value, String expected,
-			QuarkusFormattingSettings formattingSettings) throws BadLocationException {
+	public static void assertRangeFormat(String value, String expected, QuarkusFormattingSettings formattingSettings)
+			throws BadLocationException {
 
 		int startOffset = value.indexOf("|");
 		value = value.substring(0, startOffset) + value.substring(startOffset + 1);
@@ -437,14 +509,14 @@ public class QuarkusAssert {
 		PropertiesModel model = parse(value, null);
 		QuarkusLanguageService languageService = new QuarkusLanguageService();
 		List<? extends TextEdit> edits = languageService.doRangeFormat(model, range, formattingSettings);
-		
+
 		Range formatRange = edits.get(0).getRange();
 		int formatStart = document.offsetAt(formatRange.getStart());
 		int formatEnd = document.offsetAt(formatRange.getEnd());
 
-		String formatted = value.substring(0, formatStart) + 
-				edits.stream().map(edit -> edit.getNewText()).collect(Collectors.joining("")) +
-				value.substring(formatEnd);
+		String formatted = value.substring(0, formatStart)
+				+ edits.stream().map(edit -> edit.getNewText()).collect(Collectors.joining(""))
+				+ value.substring(formatEnd);
 		Assert.assertEquals(expected, formatted);
 	}
 
