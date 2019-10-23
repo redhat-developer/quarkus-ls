@@ -36,6 +36,10 @@ public class ClientCapabilitiesWrapper {
 	 * 
 	 */
 
+	public boolean isCodeActionDynamicRegistered() {
+		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getCodeAction());
+	}
+
 	public boolean isCompletionDynamicRegistrationSupported() {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getCompletion());
 	}

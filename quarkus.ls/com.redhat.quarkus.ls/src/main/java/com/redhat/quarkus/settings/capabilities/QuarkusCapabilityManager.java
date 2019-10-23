@@ -7,18 +7,20 @@
  *******************************************************************************/
 package com.redhat.quarkus.settings.capabilities;
 
+import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.CODE_ACTION_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.COMPLETION_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_COMPLETION_OPTIONS;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.DEFINITION_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.DOCUMENT_SYMBOL_ID;
-import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.HOVER_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.FORMATTING_ID;
+import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.HOVER_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.RANGE_FORMATTING_ID;
+import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_CODE_ACTION;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_COMPLETION;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_DEFINITION;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_DOCUMENT_SYMBOL;
-import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_HOVER;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_FORMATTING;
+import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_HOVER;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_RANGE_FORMATTING;
 
 import java.util.Collections;
@@ -49,6 +51,9 @@ public class QuarkusCapabilityManager {
 	 * side preferences turning on/off
 	 */
 	public void initializeCapabilities() {
+		if (this.getClientCapabilities().isCodeActionDynamicRegistered()) {
+			registerCapability(CODE_ACTION_ID, TEXT_DOCUMENT_CODE_ACTION);
+		}
 		if (this.getClientCapabilities().isCompletionDynamicRegistrationSupported()) {
 			registerCapability(COMPLETION_ID, TEXT_DOCUMENT_COMPLETION, DEFAULT_COMPLETION_OPTIONS);
 		}
@@ -61,7 +66,7 @@ public class QuarkusCapabilityManager {
 		if (this.getClientCapabilities().isDefinitionDynamicRegistered()) {
 			registerCapability(DEFINITION_ID, TEXT_DOCUMENT_DEFINITION);
 		}
-		
+
 		if (this.getClientCapabilities().isFormattingDynamicRegistered()) {
 			registerCapability(FORMATTING_ID, TEXT_DOCUMENT_FORMATTING);
 		}

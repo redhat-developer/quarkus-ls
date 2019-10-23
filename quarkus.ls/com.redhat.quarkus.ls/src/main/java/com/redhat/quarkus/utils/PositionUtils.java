@@ -9,13 +9,11 @@
 *******************************************************************************/
 package com.redhat.quarkus.utils;
 
+import org.eclipse.lsp4j.Range;
+
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.model.Node;
-import com.redhat.quarkus.model.Node.NodeType;
-
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
 
 public class PositionUtils {
 
