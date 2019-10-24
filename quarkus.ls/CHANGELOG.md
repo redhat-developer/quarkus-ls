@@ -1,5 +1,17 @@
 # Quarkus Language Server Changelog
 
+## 0.0.3-SNAPSHOT (October 23, 2019)
+
+### Enhancements
+
+ * Provide default method when extending QuarkusLanguageClientAPI. See [#120](https://github.com/redhat-developer/quarkus-ls/issues/120)
+ * Support glob pattern to exclude unknown properties from validation. See [#79](https://github.com/redhat-developer/quarkus-ls/issues/79)
+
+### Others
+
+ * quarkus.jdt sometimes fails to build because of tests timeout. See [#126](https://github.com/redhat-developer/quarkus-ls/issues/126)
+ * Deploy quarkus.jdt update site to download.jboss.tools. See [#124](https://github.com/redhat-developer/quarkus-ls/issues/124)
+
 ## 0.0.2-SNAPSHOT (October 17, 2019)
 
 ### Enhancements
