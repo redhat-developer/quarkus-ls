@@ -414,20 +414,35 @@ public class QuarkusAssert {
 	// ------------------- CodeAction assert
 
 	public static void testCodeActionsFor(String value, Diagnostic diagnostic, CodeAction... expected) {
-		testCodeActionsFor(value, diagnostic, getDefaultQuarkusProjectInfo(), expected);
+		testCodeActionsFor(value, diagnostic, getDefaultQuarkusProjectInfo(), new QuarkusFormattingSettings(), expected);
 	}
 
 	public static void testCodeActionsFor(String value, Diagnostic diagnostic, QuarkusProjectInfo projectInfo,
 			CodeAction... expected) {
+		testCodeActionsFor(value, Collections.singletonList(diagnostic), diagnostic.getRange(), projectInfo, new QuarkusFormattingSettings(),
+				expected);
+	}
+
+	public static void testCodeActionsFor(String value, Diagnostic diagnostic, QuarkusProjectInfo projectInfo,
+			QuarkusFormattingSettings formattingSettings, CodeAction... expected) {
+		testCodeActionsFor(value, Collections.singletonList(diagnostic), diagnostic.getRange(), projectInfo, formattingSettings, expected);
+	}
+
+	public static void testCodeActionsFor(String value, List<Diagnostic> diagnostics, Range range, QuarkusProjectInfo projectInfo,
+			CodeAction... expected) {
+		testCodeActionsFor(value, diagnostics, range, projectInfo, new QuarkusFormattingSettings(), expected);
+	}
+
+	public static void testCodeActionsFor(String value, List<Diagnostic> diagnostics, Range range, QuarkusProjectInfo projectInfo,
+			QuarkusFormattingSettings formattingSettings, CodeAction... expected) {
 		PropertiesModel model = parse(value, null);
 		QuarkusLanguageService languageService = new QuarkusLanguageService();
 
 		CodeActionContext context = new CodeActionContext();
-		context.setDiagnostics(Arrays.asList(diagnostic));
-		Range range = diagnostic.getRange();
+		context.setDiagnostics(diagnostics);
 
 		List<CodeAction> actual = languageService.doCodeActions(context, range, model, projectInfo,
-				new QuarkusFormattingSettings());
+				formattingSettings);
 		assertCodeActions(actual, expected);
 	}
 
@@ -449,10 +464,18 @@ public class QuarkusAssert {
 		Assert.assertArrayEquals(expected, actual.toArray());
 	}
 
-	public static CodeAction ca(String title, Diagnostic d, TextEdit te) {
+	public static CodeAction ca(String title, TextEdit te, Diagnostic... d) {
+		List<Diagnostic> diagnostics = new ArrayList<>();
+		for (int i = 0; i < d.length; i++) {
+			diagnostics.add(d[i]);
+		}
+		return ca(title, te, diagnostics);
+	}
+
+	public static CodeAction ca(String title, TextEdit te, List<Diagnostic> diagnostics) {
 		CodeAction codeAction = new CodeAction();
 		codeAction.setTitle(title);
-		codeAction.setDiagnostics(Arrays.asList(d));
+		codeAction.setDiagnostics(diagnostics);
 
 		VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier(
 				"application.properties", 0);

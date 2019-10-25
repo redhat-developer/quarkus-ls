@@ -12,6 +12,7 @@ package com.redhat.quarkus.ls.commons;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionKind;
@@ -56,9 +57,24 @@ public class CodeActionFactory {
 	 */
 	public static CodeAction insert(String title, Position position, String insertText, TextDocumentItem document,
 			Diagnostic diagnostic) {
+		return insert(title, position, insertText, document, Arrays.asList(diagnostic));
+	}
+
+	/**
+	 * Create a CodeAction to insert a new content at the end of the given range.
+	 * 
+	 * @param title
+	 * @param range
+	 * @param insertText
+	 * @param document
+	 * @param diagnostics
+	 * @return
+	 */
+	public static CodeAction insert(String title, Position position, String insertText, TextDocumentItem document,
+			List<Diagnostic> diagnostics) {
 		CodeAction insertContentAction = new CodeAction(title);
 		insertContentAction.setKind(CodeActionKind.QuickFix);
-		insertContentAction.setDiagnostics(Arrays.asList(diagnostic));
+		insertContentAction.setDiagnostics(diagnostics);
 		TextEdit edit = new TextEdit(new Range(position, position), insertText);
 		VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier(
 				document.getUri(), document.getVersion());
