@@ -86,7 +86,7 @@ public class ApplicationPropertiesRequiredDiagnosticsTest {
 			"quarkus.second.optional.property=hello";
 		
 		testDiagnosticsFor(value, projectInfo, settings,
-		d(1, 0, 29, "Missing required property value for 'quarkus.required.property'", DiagnosticSeverity.Error, ValidationType.required));
+		d(1, 0, 29, "Missing required property value for 'quarkus.required.property'", DiagnosticSeverity.Error, ValidationType.requiredValue));
 	}
 
 	@Test
@@ -100,8 +100,8 @@ public class ApplicationPropertiesRequiredDiagnosticsTest {
 		testDiagnosticsFor(value, projectInfo, settings,
 		d(1, 0, 25, "Duplicate property 'quarkus.required.property'", DiagnosticSeverity.Warning, ValidationType.duplicate),
 		d(2, 0, 25, "Duplicate property 'quarkus.required.property'", DiagnosticSeverity.Warning, ValidationType.duplicate),
-		d(1, 0, 29, "Missing required property value for 'quarkus.required.property'", DiagnosticSeverity.Error, ValidationType.required),
-		d(2, 0, 29, "Missing required property value for 'quarkus.required.property'", DiagnosticSeverity.Error, ValidationType.required));
+		d(1, 0, 29, "Missing required property value for 'quarkus.required.property'", DiagnosticSeverity.Error, ValidationType.requiredValue),
+		d(2, 0, 29, "Missing required property value for 'quarkus.required.property'", DiagnosticSeverity.Error, ValidationType.requiredValue));
 	}
 
 	@Test

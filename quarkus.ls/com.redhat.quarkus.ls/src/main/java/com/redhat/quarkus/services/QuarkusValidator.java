@@ -271,7 +271,7 @@ class QuarkusValidator {
 
 		for (Property property: propertyList) {
 			addDiagnostic("Missing required property value for '" + propertyName + "'", property, severity,
-					ValidationType.required.name());
+					ValidationType.requiredValue.name());
 		}
 	}
 

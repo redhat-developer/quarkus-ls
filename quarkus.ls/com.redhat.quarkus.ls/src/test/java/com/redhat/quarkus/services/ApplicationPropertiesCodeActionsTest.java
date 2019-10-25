@@ -39,7 +39,7 @@ public class ApplicationPropertiesCodeActionsTest {
 				ValidationType.unknown);
 		testDiagnosticsFor(value, d);
 		testCodeActionsFor(value, d,
-				ca("Did you mean 'quarkus.application.name' ?", d, te(1, 0, 1, 23, "quarkus.application.name")));
+				ca("Did you mean 'quarkus.application.name' ?", te(1, 0, 1, 23, "quarkus.application.name"), d));
 	};
 
 }

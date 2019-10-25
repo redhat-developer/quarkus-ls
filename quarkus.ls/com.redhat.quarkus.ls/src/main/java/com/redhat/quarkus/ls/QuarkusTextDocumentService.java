@@ -292,7 +292,7 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 	 * given function.
 	 * 
 	 * @param <R>
-	 * @param documentIdentifier the document indetifier.
+	 * @param documentIdentifier the document identifier.
 	 * @param code               a bi function that accepts a {@link CancelChecker}
 	 *                           and parsed {@link PropertiesModel} and returns the
 	 *                           to be computed value
@@ -309,7 +309,7 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 	 * given function.
 	 * 
 	 * @param <R>
-	 * @param documentIdentifier the document indetifier.
+	 * @param documentIdentifier the document identifier.
 	 * @param code               a bi function that accepts a {@link CancelChecker}
 	 *                           and parsed {@link PropertiesModel} and returns the
 	 *                           to be computed value

@@ -13,21 +13,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.eclipse.lsp4j.CodeAction;
-import org.eclipse.lsp4j.CodeActionContext;
-import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.Range;
+import java.util.stream.Collectors;
 
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.CodeActionFactory;
+import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.model.PropertyKey;
 import com.redhat.quarkus.settings.QuarkusFormattingSettings;
 import com.redhat.quarkus.utils.PositionUtils;
 import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
+import com.redhat.quarkus.utils.StringUtils;
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionContext;
+import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
 
 /**
  * The Quarkus code actions
@@ -57,6 +60,7 @@ class QuarkusCodeActions {
 			QuarkusProjectInfo projectInfo, QuarkusFormattingSettings formattingSettings) {
 		List<CodeAction> codeActions = new ArrayList<>();
 		if (context.getDiagnostics() != null) {
+			doCodeActionForAllRequired(context.getDiagnostics(), document, formattingSettings, codeActions);
 			// Loop for all diagnostics
 			for (Diagnostic diagnostic : context.getDiagnostics()) {
 				if (ValidationType.unknown.name().equals(diagnostic.getCode())) {
@@ -77,7 +81,7 @@ class QuarkusCodeActions {
 	 * </p>
 	 * 
 	 * @param diagnostic  the diagnostic
-	 * @param the         properties model.
+	 * @param document    the properties model.
 	 * @param projectInfo the Quarkus properties
 	 * @param codeActions code actions list to fill.
 	 */
@@ -105,6 +109,90 @@ class QuarkusCodeActions {
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In QuarkusCodeActions, position error", e);
 		}
+	}
+
+	/**
+	 * Returns the <code>Position</code> to insert the missing required code action property into
+	 * @param textDocument the text document
+	 * @return the <code>Position</code> to insert the missing required code action property into
+	 * @throws BadLocationException
+	 */
+	private Position getPositionForRequiredCodeAction(TextDocument textDocument) throws BadLocationException {
+		String textDocumentText = textDocument.getText();
+		
+		if (!StringUtils.hasText(textDocumentText)) {
+			return new Position(0, 0);
+		}
+
+		for (int i = textDocumentText.length() - 1; i >= 0; i--) {
+			if (!Character.isWhitespace(textDocumentText.charAt(i))) {
+				return textDocument.positionAt(i + 1);
+			}
+		}
+
+		// should never happen
+		return null;
+	}
+
+	/**
+	 * Returns the missing required property name from <code>diagnosticMessage</code>
+	 * @param diagnosticMessage the diagnostic message containing the property name in single quotes
+	 * @return the missing required property name from <code>diagnosticMessage</code>
+	 */
+	private String getPropertyNameFromRequiredMessage(String diagnosticMessage) {
+		int start = diagnosticMessage.indexOf('\'') + 1;
+		int end = diagnosticMessage.indexOf('\'', start);
+		return diagnosticMessage.substring(start, end);
+	}
+
+	/**
+	 * Create a code action that inserts all missing required properties and equals signs if there
+	 * are more than one missing required properties.
+	 * 
+	 * @param diagnostics        the diagnostics, one for each missing required property
+	 * @param document           the properties model
+	 * @param formattingSettings the formatting settings
+	 * @param codeActions        the code actions list to fill
+	 */
+	private void doCodeActionForAllRequired(List<Diagnostic> diagnostics, PropertiesModel document,
+			QuarkusFormattingSettings formattingSettings, List<CodeAction> codeActions) {
+		
+		TextDocument textDocument = document.getDocument();
+		List<Diagnostic> requiredDiagnostics = diagnostics.stream().filter(d -> ValidationType.required.name().equals(d.getCode())).collect(Collectors.toList());
+
+		if (requiredDiagnostics.isEmpty()) {
+			return;
+		}
+
+		try {
+			Position position = getPositionForRequiredCodeAction(textDocument);
+			String lineDelimiter = document.getDocument().lineDelimiter(0);
+			String assign = formattingSettings.isSurroundEqualsWithSpaces() ? " = " : "=";
+
+			StringBuilder stringToInsert = new StringBuilder();
+
+			if (StringUtils.hasText(textDocument.getText())) {
+				stringToInsert.append(lineDelimiter);
+			}
+
+		for (int i = 0; i < requiredDiagnostics.size(); i++) {
+			Diagnostic diagnostic = requiredDiagnostics.get(i);
+			stringToInsert.append(getPropertyNameFromRequiredMessage(diagnostic.getMessage()));
+			stringToInsert.append(assign);
+
+			if (i < requiredDiagnostics.size() - 1) {
+				stringToInsert.append(lineDelimiter);
+			}
+		}
+
+			CodeAction insertAction = CodeActionFactory.insert(
+					"Add all missing required properties?", position,
+					stringToInsert.toString(), textDocument, requiredDiagnostics);
+			codeActions.add(insertAction);
+		} catch (BadLocationException e) {
+			LOGGER.log(Level.SEVERE, "In QuarkusCodeActions, position error", e);
+		}
+		
 	}
 
 	private static boolean isSimilar(String reference, String current) {
