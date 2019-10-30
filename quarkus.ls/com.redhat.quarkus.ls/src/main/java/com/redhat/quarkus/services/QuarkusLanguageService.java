@@ -30,6 +30,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.api.QuarkusPropertyDefinitionProvider;
 import com.redhat.quarkus.model.PropertiesModel;
+import com.redhat.quarkus.model.values.ValuesRulesManager;
 import com.redhat.quarkus.settings.QuarkusCompletionSettings;
 import com.redhat.quarkus.settings.QuarkusFormattingSettings;
 import com.redhat.quarkus.settings.QuarkusHoverSettings;
@@ -50,8 +51,13 @@ public class QuarkusLanguageService {
 	private final QuarkusDiagnostics diagnostics;
 	private final QuarkusFormatter formatter;
 	private final QuarkusCodeActions codeActions;
+	private final ValuesRulesManager valuesRulesManager;
 
 	public QuarkusLanguageService() {
+		this(new ValuesRulesManager(true));
+	}
+
+	public QuarkusLanguageService(ValuesRulesManager valuesRulesManger) {
 		this.completions = new QuarkusCompletions();
 		this.symbolsProvider = new QuarkusSymbolsProvider();
 		this.hover = new QuarkusHover();
@@ -59,6 +65,7 @@ public class QuarkusLanguageService {
 		this.diagnostics = new QuarkusDiagnostics();
 		this.formatter = new QuarkusFormatter();
 		this.codeActions = new QuarkusCodeActions();
+		this.valuesRulesManager = valuesRulesManger;
 	}
 
 	/**
@@ -73,7 +80,8 @@ public class QuarkusLanguageService {
 	 */
 	public CompletionList doComplete(PropertiesModel document, Position position, QuarkusProjectInfo projectInfo,
 			QuarkusCompletionSettings completionSettings, CancelChecker cancelChecker) {
-		return completions.doComplete(document, position, projectInfo, completionSettings, cancelChecker);
+		return completions.doComplete(document, position, projectInfo, getValuesRulesManager(), completionSettings,
+				cancelChecker);
 	}
 
 	/**
@@ -87,7 +95,7 @@ public class QuarkusLanguageService {
 	 */
 	public Hover doHover(PropertiesModel document, Position position, QuarkusProjectInfo projectInfo,
 			QuarkusHoverSettings hoverSettings) {
-		return hover.doHover(document, position, projectInfo, hoverSettings);
+		return hover.doHover(document, position, projectInfo, getValuesRulesManager(), hoverSettings);
 	}
 
 	/**
@@ -172,7 +180,8 @@ public class QuarkusLanguageService {
 	 */
 	public List<Diagnostic> doDiagnostics(PropertiesModel document, QuarkusProjectInfo projectInfo,
 			QuarkusValidationSettings validationSettings, CancelChecker cancelChecker) {
-		return diagnostics.doDiagnostics(document, projectInfo, validationSettings, cancelChecker);
+		return diagnostics.doDiagnostics(document, projectInfo, getValuesRulesManager(), validationSettings,
+				cancelChecker);
 	}
 
 	/**
@@ -190,5 +199,14 @@ public class QuarkusLanguageService {
 	public List<CodeAction> doCodeActions(CodeActionContext context, Range range, PropertiesModel document,
 			QuarkusProjectInfo projectInfo, QuarkusFormattingSettings formattingSettings) {
 		return codeActions.doCodeActions(context, range, document, projectInfo, formattingSettings);
+	}
+
+	/**
+	 * Returns the manager for values rules.
+	 * 
+	 * @return the manager for values rules.
+	 */
+	private ValuesRulesManager getValuesRulesManager() {
+		return valuesRulesManager;
 	}
 }

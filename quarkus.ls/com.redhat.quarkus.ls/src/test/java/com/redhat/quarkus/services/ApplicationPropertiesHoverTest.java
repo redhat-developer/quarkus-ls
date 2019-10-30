@@ -93,29 +93,34 @@ public class ApplicationPropertiesHoverTest {
 	@Test
 	public void testDefaultProfileHover() throws BadLocationException {
 		String value = "%d|ev.quarkus.log.syslog.async.overflow=DISCARD";
-		String hoverLabelMarkdown = "**dev**" + System.lineSeparator() + System.lineSeparator() + "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator();
+		String hoverLabelMarkdown = "**dev**" + System.lineSeparator() + System.lineSeparator()
+				+ "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator();
 		assertHoverMarkdown(value, hoverLabelMarkdown, 0);
 	}
 
 	@Test
 	public void testDefaultProfileHoverSpacesInFront() throws BadLocationException {
 		String value = "        %d|ev.quarkus.log.syslog.async.overflow=DISCARD";
-		String hoverLabelMarkdown = "**dev**" + System.lineSeparator() + System.lineSeparator() + "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator();
+		String hoverLabelMarkdown = "**dev**" + System.lineSeparator() + System.lineSeparator()
+				+ "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator();
 		assertHoverMarkdown(value, hoverLabelMarkdown, 8);
 	}
 
 	@Test
 	public void testOnlyDefaultProfile() throws BadLocationException {
 		String value = "%de|v";
-		String hoverLabelMarkdown = "**dev**" + System.lineSeparator() + System.lineSeparator() + "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator();
+		String hoverLabelMarkdown = "**dev**" + System.lineSeparator() + System.lineSeparator()
+				+ "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator();
 		assertHoverMarkdown(value, hoverLabelMarkdown, 0);
 
 		value = "|%prod";
-		hoverLabelMarkdown = "**prod**" + System.lineSeparator() + System.lineSeparator() + "The default profile when not running in development or test mode." + System.lineSeparator();
+		hoverLabelMarkdown = "**prod**" + System.lineSeparator() + System.lineSeparator()
+				+ "The default profile when not running in development or test mode." + System.lineSeparator();
 		assertHoverMarkdown(value, hoverLabelMarkdown, 0);
 
 		value = "%test|";
-		hoverLabelMarkdown = "**test**" + System.lineSeparator() + System.lineSeparator() + "Profile activated when running tests." + System.lineSeparator();
+		hoverLabelMarkdown = "**test**" + System.lineSeparator() + System.lineSeparator()
+				+ "Profile activated when running tests." + System.lineSeparator();
 		assertHoverMarkdown(value, hoverLabelMarkdown, 0);
 	};
 
@@ -165,4 +170,20 @@ public class ApplicationPropertiesHoverTest {
 		String hoverLabel = "**BLOCK**" + System.lineSeparator();
 		assertHoverMarkdown(value, hoverLabel, 35);
 	}
+
+	@Test
+	public void hoverOnValueForLevelBasedOnRule() throws BadLocationException {
+		// quarkus.log.file.level has 'java.util.logging.Level' which has no
+		// enumeration
+		// to fix it, quarkus-values-rules.json defines the Level enumerations
+		String value = "quarkus.log.file.level=OF|F ";
+		String hoverLabel = "**OFF**" + //
+				System.lineSeparator() + //
+				System.lineSeparator() + //
+				"OFF is a special level that can be used to turn off logging.\nThis level is initialized to `Integer.MAX_VALUE`."
+				+ //
+				System.lineSeparator();
+		assertHoverMarkdown(value, hoverLabel, 23);
+	}
+
 }
