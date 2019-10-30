@@ -400,14 +400,23 @@ public class ApplicationPropertiesDiagnosticsTest {
 
 	@Test
 	public void validateBuildTimeInjectValues() throws BadLocationException {
-
 		String value = "quarkus.http.cors = ${value.one}\n" + //
 				"quarkus.http.port=${value_two}\n" + //
 				"quarkus.ssl.native=    ${value-three}";
-
 		QuarkusValidationSettings settings = new QuarkusValidationSettings();
-
 		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings);
+	}
+
+	@Test
+	public void validateValueForLevelBasedOnRule() throws BadLocationException {
+		// quarkus.log.file.level has 'java.util.logging.Level' which has no
+		// enumeration
+		// to fix it, quarkus-values-rules.json defines the Level enumerations
+		String value = "quarkus.log.file.level=XXX ";
+		QuarkusValidationSettings settings = new QuarkusValidationSettings();
+		testDiagnosticsFor(value, getDefaultQuarkusProjectInfo(), settings,
+				d(0, 23, 27, "Invalid enum value: 'XXX' is invalid for type java.util.logging.Level",
+						DiagnosticSeverity.Error, ValidationType.value));
 	}
 
 }

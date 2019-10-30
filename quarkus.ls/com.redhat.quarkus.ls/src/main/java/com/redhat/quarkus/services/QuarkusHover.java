@@ -27,7 +27,7 @@ import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.model.Property;
 import com.redhat.quarkus.model.PropertyKey;
 import com.redhat.quarkus.model.PropertyValue;
-import com.redhat.quarkus.services.QuarkusModel;
+import com.redhat.quarkus.model.values.ValuesRulesManager;
 import com.redhat.quarkus.settings.QuarkusHoverSettings;
 import com.redhat.quarkus.utils.DocumentationUtils;
 import com.redhat.quarkus.utils.PositionUtils;
@@ -43,14 +43,15 @@ class QuarkusHover {
 	/**
 	 * Returns Hover object for the currently hovered token
 	 * 
-	 * @param document      the properties model document
-	 * @param position      the hover position
-	 * @param projectInfo   the Quarkus project information
-	 * @param hoverSettings the hover settings
+	 * @param document           the properties model document
+	 * @param position           the hover position
+	 * @param projectInfo        the Quarkus project information
+	 * @param valuesRulesManager manager for values rules
+	 * @param hoverSettings      the hover settings
 	 * @return Hover object for the currently hovered token
 	 */
 	public Hover doHover(PropertiesModel document, Position position, QuarkusProjectInfo projectInfo,
-			QuarkusHoverSettings hoverSettings) {
+			ValuesRulesManager valuesRulesManager, QuarkusHoverSettings hoverSettings) {
 
 		Node node = null;
 		int offset = -1;
@@ -72,7 +73,7 @@ class QuarkusHover {
 		case ASSIGN:
 		case PROPERTY_VALUE:
 			// no hover documentation
-			return getPropertyValueHover(node, projectInfo, hoverSettings);
+			return getPropertyValueHover(node, projectInfo, valuesRulesManager, hoverSettings);
 		case PROPERTY_KEY:
 			PropertyKey key = (PropertyKey) node;
 			if (key.isBeforeProfile(offset)) {
@@ -82,7 +83,7 @@ class QuarkusHover {
 				// hover documentation on property key
 				return getPropertyKeyHover(key, projectInfo, hoverSettings);
 			}
-			
+
 		default:
 			return null;
 		}
@@ -92,16 +93,16 @@ class QuarkusHover {
 	 * Returns the documentation hover for the property key's profile, for the
 	 * property key represented by <code>key</code>
 	 * 
-	 * Returns null if property key represented by <code>key</code> does not 
-	 * have a profile
+	 * Returns null if property key represented by <code>key</code> does not have a
+	 * profile
 	 * 
-	 * @param key          the property key
+	 * @param key           the property key
 	 * @param hoverSettings the hover settings
 	 * @return the documentation hover for the property key's profile
 	 */
 	private static Hover getProfileHover(PropertyKey key, QuarkusHoverSettings hoverSettings) {
 		boolean markdownSupported = hoverSettings.isContentFormatSupported(MarkupKind.MARKDOWN);
-		for (EnumItem profile: QuarkusModel.DEFAULT_PROFILES) {
+		for (EnumItem profile : QuarkusModel.DEFAULT_PROFILES) {
 			if (profile.getName().equals(key.getProfile())) {
 				MarkupContent markupContent = DocumentationUtils.getDocumentation(profile, markdownSupported);
 				Hover hover = new Hover();
@@ -117,7 +118,7 @@ class QuarkusHover {
 	 * Returns the documentation hover for property key represented by the property
 	 * key <code>key</code>
 	 * 
-	 * @param key          the property key
+	 * @param key           the property key
 	 * @param offset        the hover offset
 	 * @param projectInfo   the Quarkus project information
 	 * @param hoverSettings the hover settings
@@ -152,7 +153,7 @@ class QuarkusHover {
 	 * @return the documentation hover for property key represented by token
 	 */
 	private static Hover getPropertyValueHover(Node node, QuarkusProjectInfo projectInfo,
-			QuarkusHoverSettings hoverSettings) {
+			ValuesRulesManager valuesRulesManager, QuarkusHoverSettings hoverSettings) {
 		PropertyValue value = ((PropertyValue) node);
 		boolean markdownSupported = hoverSettings.isContentFormatSupported(MarkupKind.MARKDOWN);
 		// retrieve Quarkus property from the project information
@@ -162,7 +163,7 @@ class QuarkusHover {
 		}
 		String propertyName = ((Property) (value.getParent())).getPropertyName();
 		ExtendedConfigDescriptionBuildItem item = QuarkusPropertiesUtils.getProperty(propertyName, projectInfo);
-		EnumItem enumItem = item != null ? item.getEnumItem(propertyValue) : null;
+		EnumItem enumItem = getEnumItem(propertyValue, item, valuesRulesManager, value.getOwnerModel());
 		if (enumItem != null) {
 			// Quarkus property enumeration item, found, display her documentation as hover
 			MarkupContent markupContent = DocumentationUtils.getDocumentation(enumItem, markdownSupported);
@@ -175,14 +176,15 @@ class QuarkusHover {
 	}
 
 	/**
-	 * Returns the hover range covering the %profilename in <code>key</code>
-	 * Returns range of <code>key</code> if <code>key</code> does not provide a profile
+	 * Returns the hover range covering the %profilename in <code>key</code> Returns
+	 * range of <code>key</code> if <code>key</code> does not provide a profile
+	 * 
 	 * @param key the property key
 	 * @return the hover range covering the %profilename in <code>key</code>
 	 */
 	private static Range getProfileHoverRange(PropertyKey key) {
 		Range range = PositionUtils.createRange(key);
-		
+
 		if (key.getProfile() == null) {
 			return range;
 		}
@@ -192,5 +194,17 @@ class QuarkusHover {
 		endPosition.setCharacter(range.getStart().getCharacter() + profile.length() + 1);
 		range.setEnd(endPosition);
 		return range;
+	}
+
+	private static EnumItem getEnumItem(String propertyValue, ExtendedConfigDescriptionBuildItem metadata,
+			ValuesRulesManager valuesRulesManager, PropertiesModel model) {
+		if (metadata == null) {
+			return null;
+		}
+		EnumItem enumItem = metadata.getEnumItem(propertyValue);
+		if (enumItem != null) {
+			return enumItem;
+		}
+		return valuesRulesManager.getEnumItem(propertyValue, metadata, model);
 	}
 }

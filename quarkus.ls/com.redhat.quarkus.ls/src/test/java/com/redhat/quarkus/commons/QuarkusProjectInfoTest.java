@@ -20,6 +20,7 @@ import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.model.Property;
 import com.redhat.quarkus.model.PropertyKey;
 import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
+import com.redhat.quarkus.utils.QuarkusPropertiesUtils.FormattedPropertyResult;
 
 /**
  * Test for {@link QuarkusProjectInfo}.
@@ -136,26 +137,31 @@ public class QuarkusProjectInfoTest {
 
 	@Test
 	public void simpleFormatPropertyForCompletion() {
-		String actual = formatPropertyForCompletion("quarkus.thread-pool.core-threads");
-		Assert.assertEquals("quarkus.thread-pool.core-threads", actual);
+		FormattedPropertyResult actual = formatPropertyForCompletion("quarkus.thread-pool.core-threads");
+		Assert.assertEquals("quarkus.thread-pool.core-threads", actual.getPropertyName());
+		Assert.assertEquals(0, actual.getMappedParameterCount());
 	}
 
 	@Test
 	public void mapFormatPropertyForCompletion() {
-		String actual = formatPropertyForCompletion("quarkus.log.category.{*}.level");
-		Assert.assertEquals("quarkus.log.category.${1:key}.level", actual);
+		FormattedPropertyResult actual = formatPropertyForCompletion("quarkus.log.category.{*}.level");
+		Assert.assertEquals("quarkus.log.category.${1:key}.level", actual.getPropertyName());
+		Assert.assertEquals(1, actual.getMappedParameterCount());
 
 		actual = formatPropertyForCompletion("quarkus.keycloak.credentials.jwt.{*}");
-		Assert.assertEquals("quarkus.keycloak.credentials.jwt.${1:key}", actual);
+		Assert.assertEquals("quarkus.keycloak.credentials.jwt.${1:key}", actual.getPropertyName());
+		Assert.assertEquals(1, actual.getMappedParameterCount());
 
 		actual = formatPropertyForCompletion("quarkus.keycloak.policy-enforcer.claim-information-point.{*}.{*}.{*}");
 		Assert.assertEquals("quarkus.keycloak.policy-enforcer.claim-information-point.${1:key}.${2:key}.${3:key}",
-				actual);
+				actual.getPropertyName());
+		Assert.assertEquals(3, actual.getMappedParameterCount());
 
 		actual = formatPropertyForCompletion(
 				"quarkus.keycloak.policy-enforcer.paths.{*}.claim-information-point.{*}.{*}");
 		Assert.assertEquals("quarkus.keycloak.policy-enforcer.paths.${1:key}.claim-information-point.${2:key}.${3:key}",
-				actual);
+				actual.getPropertyName());
+		Assert.assertEquals(3, actual.getMappedParameterCount());
 	}
 
 	private static PropertyInfo getProperty(String text, QuarkusProjectInfo info) {

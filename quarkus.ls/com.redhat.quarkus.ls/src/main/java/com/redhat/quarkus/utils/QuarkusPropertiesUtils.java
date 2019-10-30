@@ -31,6 +31,40 @@ public class QuarkusPropertiesUtils {
 			newName) -> SnippetsBuilder.placeholders(i++, "key", newName);
 
 	/**
+	 * Result of formatted property name
+	 *
+	 */
+	public static class FormattedPropertyResult {
+
+		private final String propertyName;
+
+		private final int mappedParameterCount;
+
+		public FormattedPropertyResult(String propertyName, int mappedPropertyCount) {
+			this.propertyName = propertyName;
+			this.mappedParameterCount = mappedPropertyCount;
+		}
+
+		/**
+		 * Returns the formatted property name
+		 * 
+		 * @return the formatted property name
+		 */
+		public String getPropertyName() {
+			return propertyName;
+		}
+
+		/**
+		 * Returns the mapped parameter count.
+		 * 
+		 * @return the mapped parameter count.
+		 */
+		public int getMappedParameterCount() {
+			return mappedParameterCount;
+		}
+	}
+
+	/**
 	 * Returns the Quarkus property from the given property name and null otherwise.
 	 * 
 	 * @param propertyName the property name
@@ -117,29 +151,31 @@ public class QuarkusPropertiesUtils {
 	}
 
 	public static String formatPropertyForMarkdown(String propertyName) {
-		return formatProperty(propertyName, MARKDOWN_REPLACE);
+		return formatProperty(propertyName, MARKDOWN_REPLACE).getPropertyName();
 	}
 
-	public static String formatPropertyForCompletion(String propertyName) {
+	public static FormattedPropertyResult formatPropertyForCompletion(String propertyName) {
 		return formatProperty(propertyName, COMPLETION_PLACEHOLDER_REPLACE);
 	}
 
-	public static String formatProperty(String propertyName, BiConsumer<Integer, StringBuilder> replace) {
+	public static FormattedPropertyResult formatProperty(String propertyName,
+			BiConsumer<Integer, StringBuilder> replace) {
 		int index = propertyName.indexOf("{*}");
 		if (index != -1) {
-			int i = 1;
+			int i = 0;
 			String current = propertyName;
 			StringBuilder newName = new StringBuilder();
 			while (index != -1) {
+				i++;
 				newName.append(current.substring(0, index));
 				current = current.substring(index + 3, current.length());
-				replace.accept(i++, newName);
+				replace.accept(i, newName);
 				index = current.indexOf("{*}");
 			}
 			newName.append(current);
-			return newName.toString();
+			return new FormattedPropertyResult(newName.toString(), i);
 		}
-		return propertyName;
+		return new FormattedPropertyResult(propertyName, 0);
 	}
 
 	/**

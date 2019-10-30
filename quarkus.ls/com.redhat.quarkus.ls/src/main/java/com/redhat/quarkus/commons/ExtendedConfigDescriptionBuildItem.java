@@ -131,15 +131,56 @@ public class ExtendedConfigDescriptionBuildItem {
 	 *         otherwise.
 	 */
 	public EnumItem getEnumItem(String propertyValue) {
-		if (enums == null) {
+		return getEnumItem(propertyValue, enums);
+	}
+
+	/**
+	 * Returns true if the given property value is a valid enumeration and false
+	 * otherwise.
+	 * 
+	 * @param propertyValue the property value.
+	 * @return true if the given property value is a valid enumeration and false
+	 *         otherwise.
+	 */
+	public boolean isValidEnum(String propertyValue) {
+		return isValidEnum(propertyValue, enums);
+	}
+
+	/**
+	 * Returns the enumeration item from the given property value and given
+	 * enumerations and null otherwise.
+	 * 
+	 * @param propertyValue the property value.
+	 * @param enums         enumerations.
+	 * @return the enumeration item from the given property value and given
+	 *         enumerations and null otherwise.
+	 */
+	public static EnumItem getEnumItem(String propertyValue, List<EnumItem> enums) {
+		if (enums == null || propertyValue == null || propertyValue.isEmpty()) {
 			return null;
 		}
 		for (EnumItem enumItem : enums) {
-			if (enumItem.getName().equals(propertyValue)) {
+			if (propertyValue.equals(enumItem.getName())) {
 				return enumItem;
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Returns true if the given property value is a valid enumeration and false
+	 * otherwise.
+	 * 
+	 * @param propertyValue the property value.
+	 * @param enums         enumerations.
+	 * @return true if the given property value is a valid enumeration and false
+	 *         otherwise.
+	 */
+	public static boolean isValidEnum(String propertyValue, List<EnumItem> enums) {
+		if (enums == null || enums.isEmpty()) {
+			return true;
+		}
+		return getEnumItem(propertyValue, enums) != null;
 	}
 
 	public int getPhase() {
@@ -155,42 +196,42 @@ public class ExtendedConfigDescriptionBuildItem {
 	}
 
 	public boolean isBooleanType() {
-		return "boolean".equals(getType()) ||
-		"java.lang.Boolean".equals(getType()) ||
-		"java.util.Optional<java.lang.Boolean>".equals(getType());
+		return "boolean".equals(getType()) || //
+				"java.lang.Boolean".equals(getType()) || //
+				"java.util.Optional<java.lang.Boolean>".equals(getType());
 	}
 
 	public boolean isIntegerType() {
-		return "int".equals(getType()) ||
-		"java.lang.Integer".equals(getType()) ||
-		"java.util.OptionalInt".equals(getType()) ||
-		"java.util.Optional<java.lang.Integer>".equals(getType());
+		return "int".equals(getType()) || //
+				"java.lang.Integer".equals(getType()) || //
+				"java.util.OptionalInt".equals(getType()) || //
+				"java.util.Optional<java.lang.Integer>".equals(getType());
 	}
 
 	public boolean isFloatType() {
-		return "float".equals(getType()) ||
-		"java.lang.Float".equals(getType()) ||
-		"java.util.Optional<java.lang.Float>".equals(getType());
+		return "float".equals(getType()) || //
+				"java.lang.Float".equals(getType()) || //
+				"java.util.Optional<java.lang.Float>".equals(getType());
 	}
 
 	public boolean isLongType() {
-		return "long".equals(getType()) ||
-		"java.lang.Long".equals(getType()) ||
-		"java.util.OptionalLong".equals(getType()) ||
-		"java.util.Optional<java.lang.Long>".equals(getType());
+		return "long".equals(getType()) || //
+				"java.lang.Long".equals(getType()) || //
+				"java.util.OptionalLong".equals(getType()) || //
+				"java.util.Optional<java.lang.Long>".equals(getType());
 	}
 
 	public boolean isDoubleType() {
-		return "double".equals(getType()) ||
-		"java.lang.Double".equals(getType()) ||
-		"java.util.OptionalDouble".equals(getType()) ||
-		"java.util.Optional<java.lang.Double>".equals(getType());
+		return "double".equals(getType()) || //
+				"java.lang.Double".equals(getType()) || //
+				"java.util.OptionalDouble".equals(getType()) || //
+				"java.util.Optional<java.lang.Double>".equals(getType());
 	}
 
 	public boolean isShortType() {
-		return "short".equals(getType()) ||
-		"java.lang.Short".equals(getType()) ||
-		"java.util.Optional<java.lang.Short>".equals(getType());
+		return "short".equals(getType()) || //
+				"java.lang.Short".equals(getType()) || //
+				"java.util.Optional<java.lang.Short>".equals(getType());
 	}
 
 	@Override

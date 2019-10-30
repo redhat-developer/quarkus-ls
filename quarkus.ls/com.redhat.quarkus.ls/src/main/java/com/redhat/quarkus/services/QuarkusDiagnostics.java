@@ -17,6 +17,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.model.PropertiesModel;
+import com.redhat.quarkus.model.values.ValuesRulesManager;
 import com.redhat.quarkus.settings.QuarkusValidationSettings;
 
 /**
@@ -31,18 +32,21 @@ class QuarkusDiagnostics {
 	 * 
 	 * @param document           the properties model.
 	 * @param projectInfo        the Quarkus properties
+	 * @param valuesRulesManager manager for values rules
 	 * @param validationSettings the validation settings.
 	 * @param cancelChecker      the cancel checker.
 	 * @return the result of the validation.
 	 */
 	public List<Diagnostic> doDiagnostics(PropertiesModel document, QuarkusProjectInfo projectInfo,
-			QuarkusValidationSettings validationSettings, CancelChecker cancelChecker) {
+			ValuesRulesManager valuesRulesManager, QuarkusValidationSettings validationSettings,
+			CancelChecker cancelChecker) {
 		if (validationSettings == null) {
 			validationSettings = QuarkusValidationSettings.DEFAULT;
 		}
 		List<Diagnostic> diagnostics = new ArrayList<Diagnostic>();
 		if (validationSettings.isEnabled()) {
-			QuarkusValidator validator = new QuarkusValidator(projectInfo, diagnostics, validationSettings);
+			QuarkusValidator validator = new QuarkusValidator(projectInfo, valuesRulesManager, diagnostics,
+					validationSettings);
 			validator.validate(document, cancelChecker);
 		}
 		return diagnostics;

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2019 Red Hat Inc. and others.
+0* Copyright (c) 2019 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
@@ -63,7 +63,7 @@ public class ApplicationPropertiesCompletionTest {
 		testCompletionFor(value, false,
 				c("quarkus.log.category.{*}.min-level", "quarkus.log.category.{*}.min-level=inherit", r(0, 0, 20)));
 		testCompletionFor(value, true, c("quarkus.log.category.{*}.min-level",
-				"quarkus.log.category.${1:key}.min-level=${0:inherit}", r(0, 0, 20)));
+				"quarkus.log.category.${1:key}.min-level=${2|DEBUG,ERROR,OFF,SEVERE,WARNING,INFO,CONFIG,FINE,FINER,FINEST,ALL|}", r(0, 0, 20)));
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class ApplicationPropertiesCompletionTest {
 		testCompletionFor(value, false,
 				c("quarkus.log.category.{*}.min-level", "quarkus.log.category.{*}.min-level=inherit", r(1, 0, 0)));
 		testCompletionFor(value, true, c("quarkus.log.category.{*}.min-level",
-				"quarkus.log.category.${1:key}.min-level=${0:inherit}", r(1, 0, 0)));
+				"quarkus.log.category.${1:key}.min-level=${2|DEBUG,ERROR,OFF,SEVERE,WARNING,INFO,CONFIG,FINE,FINER,FINEST,ALL|}", r(1, 0, 0)));
 	}
 
 	@Test
@@ -121,21 +121,34 @@ public class ApplicationPropertiesCompletionTest {
 	@Test
 	public void completionOnProfile() throws BadLocationException {
 		String value = "%|";
-		testCompletionFor(value, true, 3, c("dev", "%dev", r(0, 0, 1), "dev" + System.lineSeparator() + System.lineSeparator() + "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator()), //
-				c("prod", "%prod", r(0, 0, 1), "prod" + System.lineSeparator() + System.lineSeparator() + "The default profile when not running in development or test mode." + System.lineSeparator()), //
-				c("test", "%test", r(0, 0, 1), "test" + System.lineSeparator() + System.lineSeparator() + "Profile activated when running tests." + System.lineSeparator()));
+		testCompletionFor(value, true, 3,
+				c("dev", "%dev", r(0, 0, 1),
+						"dev" + System.lineSeparator() + System.lineSeparator()
+								+ "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator()), //
+				c("prod", "%prod", r(0, 0, 1), "prod" + System.lineSeparator() + System.lineSeparator()
+						+ "The default profile when not running in development or test mode." + System.lineSeparator()), //
+				c("test", "%test", r(0, 0, 1), "test" + System.lineSeparator() + System.lineSeparator()
+						+ "Profile activated when running tests." + System.lineSeparator()));
 
 		value = "%st|aging.";
 		testCompletionFor(value, true, 4, c("staging", "%staging", r(0, 0, 9)), //
-				c("dev", "%dev", r(0, 0, 9), "dev" + System.lineSeparator() + System.lineSeparator() + "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator()), //
-				c("prod", "%prod", r(0, 0, 9), "prod" + System.lineSeparator() + System.lineSeparator() + "The default profile when not running in development or test mode." + System.lineSeparator()), //
-				c("test", "%test", r(0, 0, 9), "test" + System.lineSeparator() + System.lineSeparator() + "Profile activated when running tests." + System.lineSeparator()));
+				c("dev", "%dev", r(0, 0, 9),
+						"dev" + System.lineSeparator() + System.lineSeparator()
+								+ "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator()), //
+				c("prod", "%prod", r(0, 0, 9), "prod" + System.lineSeparator() + System.lineSeparator()
+						+ "The default profile when not running in development or test mode." + System.lineSeparator()), //
+				c("test", "%test", r(0, 0, 9), "test" + System.lineSeparator() + System.lineSeparator()
+						+ "Profile activated when running tests." + System.lineSeparator()));
 
 		value = "%staging|.";
 		testCompletionFor(value, true, 4, c("staging", "%staging", r(0, 0, 9)), //
-				c("dev", "%dev", r(0, 0, 9), "dev" + System.lineSeparator() + System.lineSeparator() + "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator()), //
-				c("prod", "%prod", r(0, 0, 9), "prod" + System.lineSeparator() + System.lineSeparator() + "The default profile when not running in development or test mode." + System.lineSeparator()), //
-				c("test", "%test", r(0, 0, 9), "test" + System.lineSeparator() + System.lineSeparator() + "Profile activated when running tests." + System.lineSeparator()));
+				c("dev", "%dev", r(0, 0, 9),
+						"dev" + System.lineSeparator() + System.lineSeparator()
+								+ "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator()), //
+				c("prod", "%prod", r(0, 0, 9), "prod" + System.lineSeparator() + System.lineSeparator()
+						+ "The default profile when not running in development or test mode." + System.lineSeparator()), //
+				c("test", "%test", r(0, 0, 9), "test" + System.lineSeparator() + System.lineSeparator()
+						+ "Profile activated when running tests." + System.lineSeparator()));
 	}
 
 	@Test
@@ -207,4 +220,14 @@ public class ApplicationPropertiesCompletionTest {
 				c("quarkus.application.name", "%prod.quarkus.application.name=", r(2, 0, 6)));
 
 	}
+
+	@Test
+	public void completionOnValueForLevelBasedOnRule() throws BadLocationException {
+		// quarkus.log.file.level has 'java.util.logging.Level' which has no
+		// enumeration
+		// to fix it, quarkus-values-rules.json defines the Level enumerations
+		String value = "quarkus.log.file.level=| ";
+		testCompletionFor(value, true, c("OFF", "OFF", r(0, 23, 24)), c("SEVERE", "SEVERE", r(0, 23, 24)));
+	}
+
 }
