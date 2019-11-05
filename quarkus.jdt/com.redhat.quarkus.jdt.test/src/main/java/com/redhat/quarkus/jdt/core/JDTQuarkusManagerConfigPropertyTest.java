@@ -32,7 +32,7 @@ public class JDTQuarkusManagerConfigPropertyTest extends BaseJDTQuarkusManagerTe
 		QuarkusProjectInfo infoFromClasspath = getQuarkusProjectInfoFromMavenProject("application-configuration",
 				QuarkusPropertiesScope.classpath);
 
-		assertProperties(infoFromClasspath, 69 /* properties from JAR */ + 3 /* properties from Java sources */,
+		assertProperties(infoFromClasspath, 61 /* properties from JAR */ + 3 /* properties from Java sources */,
 				// GreetingResource
 				// @ConfigProperty(name = "greeting.message")
 				// String message;
