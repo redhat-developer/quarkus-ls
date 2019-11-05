@@ -14,6 +14,8 @@ import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.QUARKUS_EXTE
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -71,9 +73,13 @@ public class QuarkusDeploymentJavaProject extends ExternalJavaProject {
 	 */
 	private static IClasspathEntry[] createDeploymentClasspath(IJavaProject project, ArtifactResolver artifactResolver,
 			boolean excludeTestCode) throws JavaModelException {
-		List<IClasspathEntry> externalJarEntries = new ArrayList<>();
-
+		List<IClasspathEntry> deploymentJarEntries = new ArrayList<>();
 		IClasspathEntry[] entries = project.getResolvedClasspath(true);
+		List<String> existingJars = Stream.of(entries)
+				.filter(entry -> entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) //
+				.map(entry -> entry.getPath() //
+						.lastSegment())
+				.collect(Collectors.toList());
 		for (IClasspathEntry entry : entries) {
 			if (excludeTestCode && entry.isTest()) {
 				continue;
@@ -98,16 +104,22 @@ public class QuarkusDeploymentJavaProject extends ExternalJavaProject {
 							String artifactId = result[1];
 							String version = result[2];
 							// Get or download deployment JAR
-							String jarFile = artifactResolver.getArtifact(groupId, artifactId, version);
-							if (jarFile != null) {
-								IPath sourceAttachmentPath = null;
-								// Get or download deployment sources JAR
-								String sourceJarFile = artifactResolver.getSources(groupId, artifactId, version);
-								if (sourceJarFile != null) {
-									sourceAttachmentPath = new Path(sourceJarFile);
+							String deploymentJarFile = artifactResolver.getArtifact(groupId, artifactId, version);
+							if (deploymentJarFile != null) {
+								IPath deploymentJarFilePath = new Path(deploymentJarFile);
+								String deploymentJarName = deploymentJarFilePath.lastSegment();
+								if (!existingJars.contains(deploymentJarName)) {
+									// The *-deployment JAR is not included in the classpath project, add it.
+									existingJars.add(deploymentJarName);
+									IPath sourceAttachmentPath = null;
+									// Get or download deployment sources JAR
+									String sourceJarFile = artifactResolver.getSources(groupId, artifactId, version);
+									if (sourceJarFile != null) {
+										sourceAttachmentPath = new Path(sourceJarFile);
+									}
+									deploymentJarEntries.add(JavaCore.newLibraryEntry(deploymentJarFilePath,
+											sourceAttachmentPath, null));
 								}
-								externalJarEntries
-										.add(JavaCore.newLibraryEntry(new Path(jarFile), sourceAttachmentPath, null));
 							}
 						}
 					}
@@ -120,8 +132,8 @@ public class QuarkusDeploymentJavaProject extends ExternalJavaProject {
 		}
 		// Add the Quarkus project in classpath to resolve dependencies of deployment
 		// Quarkus JARs.
-		externalJarEntries.add(JavaCore.newProjectEntry(project.getProject().getLocation()));
-		return externalJarEntries.toArray(new IClasspathEntry[externalJarEntries.size()]);
+		deploymentJarEntries.add(JavaCore.newProjectEntry(project.getProject().getLocation()));
+		return deploymentJarEntries.toArray(new IClasspathEntry[deploymentJarEntries.size()]);
 	}
 
 	/**

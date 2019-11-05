@@ -61,7 +61,7 @@ public class JDTQuarkusManagerClassPathKindTest extends BaseJDTQuarkusManagerTes
 		QuarkusProjectInfo infoFromSrc = JDTQuarkusManager.getInstance().getQuarkusProjectInfo(fileFromSrc,
 				QuarkusPropertiesScope.classpath, DocumentationConverter.DEFAULT_CONVERTER, new NullProgressMonitor());
 		Assert.assertEquals(ClasspathKind.SRC, infoFromSrc.getClasspathKind());
-		assertProperties(infoFromSrc, 63 /* properties from JAR */ + 3 /* properties from Java sources */,
+		assertProperties(infoFromSrc, 55 /* properties from JAR */ + 3 /* properties from Java sources */,
 
 				// quarkus-resteasy JAR
 				p("quarkus-resteasy-common", "quarkus.resteasy.gzip.enabled", "boolean", "If gzip is enabled",
