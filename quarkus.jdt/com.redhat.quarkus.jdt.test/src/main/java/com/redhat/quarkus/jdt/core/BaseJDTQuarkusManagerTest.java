@@ -45,6 +45,26 @@ public class BaseJDTQuarkusManagerTest {
 	private static final Logger LOGGER = Logger.getLogger(JDTQuarkusManager.class.getSimpleName());
 	private static Level oldLevel;
 
+	public enum MavenProjectName {
+
+		all_quarkus_extensions("all-quarkus-extensions"), //
+		config_properties("config-properties"), //
+		config_quickstart("config-quickstart"), //
+		config_quickstart_test("config-quickstart-test"), //
+		hibernate_orm_resteasy("hibernate-orm-resteasy"), //
+		using_vertx("using-vertx");
+
+		private final String name;
+
+		private MavenProjectName(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+	}
+
 	@BeforeClass
 	public static void setUp() {
 		oldLevel = LOGGER.getLevel();
@@ -56,21 +76,22 @@ public class BaseJDTQuarkusManagerTest {
 		LOGGER.setLevel(oldLevel);
 	}
 
-	protected static QuarkusProjectInfo getQuarkusProjectInfoFromMavenProject(String projectName)
+	protected static QuarkusProjectInfo getQuarkusProjectInfoFromMavenProject(MavenProjectName mavenProject)
 			throws CoreException, Exception, JavaModelException {
-		return getQuarkusProjectInfoFromMavenProject(projectName, QuarkusPropertiesScope.classpath);
+		return getQuarkusProjectInfoFromMavenProject(mavenProject, QuarkusPropertiesScope.classpath);
 	}
 
-	protected static QuarkusProjectInfo getQuarkusProjectInfoFromMavenProject(String projectName,
+	protected static QuarkusProjectInfo getQuarkusProjectInfoFromMavenProject(MavenProjectName mavenProject,
 			QuarkusPropertiesScope scope) throws CoreException, Exception, JavaModelException {
-		IJavaProject javaProject = loadMavenProject(projectName);
+		IJavaProject javaProject = loadMavenProject(mavenProject);
 		QuarkusProjectInfo info = JDTQuarkusManager.getInstance().getQuarkusProjectInfo(javaProject, scope,
 				DocumentationConverter.DEFAULT_CONVERTER, ClasspathKind.SRC, new NullProgressMonitor());
 		return info;
 	}
 
-	public static IJavaProject loadMavenProject(String projectName) throws CoreException, Exception {
+	public static IJavaProject loadMavenProject(MavenProjectName mavenProject) throws CoreException, Exception {
 		// Load existing "hibernate-orm-resteasy" maven project
+		String projectName = mavenProject.getName();
 		IPath path = new Path(new File("projects/maven/" + projectName + "/.project").getAbsolutePath());
 		IProjectDescription description = ResourcesPlugin.getWorkspace().loadProjectDescription(path);
 		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(description.getName());

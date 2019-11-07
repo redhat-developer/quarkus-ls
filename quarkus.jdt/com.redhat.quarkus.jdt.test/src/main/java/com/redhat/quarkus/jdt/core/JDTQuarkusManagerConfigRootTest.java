@@ -35,7 +35,7 @@ public class JDTQuarkusManagerConfigRootTest extends BaseJDTQuarkusManagerTest {
 
 	@Test
 	public void hibernateOrmResteasy() throws Exception {
-		QuarkusProjectInfo info = getQuarkusProjectInfoFromMavenProject("hibernate-orm-resteasy");
+		QuarkusProjectInfo info = getQuarkusProjectInfoFromMavenProject(MavenProjectName.hibernate_orm_resteasy);
 
 		File f = DependencyUtil.getArtifact("io.quarkus", "quarkus-hibernate-orm-deployment", "0.19.1", null);
 		Assert.assertNotNull("Test existing of quarkus-hibernate-orm-deployment*.jar", f);
@@ -51,7 +51,7 @@ public class JDTQuarkusManagerConfigRootTest extends BaseJDTQuarkusManagerTest {
 
 	@Test
 	public void allQuarkusExtensions() throws Exception {
-		QuarkusProjectInfo info = getQuarkusProjectInfoFromMavenProject("all-quarkus-extensions");
+		QuarkusProjectInfo info = getQuarkusProjectInfoFromMavenProject(MavenProjectName.all_quarkus_extensions);
 
 		File keycloakJARFile = DependencyUtil.getArtifact("io.quarkus", "quarkus-keycloak-deployment", "0.21.1", null);
 		Assert.assertNotNull("Test existing of quarkus-keycloak-deployment*.jar", keycloakJARFile);

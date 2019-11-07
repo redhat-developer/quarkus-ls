@@ -45,6 +45,10 @@ public class ClientCapabilitiesWrapper {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getCodeAction());
 	}
 
+	public boolean isCodeLensDynamicRegistered() {
+		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getCodeLens());
+	}
+
 	public boolean isCompletionDynamicRegistrationSupported() {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getCompletion());
 	}

@@ -23,6 +23,7 @@ public class SharedSettings {
 	private final QuarkusValidationSettings validationSettings;
 	private final QuarkusFormattingSettings formattingSettings;
 	private final QuarkusCommandCapabilities commandCapabilities;
+	private final QuarkusCodeLensSettings codeLensSettings;
 
 	public SharedSettings() {
 		this.completionSettings = new QuarkusCompletionSettings();
@@ -31,6 +32,7 @@ public class SharedSettings {
 		this.validationSettings = new QuarkusValidationSettings();
 		this.formattingSettings = new QuarkusFormattingSettings();
 		this.commandCapabilities = new QuarkusCommandCapabilities();
+		this.codeLensSettings = new QuarkusCodeLensSettings();
 	}
 
 	/**
@@ -85,5 +87,14 @@ public class SharedSettings {
 	 */
 	public QuarkusCommandCapabilities getCommandCapabilities() {
 		return commandCapabilities;
+	}
+
+	/**
+	 * Returns the code lens settings.
+	 * 
+	 * @return the code lens settings.
+	 */
+	public QuarkusCodeLensSettings getCodeLensSettings() {
+		return codeLensSettings;
 	}
 }

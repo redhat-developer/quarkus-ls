@@ -37,7 +37,7 @@ public class FindQuarkusPropertyLocationTest extends BaseJDTQuarkusManagerTest {
 		// Enable classFileContentsSupport to generate jdt Location
 		enableClassFileContentsSupport();
 
-		IJavaProject javaProject = loadMavenProject("using-vertx");
+		IJavaProject javaProject = loadMavenProject(MavenProjectName.using_vertx);
 		IFile file = javaProject.getProject().getFile(new Path("src/main/resources/application.properties"));
 
 		// Test with JAR
@@ -64,7 +64,7 @@ public class FindQuarkusPropertyLocationTest extends BaseJDTQuarkusManagerTest {
 		// Enable classFileContentsSupport to generate jdt Location
 		enableClassFileContentsSupport();
 
-		IJavaProject javaProject = loadMavenProject("config-properties");
+		IJavaProject javaProject = loadMavenProject(MavenProjectName.config_properties);
 		IFile file = javaProject.getProject().getFile(new Path("src/main/resources/application.properties"));
 
 		// Test with method

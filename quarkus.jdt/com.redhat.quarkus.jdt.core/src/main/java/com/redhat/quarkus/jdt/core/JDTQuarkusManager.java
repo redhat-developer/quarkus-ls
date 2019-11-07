@@ -16,6 +16,9 @@ import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_PROPE
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_ROOT_ANNOTATION;
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.QUARKUS_JAVADOC_PROPERTIES;
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.QUARKUS_PREFIX;
+import static com.redhat.quarkus.jdt.internal.core.utils.AnnotationUtils.getAnnotation;
+import static com.redhat.quarkus.jdt.internal.core.utils.AnnotationUtils.getAnnotationMemberValue;
+import static com.redhat.quarkus.jdt.internal.core.utils.AnnotationUtils.isMatchAnnotation;
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.runtime.util.StringUtil.join;
@@ -46,7 +49,6 @@ import org.eclipse.jdt.core.IJarEntryResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
@@ -969,44 +971,6 @@ public class JDTQuarkusManager {
 	}
 
 	// ------------- JDT Utilities -------------
-
-	/**
-	 * Returns the annotation from the given <code>annotatable</code> element with
-	 * the given name <code>annotationName</code> and null otherwise.
-	 * 
-	 * @param annotatable    the class, field which can be annotated.
-	 * @param annotationName the annotation name
-	 * @return the annotation from the given <code>annotatable</code> element with
-	 *         the given name <code>annotationName</code> and null otherwise.
-	 * @throws JavaModelException
-	 */
-	private static IAnnotation getAnnotation(IAnnotatable annotatable, String annotationName)
-			throws JavaModelException {
-		if (annotatable == null) {
-			return null;
-		}
-		IAnnotation[] annotations = annotatable.getAnnotations();
-		for (IAnnotation annotation : annotations) {
-			if (isMatchAnnotation(annotation, annotationName)) {
-				return annotation;
-			}
-		}
-		return null;
-	}
-
-	private static boolean isMatchAnnotation(IAnnotation annotation, String annotationName) {
-		return annotationName.endsWith(annotation.getElementName());
-	}
-
-	private static String getAnnotationMemberValue(IAnnotation annotation, String memberName)
-			throws JavaModelException {
-		for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
-			if (memberName.equals(pair.getMemberName())) {
-				return pair.getValue() != null ? pair.getValue().toString() : null;
-			}
-		}
-		return null;
-	}
 
 	private static IType findType(IJavaProject project, String name) {
 		try {
