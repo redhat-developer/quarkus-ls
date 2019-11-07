@@ -9,9 +9,8 @@
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
  */
 
-package com.redhat.quarkus.settings.capabilities;
+package com.redhat.quarkus.ls.commons.client;
 
-import com.redhat.quarkus.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.quarkus.utils.JSONUtility;
 
 import org.eclipse.lsp4j.InitializeParams;

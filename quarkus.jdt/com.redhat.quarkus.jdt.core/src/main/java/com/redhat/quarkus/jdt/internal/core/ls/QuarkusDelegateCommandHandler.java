@@ -10,6 +10,9 @@
 package com.redhat.quarkus.jdt.internal.core.ls;
 
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.QUARKUS_PROPERTIES_CHANGED_COMMAND;
+import static com.redhat.quarkus.jdt.internal.core.utils.ArgumentUtils.getFirst;
+import static com.redhat.quarkus.jdt.internal.core.utils.ArgumentUtils.getInt;
+import static com.redhat.quarkus.jdt.internal.core.utils.ArgumentUtils.getString;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +30,7 @@ import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.managers.IBuildSupport;
 import org.eclipse.lsp4j.Location;
 
+import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
 import com.redhat.quarkus.jdt.core.DocumentationConverter;
 import com.redhat.quarkus.jdt.core.IQuarkusPropertiesChangedListener;
@@ -40,9 +44,9 @@ import com.redhat.quarkus.jdt.internal.core.QuarkusPropertiesListenerManager;
  */
 public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 
-	public static final String PROJECT_INFO_COMMAND_ID = "quarkus.java.projectInfo";
+	private static final String PROJECT_INFO_COMMAND_ID = "quarkus.java.projectInfo";
 
-	public static final String PROPERTY_DEFINITION_COMMAND_ID = "quarkus.java.propertyDefinition";
+	private static final String PROPERTY_DEFINITION_COMMAND_ID = "quarkus.java.propertyDefinition";
 
 	private static final IQuarkusPropertiesChangedListener LISTENER = (event) -> {
 		JavaLanguageServerPlugin.getInstance().getClientConnection()
@@ -62,12 +66,14 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 
 	@Override
 	public Object executeCommand(String commandId, List<Object> arguments, IProgressMonitor progress) throws Exception {
-		if (PROJECT_INFO_COMMAND_ID.equals(commandId)) {
+		switch (commandId) {
+		case PROJECT_INFO_COMMAND_ID:
 			return getQuarkusProjectInfo(arguments, commandId, progress);
-		} else if (PROPERTY_DEFINITION_COMMAND_ID.equals(commandId)) {
+		case PROPERTY_DEFINITION_COMMAND_ID:
 			return findDeclaredQuarkusProperty(arguments, commandId, progress);
+		default:
+			throw new UnsupportedOperationException(String.format("Unsupported command '%s'!", commandId));
 		}
-		throw new UnsupportedOperationException(String.format("Unsupported command '%s'!", commandId));
 	}
 
 	/**
@@ -80,15 +86,15 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 	 * @throws CoreException
 	 * @throws JavaModelException
 	 */
-	private static Object getQuarkusProjectInfo(List<Object> arguments, String commandId, IProgressMonitor progress)
-			throws JavaModelException, CoreException {
+	private static QuarkusProjectInfo getQuarkusProjectInfo(List<Object> arguments, String commandId,
+			IProgressMonitor progress) throws JavaModelException, CoreException {
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
 			throw new UnsupportedOperationException(
 					String.format("Command '%s' must be call with one QuarkusProjectInfoParams argument!", commandId));
 		}
 		// Get project name from the application.properties URI
-		String applicationPropertiesUri = (String) obj.get("uri");
+		String applicationPropertiesUri = getString(obj, "uri");
 		if (applicationPropertiesUri == null) {
 			throw new UnsupportedOperationException(String.format(
 					"Command '%s' must be call with required QuarkusProjectInfoParams.uri (application.properties URI)!",
@@ -99,8 +105,8 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 			throw new UnsupportedOperationException(
 					String.format("Cannot find IFile for '%s'", applicationPropertiesUri));
 		}
-		Number scope = (Number) obj.get("scope");
-		QuarkusPropertiesScope propertiesScope = QuarkusPropertiesScope.forValue(scope.intValue());
+		int scope = getInt(obj, "scope");
+		QuarkusPropertiesScope propertiesScope = QuarkusPropertiesScope.forValue(scope);
 		// Get converter to use for JavaDoc
 		String[] documentationFormat = (String[]) obj.get("documentationFormat");
 		DocumentationConverter converter = getDocumentationConverter(documentationFormat);
@@ -134,7 +140,7 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 					.format("Command '%s' must be call with one QuarkusPropertyDefinitionParams argument!", commandId));
 		}
 		// Get project name from the application.properties URI
-		String applicationPropertiesUri = (String) obj.get("uri");
+		String applicationPropertiesUri = getString(obj, "uri");
 		if (applicationPropertiesUri == null) {
 			throw new UnsupportedOperationException(String.format(
 					"Command '%s' must be call with required QuarkusPropertyDefinitionParams.uri (application.properties URI)!",
@@ -145,7 +151,7 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 			throw new UnsupportedOperationException(
 					String.format("Cannot find IFile for '%s'", applicationPropertiesUri));
 		}
-		String propertySource = (String) obj.get("propertySource");
+		String propertySource = getString(obj, "propertySource");
 		if (propertySource == null) {
 			throw new UnsupportedOperationException(String.format(
 					"Command '%s' must be call with required QuarkusPropertyDefinitionParams.propertySource!",
@@ -156,7 +162,8 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 
 	public static Location findQuarkusPropertyLocation(IFile file, String propertySource, IProgressMonitor progress)
 			throws JavaModelException, CoreException {
-		IMember fieldOrMethod = JDTQuarkusManager.getInstance().findDeclaredQuarkusProperty(file, propertySource, progress);
+		IMember fieldOrMethod = JDTQuarkusManager.getInstance().findDeclaredQuarkusProperty(file, propertySource,
+				progress);
 		if (fieldOrMethod != null) {
 			IClassFile classFile = fieldOrMethod.getClassFile();
 			if (classFile != null) {
@@ -170,10 +177,6 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 			return JDTUtils.toLocation(fieldOrMethod);
 		}
 		return null;
-	}
-
-	private static Map<String, Object> getFirst(List<Object> arguments) {
-		return arguments.isEmpty() ? null : (Map<String, Object>) arguments.get(0);
 	}
 
 }

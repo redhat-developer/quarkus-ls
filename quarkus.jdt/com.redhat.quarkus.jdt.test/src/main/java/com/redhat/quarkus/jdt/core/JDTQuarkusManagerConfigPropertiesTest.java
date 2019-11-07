@@ -40,8 +40,8 @@ public class JDTQuarkusManagerConfigPropertiesTest extends BaseJDTQuarkusManager
 	@Test
 	public void configProperties() throws Exception {
 
-		QuarkusProjectInfo infoFromJavaSources = getQuarkusProjectInfoFromMavenProject("config-properties",
-				QuarkusPropertiesScope.sources);
+		QuarkusProjectInfo infoFromJavaSources = getQuarkusProjectInfoFromMavenProject(
+				MavenProjectName.config_properties, QuarkusPropertiesScope.sources);
 
 		int nbProperties = 0;
 

@@ -35,7 +35,7 @@ public class JDTQuarkusManagerConfigPropertyTest extends BaseJDTQuarkusManagerTe
 	public void configQuickstartFromClasspath() throws Exception {
 
 		//
-		QuarkusProjectInfo infoFromClasspath = getQuarkusProjectInfoFromMavenProject("config-quickstart",
+		QuarkusProjectInfo infoFromClasspath = getQuarkusProjectInfoFromMavenProject(MavenProjectName.config_quickstart,
 				QuarkusPropertiesScope.classpath);
 
 		File f = DependencyUtil.getArtifact("io.quarkus", "quarkus-core-deployment", "1.0.0.CR1", null);
@@ -89,8 +89,8 @@ public class JDTQuarkusManagerConfigPropertyTest extends BaseJDTQuarkusManagerTe
 	@Test
 	public void configQuickstartFromJavaSources() throws Exception {
 
-		QuarkusProjectInfo infoFromJavaSources = getQuarkusProjectInfoFromMavenProject("config-quickstart",
-				QuarkusPropertiesScope.sources);
+		QuarkusProjectInfo infoFromJavaSources = getQuarkusProjectInfoFromMavenProject(
+				MavenProjectName.config_quickstart, QuarkusPropertiesScope.sources);
 
 		assertProperties(infoFromJavaSources, 3 /* properties from Java sources with ConfigProperty */ + //
 				2 /* properties from Java sources with ConfigRoot */,

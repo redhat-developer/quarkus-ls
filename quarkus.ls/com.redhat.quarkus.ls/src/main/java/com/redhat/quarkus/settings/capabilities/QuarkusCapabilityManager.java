@@ -8,6 +8,7 @@
 package com.redhat.quarkus.settings.capabilities;
 
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.CODE_ACTION_ID;
+import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.CODE_LENS_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.COMPLETION_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_COMPLETION_OPTIONS;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.DEFINITION_ID;
@@ -16,6 +17,7 @@ import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstan
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.HOVER_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.RANGE_FORMATTING_ID;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_CODE_ACTION;
+import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_CODE_LENS;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_COMPLETION;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_DEFINITION;
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_DOCUMENT_SYMBOL;
@@ -56,6 +58,9 @@ public class QuarkusCapabilityManager {
 		if (this.getClientCapabilities().isCodeActionDynamicRegistered()) {
 			registerCapability(CODE_ACTION_ID, TEXT_DOCUMENT_CODE_ACTION);
 		}
+		if (this.getClientCapabilities().isCodeLensDynamicRegistered()) {
+			registerCapability(CODE_LENS_ID, TEXT_DOCUMENT_CODE_LENS);
+		}
 		if (this.getClientCapabilities().isCompletionDynamicRegistrationSupported()) {
 			registerCapability(COMPLETION_ID, TEXT_DOCUMENT_COMPLETION, DEFAULT_COMPLETION_OPTIONS);
 		}
@@ -68,11 +73,9 @@ public class QuarkusCapabilityManager {
 		if (this.getClientCapabilities().isDefinitionDynamicRegistered()) {
 			registerCapability(DEFINITION_ID, TEXT_DOCUMENT_DEFINITION);
 		}
-
 		if (this.getClientCapabilities().isFormattingDynamicRegistered()) {
 			registerCapability(FORMATTING_ID, TEXT_DOCUMENT_FORMATTING);
 		}
-
 		if (this.getClientCapabilities().isFormattingDynamicRegistered()) {
 			registerCapability(RANGE_FORMATTING_ID, TEXT_DOCUMENT_RANGE_FORMATTING);
 		}

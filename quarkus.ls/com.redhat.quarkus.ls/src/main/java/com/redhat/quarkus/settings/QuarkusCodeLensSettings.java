@@ -7,17 +7,24 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.quarkus.ls.api;
-
-import org.eclipse.lsp4j.services.LanguageClient;
+package com.redhat.quarkus.settings;
 
 /**
- * Quarkus language client API.
+ * Quarkus code lens settings.
  * 
  * @author Angelo ZERR
  *
  */
-public interface QuarkusLanguageClientAPI extends LanguageClient, QuarkusProjectInfoProvider,
-		QuarkusPropertyDefinitionProvider, QuarkusJavaCodeLensProvider {
+public class QuarkusCodeLensSettings {
+
+	private boolean urlCodeLensEnabled;
+
+	public boolean isUrlCodeLensEnabled() {
+		return urlCodeLensEnabled;
+	}
+
+	public void setUrlCodeLensEnabled(boolean urlCodeLensEnabled) {
+		this.urlCodeLensEnabled = urlCodeLensEnabled;
+	}
 
 }

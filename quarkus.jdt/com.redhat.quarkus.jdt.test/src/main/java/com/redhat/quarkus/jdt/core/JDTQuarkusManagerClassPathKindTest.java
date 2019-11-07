@@ -44,7 +44,7 @@ public class JDTQuarkusManagerClassPathKindTest extends BaseJDTQuarkusManagerTes
 	@Test
 	public void configQuickstartTest() throws Exception {
 
-		IJavaProject javaProject = loadMavenProject("config-quickstart-test");
+		IJavaProject javaProject = loadMavenProject(MavenProjectName.config_quickstart_test);
 
 		// not in classpath -> 0 quarkus properties
 		IFile fileFromNone = javaProject.getProject().getFile(new Path("application.properties"));

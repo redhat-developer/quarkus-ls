@@ -9,15 +9,25 @@
 *******************************************************************************/
 package com.redhat.quarkus.ls.api;
 
-import org.eclipse.lsp4j.services.LanguageClient;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
+
+import com.redhat.quarkus.commons.QuarkusJavaCodeLensParams;
 
 /**
- * Quarkus language client API.
+ * Quarkus Java code lens provider.
  * 
  * @author Angelo ZERR
  *
  */
-public interface QuarkusLanguageClientAPI extends LanguageClient, QuarkusProjectInfoProvider,
-		QuarkusPropertyDefinitionProvider, QuarkusJavaCodeLensProvider {
+public interface QuarkusJavaCodeLensProvider {
+
+	@JsonRequest("quarkus/java/codeLens")
+	default CompletableFuture<List<? extends CodeLens>> quarkusJavaCodelens(QuarkusJavaCodeLensParams javaParams) {
+		return CompletableFuture.completedFuture(null);
+	}
 
 }

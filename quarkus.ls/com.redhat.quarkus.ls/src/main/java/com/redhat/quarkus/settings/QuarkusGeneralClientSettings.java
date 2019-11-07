@@ -34,6 +34,8 @@ public class QuarkusGeneralClientSettings {
 
 	private QuarkusFormattingSettings formatting;
 
+	private QuarkusCodeLensSettings codeLens;
+
 	/**
 	 * Returns the symbols settings.
 	 * 
@@ -86,6 +88,24 @@ public class QuarkusGeneralClientSettings {
 	 */
 	public void setFormatting(QuarkusFormattingSettings formatting) {
 		this.formatting = formatting;
+	}
+
+	/**
+	 * Returns the code lens settings.
+	 * 
+	 * @return the code lens settings.
+	 */
+	public QuarkusCodeLensSettings getCodeLens() {
+		return codeLens;
+	}
+
+	/**
+	 * Sets the code lens settings.
+	 * 
+	 * @param codeLens the code lens settings.
+	 */
+	public void setCodeLens(QuarkusCodeLensSettings codeLens) {
+		this.codeLens = codeLens;
 	}
 
 	/**
