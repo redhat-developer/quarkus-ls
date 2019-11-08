@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.redhat.quarkus.ls.commons.client.ExtendedClientCapabilities;
+
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.Registration;
 import org.eclipse.lsp4j.RegistrationParams;
@@ -76,8 +78,8 @@ public class QuarkusCapabilityManager {
 		}
 	}
 
-	public void setClientCapabilities(ClientCapabilities clientCapabilities) {
-		this.clientWrapper = new ClientCapabilitiesWrapper(clientCapabilities);
+	public void setClientCapabilities(ClientCapabilities clientCapabilities, ExtendedClientCapabilities extendedClientCapabilities) {
+		this.clientWrapper = new ClientCapabilitiesWrapper(clientCapabilities, extendedClientCapabilities);
 	}
 
 	public ClientCapabilitiesWrapper getClientCapabilities() {

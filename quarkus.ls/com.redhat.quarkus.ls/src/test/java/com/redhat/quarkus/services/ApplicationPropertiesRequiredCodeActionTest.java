@@ -115,7 +115,7 @@ public class ApplicationPropertiesRequiredCodeActionTest {
 
 		testDiagnosticsFor(value, projectInfo, validationSettings, d1, d2);
 		testCodeActionsFor(value, d, d.get(0).getRange(), projectInfo,
-				ca("Add all missing required properties?", te(1, 37, 1, 37, "\nquarkus.required.property=\nquarkus.second.required.property="), d));
+				ca("Add all missing required properties?", te(1, 37, 1, 37, "\nquarkus.required.property=\nquarkus.second.required.property="), d1, d2));
 	}
 
 	@Test

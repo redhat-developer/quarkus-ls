@@ -120,7 +120,7 @@ public class QuarkusCapabilitiesTest {
 	private void setAndInitializeCapabilities() {
 		clientCapabilities.setTextDocument(textDocument);
 		clientCapabilities.setWorkspace(workspace);
-		manager.setClientCapabilities(clientCapabilities);
+		manager.setClientCapabilities(clientCapabilities, null);
 		manager.initializeCapabilities();
 		capabilityIDs = manager.getRegisteredCapabilities();
 	}
