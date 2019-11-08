@@ -22,6 +22,7 @@ public class SharedSettings {
 	private final QuarkusSymbolSettings symbolSettings;
 	private final QuarkusValidationSettings validationSettings;
 	private final QuarkusFormattingSettings formattingSettings;
+	private final QuarkusCommandCapabilities commandCapabilities;
 
 	public SharedSettings() {
 		this.completionSettings = new QuarkusCompletionSettings();
@@ -29,6 +30,7 @@ public class SharedSettings {
 		this.symbolSettings = new QuarkusSymbolSettings();
 		this.validationSettings = new QuarkusValidationSettings();
 		this.formattingSettings = new QuarkusFormattingSettings();
+		this.commandCapabilities = new QuarkusCommandCapabilities();
 	}
 
 	/**
@@ -74,5 +76,14 @@ public class SharedSettings {
 	 */
 	public QuarkusFormattingSettings getFormattingSettings() {
 		return formattingSettings;
+	}
+
+	/**
+	 * Returns the command capabilities.
+	 * 
+	 * @return the command capabilities.
+	 */
+	public QuarkusCommandCapabilities getCommandCapabilities() {
+		return commandCapabilities;
 	}
 }

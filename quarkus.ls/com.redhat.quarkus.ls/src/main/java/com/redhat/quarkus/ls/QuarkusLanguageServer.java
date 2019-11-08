@@ -15,18 +15,10 @@ import static org.eclipse.lsp4j.jsonrpc.CompletableFutures.computeAsync;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
-import org.eclipse.lsp4j.InitializeParams;
-import org.eclipse.lsp4j.InitializeResult;
-import org.eclipse.lsp4j.InitializedParams;
-import org.eclipse.lsp4j.ServerCapabilities;
-import org.eclipse.lsp4j.services.LanguageClient;
-import org.eclipse.lsp4j.services.LanguageServer;
-import org.eclipse.lsp4j.services.TextDocumentService;
-import org.eclipse.lsp4j.services.WorkspaceService;
-
 import com.redhat.quarkus.commons.QuarkusPropertiesChangeEvent;
 import com.redhat.quarkus.ls.api.QuarkusLanguageClientAPI;
 import com.redhat.quarkus.ls.api.QuarkusLanguageServerAPI;
+import com.redhat.quarkus.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.quarkus.ls.commons.ParentProcessWatcher.ProcessLanguageServer;
 import com.redhat.quarkus.services.QuarkusLanguageService;
 import com.redhat.quarkus.settings.AllQuarkusSettings;
@@ -35,8 +27,18 @@ import com.redhat.quarkus.settings.QuarkusFormattingSettings;
 import com.redhat.quarkus.settings.QuarkusGeneralClientSettings;
 import com.redhat.quarkus.settings.QuarkusSymbolSettings;
 import com.redhat.quarkus.settings.QuarkusValidationSettings;
+import com.redhat.quarkus.settings.capabilities.InitializationOptionsExtendedClientCapabilities;
 import com.redhat.quarkus.settings.capabilities.QuarkusCapabilityManager;
 import com.redhat.quarkus.settings.capabilities.ServerCapabilitiesInitializer;
+
+import org.eclipse.lsp4j.InitializeParams;
+import org.eclipse.lsp4j.InitializeResult;
+import org.eclipse.lsp4j.InitializedParams;
+import org.eclipse.lsp4j.ServerCapabilities;
+import org.eclipse.lsp4j.services.LanguageClient;
+import org.eclipse.lsp4j.services.LanguageServer;
+import org.eclipse.lsp4j.services.TextDocumentService;
+import org.eclipse.lsp4j.services.WorkspaceService;
 
 /**
  * Quarkus language server.
@@ -66,11 +68,12 @@ public class QuarkusLanguageServer implements LanguageServer, ProcessLanguageSer
 
 		this.parentProcessId = params.getProcessId();
 
-		capabilityManager.setClientCapabilities(params.getCapabilities());
+		ExtendedClientCapabilities extendedClientCapabilities = InitializationOptionsExtendedClientCapabilities
+				.getExtendedClientCapabilities(params);
+		capabilityManager.setClientCapabilities(params.getCapabilities(), extendedClientCapabilities);
 		updateSettings(InitializationOptionsSettings.getSettings(params));
 
-		textDocumentService.updateClientCapabilities(params.getCapabilities());
-
+		textDocumentService.updateClientCapabilities(params.getCapabilities(), extendedClientCapabilities);
 		ServerCapabilities serverCapabilities = ServerCapabilitiesInitializer
 				.getNonDynamicServerCapabilities(capabilityManager.getClientCapabilities());
 

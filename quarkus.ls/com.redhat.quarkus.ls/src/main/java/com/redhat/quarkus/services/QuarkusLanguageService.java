@@ -12,6 +12,15 @@ package com.redhat.quarkus.services;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import com.redhat.quarkus.commons.QuarkusProjectInfo;
+import com.redhat.quarkus.ls.api.QuarkusPropertyDefinitionProvider;
+import com.redhat.quarkus.model.PropertiesModel;
+import com.redhat.quarkus.settings.QuarkusCommandCapabilities;
+import com.redhat.quarkus.settings.QuarkusCompletionSettings;
+import com.redhat.quarkus.settings.QuarkusFormattingSettings;
+import com.redhat.quarkus.settings.QuarkusHoverSettings;
+import com.redhat.quarkus.settings.QuarkusValidationSettings;
+
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.CompletionList;
@@ -27,15 +36,7 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
-import com.redhat.quarkus.commons.QuarkusProjectInfo;
-import com.redhat.quarkus.ls.api.QuarkusPropertyDefinitionProvider;
-import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.model.values.ValuesRulesManager;
-import com.redhat.quarkus.settings.QuarkusCompletionSettings;
-import com.redhat.quarkus.settings.QuarkusFormattingSettings;
-import com.redhat.quarkus.settings.QuarkusHoverSettings;
-import com.redhat.quarkus.settings.QuarkusValidationSettings;
-
 /**
  * The Quarkus language service.
  * 
@@ -189,16 +190,17 @@ public class QuarkusLanguageService {
 	 * <code>document</code> by using the given Quarkus properties metadata
 	 * <code>projectInfo</code>.
 	 * 
-	 * @param context            the code action context
-	 * @param range              the range
-	 * @param document           the properties model.
-	 * @param projectInfo        the Quarkus properties
-	 * @param formattingSettings the formatting settings.
+	 * @param context             the code action context
+	 * @param range               the range
+	 * @param document            the properties model.
+	 * @param projectInfo         the Quarkus properties
+	 * @param formattingSettings  the formatting settings.
+	 * @param commandCapabilities the command capabilities
 	 * @return the result of the code actions.
 	 */
 	public List<CodeAction> doCodeActions(CodeActionContext context, Range range, PropertiesModel document,
-			QuarkusProjectInfo projectInfo, QuarkusFormattingSettings formattingSettings) {
-		return codeActions.doCodeActions(context, range, document, projectInfo, getValuesRulesManager(), formattingSettings);
+			QuarkusProjectInfo projectInfo, QuarkusFormattingSettings formattingSettings, QuarkusCommandCapabilities commandCapabilities) {
+		return codeActions.doCodeActions(context, range, document, projectInfo, getValuesRulesManager(), formattingSettings, commandCapabilities);
 	}
 
 	/**

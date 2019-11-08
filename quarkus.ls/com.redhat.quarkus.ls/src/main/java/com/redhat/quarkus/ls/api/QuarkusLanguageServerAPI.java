@@ -35,4 +35,6 @@ public interface QuarkusLanguageServerAPI extends LanguageServer {
 	 */
 	@JsonNotification("quarkus/quarkusPropertiesChanged")
 	void quarkusPropertiesChanged(QuarkusPropertiesChangeEvent event);
+
+	
 }

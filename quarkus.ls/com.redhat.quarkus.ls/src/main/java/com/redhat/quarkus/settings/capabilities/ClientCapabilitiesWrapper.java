@@ -7,6 +7,8 @@
  *******************************************************************************/
 package com.redhat.quarkus.settings.capabilities;
 
+import com.redhat.quarkus.ls.commons.client.ExtendedClientCapabilities;
+
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.DynamicRegistrationCapabilities;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
@@ -20,13 +22,16 @@ public class ClientCapabilitiesWrapper {
 
 	private ClientCapabilities capabilities;
 
+	private final ExtendedClientCapabilities extendedCapabilities;
+
 	public ClientCapabilitiesWrapper() {
-		this(new ClientCapabilities());
+		this(new ClientCapabilities(), null);
 	}
 
-	public ClientCapabilitiesWrapper(ClientCapabilities capabilities) {
+	public ClientCapabilitiesWrapper(ClientCapabilities capabilities, ExtendedClientCapabilities extendedCapabilities) {
 		this.capabilities = capabilities;
 		this.v3Supported = capabilities != null ? capabilities.getTextDocument() != null : false;
+		this.extendedCapabilities = extendedCapabilities;
 	}
 
 	/**
@@ -71,5 +76,9 @@ public class ClientCapabilitiesWrapper {
 
 	public TextDocumentClientCapabilities getTextDocument() {
 		return this.capabilities.getTextDocument();
+	}
+
+	public ExtendedClientCapabilities getExtendedCapabilities() {
+		return extendedCapabilities;
 	}
 }

@@ -15,11 +15,17 @@ import static com.redhat.quarkus.services.QuarkusAssert.te;
 import static com.redhat.quarkus.services.QuarkusAssert.testCodeActionsFor;
 import static com.redhat.quarkus.services.QuarkusAssert.testDiagnosticsFor;
 
+import java.util.Arrays;
+
+import com.redhat.quarkus.ls.commons.BadLocationException;
+import com.redhat.quarkus.ls.commons.client.CommandKind;
+import com.redhat.quarkus.ls.commons.client.ConfigurationItemEdit;
+import com.redhat.quarkus.ls.commons.client.ConfigurationItemEditType;
+
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.Test;
-
-import com.redhat.quarkus.ls.commons.BadLocationException;
 
 /**
  * Test with code actions in 'application.properties' file.
@@ -38,9 +44,16 @@ public class ApplicationPropertiesCodeActionsTest {
 		Diagnostic d = d(1, 0, 23, "Unknown property 'quarkus.application.nme'", DiagnosticSeverity.Warning,
 				ValidationType.unknown);
 
+		ConfigurationItemEdit configItemEdit = new ConfigurationItemEdit("quarkus.tools.validation.unknown.excluded",
+				ConfigurationItemEditType.add, "quarkus.application.nme");
+
+		Command command = new Command("Add quarkus.application.nme to unknown excluded array",
+				CommandKind.COMMAND_CONFIGURATION_UPDATE, Arrays.asList(configItemEdit));
+
 		testDiagnosticsFor(value, d);
 		testCodeActionsFor(value, d,
-				ca("Did you mean 'quarkus.application.name' ?", te(1, 0, 1, 23, "quarkus.application.name"), d));
+				ca("Did you mean 'quarkus.application.name' ?", te(1, 0, 1, 23, "quarkus.application.name"), d),
+				ca("Exclude 'quarkus.application.nme' from unknown property validation?", command, d));
 	};
 
 	@Test

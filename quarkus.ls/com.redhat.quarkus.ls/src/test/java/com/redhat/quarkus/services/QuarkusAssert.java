@@ -17,8 +17,27 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+import com.redhat.quarkus.commons.QuarkusProjectInfo;
+import com.redhat.quarkus.ls.MockQuarkusPropertyDefinitionProvider;
+import com.redhat.quarkus.ls.api.QuarkusPropertyDefinitionProvider;
+import com.redhat.quarkus.ls.commons.client.CommandCapabilities;
+import com.redhat.quarkus.ls.commons.client.CommandKind;
+import com.redhat.quarkus.ls.commons.client.CommandKindCapabilities;
+import com.redhat.quarkus.ls.commons.BadLocationException;
+import com.redhat.quarkus.ls.commons.TextDocument;
+import com.redhat.quarkus.model.PropertiesModel;
+import com.redhat.quarkus.settings.QuarkusCommandCapabilities;
+import com.redhat.quarkus.settings.QuarkusCompletionSettings;
+import com.redhat.quarkus.settings.QuarkusFormattingSettings;
+import com.redhat.quarkus.settings.QuarkusHoverSettings;
+import com.redhat.quarkus.settings.QuarkusValidationSettings;
+import com.redhat.quarkus.utils.DocumentationUtils;
+import com.redhat.quarkus.utils.PositionUtils;
+
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionCapabilities;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemCapabilities;
@@ -43,20 +62,6 @@ import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.junit.Assert;
-
-import com.google.gson.Gson;
-import com.redhat.quarkus.commons.QuarkusProjectInfo;
-import com.redhat.quarkus.ls.MockQuarkusPropertyDefinitionProvider;
-import com.redhat.quarkus.ls.api.QuarkusPropertyDefinitionProvider;
-import com.redhat.quarkus.ls.commons.BadLocationException;
-import com.redhat.quarkus.ls.commons.TextDocument;
-import com.redhat.quarkus.model.PropertiesModel;
-import com.redhat.quarkus.settings.QuarkusCompletionSettings;
-import com.redhat.quarkus.settings.QuarkusFormattingSettings;
-import com.redhat.quarkus.settings.QuarkusHoverSettings;
-import com.redhat.quarkus.settings.QuarkusValidationSettings;
-import com.redhat.quarkus.utils.DocumentationUtils;
-import com.redhat.quarkus.utils.PositionUtils;
 
 /**
  * Quarkus assert
@@ -441,15 +446,23 @@ public class QuarkusAssert {
 		CodeActionContext context = new CodeActionContext();
 		context.setDiagnostics(diagnostics);
 
+		QuarkusCommandCapabilities quarkusCommandCapabilities = new QuarkusCommandCapabilities();
+
+
+		List<String> valueSet = Arrays.asList(CommandKind.COMMAND_CONFIGURATION_UPDATE);
+		CommandKindCapabilities commandKindCapabilities = new CommandKindCapabilities(valueSet);
+		CommandCapabilities commandCapabilities = new CommandCapabilities(commandKindCapabilities);
+
+		quarkusCommandCapabilities.setCapabilities(commandCapabilities);
+
 		List<CodeAction> actual = languageService.doCodeActions(context, range, model, projectInfo,
-				formattingSettings);
+				formattingSettings, quarkusCommandCapabilities);
 		assertCodeActions(actual, expected);
 	}
 
 	public static void assertCodeActions(List<CodeAction> actual, CodeAction... expected) {
 		actual.stream().forEach(ca -> {
 			// we don't want to compare title, etc
-			ca.setCommand(null);
 			ca.setKind(null);
 			if (ca.getDiagnostics() != null) {
 				ca.getDiagnostics().forEach(d -> {
@@ -465,25 +478,36 @@ public class QuarkusAssert {
 	}
 
 	public static CodeAction ca(String title, TextEdit te, Diagnostic... d) {
+		return ca(title, te, null, d);
+	}
+
+	public static CodeAction ca(String title, Command command, Diagnostic... d) {
+		return ca(title, null, command, d);
+	}
+
+	public static CodeAction ca(String title, TextEdit te, Command command, Diagnostic... d) {
 		List<Diagnostic> diagnostics = new ArrayList<>();
 		for (int i = 0; i < d.length; i++) {
 			diagnostics.add(d[i]);
 		}
-		return ca(title, te, diagnostics);
+		return ca(title, te, command, diagnostics);
 	}
 
-	public static CodeAction ca(String title, TextEdit te, List<Diagnostic> diagnostics) {
+	public static CodeAction ca(String title, TextEdit te, Command command, List<Diagnostic> diagnostics) {
 		CodeAction codeAction = new CodeAction();
 		codeAction.setTitle(title);
 		codeAction.setDiagnostics(diagnostics);
+		codeAction.setCommand(command);
 
-		VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier(
+		if (te != null) {
+			VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier(
 				"application.properties", 0);
-
-		TextDocumentEdit textDocumentEdit = new TextDocumentEdit(versionedTextDocumentIdentifier,
-				Collections.singletonList(te));
-		WorkspaceEdit workspaceEdit = new WorkspaceEdit(Collections.singletonList(Either.forLeft(textDocumentEdit)));
-		codeAction.setEdit(workspaceEdit);
+			TextDocumentEdit textDocumentEdit = new TextDocumentEdit(versionedTextDocumentIdentifier,
+			Collections.singletonList(te));
+			WorkspaceEdit workspaceEdit = new WorkspaceEdit(Collections.singletonList(Either.forLeft(textDocumentEdit)));
+			codeAction.setEdit(workspaceEdit);
+		}
+	
 		return codeAction;
 	}
 

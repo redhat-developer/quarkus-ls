@@ -11,6 +11,7 @@ package com.redhat.quarkus.services;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,11 +23,15 @@ import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.CodeActionFactory;
 import com.redhat.quarkus.ls.commons.TextDocument;
+import com.redhat.quarkus.ls.commons.client.CommandKind;
+import com.redhat.quarkus.ls.commons.client.ConfigurationItemEdit;
+import com.redhat.quarkus.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.quarkus.model.PropertiesModel;
 import com.redhat.quarkus.model.Property;
 import com.redhat.quarkus.model.PropertyKey;
 import com.redhat.quarkus.model.PropertyValue;
 import com.redhat.quarkus.model.values.ValuesRulesManager;
+import com.redhat.quarkus.settings.QuarkusCommandCapabilities;
 import com.redhat.quarkus.settings.QuarkusFormattingSettings;
 import com.redhat.quarkus.utils.PositionUtils;
 import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
@@ -34,6 +39,8 @@ import com.redhat.quarkus.utils.StringUtils;
 
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
+import org.eclipse.lsp4j.CodeActionKind;
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
@@ -55,15 +62,17 @@ class QuarkusCodeActions {
 	 * <code>document</code> by using the given Quarkus properties metadata
 	 * <code>projectInfo</code>.
 	 * 
-	 * @param context            the code action context
-	 * @param range              the range
-	 * @param document           the properties model.
-	 * @param projectInfo        the Quarkus properties
-	 * @param formattingSettings the formatting settings.
+	 * @param context             the code action context
+	 * @param range               the range
+	 * @param document            the properties model.
+	 * @param projectInfo         the Quarkus properties
+	 * @param formattingSettings  the formatting settings.
+	 * @param commandCapabilities the command capabilities
 	 * @return the result of the code actions.
 	 */
 	public List<CodeAction> doCodeActions(CodeActionContext context, Range range, PropertiesModel document,
-			QuarkusProjectInfo projectInfo, ValuesRulesManager valuesRulesManager, QuarkusFormattingSettings formattingSettings) {
+			QuarkusProjectInfo projectInfo, ValuesRulesManager valuesRulesManager,
+			QuarkusFormattingSettings formattingSettings, QuarkusCommandCapabilities commandCapabilities) {
 		List<CodeAction> codeActions = new ArrayList<>();
 		if (context.getDiagnostics() != null) {
 			doCodeActionForAllRequired(context.getDiagnostics(), document, formattingSettings, codeActions);
@@ -71,7 +80,7 @@ class QuarkusCodeActions {
 			for (Diagnostic diagnostic : context.getDiagnostics()) {
 				if (ValidationType.unknown.name().equals(diagnostic.getCode())) {
 					// Manage code action for unknown
-					doCodeActionsForUnknown(diagnostic, document, projectInfo, codeActions);
+					doCodeActionsForUnknown(diagnostic, document, projectInfo, commandCapabilities, codeActions);
 				} else if (ValidationType.value.name().equals(diagnostic.getCode())) {
 					doCodeActionsForUnknownEnumValue(diagnostic, document, projectInfo, valuesRulesManager, codeActions);
 				}
@@ -88,13 +97,15 @@ class QuarkusCodeActions {
 	 * LIMITATION: mapped property are not supported.
 	 * </p>
 	 * 
-	 * @param diagnostic  the diagnostic
-	 * @param document    the properties model.
-	 * @param projectInfo the Quarkus properties
-	 * @param codeActions code actions list to fill.
+	 * @param diagnostic          the diagnostic
+	 * @param document            the properties model.
+	 * @param projectInfo         the Quarkus properties
+	 * @param commandCapabilities the command capabilities
+	 * @param codeActions         code actions list to fill.
 	 */
 	private void doCodeActionsForUnknown(Diagnostic diagnostic, PropertiesModel document,
-			QuarkusProjectInfo projectInfo, List<CodeAction> codeActions) {
+			QuarkusProjectInfo projectInfo, QuarkusCommandCapabilities commandCapabilities,
+			List<CodeAction> codeActions) {
 		try {
 			// Get property name by using the diagnostic range
 			PropertyKey propertyKey = (PropertyKey) document.findNodeAt(diagnostic.getRange().getStart());
@@ -113,6 +124,10 @@ class QuarkusCodeActions {
 						codeActions.add(replaceAction);
 					}
 				}
+			}
+
+			if (commandCapabilities.isCommandSupported(CommandKind.COMMAND_CONFIGURATION_UPDATE)) {
+				doCodeActionForIgnoreUnknownValidation(propertyName, diagnostic, codeActions);
 			}
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In QuarkusCodeActions, position error", e);
@@ -184,37 +199,27 @@ class QuarkusCodeActions {
 	}
 
 	/**
-	 * Returns the <code>Position</code> to insert the missing required code action property into
-	 * @param textDocument the text document
-	 * @return the <code>Position</code> to insert the missing required code action property into
-	 * @throws BadLocationException
+	 * Create a code action that adds <code>propertyName</code> to user's unknown
+	 * validation excluded array
+	 * 
+	 * @param propertyName the property name to add to array for code action
+	 * @param diagnostic   the corresponding unknown property diagnostic
+	 * @param codeActions  the list of code actions
 	 */
-	private Position getPositionForRequiredCodeAction(TextDocument textDocument) throws BadLocationException {
-		String textDocumentText = textDocument.getText();
-		
-		if (!StringUtils.hasText(textDocumentText)) {
-			return new Position(0, 0);
-		}
+	private void doCodeActionForIgnoreUnknownValidation(String propertyName, Diagnostic diagnostic,
+			List<CodeAction> codeActions) {
+		CodeAction insertCodeAction = new CodeAction(
+				"Exclude '" + propertyName + "' from unknown property validation?");
 
-		for (int i = textDocumentText.length() - 1; i >= 0; i--) {
-			if (!Character.isWhitespace(textDocumentText.charAt(i))) {
-				return textDocument.positionAt(i + 1);
-			}
-		}
+		ConfigurationItemEdit configItemEdit = new ConfigurationItemEdit("quarkus.tools.validation.unknown.excluded",
+				ConfigurationItemEditType.add, propertyName);
 
-		// should never happen
-		return null;
-	}
-
-	/**
-	 * Returns the missing required property name from <code>diagnosticMessage</code>
-	 * @param diagnosticMessage the diagnostic message containing the property name in single quotes
-	 * @return the missing required property name from <code>diagnosticMessage</code>
-	 */
-	private String getPropertyNameFromRequiredMessage(String diagnosticMessage) {
-		int start = diagnosticMessage.indexOf('\'') + 1;
-		int end = diagnosticMessage.indexOf('\'', start);
-		return diagnosticMessage.substring(start, end);
+		Command command = new Command("Add " + propertyName + " to unknown excluded array",
+				CommandKind.COMMAND_CONFIGURATION_UPDATE, Collections.singletonList(configItemEdit));
+		insertCodeAction.setCommand(command);
+		insertCodeAction.setKind(CodeActionKind.QuickFix);
+		insertCodeAction.setDiagnostics(Collections.singletonList(diagnostic));
+		codeActions.add(insertCodeAction);
 	}
 
 	/**
@@ -265,6 +270,40 @@ class QuarkusCodeActions {
 			LOGGER.log(Level.SEVERE, "In QuarkusCodeActions, position error", e);
 		}
 		
+	}
+
+	/**
+	 * Returns the <code>Position</code> to insert the missing required code action property into
+	 * @param textDocument the text document
+	 * @return the <code>Position</code> to insert the missing required code action property into
+	 * @throws BadLocationException
+	 */
+	private Position getPositionForRequiredCodeAction(TextDocument textDocument) throws BadLocationException {
+		String textDocumentText = textDocument.getText();
+		
+		if (!StringUtils.hasText(textDocumentText)) {
+			return new Position(0, 0);
+		}
+
+		for (int i = textDocumentText.length() - 1; i >= 0; i--) {
+			if (!Character.isWhitespace(textDocumentText.charAt(i))) {
+				return textDocument.positionAt(i + 1);
+			}
+		}
+
+		// should never happen
+		return null;
+	}
+
+	/**
+	 * Returns the missing required property name from <code>diagnosticMessage</code>
+	 * @param diagnosticMessage the diagnostic message containing the property name in single quotes
+	 * @return the missing required property name from <code>diagnosticMessage</code>
+	 */
+	private String getPropertyNameFromRequiredMessage(String diagnosticMessage) {
+		int start = diagnosticMessage.indexOf('\'') + 1;
+		int end = diagnosticMessage.indexOf('\'', start);
+		return diagnosticMessage.substring(start, end);
 	}
 
 	private static boolean isSimilarPropertyValue(String reference, String current) {

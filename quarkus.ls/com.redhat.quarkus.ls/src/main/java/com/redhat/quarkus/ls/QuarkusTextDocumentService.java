@@ -48,6 +48,7 @@ import org.eclipse.lsp4j.services.TextDocumentService;
 
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 import com.redhat.quarkus.commons.QuarkusPropertiesChangeEvent;
+import com.redhat.quarkus.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.quarkus.ls.commons.ModelTextDocument;
 import com.redhat.quarkus.ls.commons.ModelTextDocuments;
 import com.redhat.quarkus.model.PropertiesModel;
@@ -87,8 +88,10 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 	 * Update shared settings from the client capabilities.
 	 * 
 	 * @param capabilities the client capabilities
+	 * @param extendedClientCapabilities the extended client capabilities
 	 */
-	public void updateClientCapabilities(ClientCapabilities capabilities) {
+	public void updateClientCapabilities(ClientCapabilities capabilities,
+			ExtendedClientCapabilities extendedClientCapabilities) {
 		TextDocumentClientCapabilities textDocumentClientCapabilities = capabilities.getTextDocument();
 		if (textDocumentClientCapabilities != null) {
 			sharedSettings.getCompletionSettings().setCapabilities(textDocumentClientCapabilities.getCompletion());
@@ -99,6 +102,10 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 			definitionLinkSupport = textDocumentClientCapabilities.getDefinition() != null
 					&& textDocumentClientCapabilities.getDefinition().getLinkSupport() != null
 					&& textDocumentClientCapabilities.getDefinition().getLinkSupport();
+		}
+
+		if (extendedClientCapabilities != null) {
+			sharedSettings.getCommandCapabilities().setCapabilities(extendedClientCapabilities.getCommands());
 		}
 	}
 
@@ -232,7 +239,8 @@ public class QuarkusTextDocumentService implements TextDocumentService {
 			return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
 				return getQuarkusLanguageService()
 						.doCodeActions(params.getContext(), params.getRange(), document, projectInfo,
-								sharedSettings.getFormattingSettings()) //
+								sharedSettings.getFormattingSettings(),
+								sharedSettings.getCommandCapabilities()) //
 						.stream() //
 						.map(ca -> {
 							Either<Command, CodeAction> e = Either.forRight(ca);
