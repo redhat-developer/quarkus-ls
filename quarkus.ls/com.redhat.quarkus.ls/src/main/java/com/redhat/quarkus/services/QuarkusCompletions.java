@@ -178,7 +178,7 @@ class QuarkusCompletions {
 			item.setKind(CompletionItemKind.Property);
 
 			String defaultValue = property.getDefaultValue();
-			Collection<EnumItem> enums = getEnums(property, model, valuesRulesManager);
+			Collection<EnumItem> enums = QuarkusPropertiesUtils.getEnums(property, model, valuesRulesManager);
 
 			StringBuilder insertText = new StringBuilder();
 			if (profile != null) {
@@ -282,28 +282,6 @@ class QuarkusCompletions {
 	}
 
 	/**
-	 * Returns the enums values according the property type.
-	 * 
-	 * @param property           the Quarkus property
-	 * @param valuesRulesManager
-	 * @param model
-	 * @return the enums values according the property type
-	 */
-	private static Collection<EnumItem> getEnums(ExtendedConfigDescriptionBuildItem property, PropertiesModel model,
-			ValuesRulesManager valuesRulesManager) {
-		if (property.getEnums() != null) {
-			return property.getEnums();
-		}
-		if (property.isBooleanType()) {
-			return QuarkusModel.BOOLEAN_ENUMS;
-		}
-		if (valuesRulesManager != null) {
-			return valuesRulesManager.getValues(property, model);
-		}
-		return null;
-	}
-
-	/**
 	 * Collect property values.
 	 * 
 	 * @param node               the property value node
@@ -324,7 +302,7 @@ class QuarkusCompletions {
 
 		ExtendedConfigDescriptionBuildItem item = QuarkusPropertiesUtils.getProperty(propertyName, projectInfo);
 		if (item != null) {
-			Collection<EnumItem> enums = getEnums(item, model, valuesRulesManager);
+			Collection<EnumItem> enums = QuarkusPropertiesUtils.getEnums(item, model, valuesRulesManager);
 			if (enums != null && !enums.isEmpty()) {
 				boolean markdownSupported = completionSettings.isDocumentationFormatSupported(MarkupKind.MARKDOWN);
 				for (EnumItem e : enums) {

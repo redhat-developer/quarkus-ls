@@ -10,22 +10,28 @@
 package com.redhat.quarkus.services;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.BadLocationException;
 import com.redhat.quarkus.ls.commons.CodeActionFactory;
 import com.redhat.quarkus.ls.commons.TextDocument;
 import com.redhat.quarkus.model.PropertiesModel;
+import com.redhat.quarkus.model.Property;
 import com.redhat.quarkus.model.PropertyKey;
+import com.redhat.quarkus.model.PropertyValue;
+import com.redhat.quarkus.model.values.ValuesRulesManager;
 import com.redhat.quarkus.settings.QuarkusFormattingSettings;
 import com.redhat.quarkus.utils.PositionUtils;
 import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
 import com.redhat.quarkus.utils.StringUtils;
+
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.Diagnostic;
@@ -57,7 +63,7 @@ class QuarkusCodeActions {
 	 * @return the result of the code actions.
 	 */
 	public List<CodeAction> doCodeActions(CodeActionContext context, Range range, PropertiesModel document,
-			QuarkusProjectInfo projectInfo, QuarkusFormattingSettings formattingSettings) {
+			QuarkusProjectInfo projectInfo, ValuesRulesManager valuesRulesManager, QuarkusFormattingSettings formattingSettings) {
 		List<CodeAction> codeActions = new ArrayList<>();
 		if (context.getDiagnostics() != null) {
 			doCodeActionForAllRequired(context.getDiagnostics(), document, formattingSettings, codeActions);
@@ -66,6 +72,8 @@ class QuarkusCodeActions {
 				if (ValidationType.unknown.name().equals(diagnostic.getCode())) {
 					// Manage code action for unknown
 					doCodeActionsForUnknown(diagnostic, document, projectInfo, codeActions);
+				} else if (ValidationType.value.name().equals(diagnostic.getCode())) {
+					doCodeActionsForUnknownEnumValue(diagnostic, document, projectInfo, valuesRulesManager, codeActions);
 				}
 			}
 		}
@@ -106,6 +114,70 @@ class QuarkusCodeActions {
 					}
 				}
 			}
+		} catch (BadLocationException e) {
+			LOGGER.log(Level.SEVERE, "In QuarkusCodeActions, position error", e);
+		}
+	}
+
+	/**
+	 * Create code action for suggesting similar known enum values for unknown enum values.
+	 * If no enum values are similar, code actions are created for each possible enum value.
+	 * 
+	 * 
+	 * Code action(s) are created only if the property contained within
+	 * the <code>diagnostic</code> range expects an enum value
+	 *
+	 * @param diagnostic         the diagnostic
+	 * @param document           the properties model
+	 * @param projectInfo        the Quarkus properties
+	 * @param valuesRulesManager the ValueRulesManager
+	 * @param codeActions        the code actions list to fill
+	 */
+	private void doCodeActionsForUnknownEnumValue(Diagnostic diagnostic, PropertiesModel document,
+			QuarkusProjectInfo projectInfo, ValuesRulesManager valuesRulesManager, List<CodeAction> codeActions) {
+		try {
+			PropertyValue propertyValue = (PropertyValue) document.findNodeAt(diagnostic.getRange().getStart());
+			PropertyKey propertyKey = ((Property) propertyValue.getParent()).getKey();
+			String value = propertyValue.getValue();
+			String propertyName = propertyKey.getPropertyName();
+			
+			ExtendedConfigDescriptionBuildItem metaProperty = QuarkusPropertiesUtils.getProperty(propertyName, projectInfo);
+			if (metaProperty == null) {
+				return;
+			}
+			
+			Collection<EnumItem> enums = QuarkusPropertiesUtils.getEnums(metaProperty, document, valuesRulesManager);
+			if (enums == null || enums.isEmpty()) {
+				return;
+			}
+
+			Collection<EnumItem> similarEnums = new ArrayList<>();
+			for (EnumItem e : enums) {
+				if (isSimilarPropertyValue(e.getName(), value)) {
+					similarEnums.add(e);
+				}
+			}
+
+			Range range = PositionUtils.createRange(propertyValue);
+
+			if (!similarEnums.isEmpty()) {
+				// add code actions for all similar enums
+				for (EnumItem e : similarEnums) {
+					CodeAction replaceAction = CodeActionFactory.replace(
+							"Did you mean '" + e.getName() + "'?", range,
+							e.getName(), document.getDocument(), diagnostic);
+					codeActions.add(replaceAction);
+				}
+			} else {
+				// add code actions for all enums
+				for (EnumItem e : enums) {
+					CodeAction replaceAction = CodeActionFactory.replace(
+							"Replace with '" + e.getName() + "'?", range,
+							e.getName(), document.getDocument(), diagnostic);
+					codeActions.add(replaceAction);
+				}
+			}
+
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In QuarkusCodeActions, position error", e);
 		}
@@ -193,6 +265,10 @@ class QuarkusCodeActions {
 			LOGGER.log(Level.SEVERE, "In QuarkusCodeActions, position error", e);
 		}
 		
+	}
+
+	private static boolean isSimilarPropertyValue(String reference, String current) {
+		return reference.startsWith(current) ? true: isSimilar(reference, current);
 	}
 
 	private static boolean isSimilar(String reference, String current) {

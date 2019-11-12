@@ -198,7 +198,7 @@ public class QuarkusLanguageService {
 	 */
 	public List<CodeAction> doCodeActions(CodeActionContext context, Range range, PropertiesModel document,
 			QuarkusProjectInfo projectInfo, QuarkusFormattingSettings formattingSettings) {
-		return codeActions.doCodeActions(context, range, document, projectInfo, formattingSettings);
+		return codeActions.doCodeActions(context, range, document, projectInfo, getValuesRulesManager(), formattingSettings);
 	}
 
 	/**
