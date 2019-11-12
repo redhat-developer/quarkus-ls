@@ -12,9 +12,13 @@ package com.redhat.quarkus.utils;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 
+import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.ls.commons.SnippetsBuilder;
+import com.redhat.quarkus.model.PropertiesModel;
+import com.redhat.quarkus.model.values.ValuesRulesManager;
+import com.redhat.quarkus.services.QuarkusModel;
 
 /**
  * Quarkus project information utilities.
@@ -62,6 +66,28 @@ public class QuarkusPropertiesUtils {
 		public int getMappedParameterCount() {
 			return mappedParameterCount;
 		}
+	}
+
+	/**
+	 * Returns the enums values according the property type.
+	 * 
+	 * @param property           the Quarkus property
+	 * @param valuesRulesManager
+	 * @param model
+	 * @return the enums values according the property type
+	 */
+	public static Collection<EnumItem> getEnums(ExtendedConfigDescriptionBuildItem property, PropertiesModel model,
+			ValuesRulesManager valuesRulesManager) {
+		if (property.getEnums() != null) {
+			return property.getEnums();
+		}
+		if (property.isBooleanType()) {
+			return QuarkusModel.BOOLEAN_ENUMS;
+		}
+		if (valuesRulesManager != null) {
+			return valuesRulesManager.getValues(property, model);
+		}
+		return null;
 	}
 
 	/**
