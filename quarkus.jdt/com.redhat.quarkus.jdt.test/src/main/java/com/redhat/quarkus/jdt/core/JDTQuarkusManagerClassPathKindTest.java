@@ -10,6 +10,7 @@
 package com.redhat.quarkus.jdt.core;
 
 import static com.redhat.quarkus.jdt.internal.core.QuarkusAssert.assertProperties;
+import static com.redhat.quarkus.jdt.internal.core.QuarkusAssert.assertPropertiesDuplicate;
 import static com.redhat.quarkus.jdt.internal.core.QuarkusAssert.p;
 
 import java.io.File;
@@ -41,9 +42,9 @@ import com.redhat.quarkus.jdt.internal.core.utils.DependencyUtil;
 public class JDTQuarkusManagerClassPathKindTest extends BaseJDTQuarkusManagerTest {
 
 	@Test
-	public void applicationConfigurationTest() throws Exception {
+	public void configQuickstartTest() throws Exception {
 
-		IJavaProject javaProject = loadMavenProject("application-configuration-test");
+		IJavaProject javaProject = loadMavenProject("config-quickstart-test");
 
 		// not in classpath -> 0 quarkus properties
 		IFile fileFromNone = javaProject.getProject().getFile(new Path("application.properties"));
@@ -52,8 +53,8 @@ public class JDTQuarkusManagerClassPathKindTest extends BaseJDTQuarkusManagerTes
 		Assert.assertEquals(ClasspathKind.NONE, infoFromNone.getClasspathKind());
 		Assert.assertEquals(0, infoFromNone.getProperties().size());
 
-		File resteasyJARFile = DependencyUtil.getArtifact("io.quarkus", "quarkus-resteasy-common-deployment", "0.21.2",
-				null);
+		File resteasyJARFile = DependencyUtil.getArtifact("io.quarkus", "quarkus-resteasy-common-deployment",
+				"1.0.0.CR1", null);
 		Assert.assertNotNull("quarkus-resteasy-common-deployment*.jar is missing", resteasyJARFile);
 
 		// in /java/main/src classpath -> N quarkus properties
@@ -61,7 +62,7 @@ public class JDTQuarkusManagerClassPathKindTest extends BaseJDTQuarkusManagerTes
 		QuarkusProjectInfo infoFromSrc = JDTQuarkusManager.getInstance().getQuarkusProjectInfo(fileFromSrc,
 				QuarkusPropertiesScope.classpath, DocumentationConverter.DEFAULT_CONVERTER, new NullProgressMonitor());
 		Assert.assertEquals(ClasspathKind.SRC, infoFromSrc.getClasspathKind());
-		assertProperties(infoFromSrc, 55 /* properties from JAR */ + 3 /* properties from Java sources */,
+		assertProperties(infoFromSrc, 185 /* properties from JAR */ + 3 /* properties from Java sources */,
 
 				// quarkus-resteasy JAR
 				p("quarkus-resteasy-common", "quarkus.resteasy.gzip.enabled", "boolean", "If gzip is enabled",
@@ -72,28 +73,31 @@ public class JDTQuarkusManagerClassPathKindTest extends BaseJDTQuarkusManagerTes
 				// GreetingResource
 				// @ConfigProperty(name = "greeting.message")
 				// String message;
-				p(null, "greeting.message", "java.lang.String", null, "/application-configuration-test/src/main/java",
+				p(null, "greeting.message", "java.lang.String", null, "/config-quickstart-test/src/main/java",
 						"org.acme.config.GreetingResource#message", 0, null),
 
 				// @ConfigProperty(name = "greeting.suffix" , defaultValue="!")
 				// String suffix;
-				p(null, "greeting.suffix", "java.lang.String", null, "/application-configuration-test/src/main/java",
+				p(null, "greeting.suffix", "java.lang.String", null, "/config-quickstart-test/src/main/java",
 						"org.acme.config.GreetingResource#suffix", 0, "!"),
 
 				// @ConfigProperty(name = "greeting.name")
 				// Optional<String> name;
-				p(null, "greeting.name", "java.util.Optional", null, "/application-configuration-test/src/main/java",
+				p(null, "greeting.name", "java.util.Optional", null, "/config-quickstart-test/src/main/java",
 						"org.acme.config.GreetingResource#name", 0, null));
 
+		assertPropertiesDuplicate(infoFromSrc);
+
 		// in /java/main/test classpath-> N + M quarkus properties
-		File undertowJARFile = DependencyUtil.getArtifact("io.quarkus", "quarkus-undertow-deployment", "0.21.2", null);
+		File undertowJARFile = DependencyUtil.getArtifact("io.quarkus", "quarkus-undertow-deployment", "1.0.0.CR1",
+				null);
 		Assert.assertNotNull("quarkus-undertow-deployment*.jar is missing", undertowJARFile);
 
 		IFile filefromTest = javaProject.getProject().getFile(new Path("src/test/resources/application.properties"));
 		QuarkusProjectInfo infoFromTest = JDTQuarkusManager.getInstance().getQuarkusProjectInfo(filefromTest,
 				QuarkusPropertiesScope.classpath, DocumentationConverter.DEFAULT_CONVERTER, new NullProgressMonitor());
 		Assert.assertEquals(ClasspathKind.TEST, infoFromTest.getClasspathKind());
-		assertProperties(infoFromTest, 63 /* properties from JAR */ + 22 /* properties from JAR (test) */ + 3 /*
+		assertProperties(infoFromTest, 185 /* properties from JAR */ + 3 /* properties from JAR (test) */ + 3 /*
 																												 * properties
 																												 * from
 																												 * (src)
@@ -116,44 +120,45 @@ public class JDTQuarkusManagerClassPathKindTest extends BaseJDTQuarkusManagerTes
 				// </dependency>
 
 				p("quarkus-undertow", "quarkus.servlet.context-path", "java.util.Optional<java.lang.String>",
-						"The context path to serve all Servlet context from. This will also affect any resources\n that run as a Servlet, e.g. JAX-RS",
+						"The context path to serve all Servlet context from. This will also affect any resources\nthat run as a Servlet, e.g. JAX-RS.\n\nNote that this is relative to the HTTP root path set in quarkus.http.root-path, so if the context path\nis /bar and the http root is /foo then the actual Servlet path will be /foo/bar.",
 						undertowJARFile.getAbsolutePath(), "io.quarkus.undertow.deployment.ServletConfig#contextPath",
 						1, null),
 
 				// GreetingResource
 				// @ConfigProperty(name = "greeting.message")
 				// String message;
-				p(null, "greeting.message", "java.lang.String", null, "/application-configuration-test/src/main/java",
+				p(null, "greeting.message", "java.lang.String", null, "/config-quickstart-test/src/main/java",
 						"org.acme.config.GreetingResource#message", 0, null),
 
 				// @ConfigProperty(name = "greeting.suffix" , defaultValue="!")
 				// String suffix;
-				p(null, "greeting.suffix", "java.lang.String", null, "/application-configuration-test/src/main/java",
+				p(null, "greeting.suffix", "java.lang.String", null, "/config-quickstart-test/src/main/java",
 						"org.acme.config.GreetingResource#suffix", 0, "!"),
 
 				// @ConfigProperty(name = "greeting.name")
 				// Optional<String> name;
-				p(null, "greeting.name", "java.util.Optional", null, "/application-configuration-test/src/main/java",
+				p(null, "greeting.name", "java.util.Optional", null, "/config-quickstart-test/src/main/java",
 						"org.acme.config.GreetingResource#name", 0, null),
 
 				// TestResource
 				// @ConfigProperty(name = "greeting.message.test")
 				// String message;
-				p(null, "greeting.message.test", "java.lang.String", null,
-						"/application-configuration-test/src/test/java", "org.acme.config.TestResource#message", 0,
-						null),
+				p(null, "greeting.message.test", "java.lang.String", null, "/config-quickstart-test/src/test/java",
+						"org.acme.config.TestResource#message", 0, null),
 
 				// @ConfigProperty(name = "greeting.suffix.test" , defaultValue="!")
 				// String suffix;
-				p(null, "greeting.suffix.test", "java.lang.String", null,
-						"/application-configuration-test/src/test/java", "org.acme.config.TestResource#suffix", 0, "!"),
+				p(null, "greeting.suffix.test", "java.lang.String", null, "/config-quickstart-test/src/test/java",
+						"org.acme.config.TestResource#suffix", 0, "!"),
 
 				// @ConfigProperty(name = "greeting.name.test")
 				// Optional<String> name;
-				p(null, "greeting.name.test", "java.util.Optional", null,
-						"/application-configuration-test/src/test/java", "org.acme.config.TestResource#name", 0, null)
+				p(null, "greeting.name.test", "java.util.Optional", null, "/config-quickstart-test/src/test/java",
+						"org.acme.config.TestResource#name", 0, null)
 
 		);
+
+		assertPropertiesDuplicate(infoFromTest);
 	}
 
 }

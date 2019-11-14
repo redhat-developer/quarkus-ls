@@ -76,10 +76,13 @@ public class QuarkusDeploymentJavaProject extends ExternalJavaProject {
 		List<IClasspathEntry> deploymentJarEntries = new ArrayList<>();
 		IClasspathEntry[] entries = project.getResolvedClasspath(true);
 		List<String> existingJars = Stream.of(entries)
-				.filter(entry -> entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) //
-				.map(entry -> entry.getPath() //
-						.lastSegment())
-				.collect(Collectors.toList());
+				// filter entry to collect only JAR
+				.filter(entry -> entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY)
+				// filter Quarkus deployment JAR marked as test scope. Ex:
+				// 'quarkus-core-deployment' can be marked as test scope, we must exclude them
+				// to avoid to ignore it in the next step.
+				.filter(entry -> !excludeTestCode || (excludeTestCode && !entry.isTest())) //
+				.map(entry -> entry.getPath().lastSegment()).collect(Collectors.toList());
 		for (IClasspathEntry entry : entries) {
 			if (excludeTestCode && entry.isTest()) {
 				continue;
