@@ -10,6 +10,8 @@
 package com.redhat.quarkus.jdt.internal.core;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -112,4 +114,18 @@ public class QuarkusAssert {
 		return item;
 	}
 
+	/**
+	 * Assert duplicate properties from the given the Quarkus project information
+	 * 
+	 * @param info the Quarkus project information
+	 */
+	public static void assertPropertiesDuplicate(QuarkusProjectInfo info) {
+		Map<String, Long> propertiesCount = info.getProperties().stream().collect(
+				Collectors.groupingBy(ExtendedConfigDescriptionBuildItem::getPropertyName, Collectors.counting()));
+		List<Entry<String, Long>> result = propertiesCount.entrySet().stream().filter(entry -> entry.getValue() > 1)
+				.collect(Collectors.toList());
+		Assert.assertEquals(
+				result.stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining(",")),
+				0, result.size());
+	}
 }
