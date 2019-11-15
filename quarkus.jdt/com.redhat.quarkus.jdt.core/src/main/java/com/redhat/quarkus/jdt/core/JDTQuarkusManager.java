@@ -43,7 +43,6 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -447,48 +446,45 @@ public class JDTQuarkusManager {
 			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, IProgressMonitor monitor)
 			throws JavaModelException {
 		if (javaElement.getElementType() == IJavaElement.TYPE) {
-			IJavaElement parent = javaElement.getParent();
-			if (parent.getElementType() == IJavaElement.CLASS_FILE) {
-				IJavaElement[] elements = ((IParent) javaElement).getChildren();
-				for (IJavaElement child : elements) {
-					if (child.getElementType() == IJavaElement.FIELD) {
-						IField field = (IField) child;
-						final IAnnotation configItemAnnotation = getAnnotation((IAnnotatable) field,
-								CONFIG_ITEM_ANNOTATION);
-						String name = configItemAnnotation == null ? hyphenate(field.getElementName())
-								: getAnnotationMemberValue(configItemAnnotation, "name");
-						if (name == null) {
-							name = ConfigItem.HYPHENATED_ELEMENT_NAME;
-						}
-						String subKey;
-						boolean consume;
-						if (name.equals(ConfigItem.PARENT)) {
-							subKey = baseKey;
-							consume = false;
-						} else if (name.equals(ConfigItem.ELEMENT_NAME)) {
-							subKey = baseKey + "." + field.getElementName();
-							consume = true;
-						} else if (name.equals(ConfigItem.HYPHENATED_ELEMENT_NAME)) {
-							subKey = baseKey + "." + hyphenate(field.getElementName());
-							consume = true;
-						} else {
-							subKey = baseKey + "." + name;
-							consume = true;
-						}
-						final String defaultValue = configItemAnnotation == null ? ConfigItem.NO_DEFAULT
-								: getAnnotationMemberValue(configItemAnnotation, "defaultValue");
+			IJavaElement[] elements = ((IType) javaElement).getChildren();
+			for (IJavaElement child : elements) {
+				if (child.getElementType() == IJavaElement.FIELD) {
+					IField field = (IField) child;
+					final IAnnotation configItemAnnotation = getAnnotation((IAnnotatable) field,
+							CONFIG_ITEM_ANNOTATION);
+					String name = configItemAnnotation == null ? hyphenate(field.getElementName())
+							: getAnnotationMemberValue(configItemAnnotation, "name");
+					if (name == null) {
+						name = ConfigItem.HYPHENATED_ELEMENT_NAME;
+					}
+					String subKey;
+					boolean consume;
+					if (name.equals(ConfigItem.PARENT)) {
+						subKey = baseKey;
+						consume = false;
+					} else if (name.equals(ConfigItem.ELEMENT_NAME)) {
+						subKey = baseKey + "." + field.getElementName();
+						consume = true;
+					} else if (name.equals(ConfigItem.HYPHENATED_ELEMENT_NAME)) {
+						subKey = baseKey + "." + hyphenate(field.getElementName());
+						consume = true;
+					} else {
+						subKey = baseKey + "." + name;
+						consume = true;
+					}
+					final String defaultValue = configItemAnnotation == null ? ConfigItem.NO_DEFAULT
+							: getAnnotationMemberValue(configItemAnnotation, "defaultValue");
 
-						String fieldTypeName = getResolvedTypeName(field);
-						IType fieldClass = findType(field.getJavaProject(), fieldTypeName);
-						final IAnnotation configGroupAnnotation = getAnnotation((IAnnotatable) fieldClass,
-								CONFIG_GROUP_ANNOTATION);
-						if (configGroupAnnotation != null) {
-							processConfigGroup(location, extensionName, fieldClass, subKey, configPhase, converter,
-									javadocCache, quarkusProperties, monitor);
-						} else {
-							addField(location, extensionName, field, fieldTypeName, fieldClass, subKey, defaultValue,
-									converter, javadocCache, configPhase, quarkusProperties, monitor);
-						}
+					String fieldTypeName = getResolvedTypeName(field);
+					IType fieldClass = findType(field.getJavaProject(), fieldTypeName);
+					final IAnnotation configGroupAnnotation = getAnnotation((IAnnotatable) fieldClass,
+							CONFIG_GROUP_ANNOTATION);
+					if (configGroupAnnotation != null) {
+						processConfigGroup(location, extensionName, fieldClass, subKey, configPhase, converter,
+								javadocCache, quarkusProperties, monitor);
+					} else {
+						addField(location, extensionName, field, fieldTypeName, fieldClass, subKey, defaultValue,
+								converter, javadocCache, configPhase, quarkusProperties, monitor);
 					}
 				}
 			}
@@ -692,6 +688,9 @@ public class JDTQuarkusManager {
 	private static ExtendedConfigDescriptionBuildItem addField(String propertyName, String type, String defaultValue,
 			String docs, String location, String extensionName, String source, List<EnumItem> enums,
 			ConfigPhase configPhase, List<ExtendedConfigDescriptionBuildItem> quarkusProperties) {
+		if (ConfigItem.NO_DEFAULT.equals(defaultValue)) {
+			defaultValue = null;
+		}
 		ExtendedConfigDescriptionBuildItem property = new ExtendedConfigDescriptionBuildItem();
 		property.setPropertyName(propertyName);
 		property.setType(type);

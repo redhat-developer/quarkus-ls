@@ -42,7 +42,9 @@ public class JDTQuarkusManagerConfigPropertyTest extends BaseJDTQuarkusManagerTe
 		Assert.assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
 
 		String expectedDeploymentJar = f.getAbsolutePath();
-		assertProperties(infoFromClasspath, 185 /* properties from JAR */ + 3 /* properties from Java sources */,
+		assertProperties(infoFromClasspath, 185 /* properties from JAR */ + //
+				3 /* properties from Java sources with ConfigProperty */ + //
+				2 /* properties from Java sources with ConfigRoot */,
 
 				// io.quarkus.deployment.ApplicationConfig
 				p("quarkus-core", "quarkus.application.name", "java.lang.String",
@@ -69,7 +71,17 @@ public class JDTQuarkusManagerConfigPropertyTest extends BaseJDTQuarkusManagerTe
 				// @ConfigProperty(name = "greeting.name")
 				// Optional<String> name;
 				p(null, "greeting.name", "java.util.Optional", null, "/config-quickstart/src/main/java",
-						"org.acme.config.GreetingResource#name", 0, null));
+						"org.acme.config.GreetingResource#name", 0, null),
+
+				// @ConfigRoot / CustomExtensionConfig / property1
+				p(null, "quarkus.custom-extension.property1", "java.lang.String", null,
+						"/config-quickstart/src/main/java", "org.acme.config.CustomExtensionConfig#property1",
+						CONFIG_PHASE_BUILD_TIME, null),
+
+				// @ConfigRoot / CustomExtensionConfig / property2
+				p(null, "quarkus.custom-extension.property2", "java.lang.Integer", null,
+						"/config-quickstart/src/main/java", "org.acme.config.CustomExtensionConfig#property2",
+						CONFIG_PHASE_BUILD_TIME, null));
 
 		assertPropertiesDuplicate(infoFromClasspath);
 	}
@@ -80,7 +92,9 @@ public class JDTQuarkusManagerConfigPropertyTest extends BaseJDTQuarkusManagerTe
 		QuarkusProjectInfo infoFromJavaSources = getQuarkusProjectInfoFromMavenProject("config-quickstart",
 				QuarkusPropertiesScope.sources);
 
-		assertProperties(infoFromJavaSources, 3 /* properties from Java sources */,
+		assertProperties(infoFromJavaSources, 3 /* properties from Java sources with ConfigProperty */ + //
+				2 /* properties from Java sources with ConfigRoot */,
+
 				// GreetingResource
 				// @ConfigProperty(name = "greeting.message")
 				// String message;
@@ -95,7 +109,18 @@ public class JDTQuarkusManagerConfigPropertyTest extends BaseJDTQuarkusManagerTe
 				// @ConfigProperty(name = "greeting.name")
 				// Optional<String> name;
 				p(null, "greeting.name", "java.util.Optional", null, "/config-quickstart/src/main/java",
-						"org.acme.config.GreetingResource#name", 0, null));
+						"org.acme.config.GreetingResource#name", 0, null),
 
+				// @ConfigRoot / CustomExtensionConfig / property1
+				p(null, "quarkus.custom-extension.property1", "java.lang.String", null,
+						"/config-quickstart/src/main/java", "org.acme.config.CustomExtensionConfig#property1",
+						CONFIG_PHASE_BUILD_TIME, null),
+
+				// @ConfigRoot / CustomExtensionConfig / property2
+				p(null, "quarkus.custom-extension.property2", "java.lang.Integer", null,
+						"/config-quickstart/src/main/java", "org.acme.config.CustomExtensionConfig#property2",
+						CONFIG_PHASE_BUILD_TIME, null));
+
+		assertPropertiesDuplicate(infoFromJavaSources);
 	}
 }
