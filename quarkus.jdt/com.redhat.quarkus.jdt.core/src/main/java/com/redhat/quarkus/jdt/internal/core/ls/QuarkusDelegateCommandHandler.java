@@ -19,7 +19,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IClassFile;
-import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
@@ -156,9 +156,9 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 
 	public static Location findQuarkusPropertyLocation(IFile file, String propertySource, IProgressMonitor progress)
 			throws JavaModelException, CoreException {
-		IField field = JDTQuarkusManager.getInstance().findDeclaredQuarkusProperty(file, propertySource, progress);
-		if (field != null) {
-			IClassFile classFile = field.getClassFile();
+		IMember fieldOrMethod = JDTQuarkusManager.getInstance().findDeclaredQuarkusProperty(file, propertySource, progress);
+		if (fieldOrMethod != null) {
+			IClassFile classFile = fieldOrMethod.getClassFile();
 			if (classFile != null) {
 				// Try to download source if required
 				Optional<IBuildSupport> bs = JavaLanguageServerPlugin.getProjectsManager()
@@ -167,7 +167,7 @@ public class QuarkusDelegateCommandHandler implements IDelegateCommandHandler {
 					bs.get().discoverSource(classFile, progress);
 				}
 			}
-			return JDTUtils.toLocation(field);
+			return JDTUtils.toLocation(fieldOrMethod);
 		}
 		return null;
 	}

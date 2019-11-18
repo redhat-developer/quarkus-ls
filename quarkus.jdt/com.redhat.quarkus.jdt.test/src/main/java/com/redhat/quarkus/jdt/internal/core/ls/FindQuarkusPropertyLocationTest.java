@@ -59,6 +59,21 @@ public class FindQuarkusPropertyLocationTest extends BaseJDTQuarkusManagerTest {
 		Assert.assertNotNull("Definition from Java Sources", location);
 	}
 
+	@Test
+	public void configPropertiesTest() throws Exception {
+		// Enable classFileContentsSupport to generate jdt Location
+		enableClassFileContentsSupport();
+
+		IJavaProject javaProject = loadMavenProject("config-properties");
+		IFile file = javaProject.getProject().getFile(new Path("src/main/resources/application.properties"));
+
+		// Test with method
+		// greetingInterface.name
+		Location location = QuarkusDelegateCommandHandler.findQuarkusPropertyLocation(file,
+				"org.acme.config.IGreetingConfiguration#getName()QOptional<QString;>;", new NullProgressMonitor());
+		Assert.assertNotNull("Definition from IGreetingConfiguration#getName() method", location);
+	}
+
 	private static void enableClassFileContentsSupport() {
 		Map<String, Object> extendedClientCapabilities = new HashMap<>();
 		extendedClientCapabilities.put("classFileContentsSupport", "true");
