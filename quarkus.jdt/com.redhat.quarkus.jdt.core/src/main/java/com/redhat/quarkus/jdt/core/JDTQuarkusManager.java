@@ -11,6 +11,7 @@ package com.redhat.quarkus.jdt.core;
 
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_GROUP_ANNOTATION;
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_ITEM_ANNOTATION;
+import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_PROPERTIES_ANNOTATION;
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_PROPERTY_ANNOTATION;
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_ROOT_ANNOTATION;
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.QUARKUS_JAVADOC_PROPERTIES;
@@ -26,26 +27,34 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJarEntryResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMemberValuePair;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.Signature;
+import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.SearchMatch;
@@ -64,6 +73,8 @@ import com.redhat.quarkus.jdt.internal.core.QuarkusDeploymentJavaProject;
 import com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusSearchUtils;
 import com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusUtils;
 
+import io.quarkus.arc.config.ConfigProperties;
+import io.quarkus.deployment.bean.JavaBeanUtil;
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 
@@ -100,7 +111,7 @@ public class JDTQuarkusManager {
 	 * @throws JavaModelException
 	 * @throws CoreException
 	 */
-	public IField findDeclaredQuarkusProperty(IFile file, String propertySource, IProgressMonitor progress)
+	public IMember findDeclaredQuarkusProperty(IFile file, String propertySource, IProgressMonitor progress)
 			throws JavaModelException, CoreException {
 		String projectName = file.getProject().getName();
 		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
@@ -116,14 +127,13 @@ public class JDTQuarkusManager {
 	 * @return the Java field from the given property sources
 	 * @throws JavaModelException
 	 */
-	public IField findDeclaredQuarkusProperty(IJavaProject javaProject, String propertySource,
+	public IMember findDeclaredQuarkusProperty(IJavaProject javaProject, String propertySource,
 			IProgressMonitor progress) throws JavaModelException {
 		int index = propertySource.indexOf('#');
 		if (index == -1) {
 			return null;
 		}
 		String className = propertySource.substring(0, index);
-		String fieldName = propertySource.substring(index + 1, propertySource.length());
 		// Try to find type with standard classpath
 		IType type = javaProject.findType(className, progress);
 		if (type == null) {
@@ -132,7 +142,20 @@ public class JDTQuarkusManager {
 			type = new QuarkusDeploymentJavaProject(javaProject, QuarkusDeploymentJavaProject.DEFAULT_ARTIFACT_RESOLVER,
 					false).findType(className, progress);
 		}
-		return type.getField(fieldName);
+		String fieldOrMethodName = propertySource.substring(index + 1, propertySource.length());
+		int startBracketIndex = fieldOrMethodName.indexOf('(');
+		if (startBracketIndex == -1) {
+			// it's a field
+			return type.getField(fieldOrMethodName);
+		}
+		String methodName = fieldOrMethodName.substring(0, startBracketIndex);
+		// Method signature has been generated with JDT API, so we are sure that we have
+		// a ')' character.
+		int endBracketIndex = fieldOrMethodName.indexOf(')');
+		String methodSignature = fieldOrMethodName.substring(startBracketIndex + 1, endBracketIndex);
+		String[] paramTypes = methodSignature.isEmpty() ? CharOperation.NO_STRINGS
+				: Signature.getParameterTypes(methodSignature);
+		return JavaModelUtil.findMethod(methodName, paramTypes, false, type);
 	}
 
 	public QuarkusProjectInfo getQuarkusProjectInfo(IFile file, QuarkusPropertiesScope propertiesScope,
@@ -235,12 +258,13 @@ public class JDTQuarkusManager {
 		try {
 			IAnnotation[] annotations = ((IAnnotatable) javaElement).getAnnotations();
 			for (IAnnotation annotation : annotations) {
-				if (CONFIG_PROPERTY_ANNOTATION.equals(annotation.getElementName())
-						|| CONFIG_PROPERTY_ANNOTATION.endsWith(annotation.getElementName())) {
+				if (isMatchAnnotation(annotation, CONFIG_PROPERTY_ANNOTATION)) {
 					processConfigProperty(javaElement, annotation, converter, javadocCache, quarkusProperties, monitor);
-				} else if (CONFIG_ROOT_ANNOTATION.equals(annotation.getElementName())
-						|| CONFIG_ROOT_ANNOTATION.endsWith(annotation.getElementName())) {
+				} else if (isMatchAnnotation(annotation, CONFIG_ROOT_ANNOTATION)) {
 					processConfigRoot(javaElement, annotation, converter, javadocCache, quarkusProperties, monitor);
+				} else if (isMatchAnnotation(annotation, CONFIG_PROPERTIES_ANNOTATION)) {
+					processConfigProperties(javaElement, annotation, converter, javadocCache, quarkusProperties,
+							monitor);
 				}
 			}
 		} catch (Exception e) {
@@ -440,7 +464,7 @@ public class JDTQuarkusManager {
 	 * @param monitor           the progress monitor.
 	 * @throws JavaModelException
 	 */
-	private static void processConfigGroup(String location, String extensionName, IJavaElement javaElement,
+	private static void processConfigGroup(final String location, String extensionName, IJavaElement javaElement,
 			String baseKey, ConfigPhase configPhase, DocumentationConverter converter,
 			Map<IPackageFragmentRoot, Properties> javadocCache,
 			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, IProgressMonitor monitor)
@@ -489,6 +513,225 @@ public class JDTQuarkusManager {
 				}
 			}
 		}
+	}
+
+	// ------------- Process Quarkus ConfigProperties -------------
+
+	private static void processConfigProperties(IJavaElement javaElement, IAnnotation configPropertiesAnnotation,
+			DocumentationConverter converter, Map<IPackageFragmentRoot, Properties> javadocCache,
+			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, IProgressMonitor monitor)
+			throws JavaModelException {
+		if (javaElement.getElementType() != IJavaElement.TYPE) {
+			return;
+		}
+		IType configPropertiesType = (IType) javaElement;
+		// Location (JAR, src)
+		IPackageFragmentRoot packageRoot = (IPackageFragmentRoot) javaElement
+				.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
+		String location = packageRoot.getPath().toString();
+		// Quarkus Extension name
+		String extensionName = JDTQuarkusUtils.getExtensionName(location);
+
+		String prefix = determinePrefix(configPropertiesType, configPropertiesAnnotation);
+		if (configPropertiesType.isInterface()) {
+			// See
+			// https://github.com/quarkusio/quarkus/blob/0796d712d9a3cf8251d9d8808b705f1a04032ee2/extensions/arc/deployment/src/main/java/io/quarkus/arc/deployment/configproperties/InterfaceConfigPropertiesUtil.java#L89
+			List<IType> allInterfaces = new ArrayList<>(Arrays.asList(findInterfaces(configPropertiesType, monitor)));
+			allInterfaces.add(0, configPropertiesType);
+
+			for (IType configPropertiesInterface : allInterfaces) {
+				// Loop for each methods.
+				IJavaElement[] elements = configPropertiesInterface.getChildren();
+				// Loop for each fields.
+				for (IJavaElement child : elements) {
+					if (child.getElementType() == IJavaElement.METHOD) {
+						IMethod method = (IMethod) child;
+						if (Flags.isDefaultMethod(method.getFlags())) { // don't do anything with default methods
+							continue;
+						}
+						if (method.getNumberOfParameters() > 0) {
+							LOGGER.log(Level.INFO,
+									"Method " + method.getElementName() + " of interface "
+											+ method.getDeclaringType().getFullyQualifiedName()
+											+ " is not a getter method since it defined parameters");
+							continue;
+						}
+						if ("Void()".equals(method.getReturnType())) {
+							LOGGER.log(Level.INFO,
+									"Method " + method.getElementName() + " of interface "
+											+ method.getDeclaringType().getFullyQualifiedName()
+											+ " is not a getter method since it returns void");
+							continue;
+						}
+						String name = null;
+						String defaultValue = null;
+						IAnnotation configPropertyAnnotation = getAnnotation(method, CONFIG_PROPERTY_ANNOTATION);
+						if (configPropertyAnnotation != null) {
+							name = getAnnotationMemberValue(configPropertyAnnotation, "name");
+							defaultValue = getAnnotationMemberValue(configPropertyAnnotation, "defaultValue");
+						}
+						if (name == null) {
+							name = getPropertyNameFromMethodName(method);
+						}
+						if (name == null) {
+							continue;
+						}
+
+						String propertyName = prefix + "." + name;
+						String methodResultTypeName = getResolvedResultTypeName(method);
+						IType returnType = findType(method.getJavaProject(), methodResultTypeName);
+
+						// Method result type
+						String type = returnType != null ? returnType.getFullyQualifiedName() : methodResultTypeName;
+
+						// TODO: extract Javadoc from Java sources
+						String docs = null;
+
+						// Method source
+						String source = method.getDeclaringType().getFullyQualifiedName() + "#"
+								+ method.getElementName() + method.getSignature();
+
+						// Enumerations
+						List<EnumItem> enumerations = getEnumerations(returnType);
+
+						if (isSimpleFieldType(returnType, methodResultTypeName)) {
+							addField(propertyName, type, defaultValue, docs, location, extensionName, source,
+									enumerations, null, quarkusProperties);
+						} else {
+							populateConfigObject(returnType, propertyName, location, extensionName, new HashSet<>(),
+									quarkusProperties, monitor);
+						}
+
+					}
+				}
+			}
+		} else {
+			// See
+			// https://github.com/quarkusio/quarkus/blob/e8606513e1bd14f0b1aaab7f9969899bd27c55a3/extensions/arc/deployment/src/main/java/io/quarkus/arc/deployment/configproperties/ClassConfigPropertiesUtil.java#L117
+			// TODO : validation
+			populateConfigObject(configPropertiesType, prefix, location, extensionName, new HashSet<>(),
+					quarkusProperties, monitor);
+		}
+	}
+
+	private static boolean isSimpleFieldType(IType type, String typeName) {
+		return type == null || isPrimitiveType(typeName) || isList(typeName) || isMap(typeName) || isOptional(typeName);
+	}
+
+	private static IType[] findInterfaces(IType type, IProgressMonitor progressMonitor) throws JavaModelException {
+		ITypeHierarchy typeHierarchy = type.newSupertypeHierarchy(progressMonitor);
+		return typeHierarchy.getAllSuperInterfaces(type);
+	}
+
+	private static void populateConfigObject(IType configPropertiesType, String prefixStr, final String location,
+			String extensionName, Set<IType> typesAlreadyProcessed,
+			List<ExtendedConfigDescriptionBuildItem> quarkusProperties, IProgressMonitor monitor)
+			throws JavaModelException {
+		if (typesAlreadyProcessed.contains(configPropertiesType)) {
+			return;
+		}
+		typesAlreadyProcessed.add(configPropertiesType);
+		IJavaElement[] elements = configPropertiesType.getChildren();
+		// Loop for each fields.
+		for (IJavaElement child : elements) {
+			if (child.getElementType() == IJavaElement.FIELD) {
+				// The following code is an adaptation for JDT of
+				// Quarkus arc code:
+				// https://github.com/quarkusio/quarkus/blob/e8606513e1bd14f0b1aaab7f9969899bd27c55a3/extensions/arc/deployment/src/main/java/io/quarkus/arc/deployment/configproperties/ClassConfigPropertiesUtil.java#L211
+				IField field = (IField) child;
+				boolean useFieldAccess = false;
+				String setterName = JavaBeanUtil.getSetterName(field.getElementName());
+				String configClassInfo = configPropertiesType.getFullyQualifiedName();
+				IMethod setter = findMethod(configPropertiesType, setterName, field.getTypeSignature());
+				if (setter == null) {
+					if (!Flags.isPublic(field.getFlags()) || Flags.isFinal(field.getFlags())) {
+						LOGGER.log(Level.INFO,
+								"Configuration properties class " + configClassInfo
+										+ " does not have a setter for field " + field
+										+ " nor is the field a public non-final field");
+						continue;
+					}
+					useFieldAccess = true;
+				}
+				if (!useFieldAccess && !Flags.isPublic(setter.getFlags())) {
+					LOGGER.log(Level.INFO, "Setter " + setterName + " of class " + configClassInfo + " must be public");
+					continue;
+				}
+
+				String name = field.getElementName();
+				// The default value is managed with assign like : 'public String suffix = "!"';
+				// Getting "!" value is possible but it requires to reparse the Java file to
+				// build a DOM CompilationUnit to extract assigned value.
+				final String defaultValue = null;
+				String propertyName = prefixStr + "." + name;
+
+				String fieldTypeName = getResolvedTypeName(field);
+				IType fieldClass = findType(field.getJavaProject(), fieldTypeName);
+				if (isSimpleFieldType(fieldClass, fieldTypeName)) {
+
+					// Class type
+					String type = fieldClass != null ? fieldClass.getFullyQualifiedName() : fieldTypeName;
+
+					// Javadoc
+					String docs = null;
+
+					// field and class source
+					String source = field.getDeclaringType().getFullyQualifiedName() + "#" + field.getElementName();
+
+					// Enumerations
+					List<EnumItem> enumerations = getEnumerations(fieldClass);
+
+					addField(propertyName, type, defaultValue, docs, location, extensionName, source, enumerations,
+							null, quarkusProperties);
+				} else {
+					populateConfigObject(fieldClass, propertyName, location, extensionName, typesAlreadyProcessed,
+							quarkusProperties, monitor);
+				}
+			}
+		}
+	}
+
+	private static String getPropertyNameFromMethodName(IMethod method) {
+		try {
+			return JavaBeanUtil.getPropertyNameFromGetter(method.getElementName());
+		} catch (IllegalArgumentException e) {
+			LOGGER.log(Level.INFO, "Method " + method.getElementName() + " of interface "
+					+ method.getDeclaringType().getElementName()
+					+ " is not a getter method. Either rename the method to follow getter name conventions or annotate the method with @ConfigProperty");
+			return null;
+		}
+	}
+
+	private static IMethod findMethod(IType configPropertiesType, String setterName, String fieldTypeSignature) {
+		IMethod method = configPropertiesType.getMethod(setterName, new String[] { fieldTypeSignature });
+		return method.exists() ? method : null;
+	}
+
+	private static String determinePrefix(IType configPropertiesType, IAnnotation configPropertiesAnnotation)
+			throws JavaModelException {
+		String fromAnnotation = getPrefixFromAnnotation(configPropertiesAnnotation);
+		if (fromAnnotation != null) {
+			return fromAnnotation;
+		}
+		return getPrefixFromClassName(configPropertiesType);
+	}
+
+	private static String getPrefixFromAnnotation(IAnnotation configPropertiesAnnotation) throws JavaModelException {
+		String value = getAnnotationMemberValue(configPropertiesAnnotation, "prefix");
+		if (value == null) {
+			return null;
+		}
+		if (ConfigProperties.UNSET_PREFIX.equals(value) || value.isEmpty()) {
+			return null;
+		}
+		return value;
+	}
+
+	private static String getPrefixFromClassName(IType className) {
+		String simpleName = className.getElementName(); // className.isInner() ? className.local() :
+														// className.withoutPackagePrefix();
+		return join("-", withoutSuffix(lowerCase(camelHumpsIterator(simpleName)), "config", "configuration",
+				"properties", "props"));
 	}
 
 	private static void addField(String location, String extensionName, IField field, String fieldTypeName,
@@ -674,11 +917,11 @@ public class JDTQuarkusManager {
 	}
 
 	private static boolean isMap(String mapValueClass) {
-		return mapValueClass.startsWith("java.util.Map<");
+		return mapValueClass.startsWith("java.util.Map");
 	}
 
 	private static boolean isList(String valueClass) {
-		return valueClass.startsWith("java.util.List<");
+		return valueClass.startsWith("java.util.List");
 	}
 
 	private static boolean isNumber(String valueClass) {
@@ -744,11 +987,15 @@ public class JDTQuarkusManager {
 		}
 		IAnnotation[] annotations = annotatable.getAnnotations();
 		for (IAnnotation annotation : annotations) {
-			if (annotationName.equals(annotation.getElementName())) {
+			if (isMatchAnnotation(annotation, annotationName)) {
 				return annotation;
 			}
 		}
 		return null;
+	}
+
+	private static boolean isMatchAnnotation(IAnnotation annotation, String annotationName) {
+		return annotationName.endsWith(annotation.getElementName());
 	}
 
 	private static String getAnnotationMemberValue(IAnnotation annotation, String memberName)
@@ -773,6 +1020,16 @@ public class JDTQuarkusManager {
 		try {
 			String signature = field.getTypeSignature();
 			IType primaryType = field.getTypeRoot().findPrimaryType();
+			return JavaModelUtil.getResolvedTypeName(signature, primaryType);
+		} catch (JavaModelException e) {
+			return null;
+		}
+	}
+
+	private static String getResolvedResultTypeName(IMethod method) {
+		try {
+			String signature = method.getReturnType();
+			IType primaryType = method.getTypeRoot().findPrimaryType();
 			return JavaModelUtil.getResolvedTypeName(signature, primaryType);
 		} catch (JavaModelException e) {
 			return null;

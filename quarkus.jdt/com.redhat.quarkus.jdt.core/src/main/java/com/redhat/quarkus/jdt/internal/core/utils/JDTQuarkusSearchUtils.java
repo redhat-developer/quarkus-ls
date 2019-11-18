@@ -9,6 +9,7 @@
 *******************************************************************************/
 package com.redhat.quarkus.jdt.internal.core.utils;
 
+import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_PROPERTIES_ANNOTATION;
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_PROPERTY_ANNOTATION;
 import static com.redhat.quarkus.jdt.internal.core.QuarkusConstants.CONFIG_ROOT_ANNOTATION;
 
@@ -53,11 +54,16 @@ public class JDTQuarkusSearchUtils {
 		SearchPattern configRootPattern = SearchPattern.createPattern(CONFIG_ROOT_ANNOTATION,
 				IJavaSearchConstants.ANNOTATION_TYPE, IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE,
 				SearchPattern.R_EXACT_MATCH);
+		// Pattern to search @ConfigProperties annotation
+		SearchPattern configPropertiesPattern = SearchPattern.createPattern(CONFIG_PROPERTIES_ANNOTATION,
+				IJavaSearchConstants.ANNOTATION_TYPE, IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE,
+				SearchPattern.R_EXACT_MATCH);
 		// Pattern to search @ConfigProperty annotation
 		SearchPattern configPropertyPattern = SearchPattern.createPattern(CONFIG_PROPERTY_ANNOTATION,
 				IJavaSearchConstants.ANNOTATION_TYPE, IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE,
 				SearchPattern.R_EXACT_MATCH);
-		return SearchPattern.createOrPattern(configRootPattern, configPropertyPattern);
+		return SearchPattern.createOrPattern(configRootPattern,
+				SearchPattern.createOrPattern(configPropertiesPattern, configPropertyPattern));
 	}
 
 	/**
@@ -86,7 +92,7 @@ public class JDTQuarkusSearchUtils {
 		int scope = propertiesScope == QuarkusPropertiesScope.sources ? IJavaSearchScope.SOURCES
 				: IJavaSearchScope.SOURCES | IJavaSearchScope.APPLICATION_LIBRARIES;
 		// Create a Java project which collects all deployments JARs.
-		QuarkusDeploymentJavaProject fakeProject = new QuarkusDeploymentJavaProject(project, 
+		QuarkusDeploymentJavaProject fakeProject = new QuarkusDeploymentJavaProject(project,
 				QuarkusDeploymentJavaProject.DEFAULT_ARTIFACT_RESOLVER, excludeTestCode);
 		// Search in the given project and deployment JAR's.
 		return createJavaSearchScope(fakeProject, excludeTestCode, fakeProject.getElementsToSearch(propertiesScope),
