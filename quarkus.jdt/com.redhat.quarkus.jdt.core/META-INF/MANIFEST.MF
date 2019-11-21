@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: quarkus.jdt.ls Core Extension
 Bundle-SymbolicName: com.redhat.quarkus.jdt.core;singleton:=true
-Bundle-Version: 0.0.4.qualifier
+Bundle-Version: 0.0.5.qualifier
 Bundle-Activator: com.redhat.quarkus.jdt.core.QuarkusActivator
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jdt.core,
