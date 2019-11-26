@@ -230,4 +230,11 @@ public class ApplicationPropertiesCompletionTest {
 		testCompletionFor(value, true, c("OFF", "OFF", r(0, 23, 24)), c("SEVERE", "SEVERE", r(0, 23, 24)));
 	}
 
+	@Test
+	public void completionSpacingSurroundingEquals() throws BadLocationException {
+		String value = "|";
+		testCompletionFor(value, false, true, c("quarkus.http.cors", "quarkus.http.cors = false", r(0, 0, 0)));
+		testCompletionFor(value, true, true, c("quarkus.http.cors", "quarkus.http.cors = ${1|false,true|}", r(0, 0, 0)));
+	}
+
 }

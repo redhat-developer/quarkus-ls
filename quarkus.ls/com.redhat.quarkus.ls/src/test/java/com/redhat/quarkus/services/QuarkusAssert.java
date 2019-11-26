@@ -95,18 +95,39 @@ public class QuarkusAssert {
 
 	// ------------------- Completion assert
 
+	public static void testCompletionFor(String value, boolean snippetSupport, Integer expectedCount)
+			throws BadLocationException {
+		testCompletionFor(value, snippetSupport, false, expectedCount);
+	}
+
 	public static void testCompletionFor(String value, boolean snippetSupport, CompletionItem... expectedItems)
 			throws BadLocationException {
-		testCompletionFor(value, snippetSupport, null, expectedItems);
+		testCompletionFor(value, snippetSupport, false, null, expectedItems);
+	}
+
+	public static void testCompletionFor(String value, boolean snippetSupport, boolean insertSpacing, CompletionItem... expectedItems)
+			throws BadLocationException {
+		testCompletionFor(value, snippetSupport, insertSpacing, null, expectedItems);
 	}
 
 	public static void testCompletionFor(String value, boolean snippetSupport, Integer expectedCount,
 			CompletionItem... expectedItems) throws BadLocationException {
-		testCompletionFor(value, snippetSupport, null, expectedCount, getDefaultQuarkusProjectInfo(), expectedItems);
+		testCompletionFor(value, snippetSupport, false, null, expectedCount, getDefaultQuarkusProjectInfo(), expectedItems);
+	}
+
+	public static void testCompletionFor(String value, boolean snippetSupport, boolean insertSpacing,
+			Integer expectedCount, CompletionItem... expectedItems) throws BadLocationException {
+		testCompletionFor(value, snippetSupport, insertSpacing, null, expectedCount, getDefaultQuarkusProjectInfo(), expectedItems);
 	}
 
 	public static void testCompletionFor(String value, boolean snippetSupport, String fileURI, Integer expectedCount,
 			QuarkusProjectInfo projectInfo, CompletionItem... expectedItems) throws BadLocationException {
+		testCompletionFor(value, snippetSupport, false, null, expectedCount, projectInfo, expectedItems);
+	}
+
+	public static void testCompletionFor(String value, boolean snippetSupport, boolean insertSpacing,
+			String fileURI, Integer expectedCount, QuarkusProjectInfo projectInfo, 
+			CompletionItem... expectedItems) throws BadLocationException {
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
@@ -120,8 +141,11 @@ public class QuarkusAssert {
 		CompletionCapabilities completionCapabilities = new CompletionCapabilities(completionItemCapabilities);
 		completionSettings.setCapabilities(completionCapabilities);
 
+		QuarkusFormattingSettings formattingSettings = new QuarkusFormattingSettings();
+		formattingSettings.setSurroundEqualsWithSpaces(insertSpacing);
+
 		QuarkusLanguageService languageService = new QuarkusLanguageService();
-		CompletionList list = languageService.doComplete(model, position, projectInfo, completionSettings, () -> {
+		CompletionList list = languageService.doComplete(model, position, projectInfo, completionSettings, formattingSettings, () -> {
 		});
 
 		assertCompletions(list, expectedCount, expectedItems);
