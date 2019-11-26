@@ -140,7 +140,8 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 				// then return completion by using the Quarkus project information and the
 				// Properties model document
 				CompletionList list = getQuarkusLanguageService().doComplete(document, params.getPosition(),
-						projectInfo, sharedSettings.getCompletionSettings(), null);
+						projectInfo, sharedSettings.getCompletionSettings(), sharedSettings.getFormattingSettings(),
+						null);
 				return Either.forRight(list);
 			});
 		});

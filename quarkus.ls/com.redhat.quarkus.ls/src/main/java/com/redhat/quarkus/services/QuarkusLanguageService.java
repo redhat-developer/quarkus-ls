@@ -80,9 +80,10 @@ public class QuarkusLanguageService {
 	 * @return completion list for the given position
 	 */
 	public CompletionList doComplete(PropertiesModel document, Position position, QuarkusProjectInfo projectInfo,
-			QuarkusCompletionSettings completionSettings, CancelChecker cancelChecker) {
+			QuarkusCompletionSettings completionSettings, QuarkusFormattingSettings formattingSettings,
+			CancelChecker cancelChecker) {
 		return completions.doComplete(document, position, projectInfo, getValuesRulesManager(), completionSettings,
-				cancelChecker);
+				formattingSettings, cancelChecker);
 	}
 
 	/**

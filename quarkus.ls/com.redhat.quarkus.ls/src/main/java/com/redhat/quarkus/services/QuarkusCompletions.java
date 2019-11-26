@@ -18,16 +18,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.CompletionItemKind;
-import org.eclipse.lsp4j.CompletionList;
-import org.eclipse.lsp4j.InsertTextFormat;
-import org.eclipse.lsp4j.MarkupKind;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.TextEdit;
-import org.eclipse.lsp4j.jsonrpc.CancelChecker;
-
 import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
@@ -41,9 +31,20 @@ import com.redhat.quarkus.model.Property;
 import com.redhat.quarkus.model.PropertyKey;
 import com.redhat.quarkus.model.values.ValuesRulesManager;
 import com.redhat.quarkus.settings.QuarkusCompletionSettings;
+import com.redhat.quarkus.settings.QuarkusFormattingSettings;
 import com.redhat.quarkus.utils.DocumentationUtils;
 import com.redhat.quarkus.utils.QuarkusPropertiesUtils;
 import com.redhat.quarkus.utils.QuarkusPropertiesUtils.FormattedPropertyResult;
+
+import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionItemKind;
+import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.InsertTextFormat;
+import org.eclipse.lsp4j.MarkupKind;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 /**
  * The Quarkus completions
@@ -68,7 +69,7 @@ class QuarkusCompletions {
 	 */
 	public CompletionList doComplete(PropertiesModel document, Position position, QuarkusProjectInfo projectInfo,
 			ValuesRulesManager valuesRulesManager, QuarkusCompletionSettings completionSettings,
-			CancelChecker cancelChecker) {
+			QuarkusFormattingSettings formattingSettings, CancelChecker cancelChecker) {
 		CompletionList list = new CompletionList();
 		int offset = -1;
 		Node node = null;
@@ -95,7 +96,7 @@ class QuarkusCompletions {
 		default:
 			// completion on property key
 			collectPropertyKeySuggestions(offset, node, document, projectInfo, valuesRulesManager, completionSettings,
-					list);
+					formattingSettings, list);
 			break;
 		}
 		return list;
@@ -113,7 +114,8 @@ class QuarkusCompletions {
 	 */
 	private static void collectPropertyKeySuggestions(int offset, Node node, PropertiesModel model,
 			QuarkusProjectInfo projectInfo, ValuesRulesManager valuesRulesManager,
-			QuarkusCompletionSettings completionSettings, CompletionList list) {
+			QuarkusCompletionSettings completionSettings, QuarkusFormattingSettings formattingSettings,
+			CompletionList list) {
 
 		boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
 		boolean markdownSupported = completionSettings.isDocumentationFormatSupported(MarkupKind.MARKDOWN);
@@ -192,7 +194,13 @@ class QuarkusCompletions {
 			String filterText = insertText.toString();
 			item.setFilterText(filterText);
 
-			insertText.append('='); // TODO: spaces around the equals sign should be configured in format settings
+			if (formattingSettings.isSurroundEqualsWithSpaces()) {
+				insertText.append(' ');
+			}
+			insertText.append('=');
+			if (formattingSettings.isSurroundEqualsWithSpaces()) {
+				insertText.append(' ');
+			}
 
 			if (enums != null && enums.size() > 0) {
 				// Enumerations
