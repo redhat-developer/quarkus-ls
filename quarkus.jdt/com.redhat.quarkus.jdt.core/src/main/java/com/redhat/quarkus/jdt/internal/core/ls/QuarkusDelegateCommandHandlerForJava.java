@@ -22,8 +22,11 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.lsp4j.Position;
 
 import com.redhat.quarkus.commons.QuarkusJavaCodeLensParams;
+import com.redhat.quarkus.commons.QuarkusJavaHoverInfo;
+import com.redhat.quarkus.commons.QuarkusJavaHoverParams;
 import com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJava;
 
 /**
@@ -35,6 +38,7 @@ import com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJava;
 public class QuarkusDelegateCommandHandlerForJava implements IDelegateCommandHandler {
 
 	private static final String JAVA_CODELENS_COMMAND_ID = "quarkus.java.codeLens";
+	private static final String JAVA_HOVER_COMMAND_ID = "quarkus.java.hover";
 
 	public QuarkusDelegateCommandHandlerForJava() {
 	}
@@ -44,6 +48,8 @@ public class QuarkusDelegateCommandHandlerForJava implements IDelegateCommandHan
 		switch (commandId) {
 		case JAVA_CODELENS_COMMAND_ID:
 			return getCodeLensForJava(arguments, commandId, progress);
+		case JAVA_HOVER_COMMAND_ID:
+			return getHoverForJava(arguments, commandId, progress);
 		default:
 			throw new UnsupportedOperationException(String.format("Unsupported command '%s'!", commandId));
 		}
@@ -93,5 +99,52 @@ public class QuarkusDelegateCommandHandlerForJava implements IDelegateCommandHan
 		params.setLocalServerPort(getInt(obj, "localServerPort"));
 		return params;
 	}
+	
+	/**
+	 * Returns the <code>QuarkusJavaHoverInfo</code> for the hover described
+	 * in <code>arguments</code>
+	 * 
+	 * @param arguments
+	 * @param commandId
+	 * @param monitor
+	 * @return
+	 * @throws JavaModelException
+	 * @throws CoreException
+	 */
+	private static QuarkusJavaHoverInfo getHoverForJava(List<Object> arguments, String commandId,
+			IProgressMonitor monitor) throws JavaModelException, CoreException {
+		// Create java hover parameter
+		QuarkusJavaHoverParams params = createQuarkusJavaHoverParams(arguments, commandId);
+		// return hover info from hover parameter
+		return JDTQuarkusManagerForJava.getInstance().hover(params, JDTUtilsLSImpl.getInstance(), monitor);
+	}
+	
+	/**
+	 * Returns the java hover parameters from the given arguments map.
+	 * 
+	 * @param arguments
+	 * @param commandId
+	 * 
+	 * @return the java hover parameters
+	 */
+	private static QuarkusJavaHoverParams createQuarkusJavaHoverParams(List<Object> arguments, String commandId) {
+		Map<String, Object> obj = getFirst(arguments);
+		if (obj == null) {
+			throw new UnsupportedOperationException(
+					String.format("Command '%s' must be call with one QuarkusJavaHoverParams argument!", commandId));
+		}
+		String javaFileUri = getString(obj, "uri");
+		if (javaFileUri == null) {
+			throw new UnsupportedOperationException(String.format(
+					"Command '%s' must be call with required QuarkusJavaHoverParams.uri (java URI)!", commandId));
+		}
+
+		Map<String, Object> hoverPosition = (Map<String, Object>) obj.get("position");
+		int line = getInt(hoverPosition, "line");
+		int character = getInt(hoverPosition, "character");
+
+		return new QuarkusJavaHoverParams(javaFileUri, new Position(line, character));
+	}
+
 
 }

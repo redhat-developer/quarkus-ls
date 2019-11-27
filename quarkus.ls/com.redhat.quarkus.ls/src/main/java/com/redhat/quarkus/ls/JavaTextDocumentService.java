@@ -13,17 +13,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import com.redhat.quarkus.commons.QuarkusJavaCodeLensParams;
+import com.redhat.quarkus.commons.QuarkusJavaHoverParams;
+import com.redhat.quarkus.ls.commons.client.CommandKind;
+import com.redhat.quarkus.settings.QuarkusCodeLensSettings;
+import com.redhat.quarkus.settings.SharedSettings;
+import com.redhat.quarkus.utils.DocumentationUtils;
+
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CodeLensParams;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
-
-import com.redhat.quarkus.commons.QuarkusJavaCodeLensParams;
-import com.redhat.quarkus.ls.commons.client.CommandKind;
-import com.redhat.quarkus.settings.QuarkusCodeLensSettings;
-import com.redhat.quarkus.settings.SharedSettings;
+import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.MarkupKind;
+import org.eclipse.lsp4j.TextDocumentPositionParams;
 
 /**
  * LSP text document service for Java file.
@@ -84,4 +89,19 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 		sharedSettings.getCodeLensSettings().setUrlCodeLensEnabled(newCodeLens.isUrlCodeLensEnabled());
 	}
 
+
+	@Override
+	public CompletableFuture<Hover> hover(TextDocumentPositionParams params) {
+		QuarkusJavaHoverParams javaParams = new QuarkusJavaHoverParams(params.getTextDocument().getUri(), params.getPosition());
+		return quarkusLanguageServer.getLanguageClient().quarkusJavaHover(javaParams).thenApply(info -> {
+
+			if (info == null) {
+				return null;
+			}
+
+			boolean markdownSupported =  sharedSettings.getHoverSettings().isContentFormatSupported(MarkupKind.MARKDOWN);
+			Hover h = DocumentationUtils.doHover(info, markdownSupported);
+			return h;
+		});
+	}
 }
