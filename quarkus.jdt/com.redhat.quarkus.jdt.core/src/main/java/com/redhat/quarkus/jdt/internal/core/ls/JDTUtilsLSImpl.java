@@ -12,6 +12,7 @@ package com.redhat.quarkus.jdt.internal.core.ls;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -22,6 +23,7 @@ import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
+import org.eclipse.jdt.ls.core.internal.handlers.JsonRpcHelpers;
 import org.eclipse.lsp4j.Range;
 
 import com.redhat.quarkus.jdt.core.IJDTUtils;
@@ -82,5 +84,10 @@ public class JDTUtilsLSImpl implements IJDTUtils {
 		} catch (Exception e) {
 			JavaLanguageServerPlugin.logException(e.getMessage(), e);
 		}
+	}
+
+	@Override
+	public int toOffset(IBuffer buffer, int line, int column) {
+		return JsonRpcHelpers.toOffset(buffer, line, column);
 	}
 }

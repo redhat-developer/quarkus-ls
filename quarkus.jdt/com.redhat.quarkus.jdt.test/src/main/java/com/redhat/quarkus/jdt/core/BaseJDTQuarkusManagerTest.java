@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -48,6 +49,7 @@ public class BaseJDTQuarkusManagerTest {
 	public enum MavenProjectName {
 
 		all_quarkus_extensions("all-quarkus-extensions"), //
+		config_hover("config-hover"), //
 		config_properties("config-properties"), //
 		config_quickstart("config-quickstart"), //
 		config_quickstart_test("config-quickstart-test"), //
@@ -104,8 +106,8 @@ public class BaseJDTQuarkusManagerTest {
 			IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 				@Override
 				public void run(IProgressMonitor monitor) throws CoreException {
+					project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
 					monitor.done();
-
 				}
 			};
 			IProgressMonitor monitor = new NullProgressMonitor();

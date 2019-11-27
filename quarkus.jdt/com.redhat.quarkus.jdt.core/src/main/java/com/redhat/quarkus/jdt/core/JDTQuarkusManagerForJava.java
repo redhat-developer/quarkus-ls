@@ -40,6 +40,7 @@ import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
@@ -51,9 +52,14 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.util.Ranges;
 
 import com.redhat.quarkus.commons.QuarkusJavaCodeLensParams;
+import com.redhat.quarkus.commons.QuarkusJavaHoverInfo;
+import com.redhat.quarkus.commons.QuarkusJavaHoverParams;
+import com.redhat.quarkus.jdt.internal.core.QuarkusConstants;
 
 /**
  * JDT quarkus manager for Java files.
@@ -124,7 +130,7 @@ public class JDTQuarkusManagerForJava {
 							.append(APPLICATION_PROPERTIES_FILE).toFile();
 					if (file.exists()) {
 						applicationPropertiesFile = file;
-						
+
 						return applicationPropertiesFile;
 					}
 				}
@@ -384,4 +390,79 @@ public class JDTQuarkusManagerForJava {
 			return false;
 		}
 	}
+
+	/**
+	 * Returns the hover information according to the given <code>params</code>
+	 * 
+	 * @param params  the hover parameters
+	 * @param utils   the utilities class
+	 * @param monitor the monitor
+	 * @return the hover information according to the given <code>params</code>
+	 * @throws JavaModelException
+	 */
+	public QuarkusJavaHoverInfo hover(QuarkusJavaHoverParams params, IJDTUtils utils, IProgressMonitor monitor)
+			throws JavaModelException {
+		utils.waitForLifecycleJobs(monitor);
+
+		String uri = params.getUri();
+		ITypeRoot typeRoot = resolveTypeRoot(uri, utils, monitor);
+
+		Position hoverPosition = params.getPosition();
+		int hoveredOffset = utils.toOffset(typeRoot.getBuffer(), hoverPosition.getLine(), hoverPosition.getCharacter());
+		IJavaElement hoverElement = typeRoot.getElementAt(hoveredOffset);
+		if (hoverElement == null) {
+			return null;
+		}
+		if (hoverElement.getElementType() == IJavaElement.FIELD) {
+
+			IField hoverField = (IField) hoverElement;
+
+			IAnnotation annotation = getAnnotation(hoverField, QuarkusConstants.CONFIG_PROPERTY_ANNOTATION);
+			
+			if (annotation == null) {
+				return null;
+			}
+
+			String annotationSource = ((ISourceReference) annotation).getSource();
+			String propertyKey = getAnnotationMemberValue(annotation, "name");
+
+			if (propertyKey == null) {
+				return null;
+			}
+
+			ISourceRange r = ((ISourceReference) annotation).getSourceRange();
+			int offset = annotationSource.indexOf(propertyKey);
+			final Range propertyKeyRange = utils.toRange(typeRoot, r.getOffset() + offset, propertyKey.length());
+
+			if (hoverPosition.equals(propertyKeyRange.getEnd())
+					|| !Ranges.containsPosition(propertyKeyRange, hoverPosition)) {
+				return null;
+			}
+
+			IJavaProject javaProject = typeRoot.getJavaProject();
+
+			if (javaProject == null) {
+				return null;
+			}
+
+			Properties properties = getJDTQuarkusProjectInfo(javaProject).getApplicationProperties();
+
+			if (properties == null) {
+				return null;
+			}
+
+			String propertyValue = properties.getProperty(propertyKey);
+			if (propertyValue == null) {
+				propertyValue = getAnnotationMemberValue(annotation, "defaultValue");
+				if (propertyValue != null && propertyValue.length() == 0) {
+					propertyValue = null;
+				}
+			}
+
+			return new QuarkusJavaHoverInfo(propertyKey, propertyValue, propertyKeyRange);
+		}
+
+		return null;
+	}
+
 }
