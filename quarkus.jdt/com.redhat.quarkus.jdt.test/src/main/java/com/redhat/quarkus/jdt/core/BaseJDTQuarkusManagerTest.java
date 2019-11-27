@@ -48,6 +48,7 @@ public class BaseJDTQuarkusManagerTest {
 	public enum MavenProjectName {
 
 		all_quarkus_extensions("all-quarkus-extensions"), //
+		config_hover("config-hover"), //
 		config_properties("config-properties"), //
 		config_quickstart("config-quickstart"), //
 		config_quickstart_test("config-quickstart-test"), //

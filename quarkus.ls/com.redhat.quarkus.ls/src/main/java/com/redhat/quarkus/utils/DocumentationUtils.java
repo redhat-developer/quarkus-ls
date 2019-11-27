@@ -14,7 +14,9 @@ import static com.redhat.quarkus.utils.QuarkusPropertiesUtils.formatPropertyForM
 
 import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
+import com.redhat.quarkus.commons.QuarkusJavaHoverInfo;
 
+import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -141,6 +143,63 @@ public class DocumentationUtils {
 		}
 
 		return new MarkupContent(markdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT, documentation.toString());
+	}
+
+	/**
+	 * Returns a <code>Hover</code> object using information from <code>hoverInfo</code>,
+	 * containing documentation
+	 * 
+	 * @param hoverInfo the hover information
+	 * @param markdown  true if documentation must be formatted as markdown and false
+	 *                  otherwise
+	 * @return a <code>Hover</code> object using information from <code>hoverInfo</code>,
+	 * containing documentation
+	 */
+	public static Hover doHover(QuarkusJavaHoverInfo hoverInfo, boolean markdown) {
+		MarkupContent content = DocumentationUtils.getDocumentation(hoverInfo.getPropertyKey(), hoverInfo.getPropertyValue(),
+				markdown, true);
+		return new Hover(content, hoverInfo.getRange());
+	}
+
+	/**
+	 * Returns documentation about the provided <code>propertyKey</code>'s
+	 * value, <code>propertyValue</code>
+	 * 
+	 * @param propertyKey   the property key 
+	 * @param propertyValue the property key's value
+	 * @param markdown      true if documentation must be formatted as markdown and false
+	 *                      otherwise
+	 * @param insertSpacing true if spacing should be inserted around the equals sign and
+	 *                      false otherwise
+	 * @return
+	 */
+	public static MarkupContent getDocumentation(String propertyKey, String propertyValue,
+			boolean markdown, boolean insertSpacing) {
+		StringBuilder content = new StringBuilder();
+
+		if (markdown) {
+			content.append("`");
+		}
+
+		content.append(propertyKey);
+
+		if (propertyValue == null) {
+			if (markdown) {
+				content.append("`");
+			}
+			content.append(" is not set.");
+		} else {
+			if (insertSpacing) {
+				content.append(" = ");
+			} else {
+				content.append("=");
+			}
+			content.append(propertyValue);
+			if (markdown) {
+				content.append("`");
+			}
+		}
+		return new MarkupContent(MarkupKind.MARKDOWN, content.toString());
 	}
 
 	/**

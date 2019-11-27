@@ -18,6 +18,6 @@ import org.eclipse.lsp4j.services.LanguageClient;
  *
  */
 public interface QuarkusLanguageClientAPI extends LanguageClient, QuarkusProjectInfoProvider,
-		QuarkusPropertyDefinitionProvider, QuarkusJavaCodeLensProvider {
+		QuarkusPropertyDefinitionProvider, QuarkusJavaCodeLensProvider, QuarkusJavaHoverProvider {
 
 }
