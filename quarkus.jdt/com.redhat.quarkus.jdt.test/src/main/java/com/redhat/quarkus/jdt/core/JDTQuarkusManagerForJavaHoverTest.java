@@ -60,7 +60,7 @@ public class JDTQuarkusManagerForJavaHoverTest extends BaseJDTQuarkusManagerTest
 
 		Optional<File> app = files.stream().filter(File::exists).findAny();
 		Assert.assertTrue("application.properties '"
-				+ files.stream().map(File::getPath).collect(Collectors.joining(", ")) + "' should exists.",
+				+ files.stream().map(File::getPath).collect(Collectors.joining(", ")) + "' should exist.",
 				app.isPresent());
 
 		IFile javaFile = project.getFile(new Path("src/main/java/org/acme/config/GreetingResource.java"));

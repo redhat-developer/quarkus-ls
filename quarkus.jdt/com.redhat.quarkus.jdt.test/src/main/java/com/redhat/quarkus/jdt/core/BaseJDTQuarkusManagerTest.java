@@ -10,9 +10,11 @@
 package com.redhat.quarkus.jdt.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -32,6 +34,7 @@ import org.junit.BeforeClass;
 import com.redhat.quarkus.commons.ClasspathKind;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
+import com.redhat.quarkus.jdt.internal.core.JavaUtils;
 import com.redhat.quarkus.jdt.internal.core.JobHelpers;
 
 /**
@@ -89,11 +92,15 @@ public class BaseJDTQuarkusManagerTest {
 				DocumentationConverter.DEFAULT_CONVERTER, ClasspathKind.SRC, new NullProgressMonitor());
 		return info;
 	}
-
+	
 	public static IJavaProject loadMavenProject(MavenProjectName mavenProject) throws CoreException, Exception {
 		// Load existing "hibernate-orm-resteasy" maven project
 		String projectName = mavenProject.getName();
-		IPath path = new Path(new File("projects/maven/" + projectName + "/.project").getAbsolutePath());
+		
+		// Move project to working directory
+		File projectFolder = copyProjectToWorkingDirectory(projectName);
+		
+		IPath path = new Path(new File(projectFolder, "/.project").getAbsolutePath());
 		IProjectDescription description = ResourcesPlugin.getWorkspace().loadProjectDescription(path);
 		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(description.getName());
 		if (!project.exists()) {
@@ -131,6 +138,24 @@ public class BaseJDTQuarkusManagerTest {
 		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
 		return javaProject;
 	}
+	
+	private static File copyProjectToWorkingDirectory(String projectName) throws IOException {
+		File from = new File("projects/maven/" + projectName);
+		File to = new File(JavaUtils.getWorkingProjectDirectory(), projectName);
+		
+		if (to.exists()) {
+			FileUtils.forceDelete(to);
+		}
+
+		if (from.isDirectory()) {
+			FileUtils.copyDirectory(from, to);
+		} else {
+			FileUtils.copyFile(from, to);
+		}
+
+		return to;
+	}
+
 
 	private static void waitForBackgroundJobs(IProgressMonitor monitor) throws Exception {
 		JobHelpers.waitForJobsToComplete(monitor);
