@@ -10,12 +10,17 @@
 package com.redhat.quarkus.jdt.core;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.ls.core.internal.JDTUtils;
+import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
+import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.lsp4j.Range;
 
 /**
@@ -73,4 +78,5 @@ public interface IJDTUtils {
 
 	void waitForLifecycleJobs(IProgressMonitor monitor);
 
+	int toOffset(IBuffer buffer, int line, int column);
 }
