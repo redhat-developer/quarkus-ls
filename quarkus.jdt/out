@@ -1,0 +1,252 @@
+[INFO] Scanning for projects...
+[WARNING] No explicit target runtime environment configuration. Build is platform dependent.
+[WARNING] No explicit target runtime environment configuration. Build is platform dependent.
+[WARNING] No explicit target runtime environment configuration. Build is platform dependent.
+[INFO] Computing target platform for MavenProject: com.redhat.quarkus:com.redhat.quarkus.jdt.core:0.0.5-SNAPSHOT @ /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.core/pom.xml
+[INFO] Adding repository http://download.eclipse.org/scout/releases/4.0/testing
+[INFO] Fetching p2.index from http://download.eclipse.org/tools/orbit/R-builds/R20170516192513/repository/
+[INFO] Fetching p2.index from http://download.eclipse.org/tools/orbit/R-builds/R20170516192513/repository/
+[INFO] Adding repository http://download.eclipse.org/tools/orbit/R-builds/R20170516192513/repository
+[INFO] Fetching p2.index from http://download.eclipse.org/tools/orbit/downloads/drops2/R20170516192513/repository/
+[INFO] Fetching p2.index from http://download.eclipse.org/tools/orbit/downloads/drops2/R20170516192513/repository/
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/
+[INFO] Adding repository http://download.eclipse.org/buildship/updates/e410/releases/3.x
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/3.0.0.v20181205-1821/
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/3.0.0.v20181205-1821/
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/3.0.1.v20181217-1554/
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/3.0.1.v20181217-1554/
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/3.1.0.v20190501-0830/
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/3.1.0.v20190501-0830/
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/3.1.1.v20190701-1623/
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/3.1.1.v20190701-1623/
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/3.1.2.v20190903-1732/
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/3.1.2.v20190903-1732/
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/3.1.3.v20191117-2045/
+[INFO] Fetching p2.index from http://download.eclipse.org/buildship/updates/e410/releases/3.x/3.1.3.v20191117-2045/
+[INFO] Fetching p2.index from https://download.eclipse.org/technology/m2e/milestones/1.13/
+[INFO] Fetching p2.index from https://download.eclipse.org/technology/m2e/milestones/1.13/
+[INFO] Adding repository https://download.eclipse.org/technology/m2e/milestones/1.13
+[INFO] Fetching p2.index from https://download.eclipse.org/technology/m2e/milestones/1.13/1.13.0.20190716-1624/
+[INFO] Fetching p2.index from https://download.eclipse.org/technology/m2e/milestones/1.13/1.13.0.20190716-1624/
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/
+[INFO] Adding repository https://download.eclipse.org/eclipse/updates/4.14-I-builds
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/I20191129-1800/
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/I20191129-1800/
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/I20191130-0600/
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/I20191130-0600/
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/I20191130-1800/
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/I20191130-1800/
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/I20191201-0600/
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/I20191201-0600/
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/I20191201-1800/
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/I20191201-1800/
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/I20191202-0600/
+[INFO] Fetching p2.index from https://download.eclipse.org/eclipse/updates/4.14-I-builds/I20191202-0600/
+[INFO] Fetching p2.index from http://download.eclipse.org/releases/2019-06/
+[INFO] Fetching p2.index from http://download.eclipse.org/releases/2019-06/
+[INFO] Adding repository http://download.eclipse.org/releases/2019-06
+[INFO] Fetching p2.index from https://download.eclipse.org/technology/epp/packages/2019-06/
+[INFO] Fetching p2.index from https://download.eclipse.org/technology/epp/packages/2019-06/
+[INFO] Fetching p2.index from http://download.eclipse.org/releases/2019-06/201906191000/
+[INFO] Fetching p2.index from http://download.eclipse.org/releases/2019-06/201906191000/
+[INFO] Fetching p2.index from http://download.jboss.org/jbosstools/updates/m2e-extensions/m2e-apt/1.5.2-2018-12-24_15-46-05-H18/ (172B)
+[INFO] Fetching p2.index from http://download.jboss.org/jbosstools/updates/m2e-extensions/m2e-apt/1.5.2-2018-12-24_15-46-05-H18/ (172B)
+[INFO] Adding repository http://download.jboss.org/jbosstools/updates/m2e-extensions/m2e-apt/1.5.2-2018-12-24_15-46-05-H18
+[INFO] Fetching p2.index from http://services.typefox.io/open-source/jenkins/job/lsp4j/job/master/lastSuccessfulBuild/artifact/build/p2-repository/ (172B)
+[INFO] Fetching p2.index from http://services.typefox.io/open-source/jenkins/job/lsp4j/job/master/lastSuccessfulBuild/artifact/build/p2-repository/ (172B)
+[INFO] Adding repository http://services.typefox.io/open-source/jenkins/job/lsp4j/job/master/lastSuccessfulBuild/artifact/build/p2-repository
+[INFO] Fetching p2.index from http://download.eclipse.org/jdtls/snapshots/repository/latest/
+[INFO] Adding repository http://download.eclipse.org/jdtls/snapshots/repository/latest
+[INFO] Resolving dependencies of MavenProject: com.redhat.quarkus:com.redhat.quarkus.jdt.core:0.0.5-SNAPSHOT @ /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.core/pom.xml
+[INFO] Resolving class path of MavenProject: com.redhat.quarkus:com.redhat.quarkus.jdt.core:0.0.5-SNAPSHOT @ /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.core/pom.xml
+[INFO] Computing target platform for MavenProject: com.redhat.quarkus:com.redhat.quarkus.jdt.test:0.0.5-SNAPSHOT @ /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/pom.xml
+[INFO] Resolving dependencies of MavenProject: com.redhat.quarkus:com.redhat.quarkus.jdt.test:0.0.5-SNAPSHOT @ /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/pom.xml
+[INFO] Resolving class path of MavenProject: com.redhat.quarkus:com.redhat.quarkus.jdt.test:0.0.5-SNAPSHOT @ /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/pom.xml
+[INFO] Computing target platform for MavenProject: com.redhat.quarkus:com.redhat.quarkus.jdt.site:0.0.5-SNAPSHOT @ /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.site/pom.xml
+[INFO] Resolving dependencies of MavenProject: com.redhat.quarkus:com.redhat.quarkus.jdt.site:0.0.5-SNAPSHOT @ /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.site/pom.xml
+[INFO] Resolving class path of MavenProject: com.redhat.quarkus:com.redhat.quarkus.jdt.site:0.0.5-SNAPSHOT @ /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.site/pom.xml
+[WARNING] The project com.redhat.quarkus:parent:pom:0.0.5-SNAPSHOT uses prerequisites which is only intended for maven-plugin projects but not for non maven-plugin projects. For such purposes you should use the maven-enforcer-plugin. See https://maven.apache.org/enforcer/enforcer-rules/requireMavenVersion.html
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] quarkus.jdt.ls :: parent                                           [pom]
+[INFO] Quarkus JDT LS Extension                                [eclipse-plugin]
+[INFO] quarkus.jdt.ls :: test                             [eclipse-test-plugin]
+[INFO] quarkus.jdt.ls :: update site                       [eclipse-repository]
+[INFO] 
+[INFO] ---------------------< com.redhat.quarkus:parent >----------------------
+[INFO] Building quarkus.jdt.ls :: parent 0.0.5-SNAPSHOT                   [1/4]
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- maven-clean-plugin:2.5:clean (default-clean) @ parent ---
+[INFO] 
+[INFO] -----------< com.redhat.quarkus:com.redhat.quarkus.jdt.core >-----------
+[INFO] Building Quarkus JDT LS Extension 0.0.5-SNAPSHOT                   [2/4]
+[INFO] ---------------------------[ eclipse-plugin ]---------------------------
+[INFO] 
+[INFO] --- maven-clean-plugin:2.5:clean (default-clean) @ com.redhat.quarkus.jdt.core ---
+[INFO] Deleting /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.core/target
+[INFO] 
+[INFO] --- tycho-packaging-plugin:1.4.0:build-qualifier (default-build-qualifier) @ com.redhat.quarkus.jdt.core ---
+[INFO] The project's OSGi version is 0.0.5.20191202-1939
+[INFO] 
+[INFO] --- tycho-packaging-plugin:1.4.0:validate-id (default-validate-id) @ com.redhat.quarkus.jdt.core ---
+[INFO] 
+[INFO] --- tycho-packaging-plugin:1.4.0:validate-version (default-validate-version) @ com.redhat.quarkus.jdt.core ---
+[INFO] 
+[INFO] --- jacoco-maven-plugin:0.7.9:prepare-agent (default) @ com.redhat.quarkus.jdt.core ---
+[INFO] argLine set to -javaagent:/home/dakwon/.m2/repository/org/jacoco/org.jacoco.agent/0.7.9/org.jacoco.agent-0.7.9-runtime.jar=destfile=/home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.core/../target/jacoco.exec,append=true,includes=com.redhat.quarkus.jdt.*
+[INFO] 
+[INFO] --- maven-resources-plugin:2.4.3:resources (default-resources) @ com.redhat.quarkus.jdt.core ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.core/src/main/resources
+[INFO] 
+[INFO] --- tycho-compiler-plugin:1.4.0:compile (default-compile) @ com.redhat.quarkus.jdt.core ---
+[INFO] Compiling 35 source files to /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.core/target/classes
+[INFO] 
+[INFO] --- maven-resources-plugin:2.4.3:testResources (default-testResources) @ com.redhat.quarkus.jdt.core ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.core/src/test/resources
+[INFO] 
+[INFO] --- tycho-source-plugin:1.4.0:plugin-source (attach-source) @ com.redhat.quarkus.jdt.core ---
+[WARNING] Bundle-Vendor header not found in /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.core/META-INF/MANIFEST.MF, fallback to 'unknown' for source bundle
+[INFO] Building jar: /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.core/target/com.redhat.quarkus.jdt.core-0.0.5-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- target-platform-configuration:1.4.0:target-platform (default-target-platform) @ com.redhat.quarkus.jdt.core ---
+[INFO] 
+[INFO] --- tycho-packaging-plugin:1.4.0:package-plugin (default-package-plugin) @ com.redhat.quarkus.jdt.core ---
+[INFO] Building jar: /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.core/target/com.redhat.quarkus.jdt.core-0.0.5-SNAPSHOT.jar
+[INFO] 
+[INFO] --- tycho-p2-plugin:1.4.0:p2-metadata-default (default-p2-metadata-default) @ com.redhat.quarkus.jdt.core ---
+[INFO] 
+[INFO] -----------< com.redhat.quarkus:com.redhat.quarkus.jdt.test >-----------
+[INFO] Building quarkus.jdt.ls :: test 0.0.5-SNAPSHOT                     [3/4]
+[INFO] ------------------------[ eclipse-test-plugin ]-------------------------
+[INFO] 
+[INFO] --- maven-clean-plugin:2.5:clean (default-clean) @ com.redhat.quarkus.jdt.test ---
+[INFO] Deleting /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/target
+[INFO] 
+[INFO] --- tycho-packaging-plugin:1.4.0:build-qualifier (default-build-qualifier) @ com.redhat.quarkus.jdt.test ---
+[INFO] The project's OSGi version is 0.0.5.20191202-1939
+[INFO] 
+[INFO] --- tycho-packaging-plugin:1.4.0:validate-id (default-validate-id) @ com.redhat.quarkus.jdt.test ---
+[INFO] 
+[INFO] --- tycho-packaging-plugin:1.4.0:validate-version (default-validate-version) @ com.redhat.quarkus.jdt.test ---
+[INFO] 
+[INFO] --- jacoco-maven-plugin:0.7.9:prepare-agent (default) @ com.redhat.quarkus.jdt.test ---
+[INFO] tycho.testArgLine set to -javaagent:/home/dakwon/.m2/repository/org/jacoco/org.jacoco.agent/0.7.9/org.jacoco.agent-0.7.9-runtime.jar=destfile=/home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/../target/jacoco.exec,append=true,includes=com.redhat.quarkus.jdt.*
+[INFO] 
+[INFO] --- maven-resources-plugin:2.4.3:resources (default-resources) @ com.redhat.quarkus.jdt.test ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/src/main/resources
+[INFO] 
+[INFO] --- tycho-compiler-plugin:1.4.0:compile (default-compile) @ com.redhat.quarkus.jdt.test ---
+[INFO] Compiling 14 source files to /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/target/classes
+[INFO] 
+[INFO] --- maven-resources-plugin:2.4.3:testResources (default-testResources) @ com.redhat.quarkus.jdt.test ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/src/test/resources
+[INFO] 
+[INFO] --- tycho-source-plugin:1.4.0:plugin-source (attach-source) @ com.redhat.quarkus.jdt.test ---
+[WARNING] Bundle-Vendor header not found in /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/META-INF/MANIFEST.MF, fallback to 'unknown' for source bundle
+[INFO] Building jar: /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/target/com.redhat.quarkus.jdt.test-0.0.5-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- target-platform-configuration:1.4.0:target-platform (default-target-platform) @ com.redhat.quarkus.jdt.test ---
+[INFO] 
+[INFO] --- tycho-packaging-plugin:1.4.0:package-plugin (default-package-plugin) @ com.redhat.quarkus.jdt.test ---
+[INFO] Building jar: /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/target/com.redhat.quarkus.jdt.test-0.0.5-SNAPSHOT.jar
+[INFO] 
+[INFO] --- tycho-p2-plugin:1.4.0:p2-metadata-default (default-p2-metadata-default) @ com.redhat.quarkus.jdt.test ---
+[INFO] 
+[INFO] --- tycho-surefire-plugin:1.4.0:test (default-test) @ com.redhat.quarkus.jdt.test ---
+[INFO] Expected eclipse log file: /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/target/work/data/.metadata/.log
+[INFO] Command line:
+	[/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.212.b04-0.fc30.x86_64/jre/bin/java, -Dosgi.noShutdown=false, -Dosgi.os=linux, -Dosgi.ws=gtk, -Dosgi.arch=x86_64, -Xmx512m, -Dosgi.clean=true, -jar, /home/dakwon/.m2/repository/p2/osgi/bundle/org.eclipse.equinox.launcher/1.5.600.v20191014-2022/org.eclipse.equinox.launcher-1.5.600.v20191014-2022.jar, -data, /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/target/work/data, -install, /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/target/work, -configuration, /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/target/work/configuration, -application, org.eclipse.tycho.surefire.osgibooter.headlesstest, -testproperties, /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/target/surefire.properties]
+Running com.redhat.quarkus.jdt.core.JDTQuarkusManagerConfigRootTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 30.311 s - in com.redhat.quarkus.jdt.core.JDTQuarkusManagerConfigRootTest
+allQuarkusExtensions(com.redhat.quarkus.jdt.core.JDTQuarkusManagerConfigRootTest)  Time elapsed: 25.522 s
+hibernateOrmResteasy(com.redhat.quarkus.jdt.core.JDTQuarkusManagerConfigRootTest)  Time elapsed: 4.772 s
+Running com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.093 s - in com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaTest
+urlCodeLens(com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaTest)  Time elapsed: 0.092 s
+Running com.redhat.quarkus.jdt.core.JDTQuarkusManagerTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.012 s - in com.redhat.quarkus.jdt.core.JDTQuarkusManagerTest
+quarkusCorePropertiesWithOnlyCore(com.redhat.quarkus.jdt.core.JDTQuarkusManagerTest)  Time elapsed: 0.761 s
+quarkusCorePropertiesWithOnlyCoreDeployment(com.redhat.quarkus.jdt.core.JDTQuarkusManagerTest)  Time elapsed: 0.671 s
+quarkusCorePropertiesWithCoreAndDeploymentBoth(com.redhat.quarkus.jdt.core.JDTQuarkusManagerTest)  Time elapsed: 0.579 s
+Running com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaHoverTest
+Tests run: 8, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.557 s <<< FAILURE! - in com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaHoverTest
+configPropertyNameHoverOverrideDefaultValue(com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaHoverTest)  Time elapsed: 0.006 s  <<< FAILURE!
+java.lang.AssertionError
+	at com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaHoverTest.configPropertyNameHoverOverrideDefaultValue(JDTQuarkusManagerForJavaHoverTest.java:199)
+
+configPropertyNameHoverDefaultValue(com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaHoverTest)  Time elapsed: 0.002 s
+configPropertyNameHover(com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaHoverTest)  Time elapsed: 0 s
+configPropertyNameLeftEdgeHover(com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaHoverTest)  Time elapsed: 0.001 s
+configPropertyNameNoHover1(com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaHoverTest)  Time elapsed: 0.001 s
+configPropertyNameNoHover2(com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaHoverTest)  Time elapsed: 0 s
+configPropertyNameHoverNoValue(com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaHoverTest)  Time elapsed: 0.001 s  <<< FAILURE!
+java.lang.AssertionError
+	at com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaHoverTest.configPropertyNameHoverNoValue(JDTQuarkusManagerForJavaHoverTest.java:224)
+
+configPropertyNameRightEdgeHover(com.redhat.quarkus.jdt.core.JDTQuarkusManagerForJavaHoverTest)  Time elapsed: 0 s
+Running com.redhat.quarkus.jdt.core.JDTQuarkusManagerConfigPropertyTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.533 s - in com.redhat.quarkus.jdt.core.JDTQuarkusManagerConfigPropertyTest
+configQuickstartFromJavaSources(com.redhat.quarkus.jdt.core.JDTQuarkusManagerConfigPropertyTest)  Time elapsed: 0.197 s
+configQuickstartFromClasspath(com.redhat.quarkus.jdt.core.JDTQuarkusManagerConfigPropertyTest)  Time elapsed: 1.336 s
+Running com.redhat.quarkus.jdt.core.JDTQuarkusManagerClassPathKindTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.209 s - in com.redhat.quarkus.jdt.core.JDTQuarkusManagerClassPathKindTest
+configQuickstartTest(com.redhat.quarkus.jdt.core.JDTQuarkusManagerClassPathKindTest)  Time elapsed: 2.208 s
+Running com.redhat.quarkus.jdt.core.JDTQuarkusManagerConfigPropertiesTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.624 s - in com.redhat.quarkus.jdt.core.JDTQuarkusManagerConfigPropertiesTest
+configProperties(com.redhat.quarkus.jdt.core.JDTQuarkusManagerConfigPropertiesTest)  Time elapsed: 0.624 s
+Running com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusUtilsTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s - in com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusUtilsTest
+getStandardExtensionName(com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusUtilsTest)  Time elapsed: 0 s
+getBadExtensionName(com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusUtilsTest)  Time elapsed: 0 s
+getDeploymentExtensionName(com.redhat.quarkus.jdt.internal.core.utils.JDTQuarkusUtilsTest)  Time elapsed: 0 s
+Running com.redhat.quarkus.jdt.internal.core.ls.FindQuarkusPropertyLocationTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.024 s - in com.redhat.quarkus.jdt.internal.core.ls.FindQuarkusPropertyLocationTest
+usingVertxTest(com.redhat.quarkus.jdt.internal.core.ls.FindQuarkusPropertyLocationTest)  Time elapsed: 1.021 s
+configPropertiesTest(com.redhat.quarkus.jdt.internal.core.ls.FindQuarkusPropertyLocationTest)  Time elapsed: 0.002 s
+Running com.redhat.quarkus.jdt.internal.core.QuarkusPropertiesListenerManagerTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.712 s - in com.redhat.quarkus.jdt.internal.core.QuarkusPropertiesListenerManagerTest
+javaSourcesChanged(com.redhat.quarkus.jdt.internal.core.QuarkusPropertiesListenerManagerTest)  Time elapsed: 0.641 s
+classpathChanged(com.redhat.quarkus.jdt.internal.core.QuarkusPropertiesListenerManagerTest)  Time elapsed: 0.068 s
+
+Results:
+
+Failures: 
+  JDTQuarkusManagerForJavaHoverTest.configPropertyNameHoverNoValue:224
+  JDTQuarkusManagerForJavaHoverTest.configPropertyNameHoverOverrideDefaultValue:199
+
+Tests run: 25, Failures: 2, Errors: 0, Skipped: 0
+
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for quarkus.jdt.ls :: parent 0.0.5-SNAPSHOT:
+[INFO] 
+[INFO] quarkus.jdt.ls :: parent ........................... SUCCESS [  0.032 s]
+[INFO] Quarkus JDT LS Extension ........................... SUCCESS [  1.862 s]
+[INFO] quarkus.jdt.ls :: test ............................. FAILURE [ 42.615 s]
+[INFO] quarkus.jdt.ls :: update site ...................... SKIPPED
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:01 min
+[INFO] Finished at: 2019-12-02T14:40:35-05:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.eclipse.tycho:tycho-surefire-plugin:1.4.0:test (default-test) on project com.redhat.quarkus.jdt.test: There are test failures.
+[ERROR] 
+[ERROR] Please refer to /home/dakwon/git/redhat-developer-forks/quarkus-ls/quarkus.jdt/com.redhat.quarkus.jdt.test/target/surefire-reports for the individual test results.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <goals> -rf :com.redhat.quarkus.jdt.test
