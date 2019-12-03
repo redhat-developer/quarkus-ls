@@ -13,6 +13,7 @@ package com.redhat.quarkus.settings.capabilities;
 import java.util.Arrays;
 import java.util.UUID;
 
+import org.eclipse.lsp4j.CodeLensOptions;
 import org.eclipse.lsp4j.CompletionOptions;
 
 /**
@@ -43,4 +44,6 @@ public class ServerCapabilitiesConstants {
 
 	public static final CompletionOptions DEFAULT_COMPLETION_OPTIONS = new CompletionOptions(false,
 			Arrays.asList(".", "%", "="));
+	
+	public static final CodeLensOptions DEFAULT_CODELENS_OPTIONS = new CodeLensOptions();
 }
