@@ -12,6 +12,7 @@
 package com.redhat.quarkus.settings.capabilities;
 
 import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_COMPLETION_OPTIONS;
+import static com.redhat.quarkus.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_CODELENS_OPTIONS;
 
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
@@ -46,6 +47,9 @@ public class ServerCapabilitiesInitializer {
 		serverCapabilities
 				.setDocumentSymbolProvider(!clientCapabilities.isDocumentSymbolDynamicRegistrationSupported());
 		serverCapabilities.setDefinitionProvider(!clientCapabilities.isDefinitionDynamicRegistered());
+		if (!clientCapabilities.isCodeLensDynamicRegistered()) {
+			serverCapabilities.setCodeLensProvider(DEFAULT_CODELENS_OPTIONS);
+		}
 		return serverCapabilities;
 	}
 }
