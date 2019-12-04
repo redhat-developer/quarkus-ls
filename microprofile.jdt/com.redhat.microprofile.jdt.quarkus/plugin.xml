@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.5"?>
+<plugin>
+   
+   <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
+      <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigRootProvider" />
+      <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigPropertiesProvider" />
+   </extension>
+
+</plugin>

@@ -12,8 +12,8 @@ cache:
   - "$HOME/.m2/wrapper"
 
 script:
-- "cd quarkus.jdt && ./mvnw clean verify"
-- "cd ../quarkus.ls/com.redhat.quarkus.ls && ./mvnw clean verify"
+- "cd microprofile.jdt && ./mvnw clean verify"
+- "cd ../microprofile.ls/com.redhat.microprofile.ls && ./mvnw clean verify"
 
 notifications:
   email: true
