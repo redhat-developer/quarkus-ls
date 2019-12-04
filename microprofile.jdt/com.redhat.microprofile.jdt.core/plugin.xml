@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.5"?>
+<plugin>
+   
+   <extension-point id="propertiesProviders" 
+					name="%propertiesProviders.name"
+					schema="schema/propertiesProviders.exsd" />
+   
+   <!-- Delegate command handler for application.properties file -->
+   <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
+      <delegateCommandHandler class="com.redhat.microprofile.jdt.internal.core.ls.MicroProfileDelegateCommandHandler">
+            <command id="microprofile/projectInfo"/>
+            <command id="microprofile/propertyDefinition"/>
+       </delegateCommandHandler>
+   </extension>
+
+   <!-- Delegate command handler for Java file -->
+   <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
+      <delegateCommandHandler class="com.redhat.microprofile.jdt.internal.core.ls.MicroProfileDelegateCommandHandlerForJava">
+            <command id="microprofile/java/codeLens"/>
+            <command id="microprofile/java/hover"/>
+       </delegateCommandHandler>
+   </extension>
+
+   <!-- Properties provider from the MicroProfile @ConfigProperty annotation -->
+   <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
+      <provider class="com.redhat.microprofile.jdt.internal.core.providers.MicroProfileConfigPropertyProvider" />
+   </extension>
+
+</plugin>

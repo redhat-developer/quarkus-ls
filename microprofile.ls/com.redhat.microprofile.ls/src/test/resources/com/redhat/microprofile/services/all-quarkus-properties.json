@@ -1,0 +1,4857 @@
+{
+	"projectURI": "C:\\Users\\azerr\\git\\quarkus-ls\\microprofile.jdt\\com.redhat.microprofile.jdt.test\\projects\\maven\\all-quarkus-extensions",
+	"classpathKind": "SRC",
+	"properties": [
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "driver",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.datasource.driver",
+			"description": "The datasource driver class name",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceBuildTimeConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "xa",
+			"defaultValue": "false",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.datasource.xa",
+			"description": "Whether we want to use XA.\n \u003cp\u003e\n If used, the driver has to support it.",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceBuildTimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "driver",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.datasource.{*}.driver",
+			"description": "The datasource driver class name",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceBuildTimeConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "xa",
+			"defaultValue": "false",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.datasource.{*}.xa",
+			"description": "Whether we want to use XA.\n \u003cp\u003e\n If used, the driver has to support it.",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceBuildTimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "url",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.url",
+			"description": "The datasource URL",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "username",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.username",
+			"description": "The datasource username",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "password",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.password",
+			"description": "The datasource password",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Integer\u003e",
+			"sourceField": "initialSize",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.initial-size",
+			"description": "The initial size of the pool",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "minSize",
+			"defaultValue": "5",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.min-size",
+			"description": "The datasource pool minimum size",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "maxSize",
+			"defaultValue": "20",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.max-size",
+			"description": "The datasource pool maximum size",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "backgroundValidationInterval",
+			"defaultValue": "2M",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.background-validation-interval",
+			"description": "The interval at which we validate idle connections in the background",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "acquisitionTimeout",
+			"defaultValue": "5",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.acquisition-timeout",
+			"description": "The timeout before cancelling the acquisition of a new connection",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "leakDetectionInterval",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.leak-detection-interval",
+			"description": "The interval at which we check for connection leaks.",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "idleRemovalInterval",
+			"defaultValue": "5M",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.idle-removal-interval",
+			"description": "The interval at which we try to remove idle connections.",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "maxLifetime",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.max-lifetime",
+			"description": "The max lifetime of a connection.",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cio.agroal.api.configuration.AgroalConnectionFactoryConfiguration.TransactionIsolation\u003e",
+			"sourceField": "transactionIsolationLevel",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.transaction-isolation-level",
+			"description": "The transaction isolation level.",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enableMetrics",
+			"extensionName": "quarkus-agroal",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.datasource.enable-metrics",
+			"description": "Enable datasource metrics collection.",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "url",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.{*}.url",
+			"description": "The datasource URL",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "username",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.{*}.username",
+			"description": "The datasource username",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "password",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.{*}.password",
+			"description": "The datasource password",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Integer\u003e",
+			"sourceField": "initialSize",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.{*}.initial-size",
+			"description": "The initial size of the pool",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "minSize",
+			"defaultValue": "5",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.{*}.min-size",
+			"description": "The datasource pool minimum size",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "maxSize",
+			"defaultValue": "20",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.{*}.max-size",
+			"description": "The datasource pool maximum size",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "backgroundValidationInterval",
+			"defaultValue": "2M",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.{*}.background-validation-interval",
+			"description": "The interval at which we validate idle connections in the background",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "acquisitionTimeout",
+			"defaultValue": "5",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.{*}.acquisition-timeout",
+			"description": "The timeout before cancelling the acquisition of a new connection",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "leakDetectionInterval",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.{*}.leak-detection-interval",
+			"description": "The interval at which we check for connection leaks.",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "idleRemovalInterval",
+			"defaultValue": "5M",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.{*}.idle-removal-interval",
+			"description": "The interval at which we try to remove idle connections.",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "maxLifetime",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.{*}.max-lifetime",
+			"description": "The max lifetime of a connection.",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cio.agroal.api.configuration.AgroalConnectionFactoryConfiguration.TransactionIsolation\u003e",
+			"sourceField": "transactionIsolationLevel",
+			"extensionName": "quarkus-agroal",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.{*}.transaction-isolation-level",
+			"description": "The transaction isolation level.",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enableMetrics",
+			"extensionName": "quarkus-agroal",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.datasource.{*}.enable-metrics",
+			"description": "Enable datasource metrics collection.",
+			"sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
+		},
+		{
+			"type": "java.util.Set\u003cjava.lang.String\u003e",
+			"sourceField": "ALLOWED_REMOVE_UNUSED_BEANS_VALUES",
+			"extensionName": "quarkus-arc",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.arc.allowed_remove_unused_beans_values",
+			"sourceType": "io.quarkus.arc.deployment.ArcConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "removeUnusedBeans",
+			"defaultValue": "all",
+			"extensionName": "quarkus-arc",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.arc.remove-unused-beans",
+			"description": "If set to all (or true) the container will attempt to remove all unused beans.\n \u003cp\u003e\n An unused bean:\n \u003cul\u003e\n \u003cli\u003eis not a built-in bean or interceptor,\u003c/li\u003e\n \u003cli\u003eis not eligible for injection to any injection point,\u003c/li\u003e\n \u003cli\u003eis not excluded by any extension,\u003c/li\u003e\n \u003cli\u003edoes not have a name,\u003c/li\u003e\n \u003cli\u003edoes not declare an observer,\u003c/li\u003e\n \u003cli\u003edoes not declare any producer which is eligible for injection to any injection point,\u003c/li\u003e\n \u003cli\u003eis not directly eligible for injection into any {@link javax.enterprise.inject.Instance} injection point\u003c/li\u003e\n \u003c/ul\u003e\n\n If set to none (or false) no beans will ever be removed even if they are unused (according to the criteria\n set out above)\n\n If set to fwk, then all unused beans will be removed, except the unused beans whose classes are declared\n in the application code\n \n @see UnremovableBeanBuildItem",
+			"sourceType": "io.quarkus.arc.deployment.ArcConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "autoInjectFields",
+			"defaultValue": "true",
+			"extensionName": "quarkus-arc",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.arc.auto-inject-fields",
+			"description": "If set to true {@code @Inject} is automatically added to all non-static fields that are annotated with\n one of the annotations defined by {@link AutoInjectAnnotationBuildItem}.",
+			"sourceType": "io.quarkus.arc.deployment.ArcConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "name",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.application.name",
+			"description": "The name of the application.\n If not set, defaults to the name of the project.",
+			"sourceType": "io.quarkus.deployment.ApplicationConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "version",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.application.version",
+			"description": "The version of the application.\n If not set, defaults to the version of the project",
+			"sourceType": "io.quarkus.deployment.ApplicationConfig"
+		},
+		{
+			"type": "java.util.List\u003cjava.lang.String\u003e",
+			"sourceField": "libraryPaths",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.jni.library-paths",
+			"description": "Paths of library to load.",
+			"sourceType": "io.quarkus.deployment.JniProcessor$JniConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enable",
+			"defaultValue": "false",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.jni.enable",
+			"description": "Enable JNI support.",
+			"sourceType": "io.quarkus.deployment.JniProcessor$JniConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "native_",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.ssl.native",
+			"description": "Enable native SSL support.",
+			"sourceType": "io.quarkus.deployment.SslProcessor$SslConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "groupId",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.index-dependency.{*}.group-id",
+			"description": "The maven groupId of the artifact to index",
+			"sourceType": "io.quarkus.deployment.index.IndexDependencyConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "artifactId",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.index-dependency.{*}.artifact-id",
+			"description": "The maven artifactId of the artifact to index",
+			"sourceType": "io.quarkus.deployment.index.IndexDependencyConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "classifier",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.index-dependency.{*}.classifier",
+			"description": "The maven classifier of the artifact to index",
+			"sourceType": "io.quarkus.deployment.index.IndexDependencyConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "coreThreads",
+			"defaultValue": "1",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.thread-pool.core-threads",
+			"description": "The core thread pool size. This number of threads will always be kept alive.",
+			"sourceType": "io.quarkus.runtime.ThreadPoolConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "maxThreads",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.thread-pool.max-threads",
+			"description": "The maximum number of threads. If this is not specified then\n it will be automatically sized to 8 * the number of available processors",
+			"sourceType": "io.quarkus.runtime.ThreadPoolConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "queueSize",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.thread-pool.queue-size",
+			"description": "The queue size. For most applications this should be unbounded",
+			"sourceType": "io.quarkus.runtime.ThreadPoolConfig"
+		},
+		{
+			"type": "float",
+			"sourceField": "growthResistance",
+			"defaultValue": "0",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.thread-pool.growth-resistance",
+			"description": "The executor growth resistance.\n\n A resistance factor applied after the core pool is full; values applied here will cause that fraction\n of submissions to create new threads when no idle thread is available. A value of {@code 0.0f} implies that\n threads beyond the core size should be created as aggressively as threads within it; a value of {@code 1.0f}\n implies that threads beyond the core size should never be created.",
+			"sourceType": "io.quarkus.runtime.ThreadPoolConfig"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "shutdownTimeout",
+			"defaultValue": "1M",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.thread-pool.shutdown-timeout",
+			"description": "The shutdown timeout. If all pending work has not been completed by this time\n then additional threads will be spawned to attempt to finish any pending tasks, and the shutdown process will\n continue",
+			"sourceType": "io.quarkus.runtime.ThreadPoolConfig"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "shutdownInterrupt",
+			"defaultValue": "10",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.thread-pool.shutdown-interrupt",
+			"description": "The amount of time to wait for thread pool shutdown before tasks should be interrupted. If this value is\n greater than or equal to the value for {@link #shutdownTimeout}, then tasks will not be interrupted before\n the shutdown timeout occurs.",
+			"sourceType": "io.quarkus.runtime.ThreadPoolConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "shutdownCheckInterval",
+			"defaultValue": "5",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.thread-pool.shutdown-check-interval",
+			"description": "The frequency at which the status of the thread pool should be checked during shutdown. Information about\n waiting tasks and threads will be checked and possibly logged at this interval. Setting this key to an empty\n value disables the shutdown check interval.",
+			"sourceType": "io.quarkus.runtime.ThreadPoolConfig"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "keepAliveTime",
+			"defaultValue": "30",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.thread-pool.keep-alive-time",
+			"description": "The amount of time a thread will stay alive with no work.",
+			"sourceType": "io.quarkus.runtime.ThreadPoolConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "minLevel",
+			"defaultValue": "inherit",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.category.{*}.min-level",
+			"description": "The minimum level that this category can be set to",
+			"sourceType": "io.quarkus.runtime.logging.CategoryConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "level",
+			"defaultValue": "inherit",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.category.{*}.level",
+			"description": "The log level level for this category",
+			"sourceType": "io.quarkus.runtime.logging.CategoryConfig"
+		},
+		{
+			"type": "java.util.List\u003cjava.lang.String\u003e",
+			"sourceField": "ifStartsWith",
+			"defaultValue": "inherit",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.filter.{*}.if-starts-with",
+			"description": "The message starts to match",
+			"sourceType": "io.quarkus.runtime.logging.CleanupFilterConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.util.logging.Level\u003e",
+			"sourceField": "level",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.level",
+			"description": "The default log level",
+			"sourceType": "io.quarkus.runtime.logging.LogConfig"
+		},
+		{
+			"type": "java.util.logging.Level",
+			"sourceField": "minLevel",
+			"defaultValue": "INFO",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.min-level",
+			"description": "The default minimum log level",
+			"sourceType": "io.quarkus.runtime.logging.LogConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enable",
+			"defaultValue": "true",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.console.enable",
+			"description": "If console logging should be enabled",
+			"sourceType": "io.quarkus.runtime.logging.ConsoleConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "format",
+			"defaultValue": "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{3.}] (%t) %s%e%n",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.console.format",
+			"description": "The log format",
+			"sourceType": "io.quarkus.runtime.logging.ConsoleConfig"
+		},
+		{
+			"type": "java.util.logging.Level",
+			"sourceField": "level",
+			"defaultValue": "ALL",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.console.level",
+			"description": "The console log level",
+			"sourceType": "io.quarkus.runtime.logging.ConsoleConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "color",
+			"defaultValue": "true",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.console.color",
+			"description": "If the console logging should be in color",
+			"sourceType": "io.quarkus.runtime.logging.ConsoleConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "darken",
+			"defaultValue": "0",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.console.darken",
+			"description": "Specify how much the colors should be darkened",
+			"sourceType": "io.quarkus.runtime.logging.ConsoleConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enable",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.log.console.async",
+			"description": "Indicates whether to log asynchronously",
+			"sourceType": "io.quarkus.runtime.logging.AsyncConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "queueLength",
+			"defaultValue": "512",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.console.async.queue-length",
+			"description": "The queue length to use before flushing writing",
+			"sourceType": "io.quarkus.runtime.logging.AsyncConfig"
+		},
+		{
+			"type": "org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
+			"sourceField": "overflow",
+			"defaultValue": "block",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.console.async.overflow",
+			"description": "Determine whether to block the publisher (rather than drop the message) when the queue is full",
+			"sourceType": "io.quarkus.runtime.logging.AsyncConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "DEFAULT_LOG_FILE_NAME",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.log.file.default_log_file_name",
+			"sourceType": "io.quarkus.runtime.logging.FileConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enable",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.log.file.enable",
+			"description": "If file logging should be enabled",
+			"sourceType": "io.quarkus.runtime.logging.FileConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "format",
+			"defaultValue": "%d{yyyy-MM-dd HH:mm:ss,SSS} %h %N[%i] %-5p [%c{3.}] (%t) %s%e%n",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.file.format",
+			"description": "The log format",
+			"sourceType": "io.quarkus.runtime.logging.FileConfig"
+		},
+		{
+			"type": "java.util.logging.Level",
+			"sourceField": "level",
+			"defaultValue": "ALL",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.file.level",
+			"description": "The level of logs to be written into the file.",
+			"sourceType": "io.quarkus.runtime.logging.FileConfig"
+		},
+		{
+			"type": "java.io.File",
+			"sourceField": "path",
+			"defaultValue": "quarkus.log",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.file.path",
+			"description": "The name of the file in which logs will be written.",
+			"sourceType": "io.quarkus.runtime.logging.FileConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enable",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.log.file.async",
+			"description": "Indicates whether to log asynchronously",
+			"sourceType": "io.quarkus.runtime.logging.AsyncConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "queueLength",
+			"defaultValue": "512",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.file.async.queue-length",
+			"description": "The queue length to use before flushing writing",
+			"sourceType": "io.quarkus.runtime.logging.AsyncConfig"
+		},
+		{
+			"type": "org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
+			"sourceField": "overflow",
+			"defaultValue": "block",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.file.async.overflow",
+			"description": "Determine whether to block the publisher (rather than drop the message) when the queue is full",
+			"sourceType": "io.quarkus.runtime.logging.AsyncConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cio.quarkus.runtime.configuration.MemorySize\u003e",
+			"sourceField": "maxFileSize",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.file.rotation.max-file-size",
+			"description": "The maximum file size of the log file after which a rotation is executed.",
+			"sourceType": "io.quarkus.runtime.logging.FileConfig$RotationConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "maxBackupIndex",
+			"defaultValue": "1",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.file.rotation.max-backup-index",
+			"description": "The maximum number of backups to keep.",
+			"sourceType": "io.quarkus.runtime.logging.FileConfig$RotationConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "fileSuffix",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.file.rotation.file-suffix",
+			"description": "File handler rotation file suffix.\n\n Example fileSuffix: .yyyy-MM-dd",
+			"sourceType": "io.quarkus.runtime.logging.FileConfig$RotationConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "rotateOnBoot",
+			"defaultValue": "true",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.file.rotation.rotate-on-boot",
+			"description": "Indicates whether to rotate log files on server initialization.",
+			"sourceType": "io.quarkus.runtime.logging.FileConfig$RotationConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enable",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.log.syslog.enable",
+			"description": "If syslog logging should be enabled",
+			"sourceType": "io.quarkus.runtime.logging.SyslogConfig"
+		},
+		{
+			"type": "java.net.InetSocketAddress",
+			"sourceField": "endpoint",
+			"defaultValue": "localhost:514",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.syslog.endpoint",
+			"description": "The IP address and port of the syslog server",
+			"sourceType": "io.quarkus.runtime.logging.SyslogConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "appName",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.syslog.app-name",
+			"description": "The app name used when formatting the message in RFC5424 format",
+			"sourceType": "io.quarkus.runtime.logging.SyslogConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "hostname",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.syslog.hostname",
+			"description": "The name of the host the messages are being sent from",
+			"sourceType": "io.quarkus.runtime.logging.SyslogConfig"
+		},
+		{
+			"type": "org.jboss.logmanager.handlers.SyslogHandler$Facility",
+			"sourceField": "facility",
+			"defaultValue": "USER_LEVEL",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.syslog.facility",
+			"description": "Sets the facility used when calculating the priority of the message as defined by RFC-5424 and RFC-3164",
+			"sourceType": "io.quarkus.runtime.logging.SyslogConfig"
+		},
+		{
+			"type": "org.jboss.logmanager.handlers.SyslogHandler$SyslogType",
+			"sourceField": "syslogType",
+			"defaultValue": "RFC5424",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.syslog.syslog-type",
+			"description": "Set the {@link SyslogType syslog type} this handler should use to format the message sent",
+			"sourceType": "io.quarkus.runtime.logging.SyslogConfig"
+		},
+		{
+			"type": "org.jboss.logmanager.handlers.SyslogHandler$Protocol",
+			"sourceField": "protocol",
+			"defaultValue": "TCP",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.syslog.protocol",
+			"description": "Sets the protocol used to connect to the syslog server",
+			"sourceType": "io.quarkus.runtime.logging.SyslogConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "useCountingFraming",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.log.syslog.use-counting-framing",
+			"description": "Set to {@code true} if the message being sent should be prefixed with the size of the message",
+			"sourceType": "io.quarkus.runtime.logging.SyslogConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "truncate",
+			"defaultValue": "true",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.syslog.truncate",
+			"description": "Set to {@code true} if the message should be truncated",
+			"sourceType": "io.quarkus.runtime.logging.SyslogConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "blockOnReconnect",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.log.syslog.block-on-reconnect",
+			"description": "Enables or disables blocking when attempting to reconnect a\n {@link org.jboss.logmanager.handlers.SyslogHandler.Protocol#TCP\n TCP} or {@link org.jboss.logmanager.handlers.SyslogHandler.Protocol#SSL_TCP SSL TCP} protocol",
+			"sourceType": "io.quarkus.runtime.logging.SyslogConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "format",
+			"defaultValue": "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{3.}] (%t) %s%e%n",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.syslog.format",
+			"description": "The log message format",
+			"sourceType": "io.quarkus.runtime.logging.SyslogConfig"
+		},
+		{
+			"type": "java.util.logging.Level",
+			"sourceField": "level",
+			"defaultValue": "ALL",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.syslog.level",
+			"description": "The log level specifying, which message levels will be logged by syslog logger",
+			"sourceType": "io.quarkus.runtime.logging.SyslogConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enable",
+			"extensionName": "quarkus-core",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.log.syslog.async",
+			"description": "Indicates whether to log asynchronously",
+			"sourceType": "io.quarkus.runtime.logging.AsyncConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "queueLength",
+			"defaultValue": "512",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.syslog.async.queue-length",
+			"description": "The queue length to use before flushing writing",
+			"sourceType": "io.quarkus.runtime.logging.AsyncConfig"
+		},
+		{
+			"type": "org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
+			"sourceField": "overflow",
+			"defaultValue": "block",
+			"extensionName": "quarkus-core",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.log.syslog.async.overflow",
+			"description": "Determine whether to block the publisher (rather than drop the message) when the queue is full",
+			"sourceType": "io.quarkus.runtime.logging.AsyncConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enabled",
+			"defaultValue": "true",
+			"extensionName": "quarkus-elytron-security-oauth2",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.oauth2.enabled",
+			"description": "If the OAuth2 extension is enabled.",
+			"sourceType": "io.quarkus.elytron.security.oauth2.runtime.OAuth2Config"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "clientId",
+			"extensionName": "quarkus-elytron-security-oauth2",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.oauth2.client-id",
+			"description": "The identifier of the client on the OAuth2 Authorization Server",
+			"sourceType": "io.quarkus.elytron.security.oauth2.runtime.OAuth2Config"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "clientSecret",
+			"extensionName": "quarkus-elytron-security-oauth2",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.oauth2.client-secret",
+			"description": "The secret of the client",
+			"sourceType": "io.quarkus.elytron.security.oauth2.runtime.OAuth2Config"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "introspectionUrl",
+			"extensionName": "quarkus-elytron-security-oauth2",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.oauth2.introspection-url",
+			"description": "The URL of token introspection endpoint",
+			"sourceType": "io.quarkus.elytron.security.oauth2.runtime.OAuth2Config"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "caCertFile",
+			"extensionName": "quarkus-elytron-security-oauth2",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.oauth2.ca-cert-file",
+			"description": "The path to a custom cert file\n This is not supported in native mode",
+			"sourceType": "io.quarkus.elytron.security.oauth2.runtime.OAuth2Config"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "roleClaim",
+			"defaultValue": "scope",
+			"extensionName": "quarkus-elytron-security-oauth2",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.oauth2.role-claim",
+			"description": "The claim that provides the roles",
+			"sourceType": "io.quarkus.elytron.security.oauth2.runtime.OAuth2Config"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "authMechanism",
+			"defaultValue": "BASIC",
+			"required": false,
+			"phase": 0,
+			"name": "authMechanism",
+			"sourceType": "io.quarkus.elytron.security.runtime.AuthConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "realmName",
+			"defaultValue": "Quarkus",
+			"required": false,
+			"phase": 0,
+			"name": "realmName",
+			"sourceType": "io.quarkus.elytron.security.runtime.AuthConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "authMechanism",
+			"defaultValue": "BASIC",
+			"extensionName": "quarkus-elytron-security",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.security.file.auth-mechanism",
+			"description": "The authentication mechanism",
+			"sourceType": "io.quarkus.elytron.security.runtime.PropertiesRealmConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "realmName",
+			"defaultValue": "Quarkus",
+			"extensionName": "quarkus-elytron-security",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.security.file.realm-name",
+			"description": "The authentication mechanism",
+			"sourceType": "io.quarkus.elytron.security.runtime.PropertiesRealmConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enabled",
+			"extensionName": "quarkus-elytron-security",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.security.file.enabled",
+			"description": "If the properties store is enabled.",
+			"sourceType": "io.quarkus.elytron.security.runtime.PropertiesRealmConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "users",
+			"defaultValue": "users.properties",
+			"extensionName": "quarkus-elytron-security",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.security.file.users",
+			"description": "The location of the users property resource",
+			"sourceType": "io.quarkus.elytron.security.runtime.PropertiesRealmConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "roles",
+			"defaultValue": "roles.properties",
+			"extensionName": "quarkus-elytron-security",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.security.file.roles",
+			"description": "The location of the roles property file",
+			"sourceType": "io.quarkus.elytron.security.runtime.PropertiesRealmConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "authMechanism",
+			"defaultValue": "BASIC",
+			"extensionName": "quarkus-elytron-security",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.security.embedded.auth-mechanism",
+			"description": "The authentication mechanism",
+			"sourceType": "io.quarkus.elytron.security.runtime.MPRealmConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "realmName",
+			"defaultValue": "Quarkus",
+			"extensionName": "quarkus-elytron-security",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.security.embedded.realm-name",
+			"description": "The authentication mechanism",
+			"sourceType": "io.quarkus.elytron.security.runtime.MPRealmConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enabled",
+			"extensionName": "quarkus-elytron-security",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.security.embedded.enabled",
+			"description": "If the embedded store is enabled.",
+			"sourceType": "io.quarkus.elytron.security.runtime.MPRealmConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "users",
+			"extensionName": "quarkus-elytron-security",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.security.embedded.users.{*}",
+			"description": "The realm users user1\u003dpassword\\nuser2\u003dpassword2... mapping",
+			"sourceType": "io.quarkus.elytron.security.runtime.MPRealmConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "roles",
+			"extensionName": "quarkus-elytron-security",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.security.embedded.roles.{*}",
+			"description": "The realm roles user1\u003drole1,role2,...\\nuser2\u003drole1,role2,... mapping",
+			"sourceType": "io.quarkus.elytron.security.runtime.MPRealmConfig"
+		},
+		{
+			"type": "java.util.List\u003cjava.lang.String\u003e",
+			"sourceField": "securityProviders",
+			"extensionName": "quarkus-elytron-security",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.security.security-providers",
+			"description": "List of security providers to enable for reflection",
+			"sourceType": "io.quarkus.elytron.security.runtime.SecurityConfig"
+		},
+		{
+			"type": "java.util.List\u003cjava.lang.String\u003e",
+			"sourceField": "locations",
+			"extensionName": "quarkus-flyway",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.flyway.locations",
+			"description": "Comma-separated list of locations to scan recursively for migrations. The location type is determined by its prefix.\n Unprefixed locations or locations starting with classpath: point to a package on the classpath and may contain both SQL\n and Java-based migrations.\n Locations starting with filesystem: point to a directory on the filesystem, may only contain SQL migrations and are only\n scanned recursively down non-hidden directories.",
+			"sourceType": "io.quarkus.flyway.runtime.FlywayBuildConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "connectRetries",
+			"extensionName": "quarkus-flyway",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.flyway.connect-retries",
+			"description": "The maximum number of retries when attempting to connect to the database. After each failed attempt, Flyway will wait 1\n second before attempting to connect again, up to the maximum number of times specified by connectRetries.",
+			"sourceType": "io.quarkus.flyway.runtime.FlywayRuntimeConfig"
+		},
+		{
+			"type": "java.util.List\u003cjava.lang.String\u003e",
+			"sourceField": "schemas",
+			"extensionName": "quarkus-flyway",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.flyway.schemas",
+			"description": "Comma-separated case-sensitive list of schemas managed by Flyway.\n The first schema in the list will be automatically set as the default one during the migration.\n It will also be the one containing the schema history table.",
+			"sourceType": "io.quarkus.flyway.runtime.FlywayRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "table",
+			"extensionName": "quarkus-flyway",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.flyway.table",
+			"description": "The name of Flyway\u0027s schema history table.\n By default (single-schema mode) the schema history table is placed in the default schema for the connection provided by\n the datasource.\n When the flyway.schemas property is set (multi-schema mode), the schema history table is placed in the first schema of\n the list.",
+			"sourceType": "io.quarkus.flyway.runtime.FlywayRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "sqlMigrationPrefix",
+			"extensionName": "quarkus-flyway",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.flyway.sql-migration-prefix",
+			"description": "The file name prefix for versioned SQL migrations.\n\n Versioned SQL migrations have the following file name structure: prefixVERSIONseparatorDESCRIPTIONsuffix , which using\n the defaults translates to V1.1__My_description.sql",
+			"sourceType": "io.quarkus.flyway.runtime.FlywayRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "repeatableSqlMigrationPrefix",
+			"extensionName": "quarkus-flyway",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.flyway.repeatable-sql-migration-prefix",
+			"description": "The file name prefix for repeatable SQL migrations.\n\n Repeatable SQL migrations have the following file name structure: prefixSeparatorDESCRIPTIONsuffix , which using the\n defaults translates to R__My_description.sql",
+			"sourceType": "io.quarkus.flyway.runtime.FlywayRuntimeConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "migrateAtStart",
+			"defaultValue": "false",
+			"extensionName": "quarkus-flyway",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.flyway.migrate-at-start",
+			"sourceType": "io.quarkus.flyway.runtime.FlywayRuntimeConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "baselineOnMigrate",
+			"extensionName": "quarkus-flyway",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.flyway.baseline-on-migrate",
+			"description": "Enable the creation of the history table if it does not exist already.",
+			"sourceType": "io.quarkus.flyway.runtime.FlywayRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "baselineVersion",
+			"extensionName": "quarkus-flyway",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.flyway.baseline-version",
+			"description": "The initial baseline version.",
+			"sourceType": "io.quarkus.flyway.runtime.FlywayRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "baselineDescription",
+			"extensionName": "quarkus-flyway",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.flyway.baseline-description",
+			"description": "The description to tag an existing schema with when executing baseline.",
+			"sourceType": "io.quarkus.flyway.runtime.FlywayRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "dialect",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.dialect",
+			"description": "The hibernate ORM dialect class name",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "dialectStorageEngine",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.dialect.storage-engine",
+			"description": "The storage engine used by the dialect if it supports several storage engines.\n \u003cp\u003e\n This is the case of MariaDB.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "sqlLoadScript",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.sql-load-script",
+			"description": "To populate the database tables with data before the application loads,\n specify the location of a load script.\n The location specified in this property is relative to the root of the persistence unit.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "batchFetchSize",
+			"defaultValue": "-1",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.batch-fetch-size",
+			"description": "The size of a batch when using batch loading to load entities and collections.\n \u003cp\u003e\n -1 means batch loading is disabled.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "queryPlanCacheMaxSize",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.query.query-plan-cache-max-size",
+			"description": "The max size of the query plan cache.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigQuery"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "defaultNullOrdering",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.query.default-null-ordering",
+			"description": "The default ordering of nulls specific in the ORDER BY clause.\n \u003cp\u003e\n Valid values are: none, first, last.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigQuery"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "generation",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.database.generation",
+			"description": "Control how schema generation is happening in Hibernate ORM.\n \u003cp\u003e\n Same as JPA\u0027s javax.persistence.schema-generation.database.action.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigDatabase"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "generationHaltOnError",
+			"defaultValue": "false",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.database.generation.halt-on-error",
+			"description": "Whether we should stop schema application at the first error or continue.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigDatabase"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "defaultCatalog",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.database.default-catalog",
+			"description": "The default database catalog.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigDatabase"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "defaultSchema",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.database.default-schema",
+			"description": "The default database schema.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigDatabase"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "charset",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.database.charset",
+			"description": "The charset of the database.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigDatabase"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "timezone",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.jdbc.timezone",
+			"description": "The timezone pushed to the JDBC driver.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigJdbc"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Integer\u003e",
+			"sourceField": "statementFetchSize",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.jdbc.statement-fetch-size",
+			"description": "How many rows are fetched at a time by the JDBC driver.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigJdbc"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Integer\u003e",
+			"sourceField": "statementBatchSize",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.jdbc.statement-batch-size",
+			"description": "The number of updates (inserts, updates and deletes) that are sent to the database at one time for execution.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigJdbc"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "sql",
+			"defaultValue": "false",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.log.sql",
+			"description": "Whether we log all the SQL queries executed.\n \u003cp\u003e\n Setting it to true is obviously not recommended in production.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigLog"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "jdbcWarnings",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.log.jdbc-warnings",
+			"description": "Whether JDBC warnings should be collected and logged.\n \u003cp\u003e\n Default value depends on the dialect.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigLog"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "maxIdle",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.cache.{*}.expiration.max-idle",
+			"description": "The maximum time before an object is considered expired.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigCacheExpiration"
+		},
+		{
+			"type": "java.util.OptionalLong",
+			"sourceField": "objectCount",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.cache.{*}.memory.object-count",
+			"description": "The maximum number of objects kept in memory.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigCacheMemory"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "statistics",
+			"defaultValue": "false",
+			"extensionName": "quarkus-hibernate-orm",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.hibernate-orm.statistics",
+			"description": "Statistics configuration.",
+			"sourceType": "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig"
+		},
+		{
+			"type": "java.util.Optional\u003corg.hibernate.search.backend.elasticsearch.cfg.ElasticsearchVersion\u003e",
+			"sourceField": "version",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.hibernate-search.elasticsearch.version",
+			"description": "The version of Elasticsearch used in the cluster.\n \u003cp\u003e\n As the schema is generated without a connection to the server, this item is mandatory.\n \u003cp\u003e\n It doesn\u0027t have to be the exact version (it can be 7 or 7.1 for instance) but it has to be sufficiently precise to\n choose a model dialect (the one used to generate the schema) compatible with the protocol dialect (the one used to\n communicate with Elasticsearch).\n \u003cp\u003e\n There\u0027s no rule of thumb here as it depends on the schema incompatibilities introduced by Elasticsearch versions. In\n any case, if there is a problem, you will have an error when Hibernate Search tries to connect to the cluster.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchBuildTimeConfig$ElasticsearchBackendBuildTimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Class\u003c?\u003e\u003e",
+			"sourceField": "analysisConfigurer",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.hibernate-search.elasticsearch.analysis-configurer",
+			"description": "The class or the name of the bean used to configure full text analysis (e.g. analyzers, normalizers).",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchBuildTimeConfig$ElasticsearchBackendBuildTimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "defaultBackend",
+			"defaultValue": "\u003c\u003cno default\u003e\u003e",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.hibernate-search.default-backend",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchBuildTimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003corg.hibernate.search.backend.elasticsearch.cfg.ElasticsearchVersion\u003e",
+			"sourceField": "version",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.version",
+			"description": "The version of Elasticsearch used in the cluster.\n \u003cp\u003e\n As the schema is generated without a connection to the server, this item is mandatory.\n \u003cp\u003e\n It doesn\u0027t have to be the exact version (it can be 7 or 7.1 for instance) but it has to be sufficiently precise to\n choose a model dialect (the one used to generate the schema) compatible with the protocol dialect (the one used to\n communicate with Elasticsearch).\n \u003cp\u003e\n There\u0027s no rule of thumb here as it depends on the schema incompatibilities introduced by Elasticsearch versions. In\n any case, if there is a problem, you will have an error when Hibernate Search tries to connect to the cluster.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchBuildTimeConfig$ElasticsearchBackendBuildTimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Class\u003c?\u003e\u003e",
+			"sourceField": "analysisConfigurer",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.analysis-configurer",
+			"description": "The class or the name of the bean used to configure full text analysis (e.g. analyzers, normalizers).",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchBuildTimeConfig$ElasticsearchBackendBuildTimeConfig"
+		},
+		{
+			"type": "java.util.List\u003cjava.lang.String\u003e",
+			"sourceField": "hosts",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.hosts",
+			"description": "The list of hosts of the Elasticsearch servers.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchBackendRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "username",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.username",
+			"description": "The username used for authentication.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchBackendRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "password",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.password",
+			"description": "The password used for authentication.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchBackendRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "connectionTimeout",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.connection-timeout",
+			"description": "The connection timeout.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchBackendRuntimeConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "maxConnections",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.max-connections",
+			"description": "The maximum number of connections to all the Elasticsearch servers.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchBackendRuntimeConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "maxConnectionsPerRoute",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.max-connections-per-route",
+			"description": "The maximum number of connections per Elasticsearch server.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchBackendRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "enabled",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.discovery.enabled",
+			"description": "Defines if automatic discovery is enabled.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$DiscoveryConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "refreshInterval",
+			"defaultValue": "\u003c\u003cno default\u003e\u003e",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.discovery.refresh-interval",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$DiscoveryConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "defaultScheme",
+			"defaultValue": "\u003c\u003cno default\u003e\u003e",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.discovery.default-scheme",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$DiscoveryConfig"
+		},
+		{
+			"type": "java.util.Optional\u003corg.hibernate.search.mapper.orm.cfg.HibernateOrmAutomaticIndexingSynchronizationStrategyName\u003e",
+			"sourceField": "synchronizationStrategy",
+			"defaultValue": "\u003c\u003cno default\u003e\u003e",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.automatic-indexing.synchronization-strategy",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$AutomaticIndexing"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "enableDirtyCheck",
+			"defaultValue": "\u003c\u003cno default\u003e\u003e",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.automatic-indexing.enable-dirty-check",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$AutomaticIndexing"
+		},
+		{
+			"type": "java.util.Optional\u003corg.hibernate.search.backend.elasticsearch.cfg.ElasticsearchIndexLifecycleStrategyName\u003e",
+			"sourceField": "strategy",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.index-defaults.lifecycle.strategy",
+			"description": "The strategy used for index lifecycle.\n \u003cp\u003e\n Must be one of: none, validate, update, create, drop-and-create or drop-and-create-and-drop.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$LifecycleConfig"
+		},
+		{
+			"type": "java.util.Optional\u003corg.hibernate.search.backend.elasticsearch.cfg.ElasticsearchIndexStatus\u003e",
+			"sourceField": "requiredStatus",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.index-defaults.lifecycle.required-status",
+			"description": "The minimal cluster status required.\n \u003cp\u003e\n Must be one of: green, yellow, red.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$LifecycleConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "requiredStatusWaitTimeout",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.index-defaults.lifecycle.required-status-wait-timeout",
+			"description": "How long we should wait for the status before failing the bootstrap.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$LifecycleConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "refreshAfterWrite",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.index-defaults.refresh-after-write",
+			"description": "Defines if the indexes should be refreshed after writes.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchIndexConfig"
+		},
+		{
+			"type": "java.util.Optional\u003corg.hibernate.search.backend.elasticsearch.cfg.ElasticsearchIndexLifecycleStrategyName\u003e",
+			"sourceField": "strategy",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.indexes.{*}.lifecycle.strategy",
+			"description": "The strategy used for index lifecycle.\n \u003cp\u003e\n Must be one of: none, validate, update, create, drop-and-create or drop-and-create-and-drop.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$LifecycleConfig"
+		},
+		{
+			"type": "java.util.Optional\u003corg.hibernate.search.backend.elasticsearch.cfg.ElasticsearchIndexStatus\u003e",
+			"sourceField": "requiredStatus",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.indexes.{*}.lifecycle.required-status",
+			"description": "The minimal cluster status required.\n \u003cp\u003e\n Must be one of: green, yellow, red.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$LifecycleConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "requiredStatusWaitTimeout",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.indexes.{*}.lifecycle.required-status-wait-timeout",
+			"description": "How long we should wait for the status before failing the bootstrap.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$LifecycleConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "refreshAfterWrite",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.indexes.{*}.refresh-after-write",
+			"description": "Defines if the indexes should be refreshed after writes.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchIndexConfig"
+		},
+		{
+			"type": "java.util.List\u003cjava.lang.String\u003e",
+			"sourceField": "hosts",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.hosts",
+			"description": "The list of hosts of the Elasticsearch servers.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchBackendRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "username",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.username",
+			"description": "The username used for authentication.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchBackendRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "password",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.password",
+			"description": "The password used for authentication.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchBackendRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "connectionTimeout",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.connection-timeout",
+			"description": "The connection timeout.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchBackendRuntimeConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "maxConnections",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.max-connections",
+			"description": "The maximum number of connections to all the Elasticsearch servers.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchBackendRuntimeConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "maxConnectionsPerRoute",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.max-connections-per-route",
+			"description": "The maximum number of connections per Elasticsearch server.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchBackendRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "enabled",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.discovery.enabled",
+			"description": "Defines if automatic discovery is enabled.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$DiscoveryConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "refreshInterval",
+			"defaultValue": "\u003c\u003cno default\u003e\u003e",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.discovery.refresh-interval",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$DiscoveryConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "defaultScheme",
+			"defaultValue": "\u003c\u003cno default\u003e\u003e",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.discovery.default-scheme",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$DiscoveryConfig"
+		},
+		{
+			"type": "java.util.Optional\u003corg.hibernate.search.mapper.orm.cfg.HibernateOrmAutomaticIndexingSynchronizationStrategyName\u003e",
+			"sourceField": "synchronizationStrategy",
+			"defaultValue": "\u003c\u003cno default\u003e\u003e",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.automatic-indexing.synchronization-strategy",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$AutomaticIndexing"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "enableDirtyCheck",
+			"defaultValue": "\u003c\u003cno default\u003e\u003e",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.automatic-indexing.enable-dirty-check",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$AutomaticIndexing"
+		},
+		{
+			"type": "java.util.Optional\u003corg.hibernate.search.backend.elasticsearch.cfg.ElasticsearchIndexLifecycleStrategyName\u003e",
+			"sourceField": "strategy",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.index-defaults.lifecycle.strategy",
+			"description": "The strategy used for index lifecycle.\n \u003cp\u003e\n Must be one of: none, validate, update, create, drop-and-create or drop-and-create-and-drop.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$LifecycleConfig"
+		},
+		{
+			"type": "java.util.Optional\u003corg.hibernate.search.backend.elasticsearch.cfg.ElasticsearchIndexStatus\u003e",
+			"sourceField": "requiredStatus",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.index-defaults.lifecycle.required-status",
+			"description": "The minimal cluster status required.\n \u003cp\u003e\n Must be one of: green, yellow, red.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$LifecycleConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "requiredStatusWaitTimeout",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.index-defaults.lifecycle.required-status-wait-timeout",
+			"description": "How long we should wait for the status before failing the bootstrap.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$LifecycleConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "refreshAfterWrite",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.index-defaults.refresh-after-write",
+			"description": "Defines if the indexes should be refreshed after writes.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchIndexConfig"
+		},
+		{
+			"type": "java.util.Optional\u003corg.hibernate.search.backend.elasticsearch.cfg.ElasticsearchIndexLifecycleStrategyName\u003e",
+			"sourceField": "strategy",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.indexes.{*}.lifecycle.strategy",
+			"description": "The strategy used for index lifecycle.\n \u003cp\u003e\n Must be one of: none, validate, update, create, drop-and-create or drop-and-create-and-drop.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$LifecycleConfig"
+		},
+		{
+			"type": "java.util.Optional\u003corg.hibernate.search.backend.elasticsearch.cfg.ElasticsearchIndexStatus\u003e",
+			"sourceField": "requiredStatus",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.indexes.{*}.lifecycle.required-status",
+			"description": "The minimal cluster status required.\n \u003cp\u003e\n Must be one of: green, yellow, red.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$LifecycleConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "requiredStatusWaitTimeout",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.indexes.{*}.lifecycle.required-status-wait-timeout",
+			"description": "How long we should wait for the status before failing the bootstrap.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$LifecycleConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "refreshAfterWrite",
+			"extensionName": "quarkus-hibernate-search-elasticsearch",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.hibernate-search.elasticsearch.backends.{*}.indexes.{*}.refresh-after-write",
+			"description": "Defines if the indexes should be refreshed after writes.",
+			"sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig$ElasticsearchIndexConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.net.URI\u003e",
+			"sourceField": "endpoint",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.endpoint",
+			"description": "The traces endpoint, in case the client should connect directly to the Collector,\n like http://jaeger-collector:14268/api/traces",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "authToken",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.auth-token",
+			"description": "Authentication Token to send as \"Bearer\" to the endpoint",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "user",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.user",
+			"description": "Username to send as part of \"Basic\" authentication to the endpoint",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "password",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.password",
+			"description": "Password to send as part of \"Basic\" authentication to the endpoint",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.net.InetSocketAddress\u003e",
+			"sourceField": "agentHostPort",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.agent-host-port",
+			"description": "The hostname and port for communicating with agent via UDP",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "reporterLogSpans",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.reporter-log-spans",
+			"description": "Whether the reporter should also log the spans",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Integer\u003e",
+			"sourceField": "reporterMaxQueueSize",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.reporter-max-queue-size",
+			"description": "The reporter\u0027s maximum queue size",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "reporterFlushInterval",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.reporter-flush-interval",
+			"description": "The reporter\u0027s flush interval",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "samplerType",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.sampler-type",
+			"description": "The sampler type (const, probabilistic, ratelimiting or remote)",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.math.BigDecimal\u003e",
+			"sourceField": "samplerParam",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.sampler-param",
+			"description": "The sampler parameter (number)",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.net.InetSocketAddress\u003e",
+			"sourceField": "samplerManagerHostPort",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.sampler-manager-host-port",
+			"description": "The host name and port when using the remote controlled sampler",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "serviceName",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.service-name",
+			"description": "The service name",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "tags",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.tags",
+			"description": "A comma separated list of name \u003d value tracer level tags, which get added to all reported\n spans. The value can also refer to an environment variable using the format ${envVarName:default},\n where the :default is optional, and identifies a value to be used if the environment variable\n cannot be found",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "propagation",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.propagation",
+			"description": "Comma separated list of formats to use for propagating the trace context. Defaults to the\n standard Jaeger format. Valid values are jaeger and b3",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "senderFactory",
+			"extensionName": "quarkus-jaeger",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.jaeger.sender-factory",
+			"description": "The sender factory class name",
+			"sourceType": "io.quarkus.jaeger.runtime.JaegerConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "nearCacheMaxEntries",
+			"defaultValue": "0",
+			"extensionName": "quarkus-infinispan-client",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.infinispan-client.near-cache-max-entries",
+			"description": "Sets the bounded entry count for near cache. If this value is 0 or less near cache is disabled.",
+			"sourceType": "io.quarkus.infinispan.client.runtime.InfinispanClientBuildTimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "serverList",
+			"extensionName": "quarkus-infinispan-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.infinispan-client.server-list",
+			"description": "Sets the host name/port to connect to. Each one is separated by a semicolon (eg. host1:11222;host2:11222).",
+			"sourceType": "io.quarkus.infinispan.client.runtime.InfinispanClientRuntimeConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "applicationId",
+			"extensionName": "quarkus-kafka-streams",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.kafka-streams.application-id",
+			"description": "A unique identifier for this Kafka Streams application.",
+			"sourceType": "io.quarkus.kafka.streams.runtime.KafkaStreamsRuntimeConfig"
+		},
+		{
+			"type": "java.util.List\u003cjava.net.InetSocketAddress\u003e",
+			"sourceField": "bootstrapServers",
+			"defaultValue": "localhost:9012",
+			"extensionName": "quarkus-kafka-streams",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.kafka-streams.bootstrap-servers",
+			"description": "A comma-separated list of host:port pairs identifying the Kafka bootstrap server(s)",
+			"sourceType": "io.quarkus.kafka.streams.runtime.KafkaStreamsRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "applicationServer",
+			"extensionName": "quarkus-kafka-streams",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.kafka-streams.application-server",
+			"description": "A unique identifier of this application instance, typically in the form host:port.",
+			"sourceType": "io.quarkus.kafka.streams.runtime.KafkaStreamsRuntimeConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "topics",
+			"extensionName": "quarkus-kafka-streams",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.kafka-streams.topics",
+			"description": "A comma-separated list of topic names processed by this stream processing application.\n The pipeline will only be started once all these topics are present in the Kafka cluster.",
+			"sourceType": "io.quarkus.kafka.streams.runtime.KafkaStreamsRuntimeConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "realm",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.realm",
+			"description": "Name of the realm.",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "realmKey",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.realm-public-key",
+			"description": "Name of the realm.",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "resource",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.resource",
+			"description": "The client-id of the application. Each application has a client-id that is used to identify the application",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "authServerUrl",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.auth-server-url",
+			"description": "The base URL of the Keycloak server. All other Keycloak pages and REST service endpoints are derived from this.\n It is usually of the form https://host:port/auth",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "sslRequired",
+			"defaultValue": "external",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.ssl-required",
+			"description": "Ensures that all communication to and from the Keycloak server is over HTTPS. In production this should be set to all.\n This is OPTIONAL. The default value is external meaning that HTTPS is required by default for external requests.\n Valid values are \u0027all\u0027, \u0027external\u0027 and \u0027none\u0027",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "confidentialPort",
+			"defaultValue": "8443",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.confidential-port",
+			"description": "The confidential port used by the Keycloak server for secure connections over SSL/TLS",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "useResourceRoleMappings",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.use-resource-role-mappings",
+			"description": "If set to true, the adapter will look inside the token for application level role mappings for the user.\n If false, it will look at the realm level for user role mappings",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "cors",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.enable-cors",
+			"description": "This enables CORS support. It will handle CORS preflight requests. It will also look into the access token to\n determine valid origins",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "corsMaxAge",
+			"defaultValue": "-1",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.cors-max-age",
+			"description": "If CORS is enabled, this sets the value of the Access-Control-Max-Age header. This is OPTIONAL. If not set,\n this header is not returned in CORS responses",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "corsAllowedHeaders",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.cors-allowed-headers",
+			"description": "If CORS is enabled, this sets the value of the Access-Control-Allow-Headers header. This should be a comma-separated\n string",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "corsAllowedMethods",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.cors-allowed-methods",
+			"description": "If CORS is enabled, this sets the value of the Access-Control-Allow-Methods header. This should be a comma-separated\n string",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "corsExposedHeaders",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.cors-exposed-headers",
+			"description": "If CORS is enabled, this sets the value of the Access-Control-Expose-Headers header. This should be a comma-separated\n string",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "bearerOnly",
+			"defaultValue": "true",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.bearer-only",
+			"description": "This should be set to true for services. If enabled the adapter will not attempt to authenticate users,\n but only verify bearer tokens",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "autodetectBearerOnly",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.autodetect-bearer-only",
+			"description": "This should be set to true if your application serves both a web application and web services (e.g. SOAP or REST).\n It allows you to redirect unauthenticated users of the web application to the Keycloak login page, but send an HTTP 401\n status code to unauthenticated SOAP or REST clients instead as they would not understand a redirect to the login page.\n Keycloak auto-detects SOAP or REST clients based on typical headers like X-Requested-With, SOAPAction or Accept",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "publicClient",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.public-client",
+			"description": "If this application is a public client",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "secret",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.credentials.secret",
+			"description": "The client secret",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigCredentials"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "jwt",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.credentials.jwt.{*}",
+			"description": "The settings for client authentication with signed JWT",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigCredentials"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "secretJwt",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.credentials.secret-jwt.{*}",
+			"description": "The settings for client authentication with JWT using client secret",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigCredentials"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "allowAnyHostname",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.allow-any-hostname",
+			"description": "If the Keycloak server requires HTTPS and this config option is set to true the Keycloak serverâ??s certificate is\n validated via the truststore, but host name validation is not done. This setting should only be used during development\n and never in production as it will disable verification of SSL certificates. This seting may be useful in test\n environments",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "disableTrustManager",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.disable-trust-manager",
+			"description": "If the Keycloak server requires HTTPS and this config option is set to true you do not have to specify a truststore.\n This setting should only be used during development and never in production as it will disable verification\n of SSL certificates",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "alwaysRefreshToken",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.always-refresh-token",
+			"description": "If the adapter should refresh the access token for each request",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "truststore",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.truststore",
+			"description": "The value is the file path to a keystore file. If you prefix the path with classpath:, then the truststore will be\n obtained from the deploymentâ??s classpath instead. Used for outgoing HTTPS communications to the Keycloak server",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "truststorePassword",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.truststore-password",
+			"description": "Password for the truststore keystore",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "clientKeystore",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.client-keystore",
+			"description": "This is the file path to a keystore file. This keystore contains client certificate for two-way SSL when the adapter\n makes HTTPS requests to the Keycloak server",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "clientKeystorePassword",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.client-keystore-password",
+			"description": "Password for the client keystore",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "clientKeyPassword",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.client-key-password",
+			"description": "Password for the clientâ??s key",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "connectionPoolSize",
+			"defaultValue": "20",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.connection-pool-size",
+			"description": "Adapters will make separate HTTP invocations to the Keycloak server to turn an access code into an access token.\n This config option defines how many connections to the Keycloak server should be pooled",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "registerNodeAtStartup",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.register-node-at-startup",
+			"description": "If true, then adapter will send registration request to Keycloak. Itâ??s false by default and useful only when application\n is clustered",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "registerNodePeriod",
+			"defaultValue": "-1",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.register-node-period",
+			"description": "Period for re-registration adapter to Keycloak. Useful when application is clustered",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "tokenStore",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.token-store",
+			"description": "Possible values are session and cookie. Default is session, which means that adapter stores account info in HTTP Session.\n Alternative cookie means storage of info in cookie",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "tokenCookiePath",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.adapter-state-cookie-path",
+			"description": "When using a cookie store, this option sets the path of the cookie used to store account info. If itâ??s a relative path,\n then it is assumed that the application is running in a context root, and is interpreted relative to that context root.\n If itâ??s an absolute path, then the absolute path is used to set the cookie path. Defaults to use paths relative to the\n context root",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "principalAttribute",
+			"defaultValue": "sub",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.principal-attribute",
+			"description": "OpenID Connect ID Token attribute to populate the UserPrincipal name with. If token attribute is null. Possible values\n are sub, preferred_username, email, name, nickname, given_name, family_name",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "turnOffChangeSessionIdOnLogin",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.turn-off-change-session-id-on-login",
+			"description": "The session id is changed by default on a successful login on some platforms to plug a security attack vector.\n Change this to true if you want to turn this off",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "tokenMinimumTimeToLive",
+			"defaultValue": "0",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.token-minimum-time-to-live",
+			"description": "Amount of time, in seconds, to preemptively refresh an active access token with the Keycloak server before it expires.\n This is especially useful when the access token is sent to another REST client where it could expire before being\n evaluated. This value should never exceed the realmâ??s access token lifespan",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "minTimeBetweenJwksRequests",
+			"defaultValue": "10",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.min-time-between-jwks-requests",
+			"description": "Amount of time, in seconds, specifying minimum interval between two requests to Keycloak to retrieve new public keys.\n It is 10 seconds by default. Adapter will always try to download new public key when it recognize token with unknown kid.\n However it wonâ??t try it more than once per 10 seconds (by default). This is to avoid DoS when attacker sends lots of\n tokens with bad kid forcing adapter to send lots of requests to Keycloak",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "publicKeyCacheTtl",
+			"defaultValue": "86400",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.public-key-cache-ttl",
+			"description": "Amount of time, in seconds, specifying maximum interval between two requests to Keycloak to retrieve new public keys.\n It is 86400 seconds (1 day) by default. Adapter will always try to download new public key when it recognize token\n with unknown kid . If it recognize token with known kid, it will just use the public key downloaded previously.\n However at least once per this configured interval (1 day by default) will be new public key always downloaded even if\n the kid of token is already known",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "verifyTokenAudience",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.verify-token-audience",
+			"description": "If set to true, then during authentication with the bearer token, the adapter will verify whether the token contains\n this client name (resource) as an audience. The option is especially useful for services, which primarily serve\n requests authenticated by the bearer token. This is set to false by default, however for improved security, it is\n recommended to enable this. See Audience Support for more details about audience support",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "ignoreOAuthQueryParameter",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.ignore-oauth-query-parameter",
+			"description": "If set to true will turn off processing of the access_token query parameter for bearer token processing.\n Users will not be able to authenticate if they only pass in an access_token",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "proxyUrl",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.proxy-url",
+			"description": "The proxy url to use for requests to the auth-server.",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "redirectRewriteRules",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.redirect-rewrite-rules.{*}",
+			"description": "If needed, specify the Redirect URI rewrite rule. This is an object notation where the key is the regular expression to\n which the Redirect URI is to be matched and the value is the replacement String. $ character can be used for\n backreferences in the replacement String",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enable",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.enable",
+			"description": "Specifies how policies are enforced.",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "enforcementMode",
+			"defaultValue": "ENFORCING",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.enforcement-mode",
+			"description": "Specifies how policies are enforced.",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "name",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.paths.{*}.name",
+			"description": "The name of a resource on the server that is to be associated with a given path",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer$PathConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "path",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.paths.{*}.path",
+			"description": "A URI relative to the applicationâ??s context path that should be protected by the policy enforcer",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer$PathConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "method",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.paths.{*}.methods.{*}.method",
+			"description": "The name of the HTTP method",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer$MethodConfig"
+		},
+		{
+			"type": "java.util.List\u003cjava.lang.String\u003e",
+			"sourceField": "scopes",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.paths.{*}.methods.{*}.scopes",
+			"description": "An array of strings with the scopes associated with the method",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer$MethodConfig"
+		},
+		{
+			"type": "org.keycloak.representations.adapters.config.PolicyEnforcerConfig.ScopeEnforcementMode",
+			"sourceField": "scopesEnforcementMode",
+			"defaultValue": "ALL",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.paths.{*}.methods.{*}.scopes-enforcement-mode",
+			"description": "A string referencing the enforcement mode for the scopes associated with a method",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer$MethodConfig"
+		},
+		{
+			"type": "org.keycloak.representations.adapters.config.PolicyEnforcerConfig.EnforcementMode",
+			"sourceField": "enforcementMode",
+			"defaultValue": "ENFORCING",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.paths.{*}.enforcement-mode",
+			"description": "Specifies how policies are enforced",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer$PathConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "complexConfig",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.paths.{*}.claim-information-point.{*}.{*}.{*}",
+			"description": "",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer$ClaimInformationPointConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "simpleConfig",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.paths.{*}.claim-information-point.{*}.{*}",
+			"description": "",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer$ClaimInformationPointConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "maxEntries",
+			"defaultValue": "1000",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.path-cache.max-entries",
+			"description": "Defines the time in milliseconds when the entry should be expired",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer$PathCacheConfig"
+		},
+		{
+			"type": "long",
+			"sourceField": "lifespan",
+			"defaultValue": "30000",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.path-cache.lifespan",
+			"description": "Defines the limit of entries that should be kept in the cache",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer$PathCacheConfig"
+		},
+		{
+			"type": "java.lang.Boolean",
+			"sourceField": "lazyLoadPaths",
+			"defaultValue": "true",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.lazy-load-paths",
+			"description": "Specifies how the adapter should fetch the server for resources associated with paths in your application. If true,\n the\n policy\n enforcer is going to fetch resources on-demand accordingly with the path being requested",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "onDenyRedirectTo",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.on-deny-redirect-to",
+			"description": "Defines a URL where a client request is redirected when an \"access denied\" message is obtained from the server.\n By default, the adapter responds with a 403 HTTP status code",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "userManagedAccess",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.user-managed-access",
+			"description": "Specifies that the adapter uses the UMA protocol.",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "complexConfig",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.claim-information-point.{*}.{*}.{*}",
+			"description": "",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer$ClaimInformationPointConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "simpleConfig",
+			"extensionName": "quarkus-keycloak",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.claim-information-point.{*}.{*}",
+			"description": "",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer$ClaimInformationPointConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "httpMethodAsScope",
+			"defaultValue": "false",
+			"extensionName": "quarkus-keycloak",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.keycloak.policy-enforcer.http-method-as-scope",
+			"description": "Specifies how scopes should be mapped to HTTP methods. If set to true, the policy enforcer will use the HTTP method\n from\n the current request to check whether or not access should be granted",
+			"sourceType": "io.quarkus.keycloak.KeycloakConfig$KeycloakConfigPolicyEnforcer"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "trustCerts",
+			"defaultValue": "false",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.trust-certs",
+			"description": "Whether or not the client should trust a self signed certificate if so presented by the API server",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "masterUrl",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.master-url",
+			"description": "URL of the Kubernetes API server",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "namespace",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.namespace",
+			"description": "Default namespace to use",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "caCertFile",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.ca-cert-file",
+			"description": "CA certificate file",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "caCertData",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.ca-cert-data",
+			"description": "CA certificate data",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "clientCertFile",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.client-cert-file",
+			"description": "Client certificate file",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "clientCertData",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.client-cert-data",
+			"description": "Client certificate data",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "clientKeyFile",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.client-key-file",
+			"description": "Client key file",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "clientKeyData",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.client-key-data",
+			"description": "Client key data",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "clientKeyAlgo",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.client-key-algo",
+			"description": "Client key algorithm",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "clientKeyPassphrase",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.client-key-passphrase",
+			"description": "Client key passphrase",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "username",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.username",
+			"description": "Kubernetes auth username",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "password",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.password",
+			"description": "Kubernetes auth password",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "watchReconnectInterval",
+			"defaultValue": "PT1S",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.watch-reconnect-interval",
+			"description": "Watch reconnect interval",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.Integer",
+			"sourceField": "watchReconnectLimit",
+			"defaultValue": "-1",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.watch-reconnect-limit",
+			"description": "Maximum reconnect attempts in case of watch failure\n By default there is no limit to the number of reconnect attempts",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "connectionTimeout",
+			"defaultValue": "PT10S",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.connection-timeout",
+			"description": "Maximum amount of time to wait for a connection with the API server to be established",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "requestTimeout",
+			"defaultValue": "PT10S",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.request-timeout",
+			"description": "Maximum amount of time to wait for a request to the API server to be completed",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "rollingTimeout",
+			"defaultValue": "PT15M",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.rolling-timeout",
+			"description": "Maximum amount of time in milliseconds to wait for a rollout to be completed",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "httpProxy",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.http-proxy",
+			"description": "HTTP proxy used to access the Kubernetes API server",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "httpsProxy",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.https-proxy",
+			"description": "HTTPS proxy used to access the Kubernetes API server",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "proxyUsername",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.proxy-username",
+			"description": "Proxy username",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "proxyPassword",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.proxy-password",
+			"description": "Proxy password",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.util.List\u003cjava.lang.String\u003e",
+			"sourceField": "noProxy",
+			"extensionName": "quarkus-kubernetes-client",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.kubernetes-client.no-proxy",
+			"description": "IP addresses or hosts to exclude from proxying",
+			"sourceType": "io.quarkus.kubernetes.client.runtime.KubernetesClientBuildConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "group",
+			"extensionName": "quarkus-kubernetes",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.kubernetes.group",
+			"description": "The group of the application.\n This value will be use as:\n - docker image repo\n - labeling resources",
+			"sourceType": "io.quarkus.kubernetes.deployment.KubernetesConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "registry",
+			"extensionName": "quarkus-kubernetes",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.kubernetes.docker.registry",
+			"sourceType": "io.quarkus.kubernetes.deployment.DockerConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "connectionString",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.connection-string",
+			"description": "Configures the connection string.\n The format is:\n {@code  mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database.collection][?options]]}\n \u003cp\u003e\n {@code mongodb://} is a required prefix to identify that this is a string in the standard connection format.\n \u003cp\u003e\n {@code username:password@} are optional. If given, the driver will attempt to login to a database after\n connecting to a database server. For some authentication mechanisms, only the username is specified and the\n password is not, in which case the \":\" after the username is left off as well.\n \u003cp\u003e\n {@code host1} is the only required part of the connection string. It identifies a server address to connect to.\n \u003cp\u003e\n {@code :portX} is optional and defaults to :27017 if not provided.\n \u003cp\u003e\n {@code /database} is the name of the database to login to and thus is only relevant if the\n {@code username:password@} syntax is used. If not specified the {@code admin} database will be used by default.\n \u003cp\u003e\n {@code ?options} are connection options. Note that if {@code database} is absent there is still a {@code /}\n required between the last host and the {@code ?} introducing the options. Options are name\u003dvalue pairs and the\n pairs are separated by \"\u0026amp;\".\n \u003cp\u003e\n An alternative format, using the {@code mongodb+srv} protocol, is:\n\n \u003cpre\u003e\n  mongodb+srv://[username:password@]host[/[database][?options]]\n \u003c/pre\u003e\n \u003cul\u003e\n \u003cli\u003e{@code mongodb+srv://} is a required prefix for this format.\u003c/li\u003e\n \u003cli\u003e{@code username:password@} are optional. If given, the driver will attempt to login to a database after\n connecting to a database server. For some authentication mechanisms, only the username is specified and the\n password is not, in which case the \":\" after the username is left off as well\u003c/li\u003e\n \u003cli\u003e{@code host} is the only required part of the URI. It identifies a single host name for which SRV records\n are looked up from a Domain Name Server after prefixing the host name with {@code \"_mongodb._tcp\"}. The\n host/port for each SRV record becomes the seed list used to connect, as if each one were provided as host/port\n pair in a URI using the normal mongodb protocol.\u003c/li\u003e\n \u003cli\u003e{@code /database} is the name of the database to login to and thus is only relevant if the\n {@code username:password@} syntax is used. If not specified the \"admin\" database will be used by default.\u003c/li\u003e\n \u003cli\u003e{@code ?options} are connection options. Note that if {@code database} is absent there is still a {@code /}\n required between the last host and the {@code ?} introducing the options. Options are name\u003dvalue pairs and the\n pairs are separated by \"\u0026amp;\". Additionally with the mongodb+srv protocol, TXT records are looked up from a\n Domain Name Server for the given host, and the text value of each one is prepended to any options on the URI\n itself. Because the last specified value for any option wins, that means that options provided on the URI will\n override any that are provided via TXT records.\u003c/li\u003e\n \u003c/ul\u003e",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.List\u003cjava.lang.String\u003e",
+			"sourceField": "hosts",
+			"extensionName": "quarkus-mongodb-client",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.mongodb.hosts",
+			"description": "Configures the Mongo server addressed (one if single mode).\n The addressed are passed as {@code host:port}.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "database",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.database",
+			"description": "Configure the database name.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "applicationName",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.application-name",
+			"description": "Configures the application name.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "maxPoolSize",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.max-pool-size",
+			"description": "Configures the maximum number of connections in the connection pool.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "minPoolSize",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.min-pool-size",
+			"description": "Configures the minimum number of connections in the connection pool.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "maxConnectionIdleTime",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.max-connection-idle-time",
+			"description": "Maximum idle time of a pooled connection. A connection that exceeds this limit will be closed.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "maxConnectionLifeTime",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.max-connection-life-time",
+			"description": "Maximum life time of a pooled connection. A connection that exceeds this limit will be closed.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "waitQueueTimeout",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.wait-queue-timeout",
+			"description": "The maximum wait time that a thread may wait for a connection to become available.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "maintenanceFrequency",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.maintenance-frequency",
+			"description": "Configures the time period between runs of the maintenance job.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "maintenanceInitialDelay",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.maintenance-initial-delay",
+			"description": "Configures period of time to wait before running the first maintenance job on the connection pool.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "waitQueueMultiple",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.wait-queue-multiple",
+			"description": "This multiplier, multiplied with the {@code maxPoolSize} setting, gives the maximum number of\n threads that may be waiting for a connection to become available from the pool. All further threads will get an\n exception right away.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "connectTimeout",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.connect-timeout",
+			"description": "How long a connection can take to be opened before timing out.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "socketTimeout",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.socket-timeout",
+			"description": "How long a send or receive on a socket can take before timing out.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "tlsInsecure",
+			"defaultValue": "false",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.tls-insecure",
+			"description": "If connecting with TLS, this option enables insecure TLS connections.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "tls",
+			"defaultValue": "false",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.tls",
+			"description": "Whether to connect using TLS.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "replicaSetName",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.replica-set-name",
+			"description": "Implies that the hosts given are a seed list, and the driver will attempt to find all members of the set.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "serverSelectionTimeout",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.server-selection-timeout",
+			"description": "How long the driver will wait for server selection to succeed before throwing an exception.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "localThreshold",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.local-threshold",
+			"description": "When choosing among multiple MongoDB servers to send a request, the driver will only send that request to a\n server whose ping time is less than or equal to the server with the fastest ping time plus the local threshold.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "heartbeatFrequency",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.heartbeat-frequency",
+			"description": "The frequency that the driver will attempt to determine the current state of each server in the cluster.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "safe",
+			"defaultValue": "true",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.write-concern.safe",
+			"description": "Configures the safety.\n If set to {@code true}: the driver ensures that all writes are acknowledged by the MongoDB server, or else\n throws an exception. (see also {@code w} and {@code wtimeoutMS}).\n If set fo\n \u003cli\u003e{@code false}: the driver does not ensure that all writes are acknowledged by the MongoDB server.",
+			"sourceType": "io.quarkus.mongodb.runtime.WriteConcernConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "journal",
+			"defaultValue": "true",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.write-concern.journal",
+			"description": "Configures the journal writing aspect.\n If set to {@code true}: the driver waits for the server to group commit to the journal file on disk.\n If set to {@code false}: the driver does not wait for the server to group commit to the journal file on disk.",
+			"sourceType": "io.quarkus.mongodb.runtime.WriteConcernConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "w",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.write-concern.w",
+			"description": "When set, the driver adds {@code w: wValue} to all write commands. It requires {@code safe} to be {@code true}.\n The value is typically a number, but can also be the {@code majority} string.",
+			"sourceType": "io.quarkus.mongodb.runtime.WriteConcernConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "retryWrites",
+			"defaultValue": "false",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.write-concern.retry-writes",
+			"description": "If set to {@code true}, the driver will retry supported write operations if they fail due to a network error.",
+			"sourceType": "io.quarkus.mongodb.runtime.WriteConcernConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "wTimeout",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.write-concern.w-timeout",
+			"description": "When set, the driver adds {@code wtimeout : ms } to all write commands. It requires {@code safe} to be\n {@code true}.",
+			"sourceType": "io.quarkus.mongodb.runtime.WriteConcernConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "readPreference",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.read-preference",
+			"description": "Configures the read preferences.\n Supported values are: {@code primary|primaryPreferred|secondary|secondaryPreferred|nearest}",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "username",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.credentials.username",
+			"description": "Configures the username.",
+			"sourceType": "io.quarkus.mongodb.runtime.CredentialConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "password",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.credentials.password",
+			"description": "Configures the password.",
+			"sourceType": "io.quarkus.mongodb.runtime.CredentialConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "authMechanism",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.credentials.auth-mechanism",
+			"description": "Configures the authentication mechanism to use if a credential was supplied.\n The default is unspecified, in which case the client will pick the most secure mechanism available based on the\n sever version. For the GSSAPI and MONGODB-X509 mechanisms, no password is accepted, only the username.\n Supported values: {@code MONGO-CR|GSSAPI|PLAIN|MONGODB-X509}",
+			"sourceType": "io.quarkus.mongodb.runtime.CredentialConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "authSource",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.credentials.auth-source",
+			"description": "Configures the source of the authentication credentials.\n This is typically the database that the credentials have been created. The value defaults to the database\n specified in the path portion of the connection string or in the \u0027database\u0027 configuration property..\n If the database is specified in neither place, the default value is {@code admin}. This option is only\n respected when using the MONGO-CR mechanism (the default).",
+			"sourceType": "io.quarkus.mongodb.runtime.CredentialConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "authMechanismProperties",
+			"extensionName": "quarkus-mongodb-client",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.mongodb.credentials.auth-mechanism-properties.{*}",
+			"description": "Allows passing authentication mechanism properties.",
+			"sourceType": "io.quarkus.mongodb.runtime.CredentialConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "maxWaitQueueSize",
+			"extensionName": "quarkus-mongodb-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mongodb.max-wait-queue-size",
+			"description": "Configures the maximum number of concurrent operations allowed to wait for a server to become available.\n All further operations will get an exception immediately.",
+			"sourceType": "io.quarkus.mongodb.runtime.MongoClientConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "nodeName",
+			"defaultValue": "quarkus",
+			"extensionName": "quarkus-narayana-jta",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.transaction-manager.node-name",
+			"description": "The node name used by the transaction manager",
+			"sourceType": "io.quarkus.narayana.jta.runtime.TransactionManagerConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "xaNodeName",
+			"extensionName": "quarkus-narayana-jta",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.transaction-manager.xa-node-name",
+			"description": "The XA node name used by the transaction manager",
+			"sourceType": "io.quarkus.narayana.jta.runtime.TransactionManagerConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "defaultTransactionTimeout",
+			"defaultValue": "60",
+			"extensionName": "quarkus-narayana-jta",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.transaction-manager.default-transaction-timeout",
+			"description": "The default transaction timeout",
+			"sourceType": "io.quarkus.narayana.jta.runtime.TransactionManagerConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "from",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.from",
+			"description": "Configure the default `from` attribute.\n It\u0027s the sender email address.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "mock",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.mock",
+			"description": "Enables the mock mode, not sending emails.\n The content of the emails is printed on the console.\n \u003cp\u003e\n Disabled by default on PROD, enabled by default on DEV and TEST modes.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "bounceAddress",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.bounce-address",
+			"description": "Configures the default bounce email address.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "host",
+			"defaultValue": "localhost",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.host",
+			"description": "The SMTP host name.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "port",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.port",
+			"description": "The SMTP port.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "username",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.username",
+			"description": "The username.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "password",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.password",
+			"description": "The password.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "ssl",
+			"extensionName": "quarkus-mailer",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.mailer.ssl",
+			"description": "Enables or disables the SSL on connect.\n {@code false} by default.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "trustAll",
+			"extensionName": "quarkus-mailer",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.mailer.trust-all",
+			"description": "Set whether to trust all certificates on ssl connect the option is also\n applied to {@code STARTTLS} operation. {@code false} by default.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "maxPoolSize",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.max-pool-size",
+			"description": "Configures the maximum allowed number of open connections to the mail server\n If not set the default is {@code 10}.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "ownHostName",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.own-host-name",
+			"description": "The hostname to be used for HELO/EHLO and the Message-ID",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "keepAlive",
+			"defaultValue": "true",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.keep-alive",
+			"description": "Set if connection pool is enabled, {@code true} by default.\n \u003cp\u003e\n If the connection pooling is disabled, the max number of sockets is enforced nevertheless.\n \u003cp\u003e",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "disableEsmtp",
+			"extensionName": "quarkus-mailer",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.mailer.disable-esmtp",
+			"description": "Disable ESMTP. {@code false} by default.\n The RFC-1869 states that clients should always attempt {@code EHLO} as first command to determine if ESMTP\n is supported, if this returns an error code, {@code HELO} is tried to use the \u003cem\u003eregular\u003c/em\u003e SMTP command.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "startTLS",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.start-tls",
+			"description": "Set the TLS security mode for the connection.\n Either {@code NONE}, {@code OPTIONAL} or {@code REQUIRED}.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "login",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.login",
+			"description": "Set the login mode for the connection.\n Either {@code DISABLED}, @{code OPTIONAL} or {@code REQUIRED}",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "authMethods",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.auth-methods",
+			"description": "Set the allowed auth methods.\n If defined, only these methods will be used, if the server supports them.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "keyStore",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.key-store",
+			"description": "Set the key store.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "keyStorePassword",
+			"extensionName": "quarkus-mailer",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.mailer.key-store-password",
+			"description": "Set the key store password.",
+			"sourceType": "io.quarkus.mailer.impl.MailConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "url",
+			"extensionName": "quarkus-reactive-pg-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.url",
+			"description": "The datasource URL.",
+			"sourceType": "io.quarkus.reactive.pg.client.runtime.DataSourceConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "username",
+			"extensionName": "quarkus-reactive-pg-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.username",
+			"description": "The datasource username.",
+			"sourceType": "io.quarkus.reactive.pg.client.runtime.DataSourceConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "password",
+			"extensionName": "quarkus-reactive-pg-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.password",
+			"description": "The datasource password.",
+			"sourceType": "io.quarkus.reactive.pg.client.runtime.DataSourceConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "maxSize",
+			"extensionName": "quarkus-reactive-pg-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.datasource.max-size",
+			"description": "The datasource pool maximum size.",
+			"sourceType": "io.quarkus.reactive.pg.client.runtime.DataSourceConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "cachePreparedStatements",
+			"extensionName": "quarkus-reactive-pg-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.reactive-pg-client.cache-prepared-statements",
+			"description": "Whether prepared statements should be cached on the client side.",
+			"sourceType": "io.quarkus.reactive.pg.client.runtime.PgPoolConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "pipeliningLimit",
+			"extensionName": "quarkus-reactive-pg-client",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.reactive-pg-client.pipelining-limit",
+			"description": "The maximum number of inflight database commands that can be pipelined.",
+			"sourceType": "io.quarkus.reactive.pg.client.runtime.PgPoolConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "DEFAULT_SERVER_URI",
+			"extensionName": "quarkus-neo4j",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.neo4j.default_server_uri",
+			"sourceType": "io.quarkus.neo4j.runtime.Neo4jConfiguration"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "DEFAULT_USERNAME",
+			"extensionName": "quarkus-neo4j",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.neo4j.default_username",
+			"sourceType": "io.quarkus.neo4j.runtime.Neo4jConfiguration"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "DEFAULT_PASSWORD",
+			"extensionName": "quarkus-neo4j",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.neo4j.default_password",
+			"sourceType": "io.quarkus.neo4j.runtime.Neo4jConfiguration"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "uri",
+			"defaultValue": "bolt://localhost:7687",
+			"extensionName": "quarkus-neo4j",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.neo4j.uri",
+			"description": "The uri this driver should connect to. The driver supports bolt, bolt+routing or neo4j as schemes.",
+			"sourceType": "io.quarkus.neo4j.runtime.Neo4jConfiguration"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "username",
+			"defaultValue": "neo4j",
+			"extensionName": "quarkus-neo4j",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.neo4j.authentication.username",
+			"description": "The login of the user connecting to the database.",
+			"sourceType": "io.quarkus.neo4j.runtime.Neo4jConfiguration$Authentication"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "password",
+			"defaultValue": "neo4j",
+			"extensionName": "quarkus-neo4j",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.neo4j.authentication.password",
+			"description": "The password of the user connecting to the database.",
+			"sourceType": "io.quarkus.neo4j.runtime.Neo4jConfiguration$Authentication"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "disabled",
+			"defaultValue": "false",
+			"extensionName": "quarkus-neo4j",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.neo4j.authentication.disabled",
+			"description": "Set this to true to disable authentication.",
+			"sourceType": "io.quarkus.neo4j.runtime.Neo4jConfiguration$Authentication"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "metricsEnabled",
+			"defaultValue": "false",
+			"extensionName": "quarkus-neo4j",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.neo4j.pool.metrics-enabled",
+			"description": "Flag, if metrics are enabled.",
+			"sourceType": "io.quarkus.neo4j.runtime.Neo4jConfiguration$Pool"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "logLeakedSessions",
+			"defaultValue": "false",
+			"extensionName": "quarkus-neo4j",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.neo4j.pool.log-leaked-sessions",
+			"description": "Flag, if leaked sessions logging is enabled.",
+			"sourceType": "io.quarkus.neo4j.runtime.Neo4jConfiguration$Pool"
+		},
+		{
+			"type": "int",
+			"sourceField": "maxConnectionPoolSize",
+			"defaultValue": "100",
+			"extensionName": "quarkus-neo4j",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.neo4j.pool.max-connection-pool-size",
+			"description": "The maximum amount of connections in the connection pool towards a single database.",
+			"sourceType": "io.quarkus.neo4j.runtime.Neo4jConfiguration$Pool"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "idleTimeBeforeConnectionTest",
+			"defaultValue": "-0.001S",
+			"extensionName": "quarkus-neo4j",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.neo4j.pool.idle-time-before-connection-test",
+			"description": "Pooled connections that have been idle in the pool for longer than this timeout will be tested before they are used\n again. The value {@literal 0} means connections will always be tested for validity and negative values mean\n connections\n will never be tested.",
+			"sourceType": "io.quarkus.neo4j.runtime.Neo4jConfiguration$Pool"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "maxConnectionLifetime",
+			"defaultValue": "1H",
+			"extensionName": "quarkus-neo4j",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.neo4j.pool.max-connection-lifetime",
+			"description": "Pooled connections older than this threshold will be closed and removed from the pool.",
+			"sourceType": "io.quarkus.neo4j.runtime.Neo4jConfiguration$Pool"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "connectionAcquisitionTimeout",
+			"defaultValue": "1M",
+			"extensionName": "quarkus-neo4j",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.neo4j.pool.connection-acquisition-timeout",
+			"description": "Acquisition of new connections will be attempted for at most configured timeout.",
+			"sourceType": "io.quarkus.neo4j.runtime.Neo4jConfiguration$Pool"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "singletonResources",
+			"defaultValue": "true",
+			"extensionName": "quarkus-resteasy-server-common",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.resteasy.singleton-resources",
+			"description": "If this is true then JAX-RS will use only a single instance of a resource\n class to service all requests.\n \u003cp\u003e\n If this is false then it will create a new instance of the resource per\n request.\n \u003cp\u003e\n If the resource class has an explicit CDI scope annotation then the value of\n this annotation will always be used to control the lifecycle of the resource\n class.\n \u003cp\u003e\n IMPLEMENTATION NOTE: {@code javax.ws.rs.Path} turns into a CDI stereotype\n with singleton scope. As a result, if a user annotates a JAX-RS resource with\n a stereotype which has a different default scope the deployment fails with\n IllegalStateException.",
+			"sourceType": "io.quarkus.resteasy.server.common.deployment.ResteasyServerCommonProcessor$ResteasyConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "path",
+			"defaultValue": "/",
+			"extensionName": "quarkus-resteasy-server-common",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.resteasy.path",
+			"description": "Set this to override the default path for JAX-RS resources if there are no\n annotated application classes.",
+			"sourceType": "io.quarkus.resteasy.server.common.deployment.ResteasyServerCommonProcessor$ResteasyConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enabled",
+			"extensionName": "quarkus-resteasy-common",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.resteasy.gzip.enabled",
+			"description": "If gzip is enabled",
+			"sourceType": "io.quarkus.resteasy.common.deployment.ResteasyCommonProcessor$ResteasyCommonConfigGzip"
+		},
+		{
+			"type": "io.quarkus.runtime.configuration.MemorySize",
+			"sourceField": "maxInput",
+			"defaultValue": "10M",
+			"extensionName": "quarkus-resteasy-common",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.resteasy.gzip.max-input",
+			"description": "Maximum deflated file bytes size\n \u003cp\u003e\n If the limit is exceeded, Resteasy will return Response\n with status 413(\"Request Entity Too Large\")",
+			"sourceType": "io.quarkus.resteasy.common.deployment.ResteasyCommonProcessor$ResteasyCommonConfigGzip"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "rootPath",
+			"defaultValue": "/health",
+			"extensionName": "quarkus-smallrye-health",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.smallrye-health.root-path",
+			"description": "Root path for health-checking servlets.",
+			"sourceType": "io.quarkus.smallrye.health.deployment.SmallRyeHealthProcessor$SmallRyeHealthConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "livenessPath",
+			"defaultValue": "/live",
+			"extensionName": "quarkus-smallrye-health",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.smallrye-health.liveness-path",
+			"description": "The relative path of the liveness health-checking servlet.",
+			"sourceType": "io.quarkus.smallrye.health.deployment.SmallRyeHealthProcessor$SmallRyeHealthConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "readinessPath",
+			"defaultValue": "/ready",
+			"extensionName": "quarkus-smallrye-health",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.smallrye-health.readiness-path",
+			"description": "The relative path of the readiness health-checking servlet.",
+			"sourceType": "io.quarkus.smallrye.health.deployment.SmallRyeHealthProcessor$SmallRyeHealthConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "authMechanism",
+			"defaultValue": "MP-JWT",
+			"extensionName": "quarkus-smallrye-jwt",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.smallrye-jwt.auth-mechanism",
+			"description": "The authentication mechanism",
+			"sourceType": "io.quarkus.smallrye.jwt.runtime.JWTAuthContextInfoGroup"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "realmName",
+			"defaultValue": "Quarkus-JWT",
+			"extensionName": "quarkus-smallrye-jwt",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.smallrye-jwt.realm-name",
+			"description": "The authentication mechanism",
+			"sourceType": "io.quarkus.smallrye.jwt.runtime.JWTAuthContextInfoGroup"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "enabled",
+			"defaultValue": "true",
+			"extensionName": "quarkus-smallrye-jwt",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.smallrye-jwt.enabled",
+			"description": "The MP-JWT configuration object",
+			"sourceType": "io.quarkus.smallrye.jwt.runtime.JWTAuthContextInfoGroup"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "rsaSigProvider",
+			"defaultValue": "SunRsaSign",
+			"extensionName": "quarkus-smallrye-jwt",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.smallrye-jwt.rsa-sig-provider",
+			"description": "The name of the {@linkplain java.security.Provider} that supports SHA256withRSA signatures",
+			"sourceType": "io.quarkus.smallrye.jwt.runtime.JWTAuthContextInfoGroup"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "path",
+			"defaultValue": "/swagger-ui",
+			"extensionName": "quarkus-swagger-ui",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.swagger-ui.path",
+			"description": "The path of the swagger-ui servlet.",
+			"sourceType": "io.quarkus.swaggerui.deployment.SwaggerUiProcessor$SwaggerUiConfig"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "alwaysInclude",
+			"defaultValue": "false",
+			"extensionName": "quarkus-swagger-ui",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.swagger-ui.always-include",
+			"description": "If this should be included every time. By default this is only included when the application is running\n in dev mode.",
+			"sourceType": "io.quarkus.swaggerui.deployment.SwaggerUiProcessor$SwaggerUiConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "path",
+			"defaultValue": "/metrics",
+			"extensionName": "quarkus-smallrye-metrics",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.smallrye-metrics.path",
+			"description": "The path to the metrics Servlet.",
+			"sourceType": "io.quarkus.smallrye.metrics.deployment.SmallRyeMetricsProcessor$SmallRyeMetricsConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "tikaConfigPath",
+			"defaultValue": "tika-config.xml",
+			"extensionName": "quarkus-tika",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.tika.tika-config-path",
+			"description": "The path to the tika-config.xml",
+			"sourceType": "io.quarkus.tika.runtime.TikaConfiguration"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "appendEmbeddedContent",
+			"defaultValue": "true",
+			"extensionName": "quarkus-tika",
+			"required": false,
+			"phase": 2,
+			"name": "quarkus.tika.append-embedded-content",
+			"description": "Controls how the content of the embedded documents is parsed.\n By default it is appended to the master document content.\n Setting this property to false makes the content of each of the embedded documents\n available separately.",
+			"sourceType": "io.quarkus.tika.runtime.TikaConfiguration"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "password",
+			"extensionName": "quarkus-undertow-websockets",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.hot-reload.password",
+			"sourceType": "io.quarkus.undertow.websockets.deployment.UndertowWebsocketProcessor$HotReloadConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "url",
+			"extensionName": "quarkus-undertow-websockets",
+			"required": true,
+			"phase": 1,
+			"name": "quarkus.hot-reload.url",
+			"sourceType": "io.quarkus.undertow.websockets.deployment.UndertowWebsocketProcessor$HotReloadConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "contextPath",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 1,
+			"name": "quarkus.servlet.context-path",
+			"description": "The context path to serve all Servlet context from. This will also affect any resources\n that run as a Servlet, e.g. JAX-RS",
+			"sourceType": "io.quarkus.undertow.deployment.ServletConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "mpJwtPublicKey",
+			"defaultValue": "NONE",
+			"required": false,
+			"phase": 0,
+			"name": "mp.jwt.verify.publickey",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "mpJwtIssuer",
+			"defaultValue": "NONE",
+			"required": false,
+			"phase": 0,
+			"name": "mp.jwt.verify.issuer",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "mpJwtLocation",
+			"defaultValue": "NONE",
+			"required": false,
+			"phase": 0,
+			"name": "mp.jwt.verify.publickey.location",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "mpJwtRequireIss",
+			"defaultValue": "true",
+			"required": false,
+			"phase": 0,
+			"name": "mp.jwt.verify.requireiss",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "tokenHeader",
+			"defaultValue": "Authorization",
+			"required": false,
+			"phase": 0,
+			"name": "smallrye.jwt.token.header",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "tokenCookie",
+			"required": true,
+			"phase": 0,
+			"name": "smallrye.jwt.token.cookie",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "tokenKeyId",
+			"required": true,
+			"phase": 0,
+			"name": "smallrye.jwt.token.kid",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Boolean\u003e",
+			"sourceField": "requireNamedPrincipal",
+			"defaultValue": "false",
+			"required": false,
+			"phase": 0,
+			"name": "smallrye.jwt.require.named-principal",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "defaultSubClaim",
+			"required": true,
+			"phase": 0,
+			"name": "smallrye.jwt.claims.sub",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "subPath",
+			"required": true,
+			"phase": 0,
+			"name": "smallrye.jwt.path.sub",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "defaultGroupsClaim",
+			"required": true,
+			"phase": 0,
+			"name": "smallrye.jwt.claims.groups",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "groupsPath",
+			"required": true,
+			"phase": 0,
+			"name": "smallrye.jwt.path.groups",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Integer\u003e",
+			"sourceField": "expGracePeriodSecs",
+			"defaultValue": "60",
+			"required": false,
+			"phase": 0,
+			"name": "smallrye.jwt.expiration.grace",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.Integer\u003e",
+			"sourceField": "jwksRefreshInterval",
+			"defaultValue": "60",
+			"required": false,
+			"phase": 0,
+			"name": "smallrye.jwt.jwks.refresh-interval",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "whitelistAlgorithms",
+			"required": true,
+			"phase": 0,
+			"name": "smallrye.jwt.whitelist.algorithms",
+			"sourceType": "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
+		},
+		{
+			"type": "java.lang.Integer",
+			"sourceField": "configuredPort",
+			"defaultValue": "5672",
+			"required": false,
+			"phase": 0,
+			"name": "amqp-port",
+			"sourceType": "io.smallrye.reactive.messaging.amqp.AmqpConnector"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "configuredHost",
+			"defaultValue": "localhost",
+			"required": false,
+			"phase": 0,
+			"name": "amqp-server",
+			"sourceType": "io.smallrye.reactive.messaging.amqp.AmqpConnector"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "configuredUsername",
+			"required": true,
+			"phase": 0,
+			"name": "amqp-username",
+			"sourceType": "io.smallrye.reactive.messaging.amqp.AmqpConnector"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "configuredPassword",
+			"required": true,
+			"phase": 0,
+			"name": "amqp-password",
+			"sourceType": "io.smallrye.reactive.messaging.amqp.AmqpConnector"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "caching",
+			"defaultValue": "true",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.caching",
+			"description": "Enables or disables the Vert.x cache.",
+			"sourceType": "io.quarkus.vertx.runtime.VertxConfiguration"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "classpathResolving",
+			"defaultValue": "true",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.classpath-resolving",
+			"description": "Enables or disabled the Vert.x classpath resource resolver.",
+			"sourceType": "io.quarkus.vertx.runtime.VertxConfiguration"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "eventLoopsPoolSize",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.event-loops-pool-size",
+			"description": "The number of event loops. 2 x the number of core by default.",
+			"sourceType": "io.quarkus.vertx.runtime.VertxConfiguration"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "maxEventLoopExecuteTime",
+			"defaultValue": "2",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.max-event-loop-execute-time",
+			"description": "The maximum amount of time the event loop can be blocked.",
+			"sourceType": "io.quarkus.vertx.runtime.VertxConfiguration"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "warningExceptionTime",
+			"defaultValue": "2",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.warning-exception-time",
+			"description": "The amount of time before a warning is displayed if the event loop is blocked.",
+			"sourceType": "io.quarkus.vertx.runtime.VertxConfiguration"
+		},
+		{
+			"type": "int",
+			"sourceField": "workerPoolSize",
+			"defaultValue": "20",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.worker-pool-size",
+			"description": "The size of the worker thread pool.",
+			"sourceType": "io.quarkus.vertx.runtime.VertxConfiguration"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "maxWorkerExecuteTime",
+			"defaultValue": "60",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.max-worker-execute-time",
+			"description": "The maximum amount of time the worker thread can be blocked.",
+			"sourceType": "io.quarkus.vertx.runtime.VertxConfiguration"
+		},
+		{
+			"type": "int",
+			"sourceField": "internalBlockingPoolSize",
+			"defaultValue": "20",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.internal-blocking-pool-size",
+			"description": "The size of the internal thread pool (used for the file system).",
+			"sourceType": "io.quarkus.vertx.runtime.VertxConfiguration"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "useAsyncDNS",
+			"extensionName": "quarkus-vertx",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.vertx.use-async-dns",
+			"description": "Enables the async DNS resolver.",
+			"sourceType": "io.quarkus.vertx.runtime.VertxConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "keys",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.key-certificate-pem.keys",
+			"description": "Comma-separated list of the path to the key files (Pem format).",
+			"sourceType": "io.quarkus.vertx.runtime.PemKeyCertConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "certs",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.key-certificate-pem.certs",
+			"description": "Comma-separated list of the path to the certificate files (Pem format).",
+			"sourceType": "io.quarkus.vertx.runtime.PemKeyCertConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "path",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.key-certificate-jks.path",
+			"description": "Path of the key file (JKS format).",
+			"sourceType": "io.quarkus.vertx.runtime.JksConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "password",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.key-certificate-jks.password",
+			"description": "Password of the key file.",
+			"sourceType": "io.quarkus.vertx.runtime.JksConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "path",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.key-certificate-pfx.path",
+			"description": "Path to the key file (PFX format)",
+			"sourceType": "io.quarkus.vertx.runtime.PfxConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "password",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.key-certificate-pfx.password",
+			"description": "Password of the key.",
+			"sourceType": "io.quarkus.vertx.runtime.PfxConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "certs",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.trust-certificate-pem.certs",
+			"description": "Comma-separated list of the trust certificate files (Pem format).",
+			"sourceType": "io.quarkus.vertx.runtime.PemTrustCertConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "path",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.trust-certificate-jks.path",
+			"description": "Path of the key file (JKS format).",
+			"sourceType": "io.quarkus.vertx.runtime.JksConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "password",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.trust-certificate-jks.password",
+			"description": "Password of the key file.",
+			"sourceType": "io.quarkus.vertx.runtime.JksConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "path",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.trust-certificate-pfx.path",
+			"description": "Path to the key file (PFX format)",
+			"sourceType": "io.quarkus.vertx.runtime.PfxConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "password",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.trust-certificate-pfx.password",
+			"description": "Password of the key.",
+			"sourceType": "io.quarkus.vertx.runtime.PfxConfiguration"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "acceptBacklog",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.accept-backlog",
+			"description": "The accept backlog.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "clientAuth",
+			"defaultValue": "NONE",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.client-auth",
+			"description": "The client authentication.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "connectTimeout",
+			"defaultValue": "60",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.connect-timeout",
+			"description": "The connect timeout.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "idleTimeout",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.idle-timeout",
+			"description": "The idle timeout in milliseconds.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "receiveBufferSize",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.receive-buffer-size",
+			"description": "The receive buffer size.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "int",
+			"sourceField": "reconnectAttempts",
+			"extensionName": "quarkus-vertx",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.reconnect-attempts",
+			"description": "The number of reconnection attempts.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "reconnectInterval",
+			"defaultValue": "1",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.reconnect-interval",
+			"description": "The reconnection interval in milliseconds.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "reuseAddress",
+			"defaultValue": "true",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.reuse-address",
+			"description": "Whether or not to reuse the address.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "reusePort",
+			"extensionName": "quarkus-vertx",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.reuse-port",
+			"description": "Whether or not to reuse the port.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "sendBufferSize",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.send-buffer-size",
+			"description": "The send buffer size.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "soLinger",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.soLinger",
+			"description": "The so linger.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "ssl",
+			"extensionName": "quarkus-vertx",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.ssl",
+			"description": "Enables or Disabled SSL.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "tcpKeepAlive",
+			"extensionName": "quarkus-vertx",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.tcp-keep-alive",
+			"description": "Whether or not to keep the TCP connection opened (keep-alive).",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "tcpNoDelay",
+			"defaultValue": "true",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.tcp-no-delay",
+			"description": "Configure the TCP no delay.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "trafficClass",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.traffic-class",
+			"description": "Configure the traffic class.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "trustAll",
+			"extensionName": "quarkus-vertx",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.vertx.eventbus.trust-all",
+			"description": "Enables or disables the trust all parameter.",
+			"sourceType": "io.quarkus.vertx.runtime.EventBusConfiguration"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "host",
+			"defaultValue": "localhost",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.cluster.host",
+			"description": "The host name.",
+			"sourceType": "io.quarkus.vertx.runtime.ClusterConfiguration"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "port",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.cluster.port",
+			"description": "The port.",
+			"sourceType": "io.quarkus.vertx.runtime.ClusterConfiguration"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "publicHost",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.cluster.public-host",
+			"description": "The public host name.",
+			"sourceType": "io.quarkus.vertx.runtime.ClusterConfiguration"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "publicPort",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.cluster.public-port",
+			"description": "The public port.",
+			"sourceType": "io.quarkus.vertx.runtime.ClusterConfiguration"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "clustered",
+			"extensionName": "quarkus-vertx",
+			"required": true,
+			"phase": 3,
+			"name": "quarkus.vertx.cluster.clustered",
+			"description": "Enables or disables the clustering.",
+			"sourceType": "io.quarkus.vertx.runtime.ClusterConfiguration"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "pingInterval",
+			"defaultValue": "20",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.cluster.ping-interval",
+			"description": "The ping interval.",
+			"sourceType": "io.quarkus.vertx.runtime.ClusterConfiguration"
+		},
+		{
+			"type": "java.time.Duration",
+			"sourceField": "pingReplyInterval",
+			"defaultValue": "20",
+			"extensionName": "quarkus-vertx",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.vertx.cluster.ping-reply-interval",
+			"description": "The ping reply interval.",
+			"sourceType": "io.quarkus.vertx.runtime.ClusterConfiguration"
+		},
+		{
+			"type": "java.lang.Boolean",
+			"sourceField": "metricsEnabled",
+			"defaultValue": "true",
+			"required": false,
+			"phase": 0,
+			"name": "MP_Fault_Tolerance_Metrics_Enabled",
+			"sourceType": "io.smallrye.faulttolerance.metrics.MetricsCollectorFactory"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "servers",
+			"defaultValue": "localhost:9092",
+			"required": false,
+			"phase": 0,
+			"name": "kafka.bootstrap.servers",
+			"sourceType": "io.smallrye.reactive.messaging.kafka.KafkaConnector"
+		},
+		{
+			"type": "boolean",
+			"sourceField": "corsEnabled",
+			"extensionName": "quarkus-undertow",
+			"required": true,
+			"phase": 2,
+			"name": "quarkus.http.cors",
+			"description": "Enable the CORS filter.",
+			"sourceType": "io.quarkus.undertow.runtime.HttpBuildConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "port",
+			"defaultValue": "8080",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.port",
+			"description": "The HTTP port",
+			"sourceType": "io.quarkus.undertow.runtime.HttpConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "sslPort",
+			"defaultValue": "8443",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.ssl-port",
+			"description": "The HTTPS port",
+			"sourceType": "io.quarkus.undertow.runtime.HttpConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "testPort",
+			"defaultValue": "8081",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.test-port",
+			"description": "The HTTP port used to run tests",
+			"sourceType": "io.quarkus.undertow.runtime.HttpConfig"
+		},
+		{
+			"type": "int",
+			"sourceField": "testSslPort",
+			"defaultValue": "8444",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.test-ssl-port",
+			"description": "The HTTPS port used to run tests",
+			"sourceType": "io.quarkus.undertow.runtime.HttpConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "host",
+			"defaultValue": "0.0.0.0",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.host",
+			"description": "The HTTP host",
+			"sourceType": "io.quarkus.undertow.runtime.HttpConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "ioThreads",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.io-threads",
+			"description": "The number if IO threads used to perform IO. This will be automatically set to a reasonable value based on\n the number of CPU cores if it is not provided",
+			"sourceType": "io.quarkus.undertow.runtime.HttpConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.nio.file.Path\u003e",
+			"sourceField": "file",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.ssl.certificate.file",
+			"description": "The file path to a server certificate or certificate chain in PEM format.",
+			"sourceType": "io.quarkus.runtime.configuration.ssl.CertificateConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.nio.file.Path\u003e",
+			"sourceField": "keyFile",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.ssl.certificate.key-file",
+			"description": "The file path to the corresponding certificate private key file in PEM format.",
+			"sourceType": "io.quarkus.runtime.configuration.ssl.CertificateConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.nio.file.Path\u003e",
+			"sourceField": "keyStoreFile",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.ssl.certificate.key-store-file",
+			"description": "An optional key store which holds the certificate information instead of specifying separate files.",
+			"sourceType": "io.quarkus.runtime.configuration.ssl.CertificateConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "keyStoreFileType",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.ssl.certificate.key-store-file-type",
+			"description": "An optional parameter to specify type of the key store file. If not given, the type is automatically detected\n based on the file name.",
+			"sourceType": "io.quarkus.runtime.configuration.ssl.CertificateConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "keyStorePassword",
+			"defaultValue": "password",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.ssl.certificate.key-store-password",
+			"description": "A parameter to specify the password of the key store file. If not given, the default (\"password\") is used.",
+			"sourceType": "io.quarkus.runtime.configuration.ssl.CertificateConfig"
+		},
+		{
+			"type": "java.util.Optional\u003corg.wildfly.security.ssl.CipherSuiteSelector\u003e",
+			"sourceField": "cipherSuites",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.ssl.cipher-suites",
+			"description": "The cipher suites to use. If none is given, a reasonable default is selected.",
+			"sourceType": "io.quarkus.runtime.configuration.ssl.ServerSslConfig"
+		},
+		{
+			"type": "java.util.List\u003corg.wildfly.security.ssl.Protocol\u003e",
+			"sourceField": "protocols",
+			"defaultValue": "TLSv1.3,TLSv1.2",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.ssl.protocols",
+			"description": "The list of protocols to explicitly enable.",
+			"sourceType": "io.quarkus.runtime.configuration.ssl.ServerSslConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "providerName",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.ssl.provider-name",
+			"description": "The SSL provider name to use. If none is given, the platform default is used.",
+			"sourceType": "io.quarkus.runtime.configuration.ssl.ServerSslConfig"
+		},
+		{
+			"type": "java.util.OptionalInt",
+			"sourceField": "sessionCacheSize",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.ssl.session-cache-size",
+			"description": "The SSL session cache size. If not given, the platform default is used.",
+			"sourceType": "io.quarkus.runtime.configuration.ssl.ServerSslConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.time.Duration\u003e",
+			"sourceField": "sessionTimeout",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.ssl.session-timeout",
+			"description": "The SSL session cache timeout. If not given, the platform default is used.",
+			"sourceType": "io.quarkus.runtime.configuration.ssl.ServerSslConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "origins",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.cors.origins",
+			"description": "Origins allowed for CORS\n\n Comma separated list of valid URLs. ex: http://www.quarkus.io,http://localhost:3000\n The filter allows any origin if this is not set.\n\n default: returns any requested origin as valid",
+			"sourceType": "io.quarkus.undertow.runtime.filters.CORSConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "methods",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.cors.methods",
+			"description": "HTTP methods allowed for CORS\n\n Comma separated list of valid methods. ex: GET,PUT,POST\n The filter allows any method if this is not set.\n\n default: returns any requested method as valid",
+			"sourceType": "io.quarkus.undertow.runtime.filters.CORSConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "headers",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.cors.headers",
+			"description": "HTTP headers allowed for CORS\n\n Comma separated list of valid headers. ex: X-Custom,Content-Disposition\n The filter allows any header if this is not set.\n\n default: returns any requested header as valid",
+			"sourceType": "io.quarkus.undertow.runtime.filters.CORSConfig"
+		},
+		{
+			"type": "java.util.Optional\u003cjava.lang.String\u003e",
+			"sourceField": "exposedHeaders",
+			"extensionName": "quarkus-undertow",
+			"required": false,
+			"phase": 3,
+			"name": "quarkus.http.cors.exposed-headers",
+			"description": "HTTP headers exposed in CORS\n\n Comma separated list of valid headers. ex: X-Custom,Content-Disposition\n \n default: \u003cempty\u003e",
+			"sourceType": "io.quarkus.undertow.runtime.filters.CORSConfig"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "uncheckedExceptionDataStyle",
+			"defaultValue": "rootCause",
+			"required": false,
+			"phase": 0,
+			"name": "io.smallrye.health.uncheckedExceptionDataStyle",
+			"sourceType": "io.smallrye.health.SmallRyeHealthReporter"
+		},
+		{
+			"type": "java.lang.String",
+			"sourceField": "emptyChecksOutcome",
+			"defaultValue": "UP",
+			"required": false,
+			"phase": 0,
+			"name": "io.smallrye.health.emptyChecksOutcome",
+			"sourceType": "io.smallrye.health.SmallRyeHealthReporter"
+		}
+	],
+	"hints": [
+		{
+			"values": [
+				{
+					"value": "BLOCK"
+				},
+				{
+					"value": "DISCARD"
+				}
+			],
+			"name": "org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
+			"sourceType": "org.jboss.logmanager.handlers.AsyncHandler$OverflowAction"
+		},
+		{
+			"values": [
+				{
+					"value": "KERNEL"
+				},
+				{
+					"value": "USER_LEVEL"
+				},
+				{
+					"value": "MAIL_SYSTEM"
+				},
+				{
+					"value": "SYSTEM_DAEMONS"
+				},
+				{
+					"value": "SECURITY"
+				},
+				{
+					"value": "SYSLOGD"
+				},
+				{
+					"value": "LINE_PRINTER"
+				},
+				{
+					"value": "NETWORK_NEWS"
+				},
+				{
+					"value": "UUCP"
+				},
+				{
+					"value": "CLOCK_DAEMON"
+				},
+				{
+					"value": "SECURITY2"
+				},
+				{
+					"value": "FTP_DAEMON"
+				},
+				{
+					"value": "NTP"
+				},
+				{
+					"value": "LOG_AUDIT"
+				},
+				{
+					"value": "LOG_ALERT"
+				},
+				{
+					"value": "CLOCK_DAEMON2"
+				},
+				{
+					"value": "LOCAL_USE_0"
+				},
+				{
+					"value": "LOCAL_USE_1"
+				},
+				{
+					"value": "LOCAL_USE_2"
+				},
+				{
+					"value": "LOCAL_USE_3"
+				},
+				{
+					"value": "LOCAL_USE_4"
+				},
+				{
+					"value": "LOCAL_USE_5"
+				},
+				{
+					"value": "LOCAL_USE_6"
+				},
+				{
+					"value": "LOCAL_USE_7"
+				}
+			],
+			"name": "org.jboss.logmanager.handlers.SyslogHandler$Facility",
+			"sourceType": "org.jboss.logmanager.handlers.SyslogHandler$Facility"
+		},
+		{
+			"values": [
+				{
+					"value": "RFC5424"
+				},
+				{
+					"value": "RFC3164"
+				}
+			],
+			"name": "org.jboss.logmanager.handlers.SyslogHandler$SyslogType",
+			"sourceType": "org.jboss.logmanager.handlers.SyslogHandler$SyslogType"
+		},
+		{
+			"values": [
+				{
+					"value": "TCP"
+				},
+				{
+					"value": "UDP"
+				},
+				{
+					"value": "SSL_TCP"
+				}
+			],
+			"name": "org.jboss.logmanager.handlers.SyslogHandler$Protocol",
+			"sourceType": "org.jboss.logmanager.handlers.SyslogHandler$Protocol"
+		}
+	]
+}
