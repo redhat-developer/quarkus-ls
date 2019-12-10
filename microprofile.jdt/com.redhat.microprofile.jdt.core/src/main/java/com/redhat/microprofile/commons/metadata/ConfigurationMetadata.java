@@ -10,9 +10,6 @@
 package com.redhat.microprofile.commons.metadata;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Configuration metadata
@@ -22,8 +19,6 @@ import java.util.stream.Collectors;
  * @see https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-configuration-metadata.html
  */
 public class ConfigurationMetadata {
-
-	private transient Map<String, ItemHint> hintsCache;
 
 	private List<ItemMetadata> properties;
 
@@ -45,18 +40,36 @@ public class ConfigurationMetadata {
 		this.hints = hints;
 	}
 
+	/**
+	 * Returns the item hint from the given item metadata name or type and null
+	 * otherwise.
+	 * 
+	 * @param property the item metadata
+	 * @return the item hint from the given item metadata name or type and null
+	 *         otherwise.
+	 */
 	public ItemHint getHint(ItemMetadata property) {
-		if (hints == null) {
+		return getHint(property.getName(), property.getType());
+	}
+
+	/**
+	 * Returns the item hint from the given possible hint and null otherwise.
+	 * 
+	 * @param hint possibles hint
+	 * @return the item hint from the given possible hint and null otherwise.
+	 */
+	public ItemHint getHint(String... hint) {
+		if (hints == null || hint == null) {
 			return null;
 		}
-		if (hintsCache == null) {
-			hintsCache = hints.stream().collect(Collectors.toMap(ItemHint::getName, Function.identity()));
+		for (ItemHint itemHint : hints) {
+			for (String name : hint) {
+				if (itemHint.getName().equals(name)) {
+					return itemHint;
+				}
+			}
 		}
-		ItemHint item = hintsCache.get(property.getName());
-		if (item == null) {
-			item = hintsCache.get(property.getType());
-		}
-		return item;
+		return null;
 	}
 
 	public boolean isValidEnum(ItemMetadata metadata, String value) {

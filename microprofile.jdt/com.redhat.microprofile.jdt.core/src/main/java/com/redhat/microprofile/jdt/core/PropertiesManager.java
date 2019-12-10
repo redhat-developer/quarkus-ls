@@ -358,7 +358,7 @@ public class PropertiesManager {
 					: Signature.getParameterTypes(methodSignature);
 			return JavaModelUtil.findMethod(methodName, paramTypes, false, type);
 		}
-		return null;
+		return type;
 	}
 
 }

@@ -39,6 +39,8 @@ public class ItemHint extends ItemBase {
 
 		private String description;
 
+		private String sourceType;
+
 		public String getValue() {
 			return value;
 		}
@@ -55,11 +57,20 @@ public class ItemHint extends ItemBase {
 			this.description = description;
 		}
 
+		public String getSourceType() {
+			return sourceType;
+		}
+
+		public void setSourceType(String sourceType) {
+			this.sourceType = sourceType;
+		}
+
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + ((description == null) ? 0 : description.hashCode());
+			result = prime * result + ((sourceType == null) ? 0 : sourceType.hashCode());
 			result = prime * result + ((value == null) ? 0 : value.hashCode());
 			return result;
 		}
@@ -77,6 +88,11 @@ public class ItemHint extends ItemBase {
 				if (other.description != null)
 					return false;
 			} else if (!description.equals(other.description))
+				return false;
+			if (sourceType == null) {
+				if (other.sourceType != null)
+					return false;
+			} else if (!sourceType.equals(other.sourceType))
 				return false;
 			if (value == null) {
 				if (other.value != null)

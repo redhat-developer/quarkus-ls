@@ -28,6 +28,8 @@ import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.commons.MicroProfilePropertyDefinitionParams;
+import com.redhat.microprofile.commons.metadata.ItemBase;
+import com.redhat.microprofile.commons.metadata.ItemHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.ls.api.MicroProfileLanguageClientAPI;
 import com.redhat.microprofile.ls.api.MicroProfilePropertyDefinitionProvider;
@@ -37,14 +39,19 @@ public class MockMicroProfileLanguageClient implements MicroProfileLanguageClien
 	private final MicroProfileLanguageServer languageServer;
 
 	private final Map<String, List<ItemMetadata>> jarProperties;
+	private final Map<String, List<ItemHint>> jarHints;
 	private final Map<String, List<ItemMetadata>> sourcesProperties;
+
+	private final Map<String, List<ItemHint>> sourcesHints;
 
 	private MicroProfilePropertyDefinitionProvider provider;
 
 	public MockMicroProfileLanguageClient(MicroProfileLanguageServer languageServer) {
 		this.languageServer = languageServer;
 		this.jarProperties = new HashMap<>();
+		this.jarHints = new HashMap<>();
 		this.sourcesProperties = new HashMap<>();
+		this.sourcesHints = new HashMap<>();
 	}
 
 	@Override
@@ -78,45 +85,87 @@ public class MockMicroProfileLanguageClient implements MicroProfileLanguageClien
 		String applicationPropertiesURI = params.getUri();
 		String projectURI = applicationPropertiesURI.substring(0, applicationPropertiesURI.indexOf('/'));
 		info.setProjectURI(projectURI);
+
+		// Update properties
 		List<ItemMetadata> properties = new ArrayList<>();
 		info.setProperties(properties);
 
-		List<ItemMetadata> fromSources = sourcesProperties.get(projectURI);
-		if (fromSources != null) {
-			properties.addAll(fromSources);
+		List<ItemMetadata> propertiesFromSources = sourcesProperties.get(projectURI);
+		if (propertiesFromSources != null) {
+			properties.addAll(propertiesFromSources);
 		}
 		if (params.getScopes().contains(MicroProfilePropertiesScope.dependencies)) {
 			List<ItemMetadata> fromJars = jarProperties.get(projectURI);
 			if (fromJars != null) {
 				properties.addAll(fromJars);
 			}
-
 		}
+		// Update hints
+		List<ItemHint> hints = new ArrayList<>();
+		info.setHints(hints);
+
+		List<ItemHint> hintsFromSources = sourcesHints.get(projectURI);
+		if (hintsFromSources != null) {
+			hints.addAll(hintsFromSources);
+		}
+		if (params.getScopes().contains(MicroProfilePropertiesScope.dependencies)) {
+			List<ItemHint> fromJars = jarHints.get(projectURI);
+			if (fromJars != null) {
+				hints.addAll(fromJars);
+			}
+		}
+
 		return CompletableFuture.completedFuture(info);
 	}
 
-	public void changedClasspath(String projectURI, ItemMetadata... properties) {
+	public void changedClasspath(String projectURI, ItemBase... items) {
 		// Update properties
-		List<ItemMetadata> fromSources = sourcesProperties.get(projectURI);
-		if (fromSources != null) {
-			fromSources.clear();
+		List<ItemMetadata> propertiesFromSources = sourcesProperties.get(projectURI);
+		if (propertiesFromSources != null) {
+			propertiesFromSources.clear();
 		} else {
-			fromSources = new ArrayList<>();
-			sourcesProperties.put(projectURI, fromSources);
+			propertiesFromSources = new ArrayList<>();
+			sourcesProperties.put(projectURI, propertiesFromSources);
 		}
-		List<ItemMetadata> fromJars = jarProperties.get(projectURI);
-		if (fromJars != null) {
-			fromJars.clear();
+		// Update hints
+		List<ItemHint> hintsFromSources = sourcesHints.get(projectURI);
+		if (hintsFromSources != null) {
+			hintsFromSources.clear();
 		} else {
-			fromJars = new ArrayList<>();
-			jarProperties.put(projectURI, fromJars);
+			hintsFromSources = new ArrayList<>();
+			sourcesHints.put(projectURI, hintsFromSources);
 		}
-		for (ItemMetadata property : properties) {
-			if (!property.isBinary()) {
-				fromJars.add(property);
-			} else {
-				fromSources.add(property);
+
+		List<ItemMetadata> propertiesFromJars = jarProperties.get(projectURI);
+		if (propertiesFromJars != null) {
+			propertiesFromJars.clear();
+		} else {
+			propertiesFromJars = new ArrayList<>();
+			jarProperties.put(projectURI, propertiesFromJars);
+		}
+		List<ItemHint> hintsFromJars = jarHints.get(projectURI);
+		if (hintsFromJars != null) {
+			hintsFromJars.clear();
+		} else {
+			hintsFromJars = new ArrayList<>();
+			jarHints.put(projectURI, hintsFromJars);
+		}
+
+		for (ItemBase item : items) {
+			if (item instanceof ItemMetadata) {
+				if (!item.isBinary()) {
+					propertiesFromJars.add((ItemMetadata) item);
+				} else {
+					propertiesFromSources.add((ItemMetadata) item);
+				}
+			} else if (item instanceof ItemHint) {
+				if (!item.isBinary()) {
+					hintsFromJars.add((ItemHint) item);
+				} else {
+					hintsFromSources.add((ItemHint) item);
+				}
 			}
+
 		}
 		// Throw Quarkus event
 		MicroProfilePropertiesChangeEvent event = new MicroProfilePropertiesChangeEvent();
@@ -125,18 +174,30 @@ public class MockMicroProfileLanguageClient implements MicroProfileLanguageClien
 		languageServer.propertiesChanged(event);
 	}
 
-	public void changedJavaSources(String projectURI, ItemMetadata... properties) {
+	public void changedJavaSources(String projectURI, ItemBase... items) {
 		// Update properties
-		List<ItemMetadata> fromSources = sourcesProperties.get(projectURI);
-		if (fromSources != null) {
-			fromSources.clear();
+		List<ItemMetadata> propertiesFromSources = sourcesProperties.get(projectURI);
+		if (propertiesFromSources != null) {
+			propertiesFromSources.clear();
 		} else {
-			fromSources = new ArrayList<>();
-			sourcesProperties.put(projectURI, fromSources);
+			propertiesFromSources = new ArrayList<>();
+			sourcesProperties.put(projectURI, propertiesFromSources);
+		}
+		// Update hints
+		List<ItemHint> hintsFromSources = sourcesHints.get(projectURI);
+		if (hintsFromSources != null) {
+			hintsFromSources.clear();
+		} else {
+			hintsFromSources = new ArrayList<>();
+			sourcesHints.put(projectURI, hintsFromSources);
 		}
 
-		for (ItemMetadata property : properties) {
-			fromSources.add(property);
+		for (ItemBase item : items) {
+			if (item instanceof ItemMetadata) {
+				propertiesFromSources.add((ItemMetadata) item);
+			} else if (item instanceof ItemHint) {
+				hintsFromSources.add((ItemHint) item);
+			}
 		}
 		// Throw Quarkus event
 		MicroProfilePropertiesChangeEvent event = new MicroProfilePropertiesChangeEvent();

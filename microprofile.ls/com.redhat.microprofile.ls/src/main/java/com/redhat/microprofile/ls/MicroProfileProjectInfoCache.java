@@ -17,13 +17,16 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
+import com.redhat.microprofile.commons.metadata.ItemBase;
 import com.redhat.microprofile.commons.metadata.ItemHint;
+import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.ls.api.MicroProfileProjectInfoProvider;
 
@@ -39,16 +42,58 @@ class MicroProfileProjectInfoCache {
 
 	private final MicroProfileProjectInfoProvider provider;
 
+	/**
+	 * Computed metadata build from dynamic properties and a given hint value.
+	 *
+	 */
+	private static class ComputedItemMetadata extends ItemMetadata {
+
+		/**
+		 * Computed metadata constructor
+		 * 
+		 * @param metadata dynamic metadata name (ex : name =
+		 *                 '${mp.register.rest.client.class}/mp-rest/url)').
+		 * @param itemHint item hint which matches the dynamic metadata (ex : name =
+		 *                 '${mp.register.rest.client.class}').
+		 * @param value    the item value (ex : value =
+		 *                 'org.acme.restclient.CountriesService').
+		 */
+		public ComputedItemMetadata(ItemMetadata metadata, ItemHint itemHint, ValueHint value) {
+			// replace dynamic part from metedata name (ex:
+			// '${mp.register.rest.client.class}/mp-rest/url'))
+			// with hint value (ex: 'org.acme.restclient.CountriesService') to obtain
+			// the new name 'org.acme.restclient.CountriesService/mp-rest/url'
+			String name = metadata.getName().replace(itemHint.getName(), value.getValue());
+			super.setName(name);
+			super.setSource(Boolean.TRUE);
+			super.setDescription(metadata.getDescription());
+			super.setSourceType(value.getSourceType());
+		}
+	}
+
 	private static class MicroProfileProjectInfoWrapper extends MicroProfileProjectInfo {
 
 		private boolean reloadFromSource;
 
+		private List<ItemMetadata> dynamicProperties;
+
+		private final Function<String, ItemHint> getHint = hint -> getHint(hint);
+
 		public MicroProfileProjectInfoWrapper(MicroProfileProjectInfo delegate) {
 			super.setProjectURI(delegate.getProjectURI());
-			super.setProperties(new CopyOnWriteArrayList<>(
-					delegate.getProperties() != null ? delegate.getProperties() : new ArrayList<>()));
+			// Update hints
 			super.setHints(
 					new CopyOnWriteArrayList<>(delegate.getHints() != null ? delegate.getHints() : new ArrayList<>()));
+			// Get dynamic and static properties from delegate project info
+			List<ItemMetadata> staticProperties = delegate.getProperties() != null ? delegate.getProperties()
+					: new ArrayList<>();
+			List<ItemMetadata> dynamicProperties = computeDynamicProperties(staticProperties);
+			staticProperties.removeAll(dynamicProperties);
+			expandProperties(staticProperties, dynamicProperties, getHint);
+
+			// Update dynamic and static properties
+			this.setDynamicProperties(new CopyOnWriteArrayList<ItemMetadata>(dynamicProperties));
+			super.setProperties(new CopyOnWriteArrayList<>(staticProperties));
 			this.reloadFromSource = false;
 		}
 
@@ -59,31 +104,57 @@ class MicroProfileProjectInfoCache {
 			setReloadFromSource(true);
 		}
 
+		private static List<ItemMetadata> computeDynamicProperties(List<ItemMetadata> properties) {
+			return properties.stream().filter(p -> p != null && p.getName().contains("${"))
+					.collect(Collectors.toList());
+		}
+
 		/**
 		 * Add the new quarkus properties in the cache coming java sources.
 		 * 
 		 * @param propertiesFromJavaSource properties to add in the cache.
 		 */
 		synchronized void update(List<ItemMetadata> propertiesFromJavaSource, List<ItemHint> hintsFromJavaSource) {
-			// remove old properties from Java sources
-			if (propertiesFromJavaSource != null) {
-				List<ItemMetadata> oldPropertiesFromJavaSource = getProperties().stream().filter(p -> {
-					return p == null || !p.isBinary();
-				}).collect(Collectors.toList());
-				getProperties().removeAll(oldPropertiesFromJavaSource);
-				// add new properties from Java sources
-				getProperties().addAll(propertiesFromJavaSource);
-			}
 			// remove old hints from Java sources
 			if (hintsFromJavaSource != null) {
-				List<ItemHint> oldHintsFromJavaSource = getHints().stream().filter(h -> {
-					return h == null || !h.isBinary();
-				}).collect(Collectors.toList());
-				getHints().removeAll(oldHintsFromJavaSource);
-				// add new properties from Java sources
-				getHints().addAll(hintsFromJavaSource);
+				updateListFromPropertiesSources(getHints(), hintsFromJavaSource);
+			}
+			// remove old properties from Java sources
+			if (propertiesFromJavaSource != null) {
+				List<ItemMetadata> staticProperties = propertiesFromJavaSource;
+				List<ItemMetadata> dynamicProperties = computeDynamicProperties(staticProperties);
+				staticProperties.removeAll(dynamicProperties);
+
+				expandProperties(staticProperties, dynamicProperties, getHint);
+				updateListFromPropertiesSources(getProperties(), staticProperties);
+				updateListFromPropertiesSources(getDynamicProperties(), dynamicProperties);
 			}
 			setReloadFromSource(false);
+		}
+
+		private static <T extends ItemBase> void updateListFromPropertiesSources(List<T> allProperties,
+				List<T> propertiesFromJavaSources) {
+			List<? extends ItemBase> oldPropertiesFromJavaSources = allProperties.stream().filter(h -> {
+				return h == null || !h.isBinary();
+			}).collect(Collectors.toList());
+			allProperties.removeAll(oldPropertiesFromJavaSources);
+			// add new properties from Java sources
+			allProperties.addAll(propertiesFromJavaSources);
+		}
+
+		private static void expandProperties(List<ItemMetadata> allProperties, List<ItemMetadata> dynamicProperties,
+				Function<String, ItemHint> getHint) {
+			for (ItemMetadata metadata : dynamicProperties) {
+				int start = metadata.getName().indexOf("${");
+				int end = metadata.getName().indexOf("}", start);
+				String hint = metadata.getName().substring(start, end + 1);
+				ItemHint itemHint = getHint.apply(hint);
+				if (itemHint != null) {
+					for (ValueHint value : itemHint.getValues()) {
+						allProperties.add(new ComputedItemMetadata(metadata, itemHint, value));
+					}
+				}
+			}
 		}
 
 		private boolean isReloadFromSource() {
@@ -92,6 +163,14 @@ class MicroProfileProjectInfoCache {
 
 		private void setReloadFromSource(boolean reloadFromSource) {
 			this.reloadFromSource = reloadFromSource;
+		}
+
+		private List<ItemMetadata> getDynamicProperties() {
+			return dynamicProperties;
+		}
+
+		void setDynamicProperties(List<ItemMetadata> dynamicProperties) {
+			this.dynamicProperties = dynamicProperties;
 		}
 	}
 

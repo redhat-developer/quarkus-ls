@@ -9,6 +9,7 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.internal.core;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,6 +18,8 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
+import com.redhat.microprofile.commons.metadata.ItemHint;
+import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 
 /**
@@ -26,6 +29,8 @@ import com.redhat.microprofile.commons.metadata.ItemMetadata;
  *
  */
 public class MicroProfileAssert {
+
+	// ------------------------- Assert properties
 
 	/**
 	 * Assert MicroProfile properties.
@@ -134,4 +139,110 @@ public class MicroProfileAssert {
 				result.stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining(",")),
 				0, result.size());
 	}
+
+	// ------------------------- Assert hints
+
+	/**
+	 * Assert MicroProfile hints.
+	 * 
+	 * @param info     the MicroProfile project information
+	 * @param expected the expected MicroProfile hints.
+	 */
+	public static void assertHints(MicroProfileProjectInfo info, ItemHint... expected) {
+		assertHints(info, null, expected);
+	}
+
+	/**
+	 * Assert MicroProfile hints.
+	 * 
+	 * @param info          the MicroProfile project information
+	 * @param expectedCount MicroProfile hints expected count.
+	 * @param expected      the expected MicroProfile hints.
+	 */
+	public static void assertHints(MicroProfileProjectInfo info, Integer expectedCount, ItemHint... expected) {
+		if (expectedCount != null) {
+			Assert.assertEquals(expectedCount.intValue(), info.getHints().size());
+		}
+		for (ItemHint item : expected) {
+			assertHint(info, item);
+		}
+	}
+
+	/**
+	 * Assert MicroProfile metadata hint
+	 * 
+	 * @param info     the MicroProfile project information
+	 * @param expected the MicroProfile hint.
+	 */
+	private static void assertHint(MicroProfileProjectInfo info, ItemHint expected) {
+		List<ItemHint> matches = info.getHints().stream().filter(completion -> {
+			return expected.getName().equals(completion.getName());
+		}).collect(Collectors.toList());
+
+		Assert.assertEquals(
+				expected.getName() + " should only exist once: Actual: "
+						+ info.getHints().stream().map(c -> c.getName()).collect(Collectors.joining(",")),
+				1, matches.size());
+
+		ItemHint actual = matches.get(0);
+		Assert.assertEquals("Test 'description' for '" + expected.getName() + "'", expected.getDescription(),
+				actual.getDescription());
+	}
+
+	/**
+	 * Returns an instance of MicroProfile {@link ItemHint}.
+	 * 
+	 * @param name        the property name
+	 * @param description the Javadoc
+	 * @param binary      true if it comes from a binary field/method and false
+	 *                    otherwise.
+	 * @param sourceType  the source type (class or interface)
+	 * @param values      the hint values
+	 * @return an instance of MicroProfile {@link ItemHint}.
+	 */
+	public static ItemHint h(String name, String description, boolean binary, String sourceType, ValueHint... values) {
+		ItemHint item = new ItemHint();
+		item.setName(name);
+		if (!binary) {
+			item.setSource(Boolean.TRUE);
+		}
+		item.setDescription(description);
+		item.setSourceType(sourceType);
+		if (values != null) {
+			item.setValues(Arrays.asList(values));
+		}
+		return item;
+	}
+
+	/**
+	 * Returns an instance of MicroProfile {@link ValueHint}.
+	 * 
+	 * @param value
+	 * @param description
+	 * @param sourceType
+	 * @return an instance of MicroProfile {@link ValueHint}.
+	 */
+	public static ValueHint vh(String value, String description, String sourceType) {
+		ValueHint vh = new ValueHint();
+		vh.setValue(value);
+		vh.setDescription(description);
+		vh.setSourceType(sourceType);
+		return vh;
+	}
+
+	/**
+	 * Assert duplicate hints from the given the MicroProfile project information
+	 * 
+	 * @param info the MicroProfile project information
+	 */
+	public static void assertHintsDuplicate(MicroProfileProjectInfo info) {
+		Map<String, Long> hintsCount = info.getHints().stream()
+				.collect(Collectors.groupingBy(ItemHint::getName, Collectors.counting()));
+		List<Entry<String, Long>> result = hintsCount.entrySet().stream().filter(entry -> entry.getValue() > 1)
+				.collect(Collectors.toList());
+		Assert.assertEquals(
+				result.stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining(",")),
+				0, result.size());
+	}
+
 }
