@@ -26,6 +26,8 @@ import org.eclipse.lsp4j.TextDocumentItem;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.redhat.microprofile.commons.metadata.ItemHint;
+import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.ls.api.MicroProfileLanguageClientAPI;
 
@@ -44,6 +46,10 @@ public class MicroProfileLanguageServerScopeChangedTest {
 	private static final ItemMetadata property2FromJar;
 	private static final ItemMetadata property1FromSources;
 	private static final ItemMetadata property2FromSources;
+	private static final ItemMetadata dynamicProperty1FromSources;
+
+	private static final ItemMetadata dynamicProperty2FromSources;
+	private static final ItemHint itemHintFromSources;
 
 	static {
 		property1FromJar = new ItemMetadata();
@@ -59,6 +65,24 @@ public class MicroProfileLanguageServerScopeChangedTest {
 		property2FromSources = new ItemMetadata();
 		property2FromSources.setName("greeting.suffix");
 		property2FromSources.setSource(Boolean.TRUE);
+
+		dynamicProperty1FromSources = new ItemMetadata();
+		dynamicProperty1FromSources.setName("${mp.register.rest.client.class}/mp-rest/url");
+		dynamicProperty1FromSources.setSource(Boolean.TRUE);
+
+		dynamicProperty2FromSources = new ItemMetadata();
+		dynamicProperty2FromSources.setName("${mp.register.rest.client.class}/mp-rest/scope");
+		dynamicProperty2FromSources.setSource(Boolean.TRUE);
+
+		itemHintFromSources = new ItemHint();
+		itemHintFromSources.setName("${mp.register.rest.client.class}");
+		itemHintFromSources.setValues(new ArrayList<>());
+		ValueHint value = new ValueHint();
+		value.setValue("org.acme.restclient.CountriesService");
+		itemHintFromSources.getValues().add(value);
+		value = new ValueHint();
+		value.setValue("configKey");
+		itemHintFromSources.getValues().add(value);
 	}
 
 	@Test
@@ -85,6 +109,19 @@ public class MicroProfileLanguageServerScopeChangedTest {
 		list = completion(PROJECT1_APPLICATION_PROPERTIES, server);
 		assertCompletions(list, 2, c("quarkus.application.name", "quarkus.application.name=", r(0, 0, 0)), //
 				c("greeting.suffix", "greeting.suffix=", r(0, 0, 0)));
+
+		// Emulate change of Java sources with dynamic properties
+		client.changedJavaSources(PROJECT1, dynamicProperty1FromSources, dynamicProperty2FromSources,
+				itemHintFromSources);
+		list = completion(PROJECT1_APPLICATION_PROPERTIES, server);
+		assertCompletions(list, 1 /* (from JAR ) */ + 4 /* from sources */,
+				c("quarkus.application.name", "quarkus.application.name=", r(0, 0, 0)), //
+				c("org.acme.restclient.CountriesService/mp-rest/url",
+						"org.acme.restclient.CountriesService/mp-rest/url=", r(0, 0, 0)),
+				c("org.acme.restclient.CountriesService/mp-rest/scope",
+						"org.acme.restclient.CountriesService/mp-rest/scope=", r(0, 0, 0)),
+				c("configKey/mp-rest/url", "configKey/mp-rest/url=", r(0, 0, 0)),
+				c("configKey/mp-rest/scope", "configKey/mp-rest/scope=", r(0, 0, 0)));
 	}
 
 	@Test

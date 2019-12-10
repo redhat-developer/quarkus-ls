@@ -68,8 +68,9 @@ public class MicroProfileDefinition {
 				String propertyName = key.getPropertyName();
 				// Get metatada of the property
 				ItemMetadata item = MicroProfilePropertiesUtils.getProperty(propertyName, projectInfo);
-				if (item != null) {
-					// Get Java field definition from the given property source
+				if (item != null && item.getSourceType() != null) {
+					// Find definition (class, field of class, method of class) only when metadata
+					// contains source type (class or interface)
 					MicroProfilePropertyDefinitionParams definitionParams = new MicroProfilePropertyDefinitionParams();
 					definitionParams.setUri(document.getDocumentURI());
 					definitionParams.setSourceType(item.getSourceType());
@@ -91,7 +92,7 @@ public class MicroProfileDefinition {
 				}
 			}
 		} catch (BadLocationException e) {
-			LOGGER.log(Level.SEVERE, "In QuarkusDefinition, position error", e);
+			LOGGER.log(Level.SEVERE, "In MicroProfileDefinition, position error", e);
 		}
 		return CompletableFuture.completedFuture(definitionLinkSupport ? Either.forRight(Collections.emptyList())
 				: Either.forLeft(Collections.emptyList()));
