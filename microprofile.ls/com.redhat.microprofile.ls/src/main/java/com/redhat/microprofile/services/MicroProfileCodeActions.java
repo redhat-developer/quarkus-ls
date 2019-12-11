@@ -17,14 +17,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.eclipse.lsp4j.CodeAction;
-import org.eclipse.lsp4j.CodeActionContext;
-import org.eclipse.lsp4j.CodeActionKind;
-import org.eclipse.lsp4j.Command;
-import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
-
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
@@ -44,6 +36,14 @@ import com.redhat.microprofile.settings.MicroProfileFormattingSettings;
 import com.redhat.microprofile.utils.MicroProfilePropertiesUtils;
 import com.redhat.microprofile.utils.PositionUtils;
 import com.redhat.microprofile.utils.StringUtils;
+
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionContext;
+import org.eclipse.lsp4j.CodeActionKind;
+import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
 
 /**
  * The Quarkus code actions
@@ -128,7 +128,7 @@ class MicroProfileCodeActions {
 			}
 
 			if (commandCapabilities.isCommandSupported(CommandKind.COMMAND_CONFIGURATION_UPDATE)) {
-				doCodeActionForIgnoreUnknownValidation(propertyName, diagnostic, codeActions);
+				doCodeActionForIgnoreUnknownValidation(propertyName, diagnostic, document, projectInfo, codeActions);
 			}
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In QuarkusCodeActions, position error", e);
@@ -205,22 +205,46 @@ class MicroProfileCodeActions {
 	 * 
 	 * @param propertyName the property name to add to array for code action
 	 * @param diagnostic   the corresponding unknown property diagnostic
+	 * @param document     the properties model
+	 * @param projectInfo  the Quarkus properties
 	 * @param codeActions  the list of code actions
 	 */
 	private void doCodeActionForIgnoreUnknownValidation(String propertyName, Diagnostic diagnostic,
-			List<CodeAction> codeActions) {
+			PropertiesModel document, MicroProfileProjectInfo projectInfo, List<CodeAction> codeActions) {
+
+		codeActions.add(createAddToExcludedCodeAction(propertyName, diagnostic));
+
+		while (hasParentKey(propertyName)) {
+			propertyName = getParentKey(propertyName);
+			if (!propertyName.equals("quarkus")) {
+				String globPattern = propertyName + ".*";
+				codeActions.add(createAddToExcludedCodeAction(globPattern, diagnostic));
+			}
+		}
+	}
+
+	/**
+	 * Returns a code action for <code>diagnostic</code> that causes <code>item</code> to
+	 * be added to <code>quarkus.tools.validation.unknown.excluded</code> client configuration
+	 * 
+	 * @param item       the item to add to the client configuration array
+	 * @param diagnostic the diagnostic for the <code>CodeAction</code>
+	 * @return a code action that causes <code>item</code> to be added to
+	 * <code>quarkus.tools.validation.unknown.excluded</code> client configuration
+	 */
+	private CodeAction createAddToExcludedCodeAction(String item, Diagnostic diagnostic) {
 		CodeAction insertCodeAction = new CodeAction(
-				"Exclude '" + propertyName + "' from unknown property validation?");
+				"Exclude '" + item + "' from unknown property validation?");
 
 		ConfigurationItemEdit configItemEdit = new ConfigurationItemEdit("quarkus.tools.validation.unknown.excluded",
-				ConfigurationItemEditType.add, propertyName);
+				ConfigurationItemEditType.add, item);
 
-		Command command = new Command("Add " + propertyName + " to unknown excluded array",
+		Command command = new Command("Add " + item + " to unknown excluded array",
 				CommandKind.COMMAND_CONFIGURATION_UPDATE, Collections.singletonList(configItemEdit));
 		insertCodeAction.setCommand(command);
 		insertCodeAction.setKind(CodeActionKind.QuickFix);
 		insertCodeAction.setDiagnostics(Collections.singletonList(diagnostic));
-		codeActions.add(insertCodeAction);
+		return insertCodeAction;
 	}
 
 	/**
@@ -272,6 +296,34 @@ class MicroProfileCodeActions {
 			LOGGER.log(Level.SEVERE, "In QuarkusCodeActions, position error", e);
 		}
 
+	}
+
+	/**
+	 * Returns true if <code>propertyName</code> has a parent
+	 * key, false otherwise
+	 * 
+	 * For example, the parent key for "quarkus.http.cors" is
+	 * "quarkus.http"
+	 * 
+	 * @param propertyName the property name to check
+	 * @return true if <code>propertyName</code> has a parent
+	 * key, false otherwise
+	 */
+	private boolean hasParentKey(String propertyName) {
+		return propertyName.lastIndexOf('.') >= 0;
+	}
+
+	/**
+	 * Returns the parent key for <code>propertyName</code>
+	 * 
+	 * For example, the parent key for "quarkus.http.cors" is
+	 * "quarkus.http"
+	 * 
+	 * @param propertyName the property name
+	 * @return the parent key for <code>propertyName</code>
+	 */
+	private String getParentKey(String propertyName) {
+		return propertyName.substring(0, propertyName.lastIndexOf('.'));
 	}
 
 	/**
