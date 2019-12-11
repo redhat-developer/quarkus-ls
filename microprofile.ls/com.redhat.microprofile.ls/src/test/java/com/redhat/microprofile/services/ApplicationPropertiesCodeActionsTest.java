@@ -17,6 +17,7 @@ import static com.redhat.microprofile.services.MicroProfileAssert.testDiagnostic
 
 import java.util.Arrays;
 
+import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
@@ -45,16 +46,124 @@ public class ApplicationPropertiesCodeActionsTest {
 		Diagnostic d = d(1, 0, 23, "Unknown property 'quarkus.application.nme'", DiagnosticSeverity.Warning,
 				ValidationType.unknown);
 
-		ConfigurationItemEdit configItemEdit = new ConfigurationItemEdit("quarkus.tools.validation.unknown.excluded",
-				ConfigurationItemEditType.add, "quarkus.application.nme");
-
-		Command command = new Command("Add quarkus.application.nme to unknown excluded array",
-				CommandKind.COMMAND_CONFIGURATION_UPDATE, Arrays.asList(configItemEdit));
-
 		testDiagnosticsFor(value, d);
 		testCodeActionsFor(value, d,
 				ca("Did you mean 'quarkus.application.name' ?", te(1, 0, 1, 23, "quarkus.application.name"), d),
-				ca("Exclude 'quarkus.application.nme' from unknown property validation?", command, d));
+				caAddToExcluded("quarkus.application.nme", d),
+				caAddToExcluded("quarkus.application.*", d));
+	};
+
+	@Test
+	public void codeActionsForUnknownPropertiesParentKey() throws BadLocationException {
+		String value = "kubernetes.group=myUser\n" + //
+				"kubernetes.registry=http://my.docker-registry.net\n" + //
+				"kubernetes.labels[0].key=foo\n" + //
+				"kubernetes.labels[0].value=bar\n" + //
+				"kubernetes.readiness-probe.initial-delay-seconds=20\n" + //
+				"kubernetes.readiness-probe.period-seconds=45";
+		
+
+		Diagnostic d1 = d(0, 0, 16, "Unknown property 'kubernetes.group'", DiagnosticSeverity.Warning,
+				ValidationType.unknown);
+		Diagnostic d2 = d(1, 0, 19, "Unknown property 'kubernetes.registry'", DiagnosticSeverity.Warning,
+				ValidationType.unknown);
+		Diagnostic d3 = d(2, 0, 24, "Unknown property 'kubernetes.labels[0].key'", DiagnosticSeverity.Warning,
+				ValidationType.unknown);
+		Diagnostic d4 = d(3, 0, 26, "Unknown property 'kubernetes.labels[0].value'", DiagnosticSeverity.Warning,
+				ValidationType.unknown);
+		Diagnostic d5 = d(4, 0, 48, "Unknown property 'kubernetes.readiness-probe.initial-delay-seconds'", DiagnosticSeverity.Warning,
+				ValidationType.unknown);
+		Diagnostic d6 = d(5, 0, 41, "Unknown property 'kubernetes.readiness-probe.period-seconds'", DiagnosticSeverity.Warning,
+				ValidationType.unknown);
+
+		testDiagnosticsFor(value, d1, d2, d3, d4, d5, d6);
+		testCodeActionsFor(value, d1,
+				caAddToExcluded("kubernetes.group", d1),
+				caAddToExcluded("kubernetes.*", d1));
+
+		testCodeActionsFor(value, d2,
+				caAddToExcluded("kubernetes.registry", d2),
+				caAddToExcluded("kubernetes.*", d2));
+
+		testCodeActionsFor(value, d3,
+				caAddToExcluded("kubernetes.labels[0].key", d3),
+				caAddToExcluded("kubernetes.labels[0].*", d3),
+				caAddToExcluded("kubernetes.*", d3));
+		
+		testCodeActionsFor(value, d4,
+				caAddToExcluded("kubernetes.labels[0].value", d4),
+				caAddToExcluded("kubernetes.labels[0].*", d4),
+				caAddToExcluded("kubernetes.*", d4));
+		
+		testCodeActionsFor(value, d5,
+				caAddToExcluded("kubernetes.readiness-probe.initial-delay-seconds", d5),
+				caAddToExcluded("kubernetes.readiness-probe.*", d5),
+				caAddToExcluded("kubernetes.*", d5));
+
+		testCodeActionsFor(value, d6,
+				caAddToExcluded("kubernetes.readiness-probe.period-seconds", d6),
+				caAddToExcluded("kubernetes.readiness-probe.*", d6),
+				caAddToExcluded("kubernetes.*", d6));
+	};
+
+	@Test
+	public void codeActionsForUnknownPropertiesParentKey2() throws BadLocationException {
+
+		String value = "a.b.c.d=123\n" + //
+				"a.c.d=123";
+
+		Diagnostic d1 = d(0, 0, 7, "Unknown property 'a.b.c.d'", DiagnosticSeverity.Warning,
+				ValidationType.unknown);
+		Diagnostic d2 = d(1, 0, 5, "Unknown property 'a.c.d'", DiagnosticSeverity.Warning,
+				ValidationType.unknown);
+		
+		testDiagnosticsFor(value, d1, d2);
+
+		testCodeActionsFor(value, d1,
+				caAddToExcluded("a.b.c.d", d1),
+				caAddToExcluded("a.b.c.*", d1),
+				caAddToExcluded("a.b.*", d1),
+				caAddToExcluded("a.*", d1));
+		
+		testCodeActionsFor(value, d2,
+				caAddToExcluded("a.c.d", d2),
+				caAddToExcluded("a.c.*", d2),
+				caAddToExcluded("a.*", d2));
+	};
+
+	@Test
+	public void codeActionsForUnknownPropertiesParentKey3() throws BadLocationException {
+
+		String value = "quarkus.a.b.c.d=123";
+
+		Diagnostic d = d(0, 0, 15, "Unknown property 'quarkus.a.b.c.d'", DiagnosticSeverity.Warning,
+				ValidationType.unknown);
+		
+		testDiagnosticsFor(value, d);
+
+		testCodeActionsFor(value, d,
+				caAddToExcluded("quarkus.a.b.c.d", d),
+				caAddToExcluded("quarkus.a.b.c.*", d),
+				caAddToExcluded("quarkus.a.b.*", d),
+				caAddToExcluded("quarkus.a.*", d));
+	};
+
+
+	@Test
+	public void codeActionsForUnknownPropertiesParentKey4() throws BadLocationException {
+
+		String value = "a.b.c.d=123";
+
+		Diagnostic d1 = d(0, 0, 7, "Unknown property 'a.b.c.d'", DiagnosticSeverity.Warning,
+				ValidationType.unknown);
+		
+		testDiagnosticsFor(value, d1);
+
+		testCodeActionsFor(value, d1,
+				caAddToExcluded("a.b.c.d", d1),
+				caAddToExcluded("a.b.c.*", d1),
+				caAddToExcluded("a.b.*", d1),
+				caAddToExcluded("a.*", d1));
 	};
 
 	@Test
@@ -137,5 +246,25 @@ public class ApplicationPropertiesCodeActionsTest {
 		testCodeActionsFor(value, d,
 				ca("Replace with 'BLOCK'?", te(0, 34, 0, 47, "BLOCK"), d),
 				ca("Replace with 'DISCARD'?", te(0, 34, 0, 47, "DISCARD"), d));
-	};
+	
+	}
+
+	/**
+	 * Returns a code action for <code>diagnostic</code> that causes <code>item</code> to
+	 * be added to <code>quarkus.tools.validation.unknown.excluded</code> client configuration
+	 * 
+	 * @param item       the item to add to the client configuration array
+	 * @param diagnostic the diagnostic for the <code>CodeAction</code>
+	 * @return a code action that causes <code>item</code> to be added to
+	 * <code>quarkus.tools.validation.unknown.excluded</code> client configuration
+	 */
+	private CodeAction caAddToExcluded(String item, Diagnostic diagnostic) {
+		ConfigurationItemEdit configItemEdit = new ConfigurationItemEdit("quarkus.tools.validation.unknown.excluded",
+				ConfigurationItemEditType.add, item);
+	
+		Command command = new Command("Add " + item + " to unknown excluded array",
+				CommandKind.COMMAND_CONFIGURATION_UPDATE, Arrays.asList(configItemEdit));
+	
+		return ca("Exclude '" + item + "' from unknown property validation?", command, diagnostic);
+	}
 }
