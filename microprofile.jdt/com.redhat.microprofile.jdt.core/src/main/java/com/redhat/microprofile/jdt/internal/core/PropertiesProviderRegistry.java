@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.IRegistryChangeListener;
 import org.eclipse.core.runtime.Platform;
 
 import com.redhat.microprofile.jdt.core.IPropertiesProvider;
+import com.redhat.microprofile.jdt.core.MicroProfileCorePlugin;
 
 /**
  * Registry to hold the Extension point

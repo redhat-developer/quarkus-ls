@@ -7,12 +7,13 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.core;
+package com.redhat.microprofile.jdt.core;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
-import com.redhat.microprofile.jdt.core.IMicroProfilePropertiesChangedListener;
+import com.redhat.microprofile.jdt.internal.core.MicroProfilePropertiesListenerManager;
+import com.redhat.microprofile.jdt.internal.core.PropertiesProviderRegistry;
 
 /**
  * The activator class controls the Quarkus JDT LS Extension plug-in life cycle
