@@ -20,8 +20,10 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.junit.Test;
 
 import com.redhat.microprofile.commons.ClasspathKind;
+import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
+import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 
 /**
  * JDT Quarkus manager test.
@@ -54,35 +56,33 @@ public class PropertiesManagerTest extends BasePropertiesManagerTest {
 			throws Exception {
 		IJavaProject project = createJavaProject(projectName, classpath);
 		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(project,
-				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, new NullProgressMonitor());
+				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, JDTUtilsLSImpl.getInstance(),
+				DocumentFormat.Markdown, new NullProgressMonitor());
 
 		assertProperties(info,
 
 				// io.quarkus.deployment.ApplicationConfig
 				p("quarkus-core", "quarkus.application.name", "java.lang.String",
-						"The name of the application.\nIf not set, defaults to the name of the project.",
-						true, "io.quarkus.deployment.ApplicationConfig", "name",
-						null, CONFIG_PHASE_BUILD_TIME, null),
+						"The name of the application.\nIf not set, defaults to the name of the project.", true,
+						"io.quarkus.deployment.ApplicationConfig", "name", null, CONFIG_PHASE_BUILD_TIME, null),
 
 				p("quarkus-core", "quarkus.application.version", "java.lang.String",
-						"The version of the application.\nIf not set, defaults to the version of the project",
-						true, "io.quarkus.deployment.ApplicationConfig", "version",
-						null, CONFIG_PHASE_BUILD_TIME, null),
+						"The version of the application.\nIf not set, defaults to the version of the project", true,
+						"io.quarkus.deployment.ApplicationConfig", "version", null, CONFIG_PHASE_BUILD_TIME, null),
 
 				// io.quarkus.deployment.JniProcessor$JniConfig
-				p("quarkus-core", "quarkus.jni.enable", "boolean", "Enable JNI support.",
-						true, "io.quarkus.deployment.JniProcessor$JniConfig",
-						"enable", null, CONFIG_PHASE_BUILD_TIME, "false"),
+				p("quarkus-core", "quarkus.jni.enable", "boolean", "Enable JNI support.", true,
+						"io.quarkus.deployment.JniProcessor$JniConfig", "enable", null, CONFIG_PHASE_BUILD_TIME,
+						"false"),
 
 				p("quarkus-core", "quarkus.jni.library-paths", "java.util.List<java.lang.String>",
-						"Paths of library to load.", true,
-						"io.quarkus.deployment.JniProcessor$JniConfig", "libraryPaths", null, CONFIG_PHASE_BUILD_TIME,
-						null),
+						"Paths of library to load.", true, "io.quarkus.deployment.JniProcessor$JniConfig",
+						"libraryPaths", null, CONFIG_PHASE_BUILD_TIME, null),
 
 				// io.quarkus.deployment.SslProcessor$SslConfig
 				p("quarkus-core", "quarkus.ssl.native", "java.util.Optional<java.lang.Boolean>",
-						"Enable native SSL support.", true,
-						"io.quarkus.deployment.SslProcessor$SslConfig", "native_", null, CONFIG_PHASE_BUILD_TIME, null),
+						"Enable native SSL support.", true, "io.quarkus.deployment.SslProcessor$SslConfig", "native_",
+						null, CONFIG_PHASE_BUILD_TIME, null),
 
 				// io.quarkus.deployment.index.ApplicationArchiveBuildStep$IndexDependencyConfiguration
 				// -> Map<String, IndexDependencyConfig>

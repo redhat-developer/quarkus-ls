@@ -215,7 +215,7 @@ class MicroProfileProjectInfoCache {
 		return CompletableFuture.completedFuture(projectInfo);
 	}
 
-	public Collection<String> microprofilePropertiesChanged(MicroProfilePropertiesChangeEvent event) {
+	public Collection<String> propertiesChanged(MicroProfilePropertiesChangeEvent event) {
 		List<MicroProfilePropertiesScope> scopes = event.getType();
 		boolean changedOnlyInSources = scopes.size() == 1 && scopes.get(0) == MicroProfilePropertiesScope.sources;
 		if (changedOnlyInSources) {

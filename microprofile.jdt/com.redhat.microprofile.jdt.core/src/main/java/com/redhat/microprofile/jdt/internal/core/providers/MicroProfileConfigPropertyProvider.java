@@ -23,7 +23,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
-import com.redhat.microprofile.jdt.core.AbstractPropertiesProvider;
+import com.redhat.microprofile.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import com.redhat.microprofile.jdt.core.IPropertiesCollector;
 import com.redhat.microprofile.jdt.core.MicroProfileConstants;
 import com.redhat.microprofile.jdt.core.SearchContext;
@@ -36,7 +36,7 @@ import com.redhat.microprofile.jdt.core.SearchContext;
  * @author Angelo ZERR
  *
  */
-public class MicroProfileConfigPropertyProvider extends AbstractPropertiesProvider {
+public class MicroProfileConfigPropertyProvider extends AbstractAnnotationTypeReferencePropertiesProvider {
 
 	private static final String[] ANNOTATION_NAMES = { MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION };
 
@@ -47,9 +47,9 @@ public class MicroProfileConfigPropertyProvider extends AbstractPropertiesProvid
 
 	@Override
 	protected void processAnnotation(IJavaElement javaElement, IAnnotation configPropertyAnnotation,
-			String annotationName, SearchContext context, IPropertiesCollector collector, IProgressMonitor monitor)
-			throws JavaModelException {
+			String annotationName, SearchContext context, IProgressMonitor monitor) throws JavaModelException {
 		if (javaElement.getElementType() == IJavaElement.FIELD) {
+			IPropertiesCollector collector = context.getCollector();
 			String name = getAnnotationMemberValue(configPropertyAnnotation,
 					MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION_NAME);
 			if (name != null && !name.isEmpty()) {
@@ -64,6 +64,7 @@ public class MicroProfileConfigPropertyProvider extends AbstractPropertiesProvid
 				String defaultValue = getAnnotationMemberValue(configPropertyAnnotation,
 						MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
 				String extensionName = null;
+
 				super.updateHint(collector, fieldClass);
 
 				addItemMetadata(collector, name, type, description, sourceType, sourceField, null, defaultValue,

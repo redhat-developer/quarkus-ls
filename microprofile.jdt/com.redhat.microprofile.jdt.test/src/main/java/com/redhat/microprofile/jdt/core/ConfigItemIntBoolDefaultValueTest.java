@@ -30,7 +30,7 @@ public class ConfigItemIntBoolDefaultValueTest extends BasePropertiesManagerTest
 		String booleanDefault = "false";
 		String intDefault = "0";
 
-		assertProperties(infoFromClasspath, 185 /* properties from JAR */ + //
+		assertProperties(infoFromClasspath, 186 /* properties from JAR */ + //
 				3 /* properties from Java sources with ConfigProperty */ + //
 				2 /* properties from Java sources with ConfigRoot */,
 				

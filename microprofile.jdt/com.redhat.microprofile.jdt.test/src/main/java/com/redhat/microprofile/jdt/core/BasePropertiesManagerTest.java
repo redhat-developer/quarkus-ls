@@ -33,10 +33,12 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import com.redhat.microprofile.commons.ClasspathKind;
+import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.jdt.internal.core.JavaUtils;
 import com.redhat.microprofile.jdt.internal.core.JobHelpers;
+import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 
 /**
  * Base class for testing {@link PropertiesManager}.
@@ -57,7 +59,7 @@ public class BasePropertiesManagerTest {
 		config_quickstart("config-quickstart"), //
 		config_quickstart_test("config-quickstart-test"), //
 		hibernate_orm_resteasy("hibernate-orm-resteasy"), //
-		jax_rs_quarkus_project("jax-rs-quarkus-project"), //
+		kubernetes("kubernetes"), //
 		rest_client_quickstart("rest-client-quickstart"), //
 		using_vertx("using-vertx");
 
@@ -93,7 +95,7 @@ public class BasePropertiesManagerTest {
 			List<MicroProfilePropertiesScope> scopes) throws CoreException, Exception, JavaModelException {
 		IJavaProject javaProject = loadMavenProject(mavenProject);
 		return PropertiesManager.getInstance().getMicroProfileProjectInfo(javaProject, scopes, ClasspathKind.SRC,
-				new NullProgressMonitor());
+				JDTUtilsLSImpl.getInstance(), DocumentFormat.Markdown, new NullProgressMonitor());
 	}
 
 	public static IJavaProject loadMavenProject(MavenProjectName mavenProject) throws CoreException, Exception {

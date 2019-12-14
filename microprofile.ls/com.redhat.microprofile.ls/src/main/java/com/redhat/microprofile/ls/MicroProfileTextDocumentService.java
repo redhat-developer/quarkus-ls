@@ -198,7 +198,7 @@ public class MicroProfileTextDocumentService implements TextDocumentService {
 	}
 
 	public void microprofilePropertiesChanged(MicroProfilePropertiesChangeEvent event) {
-		applicationPropertiesTextDocumentService.microprofilePropertiesChanged(event);
+		applicationPropertiesTextDocumentService.propertiesChanged(event);
 	}
 
 	public void updateSymbolSettings(MicroProfileSymbolSettings newSettings) {

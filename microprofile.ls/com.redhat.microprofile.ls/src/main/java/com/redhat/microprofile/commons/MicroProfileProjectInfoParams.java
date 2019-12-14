@@ -23,6 +23,8 @@ public class MicroProfileProjectInfoParams {
 
 	private List<MicroProfilePropertiesScope> scopes;
 
+	private DocumentFormat documentFormat;
+
 	public MicroProfileProjectInfoParams() {
 	}
 
@@ -64,5 +66,23 @@ public class MicroProfileProjectInfoParams {
 	 */
 	public void setScopes(List<MicroProfilePropertiesScope> scopes) {
 		this.scopes = scopes;
+	}
+
+	/**
+	 * Set the document format for description.
+	 * 
+	 * @param documentFormat the document format for description.
+	 */
+	public void setDocumentFormat(DocumentFormat documentFormat) {
+		this.documentFormat = documentFormat;
+	}
+
+	/**
+	 * Returns the document format for description.
+	 * 
+	 * @return the document format for description.
+	 */
+	public DocumentFormat getDocumentFormat() {
+		return documentFormat;
 	}
 }
