@@ -17,7 +17,7 @@ import java.io.IOException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.ArtifactKey;
 import org.eclipse.m2e.core.embedder.IMaven;
@@ -31,22 +31,26 @@ import org.eclipse.m2e.core.embedder.IMaven;
  */
 public class DependencyUtil {
 
-	public static final String CLASSIFIER_JAVADOC = "javadoc";
-	public static final String CLASSIFIER_SOURCES = "sources";
+	private static final String CLASSIFIER_JAVADOC = "javadoc";
+	private static final String CLASSIFIER_SOURCES = "sources";
 
-	public static File getSources(String groupId, String artifactId, String version) throws FileNotFoundException, CoreException {
-		return getArtifact(groupId, artifactId, version, CLASSIFIER_SOURCES);
+	public static File getSources(String groupId, String artifactId, String version, IProgressMonitor monitor)
+			throws FileNotFoundException, CoreException {
+		return getArtifact(groupId, artifactId, version, CLASSIFIER_SOURCES, monitor);
 	}
 
-	public static File getJavadoc(String groupId, String artifactId, String version) throws FileNotFoundException, CoreException {
-		return getArtifact(groupId, artifactId, version, CLASSIFIER_JAVADOC);
+	public static File getJavadoc(String groupId, String artifactId, String version, IProgressMonitor monitor)
+			throws FileNotFoundException, CoreException {
+		return getArtifact(groupId, artifactId, version, CLASSIFIER_JAVADOC, monitor);
 	}
 
-	public static File getArtifact(String groupId, String artifactId, String version, String classifier) throws FileNotFoundException, CoreException {
+	public static File getArtifact(String groupId, String artifactId, String version, String classifier,
+			IProgressMonitor monitor) throws FileNotFoundException, CoreException {
 		ArtifactKey key = new ArtifactKey(groupId, artifactId, version, classifier);
 		File archive = getLocalArtifactFile(key);
 		if (archive == null) {
-			Artifact artifact = MavenPlugin.getMaven().resolve(key.getGroupId(), key.getArtifactId(), key.getVersion(), "jar", key.getClassifier(), null, new NullProgressMonitor());
+			Artifact artifact = MavenPlugin.getMaven().resolve(key.getGroupId(), key.getArtifactId(), key.getVersion(),
+					"jar", key.getClassifier(), null, monitor);
 			if (artifact == null) {
 				throw new FileNotFoundException("Unable to find " + key);
 			}
@@ -55,13 +59,15 @@ public class DependencyUtil {
 		return archive;
 	}
 
-	//From org.eclipse.m2e.jdt.internal.BuildPathManager#getAttachedArtifactFile
+	// From org.eclipse.m2e.jdt.internal.BuildPathManager#getAttachedArtifactFile
 	private static File getLocalArtifactFile(ArtifactKey a) {
-		// can't use Maven resolve methods since they mark artifacts as not-found even if they could be resolved remotely
+		// can't use Maven resolve methods since they mark artifacts as not-found even
+		// if they could be resolved remotely
 		IMaven maven = MavenPlugin.getMaven();
 		try {
 			ArtifactRepository localRepository = maven.getLocalRepository();
-			String relPath = maven.getArtifactPath(localRepository, a.getGroupId(), a.getArtifactId(), a.getVersion(), "jar", //$NON-NLS-1$
+			String relPath = maven.getArtifactPath(localRepository, a.getGroupId(), a.getArtifactId(), a.getVersion(),
+					"jar", //$NON-NLS-1$
 					a.getClassifier());
 			File file = new File(localRepository.getBasedir(), relPath).getCanonicalFile();
 			if (file.canRead() && file.isFile()) {

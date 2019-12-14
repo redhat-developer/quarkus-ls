@@ -43,6 +43,7 @@ import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.lsp4j.Location;
 
 import com.redhat.microprofile.commons.ClasspathKind;
+import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
@@ -84,20 +85,21 @@ public class PropertiesManager {
 		if (file == null) {
 			throw new UnsupportedOperationException(String.format("Cannot find IFile for '%s'", params.getUri()));
 		}
-		return getMicroProfileProjectInfo(file, params.getScopes(), progress);
+		return getMicroProfileProjectInfo(file, params.getScopes(), utils, params.getDocumentFormat(), progress);
 	}
 
 	public MicroProfileProjectInfo getMicroProfileProjectInfo(IFile file, List<MicroProfilePropertiesScope> scopes,
-			IProgressMonitor progress) throws JavaModelException, CoreException {
+			IJDTUtils utils, DocumentFormat documentFormat, IProgressMonitor progress)
+			throws JavaModelException, CoreException {
 		String projectName = file.getProject().getName();
 		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
 		ClasspathKind classpathKind = JDTMicroProfileUtils.getClasspathKind(file, javaProject);
-		return getMicroProfileProjectInfo(javaProject, scopes, classpathKind, progress);
+		return getMicroProfileProjectInfo(javaProject, scopes, classpathKind, utils, documentFormat, progress);
 	}
 
 	public MicroProfileProjectInfo getMicroProfileProjectInfo(IJavaProject javaProject,
-			List<MicroProfilePropertiesScope> scopes, ClasspathKind classpathKind, IProgressMonitor monitor)
-			throws JavaModelException, CoreException {
+			List<MicroProfilePropertiesScope> scopes, ClasspathKind classpathKind, IJDTUtils utils,
+			DocumentFormat documentFormat, IProgressMonitor monitor) throws JavaModelException, CoreException {
 		MicroProfileProjectInfo info = createInfo(javaProject, classpathKind);
 		if (classpathKind == ClasspathKind.NONE) {
 			info.setProperties(Collections.emptyList());
@@ -107,24 +109,30 @@ public class PropertiesManager {
 		if (LOGGER.isLoggable(Level.INFO)) {
 			LOGGER.info("Start computing MicroProfile properties for '" + info.getProjectURI() + "' project.");
 		}
-		PropertiesCollector collector = new PropertiesCollector(info);
-		SearchContext context = new SearchContext(javaProject);
 		try {
-			beginSearch(context);
-			// Create pattern
+			// Get the java project used for the search
+			boolean excludeTestCode = classpathKind == ClasspathKind.SRC;
+			IJavaProject javaProjectForSearch = getJavaProject(javaProject, excludeTestCode, monitor);
+
+			// Create JDT Java search pattern, engine and scope
 			SearchPattern pattern = createSearchPattern();
 			SearchEngine engine = new SearchEngine();
-			IJavaSearchScope scope = createSearchScope(javaProject, scopes, classpathKind == ClasspathKind.SRC);
+			IJavaSearchScope scope = createSearchScope(javaProjectForSearch, scopes, excludeTestCode, monitor);
+
+			// Execute the search
+			PropertiesCollector collector = new PropertiesCollector(info);
+			SearchContext context = new SearchContext(javaProjectForSearch, collector, utils, documentFormat);
+			beginSearch(context, monitor);
 			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
 					new SearchRequestor() {
 
 						@Override
 						public void acceptSearchMatch(SearchMatch match) throws CoreException {
-							collectProperties(match, context, collector, monitor);
+							collectProperties(match, context, monitor);
 						}
 					}, monitor);
+			endSearch(context, monitor);
 		} finally {
-			endSearch(context);
 			if (LOGGER.isLoggable(Level.INFO)) {
 				LOGGER.info("End computing MicroProfile properties for '" + info.getProjectURI() + "' project in "
 						+ (System.currentTimeMillis() - startTime) + "ms.");
@@ -133,22 +141,21 @@ public class PropertiesManager {
 		return info;
 	}
 
-	private void beginSearch(SearchContext context) {
+	private void beginSearch(SearchContext context, IProgressMonitor monitor) {
 		for (IPropertiesProvider provider : getPropertiesProviders()) {
-			provider.begin(context);
+			provider.begin(context, monitor);
 		}
 	}
 
-	private void endSearch(SearchContext context) {
+	private void endSearch(SearchContext context, IProgressMonitor monitor) {
 		for (IPropertiesProvider provider : getPropertiesProviders()) {
-			provider.end(context);
+			provider.end(context, monitor);
 		}
 	}
 
-	private void collectProperties(SearchMatch match, SearchContext context, PropertiesCollector collector,
-			IProgressMonitor monitor) {
+	private void collectProperties(SearchMatch match, SearchContext context, IProgressMonitor monitor) {
 		for (IPropertiesProvider provider : getPropertiesProviders()) {
-			provider.collectProperties(match, context, collector, monitor);
+			provider.collectProperties(match, context, monitor);
 		}
 	}
 
@@ -160,7 +167,7 @@ public class PropertiesManager {
 	}
 
 	private IJavaSearchScope createSearchScope(IJavaProject project, List<MicroProfilePropertiesScope> scopes,
-			boolean excludeTestCode) throws JavaModelException {
+			boolean excludeTestCode, IProgressMonitor monitor) throws JavaModelException {
 		int searchScope = 0;
 		for (MicroProfilePropertiesScope scope : scopes) {
 			switch (scope) {
@@ -172,18 +179,42 @@ public class PropertiesManager {
 				break;
 			}
 		}
-		List<IClasspathEntry> newClasspathEntries = new ArrayList<>();
-		for (IPropertiesProvider provider : getPropertiesProviders()) {
-			provider.contributeToClasspath(project, excludeTestCode, ArtifactResolver.DEFAULT_ARTIFACT_RESOLVER,
-					newClasspathEntries);
-		}
-		if (!newClasspathEntries.isEmpty()) {
-			FakeJavaProject fakeProject = new FakeJavaProject(project,
-					newClasspathEntries.toArray(new IClasspathEntry[newClasspathEntries.size()]));
+		if (project instanceof FakeJavaProject) {
+			FakeJavaProject fakeProject = (FakeJavaProject) project;
 			return createJavaSearchScope(fakeProject, excludeTestCode, fakeProject.getElementsToSearch(scopes),
 					searchScope);
 		}
 		return BasicSearchEngine.createJavaSearchScope(excludeTestCode, new IJavaElement[] { project });
+	}
+
+	/**
+	 * Returns the java project used for search. This java project is the original
+	 * java project with extra JARs which can be added by a properties provoder (ex
+	 * : deployment JAR for Quarkus).
+	 * 
+	 * <p>
+	 * To avoid disturbing the classpath of the origin java project, a fake java
+	 * project is created with the origin java project and extras JARs.
+	 * </p>
+	 * 
+	 * @param project         the origin java project
+	 * @param excludeTestCode true if test must me excluded and false otherwise.
+	 * @param monitor         the progress monitor.
+	 * @return the java project used for search.
+	 * @throws JavaModelException
+	 */
+	private IJavaProject getJavaProject(IJavaProject project, boolean excludeTestCode, IProgressMonitor monitor)
+			throws JavaModelException {
+		List<IClasspathEntry> newClasspathEntries = new ArrayList<>();
+		for (IPropertiesProvider provider : getPropertiesProviders()) {
+			provider.contributeToClasspath(project, excludeTestCode, ArtifactResolver.DEFAULT_ARTIFACT_RESOLVER,
+					newClasspathEntries, monitor);
+		}
+		if (!newClasspathEntries.isEmpty()) {
+			return new FakeJavaProject(project,
+					newClasspathEntries.toArray(new IClasspathEntry[newClasspathEntries.size()]));
+		}
+		return project;
 	}
 
 	private SearchPattern createSearchPattern() {
@@ -333,7 +364,7 @@ public class PropertiesManager {
 			List<IClasspathEntry> newClasspathEntries = new ArrayList<>();
 			for (IPropertiesProvider provider : getPropertiesProviders()) {
 				provider.contributeToClasspath(javaProject, false, ArtifactResolver.DEFAULT_ARTIFACT_RESOLVER,
-						newClasspathEntries);
+						newClasspathEntries, progress);
 			}
 			if (!newClasspathEntries.isEmpty()) {
 				FakeJavaProject fakeProject = new FakeJavaProject(javaProject,

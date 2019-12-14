@@ -9,7 +9,9 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.internal.core.ls;
 
+import java.io.Reader;
 import java.util.Optional;
+import java.util.Scanner;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -29,10 +31,12 @@ import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JsonRpcHelpers;
+import org.eclipse.jdt.ls.core.internal.javadoc.JavadocContentAccess;
 import org.eclipse.jdt.ls.core.internal.managers.IBuildSupport;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
 
+import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 
 /**
@@ -102,7 +106,7 @@ public class JDTUtilsLSImpl implements IJDTUtils {
 	public int toOffset(IBuffer buffer, int line, int column) {
 		return JsonRpcHelpers.toOffset(buffer, line, column);
 	}
-	
+
 	@Override
 	public Location toLocation(IJavaElement element) throws JavaModelException {
 		return JDTUtils.toLocation(element);
@@ -115,6 +119,21 @@ public class JDTUtilsLSImpl implements IJDTUtils {
 				.getBuildSupport(classFile.getJavaProject().getProject());
 		if (bs.isPresent()) {
 			bs.get().discoverSource(classFile, progress);
+		}
+	}
+
+	@Override
+	public String getJavadoc(IMember member, DocumentFormat documentFormat) throws JavaModelException {
+		boolean markdown = DocumentFormat.Markdown.equals(documentFormat);
+		Reader reader = markdown ? JavadocContentAccess.getMarkdownContentReader(member)
+				: JavadocContentAccess.getPlainTextContentReader(member);
+		return reader != null ? toString(reader) : null;
+	}
+
+	private static String toString(Reader reader) {
+		try (Scanner s = new java.util.Scanner(reader)) {
+			s.useDelimiter("\\A");
+			return s.hasNext() ? s.next() : "";
 		}
 	}
 }

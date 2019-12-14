@@ -13,6 +13,8 @@ import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import com.redhat.microprofile.jdt.core.ArtifactResolver;
 import com.redhat.microprofile.jdt.internal.core.utils.DependencyUtil;
 
@@ -27,10 +29,11 @@ public class MavenArtifactResolver implements ArtifactResolver {
 	private static final Logger LOGGER = Logger.getLogger(MavenArtifactResolver.class.getName());
 
 	@Override
-	public String getArtifact(String groupId, String artifactId, String version) {
+	public String getArtifact(String groupId, String artifactId, String version, String classifier,
+			IProgressMonitor monitor) {
 		File jarFile = null;
 		try {
-			jarFile = DependencyUtil.getArtifact(groupId, artifactId, version, null);
+			jarFile = DependencyUtil.getArtifact(groupId, artifactId, version, classifier, monitor);
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Maven artifact JAR (groupId=" + groupId + ", artifactId=" + artifactId
 					+ ", version=" + version + ") download failed.", e);
@@ -40,10 +43,10 @@ public class MavenArtifactResolver implements ArtifactResolver {
 	}
 
 	@Override
-	public String getSources(String groupId, String artifactId, String version) {
+	public String getSources(String groupId, String artifactId, String version, IProgressMonitor monitor) {
 		File jarFile = null;
 		try {
-			jarFile = DependencyUtil.getSources(groupId, artifactId, version);
+			jarFile = DependencyUtil.getSources(groupId, artifactId, version, monitor);
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Maven artifact JAR Sources (groupId=" + groupId + ", artifactId=" + artifactId
 					+ ", version=" + version + ") download failed.", e);

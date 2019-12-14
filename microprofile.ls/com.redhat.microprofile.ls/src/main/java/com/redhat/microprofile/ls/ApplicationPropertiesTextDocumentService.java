@@ -36,6 +36,7 @@ import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
+import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
@@ -45,6 +46,7 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
+import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
 import com.redhat.microprofile.ls.commons.ModelTextDocument;
@@ -74,6 +76,8 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 
 	private boolean definitionLinkSupport;
 
+	private DocumentFormat documentFormat;
+
 	public ApplicationPropertiesTextDocumentService(MicroProfileLanguageServer quarkusLanguageServer,
 			SharedSettings sharedSettings) {
 		this.microprofileLanguageServer = quarkusLanguageServer;
@@ -81,6 +85,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 			return PropertiesModel.parse(document);
 		});
 		this.sharedSettings = sharedSettings;
+		this.documentFormat = DocumentFormat.PlainText;
 	}
 
 	/**
@@ -97,6 +102,19 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 			definitionLinkSupport = textDocumentClientCapabilities.getDefinition() != null
 					&& textDocumentClientCapabilities.getDefinition().getLinkSupport() != null
 					&& textDocumentClientCapabilities.getDefinition().getLinkSupport();
+			// Update document format
+			if (textDocumentClientCapabilities.getCompletion() != null
+					&& textDocumentClientCapabilities.getCompletion().getCompletionItem() != null
+					&& textDocumentClientCapabilities.getCompletion().getCompletionItem()
+							.getDocumentationFormat() != null
+					&& textDocumentClientCapabilities.getCompletion().getCompletionItem().getDocumentationFormat()
+							.contains(MarkupKind.MARKDOWN)) {
+				documentFormat = DocumentFormat.Markdown;
+			} else if (textDocumentClientCapabilities.getHover() != null
+					&& textDocumentClientCapabilities.getHover().getContentFormat() != null
+					&& textDocumentClientCapabilities.getHover().getContentFormat().contains(MarkupKind.MARKDOWN)) {
+				documentFormat = DocumentFormat.Markdown;
+			}
 		}
 	}
 
@@ -242,12 +260,14 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 		});
 	}
 
-	private static MicroProfileProjectInfoParams createProjectInfoParams(TextDocumentIdentifier id) {
+	private MicroProfileProjectInfoParams createProjectInfoParams(TextDocumentIdentifier id) {
 		return createProjectInfoParams(id.getUri());
 	}
 
-	private static MicroProfileProjectInfoParams createProjectInfoParams(String uri) {
-		return new MicroProfileProjectInfoParams(uri);
+	private MicroProfileProjectInfoParams createProjectInfoParams(String uri) {
+		MicroProfileProjectInfoParams params = new MicroProfileProjectInfoParams(uri);
+		params.setDocumentFormat(documentFormat);
+		return params;
 	}
 
 	private MicroProfileLanguageService getMicroProfileLanguageService() {
@@ -331,8 +351,8 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 		return result;
 	}
 
-	public void microprofilePropertiesChanged(MicroProfilePropertiesChangeEvent event) {
-		Collection<String> uris = getProjectInfoCache().microprofilePropertiesChanged(event);
+	public void propertiesChanged(MicroProfilePropertiesChangeEvent event) {
+		Collection<String> uris = getProjectInfoCache().propertiesChanged(event);
 		for (String uri : uris) {
 			ModelTextDocument<PropertiesModel> document = getDocument(uri);
 			if (document != null) {

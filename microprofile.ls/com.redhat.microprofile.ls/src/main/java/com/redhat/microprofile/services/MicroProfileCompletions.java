@@ -208,7 +208,7 @@ class MicroProfileCompletions {
 				// Enumerations
 				if (snippetsSupported) {
 					// Because of LSP limitation, we cannot use default value with choice.
-					SnippetsBuilder.choice(formattedProperty.getMappedParameterCount() + 1,
+					SnippetsBuilder.choice(formattedProperty.getParameterCount() + 1,
 							enums.stream().map(ValueHint::getValue).collect(Collectors.toList()), insertText);
 				} else {
 					// Plaintext: use default value or the first enum if no default value.

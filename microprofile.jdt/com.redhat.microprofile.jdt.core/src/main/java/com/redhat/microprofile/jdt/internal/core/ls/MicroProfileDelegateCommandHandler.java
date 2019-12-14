@@ -23,6 +23,7 @@ import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.lsp4j.Location;
 
+import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
@@ -100,8 +101,14 @@ public class MicroProfileDelegateCommandHandler implements IDelegateCommandHandl
 		for (Number scopeIndex : scopesIndex) {
 			scopes.add(MicroProfilePropertiesScope.forValue(scopeIndex.intValue()));
 		}
+		DocumentFormat documentFormat = DocumentFormat.PlainText;
+		Number documentFormatIndex = (Number) obj.get("documentFormat");
+		if (documentFormatIndex != null) {
+			documentFormat = DocumentFormat.forValue(documentFormatIndex.intValue());
+		}
 		MicroProfileProjectInfoParams params = new MicroProfileProjectInfoParams(applicationPropertiesUri);
 		params.setScopes(scopes);
+		params.setDocumentFormat(documentFormat);
 		return PropertiesManager.getInstance().getMicroProfileProjectInfo(params, JDTUtilsLSImpl.getInstance(),
 				progress);
 	}

@@ -23,8 +23,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.redhat.microprofile.commons.ClasspathKind;
+import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
+import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 import com.redhat.microprofile.jdt.internal.core.utils.DependencyUtil;
 
 /**
@@ -49,18 +51,20 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
 		// not in classpath -> 0 quarkus properties
 		IFile fileFromNone = javaProject.getProject().getFile(new Path("application.properties"));
 		MicroProfileProjectInfo infoFromNone = PropertiesManager.getInstance().getMicroProfileProjectInfo(fileFromNone,
-				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, new NullProgressMonitor());
+				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDTUtilsLSImpl.getInstance(),
+				DocumentFormat.Markdown, new NullProgressMonitor());
 		Assert.assertEquals(ClasspathKind.NONE, infoFromNone.getClasspathKind());
 		Assert.assertEquals(0, infoFromNone.getProperties().size());
 
 		File resteasyJARFile = DependencyUtil.getArtifact("io.quarkus", "quarkus-resteasy-common-deployment",
-				"1.0.0.CR1", null);
+				"1.0.0.CR1", null, new NullProgressMonitor());
 		Assert.assertNotNull("quarkus-resteasy-common-deployment*.jar is missing", resteasyJARFile);
 
 		// in /java/main/src classpath -> N quarkus properties
 		IFile fileFromSrc = javaProject.getProject().getFile(new Path("src/main/resources/application.properties"));
 		MicroProfileProjectInfo infoFromSrc = PropertiesManager.getInstance().getMicroProfileProjectInfo(fileFromSrc,
-				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, new NullProgressMonitor());
+				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDTUtilsLSImpl.getInstance(),
+				DocumentFormat.Markdown, new NullProgressMonitor());
 		Assert.assertEquals(ClasspathKind.SRC, infoFromSrc.getClasspathKind());
 		assertProperties(infoFromSrc, 185 /* properties from JAR */ + 3 /* properties from Java sources */,
 
@@ -89,12 +93,13 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
 
 		// in /java/main/test classpath-> N + M quarkus properties
 		File undertowJARFile = DependencyUtil.getArtifact("io.quarkus", "quarkus-undertow-deployment", "1.0.0.CR1",
-				null);
+				null, new NullProgressMonitor());
 		Assert.assertNotNull("quarkus-undertow-deployment*.jar is missing", undertowJARFile);
 
 		IFile filefromTest = javaProject.getProject().getFile(new Path("src/test/resources/application.properties"));
 		MicroProfileProjectInfo infoFromTest = PropertiesManager.getInstance().getMicroProfileProjectInfo(filefromTest,
-				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, new NullProgressMonitor());
+				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDTUtilsLSImpl.getInstance(),
+				DocumentFormat.Markdown, new NullProgressMonitor());
 		Assert.assertEquals(ClasspathKind.TEST, infoFromTest.getClasspathKind());
 		assertProperties(infoFromTest, 185 /* properties from JAR */ + 3 /* properties from JAR (test) */ + 3 /*
 																												 * properties

@@ -1,3 +1,12 @@
+/*******************************************************************************
+* Copyright (c) 2019 Red Hat Inc. and others.
+* All rights reserved. This program and the accompanying materials
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v20.html
+*
+* Contributors:
+*     Red Hat Inc. - initial API and implementation
+*******************************************************************************/
 package com.redhat.microprofile.jdt.internal.quarkus.providers;
 
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotation;
@@ -9,10 +18,7 @@ import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getResolvedTyp
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceField;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceMethod;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceType;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isList;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isMap;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isOptional;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isPrimitiveType;
+import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isSimpleFieldType;
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.join;
 import static io.quarkus.runtime.util.StringUtil.lowerCase;
@@ -37,20 +43,29 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 
-import com.redhat.microprofile.jdt.core.AbstractPropertiesProvider;
+import com.redhat.microprofile.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import com.redhat.microprofile.jdt.core.IPropertiesCollector;
 import com.redhat.microprofile.jdt.core.MicroProfileConstants;
 import com.redhat.microprofile.jdt.core.SearchContext;
 import com.redhat.microprofile.jdt.internal.quarkus.JDTQuarkusUtils;
+import com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants;
 
 import io.quarkus.arc.config.ConfigProperties;
 import io.quarkus.deployment.bean.JavaBeanUtil;
 
-public class QuarkusConfigPropertiesProvider extends AbstractPropertiesProvider {
+/**
+ * Properties provider to collect Quarkus properties from the Java classes or
+ * interfaces annotated with "io.quarkus.arc.config.ConfigProperties"
+ * annotation.
+ * 
+ * @author Angelo ZERR
+ *
+ */
+public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeReferencePropertiesProvider {
 
 	private static final Logger LOGGER = Logger.getLogger(QuarkusConfigPropertiesProvider.class.getName());
 
-	private static final String[] ANNOTATION_NAMES = { "io.quarkus.arc.config.ConfigProperties" };
+	private static final String[] ANNOTATION_NAMES = { QuarkusConstants.CONFIG_PROPERTIES_ANNOTATION };
 
 	@Override
 	protected String[] getAnnotationNames() {
@@ -59,8 +74,8 @@ public class QuarkusConfigPropertiesProvider extends AbstractPropertiesProvider 
 
 	@Override
 	protected void processAnnotation(IJavaElement javaElement, IAnnotation annotation, String annotationName,
-			SearchContext context, IPropertiesCollector collector, IProgressMonitor monitor) throws JavaModelException {
-		processConfigProperties(javaElement, annotation, collector, monitor);
+			SearchContext context, IProgressMonitor monitor) throws JavaModelException {
+		processConfigProperties(javaElement, annotation, context.getCollector(), monitor);
 	}
 
 	// ------------- Process Quarkus ConfigProperties -------------
@@ -160,10 +175,6 @@ public class QuarkusConfigPropertiesProvider extends AbstractPropertiesProvider 
 			// TODO : validation
 			populateConfigObject(configPropertiesType, prefix, extensionName, new HashSet<>(), collector, monitor);
 		}
-	}
-
-	private static boolean isSimpleFieldType(IType type, String typeName) {
-		return type == null || isPrimitiveType(typeName) || isList(typeName) || isMap(typeName) || isOptional(typeName);
 	}
 
 	private static IType[] findInterfaces(IType type, IProgressMonitor progressMonitor) throws JavaModelException {

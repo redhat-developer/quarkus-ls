@@ -16,11 +16,14 @@ import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
+
+import com.redhat.microprofile.commons.DocumentFormat;
 
 /**
  * JDT LS utils provides some helpful utilities. To avoid having a strong
@@ -84,4 +87,6 @@ public interface IJDTUtils {
 	void discoverSource(IClassFile classFile, IProgressMonitor monitor) throws CoreException;
 
 	Location toLocation(IJavaElement element) throws JavaModelException;
+	
+	String getJavadoc(IMember member, DocumentFormat documentFormat) throws JavaModelException;
 }

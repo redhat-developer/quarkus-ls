@@ -19,7 +19,7 @@ import org.eclipse.jdt.core.JavaModelException;
 
 import com.redhat.microprofile.commons.metadata.ItemHint;
 import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
-import com.redhat.microprofile.jdt.core.AbstractPropertiesProvider;
+import com.redhat.microprofile.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import com.redhat.microprofile.jdt.core.IPropertiesCollector;
 import com.redhat.microprofile.jdt.core.SearchContext;
 
@@ -88,7 +88,7 @@ import com.redhat.microprofile.jdt.core.SearchContext;
  * @author Angelo ZERR
  *
  */
-public class MicroProfileRegisterRestClientProvider extends AbstractPropertiesProvider {
+public class MicroProfileRegisterRestClientProvider extends AbstractAnnotationTypeReferencePropertiesProvider {
 
 	private static final String REGISTER_REST_CLIENT_ANNOTATION = "org.eclipse.microprofile.rest.client.inject.RegisterRestClient";
 	private static final String REGISTER_REST_CLIENT_ANNOTATION_CONFIG_KEY = "configKey";
@@ -106,10 +106,10 @@ public class MicroProfileRegisterRestClientProvider extends AbstractPropertiesPr
 
 	@Override
 	protected void processAnnotation(IJavaElement javaElement, IAnnotation registerRestClientAnnotation,
-			String annotationName, SearchContext context, IPropertiesCollector collector, IProgressMonitor monitor)
-			throws JavaModelException {
+			String annotationName, SearchContext context, IProgressMonitor monitor) throws JavaModelException {
 		if (javaElement.getElementType() == IJavaElement.TYPE) {
 
+			IPropertiesCollector collector = context.getCollector();
 			if (context.get(MP_REST_ADDED) == null) {
 
 				// FIXME: move this dynamic properties declaration on MicroProfile LS side.
