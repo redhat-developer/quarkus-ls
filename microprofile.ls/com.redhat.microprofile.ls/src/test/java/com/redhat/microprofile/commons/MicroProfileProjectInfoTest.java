@@ -136,32 +136,45 @@ public class MicroProfileProjectInfoTest {
 	}
 
 	@Test
+	public void indexArrayFormatPropertyForMarkdown() {
+		String actual = formatPropertyForMarkdown("kubernetes.labels[*].key");
+		Assert.assertEquals("kubernetes.labels[\\*\\].key", actual);
+	}
+
+	@Test
 	public void simpleFormatPropertyForCompletion() {
 		FormattedPropertyResult actual = formatPropertyForCompletion("quarkus.thread-pool.core-threads");
 		Assert.assertEquals("quarkus.thread-pool.core-threads", actual.getPropertyName());
-		Assert.assertEquals(0, actual.getMappedParameterCount());
+		Assert.assertEquals(0, actual.getParameterCount());
 	}
 
 	@Test
 	public void mapFormatPropertyForCompletion() {
 		FormattedPropertyResult actual = formatPropertyForCompletion("quarkus.log.category.{*}.level");
 		Assert.assertEquals("quarkus.log.category.${1:key}.level", actual.getPropertyName());
-		Assert.assertEquals(1, actual.getMappedParameterCount());
+		Assert.assertEquals(1, actual.getParameterCount());
 
 		actual = formatPropertyForCompletion("quarkus.keycloak.credentials.jwt.{*}");
 		Assert.assertEquals("quarkus.keycloak.credentials.jwt.${1:key}", actual.getPropertyName());
-		Assert.assertEquals(1, actual.getMappedParameterCount());
+		Assert.assertEquals(1, actual.getParameterCount());
 
 		actual = formatPropertyForCompletion("quarkus.keycloak.policy-enforcer.claim-information-point.{*}.{*}.{*}");
 		Assert.assertEquals("quarkus.keycloak.policy-enforcer.claim-information-point.${1:key}.${2:key}.${3:key}",
 				actual.getPropertyName());
-		Assert.assertEquals(3, actual.getMappedParameterCount());
+		Assert.assertEquals(3, actual.getParameterCount());
 
 		actual = formatPropertyForCompletion(
 				"quarkus.keycloak.policy-enforcer.paths.{*}.claim-information-point.{*}.{*}");
 		Assert.assertEquals("quarkus.keycloak.policy-enforcer.paths.${1:key}.claim-information-point.${2:key}.${3:key}",
 				actual.getPropertyName());
-		Assert.assertEquals(3, actual.getMappedParameterCount());
+		Assert.assertEquals(3, actual.getParameterCount());
+	}
+
+	@Test
+	public void indexArrayFormatPropertyForCompletion() {
+		FormattedPropertyResult actual = formatPropertyForCompletion("kubernetes.labels[*].key");
+		Assert.assertEquals("kubernetes.labels[${1:0}].key", actual.getPropertyName());
+		Assert.assertEquals(1, actual.getParameterCount());
 	}
 
 	private static PropertyInfo getProperty(String text, MicroProfileProjectInfo info) {

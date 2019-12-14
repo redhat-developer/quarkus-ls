@@ -9,20 +9,11 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core;
 
-import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.isMatchAnnotation;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.IAnnotatable;
-import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
-import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchPattern;
 
 import com.redhat.microprofile.commons.metadata.ItemHint;
@@ -37,18 +28,24 @@ import com.redhat.microprofile.commons.metadata.ItemMetadata;
  */
 public abstract class AbstractPropertiesProvider implements IPropertiesProvider {
 
-	private static final Logger LOGGER = Logger.getLogger(AbstractPropertiesProvider.class.getName());
+	/**
+	 * Returns the Java search pattern.
+	 * 
+	 * @return the Java search pattern.
+	 */
+	protected abstract String[] getPatterns();
 
-	protected abstract String[] getAnnotationNames();
-
+	/**
+	 * Return an instance of search pattern.
+	 */
 	public SearchPattern createSearchPattern() {
 		SearchPattern leftPattern = null;
-		String[] names = getAnnotationNames();
-		for (String name : names) {
+		String[] patterns = getPatterns();
+		for (String pattern : patterns) {
 			if (leftPattern == null) {
-				leftPattern = createAnnotationSearchPattern(name);
+				leftPattern = createSearchPattern(pattern);
 			} else {
-				SearchPattern rightPattern = createAnnotationSearchPattern(name);
+				SearchPattern rightPattern = createSearchPattern(pattern);
 				if (rightPattern != null) {
 					leftPattern = SearchPattern.createOrPattern(leftPattern, rightPattern);
 				}
@@ -57,41 +54,55 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 		return leftPattern;
 	}
 
-	private static SearchPattern createAnnotationSearchPattern(String annotationName) {
+	/**
+	 * Create an instance of search pattern with the given <code>pattern</code>.
+	 * 
+	 * @param pattern the search pattern
+	 * @return an instance of search pattern with the given <code>pattern</code>.
+	 */
+	protected abstract SearchPattern createSearchPattern(String pattern);
+
+	/**
+	 * Create a search pattern for the given <code>annotationName</code> annotation
+	 * name.
+	 * 
+	 * @param annotationName the annotation name to search.
+	 * @return a search pattern for the given <code>annotationName</code> annotation
+	 *         name.
+	 */
+	protected static SearchPattern createAnnotationTypeReferenceSearchPattern(String annotationName) {
 		return SearchPattern.createPattern(annotationName, IJavaSearchConstants.ANNOTATION_TYPE,
 				IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE, SearchPattern.R_EXACT_MATCH);
 	}
 
-	@Override
-	public void collectProperties(SearchMatch match, SearchContext context, IPropertiesCollector collector,
-			IProgressMonitor monitor) {
-		Object element = match.getElement();
-		if (element instanceof IAnnotatable && element instanceof IJavaElement) {
-			IJavaElement javaElement = (IJavaElement) element;
-			processAnnotation(javaElement, context, collector, monitor);
-		}
+	/**
+	 * Create a search pattern for the given <code>className</code> class name.
+	 * 
+	 * @param annotationName the class name to search.
+	 * @return a search pattern for the given <code>className</code> class name.
+	 */
+	protected static SearchPattern createAnnotationTypeDeclarationSearchPattern(String annotationName) {
+		return SearchPattern.createPattern(annotationName, IJavaSearchConstants.ANNOTATION_TYPE,
+				IJavaSearchConstants.DECLARATIONS, SearchPattern.R_EXACT_MATCH);
 	}
 
-	protected void processAnnotation(IJavaElement javaElement, SearchContext context, IPropertiesCollector collector,
-			IProgressMonitor monitor) {
-		try {
-			String[] names = getAnnotationNames();
-			IAnnotation[] annotations = ((IAnnotatable) javaElement).getAnnotations();
-			for (IAnnotation annotation : annotations) {
-				for (String annotationName : names) {
-					if (isMatchAnnotation(annotation, annotationName)) {
-						processAnnotation(javaElement, annotation, annotationName, context, collector, monitor);
-					}
-				}
-			}
-		} catch (Exception e) {
-			if (LOGGER.isLoggable(Level.SEVERE)) {
-				LOGGER.log(Level.SEVERE, "Cannot compute MicroProfile properties for the Java element '"
-						+ javaElement.getElementName() + "'.", e);
-			}
-		}
-	}
-
+	/**
+	 * Add item metadata.
+	 * 
+	 * @param collector     the properties collector.
+	 * @param name          the property name.
+	 * @param type          the type of the property.
+	 * @param description   the description of the property.
+	 * @param sourceType    the source type (class or interface) of the property.
+	 * @param sourceField   the source field (field name) and null otherwise.
+	 * @param sourceMethod  the source method (signature method) and null otherwise.
+	 * @param defaultValue  the default vaue and null otherwise.
+	 * @param extensionName the extension name and null otherwise.
+	 * @param binary        true if the property comes from a JAR and false
+	 *                      otherwise.
+	 * @param phase         teh Quarkus config phase.
+	 * @return the item metadata.
+	 */
 	protected ItemMetadata addItemMetadata(IPropertiesCollector collector, String name, String type, String description,
 			String sourceType, String sourceField, String sourceMethod, String defaultValue, String extensionName,
 			boolean binary, int phase) {
@@ -99,6 +110,22 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 				extensionName, binary, phase);
 	}
 
+	/**
+	 * Add item metadata.
+	 * 
+	 * @param collector     the properties collector.
+	 * @param name          the property name.
+	 * @param type          the type of the property.
+	 * @param description   the description of the property.
+	 * @param sourceType    the source type (class or interface) of the property.
+	 * @param sourceField   the source field (field name) and null otherwise.
+	 * @param sourceMethod  the source method (signature method) and null otherwise.
+	 * @param defaultValue  the default vaue and null otherwise.
+	 * @param extensionName the extension name and null otherwise.
+	 * @param binary        true if the property comes from a JAR and false
+	 *                      otherwise.
+	 * @return the item metadata.
+	 */
 	protected ItemMetadata addItemMetadata(IPropertiesCollector collector, String name, String type, String description,
 			String sourceType, String sourceField, String sourceMethod, String defaultValue, String extensionName,
 			boolean binary) {
@@ -106,20 +133,28 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 				extensionName, binary, 0);
 	}
 
-	protected String updateHint(IPropertiesCollector collector, IType fieldClass) throws JavaModelException {
-		if (fieldClass == null) {
+	/**
+	 * Get or create the update hint from the given type.
+	 * 
+	 * @param collector
+	 * @param type      the type.
+	 * @return the hint name.
+	 * @throws JavaModelException
+	 */
+	protected String updateHint(IPropertiesCollector collector, IType type) throws JavaModelException {
+		if (type == null) {
 			return null;
 		}
-		if (fieldClass.isEnum()) {
+		if (type.isEnum()) {
 			// Register Enumeration in "hints" section
-			String hint = fieldClass.getFullyQualifiedName();
+			String hint = type.getFullyQualifiedName();
 			if (!collector.hasItemHint(hint)) {
 				ItemHint itemHint = collector.getItemHint(hint);
 				itemHint.setSourceType(hint);
-				if (!fieldClass.isBinary()) {
+				if (!type.isBinary()) {
 					itemHint.setSource(Boolean.TRUE);
 				}
-				IJavaElement[] children = fieldClass.getChildren();
+				IJavaElement[] children = type.getChildren();
 				for (IJavaElement c : children) {
 					if (c.getElementType() == IJavaElement.FIELD && ((IField) c).isEnumConstant()) {
 						String enumName = ((IField) c).getElementName();
@@ -135,8 +170,5 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 		}
 		return null;
 	}
-
-	protected abstract void processAnnotation(IJavaElement javaElement, IAnnotation annotation, String annotationName,
-			SearchContext context, IPropertiesCollector collector, IProgressMonitor monitor) throws JavaModelException;
 
 }

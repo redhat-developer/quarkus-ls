@@ -16,6 +16,7 @@ import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJarEntryResource;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
@@ -55,6 +56,37 @@ public class JDTTypeUtils {
 			String signature = method.getReturnType();
 			IType primaryType = method.getTypeRoot().findPrimaryType();
 			return JavaModelUtil.getResolvedTypeName(signature, primaryType);
+		} catch (JavaModelException e) {
+			return null;
+		}
+	}
+
+	public static String getDefaultValue(IMethod method) {
+		try {
+			IMemberValuePair defaultValue = method.getDefaultValue();
+			if (defaultValue == null || defaultValue.getValue() == null) {
+				return null;
+			}
+			switch (defaultValue.getValueKind()) {
+			case IMemberValuePair.K_BOOLEAN:
+			case IMemberValuePair.K_INT:
+			case IMemberValuePair.K_LONG:
+			case IMemberValuePair.K_SHORT:
+			case IMemberValuePair.K_DOUBLE:
+			case IMemberValuePair.K_FLOAT:
+			case IMemberValuePair.K_STRING:
+				String value = defaultValue.getValue().toString();
+				return value.isEmpty() ? null : value;
+			case IMemberValuePair.K_QUALIFIED_NAME:
+			case IMemberValuePair.K_SIMPLE_NAME:
+				String qualifiedName = defaultValue.getValue().toString();
+				int index = qualifiedName.lastIndexOf('.');
+				return index != -1 ? qualifiedName.substring(index + 1, qualifiedName.length()) : qualifiedName;
+			case IMemberValuePair.K_UNKNOWN:
+				return null;
+			default:
+				return null;
+			}
 		} catch (JavaModelException e) {
 			return null;
 		}
@@ -105,7 +137,7 @@ public class JDTTypeUtils {
 	public static boolean isNumber(String valueClass) {
 		return NUMBER_TYPES.contains(valueClass);
 	}
-	
+
 	public static boolean isPrimitiveBoolean(String valueClass) {
 		return valueClass.equals("boolean");
 	}
@@ -133,4 +165,10 @@ public class JDTTypeUtils {
 		}
 		return null;
 	}
+
+	public static boolean isSimpleFieldType(IType type, String typeName) throws JavaModelException {
+		return type == null || isPrimitiveType(typeName) || isList(typeName) || isMap(typeName) || isOptional(typeName)
+				|| (type != null && type.isEnum());
+	}
+
 }

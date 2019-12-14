@@ -16,6 +16,7 @@ import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.p;
 
 import java.io.File;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,10 +39,11 @@ public class MicroProfileConfigPropertyTest extends BasePropertiesManagerTest {
 		MicroProfileProjectInfo infoFromClasspath = getMicroProfileProjectInfoFromMavenProject(
 				MavenProjectName.config_quickstart, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
 
-		File f = DependencyUtil.getArtifact("io.quarkus", "quarkus-core-deployment", "1.0.0.CR1", null);
+		File f = DependencyUtil.getArtifact("io.quarkus", "quarkus-core-deployment", "1.0.0.CR1", null,
+				new NullProgressMonitor());
 		Assert.assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
 
-		assertProperties(infoFromClasspath, 185 /* properties from JAR */ + //
+		assertProperties(infoFromClasspath, 186 /* properties from JAR */ + //
 				3 /* properties from Java sources with ConfigProperty */ + //
 				2 /* properties from Java sources with ConfigRoot */,
 

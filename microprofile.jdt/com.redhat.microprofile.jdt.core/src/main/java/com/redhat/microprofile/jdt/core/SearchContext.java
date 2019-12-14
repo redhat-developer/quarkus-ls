@@ -14,14 +14,27 @@ import java.util.Map;
 
 import org.eclipse.jdt.core.IJavaProject;
 
+import com.redhat.microprofile.commons.DocumentFormat;
+import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
+
 public class SearchContext {
 
 	private final IJavaProject javaProject;
 
+	private final IPropertiesCollector collector;
+
+	private final IJDTUtils utils;
+
+	private final DocumentFormat documentFormat;
+
 	private final Map<String, Object> cache;
 
-	public SearchContext(IJavaProject javaProject) {
+	public SearchContext(IJavaProject javaProject, IPropertiesCollector collector, IJDTUtils utils,
+			DocumentFormat documentFormat) {
 		this.javaProject = javaProject;
+		this.collector = collector;
+		this.utils = utils;
+		this.documentFormat = documentFormat;
 		cache = new HashMap<>();
 	}
 
@@ -37,4 +50,15 @@ public class SearchContext {
 		return javaProject;
 	}
 
+	public IPropertiesCollector getCollector() {
+		return collector;
+	}
+
+	public IJDTUtils getUtils() {
+		return utils;
+	}
+
+	public DocumentFormat getDocumentFormat() {
+		return documentFormat;
+	}
 }

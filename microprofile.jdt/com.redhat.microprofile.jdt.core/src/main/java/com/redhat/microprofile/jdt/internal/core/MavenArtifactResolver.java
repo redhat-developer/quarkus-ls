@@ -10,8 +10,12 @@
 package com.redhat.microprofile.jdt.internal.core;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.eclipse.core.runtime.IProgressMonitor;
 
 import com.redhat.microprofile.jdt.core.ArtifactResolver;
 import com.redhat.microprofile.jdt.internal.core.utils.DependencyUtil;
@@ -27,10 +31,14 @@ public class MavenArtifactResolver implements ArtifactResolver {
 	private static final Logger LOGGER = Logger.getLogger(MavenArtifactResolver.class.getName());
 
 	@Override
-	public String getArtifact(String groupId, String artifactId, String version) {
+	public String getArtifact(Artifact artifact, IProgressMonitor monitor) {
+		String groupId = artifact.getGroupId();
+		String artifactId = artifact.getArtifactId();
+		String version = artifact.getVersion();
+		String classifier = artifact.getClassifier();
 		File jarFile = null;
 		try {
-			jarFile = DependencyUtil.getArtifact(groupId, artifactId, version, null);
+			jarFile = DependencyUtil.getArtifact(groupId, artifactId, version, classifier, monitor);
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Maven artifact JAR (groupId=" + groupId + ", artifactId=" + artifactId
 					+ ", version=" + version + ") download failed.", e);
@@ -40,16 +48,16 @@ public class MavenArtifactResolver implements ArtifactResolver {
 	}
 
 	@Override
-	public String getSources(String groupId, String artifactId, String version) {
-		File jarFile = null;
+	public List<Artifact> getDependencies(Artifact artifact, IProgressMonitor monitor) {
+		String groupId = artifact.getGroupId();
+		String artifactId = artifact.getArtifactId();
+		String version = artifact.getVersion();
 		try {
-			jarFile = DependencyUtil.getSources(groupId, artifactId, version);
+			return DependencyUtil.getDependencies(groupId, artifactId, version, monitor);
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Maven artifact JAR Sources (groupId=" + groupId + ", artifactId=" + artifactId
-					+ ", version=" + version + ") download failed.", e);
-			return null;
+			LOGGER.log(Level.SEVERE, "Maven artifact JAR dependencies (groupId=" + groupId + ", artifactId="
+					+ artifactId + ", version=" + version + ") failed.", e);
+			return Collections.emptyList();
 		}
-		return jarFile != null ? jarFile.toString() : null;
 	}
-
 }

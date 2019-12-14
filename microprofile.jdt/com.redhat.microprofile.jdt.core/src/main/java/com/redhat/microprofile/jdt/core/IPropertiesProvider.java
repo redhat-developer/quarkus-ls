@@ -30,8 +30,9 @@ public interface IPropertiesProvider {
 	 * Begin the search.
 	 * 
 	 * @param context the search context
+	 * @param monitor
 	 */
-	default void begin(SearchContext context) {
+	default void begin(SearchContext context, IProgressMonitor monitor) {
 
 	}
 
@@ -40,7 +41,7 @@ public interface IPropertiesProvider {
 	 * 
 	 * @param context the search context
 	 */
-	default void end(SearchContext context) {
+	default void end(SearchContext context, IProgressMonitor monitor) {
 
 	}
 
@@ -55,26 +56,27 @@ public interface IPropertiesProvider {
 	 * Contribute to the classpath to add extra JARs in classpath (ex : deployment
 	 * JARs for Quarkus).
 	 * 
-	 * @param project
+	 * @param project             the Java project
+	 * @param resolvedClasspath   the resolved classpath
 	 * @param excludeTestCode
 	 * @param artifactResolver
 	 * @param newClasspathEntries
+	 * @param monitor
 	 * @throws JavaModelException
 	 */
-	default void contributeToClasspath(IJavaProject project, boolean excludeTestCode, ArtifactResolver artifactResolver,
-			List<IClasspathEntry> newClasspathEntries) throws JavaModelException {
+	default void contributeToClasspath(IJavaProject project, IClasspathEntry[] resolvedClasspath,
+			boolean excludeTestCode, ArtifactResolver artifactResolver, List<IClasspathEntry> newClasspathEntries,
+			IProgressMonitor monitor) throws JavaModelException {
 
 	}
 
 	/**
-	 * Collect properties.
+	 * Collect properties from the given Java search match.
 	 * 
-	 * @param match
-	 * @param context
-	 * @param collector
-	 * @param monitor
+	 * @param match   the java search match.
+	 * @param context the search context.
+	 * @param monitor the progress monitor.
 	 */
-	void collectProperties(SearchMatch match, SearchContext context, IPropertiesCollector collector,
-			IProgressMonitor monitor);
+	void collectProperties(SearchMatch match, SearchContext context, IProgressMonitor monitor);
 
 }

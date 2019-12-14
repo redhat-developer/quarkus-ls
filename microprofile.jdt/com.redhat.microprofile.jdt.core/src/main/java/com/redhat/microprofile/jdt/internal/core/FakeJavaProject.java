@@ -67,4 +67,8 @@ public class FakeJavaProject extends ExternalJavaProject {
 		return elements;
 	}
 
+	@Override
+	public boolean exists() {
+		return rootProject.exists();
+	}
 }
