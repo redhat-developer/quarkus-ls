@@ -10,6 +10,7 @@ import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceType;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isList;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isMap;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isNumber;
+import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isPrimitiveBoolean;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isOptional;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isPrimitiveType;
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
@@ -188,7 +189,7 @@ public class QuarkusConfigRootProvider extends AbstractPropertiesProvider {
 	 * @throws JavaModelException
 	 */
 	private static ConfigPhase getConfigPhase(IAnnotation configRootAnnotation) throws JavaModelException {
-		String value = getAnnotationMemberValue(configRootAnnotation, "phase");
+		String value = getAnnotationMemberValue(configRootAnnotation, QuarkusConstants.CONFIG_ROOT_ANNOTATION_PHASE);
 		if (value != null) {
 			if (value.endsWith(ConfigPhase.RUN_TIME.name())) {
 				return ConfigPhase.RUN_TIME;
@@ -210,7 +211,7 @@ public class QuarkusConfigRootProvider extends AbstractPropertiesProvider {
 	 * @throws JavaModelException
 	 */
 	private static String getConfigRootName(IAnnotation configRootAnnotation) throws JavaModelException {
-		String value = getAnnotationMemberValue(configRootAnnotation, "name");
+		String value = getAnnotationMemberValue(configRootAnnotation, QuarkusConstants.CONFIG_ANNOTATION_NAME);
 		if (value != null) {
 			return value;
 		}
@@ -304,7 +305,7 @@ public class QuarkusConfigRootProvider extends AbstractPropertiesProvider {
 					final IAnnotation configItemAnnotation = getAnnotation((IAnnotatable) field,
 							QuarkusConstants.CONFIG_ITEM_ANNOTATION);
 					String name = configItemAnnotation == null ? hyphenate(field.getElementName())
-							: getAnnotationMemberValue(configItemAnnotation, "name");
+							: getAnnotationMemberValue(configItemAnnotation, QuarkusConstants.CONFIG_ANNOTATION_NAME);
 					if (name == null) {
 						name = ConfigItem.HYPHENATED_ELEMENT_NAME;
 					}
@@ -319,7 +320,7 @@ public class QuarkusConfigRootProvider extends AbstractPropertiesProvider {
 						subKey = baseKey + "." + name;
 					}
 					final String defaultValue = configItemAnnotation == null ? ConfigItem.NO_DEFAULT
-							: getAnnotationMemberValue(configItemAnnotation, "defaultValue");
+							: getAnnotationMemberValue(configItemAnnotation, QuarkusConstants.CONFIG_ITEM_ANNOTATION_DEFAULT_VALUE);
 
 					String fieldTypeName = getResolvedTypeName(field);
 					IType fieldClass = findType(field.getJavaProject(), fieldTypeName);
@@ -357,13 +358,13 @@ public class QuarkusConfigRootProvider extends AbstractPropertiesProvider {
 
 		ItemMetadata item = null;
 		// Default value for primitive type
-		if ("boolean".equals(fieldTypeName)) {
+		if (isPrimitiveBoolean(fieldTypeName)) {
 			item = super.addItemMetadata(collector, name, type, description, sourceType, sourceField, null,
-					ConfigItem.NO_DEFAULT.equals(defaultValue) ? "false" : defaultValue, extensionName,
+					defaultValue == null || ConfigItem.NO_DEFAULT.equals(defaultValue) ? "false" : defaultValue, extensionName,
 					field.isBinary());
 		} else if (isNumber(fieldTypeName)) {
 			item = super.addItemMetadata(collector, name, type, description, sourceType, sourceField, null,
-					ConfigItem.NO_DEFAULT.equals(defaultValue) ? "0" : defaultValue, extensionName, field.isBinary());
+					defaultValue == null || ConfigItem.NO_DEFAULT.equals(defaultValue) ? "0" : defaultValue, extensionName, field.isBinary());
 		} else if (isMap(fieldTypeName)) {
 			// FIXME: find better mean to check field is a Map
 			// this code works only if user uses Map as declaration and not if they declare
