@@ -105,6 +105,10 @@ public class JDTTypeUtils {
 	public static boolean isNumber(String valueClass) {
 		return NUMBER_TYPES.contains(valueClass);
 	}
+	
+	public static boolean isPrimitiveBoolean(String valueClass) {
+		return valueClass.equals("boolean");
+	}
 
 	public static IJarEntryResource findPropertiesResource(IPackageFragmentRoot packageRoot, String propertiesFileName)
 			throws JavaModelException {

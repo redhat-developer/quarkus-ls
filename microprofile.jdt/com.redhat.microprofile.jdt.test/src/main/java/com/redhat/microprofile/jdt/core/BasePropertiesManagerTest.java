@@ -57,6 +57,7 @@ public class BasePropertiesManagerTest {
 		config_quickstart("config-quickstart"), //
 		config_quickstart_test("config-quickstart-test"), //
 		hibernate_orm_resteasy("hibernate-orm-resteasy"), //
+		jax_rs_quarkus_project("jax-rs-quarkus-project"), //
 		rest_client_quickstart("rest-client-quickstart"), //
 		using_vertx("using-vertx");
 

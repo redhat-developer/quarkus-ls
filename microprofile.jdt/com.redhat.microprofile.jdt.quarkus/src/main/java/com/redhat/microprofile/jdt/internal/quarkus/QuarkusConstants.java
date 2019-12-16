@@ -29,6 +29,10 @@ public class QuarkusConstants {
 	public static final String CONFIG_GROUP_ANNOTATION = "io.quarkus.runtime.annotations.ConfigGroup";
 	public static final String CONFIG_ITEM_ANNOTATION = "io.quarkus.runtime.annotations.ConfigItem";
 	public static final String CONFIG_PROPERTIES_ANNOTATION = "io.quarkus.arc.config.ConfigProperties";
+	
+	public static final String CONFIG_ANNOTATION_NAME = "name";
+	public static final String CONFIG_ROOT_ANNOTATION_PHASE = "phase";
+	public static final String CONFIG_ITEM_ANNOTATION_DEFAULT_VALUE = "defaultValue";
 
 	/**
 	 * Quarkus properties file embedded in the Quarkus JAR.
