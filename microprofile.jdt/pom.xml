@@ -19,7 +19,7 @@
     <tycho.extras.version>1.4.0</tycho.extras.version>
     <tycho.scmUrl>scm:git:https://github.com/redhat-developer/quarkus-ls</tycho.scmUrl>
     <tycho.generateSourceReferences>true</tycho.generateSourceReferences>
-    <jdt.ls.version>0.43.0.20190918165354</jdt.ls.version>
+    <jdt.ls.version>0.49.0.20191219090924</jdt.ls.version>
     <tycho.test.platformArgs />
     <tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
 
