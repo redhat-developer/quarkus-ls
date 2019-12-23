@@ -73,7 +73,6 @@ class MicroProfileHover {
 		case COMMENTS:
 			// no hover documentation
 			return null;
-		case ASSIGN:
 		case PROPERTY_VALUE:
 			// no hover documentation
 			return getPropertyValueHover(node, projectInfo, valuesRulesManager, hoverSettings);
