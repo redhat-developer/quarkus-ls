@@ -16,22 +16,15 @@ import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getResolvedRes
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceMethod;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isSimpleFieldType;
 
-import java.util.List;
-
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.search.SearchPattern;
 
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.jdt.core.AbstractTypeDeclarationPropertiesProvider;
-import com.redhat.microprofile.jdt.core.ArtifactResolver;
 import com.redhat.microprofile.jdt.core.IPropertiesCollector;
 import com.redhat.microprofile.jdt.core.SearchContext;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
@@ -54,7 +47,7 @@ import io.quarkus.runtime.util.StringUtil;
  * </p>
  * 
  * <p>
- * io.dekorate.kubernetes.config.KubernetesConfig i sgenerated from the
+ * io.dekorate.kubernetes.config.KubernetesConfig is generated from the
  * annotation io.dekorate.kubernetes.annotation.KubernetesApplication. it's
  * better to use this annotation type to get default value and javadoc.
  * </p>
@@ -82,47 +75,6 @@ public class QuarkusKubernetesProvider extends AbstractTypeDeclarationProperties
 	@Override
 	protected SearchPattern createSearchPattern(String annotationName) {
 		return createAnnotationTypeDeclarationSearchPattern(annotationName);
-	}
-	
-	@Override
-	public void contributeToClasspath(IJavaProject project, boolean excludeTestCode, ArtifactResolver artifactResolver,
-			List<IClasspathEntry> deploymentJarEntries, IProgressMonitor monitor) throws JavaModelException {
-		IClasspathEntry[] entries = project.getResolvedClasspath(true);
-		for (IClasspathEntry entry : entries) {
-			if (excludeTestCode && entry.isTest()) {
-				continue;
-			}
-			switch (entry.getEntryKind()) {
-
-			case IClasspathEntry.CPE_LIBRARY:
-
-				try {
-					String jarPath = entry.getPath().toOSString();
-					if (jarPath.contains("quarkus-kubernetes")) {
-						// FIXME : how to download io dekorate kubernetes-annotations with the proper
-						// version ???
-						String jar = artifactResolver.getArtifact("io.dekorate", "kubernetes-annotations", "0.9.4",
-								"noapt", monitor);
-						String sources = artifactResolver.getArtifact("io.dekorate", "kubernetes-annotations", "0.9.4",
-								"sources", monitor);
-						deploymentJarEntries.add(JavaCore.newLibraryEntry(new Path(jar), new Path(sources), null));
-
-						jar = artifactResolver.getArtifact("io.dekorate", "openshift-annotations", "0.9.4",
-								"noapt", monitor);
-						sources = artifactResolver.getArtifact("io.dekorate", "openshift-annotations", "0.9.4",
-								"sources", monitor);
-						deploymentJarEntries.add(JavaCore.newLibraryEntry(new Path(jar), new Path(sources), null));
-
-
-						return;
-					}
-				} catch (Exception e) {
-					// do nothing
-				}
-
-				break;
-			}
-		}
 	}
 
 	@Override
