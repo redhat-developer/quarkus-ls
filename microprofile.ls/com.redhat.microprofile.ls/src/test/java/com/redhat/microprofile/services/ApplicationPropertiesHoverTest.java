@@ -79,6 +79,13 @@ public class ApplicationPropertiesHoverTest {
 	};
 
 	@Test
+	public void testNoHoverOnEqualsWhenNoValue() throws BadLocationException {
+		String value = "a=1\n" + //
+				"b=|";
+		assertHoverMarkdown(value, null, 0);
+	};
+
+	@Test
 	public void testQuarkusKeyHoverOnEqualsSignNoSpaces() throws BadLocationException {
 		String value = "quarkus.application.name|=\"name\"";
 		String hoverLabel = "**quarkus.application.name**" + System.lineSeparator() + System.lineSeparator() + //
