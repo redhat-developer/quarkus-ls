@@ -27,7 +27,10 @@ import com.redhat.microprofile.ls.api.MicroProfilePropertyDefinitionProvider;
 import com.redhat.microprofile.ls.commons.BadLocationException;
 import com.redhat.microprofile.model.Node;
 import com.redhat.microprofile.model.PropertiesModel;
+import com.redhat.microprofile.model.Property;
 import com.redhat.microprofile.model.PropertyKey;
+import com.redhat.microprofile.model.PropertyValue;
+import com.redhat.microprofile.model.Node.NodeType;
 import com.redhat.microprofile.utils.MicroProfilePropertiesUtils;
 import com.redhat.microprofile.utils.PositionUtils;
 
@@ -59,43 +62,97 @@ public class MicroProfileDefinition {
 	public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> findDefinition(
 			PropertiesModel document, Position position, MicroProfileProjectInfo projectInfo,
 			MicroProfilePropertyDefinitionProvider provider, boolean definitionLinkSupport) {
-		Node node = null;
+
 		try {
-			node = document.findNodeAt(position);
+			Node node = document.findNodeAt(position);
+			if (node == null) {
+				return CompletableFuture.completedFuture(getEmptyDefinition(definitionLinkSupport));
+			}
+
 			// Get the property at the given position
 			PropertyKey key = getPropertyKey(node);
-			if (key != null) {
-				String propertyName = key.getPropertyName();
-				// Get metatada of the property
-				ItemMetadata item = MicroProfilePropertiesUtils.getProperty(propertyName, projectInfo);
-				if (item != null && item.getSourceType() != null) {
-					// Find definition (class, field of class, method of class) only when metadata
-					// contains source type (class or interface)
-					MicroProfilePropertyDefinitionParams definitionParams = new MicroProfilePropertyDefinitionParams();
-					definitionParams.setUri(document.getDocumentURI());
-					definitionParams.setSourceType(item.getSourceType());
-					definitionParams.setSourceField(item.getSourceField());
-					definitionParams.setSourceMethod(item.getSourceMethod());
-					return provider.getPropertyDefinition(definitionParams).thenApply(target -> {
-						if (target == null) {
-							return null;
-						}
-						if (definitionLinkSupport) {
-							// Use document link
-							LocationLink link = new LocationLink(target.getUri(), target.getRange(), target.getRange(),
-									PositionUtils.createRange(key));
-							return Either.forRight(Collections.singletonList(link));
-						}
-						// Use simple location
-						return Either.forLeft(Collections.singletonList(target));
-					});
-				}
+
+			if (key == null) {
+				return CompletableFuture.completedFuture(getEmptyDefinition(definitionLinkSupport));
 			}
+
+			// Get metatada of the property
+			ItemMetadata item = MicroProfilePropertiesUtils.getProperty(key.getPropertyName(), projectInfo);
+			if (item == null) {
+				return CompletableFuture.completedFuture(getEmptyDefinition(definitionLinkSupport));
+			}
+
+			MicroProfilePropertyDefinitionParams definitionParams = getPropertyDefinitionParams(document, item, node);
+			if (definitionParams == null) {
+				return CompletableFuture.completedFuture(getEmptyDefinition(definitionLinkSupport));
+			}
+			return provider.getPropertyDefinition(definitionParams).thenApply(target -> {
+				if (target == null) {
+					return getEmptyDefinition(definitionLinkSupport);
+				}
+				if (definitionLinkSupport) {
+					// Use document link
+					LocationLink link = new LocationLink(target.getUri(), target.getRange(), target.getRange(),
+							PositionUtils.createRange(node));
+					return Either.forRight(Collections.singletonList(link));
+				}
+				// Use simple location
+				return Either.forLeft(Collections.singletonList(target));
+			});
+			
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In MicroProfileDefinition, position error", e);
 		}
-		return CompletableFuture.completedFuture(definitionLinkSupport ? Either.forRight(Collections.emptyList())
-				: Either.forLeft(Collections.emptyList()));
+		return CompletableFuture.completedFuture(getEmptyDefinition(definitionLinkSupport));
+	}
+
+	private static Either<List<? extends Location>, List<? extends LocationLink>> getEmptyDefinition(boolean definitionLinkSupport) {
+		return definitionLinkSupport ? Either.forRight(Collections.emptyList())
+				: Either.forLeft(Collections.emptyList());
+	}
+
+	private static MicroProfilePropertyDefinitionParams getPropertyDefinitionParams(PropertiesModel document, ItemMetadata item, Node node) {
+
+		if (node.getNodeType() != NodeType.PROPERTY_KEY && node.getNodeType() != NodeType.PROPERTY_VALUE) {
+			return null;
+		}
+
+		MicroProfilePropertyDefinitionParams definitionParams = new MicroProfilePropertyDefinitionParams();
+
+		String sourceType;
+		String sourceField;
+
+		switch (node.getNodeType()) {
+			case PROPERTY_KEY: {
+				sourceType = item.getSourceType();
+				sourceField = item.getSourceField();
+				break;
+			}
+			case PROPERTY_VALUE: {
+				sourceType = item.getType();
+				String optionalPrefix = "java.util.Optional<";
+				if (sourceType.startsWith(optionalPrefix)) {
+					sourceType = sourceType.substring(optionalPrefix.length(), sourceType.length() - 1);
+				}
+				sourceField = ((PropertyValue) node).getValue().toUpperCase();
+				break;
+			}
+			default:
+				return null;
+		}
+
+		// Find definition (class, field of class, method of class, enum) only when metadata
+		// contains source type
+		if (sourceType == null) {
+			return null;
+		}
+		
+		definitionParams.setSourceType(sourceType);
+		definitionParams.setSourceField(sourceField);
+		definitionParams.setUri(document.getDocumentURI());
+		definitionParams.setSourceMethod(item.getSourceMethod());
+
+		return definitionParams;
 	}
 
 	private static PropertyKey getPropertyKey(Node node) {
@@ -103,10 +160,12 @@ public class MicroProfileDefinition {
 			return null;
 		}
 		switch (node.getNodeType()) {
-		case PROPERTY_KEY:
-			return (PropertyKey) node;
-		default:
-			return null;
+			case PROPERTY_KEY:
+				return (PropertyKey) node;
+			case PROPERTY_VALUE:
+				return ((Property) node.getParent()).getKey();
+			default:
+				return null;
 		}
 	}
 }

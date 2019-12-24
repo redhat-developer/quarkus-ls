@@ -22,6 +22,7 @@ import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.ITypeRoot;
@@ -38,6 +39,7 @@ import org.eclipse.lsp4j.Range;
 
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
+import com.redhat.microprofile.jdt.internal.core.FakeJavaProject;
 
 /**
  * {@link IJDTUtils} implementation with JDT S {@link JDTUtils}.
@@ -114,9 +116,14 @@ public class JDTUtilsLSImpl implements IJDTUtils {
 
 	@Override
 	public void discoverSource(IClassFile classFile, IProgressMonitor progress) throws CoreException {
+		
+		IJavaProject javaProject = classFile.getJavaProject();
+		if (javaProject instanceof FakeJavaProject) {
+			javaProject = ((FakeJavaProject) javaProject).getRootProject();
+		}
 		// Try to download source if required
 		Optional<IBuildSupport> bs = JavaLanguageServerPlugin.getProjectsManager()
-				.getBuildSupport(classFile.getJavaProject().getProject());
+				.getBuildSupport(javaProject.getProject());
 		if (bs.isPresent()) {
 			bs.get().discoverSource(classFile, progress);
 		}

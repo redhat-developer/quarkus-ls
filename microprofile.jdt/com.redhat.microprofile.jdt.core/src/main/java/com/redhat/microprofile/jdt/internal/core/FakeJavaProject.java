@@ -11,6 +11,7 @@ package com.redhat.microprofile.jdt.internal.core;
 
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -70,5 +71,9 @@ public class FakeJavaProject extends ExternalJavaProject {
 	@Override
 	public boolean exists() {
 		return rootProject.exists();
+	}
+	
+	public IJavaProject getRootProject() {
+		return rootProject;
 	}
 }
