@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -120,7 +121,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 						if (addArtifactInClasspath(deploymentArtifact, existingJars, deploymentJarEntries,
 								artifactResolver, monitor)) {
 							// Add dependencies of deployment artifact
-							List<Artifact> dependencies = artifactResolver.getDependencies(deploymentArtifact, monitor);
+							Set<Artifact> dependencies = artifactResolver.getDependencies(deploymentArtifact, monitor);
 							for (Artifact dependency : dependencies) {
 								addArtifactInClasspath(dependency, existingJars, deploymentJarEntries, artifactResolver,
 										monitor);
@@ -131,9 +132,6 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 				break;
 			}
 		}
-		// Add the Quarkus project in classpath to resolve dependencies of deployment
-		// Quarkus JARs.
-		deploymentJarEntries.add(JavaCore.newProjectEntry(project.getProject().getLocation()));
 	}
 
 	private static boolean addArtifactInClasspath(Artifact deploymentArtifact, List<String> existingJars,

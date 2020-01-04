@@ -130,4 +130,52 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
 		assertHintsDuplicate(info);
 
 	}
+
+	@Test
+	public void s2i() throws Exception {
+		MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(MavenProjectName.kubernetes);
+
+		assertProperties(info,
+
+				// io.dekorate.s2i.annotation.S2iBuild
+				p(null, "s2i.docker-file", "java.lang.String",
+						"The relative path of the Dockerfile, from the module root." + //
+								System.lineSeparator() + "" + System.lineSeparator() + //
+								" *  **Returns:**" + //
+								System.lineSeparator() + //
+								"    " + //
+								System.lineSeparator() + //
+								"     *  The relative path.",
+						true, "io.dekorate.s2i.annotation.S2iBuild", null, "dockerFile()Ljava/lang/String;", 0,
+						"Dockerfile"));
+
+		assertPropertiesDuplicate(info);
+
+		assertHintsDuplicate(info);
+
+	}
+	
+	@Test
+	public void docker() throws Exception {
+		MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(MavenProjectName.kubernetes);
+
+		assertProperties(info,
+
+				// io.dekorate.docker.annotation.DockerBuild
+				p(null, "docker.docker-file", "java.lang.String",
+						"The relative path of the Dockerfile, from the module root." + //
+								System.lineSeparator() + "" + System.lineSeparator() + //
+								" *  **Returns:**" + //
+								System.lineSeparator() + //
+								"    " + //
+								System.lineSeparator() + //
+								"     *  The relative path.",
+						true, "io.dekorate.docker.annotation.DockerBuild", null, "dockerFile()Ljava/lang/String;", 0,
+						"Dockerfile"));
+
+		assertPropertiesDuplicate(info);
+
+		assertHintsDuplicate(info);
+
+	}
 }

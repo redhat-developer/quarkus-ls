@@ -43,7 +43,7 @@ public class MicroProfileConfigPropertyTest extends BasePropertiesManagerTest {
 				new NullProgressMonitor());
 		Assert.assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
 
-		assertProperties(infoFromClasspath, 186 /* properties from JAR */ + //
+		assertProperties(infoFromClasspath, 185 /* properties from JAR */ + //
 				3 /* properties from Java sources with ConfigProperty */ + //
 				2 /* properties from Java sources with ConfigRoot */,
 

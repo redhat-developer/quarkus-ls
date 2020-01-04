@@ -11,7 +11,7 @@ package com.redhat.microprofile.jdt.internal.core;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -48,7 +48,7 @@ public class MavenArtifactResolver implements ArtifactResolver {
 	}
 
 	@Override
-	public List<Artifact> getDependencies(Artifact artifact, IProgressMonitor monitor) {
+	public Set<Artifact> getDependencies(Artifact artifact, IProgressMonitor monitor) {
 		String groupId = artifact.getGroupId();
 		String artifactId = artifact.getArtifactId();
 		String version = artifact.getVersion();
@@ -57,7 +57,7 @@ public class MavenArtifactResolver implements ArtifactResolver {
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Maven artifact JAR dependencies (groupId=" + groupId + ", artifactId="
 					+ artifactId + ", version=" + version + ") failed.", e);
-			return Collections.emptyList();
+			return Collections.emptySet();
 		}
 	}
 }
