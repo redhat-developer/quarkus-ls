@@ -149,7 +149,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 		// Get Quarkus project information which stores all available Quarkus
 		// properties
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument());
-		return getProjectInfoCache().getMicroProfileProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
+		return getProjectInfoCache().getProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
 			if (projectInfo.getProperties().isEmpty()) {
 				return CompletableFuture.completedFuture(Either.forRight(new CompletionList()));
 			}
@@ -170,7 +170,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 		// Get Quarkus project information which stores all available Quarkus
 		// properties
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument());
-		return getProjectInfoCache().getMicroProfileProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
+		return getProjectInfoCache().getProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
 			if (projectInfo.getProperties().isEmpty()) {
 				return null;
 			}
@@ -211,7 +211,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 	public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(
 			TextDocumentPositionParams params) {
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument());
-		return getProjectInfoCache().getMicroProfileProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
+		return getProjectInfoCache().getProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
 			if (projectInfo.getProperties().isEmpty()) {
 				return null;
 			}
@@ -241,7 +241,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 	@Override
 	public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActionParams params) {
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument());
-		return getProjectInfoCache().getMicroProfileProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
+		return getProjectInfoCache().getProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
 			if (projectInfo.getProperties().isEmpty()) {
 				return null;
 			}
@@ -278,7 +278,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 		// Get Quarkus project information which stores all available Quarkus
 		// properties
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(document.getUri());
-		getProjectInfoCache().getMicroProfileProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
+		getProjectInfoCache().getProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
 			if (projectInfo.getProperties().isEmpty()) {
 				return null;
 			}

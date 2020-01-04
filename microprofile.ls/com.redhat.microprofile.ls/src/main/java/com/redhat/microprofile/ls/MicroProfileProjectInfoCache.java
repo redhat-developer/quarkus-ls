@@ -38,7 +38,7 @@ import com.redhat.microprofile.ls.api.MicroProfileProjectInfoProvider;
  */
 class MicroProfileProjectInfoCache {
 
-	private final Map<String /* application.properties URI */, MicroProfileProjectInfoWrapper> cache;
+	private final Map<String /* application.properties URI */, CompletableFuture<MicroProfileProjectInfo>> cache;
 
 	private final MicroProfileProjectInfoProvider provider;
 
@@ -187,32 +187,42 @@ class MicroProfileProjectInfoCache {
 	 * @return as promise the MicroProfile project information for the given
 	 *         application.properties URI.
 	 */
-	public CompletableFuture<MicroProfileProjectInfo> getMicroProfileProjectInfo(MicroProfileProjectInfoParams params) {
-		// Search project info in cache
-		MicroProfileProjectInfoWrapper projectInfo = cache.get(params.getUri());
-		if (projectInfo == null) {
-			// not found in cache, load the project info from the JDT LS Extension
+	public CompletableFuture<MicroProfileProjectInfo> getProjectInfo(MicroProfileProjectInfoParams params) {
+		// Search future which load project info in cache
+		CompletableFuture<MicroProfileProjectInfo> projectInfo = cache.get(params.getUri());
+		if (projectInfo == null || projectInfo.isCancelled() || projectInfo.isCompletedExceptionally()) {
+			// not found in the cache, load the project info from the JDT LS Extension
 			params.setScopes(MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
-			return provider.getProjectInfo(params).thenApply(info ->
-			// information was loaded, update the cache
-			{
-				cache.put(params.getUri(), new MicroProfileProjectInfoWrapper(info));
-				return info;
-			});
+			CompletableFuture<MicroProfileProjectInfo> future = provider.getProjectInfo(params). //
+					thenApply(info -> new MicroProfileProjectInfoWrapper(info));
+			// cache the future.
+			cache.put(params.getUri(), future);
+			return future;
 		}
-		if (projectInfo.isReloadFromSource()) {
+		if (!projectInfo.isDone()) {
+			return projectInfo;
+		}
+
+		MicroProfileProjectInfoWrapper wrapper = getProjectInfoWrapper(projectInfo);
+		if (wrapper.isReloadFromSource()) {
 			// There are some java sources changed, get the Quarkus properties from java
 			// sources.
 			params.setScopes(MicroProfilePropertiesScope.ONLY_SOURCES);
 			return provider.getProjectInfo(params).thenApply(info ->
 			// then update the cache with the new properties
 			{
-				projectInfo.update(info.getProperties(), info.getHints());
-				return projectInfo;
+				wrapper.update(info.getProperties(), info.getHints());
+				return wrapper;
 			});
 		}
+
 		// Returns the cached project info
-		return CompletableFuture.completedFuture(projectInfo);
+		return projectInfo;
+	}
+
+	private static MicroProfileProjectInfoWrapper getProjectInfoWrapper(
+			CompletableFuture<MicroProfileProjectInfo> future) {
+		return future != null ? (MicroProfileProjectInfoWrapper) future.getNow(null) : null;
 	}
 
 	public Collection<String> propertiesChanged(MicroProfilePropertiesChangeEvent event) {
@@ -233,8 +243,10 @@ class MicroProfileProjectInfoCache {
 	private Collection<String> javaSourceChanged(Set<String> projectURIs) {
 		List<String> applicationPropertiesURIs = getApplicationPropertiesURIs(projectURIs);
 		for (String uri : applicationPropertiesURIs) {
-			MicroProfileProjectInfoWrapper info = cache.get(uri);
-			info.clearPropertiesFromSource();
+			MicroProfileProjectInfoWrapper info = getProjectInfoWrapper(cache.get(uri));
+			if (info != null) {
+				info.clearPropertiesFromSource();
+			}
 		}
 		return applicationPropertiesURIs;
 	}
@@ -249,8 +261,13 @@ class MicroProfileProjectInfoCache {
 	 *         URIs.
 	 */
 	private List<String> getApplicationPropertiesURIs(Set<String> projectURIs) {
-		return cache.entrySet().stream().filter(entry -> projectURIs.contains(entry.getValue().getProjectURI()))
-				.map(Map.Entry::getKey).collect(Collectors.toList());
+		return cache.entrySet().stream().filter(entry -> {
+			MicroProfileProjectInfo projectInfo = getProjectInfoWrapper(entry.getValue());
+			if (projectInfo != null) {
+				return projectURIs.contains(projectInfo.getProjectURI());
+			}
+			return false;
+		}).map(Map.Entry::getKey).collect(Collectors.toList());
 	}
 
 }
