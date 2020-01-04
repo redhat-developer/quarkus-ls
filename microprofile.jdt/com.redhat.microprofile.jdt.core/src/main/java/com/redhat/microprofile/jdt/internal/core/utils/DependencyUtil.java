@@ -14,8 +14,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -23,9 +23,13 @@ import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.collection.CollectResult;
+import org.eclipse.aether.collection.DependencyCollectionException;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.graph.DependencyNode;
+import org.eclipse.aether.graph.DependencyVisitor;
 import org.eclipse.aether.resolution.ArtifactDescriptorException;
-import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
-import org.eclipse.aether.resolution.ArtifactDescriptorResult;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -93,38 +97,46 @@ public class DependencyUtil {
 		return null;
 	}
 
-	public static List<com.redhat.microprofile.jdt.core.ArtifactResolver.Artifact> getDependencies(String groupId,
+	public static Set<com.redhat.microprofile.jdt.core.ArtifactResolver.Artifact> getDependencies(String groupId,
 			String artifactId, String version, IProgressMonitor monitor) throws CoreException {
 		org.eclipse.aether.artifact.Artifact artifact = new DefaultArtifact(groupId, artifactId, null, version);
-		ArtifactDescriptorResult result = MavenPlugin.getMaven().execute((context, progress) -> {
+		CollectResult result = MavenPlugin.getMaven().execute((context, progress) -> {
 			try {
-				return resolveDescriptor(artifact, context.getRepositorySession());
-			} catch (ArtifactDescriptorException e) {
+				return collectDependencies(artifact, context.getRepositorySession());
+			} catch (ArtifactDescriptorException | DependencyCollectionException e) {
 				ArtifactKey key = new ArtifactKey(groupId, artifactId, version, null);
 				throw new CoreException(new Status(IStatus.ERROR, MicroProfileCorePlugin.PLUGIN_ID,
-						"Error while getting dependencies for " + key, e));
+						"Error while collecting dependencies for " + key, e));
 			}
 		}, monitor);
 		if (result != null) {
-			return result.getDependencies().stream()
-					.map(dep -> new com.redhat.microprofile.jdt.core.ArtifactResolver.Artifact(
-							dep.getArtifact().getGroupId(), dep.getArtifact().getArtifactId(),
-							dep.getArtifact().getVersion(), dep.getArtifact().getClassifier()))
-					.collect(Collectors.toList());
+			Set<com.redhat.microprofile.jdt.core.ArtifactResolver.Artifact> dependencies = new HashSet<>();
+			result.getRoot().accept(new DependencyVisitor() {
+
+				@Override
+				public boolean visitLeave(DependencyNode node) {
+					org.eclipse.aether.artifact.Artifact dep = node.getDependency().getArtifact();
+					dependencies.add(new com.redhat.microprofile.jdt.core.ArtifactResolver.Artifact(dep.getGroupId(),
+							dep.getArtifactId(), dep.getVersion(), dep.getClassifier()));
+					return true;
+				}
+
+				@Override
+				public boolean visitEnter(DependencyNode node) {
+					return true;
+				}
+			});
+			return dependencies;
 		}
-		return Collections.emptyList();
+		return Collections.emptySet();
 	}
 
-	private static ArtifactDescriptorResult resolveDescriptor(org.eclipse.aether.artifact.Artifact artifact,
-			RepositorySystemSession repoSession) throws ArtifactDescriptorException {
-		// try {
+	private static CollectResult collectDependencies(org.eclipse.aether.artifact.Artifact artifact,
+			RepositorySystemSession repoSession) throws ArtifactDescriptorException, DependencyCollectionException {
+		CollectRequest collectRequest = new CollectRequest();
+		collectRequest.setRoot(new Dependency(artifact, ""));
 		RepositorySystem repoSystem = MavenPluginActivator.getDefault().getRepositorySystem();
 		repoSession = new DefaultRepositorySystemSession(repoSession);
-		return repoSystem.readArtifactDescriptor(repoSession, new ArtifactDescriptorRequest().setArtifact(artifact));
-		/*
-		 * } catch (ArtifactDescriptorException e) { // throw new
-		 * AppModelResolverException("Failed to read descriptor of " + // artifact, e);
-		 * return null; }
-		 */
+		return repoSystem.collectDependencies(repoSession, collectRequest);
 	}
 }
