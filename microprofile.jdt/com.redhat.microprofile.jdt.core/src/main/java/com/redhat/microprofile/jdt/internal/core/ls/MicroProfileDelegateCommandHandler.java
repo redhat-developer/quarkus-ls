@@ -15,9 +15,12 @@ import static com.redhat.microprofile.jdt.internal.core.ls.ArgumentUtils.getStri
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
@@ -39,6 +42,8 @@ import com.redhat.microprofile.jdt.internal.core.MicroProfilePropertiesListenerM
  *
  */
 public class MicroProfileDelegateCommandHandler implements IDelegateCommandHandler {
+
+	private static final Logger LOGGER = Logger.getLogger(MicroProfileDelegateCommandHandler.class.getName());
 
 	private static final String PROJECT_INFO_COMMAND_ID = "microprofile/projectInfo";
 
@@ -83,7 +88,7 @@ public class MicroProfileDelegateCommandHandler implements IDelegateCommandHandl
 	 * @throws JavaModelException
 	 */
 	private static MicroProfileProjectInfo getMicroProfileProjectInfo(List<Object> arguments, String commandId,
-			IProgressMonitor progress) throws JavaModelException, CoreException {
+			IProgressMonitor progress) throws Exception {
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
 			throw new UnsupportedOperationException(String
@@ -109,8 +114,20 @@ public class MicroProfileDelegateCommandHandler implements IDelegateCommandHandl
 		MicroProfileProjectInfoParams params = new MicroProfileProjectInfoParams(applicationPropertiesUri);
 		params.setScopes(scopes);
 		params.setDocumentFormat(documentFormat);
-		return PropertiesManager.getInstance().getMicroProfileProjectInfo(params, JDTUtilsLSImpl.getInstance(),
-				progress);
+
+		// Execute the getMicroProfileProjectInfo in a Job to benefit with progress monitor
+		final MicroProfileProjectInfo[] projectInfo = new MicroProfileProjectInfo[1];
+		Job job = Job.create("MicroProfile properties collector", monitor -> {
+			projectInfo[0] = PropertiesManager.getInstance().getMicroProfileProjectInfo(params,
+					JDTUtilsLSImpl.getInstance(), monitor);
+		});
+		job.schedule();
+		try {
+			job.join();
+		} catch (InterruptedException e) {
+			LOGGER.log(Level.WARNING, "Error while joining MicroProfile properties collector job", e);
+		}
+		return projectInfo[0];
 	}
 
 	private static Location findDeclaredProperty(List<Object> arguments, String commandId, IProgressMonitor progress)

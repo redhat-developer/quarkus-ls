@@ -19,6 +19,8 @@ import java.util.logging.Logger;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
@@ -109,36 +111,105 @@ public class PropertiesManager {
 		if (LOGGER.isLoggable(Level.INFO)) {
 			LOGGER.info("Start computing MicroProfile properties for '" + info.getProjectURI() + "' project.");
 		}
+		SubMonitor mainMonitor = SubMonitor.convert(monitor,
+				"Scanning properties for '" + javaProject.getProject().getName() + "' project", 100);
 		try {
-			// Get the java project used for the search
 			boolean excludeTestCode = classpathKind == ClasspathKind.SRC;
-			IJavaProject javaProjectForSearch = getJavaProject(javaProject, excludeTestCode, monitor);
 
-			// Create JDT Java search pattern, engine and scope
-			SearchPattern pattern = createSearchPattern();
-			SearchEngine engine = new SearchEngine();
-			IJavaSearchScope scope = createSearchScope(javaProjectForSearch, scopes, excludeTestCode, monitor);
+			// Step1 (50%) : get the java project used for the search
+			IJavaProject javaProjectForSearch = configureSearchClasspath(javaProject, excludeTestCode,
+					mainMonitor.split(50));
+			if (mainMonitor.isCanceled()) {
+				throw new OperationCanceledException();
+			}
 
-			// Execute the search
-			PropertiesCollector collector = new PropertiesCollector(info);
-			SearchContext context = new SearchContext(javaProjectForSearch, collector, utils, documentFormat);
-			beginSearch(context, monitor);
-			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
-					new SearchRequestor() {
-
-						@Override
-						public void acceptSearchMatch(SearchMatch match) throws CoreException {
-							collectProperties(match, context, monitor);
-						}
-					}, monitor);
-			endSearch(context, monitor);
+			// Step2 (50%) : scan Java classes from the search classpath
+			scanJavaClasses(javaProjectForSearch, excludeTestCode, documentFormat, scopes, info, utils,
+					mainMonitor.split(50));
+			if (mainMonitor.isCanceled()) {
+				throw new OperationCanceledException();
+			}
 		} finally {
 			if (LOGGER.isLoggable(Level.INFO)) {
 				LOGGER.info("End computing MicroProfile properties for '" + info.getProjectURI() + "' project in "
 						+ (System.currentTimeMillis() - startTime) + "ms.");
 			}
+			mainMonitor.done();
 		}
 		return info;
+	}
+
+	/**
+	 * Configure the classpath used for the search of MicroProfile properties. At
+	 * this step we can add new JARs to use for the search (ex : for Quarkus we add
+	 * deployment JAR where Quarkus properties are defined).
+	 * 
+	 * @param javaProject     the original Java project
+	 * @param excludeTestCode true if test must be excluded and false otherwise.
+	 * @param mainMonitor     the main progress monitor.
+	 * @return the Java project which hosts original JARs and new JARs to use for
+	 *         the search.
+	 * @throws JavaModelException
+	 */
+	private IJavaProject configureSearchClasspath(IJavaProject javaProject, boolean excludeTestCode,
+			SubMonitor mainMonitor) throws JavaModelException {
+		// Get the java project used for the search
+		mainMonitor.subTask("Configuring search classpath");
+		int length = getPropertiesProviders().size();
+		SubMonitor subMonitor = mainMonitor.setWorkRemaining(length + 1);
+		subMonitor.split(1); // give feedback to the user that something is happening
+		try {
+			return getJavaProject(javaProject, excludeTestCode, subMonitor);
+		} finally {
+			subMonitor.done();
+		}
+	}
+
+	/**
+	 * Execute the Java search to collect MicroProfile, Quarkus, etc properties.
+	 * 
+	 * @param javaProjectForSearch Java project which hosts original JARs and new
+	 *                             JARs to use for the search.
+	 * @param excludeTestCode      true if test must be excluded and false
+	 *                             otherwise.
+	 * @param documentFormat       the document format to use to format Javadoc (in
+	 *                             Markdown for instance)
+	 * @param scopes               the scopes
+	 * @param info                 the project information to update.
+	 * @param utils                the JDT LS utilities
+	 * @param mainMonitor          the main progress monitor.
+	 * @throws JavaModelException
+	 * @throws CoreException
+	 */
+	private void scanJavaClasses(IJavaProject javaProjectForSearch, boolean excludeTestCode,
+			DocumentFormat documentFormat, List<MicroProfilePropertiesScope> scopes, MicroProfileProjectInfo info,
+			IJDTUtils utils, SubMonitor mainMonitor) throws JavaModelException, CoreException {
+		// Create JDT Java search pattern, engine and scope
+		mainMonitor.subTask("Scanning Java classes");
+		SubMonitor subMonitor = mainMonitor.setWorkRemaining(100);
+		try {
+			subMonitor.split(5); // give feedback to the user that something is happening
+
+			SearchPattern pattern = createSearchPattern();
+			SearchEngine engine = new SearchEngine();
+			IJavaSearchScope scope = createSearchScope(javaProjectForSearch, scopes, excludeTestCode, subMonitor);
+
+			// Execute the search
+			PropertiesCollector collector = new PropertiesCollector(info);
+			SearchContext context = new SearchContext(javaProjectForSearch, collector, utils, documentFormat);
+			beginSearch(context, subMonitor);
+			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
+					new SearchRequestor() {
+
+						@Override
+						public void acceptSearchMatch(SearchMatch match) throws CoreException {
+							collectProperties(match, context, subMonitor);
+						}
+					}, subMonitor);
+			endSearch(context, subMonitor);
+		} finally {
+			subMonitor.done();
+		}
 	}
 
 	private void beginSearch(SearchContext context, IProgressMonitor monitor) {
@@ -203,13 +274,20 @@ public class PropertiesManager {
 	 * @return the java project used for search.
 	 * @throws JavaModelException
 	 */
-	private IJavaProject getJavaProject(IJavaProject javaProject, boolean excludeTestCode, IProgressMonitor monitor)
+	private IJavaProject getJavaProject(IJavaProject javaProject, boolean excludeTestCode, SubMonitor monitor)
 			throws JavaModelException {
+		int length = getPropertiesProviders().size();
+		SubMonitor mainMonitor = monitor;
 		IClasspathEntry[] resolvedClasspath = ((JavaProject) javaProject).getResolvedClasspath();
 		List<IClasspathEntry> newClasspathEntries = new ArrayList<>();
-		for (IPropertiesProvider provider : getPropertiesProviders()) {
+		for (int i = 0; i < length; i++) {
+			mainMonitor.subTask("Contributing to classpath for provider (" + (i + 1) + "/" + length + ")");
+			SubMonitor subMonitor = mainMonitor.split(1);
+			IPropertiesProvider provider = getPropertiesProviders().get(i);
 			provider.contributeToClasspath(javaProject, resolvedClasspath, excludeTestCode,
-					ArtifactResolver.DEFAULT_ARTIFACT_RESOLVER, newClasspathEntries, monitor);
+					ArtifactResolver.DEFAULT_ARTIFACT_RESOLVER, newClasspathEntries, subMonitor);
+			subMonitor.done();
+
 		}
 		if (!newClasspathEntries.isEmpty()) {
 			return new FakeJavaProject(javaProject,
@@ -350,41 +428,95 @@ public class PropertiesManager {
 	 * @param sourceType   the source type (class or interface)
 	 * @param sourceField  the source field and null otherwise.
 	 * @param sourceMethod the source method and null otherwise.
-	 * @param progress     the progress monitor.
+	 * @param monitor      the progress monitor.
 	 * @return the Java field from the given property sources
 	 * @throws JavaModelException
 	 */
 	public IMember findDeclaredProperty(IJavaProject javaProject, String sourceType, String sourceField,
-			String sourceMethod, IProgressMonitor progress) throws JavaModelException {
-		if (sourceType == null) {
-			return null;
+			String sourceMethod, IProgressMonitor monitor) throws JavaModelException {
+		String title = getMonitorTitle(javaProject, sourceType, sourceField, sourceMethod);
+		SubMonitor mainMonitor = SubMonitor.convert(monitor, title, 100);
+		try {
+			if (sourceType == null) {
+				return null;
+			}
+			// Step1 (20%) : try to find type with the standard classpath
+			mainMonitor.subTask("Finding type with the standard classpath");
+			SubMonitor subMonitor = mainMonitor.split(20).setWorkRemaining(100);
+			subMonitor.split(5); // give feedback to the user that something is happening
+			IType type = javaProject.findType(sourceType, subMonitor);
+			subMonitor.done();
+			if (mainMonitor.isCanceled()) {
+				throw new OperationCanceledException();
+			}
+
+			// Step2 (80%) : try to find type with the search classpath
+			mainMonitor.subTask("Finding type with the search classpath");
+			subMonitor = mainMonitor.split(80).setWorkRemaining(100);
+			subMonitor.split(5); // give feedback to the user that something is happening
+			if (type == null) {
+				// Not found, type could be included in deployment JAR which is not in classpath
+				// Try to find type from deployment JAR
+				IJavaProject fakeProject = configureSearchClasspath(javaProject, false, subMonitor);
+				if (mainMonitor.isCanceled()) {
+					throw new OperationCanceledException();
+				}
+				type = fakeProject.findType(sourceType, subMonitor);
+			}
+			subMonitor.done();
+			if (mainMonitor.isCanceled()) {
+				throw new OperationCanceledException();
+			}
+
+			if (type == null) {
+				return null;
+			}
+
+			if (sourceField != null) {
+				return type.getField(sourceField);
+			}
+			if (sourceMethod != null) {
+				int startBracketIndex = sourceMethod.indexOf('(');
+				String methodName = sourceMethod.substring(0, startBracketIndex);
+				// Method signature has been generated with JDT API, so we are sure that we have
+				// a ')' character.
+				int endBracketIndex = sourceMethod.indexOf(')');
+				String methodSignature = sourceMethod.substring(startBracketIndex + 1, endBracketIndex);
+				String[] paramTypes = methodSignature.isEmpty() ? CharOperation.NO_STRINGS
+						: Signature.getParameterTypes(methodSignature);
+				return JavaModelUtil.findMethod(methodName, paramTypes, false, type);
+			}
+			return type;
+		} finally {
+			mainMonitor.done();
 		}
-		// Try to find type with standard classpath
-		IType type = javaProject.findType(sourceType, progress);
-		if (type == null) {
-			// Not found, type could be included in deployment JAR which is not in classpath
-			// Try to find type from deployment JAR
-			IJavaProject fakeProject = getJavaProject(javaProject, false, progress);
-			type = fakeProject.findType(sourceType, progress);
+	}
+
+	private static String getMonitorTitle(IJavaProject javaProject, String sourceType, String sourceField,
+			String sourceMethod) {
+		StringBuilder title = new StringBuilder("Finding declared property");
+		if (sourceField == null && sourceMethod == null) {
+			title.append(" for type '");
+			title.append(sourceType);
+			title.append("'");
+		} else {
+			if (sourceField != null) {
+				title.append(" for field '");
+				title.append(sourceField);
+				title.append("'");
+			} else {
+				title.append(" for method '");
+				title.append(sourceMethod);
+				title.append("'");
+			}
+			title.append(" of the type '");
+			title.append(sourceType);
+			title.append("'");
 		}
-		if (type == null) {
-			return null;
-		}
-		if (sourceField != null) {
-			return type.getField(sourceField);
-		}
-		if (sourceMethod != null) {
-			int startBracketIndex = sourceMethod.indexOf('(');
-			String methodName = sourceMethod.substring(0, startBracketIndex);
-			// Method signature has been generated with JDT API, so we are sure that we have
-			// a ')' character.
-			int endBracketIndex = sourceMethod.indexOf(')');
-			String methodSignature = sourceMethod.substring(startBracketIndex + 1, endBracketIndex);
-			String[] paramTypes = methodSignature.isEmpty() ? CharOperation.NO_STRINGS
-					: Signature.getParameterTypes(methodSignature);
-			return JavaModelUtil.findMethod(methodName, paramTypes, false, type);
-		}
-		return type;
+		title.append(" in the '");
+		title.append(javaProject.getProject().getName());
+		title.append("' project ");
+		return title.toString();
 	}
 
 }
