@@ -29,6 +29,7 @@ import static io.quarkus.runtime.util.StringUtil.lowerCase;
 import static io.quarkus.runtime.util.StringUtil.lowerCaseFirst;
 import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ import java.util.stream.Stream;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -98,6 +100,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	public void contributeToClasspath(IJavaProject project, IClasspathEntry[] resolvedClasspath,
 			boolean excludeTestCode, ArtifactResolver artifactResolver, List<IClasspathEntry> deploymentJarEntries,
 			IProgressMonitor monitor) throws JavaModelException {
+
+		// Get existings JARs from the classpath
 		List<String> existingJars = Stream.of(resolvedClasspath)
 				// filter entry to collect only JAR
 				.filter(entry -> entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY)
@@ -106,6 +110,10 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 				// to avoid to ignore it in the next step.
 				.filter(entry -> !excludeTestCode || (excludeTestCode && !entry.isTest())) //
 				.map(entry -> entry.getPath().lastSegment()).collect(Collectors.toList());
+
+		// Loop for each JAR and try to load the /META-INF/quarkus-extension.properties
+		// file which contains the Quarkus deployment artifact information
+		List<Artifact> deploymentArtifacts = new ArrayList<>();
 		for (IClasspathEntry entry : resolvedClasspath) {
 			if (excludeTestCode && entry.isTest()) {
 				continue;
@@ -118,19 +126,35 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 				if (root != null) {
 					Artifact deploymentArtifact = getDeploymentArtifact(root);
 					if (deploymentArtifact != null) {
-						if (addArtifactInClasspath(deploymentArtifact, existingJars, deploymentJarEntries,
-								artifactResolver, monitor)) {
-							// Add dependencies of deployment artifact
-							Set<Artifact> dependencies = artifactResolver.getDependencies(deploymentArtifact, monitor);
-							for (Artifact dependency : dependencies) {
-								addArtifactInClasspath(dependency, existingJars, deploymentJarEntries, artifactResolver,
-										monitor);
-							}
-						}
+						deploymentArtifacts.add(deploymentArtifact);
 					}
 				}
 				break;
 			}
+		}
+
+		// Donwload or get the deployment artifact and their dependencies and add them
+		// in the
+		// classpath
+		SubMonitor mainMonitor = SubMonitor.convert(monitor, "Loading Quarkus deployment dependencies",
+				deploymentArtifacts.size());
+		try {
+			for (Artifact deploymentArtifact : deploymentArtifacts) {
+				mainMonitor.subTask("Loading Quarkus deployment '" + deploymentArtifact.getGroupId()
+						+ deploymentArtifact.getArtifactId() + deploymentArtifact.getVersion()
+						+ "' and their dependencies...");
+				SubMonitor m = mainMonitor.split(1);
+				if (addArtifactInClasspath(deploymentArtifact, existingJars, deploymentJarEntries, artifactResolver,
+						m)) {
+					// Add dependencies of deployment artifact
+					Set<Artifact> dependencies = artifactResolver.getDependencies(deploymentArtifact, m);
+					for (Artifact dependency : dependencies) {
+						addArtifactInClasspath(dependency, existingJars, deploymentJarEntries, artifactResolver, m);
+					}
+				}
+			}
+		} finally {
+			mainMonitor.done();
 		}
 	}
 
