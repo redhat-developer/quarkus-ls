@@ -16,8 +16,6 @@
  */
 package com.redhat.microprofile.model.parser;
 
-import javax.annotation.Resource;
-
 import com.redhat.microprofile.model.parser.ErrorEvent.ErrorType;
 
 /**

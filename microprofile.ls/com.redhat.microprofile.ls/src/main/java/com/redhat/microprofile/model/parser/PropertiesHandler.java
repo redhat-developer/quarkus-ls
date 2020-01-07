@@ -16,8 +16,6 @@
  */
 package com.redhat.microprofile.model.parser;
 
-import javax.annotation.Resource;
-
 /**
  * A handler that gets notified about parse events from
  * {@link PropertiesParser#parse(Resource, PropertiesHandler, ErrorHandler)} .

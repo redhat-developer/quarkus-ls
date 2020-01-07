@@ -12,13 +12,6 @@ package com.redhat.microprofile.services;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.lsp4j.Hover;
-import org.eclipse.lsp4j.MarkupContent;
-import org.eclipse.lsp4j.MarkupKind;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
-import org.omg.CORBA.portable.ValueInputStream;
-
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.metadata.ConfigurationMetadata;
 import com.redhat.microprofile.commons.metadata.ItemHint;
@@ -35,6 +28,12 @@ import com.redhat.microprofile.settings.MicroProfileHoverSettings;
 import com.redhat.microprofile.utils.DocumentationUtils;
 import com.redhat.microprofile.utils.MicroProfilePropertiesUtils;
 import com.redhat.microprofile.utils.PositionUtils;
+
+import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.MarkupContent;
+import org.eclipse.lsp4j.MarkupKind;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
 
 /**
  * Retrieves hover documentation and creating Hover object

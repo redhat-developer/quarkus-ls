@@ -16,8 +16,6 @@
  */
 package com.redhat.microprofile.model.parser;
 
-import javax.annotation.Resource;
-
 /**
  * The context of a parse notification sent by {@link PropertiesParser}.
  * 
