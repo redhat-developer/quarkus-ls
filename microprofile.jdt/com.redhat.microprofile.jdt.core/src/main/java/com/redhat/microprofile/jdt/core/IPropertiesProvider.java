@@ -30,7 +30,7 @@ public interface IPropertiesProvider {
 	 * Begin the search.
 	 * 
 	 * @param context the search context
-	 * @param monitor
+	 * @param monitor the progress monitor
 	 */
 	default void begin(SearchContext context, IProgressMonitor monitor) {
 
@@ -40,6 +40,7 @@ public interface IPropertiesProvider {
 	 * End the search.
 	 * 
 	 * @param context the search context
+	 * @param monitor the progress monitor
 	 */
 	default void end(SearchContext context, IProgressMonitor monitor) {
 

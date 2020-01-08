@@ -328,7 +328,9 @@ public class PropertiesManager {
 	 * Returns the Java field from the given property source
 	 * 
 	 * @param file           the application.properties file
-	 * @param propertySource the property source to find
+	 * @param sourceType     the source type (class or interface)
+	 * @param sourceField    the source field and null otherwise.
+	 * @param sourceMethod   the source method and null otherwise.
 	 * @param progress       the progress monitor.
 	 * @return the Java field from the given property source
 	 * @throws JavaModelException
