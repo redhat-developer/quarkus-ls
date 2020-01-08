@@ -207,8 +207,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * @param javaElement          the class, field element which have a Quarkus
 	 *                             ConfigRoot annotations.
 	 * @param configRootAnnotation the Quarkus ConfigRoot annotation.
-	 * @param converter            the documentation converter to use.
-	 * @param javadocCache
+	 * @param javadocCache         the documentation cache.
 	 * @param collector            the properties to fill.
 	 * @param monitor              the progress monitor.
 	 */
@@ -235,7 +234,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	/**
 	 * Returns the Quarkus @ConfigRoot(phase=...) value.
 	 * 
-	 * @param configRootAnnotation
+	 * @param configRootAnnotation @ConfigRoot annotation
 	 * @return the Quarkus @ConfigRoot(phase=...) value.
 	 * @throws JavaModelException
 	 */
@@ -291,8 +290,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * @param configRootAnnotationName  the name declared in the ConfigRoot
 	 *                                  annotation.
 	 * @param configPhase               the config phase.
-	 * @see https://github.com/quarkusio/quarkus/blob/master/core/deployment/src/main/java/io/quarkus/deployment/configuration/ConfigDefinition.java#L173
-	 *      (registerConfigRoot)
+	 * @see <a href="https://github.com/quarkusio/quarkus/blob/master/core/deployment/src/main/java/io/quarkus/deployment/configuration/ConfigDefinition.java#L173">
+	 *      (registerConfigRoot)</a>
 	 * @return the Quarkus extension name according the
 	 *         <code>configRootClassSimpleName</code>,
 	 *         <code>configRootAnnotationName</code> and <code>configPhase</code>.
@@ -339,7 +338,6 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 *                      ConfigGroup annotations.
 	 * @param baseKey       the base key
 	 * @param configPhase   the phase
-	 * @param converter     the documentation converter to use.
 	 * @param javadocCache  the Javadoc cache
 	 * @param collector     the properties to fill.
 	 * @param monitor       the progress monitor.
@@ -492,10 +490,10 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * <li>get Javadoc from the Quarkus properties file stored in JAR META-INF/
 	 * </ul>
 	 * 
-	 * @param field
-	 * @param javadocCache
-	 * @param monitor
-	 * @return
+	 * @param field the field to process
+	 * @param javadocCache the Javadoc cache
+	 * @param monitor the progress monitor
+	 * @return the doc entry for the field
 	 * @throws JavaModelException
 	 */
 	private static String getJavadoc(IField field, Map<IPackageFragmentRoot, Properties> javadocCache,
@@ -539,15 +537,6 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 		// replace '$' with '.'
 		fieldKey = fieldKey.replace('$', '.');
 		return properties.getProperty(fieldKey);
-	}
-
-	private static String findJavadocFromSource(IField field) throws JavaModelException {
-		ISourceRange range = field.getJavadocRange();
-		if (range != null) {
-			int start = range.getOffset() - field.getSourceRange().getOffset();
-			return field.getSource().substring(start, range.getLength());
-		}
-		return null;
 	}
 
 	private static IJarEntryResource findJavadocFromQuakusJavadocProperties(IPackageFragmentRoot packageRoot)

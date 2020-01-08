@@ -53,7 +53,7 @@ import io.quarkus.runtime.util.StringUtil;
  * </p>
  * 
  * @author Angelo ZERR
- * @see https://quarkus.io/guides/kubernetes#configuration-options
+ * @see <a href="https://quarkus.io/guides/kubernetes#configuration-options">https://quarkus.io/guides/kubernetes#configuration-options</a>
  */
 public class QuarkusKubernetesProvider extends AbstractTypeDeclarationPropertiesProvider {
 
