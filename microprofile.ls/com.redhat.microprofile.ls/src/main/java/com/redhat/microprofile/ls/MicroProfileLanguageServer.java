@@ -24,6 +24,7 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
+import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
 import com.redhat.microprofile.ls.api.MicroProfileLanguageClientAPI;
 import com.redhat.microprofile.ls.api.MicroProfileLanguageServerAPI;
@@ -176,7 +177,12 @@ public class MicroProfileLanguageServer implements LanguageServer, ProcessLangua
 
 	@Override
 	public void propertiesChanged(MicroProfilePropertiesChangeEvent event) {
-		textDocumentService.microprofilePropertiesChanged(event);
+		textDocumentService.propertiesChanged(event);
+	}
+
+	@Override
+	public CompletableFuture<JsonSchemaForProjectInfo> getJsonSchemaForProjectInfo(MicroProfileProjectInfoParams params) {
+		return textDocumentService.getJsonSchemaForProjectInfo(params);
 	}
 
 }

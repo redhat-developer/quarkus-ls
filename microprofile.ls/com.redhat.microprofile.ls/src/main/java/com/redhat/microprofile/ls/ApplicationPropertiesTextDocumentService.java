@@ -49,6 +49,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
+import com.redhat.microprofile.ls.api.MicroProfileLanguageServerAPI.JsonSchemaForProjectInfo;
 import com.redhat.microprofile.ls.commons.ModelTextDocument;
 import com.redhat.microprofile.ls.commons.ModelTextDocuments;
 import com.redhat.microprofile.model.PropertiesModel;
@@ -57,6 +58,7 @@ import com.redhat.microprofile.settings.MicroProfileFormattingSettings;
 import com.redhat.microprofile.settings.MicroProfileSymbolSettings;
 import com.redhat.microprofile.settings.MicroProfileValidationSettings;
 import com.redhat.microprofile.settings.SharedSettings;
+import com.redhat.microprofile.utils.JSONSchemaUtils;
 
 /**
  * LSP text document service for 'application.properties' file.
@@ -402,6 +404,13 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 			return;
 		}
 		projectInfoCache = new MicroProfileProjectInfoCache(microprofileLanguageServer.getLanguageClient());
+	}
+
+	public CompletableFuture<JsonSchemaForProjectInfo> getJsonSchemaForProjectInfo(MicroProfileProjectInfoParams params) {
+		return getProjectInfoCache().getProjectInfo(params).thenApply(info -> {
+			String jsonSchema = JSONSchemaUtils.toJSONSchema(info, true);
+			return new JsonSchemaForProjectInfo(info.getProjectURI(), jsonSchema);
+		});
 	}
 
 }

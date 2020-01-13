@@ -105,6 +105,11 @@ public class ItemMetadata extends ItemBase {
 		return phase == CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED || phase == CONFIG_PHASE_RUN_TIME;
 	}
 
+	public boolean isStringType() {
+		return "java.lang.String".equals(getType()) || //
+				"java.util.Optional<java.lang.String>".equals(getType());
+	}
+
 	public boolean isBooleanType() {
 		return "boolean".equals(getType()) || //
 				"java.lang.Boolean".equals(getType()) || //
@@ -142,6 +147,19 @@ public class ItemMetadata extends ItemBase {
 		return "short".equals(getType()) || //
 				"java.lang.Short".equals(getType()) || //
 				"java.util.Optional<java.lang.Short>".equals(getType());
+	}
+
+	/**
+	 * Returns the paths of the metadata.
+	 * 
+	 * @return the paths of the metadata.
+	 */
+	public String[] getPaths() {
+		String name = getName();
+		if (name != null) {
+			return name.split("\\.");
+		}
+		return null;
 	}
 
 	@Override

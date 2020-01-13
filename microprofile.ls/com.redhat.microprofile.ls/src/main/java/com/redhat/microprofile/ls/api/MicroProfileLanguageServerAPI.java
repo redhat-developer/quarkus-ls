@@ -9,9 +9,13 @@
 *******************************************************************************/
 package com.redhat.microprofile.ls.api;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.eclipse.lsp4j.jsonrpc.services.JsonNotification;
+import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.services.LanguageServer;
 
+import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
 
 /**
@@ -21,6 +25,38 @@ import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
  *
  */
 public interface MicroProfileLanguageServerAPI extends LanguageServer {
+
+	public static class JsonSchemaForProjectInfo {
+
+		private String projectURI;
+
+		private String jsonSchema;
+
+		public JsonSchemaForProjectInfo() {
+
+		}
+
+		public JsonSchemaForProjectInfo(String projectURI, String jsonSchema) {
+			this.projectURI = projectURI;
+			this.jsonSchema = jsonSchema;
+		}
+
+		public String getProjectURI() {
+			return projectURI;
+		}
+
+		public void setProjectURI(String projectURI) {
+			this.projectURI = projectURI;
+		}
+
+		public String getJsonSchema() {
+			return jsonSchema;
+		}
+
+		public void setJsonSchema(String jsonSchema) {
+			this.jsonSchema = jsonSchema;
+		}
+	}
 
 	/**
 	 * Notification for MicroProfile properties changed which occurs when:
@@ -36,4 +72,14 @@ public interface MicroProfileLanguageServerAPI extends LanguageServer {
 	@JsonNotification("microprofile/propertiesChanged")
 	void propertiesChanged(MicroProfilePropertiesChangeEvent event);
 
+	/**
+	 * Returns the Json Schema for the MicroProfile properties of the given
+	 * application.yaml URI.
+	 * 
+	 * @param params the application.yaml URI
+	 * @return the Json Schema for the MicroProfile properties of the given
+	 *         application.yaml URI.
+	 */
+	@JsonRequest("microprofile/jsonSchemaForProjectInfo")
+	CompletableFuture<JsonSchemaForProjectInfo> getJsonSchemaForProjectInfo(MicroProfileProjectInfoParams params);
 }
