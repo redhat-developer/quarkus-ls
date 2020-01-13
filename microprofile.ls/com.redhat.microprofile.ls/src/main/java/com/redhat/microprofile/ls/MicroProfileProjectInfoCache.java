@@ -72,7 +72,7 @@ class MicroProfileProjectInfoCache {
 		 *                 'org.acme.restclient.CountriesService').
 		 */
 		public ComputedItemMetadata(ItemMetadata metadata, ItemHint itemHint, ValueHint value) {
-			// replace dynamic part from metedata name (ex:
+			// replace dynamic part from metadata name (ex:
 			// '${mp.register.rest.client.class}/mp-rest/url'))
 			// with hint value (ex: 'org.acme.restclient.CountriesService') to obtain
 			// the new name 'org.acme.restclient.CountriesService/mp-rest/url'

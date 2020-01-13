@@ -43,7 +43,9 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
+import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
+import com.redhat.microprofile.ls.api.MicroProfileLanguageServerAPI.JsonSchemaForProjectInfo;
 import com.redhat.microprofile.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.microprofile.settings.MicroProfileCodeLensSettings;
 import com.redhat.microprofile.settings.MicroProfileFormattingSettings;
@@ -197,7 +199,7 @@ public class MicroProfileTextDocumentService implements TextDocumentService {
 		return CompletableFuture.completedFuture(null);
 	}
 
-	public void microprofilePropertiesChanged(MicroProfilePropertiesChangeEvent event) {
+	public void propertiesChanged(MicroProfilePropertiesChangeEvent event) {
 		applicationPropertiesTextDocumentService.propertiesChanged(event);
 	}
 
@@ -238,6 +240,10 @@ public class MicroProfileTextDocumentService implements TextDocumentService {
 	private static String getFileExtension(String uri) {
 		int index = uri != null ? uri.lastIndexOf('.') : -1;
 		return index != -1 ? uri.substring(index + 1, uri.length()) : null;
+	}
+
+	public CompletableFuture<JsonSchemaForProjectInfo> getJsonSchemaForProjectInfo(MicroProfileProjectInfoParams params) {
+		return applicationPropertiesTextDocumentService.getJsonSchemaForProjectInfo(params);
 	}
 
 }
