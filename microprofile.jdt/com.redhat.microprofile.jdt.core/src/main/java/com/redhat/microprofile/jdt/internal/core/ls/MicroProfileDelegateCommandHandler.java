@@ -127,6 +127,15 @@ public class MicroProfileDelegateCommandHandler implements IDelegateCommandHandl
 		} catch (InterruptedException e) {
 			LOGGER.log(Level.WARNING, "Error while joining MicroProfile properties collector job", e);
 		}
+		
+		Exception jobException = (Exception) job.getResult().getException();
+		if (jobException != null) {
+			if (jobException.getCause() != null) {
+				throw (Exception) jobException.getCause();
+			}
+			throw jobException;
+		};
+		
 		return projectInfo[0];
 	}
 

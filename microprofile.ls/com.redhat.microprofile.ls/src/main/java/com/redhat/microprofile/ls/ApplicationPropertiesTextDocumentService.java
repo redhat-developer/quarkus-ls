@@ -172,7 +172,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument());
 		return getProjectInfoCache().getProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
 			if (projectInfo.getProperties().isEmpty()) {
-				return null;
+				return CompletableFuture.completedFuture(null);
 			}
 			// then get the Properties model document
 			return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
@@ -213,7 +213,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument());
 		return getProjectInfoCache().getProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
 			if (projectInfo.getProperties().isEmpty()) {
-				return null;
+				return CompletableFuture.completedFuture(null);
 			}
 			// then get the Properties model document
 			return getDocument(params.getTextDocument().getUri()).getModel().thenComposeAsync(document -> {
@@ -243,7 +243,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument());
 		return getProjectInfoCache().getProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
 			if (projectInfo.getProperties().isEmpty()) {
-				return null;
+				return CompletableFuture.completedFuture(null);
 			}
 			// then get the Properties model document
 			return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
@@ -280,7 +280,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(document.getUri());
 		getProjectInfoCache().getProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
 			if (projectInfo.getProperties().isEmpty()) {
-				return null;
+				return CompletableFuture.completedFuture(null);
 			}
 			// then get the Properties model document
 			return getPropertiesModel(document, (cancelChecker, model) -> {

@@ -61,6 +61,16 @@ public class MicroProfileProjectInfoCacheTest {
 		}
 	}
 
+	static class MicroProfileProjectInfoProviderThrowException implements MicroProfileProjectInfoProvider {
+
+		@Override
+		public CompletableFuture<MicroProfileProjectInfo> getProjectInfo(MicroProfileProjectInfoParams params) {
+			CompletableFuture<MicroProfileProjectInfo> completableFuture = new CompletableFuture<>();
+			completableFuture.completeExceptionally(new UnsupportedOperationException());
+			return completableFuture;
+		}
+	}
+
 	@Test
 	public void getProjectInfoCache() throws InterruptedException, ExecutionException {
 		MicroProfileProjectInfoProviderTracker tracker = new MicroProfileProjectInfoProviderTracker();
@@ -101,5 +111,14 @@ public class MicroProfileProjectInfoCacheTest {
 				request1.get() == request4.get());
 		Assert.assertEquals("Number of call of getProjectInfo after propertiesChanged", 2, tracker.getInstanceCount());
 
+	}
+
+	@Test 
+	public void getProjectInfoCacheProviderException() throws InterruptedException, ExecutionException {
+		MicroProfileProjectInfoProviderThrowException provider = new MicroProfileProjectInfoProviderThrowException();
+		MicroProfileProjectInfoCache cache = new MicroProfileProjectInfoCache(provider);
+		MicroProfileProjectInfoParams params = new MicroProfileProjectInfoParams("application.properties");
+		CompletableFuture<MicroProfileProjectInfo> request = cache.getProjectInfo(params);
+		request.get();
 	}
 }
