@@ -79,12 +79,13 @@ class MicroProfileProjectInfoCache {
 			String name = metadata.getName().replace(itemHint.getName(), value.getValue());
 			super.setName(name);
 			super.setSource(Boolean.TRUE);
+			super.setType(metadata.getType());
 			super.setDescription(metadata.getDescription());
 			super.setSourceType(value.getSourceType());
 		}
 	}
 
-	private static class MicroProfileProjectInfoWrapper extends MicroProfileProjectInfo {
+	static class MicroProfileProjectInfoWrapper extends MicroProfileProjectInfo {
 
 		private boolean reloadFromSource;
 
