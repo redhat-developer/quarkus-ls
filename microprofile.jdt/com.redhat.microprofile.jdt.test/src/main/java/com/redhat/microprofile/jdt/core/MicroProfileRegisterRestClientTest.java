@@ -37,7 +37,7 @@ public class MicroProfileRegisterRestClientTest extends BasePropertiesManagerTes
 				MavenProjectName.rest_client_quickstart, MicroProfilePropertiesScope.ONLY_SOURCES);
 
 		// mp-rest Properties
-		assertProperties(infoFromClasspath, 6,
+		assertProperties(infoFromClasspath, 7,
 
 				p(null, "${mp.register.rest.client.class}/mp-rest/url", "java.lang.String",
 						"The base URL to use for this service, the equivalent of the `baseUrl` method.\r\n"
@@ -66,7 +66,11 @@ public class MicroProfileRegisterRestClientTest extends BasePropertiesManagerTes
 
 				p(null, "${mp.register.rest.client.class}/mp-rest/readTimeout", "long",
 						"Timeout specified in milliseconds to wait for a response from the remote endpoint.", false,
-						null, null, null, 0, null)
+						null, null, null, 0, null),
+
+				p(null, "${mp.register.rest.client.class}/mp-rest/providers/{*}/priority", "int",
+						"Override the priority of the provider for the given interface.", false, null, null, null, 0,
+						null)
 
 		);
 
