@@ -9,6 +9,7 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core;
 
+import static com.redhat.microprofile.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED;
 import static com.redhat.microprofile.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_TIME;
 import static com.redhat.microprofile.commons.metadata.ItemMetadata.CONFIG_PHASE_RUN_TIME;
 import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertHints;
@@ -18,17 +19,14 @@ import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.h;
 import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.p;
 import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.vh;
 
-import java.io.File;
 import java.util.Optional;
 
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.metadata.ItemHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
-import com.redhat.microprofile.jdt.internal.core.utils.DependencyUtil;
 
 /**
  * Test to download and use in classpath deployment JARs declared in //
@@ -45,17 +43,21 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 	public void hibernateOrmResteasy() throws Exception {
 		MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(
 				MavenProjectName.hibernate_orm_resteasy);
-
-		File f = DependencyUtil.getArtifact("io.quarkus", "quarkus-hibernate-orm-deployment", "0.19.1", null,
-				new NullProgressMonitor());
-		Assert.assertNotNull("Test existing of quarkus-hibernate-orm-deployment*.jar", f);
-
 		assertProperties(info,
 
 				// io.quarkus.hibernate.orm.deployment.HibernateOrmConfig
 				p("quarkus-hibernate-orm", "quarkus.hibernate-orm.dialect", "java.util.Optional<java.lang.String>",
-						"The hibernate ORM dialect class name", true,
-						"io.quarkus.hibernate.orm.deployment.HibernateOrmConfig", "dialect", null,
+						"Class name of the Hibernate ORM dialect. The complete list of bundled dialects is available in the\n" //
+								+ "https://docs.jboss.org/hibernate/stable/orm/javadocs/org/hibernate/dialect/package-summary.html[Hibernate ORM JavaDoc].\n" //
+								+ "\n" + //
+								"[NOTE]\n" + //
+								"====\n" //
+								+ "Not all the dialects are supported in GraalVM native executables: we currently provide driver extensions for PostgreSQL,\n" //
+								+ "MariaDB, Microsoft SQL Server and H2.\n" + //
+								"====\n" + //
+								"\n" + //
+								"@asciidoclet",
+						true, "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig", "dialect", null,
 						CONFIG_PHASE_BUILD_TIME, null));
 	}
 
@@ -64,46 +66,36 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 		MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(
 				MavenProjectName.all_quarkus_extensions);
 
-		File keycloakJARFile = DependencyUtil.getArtifact("io.quarkus", "quarkus-keycloak-deployment", "0.21.1", null,
-				new NullProgressMonitor());
-		Assert.assertNotNull("Test existing of quarkus-keycloak-deployment*.jar", keycloakJARFile);
-		File hibernateJARFile = DependencyUtil.getArtifact("io.quarkus", "quarkus-hibernate-orm-deployment", "0.21.1",
-				null, new NullProgressMonitor());
-		Assert.assertNotNull("Test existing of quarkus-hibernate-orm-deployment*.jar", hibernateJARFile);
-		File undertowJARFile = DependencyUtil.getArtifact("io.quarkus", "quarkus-undertow", "0.21.1", null,
-				new NullProgressMonitor());
-		Assert.assertNotNull("Test existing of quarkus-undertow*.jar", undertowJARFile);
-		File mongoJARFile = DependencyUtil.getArtifact("io.quarkus", "quarkus-mongodb-client", "0.21.1", null,
-				new NullProgressMonitor());
-		Assert.assertNotNull("Test existing of quarkus-mongodb-client*.jar", mongoJARFile);
-
 		assertProperties(info,
 
-				// Test with Map<String, String>
-				// https://github.com/quarkusio/quarkus/blob/0.21/extensions/keycloak/deployment/src/main/java/io/quarkus/keycloak/KeycloakConfig.java#L308
-				p("quarkus-keycloak", "quarkus.keycloak.credentials.jwt.{*}", "java.lang.String",
-						"The settings for client authentication with signed JWT", true,
-						"io.quarkus.keycloak.KeycloakConfig.KeycloakConfigCredentials", "jwt", null,
-						CONFIG_PHASE_BUILD_TIME, null),
+				p("quarkus-keycloak-authorization", "quarkus.keycloak.policy-enforcer.paths.{*}.name",
+						"java.util.Optional<java.lang.String>",
+						"The name of a resource on the server that is to be associated with a given path", true,
+						"io.quarkus.keycloak.pep.runtime.KeycloakPolicyEnforcerConfig.KeycloakConfigPolicyEnforcer.PathConfig",
+						"name", null, CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED, null),
 
-				// Test with Map<String, Map<String, Map<String, String>>>
-				// https://github.com/quarkusio/quarkus/blob/0.21/extensions/keycloak/deployment/src/main/java/io/quarkus/keycloak/KeycloakConfig.java#L469
-				p("quarkus-keycloak", "quarkus.keycloak.policy-enforcer.paths.{*}.claim-information-point.{*}.{*}.{*}",
-						"java.lang.String", "", true,
-						"io.quarkus.keycloak.KeycloakConfig.KeycloakConfigPolicyEnforcer.ClaimInformationPointConfig",
-						"complexConfig", null, CONFIG_PHASE_BUILD_TIME, null),
+				p("quarkus-keycloak-authorization", "quarkus.keycloak.policy-enforcer.paths.{*}.methods.{*}.method",
+						"java.lang.String", "The name of the HTTP method", true,
+						"io.quarkus.keycloak.pep.runtime.KeycloakPolicyEnforcerConfig.KeycloakConfigPolicyEnforcer.MethodConfig",
+						"method", null, CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED, null),
 
-				// io.quarkus.hibernate.orm.deployment.HibernateOrmConfig
 				p("quarkus-hibernate-orm", "quarkus.hibernate-orm.dialect", "java.util.Optional<java.lang.String>",
-						"The hibernate ORM dialect class name", true,
-						"io.quarkus.hibernate.orm.deployment.HibernateOrmConfig", "dialect", null,
+						"Class name of the Hibernate ORM dialect. The complete list of bundled dialects is available in the\n" //
+								+ "https://docs.jboss.org/hibernate/stable/orm/javadocs/org/hibernate/dialect/package-summary.html[Hibernate ORM JavaDoc].\n" //
+								+ "\n" + //
+								"[NOTE]\n" + //
+								"====\n" //
+								+ "Not all the dialects are supported in GraalVM native executables: we currently provide driver extensions for PostgreSQL,\n" //
+								+ "MariaDB, Microsoft SQL Server and H2.\n" + //
+								"====\n" + //
+								"\n" + //
+								"@asciidoclet",
+						true, "io.quarkus.hibernate.orm.deployment.HibernateOrmConfig", "dialect", null,
 						CONFIG_PHASE_BUILD_TIME, null),
 
-				// test with extension name
-				p("quarkus-undertow", "quarkus.http.ssl.certificate.file", "java.util.Optional<java.nio.file.Path>",
+				p("quarkus-vertx-http", "quarkus.http.ssl.certificate.file", "java.util.Optional<java.nio.file.Path>",
 						"The file path to a server certificate or certificate chain in PEM format.", true,
-						"io.quarkus.runtime.configuration.ssl.CertificateConfig", "file", null, CONFIG_PHASE_RUN_TIME,
-						null),
+						"io.quarkus.vertx.http.runtime.CertificateConfig", "file", null, CONFIG_PHASE_RUN_TIME, null),
 
 				p("quarkus-mongodb-client", "quarkus.mongodb.credentials.auth-mechanism-properties.{*}",
 						"java.lang.String", "Allows passing authentication mechanism properties.", true,
@@ -170,7 +162,6 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 		return info.getProperties().stream().filter(completion -> {
 			return propertyName.equals(completion.getName());
 		}).findFirst();
-
 	}
 
 }

@@ -29,15 +29,9 @@ import com.redhat.microprofile.services.MicroProfileAssert;
  */
 public class MockMicroProfilePropertyDefinitionProvider implements MicroProfilePropertyDefinitionProvider {
 
-	private static class PropertyDefinition {
-
-		private String propertySource;
+	private static class PropertyDefinition extends MicroProfilePropertyDefinitionParams {
 
 		private Location location;
-
-		public String getPropertySource() {
-			return propertySource;
-		}
 
 		public Location getLocation() {
 			return location;
@@ -53,13 +47,17 @@ public class MockMicroProfilePropertyDefinitionProvider implements MicroProfileP
 				new InputStreamReader(MicroProfileAssert.class.getResourceAsStream("all-quarkus-definitions.json")),
 				PropertyDefinition[].class);
 		for (PropertyDefinition propertyDefinition : definitions) {
-			cache.put(propertyDefinition.getPropertySource(), propertyDefinition.getLocation());
+			cache.put(getKey(propertyDefinition), propertyDefinition.getLocation());
 		}
 	}
 
 	@Override
 	public CompletableFuture<Location> getPropertyDefinition(MicroProfilePropertyDefinitionParams params) {
-		return CompletableFuture.completedFuture(cache.get(params.getSourceType() + "#" + params.getSourceField()));
+		return CompletableFuture.completedFuture(cache.get(getKey(params)));
+	}
+
+	private static String getKey(MicroProfilePropertyDefinitionParams params) {
+		return params.getSourceType() + "#" + params.getSourceField() + "#" + params.getSourceMethod();
 	}
 
 }

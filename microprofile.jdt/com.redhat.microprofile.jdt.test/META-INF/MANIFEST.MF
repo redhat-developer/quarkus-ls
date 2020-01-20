@@ -12,3 +12,4 @@ Require-Bundle: org.junit,
  com.google.guava,
  com.redhat.microprofile.jdt.quarkus,
  org.eclipse.lsp4j
+Import-Package: com.google.gson
