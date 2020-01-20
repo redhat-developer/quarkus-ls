@@ -151,8 +151,9 @@ public class PropertiesManager {
 	 *         the search.
 	 * @throws JavaModelException
 	 */
-	private IJavaProject configureSearchClasspath(IJavaProject javaProject, boolean excludeTestCode,
-			SubMonitor mainMonitor) throws JavaModelException {
+	public IJavaProject configureSearchClasspath(IJavaProject javaProject, boolean excludeTestCode,
+			IProgressMonitor monitor) throws JavaModelException {
+		SubMonitor mainMonitor = SubMonitor.convert(monitor);
 		// Get the java project used for the search
 		mainMonitor.subTask("Configuring search classpath");
 		int length = getPropertiesProviders().size();
@@ -276,6 +277,10 @@ public class PropertiesManager {
 	 */
 	private IJavaProject getJavaProject(IJavaProject javaProject, boolean excludeTestCode, SubMonitor monitor)
 			throws JavaModelException {
+		if (javaProject instanceof FakeJavaProject) {
+			// The java project is already resolved
+			return javaProject;
+		}
 		int length = getPropertiesProviders().size();
 		SubMonitor mainMonitor = monitor;
 		IClasspathEntry[] resolvedClasspath = ((JavaProject) javaProject).getResolvedClasspath();
@@ -382,13 +387,15 @@ public class PropertiesManager {
 		if (file == null) {
 			throw new UnsupportedOperationException(String.format("Cannot find IFile for '%s'", params.getUri()));
 		}
-		return findPropertyLocation(file, params.getSourceType(), params.getSourceField(), params.getSourceMethod(),
-				utils, progress);
+		String projectName = file.getProject().getName();
+		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
+		return findPropertyLocation(javaProject, params.getSourceType(), params.getSourceField(),
+				params.getSourceMethod(), utils, progress);
 	}
 
-	public Location findPropertyLocation(IFile file, String sourceType, String sourceField, String sourceMethod,
-			IJDTUtils utils, IProgressMonitor progress) throws JavaModelException, CoreException {
-		IMember fieldOrMethod = findDeclaredProperty(file, sourceType, sourceField, sourceMethod, progress);
+	public Location findPropertyLocation(IJavaProject javaProject, String sourceType, String sourceField,
+			String sourceMethod, IJDTUtils utils, IProgressMonitor progress) throws JavaModelException, CoreException {
+		IMember fieldOrMethod = findDeclaredProperty(javaProject, sourceType, sourceField, sourceMethod, progress);
 		if (fieldOrMethod != null) {
 			IClassFile classFile = fieldOrMethod.getClassFile();
 			if (classFile != null) {
@@ -400,25 +407,6 @@ public class PropertiesManager {
 			return utils.toLocation(fieldOrMethod);
 		}
 		return null;
-	}
-
-	/**
-	 * Returns the Java field from the given property source
-	 * 
-	 * @param file           the application.properties file
-	 * @param sourceType     the source type (class or interface)
-	 * @param sourceField    the source field and null otherwise.
-	 * @param sourceMethod   the source method and null otherwise.
-	 * @param progress       the progress monitor.
-	 * @return the Java field from the given property source
-	 * @throws JavaModelException
-	 * @throws CoreException
-	 */
-	public IMember findDeclaredProperty(IFile file, String sourceType, String sourceField, String sourceMethod,
-			IProgressMonitor progress) throws JavaModelException, CoreException {
-		String projectName = file.getProject().getName();
-		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
-		return findDeclaredProperty(javaProject, sourceType, sourceField, sourceMethod, progress);
 	}
 
 	/**
@@ -440,6 +428,11 @@ public class PropertiesManager {
 			if (sourceType == null) {
 				return null;
 			}
+			IJavaProject fakeProject = null;
+			if (javaProject instanceof FakeJavaProject) {
+				fakeProject = javaProject;
+				javaProject = ((FakeJavaProject) fakeProject).getRootProject();
+			}
 			// Step1 (20%) : try to find type with the standard classpath
 			mainMonitor.subTask("Finding type with the standard classpath");
 			SubMonitor subMonitor = mainMonitor.split(20).setWorkRemaining(100);
@@ -457,7 +450,9 @@ public class PropertiesManager {
 			if (type == null) {
 				// Not found, type could be included in deployment JAR which is not in classpath
 				// Try to find type from deployment JAR
-				IJavaProject fakeProject = configureSearchClasspath(javaProject, false, subMonitor);
+				if (fakeProject == null) {
+					fakeProject = configureSearchClasspath(javaProject, false, subMonitor);
+				}
 				if (mainMonitor.isCanceled()) {
 					throw new OperationCanceledException();
 				}

@@ -61,9 +61,9 @@ public class ApplicationPropertiesCompletionTest {
 	public void completionOnKeyMap() throws BadLocationException {
 		String value = "quarkus.log.category|";
 		testCompletionFor(value, false,
-				c("quarkus.log.category.{*}.min-level", "quarkus.log.category.{*}.min-level=inherit", r(0, 0, 20)));
-		testCompletionFor(value, true, c("quarkus.log.category.{*}.min-level",
-				"quarkus.log.category.${1:key}.min-level=${2|DEBUG,ERROR,OFF,SEVERE,WARNING,INFO,CONFIG,FINE,FINER,FINEST,ALL|}", r(0, 0, 20)));
+				c("quarkus.log.category.{*}.level", "quarkus.log.category.{*}.level=inherit", r(0, 0, 20)));
+		testCompletionFor(value, true, c("quarkus.log.category.{*}.level",
+				"quarkus.log.category.${1:key}.level=${2|DEBUG,ERROR,OFF,SEVERE,WARNING,INFO,CONFIG,FINE,FINER,FINEST,ALL|}", r(0, 0, 20)));
 	}
 
 	@Test
@@ -72,9 +72,9 @@ public class ApplicationPropertiesCompletionTest {
 				"|\r\n" + //
 				"quarkus.application.version= ";
 		testCompletionFor(value, false,
-				c("quarkus.log.category.{*}.min-level", "quarkus.log.category.{*}.min-level=inherit", r(1, 0, 0)));
-		testCompletionFor(value, true, c("quarkus.log.category.{*}.min-level",
-				"quarkus.log.category.${1:key}.min-level=${2|DEBUG,ERROR,OFF,SEVERE,WARNING,INFO,CONFIG,FINE,FINER,FINEST,ALL|}", r(1, 0, 0)));
+				c("quarkus.log.category.{*}.level", "quarkus.log.category.{*}.level=inherit", r(1, 0, 0)));
+		testCompletionFor(value, true, c("quarkus.log.category.{*}.level",
+				"quarkus.log.category.${1:key}.level=${2|DEBUG,ERROR,OFF,SEVERE,WARNING,INFO,CONFIG,FINE,FINER,FINEST,ALL|}", r(1, 0, 0)));
 	}
 
 	@Test

@@ -88,7 +88,7 @@ public class MicroProfileAssert {
 		return DEFAULT_PROJECT;
 	}
 
-	public static MicroProfilePropertyDefinitionProvider getDefaultQuarkusPropertyDefinitionProvider() {
+	public static MicroProfilePropertyDefinitionProvider getDefaultMicroProfilePropertyDefinitionProvider() {
 		if (DEFAULT_DEFINITION_PROVIDER == null) {
 			DEFAULT_DEFINITION_PROVIDER = new MockMicroProfilePropertyDefinitionProvider();
 		}
@@ -356,7 +356,7 @@ public class MicroProfileAssert {
 
 	public static void testDefinitionFor(String value, LocationLink... expected)
 			throws BadLocationException, InterruptedException, ExecutionException {
-		testDefinitionFor(value, getDefaultMicroProfileProjectInfo(), getDefaultQuarkusPropertyDefinitionProvider(),
+		testDefinitionFor(value, getDefaultMicroProfileProjectInfo(), getDefaultMicroProfilePropertyDefinitionProvider(),
 				expected);
 	}
 

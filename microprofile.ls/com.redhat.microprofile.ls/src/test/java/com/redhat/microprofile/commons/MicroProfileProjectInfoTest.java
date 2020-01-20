@@ -14,6 +14,7 @@ import static com.redhat.microprofile.utils.MicroProfilePropertiesUtils.formatPr
 import static com.redhat.microprofile.utils.MicroProfilePropertiesUtils.formatPropertyForMarkdown;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.redhat.microprofile.model.PropertiesModel;
@@ -90,6 +91,7 @@ public class MicroProfileProjectInfoTest {
 	}
 
 	@Test
+	@Ignore("Ignore this test since quarkus.keycloak.policy-enforcer.claim-information-point.{*}.{*}.{*} no longer exists")
 	public void getPropertyMapWithThreeKeys() {
 		MicroProfileProjectInfo info = getDefaultMicroProfileProjectInfo();
 		PropertyInfo property = getProperty("quarkus.keycloak.policy-enforcer.claim-information-point.foo.bar.zoo",

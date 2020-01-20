@@ -55,55 +55,55 @@ public class ApplicationPropertiesCodeActionsTest {
 
 	@Test
 	public void codeActionsForUnknownPropertiesParentKey() throws BadLocationException {
-		String value = "kubernetes.group=myUser\n" + //
-				"kubernetes.registry=http://my.docker-registry.net\n" + //
-				"kubernetes.labels[0].key=foo\n" + //
-				"kubernetes.labels[0].value=bar\n" + //
-				"kubernetes.readiness-probe.initial-delay-seconds=20\n" + //
-				"kubernetes.readiness-probe.period-seconds=45";
+		String value = "abcdefghij.group=myUser\n" + //
+				"abcdefghij.registry=http://my.docker-registry.net\n" + //
+				"abcdefghij.labels[0].key=foo\n" + //
+				"abcdefghij.labels[0].value=bar\n" + //
+				"abcdefghij.readiness-probe.initial-delay-seconds=20\n" + //
+				"abcdefghij.readiness-probe.period-seconds=45";
 		
 
-		Diagnostic d1 = d(0, 0, 16, "Unknown property 'kubernetes.group'", DiagnosticSeverity.Warning,
+		Diagnostic d1 = d(0, 0, 16, "Unknown property 'abcdefghij.group'", DiagnosticSeverity.Warning,
 				ValidationType.unknown);
-		Diagnostic d2 = d(1, 0, 19, "Unknown property 'kubernetes.registry'", DiagnosticSeverity.Warning,
+		Diagnostic d2 = d(1, 0, 19, "Unknown property 'abcdefghij.registry'", DiagnosticSeverity.Warning,
 				ValidationType.unknown);
-		Diagnostic d3 = d(2, 0, 24, "Unknown property 'kubernetes.labels[0].key'", DiagnosticSeverity.Warning,
+		Diagnostic d3 = d(2, 0, 24, "Unknown property 'abcdefghij.labels[0].key'", DiagnosticSeverity.Warning,
 				ValidationType.unknown);
-		Diagnostic d4 = d(3, 0, 26, "Unknown property 'kubernetes.labels[0].value'", DiagnosticSeverity.Warning,
+		Diagnostic d4 = d(3, 0, 26, "Unknown property 'abcdefghij.labels[0].value'", DiagnosticSeverity.Warning,
 				ValidationType.unknown);
-		Diagnostic d5 = d(4, 0, 48, "Unknown property 'kubernetes.readiness-probe.initial-delay-seconds'", DiagnosticSeverity.Warning,
+		Diagnostic d5 = d(4, 0, 48, "Unknown property 'abcdefghij.readiness-probe.initial-delay-seconds'", DiagnosticSeverity.Warning,
 				ValidationType.unknown);
-		Diagnostic d6 = d(5, 0, 41, "Unknown property 'kubernetes.readiness-probe.period-seconds'", DiagnosticSeverity.Warning,
+		Diagnostic d6 = d(5, 0, 41, "Unknown property 'abcdefghij.readiness-probe.period-seconds'", DiagnosticSeverity.Warning,
 				ValidationType.unknown);
 
 		testDiagnosticsFor(value, d1, d2, d3, d4, d5, d6);
 		testCodeActionsFor(value, d1,
-				caAddToExcluded("kubernetes.group", d1),
-				caAddToExcluded("kubernetes.*", d1));
+				caAddToExcluded("abcdefghij.group", d1),
+				caAddToExcluded("abcdefghij.*", d1));
 
 		testCodeActionsFor(value, d2,
-				caAddToExcluded("kubernetes.registry", d2),
-				caAddToExcluded("kubernetes.*", d2));
+				caAddToExcluded("abcdefghij.registry", d2),
+				caAddToExcluded("abcdefghij.*", d2));
 
 		testCodeActionsFor(value, d3,
-				caAddToExcluded("kubernetes.labels[0].key", d3),
-				caAddToExcluded("kubernetes.labels[0].*", d3),
-				caAddToExcluded("kubernetes.*", d3));
+				caAddToExcluded("abcdefghij.labels[0].key", d3),
+				caAddToExcluded("abcdefghij.labels[0].*", d3),
+				caAddToExcluded("abcdefghij.*", d3));
 		
 		testCodeActionsFor(value, d4,
-				caAddToExcluded("kubernetes.labels[0].value", d4),
-				caAddToExcluded("kubernetes.labels[0].*", d4),
-				caAddToExcluded("kubernetes.*", d4));
+				caAddToExcluded("abcdefghij.labels[0].value", d4),
+				caAddToExcluded("abcdefghij.labels[0].*", d4),
+				caAddToExcluded("abcdefghij.*", d4));
 		
 		testCodeActionsFor(value, d5,
-				caAddToExcluded("kubernetes.readiness-probe.initial-delay-seconds", d5),
-				caAddToExcluded("kubernetes.readiness-probe.*", d5),
-				caAddToExcluded("kubernetes.*", d5));
+				caAddToExcluded("abcdefghij.readiness-probe.initial-delay-seconds", d5),
+				caAddToExcluded("abcdefghij.readiness-probe.*", d5),
+				caAddToExcluded("abcdefghij.*", d5));
 
 		testCodeActionsFor(value, d6,
-				caAddToExcluded("kubernetes.readiness-probe.period-seconds", d6),
-				caAddToExcluded("kubernetes.readiness-probe.*", d6),
-				caAddToExcluded("kubernetes.*", d6));
+				caAddToExcluded("abcdefghij.readiness-probe.period-seconds", d6),
+				caAddToExcluded("abcdefghij.readiness-probe.*", d6),
+				caAddToExcluded("abcdefghij.*", d6));
 	};
 
 	@Test
@@ -204,7 +204,7 @@ public class ApplicationPropertiesCodeActionsTest {
 	@Test
 	public void codeActionsForUnknownEnum() throws BadLocationException {
 		String value = "quarkus.log.syslog.async.overflow=BLACK";
-		Diagnostic d = d(0, 34, 39, "Invalid enum value: 'BLACK' is invalid for type org.jboss.logmanager.handlers.AsyncHandler$OverflowAction", DiagnosticSeverity.Error,
+		Diagnostic d = d(0, 34, 39, "Invalid enum value: 'BLACK' is invalid for type org.jboss.logmanager.handlers.AsyncHandler.OverflowAction", DiagnosticSeverity.Error,
 				ValidationType.value);
 
 		testDiagnosticsFor(value, d);
@@ -215,7 +215,7 @@ public class ApplicationPropertiesCodeActionsTest {
 	@Test
 	public void codeActionsForUnknownEnumStartsWith() throws BadLocationException {
 		String value = "quarkus.log.syslog.async.overflow=B";
-		Diagnostic d = d(0, 34, 35, "Invalid enum value: 'B' is invalid for type org.jboss.logmanager.handlers.AsyncHandler$OverflowAction", DiagnosticSeverity.Error,
+		Diagnostic d = d(0, 34, 35, "Invalid enum value: 'B' is invalid for type org.jboss.logmanager.handlers.AsyncHandler.OverflowAction", DiagnosticSeverity.Error,
 				ValidationType.value);
 
 		testDiagnosticsFor(value, d);
@@ -238,7 +238,7 @@ public class ApplicationPropertiesCodeActionsTest {
 	public void codeActionsForReplaceUnknown() throws BadLocationException {
 		String value = "quarkus.log.syslog.async.overflow=unknown-value";
 		Diagnostic d = d(0, 34, 47,
-				"Invalid enum value: 'unknown-value' is invalid for type org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
+				"Invalid enum value: 'unknown-value' is invalid for type org.jboss.logmanager.handlers.AsyncHandler.OverflowAction",
 				DiagnosticSeverity.Error,
 				ValidationType.value);
 

@@ -40,16 +40,16 @@ public class ApplicationPropertiesDiagnosticsTest {
 				"quarkus.datasource.max-size=20\n" + //
 				"quarkus.datasource.min-size=\n" + //
 				"unknown.property=X\n" + // <-- error
-				"quarkus.log.category.XXXXXXXXXXXXX.min-level=DEBUG\n" + // no error 'XXXXXXXXXXXXX' is a key
-				"quarkus.log.category.XXXXXXXXXXXXX.YYYYYYYYYYYY.min-level=DEBUG\n" + // <-- error
-				"quarkus.log.category.\"XXXXXXXXXXXXX.YYYYYYYYYYYY\".min-level=DEBUG\n" + // no error
-																							// 'XXXXXXXXXXXXX.YYYYYYYYYYYY'
-																							// is a key
+				"quarkus.log.category.XXXXXXXXXXXXX.level=DEBUG\n" + // no error 'XXXXXXXXXXXXX' is a key
+				"quarkus.log.category.XXXXXXXXXXXXX.YYYYYYYYYYYY.level=DEBUG\n" + // <-- error
+				"quarkus.log.category.\"XXXXXXXXXXXXX.YYYYYYYYYYYY\".level=DEBUG\n" + // no error
+																						// 'XXXXXXXXXXXXX.YYYYYYYYYYYY'
+																						// is a key
 				"\n" + //
 				"";
 		testDiagnosticsFor(value, getDefaultMicroProfileProjectInfo(),
 				d(8, 0, 16, "Unknown property 'unknown.property'", DiagnosticSeverity.Warning, ValidationType.unknown), //
-				d(10, 0, 57, "Unknown property 'quarkus.log.category.XXXXXXXXXXXXX.YYYYYYYYYYYY.min-level'",
+				d(10, 0, 53, "Unknown property 'quarkus.log.category.XXXXXXXXXXXXX.YYYYYYYYYYYY.level'",
 						DiagnosticSeverity.Warning, ValidationType.unknown));
 	};
 
@@ -57,9 +57,9 @@ public class ApplicationPropertiesDiagnosticsTest {
 	public void validateUnknownPropertyMissingEquals() throws BadLocationException {
 		String value = "unknown.property\n" + //
 				"quarkus.datasource.min-size=\n" + //
-				"quarkus.log.category.\"XXXXXXXXXXXXX.YYYYYYYYYYYY\".min-level=DEBUG\n" + // no error
-																							// 'XXXXXXXXXXXXX.YYYYYYYYYYYY'
-																							// is a key
+				"quarkus.log.category.\"XXXXXXXXXXXXX.YYYYYYYYYYYY\".level=DEBUG\n" + // no error
+																						// 'XXXXXXXXXXXXX.YYYYYYYYYYYY'
+																						// is a key
 				"\n" + //
 				"";
 		testDiagnosticsFor(value, getDefaultMicroProfileProjectInfo(),
@@ -79,11 +79,11 @@ public class ApplicationPropertiesDiagnosticsTest {
 				"quarkus.datasource.max-size=20\n" + //
 				"quarkus.datasource.min-size=\n" + //
 				"unknown.property=X\n" + // <-- error
-				"quarkus.log.category.XXXXXXXXXXXXX.min-level=DEBUG\n" + // no error 'XXXXXXXXXXXXX' is a key
-				"quarkus.log.category.XXXXXXXXXXXXX.YYYYYYYYYYYY.min-level=DEBUG\n" + // <-- error
-				"quarkus.log.category.\"XXXXXXXXXXXXX.YYYYYYYYYYYY\".min-level=DEBUG\n" + // no error
-																							// 'XXXXXXXXXXXXX.YYYYYYYYYYYY'
-																							// is a key
+				"quarkus.log.category.XXXXXXXXXXXXX.level=DEBUG\n" + // no error 'XXXXXXXXXXXXX' is a key
+				"quarkus.log.category.XXXXXXXXXXXXX.YYYYYYYYYYYY.level=DEBUG\n" + // <-- error
+				"quarkus.log.category.\"XXXXXXXXXXXXX.YYYYYYYYYYYY\".level=DEBUG\n" + // no error
+																						// 'XXXXXXXXXXXXX.YYYYYYYYYYYY'
+																						// is a key
 				"\n" + //
 				"";
 
@@ -94,7 +94,7 @@ public class ApplicationPropertiesDiagnosticsTest {
 
 		testDiagnosticsFor(value, getDefaultMicroProfileProjectInfo(), settings,
 				d(8, 0, 16, "Unknown property 'unknown.property'", DiagnosticSeverity.Error, ValidationType.unknown), //
-				d(10, 0, 57, "Unknown property 'quarkus.log.category.XXXXXXXXXXXXX.YYYYYYYYYYYY.min-level'",
+				d(10, 0, 53, "Unknown property 'quarkus.log.category.XXXXXXXXXXXXX.YYYYYYYYYYYY.level'",
 						DiagnosticSeverity.Error, ValidationType.unknown));
 	};
 
@@ -109,11 +109,11 @@ public class ApplicationPropertiesDiagnosticsTest {
 				"quarkus.datasource.max-size=20\n" + //
 				"quarkus.datasource.min-size=\n" + //
 				"unknown.property=X\n" + // <-- error
-				"quarkus.log.category.XXXXXXXXXXXXX.min-level=DEBUG\n" + // no error 'XXXXXXXXXXXXX' is a key
-				"quarkus.log.category.XXXXXXXXXXXXX.YYYYYYYYYYYY.min-level=DEBUG\n" + // <-- error
-				"quarkus.log.category.\"XXXXXXXXXXXXX.YYYYYYYYYYYY\".min-level=DEBUG\n" + // no error
-																							// 'XXXXXXXXXXXXX.YYYYYYYYYYYY'
-																							// is a key
+				"quarkus.log.category.XXXXXXXXXXXXX.level=DEBUG\n" + // no error 'XXXXXXXXXXXXX' is a key
+				"quarkus.log.category.XXXXXXXXXXXXX.YYYYYYYYYYYY.level=DEBUG\n" + // <-- error
+				"quarkus.log.category.\"XXXXXXXXXXXXX.YYYYYYYYYYYY\".level=DEBUG\n" + // no error
+																						// 'XXXXXXXXXXXXX.YYYYYYYYYYYY'
+																						// is a key
 				"\n" + //
 				"";
 
@@ -124,7 +124,7 @@ public class ApplicationPropertiesDiagnosticsTest {
 		settings.setUnknown(unknown);
 
 		testDiagnosticsFor(value, 1, getDefaultMicroProfileProjectInfo(), settings,
-				d(10, 0, 57, "Unknown property 'quarkus.log.category.XXXXXXXXXXXXX.YYYYYYYYYYYY.min-level'",
+				d(10, 0, 53, "Unknown property 'quarkus.log.category.XXXXXXXXXXXXX.YYYYYYYYYYYY.level'",
 						DiagnosticSeverity.Error, ValidationType.unknown));
 	};
 
@@ -289,10 +289,10 @@ public class ApplicationPropertiesDiagnosticsTest {
 
 		MicroProfileValidationSettings settings = new MicroProfileValidationSettings();
 		testDiagnosticsFor(value, getDefaultMicroProfileProjectInfo(), settings, d(0, 35, 40,
-				"Invalid enum value: 'error' is invalid for type org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
+				"Invalid enum value: 'error' is invalid for type org.jboss.logmanager.handlers.AsyncHandler.OverflowAction",
 				DiagnosticSeverity.Error, ValidationType.value),
 				d(1, 34, 39,
-						"Invalid enum value: 'error' is invalid for type org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
+						"Invalid enum value: 'error' is invalid for type org.jboss.logmanager.handlers.AsyncHandler.OverflowAction",
 						DiagnosticSeverity.Error, ValidationType.value));
 	};
 
@@ -334,7 +334,7 @@ public class ApplicationPropertiesDiagnosticsTest {
 		String value = "quarkus.http.cors  =   \n" + //
 				"quarkus.arc.auto-inject-fields=false\n" + //
 				"quarkus.ssl.native = true\n" + //
-				"quarkus.keycloak.policy-enforcer.lazy-load-paths=false";
+				"MP_Fault_Tolerance_Metrics_Enabled=false";
 
 		MicroProfileValidationSettings settings = new MicroProfileValidationSettings();
 		testDiagnosticsFor(value, getDefaultMicroProfileProjectInfo(), settings);
@@ -346,7 +346,7 @@ public class ApplicationPropertiesDiagnosticsTest {
 		String value = "quarkus.http.cors  =   DISCARD\n" + // <-- boolean
 				"quarkus.arc.auto-inject-fields=1.76\n" + // <-- boolean
 				"quarkus.ssl.native = hello\n" + // <-- java.util.Optional<java.lang.Boolean>
-				"quarkus.keycloak.policy-enforcer.lazy-load-paths=abc"; // <-- java.lang.Boolean
+				"MP_Fault_Tolerance_Metrics_Enabled=abc"; // <-- java.lang.Boolean
 
 		MicroProfileValidationSettings settings = new MicroProfileValidationSettings();
 		testDiagnosticsFor(value, getDefaultMicroProfileProjectInfo(), settings,
@@ -354,7 +354,7 @@ public class ApplicationPropertiesDiagnosticsTest {
 				d(1, 31, 35, "Type mismatch: boolean expected", DiagnosticSeverity.Error, ValidationType.value),
 				d(2, 21, 26, "Type mismatch: java.util.Optional<java.lang.Boolean> expected", DiagnosticSeverity.Error,
 						ValidationType.value),
-				d(3, 49, 52, "Type mismatch: java.lang.Boolean expected", DiagnosticSeverity.Error,
+				d(3, 35, 38, "Type mismatch: java.lang.Boolean expected", DiagnosticSeverity.Error,
 						ValidationType.value));
 	}
 
