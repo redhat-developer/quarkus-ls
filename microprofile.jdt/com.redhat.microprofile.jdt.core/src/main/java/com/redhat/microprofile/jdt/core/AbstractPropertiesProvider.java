@@ -9,8 +9,12 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core;
 
+import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.findType;
+import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getOptionalTypeParameter;
+
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
@@ -137,17 +141,32 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	 * Get or create the update hint from the given type.
 	 * 
 	 * @param collector
-	 * @param type      the type.
+	 * @param type        the JDT type and null otherwise.
+	 * @param typeName    the type name which is the string of the JDT type.
+	 * @param javaProject the java project where the JDT type belong to.
 	 * @return the hint name.
 	 * @throws JavaModelException
 	 */
-	protected String updateHint(IPropertiesCollector collector, IType type) throws JavaModelException {
+	protected String updateHint(IPropertiesCollector collector, IType type, String typeName, IJavaProject javaProject)
+			throws JavaModelException {
+		// type name is the string of the JDT type (which could be null if type is not
+		// retrieved)
+		String enclosedType = typeName;
 		if (type == null) {
-			return null;
+			// JDT type is null, in some case it's because type is optional (ex :
+			// java.util.Optional<MyType>)
+			// try to extract the enclosed type from the optional type (to get 'MyType' )
+			enclosedType = getOptionalTypeParameter(typeName);
+			if (enclosedType != null) {
+				type = findType(javaProject, enclosedType);
+			}
+			if (type == null) {
+				return null;
+			}
 		}
 		if (type.isEnum()) {
 			// Register Enumeration in "hints" section
-			String hint = type.getFullyQualifiedName();
+			String hint = enclosedType;
 			if (!collector.hasItemHint(hint)) {
 				ItemHint itemHint = collector.getItemHint(hint);
 				itemHint.setSourceType(hint);

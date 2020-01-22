@@ -65,7 +65,8 @@ public class MicroProfileConfigPropertyProvider extends AbstractAnnotationTypeRe
 						MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
 				String extensionName = null;
 
-				super.updateHint(collector, fieldClass);
+				// Enumerations
+				super.updateHint(collector, fieldClass, type, field.getJavaProject());
 
 				addItemMetadata(collector, name, type, description, sourceType, sourceField, null, defaultValue,
 						extensionName, field.isBinary());

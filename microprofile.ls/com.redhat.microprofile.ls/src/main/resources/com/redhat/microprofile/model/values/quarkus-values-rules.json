@@ -73,30 +73,6 @@
 					"value": "ERROR"
 				}
 			]
-		},
-		{
-			"matcher": {
-				"names": [
-					"quarkus.datasource.transaction-isolation-level"
-				]
-			},
-			"values": [
-				{
-					"value": "undefined"
-				},
-				{
-					"value": "none"
-				},
-				{
-					"value": "read-uncommitted"
-				},
-				{
-					"value": "read-committed"
-				},
-				{
-					"value": "serializable"
-				}
-			]
 		}
 	]
 }

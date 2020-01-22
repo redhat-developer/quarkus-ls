@@ -52,7 +52,6 @@ import org.eclipse.jdt.core.IJarEntryResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -314,7 +313,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * @param configRootAnnotationName  the name declared in the ConfigRoot
 	 *                                  annotation.
 	 * @param configPhase               the config phase.
-	 * @see <a href="https://github.com/quarkusio/quarkus/blob/master/core/deployment/src/main/java/io/quarkus/deployment/configuration/ConfigDefinition.java#L173">
+	 * @see <a href=
+	 *      "https://github.com/quarkusio/quarkus/blob/master/core/deployment/src/main/java/io/quarkus/deployment/configuration/ConfigDefinition.java#L173">
 	 *      (registerConfigRoot)</a>
 	 * @return the Quarkus extension name according the
 	 *         <code>configRootClassSimpleName</code>,
@@ -428,7 +428,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 		String sourceField = getSourceField(field);
 
 		// Enumerations
-		super.updateHint(collector, fieldClass);
+		super.updateHint(collector, fieldClass, fieldTypeName, field.getJavaProject());
 
 		ItemMetadata item = null;
 		// Default value for primitive type
@@ -441,7 +441,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 					defaultValue == null || ConfigItem.NO_DEFAULT.equals(defaultValue) ? "0" : defaultValue,
 					extensionName, field.isBinary());
 		} else if (isMap(fieldTypeName)) {
-			// FIXME: find better mean to check field is a Map
+			// FIXME: find better mean to check if field is a Map
 			// this code works only if user uses Map as declaration and not if they declare
 			// HashMap for instance
 			String[] rawTypeParameters = getRawTypeParameters(fieldTypeName);
@@ -467,6 +467,12 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 		if (item != null) {
 			item.setPhase(getPhase(configPhase));
 		}
+	}
+
+	private static String getOptionalParameter(String fieldTypeName) {
+		int start = fieldTypeName.indexOf("<") + 1;
+		int end = fieldTypeName.lastIndexOf(">");
+		return fieldTypeName.substring(start, end);
 	}
 
 	private static String[] getRawTypeParameters(String fieldTypeName) {
@@ -514,9 +520,9 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * <li>get Javadoc from the Quarkus properties file stored in JAR META-INF/
 	 * </ul>
 	 * 
-	 * @param field the field to process
+	 * @param field        the field to process
 	 * @param javadocCache the Javadoc cache
-	 * @param monitor the progress monitor
+	 * @param monitor      the progress monitor
 	 * @return the doc entry for the field
 	 * @throws JavaModelException
 	 */
