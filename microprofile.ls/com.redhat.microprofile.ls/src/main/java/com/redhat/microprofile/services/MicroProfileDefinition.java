@@ -26,16 +26,16 @@ import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.ls.api.MicroProfilePropertyDefinitionProvider;
 import com.redhat.microprofile.ls.commons.BadLocationException;
 import com.redhat.microprofile.model.Node;
+import com.redhat.microprofile.model.Node.NodeType;
 import com.redhat.microprofile.model.PropertiesModel;
 import com.redhat.microprofile.model.Property;
 import com.redhat.microprofile.model.PropertyKey;
 import com.redhat.microprofile.model.PropertyValue;
-import com.redhat.microprofile.model.Node.NodeType;
 import com.redhat.microprofile.utils.MicroProfilePropertiesUtils;
 import com.redhat.microprofile.utils.PositionUtils;
 
 /**
- * The Quarkus definition.
+ * The MicroProfile definition.
  * 
  * @author Angelo ZERR
  *
@@ -99,19 +99,21 @@ public class MicroProfileDefinition {
 				// Use simple location
 				return Either.forLeft(Collections.singletonList(target));
 			});
-			
+
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In MicroProfileDefinition, position error", e);
 		}
 		return CompletableFuture.completedFuture(getEmptyDefinition(definitionLinkSupport));
 	}
 
-	private static Either<List<? extends Location>, List<? extends LocationLink>> getEmptyDefinition(boolean definitionLinkSupport) {
+	private static Either<List<? extends Location>, List<? extends LocationLink>> getEmptyDefinition(
+			boolean definitionLinkSupport) {
 		return definitionLinkSupport ? Either.forRight(Collections.emptyList())
 				: Either.forLeft(Collections.emptyList());
 	}
 
-	private static MicroProfilePropertyDefinitionParams getPropertyDefinitionParams(PropertiesModel document, ItemMetadata item, Node node) {
+	private static MicroProfilePropertyDefinitionParams getPropertyDefinitionParams(PropertiesModel document,
+			ItemMetadata item, Node node) {
 
 		if (node.getNodeType() != NodeType.PROPERTY_KEY && node.getNodeType() != NodeType.PROPERTY_VALUE) {
 			return null;
@@ -119,34 +121,31 @@ public class MicroProfileDefinition {
 
 		MicroProfilePropertyDefinitionParams definitionParams = new MicroProfilePropertyDefinitionParams();
 
-		String sourceType;
-		String sourceField;
+		String sourceType = null;
+		String sourceField = null;
 
 		switch (node.getNodeType()) {
-			case PROPERTY_KEY: {
-				sourceType = item.getSourceType();
-				sourceField = item.getSourceField();
-				break;
-			}
-			case PROPERTY_VALUE: {
-				sourceType = item.getType();
-				String optionalPrefix = "java.util.Optional<";
-				if (sourceType.startsWith(optionalPrefix)) {
-					sourceType = sourceType.substring(optionalPrefix.length(), sourceType.length() - 1);
-				}
-				sourceField = ((PropertyValue) node).getValue().toUpperCase();
-				break;
-			}
-			default:
-				return null;
+		case PROPERTY_KEY: {
+			sourceType = item.getSourceType();
+			sourceField = item.getSourceField();
+			break;
+		}
+		case PROPERTY_VALUE: {
+			sourceType = item.getHintType();
+			sourceField = ((PropertyValue) node).getValue().toUpperCase();
+			break;
+		}
+		default:
+			return null;
 		}
 
-		// Find definition (class, field of class, method of class, enum) only when metadata
+		// Find definition (class, field of class, method of class, enum) only when
+		// metadata
 		// contains source type
 		if (sourceType == null) {
 			return null;
 		}
-		
+
 		definitionParams.setSourceType(sourceType);
 		definitionParams.setSourceField(sourceField);
 		definitionParams.setUri(document.getDocumentURI());
@@ -160,12 +159,12 @@ public class MicroProfileDefinition {
 			return null;
 		}
 		switch (node.getNodeType()) {
-			case PROPERTY_KEY:
-				return (PropertyKey) node;
-			case PROPERTY_VALUE:
-				return ((Property) node.getParent()).getKey();
-			default:
-				return null;
+		case PROPERTY_KEY:
+			return (PropertyKey) node;
+		case PROPERTY_VALUE:
+			return ((Property) node.getParent()).getKey();
+		default:
+			return null;
 		}
 	}
 }

@@ -70,7 +70,7 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
 
 				// quarkus-resteasy JAR
 				p("quarkus-resteasy-common", "quarkus.resteasy.gzip.enabled", "boolean", "If gzip is enabled", true,
-						"io.quarkus.resteasy.common.deployment.ResteasyCommonProcessor$ResteasyCommonConfigGzip",
+						"io.quarkus.resteasy.common.deployment.ResteasyCommonProcessor.ResteasyCommonConfigGzip",
 						"enabled", null, 1, "false"),
 
 				// GreetingResource
@@ -112,7 +112,7 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
 
 				// quarkus-resteasy JAR
 				p("quarkus-resteasy-common", "quarkus.resteasy.gzip.enabled", "boolean", "If gzip is enabled", true,
-						"io.quarkus.resteasy.common.deployment.ResteasyCommonProcessor$ResteasyCommonConfigGzip",
+						"io.quarkus.resteasy.common.deployment.ResteasyCommonProcessor.ResteasyCommonConfigGzip",
 						"enabled", null, 1, "false"),
 
 				// quarkus-undertow has maven test scope, add it

@@ -53,7 +53,8 @@ import io.quarkus.runtime.util.StringUtil;
  * </p>
  * 
  * @author Angelo ZERR
- * @see <a href="https://quarkus.io/guides/kubernetes#configuration-options">https://quarkus.io/guides/kubernetes#configuration-options</a>
+ * @see <a href=
+ *      "https://quarkus.io/guides/kubernetes#configuration-options">https://quarkus.io/guides/kubernetes#configuration-options</a>
  */
 public class QuarkusKubernetesProvider extends AbstractTypeDeclarationPropertiesProvider {
 
@@ -132,7 +133,9 @@ public class QuarkusKubernetesProvider extends AbstractTypeDeclarationProperties
 				String sourceMethod = getSourceMethod(method);
 				String defaultValue = getDefaultValue(method);
 				String extensionName = null;
-				super.updateHint(collector, resultTypeClass);
+
+				// Enumerations
+				super.updateHint(collector, resultTypeClass, resultTypeName, method.getJavaProject());
 
 				super.addItemMetadata(collector, propertyName, type, description, sourceType, null, sourceMethod,
 						defaultValue, extensionName, method.isBinary());

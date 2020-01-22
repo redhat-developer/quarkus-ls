@@ -49,7 +49,7 @@ public class ConfigurationMetadata {
 	 *         otherwise.
 	 */
 	public ItemHint getHint(ItemMetadata property) {
-		return getHint(property.getName(), property.getType());
+		return getHint(property.getName(), property.getHintType());
 	}
 
 	/**

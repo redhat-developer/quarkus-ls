@@ -93,11 +93,11 @@ public class JDTTypeUtils {
 	}
 
 	public static String getPropertyType(IType type, String typeName) {
-		return type != null ? type.getFullyQualifiedName() : typeName;
+		return type != null ? type.getFullyQualifiedName('.') : typeName;
 	}
 
 	public static String getSourceType(IMember member) {
-		return member.getDeclaringType().getFullyQualifiedName();
+		return member.getDeclaringType().getFullyQualifiedName('.');
 	}
 
 	public static String getSourceField(IField field) {
@@ -110,6 +110,27 @@ public class JDTTypeUtils {
 
 	public static boolean isOptional(String fieldTypeName) {
 		return fieldTypeName.startsWith("java.util.Optional");
+	}
+
+	/**
+	 * Returns the enclosed type declared in the given <code>typeName</code> and
+	 * null otherwise.
+	 * 
+	 * @param typeName
+	 * @return
+	 */
+	public static String getOptionalTypeParameter(String typeName) {
+		if (!isOptional(typeName)) {
+			return null;
+		}
+		int start = typeName.indexOf('<');
+		if (start == -1) {
+			return null;
+		}
+		// the type name follows the signature java.util.Optional<MyType>
+		// extract the enclosed type MyType.
+		int end = typeName.lastIndexOf('>');
+		return typeName.substring(start + 1, end);
 	}
 
 	public static String[] getRawTypeParameters(String fieldTypeName) {

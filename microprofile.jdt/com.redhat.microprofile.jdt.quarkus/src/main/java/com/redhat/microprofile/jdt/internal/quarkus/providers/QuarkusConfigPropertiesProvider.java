@@ -156,7 +156,7 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 						String sourceMethod = getSourceMethod(method);
 
 						// Enumerations
-						super.updateHint(collector, returnType);
+						super.updateHint(collector, returnType, methodResultTypeName, method.getJavaProject());
 
 						if (isSimpleFieldType(returnType, methodResultTypeName)) {
 							super.addItemMetadata(collector, propertyName, type, description, sourceType, null,
@@ -238,7 +238,7 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 					String sourceField = getSourceField(field);
 
 					// Enumerations
-					super.updateHint(collector, fieldClass);
+					super.updateHint(collector, fieldClass, type, field.getJavaProject());
 
 					super.addItemMetadata(collector, propertyName, type, description, sourceType, sourceField, null,
 							defaultValue, extensionName, field.isBinary());

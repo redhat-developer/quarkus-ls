@@ -18,6 +18,8 @@ package com.redhat.microprofile.commons.metadata;
  */
 public class ItemMetadata extends ItemBase {
 
+	private static final String JAVA_UTIL_OPTIONAL_PREFIX = "java.util.Optional<";
+
 	/**
 	 * Values are read and available for usage at build time.
 	 */
@@ -215,6 +217,22 @@ public class ItemMetadata extends ItemBase {
 		} else if (!type.equals(other.type))
 			return false;
 		return true;
+	}
+
+	/**
+	 * Returns the type to use for hint.
+	 * 
+	 * @param type the source type.
+	 * @return the type to use for hint.
+	 */
+	public String getHintType() {
+		if (type == null) {
+			return null;
+		}
+		if (type.startsWith(JAVA_UTIL_OPTIONAL_PREFIX)) {
+			return type.substring(JAVA_UTIL_OPTIONAL_PREFIX.length(), type.length() - 1);
+		}
+		return type;
 	}
 
 }
