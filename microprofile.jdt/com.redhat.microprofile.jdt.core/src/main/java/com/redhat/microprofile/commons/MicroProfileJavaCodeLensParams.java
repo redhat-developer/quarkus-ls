@@ -86,6 +86,7 @@ public class MicroProfileJavaCodeLensParams {
 	 */
 	public void setLocalServerPort(Integer localServerPort) {
 		this.localServerPort = localServerPort;
+		this.localBaseURL = null;
 	}
 
 	/**
