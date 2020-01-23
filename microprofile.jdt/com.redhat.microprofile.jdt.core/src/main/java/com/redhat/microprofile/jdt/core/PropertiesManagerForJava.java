@@ -12,33 +12,21 @@ package com.redhat.microprofile.jdt.core;
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IClassFile;
-import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
@@ -49,7 +37,6 @@ import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Position;
@@ -60,6 +47,7 @@ import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverInfo;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
+import com.redhat.microprofile.jdt.internal.core.project.JDTMicroProfileProjectManager;
 
 /**
  * JDT quarkus manager for Java files.
@@ -68,8 +56,6 @@ import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
  *
  */
 public class PropertiesManagerForJava {
-
-	private static final Logger LOGGER = Logger.getLogger(PropertiesManagerForJava.class.getName());
 
 	private static final String LOCALHOST = "localhost";
 
@@ -83,134 +69,11 @@ public class PropertiesManagerForJava {
 
 	private static final PropertiesManagerForJava INSTANCE = new PropertiesManagerForJava();
 
-	private static class JDTQuarkusProjectInfo {
-
-		private static final String APPLICATION_PROPERTIES_FILE = "application.properties";
-
-		private static final int DEFAULT_PORT = 8080;
-
-		private Integer serverPort;
-
-		private long lastModified;
-
-		private File applicationPropertiesFile;
-
-		private Properties properties;
-
-		private final IJavaProject javaProject;
-
-		public JDTQuarkusProjectInfo(IJavaProject javaProject) {
-			this.javaProject = javaProject;
-		}
-
-		/**
-		 * Returns the target/classes/application.properties and null otherwise.
-		 * 
-		 * <p>
-		 * Using this file instead of using src/main/resources/application.properties
-		 * gives the capability to get the filtered value.
-		 * </p>
-		 * 
-		 * @return the target/classes/application.properties and null otherwise.
-		 */
-		private File getApplicationPropertiesFile() {
-			if (applicationPropertiesFile != null && applicationPropertiesFile.exists()) {
-				return applicationPropertiesFile;
-			}
-			try {
-				List<IPath> outputs = Stream.of(((JavaProject) javaProject).getResolvedClasspath(true)) //
-						.filter(entry -> !entry.isTest()) //
-						.filter(entry -> entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) //
-						.map(entry -> entry.getOutputLocation()) //
-						.filter(output -> output != null) //
-						.distinct() //
-						.collect(Collectors.toList());
-				for (IPath output : outputs) {
-					File file = javaProject.getProject().getLocation().append(output.removeFirstSegments(1))
-							.append(APPLICATION_PROPERTIES_FILE).toFile();
-					if (file.exists()) {
-						applicationPropertiesFile = file;
-
-						return applicationPropertiesFile;
-					}
-				}
-				return null;
-			} catch (JavaModelException e) {
-				return null;
-			}
-		}
-
-		/**
-		 * Returns the loaded application.properties and null otherwise.
-		 * 
-		 * @return the loaded application.properties and null otherwise
-		 * @throws JavaModelException
-		 */
-		public Properties getApplicationProperties() throws JavaModelException {
-			File applicationPropertiesFile = getApplicationPropertiesFile();
-			if (applicationPropertiesFile == null) {
-				reset();
-				return null;
-			}
-			if (applicationPropertiesFile.lastModified() != lastModified) {
-				reset();
-				try (InputStream input = new FileInputStream(applicationPropertiesFile)) {
-					properties = new Properties();
-					// load a properties file
-					properties.load(input);
-					lastModified = applicationPropertiesFile.lastModified();
-				} catch (IOException e) {
-					reset();
-					LOGGER.log(Level.SEVERE,
-							"Error while loading properties from '" + applicationPropertiesFile.getPath() + "'.", e);
-				}
-			}
-			return properties;
-		}
-
-		private void reset() {
-			properties = null;
-			serverPort = null;
-		}
-
-		/**
-		 * Returns the server port.
-		 * 
-		 * @return the server port.
-		 */
-		public int getServerPort() {
-			try {
-				try {
-					// Get application properties and reset the cache if needs
-					Properties properties = getApplicationProperties();
-					if (serverPort == null) {
-						if (properties != null) {
-							String port = properties.getProperty("quarkus.http.port", "");
-							if (!port.trim().isEmpty()) {
-								serverPort = Integer.parseInt(port.trim());
-							}
-						}
-					}
-				} catch (JavaModelException e) {
-					LOGGER.log(Level.SEVERE, "Error while getting 'quarkus.http.port", e);
-				}
-			} finally {
-				if (serverPort == null) {
-					serverPort = DEFAULT_PORT;
-				}
-			}
-			return serverPort;
-		}
-	}
-
 	public static PropertiesManagerForJava getInstance() {
 		return INSTANCE;
 	}
 
-	private final Map<IJavaProject, JDTQuarkusProjectInfo> infos;
-
 	private PropertiesManagerForJava() {
-		this.infos = new HashMap<>();
 	}
 
 	/**
@@ -232,7 +95,8 @@ public class PropertiesManagerForJava {
 		IJavaElement[] elements = typeRoot.getChildren();
 		Collection<CodeLens> lenses = new LinkedHashSet<>(elements.length);
 		if (params.isUrlCodeLensEnabled()) {
-			int serverPort = getJDTQuarkusProjectInfo(typeRoot.getJavaProject()).getServerPort();
+			int serverPort = JDTMicroProfileProjectManager.getInstance()
+					.getJDTMicroProfileProject(typeRoot.getJavaProject()).getServerPort();
 			params.setLocalServerPort(serverPort);
 			collectURLCodeLenses(typeRoot, elements, null, lenses, params, utils, monitor);
 		}
@@ -266,15 +130,6 @@ public class PropertiesManagerForJava {
 			}
 		}
 		return unit != null ? unit : classFile;
-	}
-
-	private JDTQuarkusProjectInfo getJDTQuarkusProjectInfo(IJavaProject project) throws JavaModelException {
-		JDTQuarkusProjectInfo info = infos.get(project);
-		if (info == null) {
-			info = new JDTQuarkusProjectInfo(project);
-			infos.put(project, info);
-		}
-		return info;
 	}
 
 	private void collectURLCodeLenses(ITypeRoot typeRoot, IJavaElement[] elements, String rootPath,
@@ -444,13 +299,8 @@ public class PropertiesManagerForJava {
 				return null;
 			}
 
-			Properties properties = getJDTQuarkusProjectInfo(javaProject).getApplicationProperties();
-
-			if (properties == null) {
-				return null;
-			}
-
-			String propertyValue = properties.getProperty(propertyKey);
+			String propertyValue = JDTMicroProfileProjectManager.getInstance().getJDTMicroProfileProject(javaProject)
+					.getProperty(propertyKey, null);
 			if (propertyValue == null) {
 				propertyValue = getAnnotationMemberValue(annotation,
 						MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);

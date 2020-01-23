@@ -11,6 +11,7 @@ package com.redhat.microprofile.jdt.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -163,5 +164,23 @@ public class BasePropertiesManagerTest {
 
 	private static void waitForBackgroundJobs(IProgressMonitor monitor) throws Exception {
 		JobHelpers.waitForJobsToComplete(monitor);
+	}
+
+	protected static void createFile(File file, String content) throws IOException {
+		Files.createDirectories(file.getParentFile().toPath());
+		Files.write(file.toPath(), content.getBytes());
+	}
+
+	protected static void updateFile(File file, String content) throws IOException {
+		// For Mac OS, Linux OS, the call of Files.getLastModifiedTime is working for 1
+		// second.
+		// Here we wait for > 1s to be sure that call of Files.getLastModifiedTime will
+		// work.
+		try {
+			Thread.sleep(1050);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+		createFile(file, content);
 	}
 }
