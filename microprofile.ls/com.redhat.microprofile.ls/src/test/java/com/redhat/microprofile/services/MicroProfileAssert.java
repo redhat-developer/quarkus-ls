@@ -17,26 +17,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import com.google.gson.Gson;
-import com.redhat.microprofile.commons.MicroProfileProjectInfo;
-import com.redhat.microprofile.ls.MockMicroProfilePropertyDefinitionProvider;
-import com.redhat.microprofile.ls.api.MicroProfilePropertyDefinitionProvider;
-import com.redhat.microprofile.ls.commons.BadLocationException;
-import com.redhat.microprofile.ls.commons.TextDocument;
-import com.redhat.microprofile.ls.commons.client.CommandCapabilities;
-import com.redhat.microprofile.ls.commons.client.CommandKind;
-import com.redhat.microprofile.ls.commons.client.CommandKindCapabilities;
-import com.redhat.microprofile.model.PropertiesModel;
-import com.redhat.microprofile.services.MicroProfileLanguageService;
-import com.redhat.microprofile.services.ValidationType;
-import com.redhat.microprofile.settings.MicroProfileCommandCapabilities;
-import com.redhat.microprofile.settings.MicroProfileCompletionSettings;
-import com.redhat.microprofile.settings.MicroProfileFormattingSettings;
-import com.redhat.microprofile.settings.MicroProfileHoverSettings;
-import com.redhat.microprofile.settings.MicroProfileValidationSettings;
-import com.redhat.microprofile.utils.DocumentationUtils;
-import com.redhat.microprofile.utils.PositionUtils;
-
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.Command;
@@ -62,8 +42,28 @@ import org.eclipse.lsp4j.TextDocumentEdit;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceEdit;
+import org.eclipse.lsp4j.jsonrpc.json.adapters.EnumTypeAdapter;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.junit.Assert;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.redhat.microprofile.commons.MicroProfileProjectInfo;
+import com.redhat.microprofile.ls.MockMicroProfilePropertyDefinitionProvider;
+import com.redhat.microprofile.ls.api.MicroProfilePropertyDefinitionProvider;
+import com.redhat.microprofile.ls.commons.BadLocationException;
+import com.redhat.microprofile.ls.commons.TextDocument;
+import com.redhat.microprofile.ls.commons.client.CommandCapabilities;
+import com.redhat.microprofile.ls.commons.client.CommandKind;
+import com.redhat.microprofile.ls.commons.client.CommandKindCapabilities;
+import com.redhat.microprofile.model.PropertiesModel;
+import com.redhat.microprofile.settings.MicroProfileCommandCapabilities;
+import com.redhat.microprofile.settings.MicroProfileCompletionSettings;
+import com.redhat.microprofile.settings.MicroProfileFormattingSettings;
+import com.redhat.microprofile.settings.MicroProfileHoverSettings;
+import com.redhat.microprofile.settings.MicroProfileValidationSettings;
+import com.redhat.microprofile.utils.DocumentationUtils;
+import com.redhat.microprofile.utils.PositionUtils;
 
 /**
  * Quarkus assert
@@ -81,11 +81,15 @@ public class MicroProfileAssert {
 
 	public static MicroProfileProjectInfo getDefaultMicroProfileProjectInfo() {
 		if (DEFAULT_PROJECT == null) {
-			DEFAULT_PROJECT = new Gson().fromJson(
+			DEFAULT_PROJECT = createGson().fromJson(
 					new InputStreamReader(MicroProfileAssert.class.getResourceAsStream("all-quarkus-properties.json")),
 					MicroProfileProjectInfo.class);
 		}
 		return DEFAULT_PROJECT;
+	}
+
+	private static Gson createGson() {
+		return new GsonBuilder().registerTypeAdapterFactory(new EnumTypeAdapter.Factory()).create();
 	}
 
 	public static MicroProfilePropertyDefinitionProvider getDefaultMicroProfilePropertyDefinitionProvider() {
@@ -107,19 +111,21 @@ public class MicroProfileAssert {
 		testCompletionFor(value, snippetSupport, false, null, expectedItems);
 	}
 
-	public static void testCompletionFor(String value, boolean snippetSupport, boolean insertSpacing, CompletionItem... expectedItems)
-			throws BadLocationException {
+	public static void testCompletionFor(String value, boolean snippetSupport, boolean insertSpacing,
+			CompletionItem... expectedItems) throws BadLocationException {
 		testCompletionFor(value, snippetSupport, insertSpacing, null, expectedItems);
 	}
 
 	public static void testCompletionFor(String value, boolean snippetSupport, Integer expectedCount,
 			CompletionItem... expectedItems) throws BadLocationException {
-		testCompletionFor(value, snippetSupport, false, null, expectedCount, getDefaultMicroProfileProjectInfo(), expectedItems);
+		testCompletionFor(value, snippetSupport, false, null, expectedCount, getDefaultMicroProfileProjectInfo(),
+				expectedItems);
 	}
 
 	public static void testCompletionFor(String value, boolean snippetSupport, boolean insertSpacing,
 			Integer expectedCount, CompletionItem... expectedItems) throws BadLocationException {
-		testCompletionFor(value, snippetSupport, insertSpacing, null, expectedCount, getDefaultMicroProfileProjectInfo(), expectedItems);
+		testCompletionFor(value, snippetSupport, insertSpacing, null, expectedCount,
+				getDefaultMicroProfileProjectInfo(), expectedItems);
 	}
 
 	public static void testCompletionFor(String value, boolean snippetSupport, String fileURI, Integer expectedCount,
@@ -127,9 +133,9 @@ public class MicroProfileAssert {
 		testCompletionFor(value, snippetSupport, false, null, expectedCount, projectInfo, expectedItems);
 	}
 
-	public static void testCompletionFor(String value, boolean snippetSupport, boolean insertSpacing,
-			String fileURI, Integer expectedCount, MicroProfileProjectInfo projectInfo, 
-			CompletionItem... expectedItems) throws BadLocationException {
+	public static void testCompletionFor(String value, boolean snippetSupport, boolean insertSpacing, String fileURI,
+			Integer expectedCount, MicroProfileProjectInfo projectInfo, CompletionItem... expectedItems)
+			throws BadLocationException {
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
@@ -147,8 +153,9 @@ public class MicroProfileAssert {
 		formattingSettings.setSurroundEqualsWithSpaces(insertSpacing);
 
 		MicroProfileLanguageService languageService = new MicroProfileLanguageService();
-		CompletionList list = languageService.doComplete(model, position, projectInfo, completionSettings, formattingSettings, () -> {
-		});
+		CompletionList list = languageService.doComplete(model, position, projectInfo, completionSettings,
+				formattingSettings, () -> {
+				});
 
 		assertCompletions(list, expectedCount, expectedItems);
 	}
@@ -356,8 +363,8 @@ public class MicroProfileAssert {
 
 	public static void testDefinitionFor(String value, LocationLink... expected)
 			throws BadLocationException, InterruptedException, ExecutionException {
-		testDefinitionFor(value, getDefaultMicroProfileProjectInfo(), getDefaultMicroProfilePropertyDefinitionProvider(),
-				expected);
+		testDefinitionFor(value, getDefaultMicroProfileProjectInfo(),
+				getDefaultMicroProfilePropertyDefinitionProvider(), expected);
 	}
 
 	public static void testDefinitionFor(String value, MicroProfileProjectInfo projectInfo,
@@ -411,7 +418,8 @@ public class MicroProfileAssert {
 	}
 
 	public static void testDiagnosticsFor(String value, String fileURI, Integer expectedCount,
-			MicroProfileProjectInfo projectInfo, MicroProfileValidationSettings validationSettings, Diagnostic... expected) {
+			MicroProfileProjectInfo projectInfo, MicroProfileValidationSettings validationSettings,
+			Diagnostic... expected) {
 		PropertiesModel model = parse(value, fileURI);
 		MicroProfileLanguageService languageService = new MicroProfileLanguageService();
 		List<Diagnostic> actual = languageService.doDiagnostics(model, projectInfo, validationSettings, () -> {
@@ -445,27 +453,30 @@ public class MicroProfileAssert {
 	// ------------------- CodeAction assert
 
 	public static void testCodeActionsFor(String value, Diagnostic diagnostic, CodeAction... expected) {
-		testCodeActionsFor(value, diagnostic, getDefaultMicroProfileProjectInfo(), new MicroProfileFormattingSettings(), expected);
-	}
-
-	public static void testCodeActionsFor(String value, Diagnostic diagnostic, MicroProfileProjectInfo projectInfo,
-			CodeAction... expected) {
-		testCodeActionsFor(value, Collections.singletonList(diagnostic), diagnostic.getRange(), projectInfo, new MicroProfileFormattingSettings(),
+		testCodeActionsFor(value, diagnostic, getDefaultMicroProfileProjectInfo(), new MicroProfileFormattingSettings(),
 				expected);
 	}
 
 	public static void testCodeActionsFor(String value, Diagnostic diagnostic, MicroProfileProjectInfo projectInfo,
-			MicroProfileFormattingSettings formattingSettings, CodeAction... expected) {
-		testCodeActionsFor(value, Collections.singletonList(diagnostic), diagnostic.getRange(), projectInfo, formattingSettings, expected);
+			CodeAction... expected) {
+		testCodeActionsFor(value, Collections.singletonList(diagnostic), diagnostic.getRange(), projectInfo,
+				new MicroProfileFormattingSettings(), expected);
 	}
 
-	public static void testCodeActionsFor(String value, List<Diagnostic> diagnostics, Range range, MicroProfileProjectInfo projectInfo,
-			CodeAction... expected) {
+	public static void testCodeActionsFor(String value, Diagnostic diagnostic, MicroProfileProjectInfo projectInfo,
+			MicroProfileFormattingSettings formattingSettings, CodeAction... expected) {
+		testCodeActionsFor(value, Collections.singletonList(diagnostic), diagnostic.getRange(), projectInfo,
+				formattingSettings, expected);
+	}
+
+	public static void testCodeActionsFor(String value, List<Diagnostic> diagnostics, Range range,
+			MicroProfileProjectInfo projectInfo, CodeAction... expected) {
 		testCodeActionsFor(value, diagnostics, range, projectInfo, new MicroProfileFormattingSettings(), expected);
 	}
 
-	public static void testCodeActionsFor(String value, List<Diagnostic> diagnostics, Range range, MicroProfileProjectInfo projectInfo,
-			MicroProfileFormattingSettings formattingSettings, CodeAction... expected) {
+	public static void testCodeActionsFor(String value, List<Diagnostic> diagnostics, Range range,
+			MicroProfileProjectInfo projectInfo, MicroProfileFormattingSettings formattingSettings,
+			CodeAction... expected) {
 		PropertiesModel model = parse(value, null);
 		MicroProfileLanguageService languageService = new MicroProfileLanguageService();
 
@@ -474,15 +485,14 @@ public class MicroProfileAssert {
 
 		MicroProfileCommandCapabilities quarkusCommandCapabilities = new MicroProfileCommandCapabilities();
 
-
 		List<String> valueSet = Arrays.asList(CommandKind.COMMAND_CONFIGURATION_UPDATE);
 		CommandKindCapabilities commandKindCapabilities = new CommandKindCapabilities(valueSet);
 		CommandCapabilities commandCapabilities = new CommandCapabilities(commandKindCapabilities);
 
 		quarkusCommandCapabilities.setCapabilities(commandCapabilities);
 
-		List<CodeAction> actual = languageService.doCodeActions(context, range, model, projectInfo,
-				formattingSettings, quarkusCommandCapabilities);
+		List<CodeAction> actual = languageService.doCodeActions(context, range, model, projectInfo, formattingSettings,
+				quarkusCommandCapabilities);
 		assertCodeActions(actual, expected);
 	}
 
@@ -527,13 +537,14 @@ public class MicroProfileAssert {
 
 		if (te != null) {
 			VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier(
-				"application.properties", 0);
+					"application.properties", 0);
 			TextDocumentEdit textDocumentEdit = new TextDocumentEdit(versionedTextDocumentIdentifier,
-			Collections.singletonList(te));
-			WorkspaceEdit workspaceEdit = new WorkspaceEdit(Collections.singletonList(Either.forLeft(textDocumentEdit)));
+					Collections.singletonList(te));
+			WorkspaceEdit workspaceEdit = new WorkspaceEdit(
+					Collections.singletonList(Either.forLeft(textDocumentEdit)));
 			codeAction.setEdit(workspaceEdit);
 		}
-	
+
 		return codeAction;
 	}
 
@@ -569,8 +580,8 @@ public class MicroProfileAssert {
 		assertRangeFormat(value, expected, formattingSettings);
 	}
 
-	public static void assertRangeFormat(String value, String expected, MicroProfileFormattingSettings formattingSettings)
-			throws BadLocationException {
+	public static void assertRangeFormat(String value, String expected,
+			MicroProfileFormattingSettings formattingSettings) throws BadLocationException {
 
 		int startOffset = value.indexOf("|");
 		value = value.substring(0, startOffset) + value.substring(startOffset + 1);

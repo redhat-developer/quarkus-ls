@@ -9,12 +9,10 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core;
 
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.findType;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getOptionalTypeParameter;
+import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getPropertyType;
 
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
@@ -147,26 +145,13 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	 * @return the hint name.
 	 * @throws JavaModelException
 	 */
-	protected String updateHint(IPropertiesCollector collector, IType type, String typeName, IJavaProject javaProject)
-			throws JavaModelException {
-		// type name is the string of the JDT type (which could be null if type is not
-		// retrieved)
-		String enclosedType = typeName;
+	protected String updateHint(IPropertiesCollector collector, IType type) throws JavaModelException {
 		if (type == null) {
-			// JDT type is null, in some case it's because type is optional (ex :
-			// java.util.Optional<MyType>)
-			// try to extract the enclosed type from the optional type (to get 'MyType' )
-			enclosedType = getOptionalTypeParameter(typeName);
-			if (enclosedType != null) {
-				type = findType(javaProject, enclosedType);
-			}
-			if (type == null) {
-				return null;
-			}
+			return null;
 		}
 		if (type.isEnum()) {
 			// Register Enumeration in "hints" section
-			String hint = enclosedType;
+			String hint = getPropertyType(type, null);
 			if (!collector.hasItemHint(hint)) {
 				ItemHint itemHint = collector.getItemHint(hint);
 				itemHint.setSourceType(hint);

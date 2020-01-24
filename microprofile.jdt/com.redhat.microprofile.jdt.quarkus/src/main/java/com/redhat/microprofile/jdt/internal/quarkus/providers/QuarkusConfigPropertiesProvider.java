@@ -12,6 +12,7 @@ package com.redhat.microprofile.jdt.internal.quarkus.providers;
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.findType;
+import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getEnclosedType;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getPropertyType;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getResolvedResultTypeName;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getResolvedTypeName;
@@ -43,6 +44,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import com.redhat.microprofile.jdt.core.IPropertiesCollector;
 import com.redhat.microprofile.jdt.core.MicroProfileConstants;
@@ -156,11 +158,13 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 						String sourceMethod = getSourceMethod(method);
 
 						// Enumerations
-						super.updateHint(collector, returnType, methodResultTypeName, method.getJavaProject());
+						IType enclosedType = getEnclosedType(returnType, methodResultTypeName, method.getJavaProject());
+						super.updateHint(collector, enclosedType);
 
 						if (isSimpleFieldType(returnType, methodResultTypeName)) {
-							super.addItemMetadata(collector, propertyName, type, description, sourceType, null,
-									sourceMethod, defaultValue, extensionName, method.isBinary());
+							ItemMetadata metadata = super.addItemMetadata(collector, propertyName, type, description,
+									sourceType, null, sourceMethod, defaultValue, extensionName, method.isBinary());
+							JDTQuarkusUtils.updateConverterKinds(metadata, method, enclosedType);
 						} else {
 							populateConfigObject(returnType, propertyName, extensionName, new HashSet<>(), collector,
 									monitor);
@@ -238,10 +242,12 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 					String sourceField = getSourceField(field);
 
 					// Enumerations
-					super.updateHint(collector, fieldClass, type, field.getJavaProject());
+					IType enclosedType = getEnclosedType(fieldClass, type, field.getJavaProject());
+					super.updateHint(collector, enclosedType);
 
-					super.addItemMetadata(collector, propertyName, type, description, sourceType, sourceField, null,
-							defaultValue, extensionName, field.isBinary());
+					ItemMetadata metadata = super.addItemMetadata(collector, propertyName, type, description,
+							sourceType, sourceField, null, defaultValue, extensionName, field.isBinary());
+					JDTQuarkusUtils.updateConverterKinds(metadata, field, enclosedType);
 				} else {
 					populateConfigObject(fieldClass, propertyName, extensionName, typesAlreadyProcessed, collector,
 							monitor);

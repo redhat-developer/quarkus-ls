@@ -9,6 +9,16 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.internal.quarkus;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
+
+import com.redhat.microprofile.commons.metadata.ConverterKind;
+import com.redhat.microprofile.commons.metadata.ItemMetadata;
+
 /**
  * JDT Quarkus utilities.
  * 
@@ -16,6 +26,9 @@ package com.redhat.microprofile.jdt.internal.quarkus;
  *
  */
 public class JDTQuarkusUtils {
+
+	private static final List<ConverterKind> DEFAULT_QUARKUS_CONVERTERS = Arrays.asList(ConverterKind.KEBAB_CASE,
+			ConverterKind.VERBATIM);
 
 	/**
 	 * Returns the extension name (ex: quarkus-core) from the given JAR location (ex
@@ -51,4 +64,12 @@ public class JDTQuarkusUtils {
 		return extensionName;
 	}
 
+	public static void updateConverterKinds(ItemMetadata metadata, IMember member, IType enclosedType)
+			throws JavaModelException {
+		if (enclosedType == null || !enclosedType.isEnum()) {
+			return;
+		}
+		// By default Quarkus set the enum values as kebab and verbatim
+		metadata.setConverterKinds(DEFAULT_QUARKUS_CONVERTERS);
+	}
 }

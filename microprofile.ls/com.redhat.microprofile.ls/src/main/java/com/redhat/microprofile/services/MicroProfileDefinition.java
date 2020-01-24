@@ -22,6 +22,8 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfilePropertyDefinitionParams;
+import com.redhat.microprofile.commons.metadata.ItemHint;
+import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.ls.api.MicroProfilePropertyDefinitionProvider;
 import com.redhat.microprofile.ls.commons.BadLocationException;
@@ -82,7 +84,8 @@ public class MicroProfileDefinition {
 				return CompletableFuture.completedFuture(getEmptyDefinition(definitionLinkSupport));
 			}
 
-			MicroProfilePropertyDefinitionParams definitionParams = getPropertyDefinitionParams(document, item, node);
+			MicroProfilePropertyDefinitionParams definitionParams = getPropertyDefinitionParams(document, item,
+					projectInfo, node);
 			if (definitionParams == null) {
 				return CompletableFuture.completedFuture(getEmptyDefinition(definitionLinkSupport));
 			}
@@ -113,7 +116,7 @@ public class MicroProfileDefinition {
 	}
 
 	private static MicroProfilePropertyDefinitionParams getPropertyDefinitionParams(PropertiesModel document,
-			ItemMetadata item, Node node) {
+			ItemMetadata item, MicroProfileProjectInfo projectInfo, Node node) {
 
 		if (node.getNodeType() != NodeType.PROPERTY_KEY && node.getNodeType() != NodeType.PROPERTY_VALUE) {
 			return null;
@@ -132,7 +135,18 @@ public class MicroProfileDefinition {
 		}
 		case PROPERTY_VALUE: {
 			sourceType = item.getHintType();
-			sourceField = ((PropertyValue) node).getValue().toUpperCase();
+			sourceField = ((PropertyValue) node).getValue();
+			// for the case of property which uses kebab_case, we must get the real value of
+			// the Java enumeration
+			// Ex: for quarkus.datasource.transaction-isolation-level = read-uncommitted
+			// the real value of Java enumeration 'read-uncommitted' is 'READ_UNCOMMITTED'
+			ItemHint itemHint = projectInfo.getHint(sourceType);
+			if (itemHint != null) {
+				ValueHint realValue = itemHint.getValue(sourceField, item.getConverterKinds());
+				if (realValue != null) {
+					sourceField = realValue.getValue();
+				}
+			}
 			break;
 		}
 		default:

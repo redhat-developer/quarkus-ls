@@ -9,6 +9,8 @@
 *******************************************************************************/
 package com.redhat.microprofile.commons.metadata;
 
+import java.util.List;
+
 /**
  * Configuration item metadata.
  * 
@@ -46,6 +48,8 @@ public class ItemMetadata extends ItemBase {
 	private String extensionName;
 	private boolean required;
 	private int phase;
+
+	private List<ConverterKind> converterKinds;
 
 	public String getType() {
 		return type;
@@ -101,6 +105,14 @@ public class ItemMetadata extends ItemBase {
 
 	public void setPhase(int phase) {
 		this.phase = phase;
+	}
+
+	public List<ConverterKind> getConverterKinds() {
+		return converterKinds;
+	}
+
+	public void setConverterKinds(List<ConverterKind> converterKinds) {
+		this.converterKinds = converterKinds;
 	}
 
 	public boolean isAvailableAtRun() {

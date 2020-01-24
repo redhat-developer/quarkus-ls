@@ -61,6 +61,15 @@ public class ApplicationPropertiesDefinitionTest {
 	}
 
 	@Test
+	public void definitionOnOptionalEnumValueKebabCase()
+			throws BadLocationException, InterruptedException, ExecutionException {
+		String value = "quarkus.datasource.transaction-isolation-level=read-uncom|mitted";
+		testDefinitionFor(value, ll(
+				"jdt://contents/agroal-api-1.7.jar/io.agroal.api.configuration/AgroalConnectionFactoryConfiguration$TransactionIsolation.class?=all-quarkus-extensions/C:%5C/Users%5C/azerr%5C/.m2%5C/repository%5C/io%5C/agroal%5C/agroal-api%5C/1.7%5C/agroal-api-1.7.jar%3Cio.agroal.api.configuration(AgroalConnectionFactoryConfiguration$TransactionIsolation.class",
+				r(0, 47, 63), r(87, 25, 41)));
+	}
+
+	@Test
 	public void definitionOnMappedPropertyOptionalEnumValue()
 			throws BadLocationException, InterruptedException, ExecutionException {
 		String value = "quarkus.datasource.key.transaction-isolation-level=no|ne";

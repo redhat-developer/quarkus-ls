@@ -11,6 +11,7 @@ package com.redhat.microprofile.jdt.internal.quarkus.providers;
 
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.findType;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getDefaultValue;
+import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getEnclosedType;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getPropertyType;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getResolvedResultTypeName;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceMethod;
@@ -135,7 +136,8 @@ public class QuarkusKubernetesProvider extends AbstractTypeDeclarationProperties
 				String extensionName = null;
 
 				// Enumerations
-				super.updateHint(collector, resultTypeClass, resultTypeName, method.getJavaProject());
+				IType enclosedType = getEnclosedType(resultTypeClass, resultTypeName, method.getJavaProject());
+				super.updateHint(collector, enclosedType);
 
 				super.addItemMetadata(collector, propertyName, type, description, sourceType, null, sourceMethod,
 						defaultValue, extensionName, method.isBinary());
