@@ -97,7 +97,7 @@ public class JDTTypeUtils {
 	}
 
 	public static String getSourceType(IMember member) {
-		return member.getDeclaringType().getFullyQualifiedName('.');
+		return getPropertyType(member.getDeclaringType(), null);
 	}
 
 	public static String getSourceField(IField field) {
@@ -131,6 +131,23 @@ public class JDTTypeUtils {
 		// extract the enclosed type MyType.
 		int end = typeName.lastIndexOf('>');
 		return typeName.substring(start + 1, end);
+	}
+
+	public static IType getEnclosedType(IType type, String typeName, IJavaProject javaProject)
+			throws JavaModelException {
+		// type name is the string of the JDT type (which could be null if type is not
+		// retrieved)
+		String enclosedType = typeName;
+		if (type == null) {
+			// JDT type is null, in some case it's because type is optional (ex :
+			// java.util.Optional<MyType>)
+			// try to extract the enclosed type from the optional type (to get 'MyType' )
+			enclosedType = getOptionalTypeParameter(typeName);
+			if (enclosedType != null) {
+				type = findType(javaProject, enclosedType);
+			}
+		}
+		return type;
 	}
 
 	public static String[] getRawTypeParameters(String fieldTypeName) {

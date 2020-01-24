@@ -41,8 +41,37 @@ public class ItemHint extends ItemBase {
 
 		private String sourceType;
 
+		/**
+		 * Returns the value.
+		 * 
+		 * @return the value.
+		 */
 		public String getValue() {
 			return value;
+		}
+
+		/**
+		 * Returns the converted value by using the given converter.
+		 * 
+		 * @param converterKind the converter
+		 * @return the converted value by using the given converter.
+		 */
+		public String getValue(ConverterKind converterKind) {
+			return ConverterKind.convert(getValue(), converterKind);
+		}
+
+		/**
+		 * Returns the preferred value according the given converters.
+		 * 
+		 * @param converterKinds supported converters and null otherwise.
+		 * 
+		 * @return the preferred value according the given converters.
+		 */
+		public String getPreferredValue(List<ConverterKind> converterKinds) {
+			ConverterKind preferredConverter = converterKinds != null && !converterKinds.isEmpty()
+					? converterKinds.get(0)
+					: null;
+			return getValue(preferredConverter);
 		}
 
 		public void setValue(String value) {
@@ -101,17 +130,32 @@ public class ItemHint extends ItemBase {
 				return false;
 			return true;
 		}
-
 	}
 
-	public ValueHint getValue(String value) {
+	/**
+	 * Returns the value hint from the given <code>value</code> and supported
+	 * converters <code>converterKinds</code> and null otherwise.
+	 * 
+	 * @param value          the value
+	 * @param converterKinds the supported converters.
+	 * @return the value hint from the given <code>value</code> and supported
+	 *         converters <code>converterKinds</code> and null otherwise.
+	 */
+	public ValueHint getValue(String value, List<ConverterKind> converterKinds) {
 		if (values == null || value == null) {
 			return null;
 		}
 		for (ValueHint valueHint : values) {
-			if (value.equals(valueHint.getValue())) {
+			if (converterKinds != null) {
+				for (ConverterKind converterKind : converterKinds) {
+					if (value.equals(valueHint.getValue(converterKind))) {
+						return valueHint;
+					}
+				}
+			} else if (value.equals(valueHint.getValue())) {
 				return valueHint;
 			}
+
 		}
 		return null;
 	}

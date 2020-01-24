@@ -72,12 +72,21 @@ public class ConfigurationMetadata {
 		return null;
 	}
 
+	/**
+	 * Returns true if the given <code>value</code> is a valid enumeration for the
+	 * given <code>metadata</code> and false otherwise.
+	 * 
+	 * @param metadata the property.
+	 * @param value    the value to check.
+	 * @return true if the given <code>value</code> is a valid enumeration for the
+	 *         given <code>metadata</code> and false otherwise.
+	 */
 	public boolean isValidEnum(ItemMetadata metadata, String value) {
 		ItemHint itemHint = getHint(metadata);
 		if (itemHint == null) {
 			return true;
 		}
-		return itemHint.getValue(value) != null;
+		return itemHint.getValue(value, metadata.getConverterKinds()) != null;
 	}
 
 }

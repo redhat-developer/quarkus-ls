@@ -12,6 +12,7 @@ package com.redhat.microprofile.jdt.internal.quarkus.providers;
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.findType;
+import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getEnclosedType;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getPropertyType;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getResolvedTypeName;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceField;
@@ -433,7 +434,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 		String sourceField = getSourceField(field);
 
 		// Enumerations
-		super.updateHint(collector, fieldClass, fieldTypeName, field.getJavaProject());
+		IType enclosedType = getEnclosedType(fieldClass, type, field.getJavaProject());
+		super.updateHint(collector, enclosedType);
 
 		ItemMetadata item = null;
 		// Default value for primitive type
@@ -472,12 +474,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 		if (item != null) {
 			item.setPhase(getPhase(configPhase));
 		}
-	}
-
-	private static String getOptionalParameter(String fieldTypeName) {
-		int start = fieldTypeName.indexOf("<") + 1;
-		int end = fieldTypeName.lastIndexOf(">");
-		return fieldTypeName.substring(start, end);
+		JDTQuarkusUtils.updateConverterKinds(item, field, enclosedType);
 	}
 
 	private static String[] getRawTypeParameters(String fieldTypeName) {

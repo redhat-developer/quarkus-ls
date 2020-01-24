@@ -11,6 +11,7 @@ package com.redhat.microprofile.services;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -29,6 +30,7 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
+import com.redhat.microprofile.commons.metadata.ConverterKind;
 import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.ls.commons.BadLocationException;
@@ -209,7 +211,9 @@ class MicroProfileCompletions {
 				if (snippetsSupported) {
 					// Because of LSP limitation, we cannot use default value with choice.
 					SnippetsBuilder.choice(formattedProperty.getParameterCount() + 1,
-							enums.stream().map(ValueHint::getValue).collect(Collectors.toList()), insertText);
+							enums.stream().map(valueHint -> valueHint.getPreferredValue(property.getConverterKinds()))
+									.collect(Collectors.toList()),
+							insertText);
 				} else {
 					// Plaintext: use default value or the first enum if no default value.
 					String defaultEnumValue = defaultValue != null ? defaultValue : enums.iterator().next().getValue();
@@ -317,7 +321,8 @@ class MicroProfileCompletions {
 			if (enums != null && !enums.isEmpty()) {
 				boolean markdownSupported = completionSettings.isDocumentationFormatSupported(MarkupKind.MARKDOWN);
 				for (ValueHint e : enums) {
-					list.getItems().add(getValueCompletionItem(e, node, model, markdownSupported));
+					list.getItems()
+							.add(getValueCompletionItem(e, item.getConverterKinds(), node, model, markdownSupported));
 				}
 			}
 		}
@@ -327,6 +332,8 @@ class MicroProfileCompletions {
 	 * Returns the <code>CompletionItem</code> which offers completion for value
 	 * completion for <code>value</code> at the start offset of <code>node</code>.
 	 * 
+	 * @param converterKinds
+	 * 
 	 * @param value             the value for completion
 	 * @param docs              the documentation for completion
 	 * @param node              the node where its start offset is where value
@@ -335,9 +342,9 @@ class MicroProfileCompletions {
 	 * @param markdownSupported true if markdown is supported and false otherwise.
 	 * @return the value completion item
 	 */
-	private static CompletionItem getValueCompletionItem(ValueHint item, Node node, PropertiesModel model,
-			boolean markdownSupported) {
-		String value = item.getValue();
+	private static CompletionItem getValueCompletionItem(ValueHint item, List<ConverterKind> converterKinds, Node node,
+			PropertiesModel model, boolean markdownSupported) {
+		String value = item.getPreferredValue(converterKinds);
 		CompletionItem completionItem = new CompletionItem(value);
 		completionItem.setKind(CompletionItemKind.Value);
 
@@ -357,4 +364,5 @@ class MicroProfileCompletions {
 
 		return completionItem;
 	}
+
 }

@@ -17,7 +17,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionContext;
+import org.eclipse.lsp4j.CodeActionKind;
+import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
+import com.redhat.microprofile.commons.metadata.ConverterKind;
 import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.ls.commons.BadLocationException;
@@ -36,14 +45,6 @@ import com.redhat.microprofile.settings.MicroProfileFormattingSettings;
 import com.redhat.microprofile.utils.MicroProfilePropertiesUtils;
 import com.redhat.microprofile.utils.PositionUtils;
 import com.redhat.microprofile.utils.StringUtils;
-
-import org.eclipse.lsp4j.CodeAction;
-import org.eclipse.lsp4j.CodeActionContext;
-import org.eclipse.lsp4j.CodeActionKind;
-import org.eclipse.lsp4j.Command;
-import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
 
 /**
  * The Quarkus code actions
@@ -169,10 +170,23 @@ class MicroProfileCodeActions {
 				return;
 			}
 
-			Collection<ValueHint> similarEnums = new ArrayList<>();
+			List<ConverterKind> converterKinds = metaProperty.getConverterKinds();
+			Collection<String> similarEnums = new ArrayList<>();
 			for (ValueHint e : enums) {
-				if (isSimilarPropertyValue(e.getValue(), value)) {
-					similarEnums.add(e);
+				if (converterKinds != null && !converterKinds.isEmpty()) {
+					// The metadata property has converters, loop for each converte and check for
+					// each converted value if it could be a similar value.
+					for (ConverterKind converterKind : converterKinds) {
+						String convertedValue = e.getValue(converterKind);
+						if (isSimilarPropertyValue(convertedValue, value)) {
+							similarEnums.add(convertedValue);
+						}
+					}
+				} else {
+					// No converter, check if the value if the value hint could be a similar value.
+					if (isSimilarPropertyValue(e.getValue(), value)) {
+						similarEnums.add(e.getValue());
+					}
 				}
 			}
 
@@ -180,16 +194,17 @@ class MicroProfileCodeActions {
 
 			if (!similarEnums.isEmpty()) {
 				// add code actions for all similar enums
-				for (ValueHint e : similarEnums) {
-					CodeAction replaceAction = CodeActionFactory.replace("Did you mean '" + e.getValue() + "'?", range,
-							e.getValue(), document.getDocument(), diagnostic);
+				for (String similarValue : similarEnums) {
+					CodeAction replaceAction = CodeActionFactory.replace("Did you mean '" + similarValue + "'?", range,
+							similarValue, document.getDocument(), diagnostic);
 					codeActions.add(replaceAction);
 				}
 			} else {
 				// add code actions for all enums
 				for (ValueHint e : enums) {
-					CodeAction replaceAction = CodeActionFactory.replace("Replace with '" + e.getValue() + "'?", range,
-							e.getValue(), document.getDocument(), diagnostic);
+					String preferredValue = e.getPreferredValue(converterKinds);
+					CodeAction replaceAction = CodeActionFactory.replace("Replace with '" + preferredValue + "'?",
+							range, preferredValue, document.getDocument(), diagnostic);
 					codeActions.add(replaceAction);
 				}
 			}
@@ -224,17 +239,18 @@ class MicroProfileCodeActions {
 	}
 
 	/**
-	 * Returns a code action for <code>diagnostic</code> that causes <code>item</code> to
-	 * be added to <code>quarkus.tools.validation.unknown.excluded</code> client configuration
+	 * Returns a code action for <code>diagnostic</code> that causes
+	 * <code>item</code> to be added to
+	 * <code>quarkus.tools.validation.unknown.excluded</code> client configuration
 	 * 
 	 * @param item       the item to add to the client configuration array
 	 * @param diagnostic the diagnostic for the <code>CodeAction</code>
 	 * @return a code action that causes <code>item</code> to be added to
-	 * <code>quarkus.tools.validation.unknown.excluded</code> client configuration
+	 *         <code>quarkus.tools.validation.unknown.excluded</code> client
+	 *         configuration
 	 */
 	private CodeAction createAddToExcludedCodeAction(String item, Diagnostic diagnostic) {
-		CodeAction insertCodeAction = new CodeAction(
-				"Exclude '" + item + "' from unknown property validation?");
+		CodeAction insertCodeAction = new CodeAction("Exclude '" + item + "' from unknown property validation?");
 
 		ConfigurationItemEdit configItemEdit = new ConfigurationItemEdit("quarkus.tools.validation.unknown.excluded",
 				ConfigurationItemEditType.add, item);
@@ -299,15 +315,12 @@ class MicroProfileCodeActions {
 	}
 
 	/**
-	 * Returns true if <code>propertyName</code> has a parent
-	 * key, false otherwise
+	 * Returns true if <code>propertyName</code> has a parent key, false otherwise
 	 * 
-	 * For example, the parent key for "quarkus.http.cors" is
-	 * "quarkus.http"
+	 * For example, the parent key for "quarkus.http.cors" is "quarkus.http"
 	 * 
 	 * @param propertyName the property name to check
-	 * @return true if <code>propertyName</code> has a parent
-	 * key, false otherwise
+	 * @return true if <code>propertyName</code> has a parent key, false otherwise
 	 */
 	private boolean hasParentKey(String propertyName) {
 		return propertyName.lastIndexOf('.') >= 0;
@@ -316,8 +329,7 @@ class MicroProfileCodeActions {
 	/**
 	 * Returns the parent key for <code>propertyName</code>
 	 * 
-	 * For example, the parent key for "quarkus.http.cors" is
-	 * "quarkus.http"
+	 * For example, the parent key for "quarkus.http.cors" is "quarkus.http"
 	 * 
 	 * @param propertyName the property name
 	 * @return the parent key for <code>propertyName</code>

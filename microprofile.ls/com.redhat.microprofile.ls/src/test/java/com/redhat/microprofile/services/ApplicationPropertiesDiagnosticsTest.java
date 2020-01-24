@@ -13,11 +13,18 @@ import static com.redhat.microprofile.services.MicroProfileAssert.d;
 import static com.redhat.microprofile.services.MicroProfileAssert.getDefaultMicroProfileProjectInfo;
 import static com.redhat.microprofile.services.MicroProfileAssert.testDiagnosticsFor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.Test;
 
+import com.redhat.microprofile.commons.MicroProfileProjectInfo;
+import com.redhat.microprofile.commons.metadata.ConverterKind;
+import com.redhat.microprofile.commons.metadata.ItemHint;
+import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
+import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.ls.commons.BadLocationException;
-import com.redhat.microprofile.services.ValidationType;
 import com.redhat.microprofile.settings.MicroProfileValidationSettings;
 import com.redhat.microprofile.settings.MicroProfileValidationTypeSettings;
 
@@ -420,4 +427,87 @@ public class ApplicationPropertiesDiagnosticsTest {
 						DiagnosticSeverity.Error, ValidationType.value));
 	}
 
+	@Test
+	public void validateValueForTransactionIsolationLevelEnumKebabCase() {
+		String value = "quarkus.datasource.transaction-isolation-level = READ_UNCOMMITTED";
+		MicroProfileValidationSettings settings = new MicroProfileValidationSettings();
+		testDiagnosticsFor(value, getDefaultMicroProfileProjectInfo(), settings);
+	}
+
+	@Test
+	public void validateValueForTransactionIsolationLevelEnumVerbatim() {
+		String value = "quarkus.datasource.transaction-isolation-level = read-uncommitted";
+		MicroProfileValidationSettings settings = new MicroProfileValidationSettings();
+		testDiagnosticsFor(value, getDefaultMicroProfileProjectInfo(), settings);
+	}
+
+	@Test
+	public void validateAccordingConverterKinds() {
+		MicroProfileProjectInfo projectInfo = new MicroProfileProjectInfo();
+		projectInfo.setProperties(new ArrayList<>());
+		projectInfo.setHints(new ArrayList<>());
+		MicroProfileValidationSettings settings = new MicroProfileValidationSettings();
+
+		ItemMetadata p1 = new ItemMetadata();
+		p1.setName("property.converters.none");
+		p1.setType("MyEnumType");
+		projectInfo.getProperties().add(p1);
+
+		ItemMetadata p2 = new ItemMetadata();
+		p2.setName("property.converters.verbatim");
+		p2.setConverterKinds(Arrays.asList(ConverterKind.VERBATIM));
+		p2.setType("MyEnumType");
+		projectInfo.getProperties().add(p2);
+
+		ItemMetadata p3 = new ItemMetadata();
+		p3.setName("property.converters.kebab_case");
+		p3.setConverterKinds(Arrays.asList(ConverterKind.KEBAB_CASE));
+		p3.setType("MyEnumType");
+		projectInfo.getProperties().add(p3);
+
+		ItemMetadata p4 = new ItemMetadata();
+		p4.setName("property.converters.both");
+		p4.setConverterKinds(Arrays.asList(ConverterKind.KEBAB_CASE, ConverterKind.VERBATIM));
+		p4.setType("MyEnumType");
+		projectInfo.getProperties().add(p4);
+
+		ItemHint hint = new ItemHint();
+		hint.setName("MyEnumType");
+		hint.setValues(new ArrayList<>());
+		ValueHint valueHint = new ValueHint();
+		valueHint.setValue("READ_UNCOMMITTED");
+		hint.getValues().add(valueHint);
+		projectInfo.getHints().add(hint);
+
+		// No converter
+		String value = "property.converters.none = READ_UNCOMMITTED";
+		testDiagnosticsFor(value, projectInfo, settings);
+		value = "property.converters.none = read-uncommitted";
+		testDiagnosticsFor(value, projectInfo, settings, //
+				d(0, 27, 43, "Invalid enum value: 'read-uncommitted' is invalid for type MyEnumType",
+						DiagnosticSeverity.Error, ValidationType.value));
+
+		// verbatim converter
+		value = "property.converters.verbatim = READ_UNCOMMITTED";
+		testDiagnosticsFor(value, projectInfo, settings);
+		value = "property.converters.verbatim = read-uncommitted";
+		testDiagnosticsFor(value, projectInfo, settings, //
+				d(0, 31, 47, "Invalid enum value: 'read-uncommitted' is invalid for type MyEnumType",
+						DiagnosticSeverity.Error, ValidationType.value));
+
+		// kebab_case converter
+		value = "property.converters.kebab_case = read-uncommitted";
+		testDiagnosticsFor(value, projectInfo, settings);
+		value = "property.converters.kebab_case = READ_UNCOMMITTED";
+		testDiagnosticsFor(value, projectInfo, settings, //
+				d(0, 33, 49, "Invalid enum value: 'READ_UNCOMMITTED' is invalid for type MyEnumType",
+						DiagnosticSeverity.Error, ValidationType.value));
+
+		// both converters
+		value = "property.converters.both = read-uncommitted";
+		testDiagnosticsFor(value, projectInfo, settings);
+		value = "property.converters.both = READ_UNCOMMITTED";
+		testDiagnosticsFor(value, projectInfo, settings);
+
+	}
 }

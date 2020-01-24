@@ -1,11 +1,28 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.quarkus.runtime.util;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
 /**
+ * This class is a copy/paste of
+ * https://github.com/quarkusio/quarkus/blob/1457e12766d46507674f8e8d8391fc5a5e8f0103/core/runtime/src/main/java/io/quarkus/runtime/util/StringUtil.java
  */
 public final class StringUtil {
     private StringUtil() {
@@ -97,6 +114,13 @@ public final class StringUtil {
         };
     }
 
+    /**
+     * @deprecated Use {@link String#join} instead.
+     * @param delim delimiter
+     * @param it iterator
+     * @return the joined string
+     */
+    @Deprecated
     public static String join(String delim, Iterator<String> it) {
         final StringBuilder b = new StringBuilder();
         if (it.hasNext()) {
@@ -165,6 +189,34 @@ public final class StringUtil {
                 return next;
             }
         };
+    }
+
+    @SafeVarargs
+    public static <T> List<T> withoutSuffix(List<T> list, T... segments) {
+        if (list.size() < segments.length) {
+            return list;
+        }
+        for (int i = 0; i < segments.length; i++) {
+            if (!list.get(list.size() - i - 1).equals(segments[segments.length - i - 1])) {
+                return list;
+            }
+        }
+        return list.subList(0, list.size() - segments.length);
+    }
+
+    public static List<String> toList(Iterator<String> orig) {
+        return toList(orig, 0);
+    }
+
+    private static List<String> toList(Iterator<String> orig, int idx) {
+        if (orig.hasNext()) {
+            final String item = orig.next();
+            final List<String> list = toList(orig, idx + 1);
+            list.set(idx, item);
+            return list;
+        } else {
+            return Arrays.asList(new String[idx]);
+        }
     }
 
     @SafeVarargs

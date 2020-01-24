@@ -41,8 +41,6 @@ public class ApplicationPropertiesHoverTest {
 				" * Extension: `quarkus-core`";
 		assertHoverMarkdown(value, hoverLabel, 0);
 	};
-	
-	
 
 	@Test
 	public void testQuarkusKeyHoverPlaintext() throws BadLocationException {
@@ -195,4 +193,12 @@ public class ApplicationPropertiesHoverTest {
 		assertHoverMarkdown(value, hoverLabel, 23);
 	}
 
+	@Test
+	public void hoverWithEnumsKebabCase() throws BadLocationException {
+		String value = "quarkus.datasource.transaction-isolation-level = read-unc|ommitted";
+		// io.agroal.api.configuration.AgroalConnectionFactoryConfiguration.TransactionIsolation
+		// enum type
+		String hoverLabel = "**READ_UNCOMMITTED**" + System.lineSeparator();
+		assertHoverMarkdown(value, hoverLabel, 49);
+	}
 }

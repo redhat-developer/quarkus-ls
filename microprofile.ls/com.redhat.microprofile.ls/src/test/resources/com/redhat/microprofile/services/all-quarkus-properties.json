@@ -1,6 +1,6 @@
 {
   "projectURI": "C:\\Users\\azerr\\git\\quarkus-ls\\microprofile.jdt\\com.redhat.microprofile.jdt.test\\target\\workingProjects\\all-quarkus-extensions",
-  "classpathKind": "SRC",
+  "classpathKind": 2,
   "properties": [
     {
       "type": "java.lang.String",
@@ -2764,6 +2764,10 @@
       "extensionName": "quarkus-agroal",
       "required": false,
       "phase": 2,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.datasource.transactions",
       "description": "Whether we want to use regular JDBC transactions, XA, or disable all transactional capabilities.\n\u003cp\u003e\nWhen enabling XA you will need a driver implementing {@link javax.sql.XADataSource}.",
       "sourceType": "io.quarkus.agroal.runtime.DataSourceBuildTimeConfig"
@@ -2785,6 +2789,10 @@
       "extensionName": "quarkus-agroal",
       "required": false,
       "phase": 2,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.datasource.{*}.transactions",
       "description": "Whether we want to use regular JDBC transactions, XA, or disable all transactional capabilities.\n\u003cp\u003e\nWhen enabling XA you will need a driver implementing {@link javax.sql.XADataSource}.",
       "sourceType": "io.quarkus.agroal.runtime.DataSourceBuildTimeConfig"
@@ -2941,6 +2949,10 @@
       "extensionName": "quarkus-agroal",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.datasource.transaction-isolation-level",
       "description": "The transaction isolation level.",
       "sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
@@ -3128,6 +3140,10 @@
       "extensionName": "quarkus-agroal",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.datasource.{*}.transaction-isolation-level",
       "description": "The transaction isolation level.",
       "sourceType": "io.quarkus.agroal.runtime.DataSourceRuntimeConfig"
@@ -3212,6 +3228,10 @@
       "extensionName": "quarkus-amazon-dynamodb",
       "required": false,
       "phase": 2,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.dynamodb.sync-client.type",
       "description": "Type of the sync HTTP client implementation",
       "sourceType": "io.quarkus.dynamodb.runtime.SyncHttpClientBuildTimeConfig"
@@ -3274,6 +3294,10 @@
       "extensionName": "quarkus-amazon-dynamodb",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.dynamodb.aws.credentials.type",
       "description": "Configure the credentials provider that should be used to authenticate with AWS.\n\nAvailable values:\n\n* `default` - the provider will attempt to identify the credentials automatically using the following checks:\n** Java System Properties - `aws.accessKeyId` and `aws.secretKey`\n** Environment Variables - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`\n** Credential profiles file at the default location (`~/.aws/credentials`) shared by all AWS SDKs and the AWS CLI\n** Credentials delivered through the Amazon EC2 container service if `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` environment variable is set and security manager has permission to access the variable.\n** Instance profile credentials delivered through the Amazon EC2 metadata service\n* `static` - the provider that uses the access key and secret access key specified in the `tatic-provider` section of the config.\n* `system-property` - it loads credentials from the `aws.accessKeyId`, `aws.secretAccessKey` and `aws.sessionToken` system properties.\n* `env-variable` - it loads credentials from the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` environment variables.\n* `profile` - credentials are based on AWS configuration profiles. This loads credentials from\n              a http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html[profile file],\n              allowing you to share multiple sets of AWS security credentials between different tools like the AWS SDK for Java and the AWS CLI.\n* `container` - It loads credentials from a local metadata service. Containers currently supported by the AWS SDK are\n                **Amazon Elastic Container Service (ECS)** and **AWS Greengrass**\n* `instance-profile` - It loads credentials from the Amazon EC2 Instance Metadata Service.\n* `process` - Credentials are loaded from an external process. This is used to support the credential_process setting in the profile\n              credentials file. See https://docs.aws.amazon.com/cli/latest/topic/config-vars.html#sourcing-credentials-from-external-processes[Sourcing Credentials From External Processes]\n              for more information.\n* `anonymous` - It always returns anonymous AWS credentials. Anonymous AWS credentials result in un-authenticated requests and will\n                fail unless the resource or API\u0027s policy has been configured to specifically allow anonymous access.\n\n@asciidoclet",
       "sourceType": "io.quarkus.dynamodb.runtime.AwsCredentialsProviderConfig"
@@ -3548,6 +3572,10 @@
       "extensionName": "quarkus-amazon-dynamodb",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.dynamodb.sync-client.apache.tls-managers-provider.type",
       "description": "TLS managers provider type.\n\nAvailable providers:\n\n* `none` - Use this provider if you don\u0027t want the client to present any certificates to the remote TLS host.\n* `system-property` - Provider checks the standard `javax.net.ssl.keyStore`, `javax.net.ssl.keyStorePassword`, and\n                      `javax.net.ssl.keyStoreType` properties defined by the\n                       https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html[JSSE].\n* `file-store` - Provider that loads a the key store from a file.\n\n@asciidoclet",
       "sourceType": "io.quarkus.dynamodb.runtime.TlsManagersProviderConfig"
@@ -3667,6 +3695,10 @@
       "extensionName": "quarkus-amazon-dynamodb",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.dynamodb.async-client.protocol",
       "description": "The HTTP protocol to use.",
       "sourceType": "io.quarkus.dynamodb.runtime.NettyHttpClientConfig"
@@ -3688,6 +3720,10 @@
       "extensionName": "quarkus-amazon-dynamodb",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.dynamodb.async-client.ssl-provider",
       "description": "The SSL Provider to be used in the Netty client.\n\u003cp\u003e\nDefault is `OPENSSL` if available, `JDK` otherwise.",
       "sourceType": "io.quarkus.dynamodb.runtime.NettyHttpClientConfig"
@@ -3730,6 +3766,10 @@
       "extensionName": "quarkus-amazon-dynamodb",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.dynamodb.async-client.tls-managers-provider.type",
       "description": "TLS managers provider type.\n\nAvailable providers:\n\n* `none` - Use this provider if you don\u0027t want the client to present any certificates to the remote TLS host.\n* `system-property` - Provider checks the standard `javax.net.ssl.keyStore`, `javax.net.ssl.keyStorePassword`, and\n                      `javax.net.ssl.keyStoreType` properties defined by the\n                       https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html[JSSE].\n* `file-store` - Provider that loads a the key store from a file.\n\n@asciidoclet",
       "sourceType": "io.quarkus.dynamodb.runtime.TlsManagersProviderConfig"
@@ -4591,6 +4631,10 @@
       "extensionName": "quarkus-core",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.log.console.async.overflow",
       "description": "Determine whether to block the publisher (rather than drop the message) when the queue is full",
       "sourceType": "io.quarkus.runtime.logging.AsyncConfig"
@@ -4677,6 +4721,10 @@
       "extensionName": "quarkus-core",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.log.file.async.overflow",
       "description": "Determine whether to block the publisher (rather than drop the message) when the queue is full",
       "sourceType": "io.quarkus.runtime.logging.AsyncConfig"
@@ -4772,6 +4820,10 @@
       "extensionName": "quarkus-core",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.log.syslog.facility",
       "description": "Sets the facility used when calculating the priority of the message as defined by RFC-5424 and RFC-3164",
       "sourceType": "io.quarkus.runtime.logging.SyslogConfig"
@@ -4783,6 +4835,10 @@
       "extensionName": "quarkus-core",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.log.syslog.syslog-type",
       "description": "Set the {@link SyslogType syslog type} this handler should use to format the message sent",
       "sourceType": "io.quarkus.runtime.logging.SyslogConfig"
@@ -4794,6 +4850,10 @@
       "extensionName": "quarkus-core",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.log.syslog.protocol",
       "description": "Sets the protocol used to connect to the syslog server",
       "sourceType": "io.quarkus.runtime.logging.SyslogConfig"
@@ -4882,6 +4942,10 @@
       "extensionName": "quarkus-core",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.log.syslog.async.overflow",
       "description": "Determine whether to block the publisher (rather than drop the message) when the queue is full",
       "sourceType": "io.quarkus.runtime.logging.AsyncConfig"
@@ -5563,6 +5627,10 @@
       "extensionName": "quarkus-hibernate-search-elasticsearch",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.hibernate-search.elasticsearch.index-defaults.lifecycle.strategy",
       "description": "The strategy used for index lifecycle.",
       "sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig.LifecycleConfig"
@@ -5573,6 +5641,10 @@
       "extensionName": "quarkus-hibernate-search-elasticsearch",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.hibernate-search.elasticsearch.index-defaults.lifecycle.required-status",
       "description": "The minimal cluster status required.",
       "sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig.LifecycleConfig"
@@ -5593,6 +5665,10 @@
       "extensionName": "quarkus-hibernate-search-elasticsearch",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.hibernate-search.elasticsearch.indexes.{*}.lifecycle.strategy",
       "description": "The strategy used for index lifecycle.",
       "sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig.LifecycleConfig"
@@ -5603,6 +5679,10 @@
       "extensionName": "quarkus-hibernate-search-elasticsearch",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.hibernate-search.elasticsearch.indexes.{*}.lifecycle.required-status",
       "description": "The minimal cluster status required.",
       "sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig.LifecycleConfig"
@@ -5720,6 +5800,10 @@
       "extensionName": "quarkus-hibernate-search-elasticsearch",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.hibernate-search.elasticsearch.backends.{*}.index-defaults.lifecycle.strategy",
       "description": "The strategy used for index lifecycle.",
       "sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig.LifecycleConfig"
@@ -5730,6 +5814,10 @@
       "extensionName": "quarkus-hibernate-search-elasticsearch",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.hibernate-search.elasticsearch.backends.{*}.index-defaults.lifecycle.required-status",
       "description": "The minimal cluster status required.",
       "sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig.LifecycleConfig"
@@ -5750,6 +5838,10 @@
       "extensionName": "quarkus-hibernate-search-elasticsearch",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.hibernate-search.elasticsearch.backends.{*}.indexes.{*}.lifecycle.strategy",
       "description": "The strategy used for index lifecycle.",
       "sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig.LifecycleConfig"
@@ -5760,6 +5852,10 @@
       "extensionName": "quarkus-hibernate-search-elasticsearch",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.hibernate-search.elasticsearch.backends.{*}.indexes.{*}.lifecycle.required-status",
       "description": "The minimal cluster status required.",
       "sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig.LifecycleConfig"
@@ -5781,6 +5877,10 @@
       "extensionName": "quarkus-hibernate-search-elasticsearch",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.hibernate-search.query.loading.cache-lookup.strategy",
       "description": "The strategy to use when loading entities during the execution of a search query.",
       "sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig.SearchQueryLoadingCacheLookupConfig"
@@ -5803,6 +5903,10 @@
       "extensionName": "quarkus-hibernate-search-elasticsearch",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.hibernate-search.automatic-indexing.synchronization.strategy",
       "description": "The synchronization strategy to use when indexing automatically.\n\u003cp\u003e\nDefines the status for which you wait before considering the operation completed by Hibernate Search.\n\u003cp\u003e\nUse {@code queued} or {@code committed} in production environments.\n{@code searchable} is useful in integration tests.",
       "sourceType": "io.quarkus.hibernate.search.elasticsearch.runtime.HibernateSearchElasticsearchRuntimeConfig.AutomaticIndexingSynchronizationConfig"
@@ -6682,6 +6786,10 @@
       "extensionName": "quarkus-keycloak-authorization",
       "required": false,
       "phase": 2,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.keycloak.policy-enforcer.paths.{*}.methods.{*}.scopes-enforcement-mode",
       "description": "A string referencing the enforcement mode for the scopes associated with a method",
       "sourceType": "io.quarkus.keycloak.pep.runtime.KeycloakPolicyEnforcerConfig.KeycloakConfigPolicyEnforcer.MethodConfig"
@@ -6693,6 +6801,10 @@
       "extensionName": "quarkus-keycloak-authorization",
       "required": false,
       "phase": 2,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.keycloak.policy-enforcer.paths.{*}.enforcement-mode",
       "description": "Specifies how policies are enforced",
       "sourceType": "io.quarkus.keycloak.pep.runtime.KeycloakPolicyEnforcerConfig.KeycloakConfigPolicyEnforcer.PathConfig"
@@ -7366,6 +7478,10 @@
       "extensionName": "quarkus-oidc",
       "required": false,
       "phase": 1,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.oidc-build-time.application-type",
       "description": "The application type, which can be one of the following values from enum {@link ApplicationType}.",
       "sourceType": "io.quarkus.oidc.runtime.OidcBuildTimeConfig"
@@ -7562,6 +7678,10 @@
       "extensionName": "quarkus-scheduler",
       "required": false,
       "phase": 2,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.scheduler.cron-type",
       "description": "The syntax used in CRON expressions.\n\n@see Scheduled#cron()",
       "sourceType": "io.quarkus.scheduler.runtime.SchedulerConfig"
@@ -8175,6 +8295,10 @@
       "extensionName": "quarkus-vertx-http",
       "required": false,
       "phase": 3,
+      "converterKinds": [
+        1,
+        2
+      ],
       "name": "quarkus.http.ssl.client-auth",
       "description": "Configures the engine to require/request client authentication.\nNONE, REQUEST, REQUIRED",
       "sourceType": "io.quarkus.vertx.http.runtime.ServerSslConfig"

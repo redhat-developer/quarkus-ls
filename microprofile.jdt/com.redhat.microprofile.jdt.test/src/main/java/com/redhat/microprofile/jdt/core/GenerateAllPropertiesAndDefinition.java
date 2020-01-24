@@ -27,6 +27,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.jsonrpc.json.adapters.EnumTypeAdapter;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -156,7 +157,8 @@ public class GenerateAllPropertiesAndDefinition extends BasePropertiesManagerTes
 	private void generateJsonFiles(MavenProjectName mavenProject, IJDTUtils utils, boolean generateDefinition)
 			throws JavaModelException, CoreException, Exception {
 
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		Gson gson = new GsonBuilder().registerTypeAdapterFactory(new EnumTypeAdapter.Factory()).setPrettyPrinting()
+				.create();
 
 		long start = System.currentTimeMillis();
 		LOGGER.info("Start generating all-quarkus-properties.json");

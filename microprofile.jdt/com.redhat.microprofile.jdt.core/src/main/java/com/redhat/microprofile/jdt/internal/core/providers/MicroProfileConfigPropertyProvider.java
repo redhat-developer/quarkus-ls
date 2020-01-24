@@ -11,6 +11,7 @@ package com.redhat.microprofile.jdt.internal.core.providers;
 
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.findType;
+import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getEnclosedType;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getPropertyType;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getResolvedTypeName;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceField;
@@ -66,7 +67,8 @@ public class MicroProfileConfigPropertyProvider extends AbstractAnnotationTypeRe
 				String extensionName = null;
 
 				// Enumerations
-				super.updateHint(collector, fieldClass, type, field.getJavaProject());
+				IType enclosedType = getEnclosedType(fieldClass, type, field.getJavaProject());
+				super.updateHint(collector, enclosedType);
 
 				addItemMetadata(collector, name, type, description, sourceType, sourceField, null, defaultValue,
 						extensionName, field.isBinary());
