@@ -117,7 +117,7 @@ public class PropertiesManager {
 			boolean excludeTestCode = classpathKind == ClasspathKind.SRC;
 
 			// Step1 (50%) : get the java project used for the search
-			IJavaProject javaProjectForSearch = configureSearchClasspath(javaProject, excludeTestCode,
+			IJavaProject javaProjectForSearch = configureSearchClasspath(javaProject, excludeTestCode, scopes,
 					mainMonitor.split(50));
 			if (mainMonitor.isCanceled()) {
 				throw new OperationCanceledException();
@@ -146,13 +146,14 @@ public class PropertiesManager {
 	 * 
 	 * @param javaProject     the original Java project
 	 * @param excludeTestCode true if test must be excluded and false otherwise.
+	 * @param scopes
 	 * @param mainMonitor     the main progress monitor.
 	 * @return the Java project which hosts original JARs and new JARs to use for
 	 *         the search.
 	 * @throws JavaModelException
 	 */
 	public IJavaProject configureSearchClasspath(IJavaProject javaProject, boolean excludeTestCode,
-			IProgressMonitor monitor) throws JavaModelException {
+			List<MicroProfilePropertiesScope> scopes, IProgressMonitor monitor) throws JavaModelException {
 		SubMonitor mainMonitor = SubMonitor.convert(monitor);
 		// Get the java project used for the search
 		mainMonitor.subTask("Configuring search classpath");
@@ -160,7 +161,7 @@ public class PropertiesManager {
 		SubMonitor subMonitor = mainMonitor.setWorkRemaining(length + 1);
 		subMonitor.split(1); // give feedback to the user that something is happening
 		try {
-			return getJavaProject(javaProject, excludeTestCode, subMonitor);
+			return getJavaProject(javaProject, excludeTestCode, scopes, subMonitor);
 		} finally {
 			subMonitor.done();
 		}
@@ -252,11 +253,15 @@ public class PropertiesManager {
 			}
 		}
 		if (project instanceof FakeJavaProject) {
+			// Extra classpath (search must be done for external JAR not included in the
+			// classpath like Quarkus deployment JARs)
 			FakeJavaProject fakeProject = (FakeJavaProject) project;
 			return createJavaSearchScope(fakeProject, excludeTestCode, fakeProject.getElementsToSearch(scopes),
 					searchScope);
 		}
-		return BasicSearchEngine.createJavaSearchScope(excludeTestCode, new IJavaElement[] { project });
+		// Standard Java Search in the project.
+		// The search scope is used to search in src, jars
+		return BasicSearchEngine.createJavaSearchScope(excludeTestCode, new IJavaElement[] { project }, searchScope);
 	}
 
 	/**
@@ -271,12 +276,13 @@ public class PropertiesManager {
 	 * 
 	 * @param javaProject     the origin java project
 	 * @param excludeTestCode true if test must me excluded and false otherwise.
+	 * @param scopes
 	 * @param monitor         the progress monitor.
 	 * @return the java project used for search.
 	 * @throws JavaModelException
 	 */
-	private IJavaProject getJavaProject(IJavaProject javaProject, boolean excludeTestCode, SubMonitor monitor)
-			throws JavaModelException {
+	private IJavaProject getJavaProject(IJavaProject javaProject, boolean excludeTestCode,
+			List<MicroProfilePropertiesScope> scopes, SubMonitor monitor) throws JavaModelException {
 		if (javaProject instanceof FakeJavaProject) {
 			// The java project is already resolved
 			return javaProject;
@@ -289,7 +295,7 @@ public class PropertiesManager {
 			mainMonitor.subTask("Contributing to classpath for provider (" + (i + 1) + "/" + length + ")");
 			SubMonitor subMonitor = mainMonitor.split(1);
 			IPropertiesProvider provider = getPropertiesProviders().get(i);
-			provider.contributeToClasspath(javaProject, resolvedClasspath, excludeTestCode,
+			provider.contributeToClasspath(javaProject, resolvedClasspath, excludeTestCode, scopes,
 					ArtifactResolver.DEFAULT_ARTIFACT_RESOLVER, newClasspathEntries, subMonitor);
 			subMonitor.done();
 
@@ -451,7 +457,8 @@ public class PropertiesManager {
 				// Not found, type could be included in deployment JAR which is not in classpath
 				// Try to find type from deployment JAR
 				if (fakeProject == null) {
-					fakeProject = configureSearchClasspath(javaProject, false, subMonitor);
+					fakeProject = configureSearchClasspath(javaProject, false,
+							MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, subMonitor);
 				}
 				if (mainMonitor.isCanceled()) {
 					throw new OperationCanceledException();

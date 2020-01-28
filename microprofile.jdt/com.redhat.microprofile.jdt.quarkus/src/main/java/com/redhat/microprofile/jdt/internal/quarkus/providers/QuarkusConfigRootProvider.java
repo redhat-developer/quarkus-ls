@@ -56,6 +56,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import com.redhat.microprofile.jdt.core.ArtifactResolver;
@@ -97,8 +98,12 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 
 	@Override
 	public void contributeToClasspath(IJavaProject project, IClasspathEntry[] resolvedClasspath,
-			boolean excludeTestCode, ArtifactResolver artifactResolver, List<IClasspathEntry> deploymentJarEntries,
-			IProgressMonitor monitor) throws JavaModelException {
+			boolean excludeTestCode, List<MicroProfilePropertiesScope> scopes, ArtifactResolver artifactResolver,
+			List<IClasspathEntry> deploymentJarEntries, IProgressMonitor monitor) throws JavaModelException {
+		if (MicroProfilePropertiesScope.isOnlySources(scopes)) {
+			// Search must be done in only sources, don't compute the Quarkus deployment dependencies. 
+			return;
+		}
 
 		// Get existings JARs from the classpath
 		List<String> existingJars = Stream.of(resolvedClasspath)

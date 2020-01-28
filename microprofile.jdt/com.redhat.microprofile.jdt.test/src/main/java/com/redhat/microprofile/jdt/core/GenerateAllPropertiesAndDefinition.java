@@ -174,7 +174,7 @@ public class GenerateAllPropertiesAndDefinition extends BasePropertiesManagerTes
 
 		if (generateDefinition) {
 			final IJavaProject fakeJavaProject = PropertiesManager.getInstance().configureSearchClasspath(javaProject,
-					true, new NullProgressMonitor());
+					true, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, new NullProgressMonitor());
 
 			start = System.currentTimeMillis();
 			LOGGER.info("Start generating all-quarkus-definitions.json");

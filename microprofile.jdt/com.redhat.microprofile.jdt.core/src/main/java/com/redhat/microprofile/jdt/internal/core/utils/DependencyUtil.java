@@ -30,6 +30,7 @@ import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.graph.DependencyVisitor;
 import org.eclipse.aether.resolution.ArtifactDescriptorException;
+import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -134,7 +135,7 @@ public class DependencyUtil {
 	private static CollectResult collectDependencies(org.eclipse.aether.artifact.Artifact artifact,
 			RepositorySystemSession repoSession) throws ArtifactDescriptorException, DependencyCollectionException {
 		CollectRequest collectRequest = new CollectRequest();
-		collectRequest.setRoot(new Dependency(artifact, ""));
+		collectRequest.setRoot(new Dependency(artifact, JavaScopes.RUNTIME));
 		RepositorySystem repoSystem = MavenPluginActivator.getDefault().getRepositorySystem();
 		repoSession = new DefaultRepositorySystemSession(repoSession);
 		return repoSystem.collectDependencies(repoSession, collectRequest);

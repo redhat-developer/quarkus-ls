@@ -107,5 +107,4 @@ public class JDTMicroProfileUtils {
 	private static ClasspathKind getClasspathKind(IClasspathEntry entry) {
 		return entry.isTest() ? ClasspathKind.TEST : ClasspathKind.SRC;
 	}
-
 }

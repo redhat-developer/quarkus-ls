@@ -244,7 +244,7 @@ class MicroProfileProjectInfoCache {
 
 	public Collection<String> propertiesChanged(MicroProfilePropertiesChangeEvent event) {
 		List<MicroProfilePropertiesScope> scopes = event.getType();
-		boolean changedOnlyInSources = scopes.size() == 1 && scopes.get(0) == MicroProfilePropertiesScope.sources;
+		boolean changedOnlyInSources = MicroProfilePropertiesScope.isOnlySources(scopes);
 		if (changedOnlyInSources) {
 			return javaSourceChanged(event.getProjectURIs());
 		}

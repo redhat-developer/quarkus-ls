@@ -51,4 +51,14 @@ public enum MicroProfilePropertiesScope {
 
 	public static final List<MicroProfilePropertiesScope> SOURCES_AND_DEPENDENCIES = Arrays
 			.asList(MicroProfilePropertiesScope.sources, MicroProfilePropertiesScope.dependencies);
+
+	/**
+	 * Returns true if the given scopes is only sources and false otherwise.
+	 * 
+	 * @param scopes
+	 * @return true if the given scopes is only sources and false otherwise.
+	 */
+	public static boolean isOnlySources(List<MicroProfilePropertiesScope> scopes) {
+		return scopes != null && scopes.size() == 1 && scopes.get(0) == MicroProfilePropertiesScope.sources;
+	}
 }
