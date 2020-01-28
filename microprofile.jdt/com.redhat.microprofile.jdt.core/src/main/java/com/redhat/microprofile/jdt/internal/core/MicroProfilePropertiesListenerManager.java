@@ -33,7 +33,7 @@ import org.eclipse.jdt.core.JavaCore;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.jdt.core.IMicroProfilePropertiesChangedListener;
-import com.redhat.microprofile.jdt.internal.core.utils.JDTMicroProfileUtils;
+import com.redhat.microprofile.jdt.core.utils.JDTMicroProfileUtils;
 
 /**
  * This class tracks :

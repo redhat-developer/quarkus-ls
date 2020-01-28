@@ -7,11 +7,12 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.core.utils;
+package com.redhat.microprofile.jdt.core.utils;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -103,7 +104,15 @@ public class JDTMicroProfileUtils {
 		return ClasspathKind.NONE;
 
 	}
-
+	
+	public static boolean hasNature(IProject project, String natureId) {
+		try {
+			return project != null && project.hasNature(natureId);
+		} catch (CoreException e) {
+			return false;
+		}
+	}
+	
 	private static ClasspathKind getClasspathKind(IClasspathEntry entry) {
 		return entry.isTest() ? ClasspathKind.TEST : ClasspathKind.SRC;
 	}

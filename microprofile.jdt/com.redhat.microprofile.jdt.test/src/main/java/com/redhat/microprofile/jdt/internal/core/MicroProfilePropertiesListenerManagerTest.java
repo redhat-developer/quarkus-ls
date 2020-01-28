@@ -31,7 +31,7 @@ import com.google.common.io.MoreFiles;
 import com.google.common.io.RecursiveDeleteOption;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
 import com.redhat.microprofile.jdt.core.IMicroProfilePropertiesChangedListener;
-import com.redhat.microprofile.jdt.internal.core.utils.JDTMicroProfileUtils;
+import com.redhat.microprofile.jdt.core.utils.JDTMicroProfileUtils;
 
 /**
  * Test with {@link MicroProfilePropertiesListenerManager}

@@ -59,6 +59,7 @@ public class BasePropertiesManagerTest {
 		config_properties("config-properties"), //
 		config_quickstart("config-quickstart"), //
 		config_quickstart_test("config-quickstart-test"), //
+		empty_maven_project("empty-maven-project"), //
 		hibernate_orm_resteasy("hibernate-orm-resteasy"), //
 		kubernetes("kubernetes"), //
 		rest_client_quickstart("rest-client-quickstart"), //
@@ -67,6 +68,22 @@ public class BasePropertiesManagerTest {
 		private final String name;
 
 		private MavenProjectName(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+	}
+	
+	public enum GradleProjectName {
+
+		empty_gradle_project("empty-gradle-project"), //
+		quarkus_gradle_project("quarkus-gradle-project");
+
+		private final String name;
+
+		private GradleProjectName(String name) {
 			this.name = name;
 		}
 
@@ -101,10 +118,16 @@ public class BasePropertiesManagerTest {
 
 	public static IJavaProject loadMavenProject(MavenProjectName mavenProject) throws CoreException, Exception {
 		// Load existing "hibernate-orm-resteasy" maven project
-		String projectName = mavenProject.getName();
-
+		return loadJavaProject(mavenProject.getName(), "maven");
+	}
+	
+	public static IJavaProject loadGradleProject(GradleProjectName gradleProject) throws CoreException, Exception {
+		return loadJavaProject(gradleProject.getName(), "gradle");
+	}
+	
+	private static IJavaProject loadJavaProject(String projectName, String parentDirName) throws CoreException, Exception {
 		// Move project to working directory
-		File projectFolder = copyProjectToWorkingDirectory(projectName);
+		File projectFolder = copyProjectToWorkingDirectory(projectName, parentDirName);
 
 		IPath path = new Path(new File(projectFolder, "/.project").getAbsolutePath());
 		IProjectDescription description = ResourcesPlugin.getWorkspace().loadProjectDescription(path);
@@ -145,8 +168,8 @@ public class BasePropertiesManagerTest {
 		return javaProject;
 	}
 
-	private static File copyProjectToWorkingDirectory(String projectName) throws IOException {
-		File from = new File("projects/maven/" + projectName);
+	private static File copyProjectToWorkingDirectory(String projectName,  String parentDirName) throws IOException {
+		File from = new File("projects/" + parentDirName+ "/" + projectName);
 		File to = new File(JavaUtils.getWorkingProjectDirectory(), projectName);
 
 		if (to.exists()) {
