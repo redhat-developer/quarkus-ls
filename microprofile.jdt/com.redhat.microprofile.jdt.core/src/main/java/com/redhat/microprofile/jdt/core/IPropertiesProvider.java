@@ -18,6 +18,8 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchPattern;
 
+import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
+
 /**
  * Properties provider API.
  * 
@@ -60,14 +62,15 @@ public interface IPropertiesProvider {
 	 * @param project             the Java project
 	 * @param resolvedClasspath   the resolved classpath
 	 * @param excludeTestCode
+	 * @param scopes
 	 * @param artifactResolver
 	 * @param newClasspathEntries
 	 * @param monitor
 	 * @throws JavaModelException
 	 */
 	default void contributeToClasspath(IJavaProject project, IClasspathEntry[] resolvedClasspath,
-			boolean excludeTestCode, ArtifactResolver artifactResolver, List<IClasspathEntry> newClasspathEntries,
-			IProgressMonitor monitor) throws JavaModelException {
+			boolean excludeTestCode, List<MicroProfilePropertiesScope> scopes, ArtifactResolver artifactResolver,
+			List<IClasspathEntry> newClasspathEntries, IProgressMonitor monitor) throws JavaModelException {
 
 	}
 

@@ -11,7 +11,6 @@ package com.redhat.microprofile.jdt.internal.core;
 
 import java.util.List;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -55,8 +54,7 @@ public class FakeJavaProject extends ExternalJavaProject {
 	 * @throws JavaModelException
 	 */
 	public IJavaElement[] getElementsToSearch(List<MicroProfilePropertiesScope> scopes) throws JavaModelException {
-		boolean searchOnlyInSources = scopes.size() == 1 && scopes.get(0) == MicroProfilePropertiesScope.sources;
-		if (searchOnlyInSources) {
+		if (MicroProfilePropertiesScope.isOnlySources(scopes)) {
 			return new IJavaElement[] { rootProject };
 		}
 		IPackageFragmentRoot[] roots = super.getPackageFragmentRoots();
@@ -72,7 +70,7 @@ public class FakeJavaProject extends ExternalJavaProject {
 	public boolean exists() {
 		return rootProject.exists();
 	}
-	
+
 	public IJavaProject getRootProject() {
 		return rootProject;
 	}
