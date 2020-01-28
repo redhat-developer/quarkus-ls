@@ -51,10 +51,10 @@ import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.commons.MicroProfilePropertyDefinitionParams;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
+import com.redhat.microprofile.jdt.core.utils.JDTMicroProfileUtils;
 import com.redhat.microprofile.jdt.internal.core.FakeJavaProject;
 import com.redhat.microprofile.jdt.internal.core.PropertiesCollector;
 import com.redhat.microprofile.jdt.internal.core.PropertiesProviderRegistry;
-import com.redhat.microprofile.jdt.internal.core.utils.JDTMicroProfileUtils;
 
 /**
  * MicroProfile properties manager used to:
