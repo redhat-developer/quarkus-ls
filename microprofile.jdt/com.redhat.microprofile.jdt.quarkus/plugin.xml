@@ -7,5 +7,9 @@
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigPropertiesProvider" />
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusKubernetesProvider" />
    </extension>
+   
+   <extension point="com.redhat.microprofile.jdt.core.projectLabelProviders">
+      <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
+   </extension>
 
 </plugin>

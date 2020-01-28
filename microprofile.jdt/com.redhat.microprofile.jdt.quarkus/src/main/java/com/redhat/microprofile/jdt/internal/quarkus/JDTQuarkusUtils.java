@@ -11,14 +11,20 @@ package com.redhat.microprofile.jdt.internal.quarkus;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaModelException;
+
 
 import com.redhat.microprofile.commons.metadata.ConverterKind;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
+import com.redhat.microprofile.jdt.core.PropertiesManager;
 
 /**
  * JDT Quarkus utilities.
@@ -27,6 +33,8 @@ import com.redhat.microprofile.commons.metadata.ItemMetadata;
  *
  */
 public class JDTQuarkusUtils {
+
+	private static final Logger LOGGER = Logger.getLogger(JDTQuarkusUtils.class.getName());
 
 	private static final List<ConverterKind> DEFAULT_QUARKUS_CONVERTERS = Arrays.asList(ConverterKind.KEBAB_CASE,
 			ConverterKind.VERBATIM);
@@ -63,6 +71,21 @@ public class JDTQuarkusUtils {
 			extensionName = extensionName.substring(0, extensionName.length() - "-deployment".length());
 		}
 		return extensionName;
+	}
+	
+	/**
+	 * Returns true if <code>javaProject</code> is a Quarkus project.
+	 * Returns false otherwise.
+	 * @param javaProject the Java project to check
+	 * @return true only if <code>javaProject</code> is a Quarkus project.
+	 */
+	public static boolean isQuarkusProject(IJavaProject javaProject) {
+		try {
+			return javaProject.findType(QuarkusConstants.QUARKUS_RUNTIME_CLASS_NAME) != null;
+		} catch (JavaModelException e) {
+			LOGGER.log(Level.INFO, "Current Java project is not a Quarkus project", e);
+			return false;
+		}
 	}
 
 	public static void updateConverterKinds(ItemMetadata metadata, IMember member, IType enclosedType)

@@ -75,6 +75,8 @@ public class QuarkusConstants {
 
 	public static final String DEPLOYMENT_ARTIFACT_PROPERTY = "deployment-artifact";
 
+	public static final String QUARKUS_RUNTIME_CLASS_NAME = "io.quarkus.runtime.LaunchMode";
+
 	private QuarkusConstants() {
 	}
 }
