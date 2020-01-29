@@ -12,6 +12,7 @@ package com.redhat.microprofile.jdt.internal.core;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import com.redhat.microprofile.commons.metadata.ConfigurationMetadata;
 import com.redhat.microprofile.commons.metadata.ItemHint;
@@ -84,6 +85,11 @@ public class PropertiesCollector implements IPropertiesCollector {
 		itemHint.setValues(new ArrayList<>());
 		addItemHint(itemHint);
 		return itemHint;
+	}
+
+	@Override
+	public Optional<ItemMetadata> getItemMetadata(String name) {
+		return configuration.getProperties().stream().filter(property -> name.equals(property.getName())).findFirst();
 	}
 
 }

@@ -24,9 +24,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
+import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProject;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
-import com.redhat.microprofile.jdt.internal.core.project.JDTMicroProfileProject;
 
 /**
  * JDT Quarkus manager test for Java file.

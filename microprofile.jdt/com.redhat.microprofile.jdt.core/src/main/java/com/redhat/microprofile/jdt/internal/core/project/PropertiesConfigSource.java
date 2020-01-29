@@ -15,6 +15,8 @@ import java.util.Properties;
 
 import org.eclipse.jdt.core.IJavaProject;
 
+import com.redhat.microprofile.jdt.core.utils.ConfigUtils;
+
 /**
  * {@link Properties} config file implementation.
  * 
@@ -29,14 +31,12 @@ public class PropertiesConfigSource extends AbstractConfigSource<Properties> {
 
 	@Override
 	protected String getProperty(String key, Properties properties) {
-		return properties.getProperty(key);
+		return ConfigUtils.getProperty(key, properties);
 	}
 
 	@Override
 	protected Properties loadConfig(InputStream input) throws IOException {
-		Properties properties = new Properties();
-		properties.load(input);
-		return properties;
+		return ConfigUtils.loadConfig(input);
 	}
 
 }

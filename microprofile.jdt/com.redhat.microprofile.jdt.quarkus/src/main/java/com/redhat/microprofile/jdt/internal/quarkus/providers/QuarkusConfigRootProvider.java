@@ -102,7 +102,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 			boolean excludeTestCode, List<MicroProfilePropertiesScope> scopes, ArtifactResolver artifactResolver,
 			List<IClasspathEntry> deploymentJarEntries, IProgressMonitor monitor) throws JavaModelException {
 		if (MicroProfilePropertiesScope.isOnlySources(scopes)) {
-			// Search must be done in only sources, don't compute the Quarkus deployment dependencies. 
+			// Search must be done in only sources, don't compute the Quarkus deployment
+			// dependencies.
 			return;
 		}
 
@@ -290,7 +291,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * @throws JavaModelException
 	 */
 	private static String getConfigRootName(IAnnotation configRootAnnotation) throws JavaModelException {
-		String value = getAnnotationMemberValue(configRootAnnotation, QuarkusConstants.CONFIG_ANNOTATION_NAME);
+		String value = getAnnotationMemberValue(configRootAnnotation, QuarkusConstants.CONFIG_ROOT_ANNOTATION_NAME);
 		if (value != null) {
 			return value;
 		}
@@ -384,7 +385,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 					final IAnnotation configItemAnnotation = getAnnotation((IAnnotatable) field,
 							QuarkusConstants.CONFIG_ITEM_ANNOTATION);
 					String name = configItemAnnotation == null ? hyphenate(field.getElementName())
-							: getAnnotationMemberValue(configItemAnnotation, QuarkusConstants.CONFIG_ANNOTATION_NAME);
+							: getAnnotationMemberValue(configItemAnnotation, QuarkusConstants.CONFIG_ITEM_ANNOTATION_NAME);
 					if (name == null) {
 						name = ConfigItem.HYPHENATED_ELEMENT_NAME;
 					}

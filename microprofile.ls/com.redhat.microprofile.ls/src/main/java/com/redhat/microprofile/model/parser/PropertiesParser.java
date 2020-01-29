@@ -16,6 +16,8 @@
  */
 package com.redhat.microprofile.model.parser;
 
+import javax.annotation.Resource;
+
 import com.redhat.microprofile.model.parser.ErrorEvent.ErrorType;
 
 /**
@@ -254,5 +256,10 @@ public class PropertiesParser implements ParseContext {
 	@Override
 	public ErrorHandler getErrorHandler() {
 		return errorHandler;
+	}
+
+	@Override
+	public String getText(int beginIndex, int endIndex) {
+		return text.substring(beginIndex, endIndex);
 	}
 }

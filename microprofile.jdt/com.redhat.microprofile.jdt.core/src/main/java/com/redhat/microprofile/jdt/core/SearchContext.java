@@ -12,14 +12,18 @@ package com.redhat.microprofile.jdt.core;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.core.IJavaProject;
 
 import com.redhat.microprofile.commons.DocumentFormat;
+import com.redhat.microprofile.jdt.core.utils.ConfigUtils;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 
 public class SearchContext {
 
 	private final IJavaProject javaProject;
+
+	private final IFile file;
 
 	private final IPropertiesCollector collector;
 
@@ -29,9 +33,10 @@ public class SearchContext {
 
 	private final Map<String, Object> cache;
 
-	public SearchContext(IJavaProject javaProject, IPropertiesCollector collector, IJDTUtils utils,
+	public SearchContext(IJavaProject javaProject, IFile file, IPropertiesCollector collector, IJDTUtils utils,
 			DocumentFormat documentFormat) {
 		this.javaProject = javaProject;
+		this.file = file;
 		this.collector = collector;
 		this.utils = utils;
 		this.documentFormat = documentFormat;
@@ -50,6 +55,10 @@ public class SearchContext {
 		return javaProject;
 	}
 
+	public IFile getFile() {
+		return file;
+	}
+
 	public IPropertiesCollector getCollector() {
 		return collector;
 	}
@@ -60,5 +69,19 @@ public class SearchContext {
 
 	public DocumentFormat getDocumentFormat() {
 		return documentFormat;
+	}
+
+	/**
+	 * Returns the value of the given property name declared in the file (ex :
+	 * application.properties) where collection properties is done and null
+	 * otherwise.
+	 * 
+	 * @param propertyName the property name.
+	 * @return the value of the given property name declared in the file (ex :
+	 *         application.properties) where collection properties is done and null
+	 *         otherwise.
+	 */
+	public String getConfigProperty(String propertyName) {
+		return ConfigUtils.getProperty(file, propertyName);
 	}
 }

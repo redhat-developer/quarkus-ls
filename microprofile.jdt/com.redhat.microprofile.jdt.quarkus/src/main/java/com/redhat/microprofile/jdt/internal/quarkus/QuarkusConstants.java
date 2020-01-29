@@ -23,16 +23,49 @@ public class QuarkusConstants {
 	public static final String QUARKUS_PREFIX = "quarkus.";
 
 	/**
-	 * The Quarkus Config* annotations
+	 * The Quarkus @ConfigRoot annotation
 	 */
 	public static final String CONFIG_ROOT_ANNOTATION = "io.quarkus.runtime.annotations.ConfigRoot";
+
+	public static final String CONFIG_ROOT_ANNOTATION_NAME = "name";
+
+	public static final String CONFIG_ROOT_ANNOTATION_PHASE = "phase";
+
+	/**
+	 * The Quarkus @ConfigGroup annotation
+	 */
 	public static final String CONFIG_GROUP_ANNOTATION = "io.quarkus.runtime.annotations.ConfigGroup";
+
+	/**
+	 * The Quarkus @ConfigItem annotation
+	 */
 	public static final String CONFIG_ITEM_ANNOTATION = "io.quarkus.runtime.annotations.ConfigItem";
+
+	public static final String CONFIG_ITEM_ANNOTATION_DEFAULT_VALUE = "defaultValue";
+
+	public static final String CONFIG_ITEM_ANNOTATION_NAME = "name";
+
+	/**
+	 * The Quarkus @ConfigProperties annotation
+	 */
 	public static final String CONFIG_PROPERTIES_ANNOTATION = "io.quarkus.arc.config.ConfigProperties";
 
-	public static final String CONFIG_ANNOTATION_NAME = "name";
-	public static final String CONFIG_ROOT_ANNOTATION_PHASE = "phase";
-	public static final String CONFIG_ITEM_ANNOTATION_DEFAULT_VALUE = "defaultValue";
+	public static final String CONFIG_PROPERTIES_ANNOTATION_NAMING_STRATEGY = "namingStrategy";
+
+	public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM = CONFIG_PROPERTIES_ANNOTATION
+			+ ".NamingStrategy";
+
+	public static final String NAMING_STRATEGY_PREFIX = "NamingStrategy.";
+
+	public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_FROM_CONFIG = NAMING_STRATEGY_PREFIX
+			+ "FROM_CONFIG";
+
+	public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_VERBATIM = NAMING_STRATEGY_PREFIX + "VERBATIM";
+
+	public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_KEBAB_CASE = NAMING_STRATEGY_PREFIX
+			+ "KEBAB_CASE";
+
+	public static final String QUARKUS_ARC_CONFIG_PROPERTIES_DEFAULT_NAMING_STRATEGY = "quarkus.arc.config-properties-default-naming-strategy";
 
 	/**
 	 * Quarkus properties file embedded in the Quarkus JAR.

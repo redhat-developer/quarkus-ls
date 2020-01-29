@@ -20,6 +20,30 @@ import java.util.List;
  */
 public class ItemMetadata extends ItemBase {
 
+	/**
+	 * On change class to track on MicroProfile LS side the change of the value of
+	 * the property (in application.properties, application.yaml) and do something.
+	 *
+	 */
+	public static class OnChange {
+		private Boolean evictCache;
+
+		/**
+		 * Returns true if change of value must evict the cache of metadata on
+		 * MicroProfile LS side and false otherwise.
+		 * 
+		 * @return true if change of value must evict the cache of metadata on
+		 *         MicroProfile LS side and false otherwise.
+		 */
+		public boolean isEvictCache() {
+			return evictCache != null && evictCache;
+		}
+
+		public void setEvictCache(Boolean evictCache) {
+			this.evictCache = evictCache;
+		}
+	}
+
 	private static final String JAVA_UTIL_OPTIONAL_PREFIX = "java.util.Optional<";
 
 	/**
@@ -50,6 +74,8 @@ public class ItemMetadata extends ItemBase {
 	private int phase;
 
 	private List<ConverterKind> converterKinds;
+
+	private OnChange onChange;
 
 	public String getType() {
 		return type;
@@ -115,6 +141,14 @@ public class ItemMetadata extends ItemBase {
 		this.converterKinds = converterKinds;
 	}
 
+	public OnChange getOnChange() {
+		return onChange;
+	}
+
+	public void setOnChange(OnChange onChange) {
+		this.onChange = onChange;
+	}
+
 	public boolean isAvailableAtRun() {
 		return phase == CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED || phase == CONFIG_PHASE_RUN_TIME;
 	}
@@ -176,16 +210,34 @@ public class ItemMetadata extends ItemBase {
 		return null;
 	}
 
+	/**
+	 * Returns the type to use for hint.
+	 * 
+	 * @param type the source type.
+	 * @return the type to use for hint.
+	 */
+	public String getHintType() {
+		if (type == null) {
+			return null;
+		}
+		if (type.startsWith(JAVA_UTIL_OPTIONAL_PREFIX)) {
+			return type.substring(JAVA_UTIL_OPTIONAL_PREFIX.length(), type.length() - 1);
+		}
+		return type;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
+		result = prime * result + ((converterKinds == null) ? 0 : converterKinds.hashCode());
 		result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
 		result = prime * result + ((extensionName == null) ? 0 : extensionName.hashCode());
 		result = prime * result + phase;
 		result = prime * result + (required ? 1231 : 1237);
 		result = prime * result + ((sourceField == null) ? 0 : sourceField.hashCode());
 		result = prime * result + ((sourceMethod == null) ? 0 : sourceMethod.hashCode());
+		result = prime * result + ((onChange == null) ? 0 : onChange.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
 	}
@@ -199,6 +251,11 @@ public class ItemMetadata extends ItemBase {
 		if (getClass() != obj.getClass())
 			return false;
 		ItemMetadata other = (ItemMetadata) obj;
+		if (converterKinds == null) {
+			if (other.converterKinds != null)
+				return false;
+		} else if (!converterKinds.equals(other.converterKinds))
+			return false;
 		if (defaultValue == null) {
 			if (other.defaultValue != null)
 				return false;
@@ -223,28 +280,17 @@ public class ItemMetadata extends ItemBase {
 				return false;
 		} else if (!sourceMethod.equals(other.sourceMethod))
 			return false;
+		if (onChange == null) {
+			if (other.onChange != null)
+				return false;
+		} else if (!onChange.equals(other.onChange))
+			return false;
 		if (type == null) {
 			if (other.type != null)
 				return false;
 		} else if (!type.equals(other.type))
 			return false;
 		return true;
-	}
-
-	/**
-	 * Returns the type to use for hint.
-	 * 
-	 * @param type the source type.
-	 * @return the type to use for hint.
-	 */
-	public String getHintType() {
-		if (type == null) {
-			return null;
-		}
-		if (type.startsWith(JAVA_UTIL_OPTIONAL_PREFIX)) {
-			return type.substring(JAVA_UTIL_OPTIONAL_PREFIX.length(), type.length() - 1);
-		}
-		return type;
 	}
 
 }

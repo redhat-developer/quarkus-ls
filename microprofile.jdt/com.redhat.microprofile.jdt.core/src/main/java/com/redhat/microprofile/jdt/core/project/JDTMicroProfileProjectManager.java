@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.core.project;
+package com.redhat.microprofile.jdt.core.project;
 
 import java.util.HashMap;
 import java.util.Map;

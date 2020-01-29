@@ -96,10 +96,16 @@ public class PropertiesManager {
 		String projectName = file.getProject().getName();
 		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
 		ClasspathKind classpathKind = JDTMicroProfileUtils.getClasspathKind(file, javaProject);
-		return getMicroProfileProjectInfo(javaProject, scopes, classpathKind, utils, documentFormat, progress);
+		return getMicroProfileProjectInfo(javaProject, file, scopes, classpathKind, utils, documentFormat, progress);
 	}
 
 	public MicroProfileProjectInfo getMicroProfileProjectInfo(IJavaProject javaProject,
+			List<MicroProfilePropertiesScope> scopes, ClasspathKind classpathKind, IJDTUtils utils,
+			DocumentFormat documentFormat, IProgressMonitor monitor) throws JavaModelException, CoreException {
+		return getMicroProfileProjectInfo(javaProject, null, scopes, classpathKind, utils, documentFormat, monitor);
+	}
+
+	public MicroProfileProjectInfo getMicroProfileProjectInfo(IJavaProject javaProject, IFile file,
 			List<MicroProfilePropertiesScope> scopes, ClasspathKind classpathKind, IJDTUtils utils,
 			DocumentFormat documentFormat, IProgressMonitor monitor) throws JavaModelException, CoreException {
 		MicroProfileProjectInfo info = createInfo(javaProject, classpathKind);
@@ -124,7 +130,7 @@ public class PropertiesManager {
 			}
 
 			// Step2 (50%) : scan Java classes from the search classpath
-			scanJavaClasses(javaProjectForSearch, excludeTestCode, documentFormat, scopes, info, utils,
+			scanJavaClasses(javaProjectForSearch, file, excludeTestCode, documentFormat, scopes, info, utils,
 					mainMonitor.split(50));
 			if (mainMonitor.isCanceled()) {
 				throw new OperationCanceledException();
@@ -183,7 +189,7 @@ public class PropertiesManager {
 	 * @throws JavaModelException
 	 * @throws CoreException
 	 */
-	private void scanJavaClasses(IJavaProject javaProjectForSearch, boolean excludeTestCode,
+	private void scanJavaClasses(IJavaProject javaProjectForSearch, IFile file, boolean excludeTestCode,
 			DocumentFormat documentFormat, List<MicroProfilePropertiesScope> scopes, MicroProfileProjectInfo info,
 			IJDTUtils utils, SubMonitor mainMonitor) throws JavaModelException, CoreException {
 		// Create JDT Java search pattern, engine and scope
@@ -198,7 +204,7 @@ public class PropertiesManager {
 
 			// Execute the search
 			PropertiesCollector collector = new PropertiesCollector(info);
-			SearchContext context = new SearchContext(javaProjectForSearch, collector, utils, documentFormat);
+			SearchContext context = new SearchContext(javaProjectForSearch, file, collector, utils, documentFormat);
 			beginSearch(context, subMonitor);
 			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
 					new SearchRequestor() {

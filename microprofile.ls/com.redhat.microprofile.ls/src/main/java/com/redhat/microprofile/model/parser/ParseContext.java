@@ -43,4 +43,6 @@ public interface ParseContext {
 	 *         errors
 	 */
 	ErrorHandler getErrorHandler();
+	
+	String getText(int start, int end);
 }

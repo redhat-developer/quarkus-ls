@@ -47,11 +47,10 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.microprofile.commons.DocumentFormat;
+import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
 import com.redhat.microprofile.ls.api.MicroProfileLanguageServerAPI.JsonSchemaForProjectInfo;
-import com.redhat.microprofile.ls.commons.ModelTextDocument;
-import com.redhat.microprofile.ls.commons.ModelTextDocuments;
 import com.redhat.microprofile.model.PropertiesModel;
 import com.redhat.microprofile.services.MicroProfileLanguageService;
 import com.redhat.microprofile.settings.MicroProfileFormattingSettings;
@@ -66,7 +65,7 @@ import com.redhat.microprofile.utils.JSONSchemaUtils;
  */
 public class ApplicationPropertiesTextDocumentService extends AbstractTextDocumentService {
 
-	private final ModelTextDocuments<PropertiesModel> documents;
+	private final ApplicationPropertiesTextDocuments documents;
 
 	private MicroProfileProjectInfoCache projectInfoCache;
 
@@ -80,12 +79,10 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 
 	private DocumentFormat documentFormat;
 
-	public ApplicationPropertiesTextDocumentService(MicroProfileLanguageServer quarkusLanguageServer,
+	public ApplicationPropertiesTextDocumentService(MicroProfileLanguageServer microprofileLanguageServer,
 			SharedSettings sharedSettings) {
-		this.microprofileLanguageServer = quarkusLanguageServer;
-		this.documents = new ModelTextDocuments<PropertiesModel>((document, cancelChecker) -> {
-			return PropertiesModel.parse(document);
-		});
+		this.microprofileLanguageServer = microprofileLanguageServer;
+		this.documents = new ApplicationPropertiesTextDocuments();
 		this.sharedSettings = sharedSettings;
 		this.documentFormat = DocumentFormat.PlainText;
 	}
@@ -122,13 +119,13 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 
 	@Override
 	public void didOpen(DidOpenTextDocumentParams params) {
-		ModelTextDocument<PropertiesModel> document = documents.onDidOpenTextDocument(params);
+		ApplicationPropertiesTextDocument document = documents.onDidOpenTextDocument(params);
 		triggerValidationFor(document);
 	}
 
 	@Override
 	public void didChange(DidChangeTextDocumentParams params) {
-		ModelTextDocument<PropertiesModel> document = documents.onDidChangeTextDocument(params);
+		ApplicationPropertiesTextDocument document = documents.onDidChangeTextDocument(params);
 		triggerValidationFor(document);
 	}
 
@@ -143,7 +140,10 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 
 	@Override
 	public void didSave(DidSaveTextDocumentParams params) {
-
+		MicroProfilePropertiesChangeEvent event = documents.onDidSaveTextDocument(params);
+		if (event != null) {
+			propertiesChanged(event);
+		}
 	}
 
 	@Override
@@ -156,7 +156,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 				return CompletableFuture.completedFuture(Either.forRight(new CompletionList()));
 			}
 			// then get the Properties model document
-			return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
+			return getPropertiesModel(params.getTextDocument(), projectInfo, (cancelChecker, document) -> {
 				// then return completion by using the Quarkus project information and the
 				// Properties model document
 				CompletionList list = getMicroProfileLanguageService().doComplete(document, params.getPosition(),
@@ -177,7 +177,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 				return CompletableFuture.completedFuture(null);
 			}
 			// then get the Properties model document
-			return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
+			return getPropertiesModel(params.getTextDocument(), projectInfo, (cancelChecker, document) -> {
 				// then return hover by using the Quarkus project information and the
 				// Properties model document
 				return getMicroProfileLanguageService().doHover(document, params.getPosition(), projectInfo,
@@ -189,7 +189,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 	@Override
 	public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(
 			DocumentSymbolParams params) {
-		return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
+		return getPropertiesModel(params.getTextDocument(), null, (cancelChecker, document) -> {
 			if (hierarchicalDocumentSymbolSupport && sharedSettings.getSymbolSettings().isShowAsTree()) {
 				return getMicroProfileLanguageService().findDocumentSymbols(document, cancelChecker) //
 						.stream() //
@@ -227,14 +227,14 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 
 	@Override
 	public CompletableFuture<List<? extends TextEdit>> formatting(DocumentFormattingParams params) {
-		return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
+		return getPropertiesModel(params.getTextDocument(), null, (cancelChecker, document) -> {
 			return getMicroProfileLanguageService().doFormat(document, sharedSettings.getFormattingSettings());
 		});
 	}
 
 	@Override
 	public CompletableFuture<List<? extends TextEdit>> rangeFormatting(DocumentRangeFormattingParams params) {
-		return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
+		return getPropertiesModel(params.getTextDocument(), null, (cancelChecker, document) -> {
 			return getMicroProfileLanguageService().doRangeFormat(document, params.getRange(),
 					sharedSettings.getFormattingSettings());
 		});
@@ -248,7 +248,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 				return CompletableFuture.completedFuture(null);
 			}
 			// then get the Properties model document
-			return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
+			return getPropertiesModel(params.getTextDocument(), projectInfo, (cancelChecker, document) -> {
 				return getMicroProfileLanguageService()
 						.doCodeActions(params.getContext(), params.getRange(), document, projectInfo,
 								sharedSettings.getFormattingSettings(), sharedSettings.getCommandCapabilities()) //
@@ -276,7 +276,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 		return microprofileLanguageServer.getQuarkusLanguageService();
 	}
 
-	private void triggerValidationFor(ModelTextDocument<PropertiesModel> document) {
+	private void triggerValidationFor(ApplicationPropertiesTextDocument document) {
 		// Get Quarkus project information which stores all available Quarkus
 		// properties
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(document.getUri());
@@ -285,7 +285,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 				return CompletableFuture.completedFuture(null);
 			}
 			// then get the Properties model document
-			return getPropertiesModel(document, (cancelChecker, model) -> {
+			return getPropertiesModel(document, projectInfo, (cancelChecker, model) -> {
 				// then return do validation by using the Quarkus project information and the
 				// Properties model document
 				List<Diagnostic> diagnostics = getMicroProfileLanguageService().doDiagnostics(model, projectInfo,
@@ -303,7 +303,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 	 * @param uri the uri
 	 * @return the text document from the given uri.
 	 */
-	public ModelTextDocument<PropertiesModel> getDocument(String uri) {
+	public ApplicationPropertiesTextDocument getDocument(String uri) {
 		return documents.get(uri);
 	}
 
@@ -313,6 +313,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 	 * 
 	 * @param <R>
 	 * @param documentIdentifier the document identifier.
+	 * @param projectInfo        the project information
 	 * @param code               a bi function that accepts a {@link CancelChecker}
 	 *                           and parsed {@link PropertiesModel} and returns the
 	 *                           to be computed value
@@ -320,8 +321,8 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 	 *         given function.
 	 */
 	public <R> CompletableFuture<R> getPropertiesModel(TextDocumentIdentifier documentIdentifier,
-			BiFunction<CancelChecker, PropertiesModel, R> code) {
-		return getPropertiesModel(getDocument(documentIdentifier.getUri()), code);
+			MicroProfileProjectInfo projectInfo, BiFunction<CancelChecker, PropertiesModel, R> code) {
+		return getPropertiesModel(getDocument(documentIdentifier.getUri()), projectInfo, code);
 	}
 
 	/**
@@ -330,14 +331,16 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 	 * 
 	 * @param <R>
 	 * @param documentIdentifier the document identifier.
+	 * @param projectInfo        the project information.
 	 * @param code               a bi function that accepts a {@link CancelChecker}
 	 *                           and parsed {@link PropertiesModel} and returns the
 	 *                           to be computed value
 	 * @return the properties model for a given uri in a future and then apply the
 	 *         given function.
 	 */
-	public <R> CompletableFuture<R> getPropertiesModel(ModelTextDocument<PropertiesModel> document,
-			BiFunction<CancelChecker, PropertiesModel, R> code) {
+	public <R> CompletableFuture<R> getPropertiesModel(ApplicationPropertiesTextDocument document,
+			MicroProfileProjectInfo projectInfo, BiFunction<CancelChecker, PropertiesModel, R> code) {
+		document.update(projectInfo);
 		return computeModelAsync(document.getModel(), code);
 	}
 
@@ -356,7 +359,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 	public void propertiesChanged(MicroProfilePropertiesChangeEvent event) {
 		Collection<String> uris = getProjectInfoCache().propertiesChanged(event);
 		for (String uri : uris) {
-			ModelTextDocument<PropertiesModel> document = getDocument(uri);
+			ApplicationPropertiesTextDocument document = getDocument(uri);
 			if (document != null) {
 				triggerValidationFor(document);
 			}
@@ -406,7 +409,8 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 		projectInfoCache = new MicroProfileProjectInfoCache(microprofileLanguageServer.getLanguageClient());
 	}
 
-	public CompletableFuture<JsonSchemaForProjectInfo> getJsonSchemaForProjectInfo(MicroProfileProjectInfoParams params) {
+	public CompletableFuture<JsonSchemaForProjectInfo> getJsonSchemaForProjectInfo(
+			MicroProfileProjectInfoParams params) {
 		return getProjectInfoCache().getProjectInfo(params).thenApply(info -> {
 			String jsonSchema = JSONSchemaUtils.toJSONSchema(info, true);
 			return new JsonSchemaForProjectInfo(info.getProjectURI(), jsonSchema);

@@ -15,6 +15,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.ExternalJavaProject;
 
@@ -73,5 +74,11 @@ public class FakeJavaProject extends ExternalJavaProject {
 
 	public IJavaProject getRootProject() {
 		return rootProject;
+	}
+
+	@Override
+	public IType findType(String fullyQualifiedName) throws JavaModelException {
+		IType type = rootProject.findType(fullyQualifiedName);
+		return type != null ? type : super.findType(fullyQualifiedName);
 	}
 }

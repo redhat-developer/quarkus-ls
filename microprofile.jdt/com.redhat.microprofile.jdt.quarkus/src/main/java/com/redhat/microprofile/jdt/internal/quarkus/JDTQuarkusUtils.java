@@ -12,6 +12,7 @@ package com.redhat.microprofile.jdt.internal.quarkus;
 import java.util.Arrays;
 import java.util.List;
 
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -71,5 +72,13 @@ public class JDTQuarkusUtils {
 		}
 		// By default Quarkus set the enum values as kebab and verbatim
 		metadata.setConverterKinds(DEFAULT_QUARKUS_CONVERTERS);
+	}
+	
+	public static boolean isSupportNamingStrategy(IJavaProject javaProject) {
+		try {
+			return javaProject.findType(QuarkusConstants.CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM) != null;
+		} catch (JavaModelException e) {
+			return false;
+		}
 	}
 }

@@ -9,6 +9,8 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core;
 
+import java.util.Optional;
+
 import com.redhat.microprofile.commons.metadata.ItemHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 
@@ -40,6 +42,14 @@ public interface IPropertiesCollector {
 	 */
 	ItemMetadata addItemMetadata(String name, String type, String description, String sourceType, String sourceField,
 			String sourceMethod, String defaultValue, String extensionName, boolean binary, int phase);
+
+	/**
+	 * Returns the item metadata by the given <code>name</code> and null otherwise.
+	 * 
+	 * @param name the property name
+	 * @return the item metadata by the given <code>name</code> and null otherwise.
+	 */
+	Optional<ItemMetadata> getItemMetadata(String name);
 
 	/**
 	 * Returns true if the given hint exists and false otherwise.
