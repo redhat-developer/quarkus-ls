@@ -33,6 +33,8 @@
    <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
       <!-- Properties provider from the MicroProfile @ConfigProperty annotation -->
       <provider class="com.redhat.microprofile.jdt.internal.core.providers.MicroProfileConfigPropertyProvider" />
+      <!-- Properties provider from the MicroProfile Fault Tolerance annotations -->
+      <provider class="com.redhat.microprofile.jdt.internal.core.providers.MicroProfileFaultToleranceProvider" />
       <!-- Properties provider from the MicroProfile @RegisterRestClient annotation -->
       <provider class="com.redhat.microprofile.jdt.internal.core.providers.MicroProfileRegisterRestClientProvider" />
    </extension>

@@ -198,7 +198,7 @@ public class PropertiesManager {
 
 			// Execute the search
 			PropertiesCollector collector = new PropertiesCollector(info);
-			SearchContext context = new SearchContext(javaProjectForSearch, collector, utils, documentFormat);
+			SearchContext context = new SearchContext(javaProjectForSearch, collector, utils, documentFormat, scopes);
 			beginSearch(context, subMonitor);
 			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
 					new SearchRequestor() {

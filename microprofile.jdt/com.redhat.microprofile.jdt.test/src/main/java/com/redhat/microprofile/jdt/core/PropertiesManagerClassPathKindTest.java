@@ -30,7 +30,7 @@ import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 import com.redhat.microprofile.jdt.internal.core.utils.DependencyUtil;
 
 /**
- * Test collect Quarkus properties from classpath kind
+ * Test collection of Quarkus properties from classpath kind
  * 
  * <ul>
  * <li>not in classpath -> 0 quarkus properties</li>

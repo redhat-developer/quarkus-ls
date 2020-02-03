@@ -25,7 +25,7 @@ import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.jdt.internal.core.utils.DependencyUtil;
 
 /**
- * Test collect Quarkus properties from @ConfigProperty
+ * Test collection of Quarkus properties from @ConfigProperty
  * 
  * @author Angelo ZERR
  *

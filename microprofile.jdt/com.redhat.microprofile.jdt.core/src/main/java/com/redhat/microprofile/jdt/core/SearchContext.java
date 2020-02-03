@@ -10,11 +10,13 @@
 package com.redhat.microprofile.jdt.core;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jdt.core.IJavaProject;
 
 import com.redhat.microprofile.commons.DocumentFormat;
+import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 
 public class SearchContext {
@@ -27,14 +29,17 @@ public class SearchContext {
 
 	private final DocumentFormat documentFormat;
 
+	private final List<MicroProfilePropertiesScope> scopes;
+
 	private final Map<String, Object> cache;
 
 	public SearchContext(IJavaProject javaProject, IPropertiesCollector collector, IJDTUtils utils,
-			DocumentFormat documentFormat) {
+			DocumentFormat documentFormat, List<MicroProfilePropertiesScope> scopes) {
 		this.javaProject = javaProject;
 		this.collector = collector;
 		this.utils = utils;
 		this.documentFormat = documentFormat;
+		this.scopes = scopes;
 		cache = new HashMap<>();
 	}
 
@@ -60,5 +65,9 @@ public class SearchContext {
 
 	public DocumentFormat getDocumentFormat() {
 		return documentFormat;
+	}
+
+	public List<MicroProfilePropertiesScope> getScopes() {
+		return scopes;
 	}
 }
