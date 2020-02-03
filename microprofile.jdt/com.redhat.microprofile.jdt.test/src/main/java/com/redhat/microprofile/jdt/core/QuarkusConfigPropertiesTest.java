@@ -26,7 +26,7 @@ import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProject;
 import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 
 /**
- * Test collect Quarkus properties from @ConfigProperties
+ * Test collection of Quarkus properties from @ConfigProperties
  * 
  * @author Angelo ZERR
  *

@@ -23,7 +23,7 @@ import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 
 /**
- * Test collect MicroProfile properties from @RegisterRestClient
+ * Test collection of MicroProfile properties from @RegisterRestClient
  * 
  * @author Angelo ZERR
  *

@@ -62,6 +62,7 @@ public class BasePropertiesManagerTest {
 		empty_maven_project("empty-maven-project"), //
 		hibernate_orm_resteasy("hibernate-orm-resteasy"), //
 		kubernetes("kubernetes"), //
+		microprofile_fault_tolerance("microprofile-fault-tolerance"), //
 		rest_client_quickstart("rest-client-quickstart"), //
 		using_vertx("using-vertx");
 
