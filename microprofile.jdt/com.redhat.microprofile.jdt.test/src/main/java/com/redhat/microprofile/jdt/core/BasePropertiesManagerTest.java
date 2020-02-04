@@ -183,4 +183,12 @@ public class BasePropertiesManagerTest {
 		}
 		createFile(file, content);
 	}
+	
+	protected static void saveFile(String configFileName, String content, IJavaProject javaProject)
+			throws JavaModelException, IOException {
+		IPath output = javaProject.getOutputLocation();
+		File file = javaProject.getProject().getLocation().append(output.removeFirstSegments(1)).append(configFileName)
+				.toFile();
+		updateFile(file, content);
+	}
 }

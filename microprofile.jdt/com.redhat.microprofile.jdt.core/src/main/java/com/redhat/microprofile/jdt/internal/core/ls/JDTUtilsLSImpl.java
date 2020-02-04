@@ -116,11 +116,7 @@ public class JDTUtilsLSImpl implements IJDTUtils {
 
 	@Override
 	public void discoverSource(IClassFile classFile, IProgressMonitor progress) throws CoreException {
-		
-		IJavaProject javaProject = classFile.getJavaProject();
-		if (javaProject instanceof FakeJavaProject) {
-			javaProject = ((FakeJavaProject) javaProject).getRootProject();
-		}
+		IJavaProject javaProject = FakeJavaProject.getRealJavaProject(classFile.getJavaProject());
 		// Try to download source if required
 		Optional<IBuildSupport> bs = JavaLanguageServerPlugin.getProjectsManager()
 				.getBuildSupport(javaProject.getProject());

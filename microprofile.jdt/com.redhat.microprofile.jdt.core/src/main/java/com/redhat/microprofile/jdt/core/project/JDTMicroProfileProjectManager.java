@@ -7,13 +7,15 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.core.project;
+package com.redhat.microprofile.jdt.core.project;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaModelException;
+
+import com.redhat.microprofile.jdt.internal.core.FakeJavaProject;
 
 /**
  * {@link JDTMicroProfileProject} manager.
@@ -36,10 +38,11 @@ public class JDTMicroProfileProjectManager {
 	}
 
 	public JDTMicroProfileProject getJDTMicroProfileProject(IJavaProject project) throws JavaModelException {
-		JDTMicroProfileProject info = projects.get(project);
+		IJavaProject javaProject = FakeJavaProject.getRealJavaProject(project);
+		JDTMicroProfileProject info = projects.get(javaProject);
 		if (info == null) {
-			info = new JDTMicroProfileProject(project);
-			projects.put(project, info);
+			info = new JDTMicroProfileProject(javaProject);
+			projects.put(javaProject, info);
 		}
 		return info;
 	}

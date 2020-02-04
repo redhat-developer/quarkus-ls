@@ -21,5 +21,6 @@ Bundle-ActivationPolicy: lazy
 Export-Package: com.redhat.microprofile.commons,
  com.redhat.microprofile.commons.metadata,
  com.redhat.microprofile.jdt.core,
+ com.redhat.microprofile.jdt.core.project,
  com.redhat.microprofile.jdt.core.utils,
  io.quarkus.runtime.util
