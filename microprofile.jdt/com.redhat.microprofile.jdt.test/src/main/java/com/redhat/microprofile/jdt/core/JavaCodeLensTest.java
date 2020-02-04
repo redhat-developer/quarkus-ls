@@ -9,12 +9,9 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
@@ -24,9 +21,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
+import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProject;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
-import com.redhat.microprofile.jdt.internal.core.project.JDTMicroProfileProject;
 
 /**
  * JDT Quarkus manager test for Java file.
@@ -88,14 +85,6 @@ public class JavaCodeLensTest extends BasePropertiesManagerTest {
 		CodeLens lensForGetSingle = lenses.get(1);
 		Assert.assertNotNull(lensForGetSingle.getCommand());
 		Assert.assertEquals("http://localhost:" + port + "/fruits/{id}", lensForGetSingle.getCommand().getTitle());
-	}
-
-	private static void saveFile(String configFileName, String content, IJavaProject javaProject)
-			throws JavaModelException, IOException {
-		IPath output = javaProject.getOutputLocation();
-		File file = javaProject.getProject().getLocation().append(output.removeFirstSegments(1)).append(configFileName)
-				.toFile();
-		updateFile(file, content);
 	}
 
 }

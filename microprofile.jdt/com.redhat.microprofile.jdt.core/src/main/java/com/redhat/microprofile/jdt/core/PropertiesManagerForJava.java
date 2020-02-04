@@ -46,8 +46,8 @@ import org.eclipse.lsp4j.util.Ranges;
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverInfo;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
+import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProjectManager;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
-import com.redhat.microprofile.jdt.internal.core.project.JDTMicroProfileProjectManager;
 
 /**
  * JDT quarkus manager for Java files.

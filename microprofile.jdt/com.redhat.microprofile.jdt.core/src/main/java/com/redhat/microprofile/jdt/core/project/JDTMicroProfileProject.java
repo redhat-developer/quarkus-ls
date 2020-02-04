@@ -7,12 +7,15 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.core.project;
+package com.redhat.microprofile.jdt.core.project;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jdt.core.IJavaProject;
+
+import com.redhat.microprofile.jdt.internal.core.project.IConfigSource;
+import com.redhat.microprofile.jdt.internal.core.project.PropertiesConfigSource;
 
 /**
  * JDT MicroProfile project.
