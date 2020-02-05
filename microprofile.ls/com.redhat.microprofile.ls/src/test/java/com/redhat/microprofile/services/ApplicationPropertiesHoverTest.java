@@ -32,7 +32,7 @@ public class ApplicationPropertiesHoverTest {
 
 	@Test
 	public void testQuarkusKeyHoverMarkdown() throws BadLocationException {
-		String value = "quarkus.applica|tion.name = \"name\"";
+		String value = "quarkus.applica|tion.name = name";
 		String hoverLabel = "**quarkus.application.name**" + System.lineSeparator() + System.lineSeparator() + //
 				"The name of the application.\nIf not set, defaults to the name of the project (except for tests where it is not set at all)."
 				+ System.lineSeparator() + System.lineSeparator() + //
@@ -44,7 +44,7 @@ public class ApplicationPropertiesHoverTest {
 
 	@Test
 	public void testQuarkusKeyHoverPlaintext() throws BadLocationException {
-		String value = "quarkus.applica|tion.name = \"name\"";
+		String value = "quarkus.applica|tion.name = name";
 		String hoverLabel = "quarkus.application.name" + System.lineSeparator() + System.lineSeparator() + //
 				"The name of the application.\nIf not set, defaults to the name of the project (except for tests where it is not set at all)."
 				+ System.lineSeparator() + System.lineSeparator() + //
@@ -56,7 +56,7 @@ public class ApplicationPropertiesHoverTest {
 
 	@Test
 	public void testQuarkusKeyHoverNoSpaces() throws BadLocationException {
-		String value = "quarkus.applica|tion.name=\"name\"";
+		String value = "quarkus.applica|tion.name=name";
 		String hoverLabel = "**quarkus.application.name**" + System.lineSeparator() + System.lineSeparator() + //
 				"The name of the application.\nIf not set, defaults to the name of the project (except for tests where it is not set at all)."
 				+ System.lineSeparator() + System.lineSeparator() + //
@@ -67,15 +67,16 @@ public class ApplicationPropertiesHoverTest {
 	};
 
 	@Test
-	public void testQuarkusKeyHoverOnEqualsSign() throws BadLocationException {
-		String value = "quarkus.application.name |= \"name\"";
-		String hoverLabel = "**quarkus.application.name**" + System.lineSeparator() + System.lineSeparator() + //
-				"The name of the application.\nIf not set, defaults to the name of the project (except for tests where it is not set at all)."
-				+ System.lineSeparator() + System.lineSeparator() + //
-				" * Type: `java.util.Optional<java.lang.String>`" + System.lineSeparator() + //
-				" * Phase: `buildtime & runtime`" + System.lineSeparator() + //
-				" * Extension: `quarkus-core`";
-		assertHoverMarkdown(value, hoverLabel, 0);
+	public void testNoQuarkusKeyHoverOnEqualsSign() throws BadLocationException {
+		assertHoverMarkdown("quarkus.application.name |= name", null, 0);
+		assertHoverMarkdown("quarkus.application.name|=name", null, 0);
+		assertHoverMarkdown("quarkus.log.syslog.async.overflow|=DISCARD", null, 0);
+	};
+
+	@Test
+	public void testNoQuarkusValueHoverOnEqualsSign() throws BadLocationException {
+		assertHoverMarkdown("quarkus.log.syslog.async.overflow |= DISCARD", null, 0);
+		assertHoverMarkdown("quarkus.log.syslog.async.overflow|=DISCARD", null, 0);
 	};
 
 	@Test
@@ -83,18 +84,6 @@ public class ApplicationPropertiesHoverTest {
 		String value = "a=1\n" + //
 				"b=|";
 		assertHoverMarkdown(value, null, 0);
-	};
-
-	@Test
-	public void testQuarkusKeyHoverOnEqualsSignNoSpaces() throws BadLocationException {
-		String value = "quarkus.application.name|=\"name\"";
-		String hoverLabel = "**quarkus.application.name**" + System.lineSeparator() + System.lineSeparator() + //
-				"The name of the application.\nIf not set, defaults to the name of the project (except for tests where it is not set at all)."
-				+ System.lineSeparator() + System.lineSeparator() + //
-				" * Type: `java.util.Optional<java.lang.String>`" + System.lineSeparator() + //
-				" * Phase: `buildtime & runtime`" + System.lineSeparator() + //
-				" * Extension: `quarkus-core`";
-		assertHoverMarkdown(value, hoverLabel, 0);
 	};
 
 	@Test
@@ -146,7 +135,7 @@ public class ApplicationPropertiesHoverTest {
 
 	@Test
 	public void testQuarkusKeyWithProfileHoverMarkdown() throws BadLocationException {
-		String value = "%dev.quarkus.applica|tion.name = \"name\"";
+		String value = "%dev.quarkus.applica|tion.name = name";
 		String hoverLabel = "**quarkus.application.name**" + System.lineSeparator() + System.lineSeparator() + //
 				"The name of the application.\nIf not set, defaults to the name of the project (except for tests where it is not set at all)."
 				+ System.lineSeparator() + System.lineSeparator() + //
