@@ -110,6 +110,10 @@ public class PropertiesModel extends Node {
 		public void delimiterAssign(ParseContext context) {
 			Node assign = new Assign();
 			assign.setStart(context.getLocationOffset());
+
+			// assumption: delimiters are only one character long
+			assign.setEnd(context.getLocationOffset() + 1);
+
 			property.setDelimiterAssign(assign);
 		}
 

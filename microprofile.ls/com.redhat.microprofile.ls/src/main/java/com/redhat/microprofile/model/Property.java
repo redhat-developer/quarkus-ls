@@ -162,6 +162,9 @@ public class Property extends Node {
 		if (assign == null) {
 			return key;
 		}
+		if (assign.getStart() == offset) {
+			return assign;
+		}
 		if (offset >= assign.getStart()) {
 			Node value = getValue();
 			return value != null ? value : assign;

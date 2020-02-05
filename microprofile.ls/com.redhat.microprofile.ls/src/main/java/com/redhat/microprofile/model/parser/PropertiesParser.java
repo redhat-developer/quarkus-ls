@@ -165,7 +165,7 @@ public class PropertiesParser implements ParseContext {
 		readString(StopReading.PropertyName);
 		handler.endPropertyName(this);
 		skipWhiteSpace();
-		if (!readChar('=') && !readChar(':')) {
+		if (current != '=' && current != ':') {
 //			final Location location = getLocation();
 //			ErrorEvent e = new ErrorEvent(location, location,
 //					"Equals sign '==' missing after property name '" + name + "'",
@@ -174,8 +174,11 @@ public class PropertiesParser implements ParseContext {
 			skipUntilEndOfLine();
 		} else {
 			handler.delimiterAssign(this);
-			// property value
+
+			// read the '=' or ':' sign
+			read();
 			skipWhiteSpace();
+
 			if (current != -1) {
 				handler.startPropertyValue(this);
 				readString(StopReading.PropertyValue);

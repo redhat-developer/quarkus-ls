@@ -35,10 +35,10 @@ public class PropertiesModelTest {
 		assertComments(comments, 1, 11, "# comment ");
 
 		Node firstPropertyNode = model.getChildren().get(1);
-		assertProperty(firstPropertyNode, 12, 13, "a", 15, 16, 17, "b");
+		assertProperty(firstPropertyNode, 12, 13, "a", 14, 16, 17, "b");
 
 		Node secondPropertyNode = model.getChildren().get(2);
-		assertProperty(secondPropertyNode, 19, 20, "c", 21, 21, 22, "d");
+		assertProperty(secondPropertyNode, 19, 20, "c", 20, 21, 22, "d");
 
 	}
 
@@ -60,7 +60,7 @@ public class PropertiesModelTest {
 		assertModel(model, text.length(), 1);
 
 		Node firstPropertyNode = model.getChildren().get(0);
-		assertProperty(firstPropertyNode, 0, 1, "a", 3, 4, 17, "value # value");
+		assertProperty(firstPropertyNode, 0, 1, "a", 2, 4, 17, "value # value");
 	}
 
 	@Test
@@ -70,7 +70,7 @@ public class PropertiesModelTest {
 		assertModel(model, text.length(), 1);
 
 		Node firstPropertyNode = model.getChildren().get(0);
-		assertProperty(firstPropertyNode, 1, 2, "a", 3, -1, -1, null);
+		assertProperty(firstPropertyNode, 1, 2, "a", 2, -1, -1, null);
 
 	}
 

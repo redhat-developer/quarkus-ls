@@ -351,7 +351,12 @@ class MicroProfileCompletions {
 		Range range = null;
 		try {
 			TextDocument doc = model.getDocument();
-			int startOffset = node.getStart();
+			int startOffset;
+			if (node.getNodeType() == NodeType.ASSIGN) {
+				startOffset = node.getEnd();
+			} else {
+				startOffset = node.getStart();
+			}
 			range = doc.lineRangeAt(startOffset);
 			range.setStart(doc.positionAt(startOffset));
 		} catch (BadLocationException e) {
