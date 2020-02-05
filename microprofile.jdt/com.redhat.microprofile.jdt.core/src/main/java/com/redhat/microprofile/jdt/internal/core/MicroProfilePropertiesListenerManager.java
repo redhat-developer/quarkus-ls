@@ -70,14 +70,9 @@ public class MicroProfilePropertiesListenerManager {
 				return;
 			}
 			// Collect project names which have classpath changed.
-			MicroProfilePropertiesChangeEvent quarkusEvent = processDelta(event.getDelta(), null);
-			if (quarkusEvent != null) {
-				// execute on client side the "quarkusTools.classpathChanged" command with the
-				// given
-				// project names.
-				for (IMicroProfilePropertiesChangedListener listener : listeners) {
-					listener.propertiesChanged(quarkusEvent);
-				}
+			MicroProfilePropertiesChangeEvent mpEvent = processDelta(event.getDelta(), null);
+			if (mpEvent != null) {
+				fireAsyncEvent(mpEvent);
 			}
 		}
 
@@ -160,25 +155,29 @@ public class MicroProfilePropertiesListenerManager {
 					event.setType(MicroProfilePropertiesScope.ONLY_SOURCES);
 					event.setProjectURIs(new HashSet<String>());
 					event.getProjectURIs().add(JDTMicroProfileUtils.getProjectURI(file.getProject()));
-					// IMPORTANT: The LSP notification 'microprofile/propertiesChanged' must be
-					// executed
-					// in background otherwise it breaks everything (JDT LS for Java completion,
-					// hover, etc are broken)
-					CompletableFuture.runAsync(() -> {
-						for (IMicroProfilePropertiesChangedListener listener : listeners) {
-							try {
-								listener.propertiesChanged(event);
-							} catch (Exception e) {
-								if (LOGGER.isLoggable(Level.SEVERE)) {
-									LOGGER.log(Level.SEVERE,
-											"Error while sending LSP 'microprofile/propertiesChanged' notification", e);
-								}
-							}
-						}
-					});
+					fireAsyncEvent(event);
 				}
 			}
 			return false;
+		}
+
+		private void fireAsyncEvent(MicroProfilePropertiesChangeEvent event) {
+			// IMPORTANT: The LSP notification 'microprofile/propertiesChanged' must be
+			// executed
+			// in background otherwise it breaks everything (JDT LS for Java completion,
+			// hover, etc are broken)
+			CompletableFuture.runAsync(() -> {
+				for (IMicroProfilePropertiesChangedListener listener : listeners) {
+					try {
+						listener.propertiesChanged(event);
+					} catch (Exception e) {
+						if (LOGGER.isLoggable(Level.SEVERE)) {
+							LOGGER.log(Level.SEVERE,
+									"Error while sending LSP 'microprofile/propertiesChanged' notification", e);
+						}
+					}
+				}
+			});
 		}
 
 		private boolean isJavaFile(IFile file) {
