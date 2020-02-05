@@ -12,6 +12,8 @@ package com.redhat.microprofile.jdt.internal.core.ls;
 import static com.redhat.microprofile.jdt.internal.core.ls.ArgumentUtils.getFirst;
 import static com.redhat.microprofile.jdt.internal.core.ls.ArgumentUtils.getString;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,8 +57,13 @@ public class MicroProfileDelegateCommandHandler implements IDelegateCommandHandl
 	private static final String MICROPROFILE_PROPERTIES_CHANGED_COMMAND = "microprofile/propertiesChanged";
 
 	private static final IMicroProfilePropertiesChangedListener LISTENER = (event) -> {
-		JavaLanguageServerPlugin.getInstance().getClientConnection()
-				.executeClientCommand(MICROPROFILE_PROPERTIES_CHANGED_COMMAND, event);
+		try {
+			// Execute client command with a timeout of 5 seconds to avoid blocking jobs.
+			JavaLanguageServerPlugin.getInstance().getClientConnection().executeClientCommand(
+					Duration.of(5, ChronoUnit.SECONDS), MICROPROFILE_PROPERTIES_CHANGED_COMMAND, event);
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while sending 'microprofile/propertiesChanged' event to the client", e);
+		}
 	};
 
 	public MicroProfileDelegateCommandHandler() {
@@ -115,7 +122,8 @@ public class MicroProfileDelegateCommandHandler implements IDelegateCommandHandl
 		params.setScopes(scopes);
 		params.setDocumentFormat(documentFormat);
 
-		// Execute the getMicroProfileProjectInfo in a Job to benefit with progress monitor
+		// Execute the getMicroProfileProjectInfo in a Job to benefit with progress
+		// monitor
 		final MicroProfileProjectInfo[] projectInfo = new MicroProfileProjectInfo[1];
 		Job job = Job.create("MicroProfile properties collector", monitor -> {
 			projectInfo[0] = PropertiesManager.getInstance().getMicroProfileProjectInfo(params,
@@ -127,15 +135,16 @@ public class MicroProfileDelegateCommandHandler implements IDelegateCommandHandl
 		} catch (InterruptedException e) {
 			LOGGER.log(Level.WARNING, "Error while joining MicroProfile properties collector job", e);
 		}
-		
+
 		Exception jobException = (Exception) job.getResult().getException();
 		if (jobException != null) {
 			if (jobException.getCause() != null) {
 				throw (Exception) jobException.getCause();
 			}
 			throw jobException;
-		};
-		
+		}
+		;
+
 		return projectInfo[0];
 	}
 
