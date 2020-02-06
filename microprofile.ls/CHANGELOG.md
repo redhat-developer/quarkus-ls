@@ -1,6 +1,38 @@
-# Quarkus Language Server Changelog
+# MicroProfile Language Server Changelog
 
-## 0.0.4-SNAPSHOT (November 20, 2019)
+## 0.0.5 (February 20, 2019)
+
+The Quarkus language server has been refactored to the MicroProfile language server.
+Package names and file names have been adjusted to reflect the changes, 
+i.e., `quarkus.ls.*` to `microprofile.ls.*` and `QuarkusHover.java` to `MicroProfileHover.java`.
+
+### Enhancements
+
+ * Compute deployment JAR only when dependencies changed. See [#202](https://github.com/redhat-developer/quarkus-ls/pull/202)
+ * Support ConfigProperties for Quarkus 1.2. See [#200](https://github.com/redhat-developer/quarkus-ls/issues/200)
+ * Add support for missing mp-rest properties. See [#189](https://github.com/redhat-developer/quarkus-ls/issues/189)
+ * Easily generate all-quarkus-properties.json. See [#182](https://github.com/redhat-developer/quarkus-ls/issues/182)
+ * Improve computation of Quarkus/MicroProfile properties. See [#154](https://github.com/redhat-developer/quarkus-ls/issues/154)
+ * Use formattingSettings to determine spacing for completion. See [#153](https://github.com/redhat-developer/quarkus-ls/pull/153)
+ * Remove integer and boolean required properties. See [#152](https://github.com/redhat-developer/quarkus-ls/issues/152)
+ * Provide hover for ConfigProperty name. See [#151](https://github.com/redhat-developer/quarkus-ls/pull/151)
+ * Code action for ignoring unknown property keys using common parent key. See [#150](https://github.com/redhat-developer/quarkus-ls/issues/150)
+ * QuarkusPropertiesScope is confusing. See [#116](https://github.com/redhat-developer/quarkus-ls/issues/116)
+ * Display Quarkus CodeLenses for REST endpoints. See [#115](https://github.com/redhat-developer/quarkus-ls/issues/115)
+ * Add support for YAML configuration files. See [#112](https://github.com/redhat-developer/quarkus-ls/issues/112)
+ * CodeAction to add property to ignore for unknown validation. See [#81](https://github.com/redhat-developer/quarkus-ls/issues/81)
+
+### Bug Fixes
+
+ * Value from Java enum are not correct. See [#198](https://github.com/redhat-developer/quarkus-ls/issues/198)
+ * Fix JavaDoc issues. See [#185](https://github.com/redhat-developer/quarkus-ls/issues/185)
+ * Download transitive dependencies of deployment JAR. See [#179](https://github.com/redhat-developer/quarkus-ls/pull/179)
+ * Missing enum value completion/validation for optional enum. See [#175](https://github.com/redhat-developer/quarkus-ls/issues/175)
+ * Too many microprofile/projectInfo calls. See [#174](https://github.com/redhat-developer/quarkus-ls/issues/174)
+ * Hovering over equals sign is being treated as hovering over the property key. See [#172](https://github.com/redhat-developer/quarkus-ls/issues/172)
+ * CodeLens provider not enabled with LSP4E. See [#156](https://github.com/redhat-developer/quarkus-ls/issues/156)
+
+## 0.0.4 (November 20, 2019)
 
 ### Enhancements
 
@@ -14,7 +46,7 @@
 
  * Duplicate completion options in Gradle projects. See [#137](https://github.com/redhat-developer/quarkus-ls/issues/137)
 
-## 0.0.3-SNAPSHOT (October 23, 2019)
+## 0.0.3 (October 23, 2019)
 
 ### Enhancements
 
@@ -26,7 +58,7 @@
  * quarkus.jdt sometimes fails to build because of tests timeout. See [#126](https://github.com/redhat-developer/quarkus-ls/issues/126)
  * Deploy quarkus.jdt update site to download.jboss.tools. See [#124](https://github.com/redhat-developer/quarkus-ls/issues/124)
 
-## 0.0.2-SNAPSHOT (October 17, 2019)
+## 0.0.2 (October 17, 2019)
 
 ### Enhancements
 
