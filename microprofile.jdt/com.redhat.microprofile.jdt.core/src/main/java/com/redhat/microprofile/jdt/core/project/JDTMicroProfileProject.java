@@ -16,6 +16,7 @@ import org.eclipse.jdt.core.IJavaProject;
 
 import com.redhat.microprofile.jdt.internal.core.project.IConfigSource;
 import com.redhat.microprofile.jdt.internal.core.project.PropertiesConfigSource;
+import com.redhat.microprofile.jdt.internal.core.project.YamlConfigSource;
 
 /**
  * JDT MicroProfile project.
@@ -27,6 +28,7 @@ public class JDTMicroProfileProject {
 
 	public static final String MICROPROFILE_CONFIG_PROPERTIES_FILE = "META-INF/microprofile-config.properties";
 	public static final String APPLICATION_PROPERTIES_FILE = "application.properties";
+	public static final String APPLICATION_YAML_FILE = "application.yaml";
 
 	private final List<IConfigSource> configSources;
 
@@ -35,7 +37,8 @@ public class JDTMicroProfileProject {
 	private static final int DEFAULT_PORT = 8080;
 
 	public JDTMicroProfileProject(IJavaProject javaProject) {
-		this.configSources = new ArrayList<IConfigSource>(2);
+		this.configSources = new ArrayList<IConfigSource>(3);
+		configSources.add(new YamlConfigSource(APPLICATION_YAML_FILE, javaProject));
 		configSources.add(new PropertiesConfigSource(APPLICATION_PROPERTIES_FILE, javaProject));
 		configSources.add(new PropertiesConfigSource(MICROPROFILE_CONFIG_PROPERTIES_FILE, javaProject));
 	}

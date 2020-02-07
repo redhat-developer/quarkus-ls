@@ -61,6 +61,7 @@ public class BasePropertiesManagerTest {
 		config_quickstart_test("config-quickstart-test"), //
 		empty_maven_project("empty-maven-project"), //
 		hibernate_orm_resteasy("hibernate-orm-resteasy"), //
+		hibernate_orm_resteasy_yaml("hibernate-orm-resteasy-yaml"), //
 		kubernetes("kubernetes"), //
 		rest_client_quickstart("rest-client-quickstart"), //
 		using_vertx("using-vertx");

@@ -58,6 +58,9 @@ local.properties
 .scala_dependencies
 .worksheet
 
+# Lib folder
+**/lib/
+
 ### Eclipse Patch ###
 # Eclipse Core
 .project
