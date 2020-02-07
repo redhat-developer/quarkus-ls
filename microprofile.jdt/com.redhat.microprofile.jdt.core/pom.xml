@@ -12,6 +12,24 @@
 	<packaging>eclipse-plugin</packaging>
 	<name>MicroProfile JDT LS Extension</name>
 	<description>MicroProfile JDT LS Extension - Core</description>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<configuration>
+					<artifactItems>
+						<artifactItem>
+							<groupId>org.yaml</groupId>
+							<artifactId>snakeyaml</artifactId>
+							<version>1.25</version>
+						</artifactItem>
+					</artifactItems>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 	<dependencies>
 		<dependency>

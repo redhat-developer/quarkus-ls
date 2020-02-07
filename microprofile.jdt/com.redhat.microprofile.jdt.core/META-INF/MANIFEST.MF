@@ -24,3 +24,5 @@ Export-Package: com.redhat.microprofile.commons,
  com.redhat.microprofile.jdt.core.project,
  com.redhat.microprofile.jdt.core.utils,
  io.quarkus.runtime.util
+Bundle-ClassPath: lib/snakeyaml-1.25.jar,
+ .
