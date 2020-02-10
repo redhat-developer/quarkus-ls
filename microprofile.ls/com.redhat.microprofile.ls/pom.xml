@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.redhat.microprofile</groupId>
 	<artifactId>com.redhat.microprofile.ls</artifactId>
-	<version>0.0.5-SNAPSHOT</version>
+	<version>0.0.5</version>
 
 	<name>MicroProfile Language Server</name>
 	<url>http://maven.apache.org</url>
