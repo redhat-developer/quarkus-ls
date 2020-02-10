@@ -6,7 +6,7 @@
 	<parent>
 		<artifactId>parent</artifactId>
 		<groupId>com.redhat.microprofile</groupId>
-		<version>0.0.5</version>
+		<version>0.0.6-SNAPSHOT</version>
 	</parent>
 	<artifactId>com.microprofile.quarkus.jdt.site</artifactId>
 	<packaging>eclipse-repository</packaging>
