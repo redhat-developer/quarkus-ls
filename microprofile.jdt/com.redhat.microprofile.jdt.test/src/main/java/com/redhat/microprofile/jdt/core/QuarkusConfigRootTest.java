@@ -113,7 +113,15 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 						"org.jboss.logmanager.handlers.AsyncHandler.OverflowAction",
 						"Determine whether to block the publisher (rather than drop the message) when the queue is full",
 						true, "io.quarkus.runtime.logging.AsyncConfig", "overflow", null, CONFIG_PHASE_RUN_TIME,
-						"block") //
+						"block"), //
+
+				// test with quarkus.smallrye-openapi.path (download dependencies from
+				// deployment artifact quarkus.smallrye-openapi)
+				p("quarkus-smallrye-openapi-common", "quarkus.smallrye-openapi.path", "java.lang.String",
+						"The path at which to register the OpenAPI Servlet.", true,
+						"io.quarkus.smallrye.openapi.common.deployment.SmallRyeOpenApiConfig", "path", null,
+						CONFIG_PHASE_BUILD_TIME, "/openapi") //
+
 		);
 
 		// assertPropertiesDuplicate(info);

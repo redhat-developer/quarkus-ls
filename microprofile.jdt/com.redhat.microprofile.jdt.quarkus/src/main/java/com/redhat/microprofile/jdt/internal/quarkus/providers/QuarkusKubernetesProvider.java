@@ -26,6 +26,7 @@ import org.eclipse.jdt.core.search.SearchPattern;
 
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.jdt.core.AbstractTypeDeclarationPropertiesProvider;
+import com.redhat.microprofile.jdt.core.BuildingScopeContext;
 import com.redhat.microprofile.jdt.core.IPropertiesCollector;
 import com.redhat.microprofile.jdt.core.SearchContext;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
@@ -72,6 +73,23 @@ public class QuarkusKubernetesProvider extends AbstractTypeDeclarationProperties
 	protected String[] getTypeNames() {
 		return new String[] { KUBERNETES_APPLICATION_ANNOTATION, DOCKER_BUILD_ANNOTATION,
 				OPENSHIFT_APPLICATION_ANNOTATION, S2I_BUILD_ANNOTATION };
+	}
+
+	@Override
+	public void beginBuildingScope(BuildingScopeContext context, IProgressMonitor monitor) {
+		// The kubernetes support is only available if quarkus-kubernetes artifact is
+		// declared in the pom.xml
+		// When quarkus-kubernetes is declared, this JAR declares the deployment JAR
+		// quarkus-kubernetes-deployment
+		// This quarkus-kubernetes-deployment artifact has some dependencies to
+		// io.dekorate
+
+		// In other words, to add
+		// io.dekorate.kubernetes.annotation.KubernetesApplication class in the search
+		// classpath,
+		// the dependencies of quarkus-kubernetes-deployment artifact must be downloaded
+		QuarkusContext quarkusContext = QuarkusContext.getQuarkusContext(context);
+		quarkusContext.collectDependenciesFor("quarkus-kubernetes-deployment");
 	}
 
 	@Override

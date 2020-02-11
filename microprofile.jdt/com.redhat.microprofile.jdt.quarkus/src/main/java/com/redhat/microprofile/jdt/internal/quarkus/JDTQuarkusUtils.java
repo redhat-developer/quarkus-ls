@@ -18,13 +18,9 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaModelException;
-
 
 import com.redhat.microprofile.commons.metadata.ConverterKind;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
-import com.redhat.microprofile.jdt.core.PropertiesManager;
 
 /**
  * JDT Quarkus utilities.
@@ -72,10 +68,11 @@ public class JDTQuarkusUtils {
 		}
 		return extensionName;
 	}
-	
+
 	/**
-	 * Returns true if <code>javaProject</code> is a Quarkus project.
-	 * Returns false otherwise.
+	 * Returns true if <code>javaProject</code> is a Quarkus project. Returns false
+	 * otherwise.
+	 * 
 	 * @param javaProject the Java project to check
 	 * @return true only if <code>javaProject</code> is a Quarkus project.
 	 */
