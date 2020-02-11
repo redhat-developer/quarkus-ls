@@ -125,7 +125,7 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 	}
 
 	@Override
-	public void begin(SearchContext context, IProgressMonitor monitor) {
+	public void beginSearch(SearchContext context, IProgressMonitor monitor) {
 		context.put(CONFIG_PROPERTIES_CONTEXT_KEY, new ConfigPropertiesContext(context));
 	}
 

@@ -9,6 +9,7 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.internal.core;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -31,8 +32,8 @@ public class FakeJavaProject extends ExternalJavaProject {
 
 	private final IJavaProject rootProject;
 
-	public FakeJavaProject(IJavaProject rootProject, IClasspathEntry[] entries) throws JavaModelException {
-		super(entries);
+	public FakeJavaProject(IJavaProject rootProject, List<IClasspathEntry> searchClasspathEntries) {
+		super(searchClasspathEntries.toArray(new IClasspathEntry[searchClasspathEntries.size()]));
 		this.rootProject = rootProject;
 	}
 
@@ -58,13 +59,13 @@ public class FakeJavaProject extends ExternalJavaProject {
 		if (MicroProfilePropertiesScope.isOnlySources(scopes)) {
 			return new IJavaElement[] { rootProject };
 		}
+		List<IJavaElement> elements = new ArrayList<>();
+		elements.add(rootProject);
 		IPackageFragmentRoot[] roots = super.getPackageFragmentRoots();
-		IJavaElement[] elements = new IJavaElement[1 + roots.length];
-		elements[0] = rootProject;
-		for (int i = 0; i < roots.length; i++) {
-			elements[i + 1] = roots[i];
+		for (IPackageFragmentRoot root : roots) {
+			elements.add(root);
 		}
-		return elements;
+		return elements.toArray(new IJavaElement[elements.size()]);
 	}
 
 	@Override

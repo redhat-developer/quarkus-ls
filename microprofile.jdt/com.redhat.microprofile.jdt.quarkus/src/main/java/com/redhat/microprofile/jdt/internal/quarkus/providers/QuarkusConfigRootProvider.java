@@ -62,6 +62,7 @@ import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import com.redhat.microprofile.jdt.core.ArtifactResolver;
 import com.redhat.microprofile.jdt.core.ArtifactResolver.Artifact;
+import com.redhat.microprofile.jdt.core.BuildingScopeContext;
 import com.redhat.microprofile.jdt.core.IPropertiesCollector;
 import com.redhat.microprofile.jdt.core.SearchContext;
 import com.redhat.microprofile.jdt.core.utils.JDTTypeUtils;
@@ -92,15 +93,18 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	}
 
 	@Override
-	public void begin(SearchContext context, IProgressMonitor monitor) {
-		Map<IPackageFragmentRoot, Properties> javadocCache = new HashMap<>();
-		context.put(JAVADOC_CACHE_KEY, javadocCache);
+	public void contributeToClasspath(BuildingScopeContext context, IProgressMonitor monitor)
+			throws JavaModelException {
+		QuarkusContext quarkusContext = QuarkusContext.getQuarkusContext(context);
+		contributeToClasspath(context.getJavaProject(), context.getResolvedClasspath(), context.isExcludeTestCode(),
+				context.getScopes(), context.getArtifactResolver(), context.getSearchClassPathEntries(), quarkusContext,
+				monitor);
 	}
 
-	@Override
-	public void contributeToClasspath(IJavaProject project, IClasspathEntry[] resolvedClasspath,
+	private static void contributeToClasspath(IJavaProject project, IClasspathEntry[] resolvedClasspath,
 			boolean excludeTestCode, List<MicroProfilePropertiesScope> scopes, ArtifactResolver artifactResolver,
-			List<IClasspathEntry> deploymentJarEntries, IProgressMonitor monitor) throws JavaModelException {
+			List<IClasspathEntry> searchJarEntries, QuarkusContext quarkusContext, IProgressMonitor monitor)
+			throws JavaModelException {
 		if (MicroProfilePropertiesScope.isOnlySources(scopes)) {
 			// Search must be done in only sources, don't compute the Quarkus deployment
 			// dependencies.
@@ -150,12 +154,13 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 						+ deploymentArtifact.getArtifactId() + deploymentArtifact.getVersion()
 						+ "' and their dependencies...");
 				SubMonitor m = mainMonitor.split(1);
-				if (addArtifactInClasspath(deploymentArtifact, existingJars, deploymentJarEntries, artifactResolver,
-						m)) {
-					// Add dependencies of deployment artifact
-					Set<Artifact> dependencies = artifactResolver.getDependencies(deploymentArtifact, m);
-					for (Artifact dependency : dependencies) {
-						addArtifactInClasspath(dependency, existingJars, deploymentJarEntries, artifactResolver, m);
+				if (addArtifactInClasspath(deploymentArtifact, existingJars, searchJarEntries, artifactResolver, m)) {
+					if (quarkusContext.isCollectDependenciesFor(deploymentArtifact.getArtifactId())) {
+						// Collect dependencies of the deployment artifact and add them for the seach
+						Set<Artifact> dependencies = artifactResolver.getDependencies(deploymentArtifact, m);
+						for (Artifact dependency : dependencies) {
+							addArtifactInClasspath(dependency, existingJars, searchJarEntries, artifactResolver, m);
+						}
 					}
 				}
 			}
@@ -166,16 +171,16 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 
 	private static boolean addArtifactInClasspath(Artifact deploymentArtifact, List<String> existingJars,
 			List<IClasspathEntry> deploymentJarEntries, ArtifactResolver artifactResolver, IProgressMonitor monitor) {
-		// Get or download deployment JAR
+		// Get or download deployment artifact
 		String deploymentJarFile = artifactResolver.getArtifact(deploymentArtifact, monitor);
 		if (deploymentJarFile != null) {
 			IPath deploymentJarFilePath = Path.fromOSString(deploymentJarFile);
 			String deploymentJarName = deploymentJarFilePath.lastSegment();
 			if (!existingJars.contains(deploymentJarName)) {
-				// The *-deployment JAR is not included in the classpath project, add it.
+				// The *-deployment artifact is not included in the classpath project, add it.
 				existingJars.add(deploymentJarName);
 				IPath sourceAttachmentPath = null;
-				// Get or download deployment sources JAR
+				// Get or download deployment sources artifact
 				Artifact sourceArtifact = new Artifact(deploymentArtifact.getGroupId(),
 						deploymentArtifact.getArtifactId(), deploymentArtifact.getVersion(),
 						ArtifactResolver.CLASSIFIER_SOURCES);
@@ -218,6 +223,12 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 			LOGGER.log(Level.SEVERE, "Error while downloading deployment JAR '" + root.getElementName() + "'.", e);
 			return null;
 		}
+	}
+
+	@Override
+	public void beginSearch(SearchContext context, IProgressMonitor monitor) {
+		Map<IPackageFragmentRoot, Properties> javadocCache = new HashMap<>();
+		context.put(JAVADOC_CACHE_KEY, javadocCache);
 	}
 
 	@Override
