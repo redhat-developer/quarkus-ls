@@ -9,16 +9,10 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core;
 
-import java.util.List;
-
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchPattern;
-
-import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 
 /**
  * Properties provider API.
@@ -29,22 +23,45 @@ import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 public interface IPropertiesProvider {
 
 	/**
+	 * Begin the building scope.
+	 * 
+	 * @param context the search building scope
+	 * @param monitor the progress monitor
+	 */
+	default void beginBuildingScope(BuildingScopeContext context, IProgressMonitor monitor) {
+
+	}
+
+	/**
+	 * Contribute to the classpath to add extra JARs in classpath (ex : deployment
+	 * JARs for Quarkus).
+	 * 
+	 * @param context the building scope context.
+	 * @param monitor the progress monitor.
+	 * @throws JavaModelException
+	 */
+	default void contributeToClasspath(BuildingScopeContext context, IProgressMonitor monitor)
+			throws JavaModelException {
+
+	}
+
+	/**
+	 * End the building scope.
+	 * 
+	 * @param context the building scope context.
+	 * @param monitor the progress monitor.
+	 */
+	default void endBuildingScope(BuildingScopeContext context, IProgressMonitor monitor) {
+
+	}
+
+	/**
 	 * Begin the search.
 	 * 
 	 * @param context the search context
 	 * @param monitor the progress monitor
 	 */
-	default void begin(SearchContext context, IProgressMonitor monitor) {
-
-	}
-
-	/**
-	 * End the search.
-	 * 
-	 * @param context the search context
-	 * @param monitor the progress monitor
-	 */
-	default void end(SearchContext context, IProgressMonitor monitor) {
+	default void beginSearch(SearchContext context, IProgressMonitor monitor) {
 
 	}
 
@@ -56,25 +73,6 @@ public interface IPropertiesProvider {
 	SearchPattern createSearchPattern();
 
 	/**
-	 * Contribute to the classpath to add extra JARs in classpath (ex : deployment
-	 * JARs for Quarkus).
-	 * 
-	 * @param project             the Java project
-	 * @param resolvedClasspath   the resolved classpath
-	 * @param excludeTestCode
-	 * @param scopes
-	 * @param artifactResolver
-	 * @param newClasspathEntries
-	 * @param monitor
-	 * @throws JavaModelException
-	 */
-	default void contributeToClasspath(IJavaProject project, IClasspathEntry[] resolvedClasspath,
-			boolean excludeTestCode, List<MicroProfilePropertiesScope> scopes, ArtifactResolver artifactResolver,
-			List<IClasspathEntry> newClasspathEntries, IProgressMonitor monitor) throws JavaModelException {
-
-	}
-
-	/**
 	 * Collect properties from the given Java search match.
 	 * 
 	 * @param match   the java search match.
@@ -82,5 +80,15 @@ public interface IPropertiesProvider {
 	 * @param monitor the progress monitor.
 	 */
 	void collectProperties(SearchMatch match, SearchContext context, IProgressMonitor monitor);
+
+	/**
+	 * End the search.
+	 * 
+	 * @param context the search context
+	 * @param monitor the progress monitor
+	 */
+	default void endSearch(SearchContext context, IProgressMonitor monitor) {
+
+	}
 
 }

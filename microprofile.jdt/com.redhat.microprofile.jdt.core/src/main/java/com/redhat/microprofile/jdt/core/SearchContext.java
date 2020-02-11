@@ -9,9 +9,7 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.jdt.core.IJavaProject;
 
@@ -19,55 +17,49 @@ import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 
-public class SearchContext {
-
-	private final IJavaProject javaProject;
-
+/**
+ * The search context used to collect properties.
+ * 
+ * @author Angelo ZERR
+ *
+ */
+public class SearchContext extends BaseContext {
 	private final IPropertiesCollector collector;
-
 	private final IJDTUtils utils;
-
 	private final DocumentFormat documentFormat;
-
-	private final List<MicroProfilePropertiesScope> scopes;
-
-	private final Map<String, Object> cache;
 
 	public SearchContext(IJavaProject javaProject, IPropertiesCollector collector, IJDTUtils utils,
 			DocumentFormat documentFormat, List<MicroProfilePropertiesScope> scopes) {
-		this.javaProject = javaProject;
+		super(javaProject, scopes);
 		this.collector = collector;
 		this.utils = utils;
 		this.documentFormat = documentFormat;
-		this.scopes = scopes;
-		cache = new HashMap<>();
 	}
 
-	public void put(String key, Object value) {
-		cache.put(key, value);
-	}
-
-	public Object get(String key) {
-		return cache.get(key);
-	}
-
-	public IJavaProject getJavaProject() {
-		return javaProject;
-	}
-
+	/**
+	 * Returns the properties collector.
+	 * 
+	 * @return the properties collector
+	 */
 	public IPropertiesCollector getCollector() {
 		return collector;
 	}
 
+	/**
+	 * Returns the JDT utilities.
+	 * 
+	 * @return the JDT utilities.
+	 */
 	public IJDTUtils getUtils() {
 		return utils;
 	}
 
+	/**
+	 * Returns the document format to use for converting Javadoc.
+	 * 
+	 * @return the document format to use for converting Javadoc
+	 */
 	public DocumentFormat getDocumentFormat() {
 		return documentFormat;
-	}
-
-	public List<MicroProfilePropertiesScope> getScopes() {
-		return scopes;
 	}
 }

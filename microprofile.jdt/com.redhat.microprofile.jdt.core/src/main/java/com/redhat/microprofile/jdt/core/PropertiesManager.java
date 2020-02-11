@@ -9,7 +9,6 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -216,13 +215,13 @@ public class PropertiesManager {
 
 	private void beginSearch(SearchContext context, IProgressMonitor monitor) {
 		for (IPropertiesProvider provider : getPropertiesProviders()) {
-			provider.begin(context, monitor);
+			provider.beginSearch(context, monitor);
 		}
 	}
 
 	private void endSearch(SearchContext context, IProgressMonitor monitor) {
 		for (IPropertiesProvider provider : getPropertiesProviders()) {
-			provider.end(context, monitor);
+			provider.endSearch(context, monitor);
 		}
 	}
 
@@ -287,24 +286,41 @@ public class PropertiesManager {
 			// The java project is already resolved
 			return javaProject;
 		}
-		int length = getPropertiesProviders().size();
 		SubMonitor mainMonitor = monitor;
-		IClasspathEntry[] resolvedClasspath = ((JavaProject) javaProject).getResolvedClasspath();
-		List<IClasspathEntry> newClasspathEntries = new ArrayList<>();
+		BuildingScopeContext context = new BuildingScopeContext(javaProject, excludeTestCode, scopes,
+				ArtifactResolver.DEFAULT_ARTIFACT_RESOLVER);
+		beginBuildingScope(context, mainMonitor);
+		contributeToClasspath(context, mainMonitor);
+		endBuildingScope(context, mainMonitor);
+		List<IClasspathEntry> searchClasspathEntries = context.getSearchClassPathEntries();
+		if (!searchClasspathEntries.isEmpty()) {
+			return new FakeJavaProject(javaProject, searchClasspathEntries);
+		}
+		return javaProject;
+	}
+
+	private void beginBuildingScope(BuildingScopeContext context, IProgressMonitor monitor) {
+		for (IPropertiesProvider provider : getPropertiesProviders()) {
+			provider.beginBuildingScope(context, monitor);
+		}
+	}
+
+	private void contributeToClasspath(BuildingScopeContext context, SubMonitor mainMonitor)
+			throws OperationCanceledException, JavaModelException {
+		int length = getPropertiesProviders().size();
 		for (int i = 0; i < length; i++) {
 			mainMonitor.subTask("Contributing to classpath for provider (" + (i + 1) + "/" + length + ")");
 			SubMonitor subMonitor = mainMonitor.split(1);
 			IPropertiesProvider provider = getPropertiesProviders().get(i);
-			provider.contributeToClasspath(javaProject, resolvedClasspath, excludeTestCode, scopes,
-					ArtifactResolver.DEFAULT_ARTIFACT_RESOLVER, newClasspathEntries, subMonitor);
+			provider.contributeToClasspath(context, subMonitor);
 			subMonitor.done();
+		}
+	}
 
+	private void endBuildingScope(BuildingScopeContext context, IProgressMonitor monitor) {
+		for (IPropertiesProvider provider : getPropertiesProviders()) {
+			provider.endBuildingScope(context, monitor);
 		}
-		if (!newClasspathEntries.isEmpty()) {
-			return new FakeJavaProject(javaProject,
-					newClasspathEntries.toArray(new IClasspathEntry[newClasspathEntries.size()]));
-		}
-		return javaProject;
 	}
 
 	private SearchPattern createSearchPattern() {
