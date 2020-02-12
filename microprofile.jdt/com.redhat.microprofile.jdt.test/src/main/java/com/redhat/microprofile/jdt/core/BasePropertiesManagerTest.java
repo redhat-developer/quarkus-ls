@@ -216,4 +216,12 @@ public class BasePropertiesManagerTest {
 				.toFile();
 		updateFile(file, content);
 	}
+	
+	protected static void deleteFile(String configFileName, IJavaProject javaProject)
+			throws JavaModelException, IOException {
+		IPath output = javaProject.getOutputLocation();
+		File file = javaProject.getProject().getLocation().append(output.removeFirstSegments(1)).append(configFileName)
+				.toFile();
+		file.delete();
+	}
 }

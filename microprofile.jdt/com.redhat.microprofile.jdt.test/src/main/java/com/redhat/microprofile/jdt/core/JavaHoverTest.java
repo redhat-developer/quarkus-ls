@@ -10,6 +10,7 @@
 package com.redhat.microprofile.jdt.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,12 +30,15 @@ import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.redhat.microprofile.commons.MicroProfileJavaHoverInfo;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
+import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProject;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 
@@ -44,7 +48,8 @@ import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
  *
  */
 public class JavaHoverTest extends BasePropertiesManagerTest {
-
+	
+	private static IJavaProject javaProject;
 	private static IJDTUtils utils;
 	private static String javaFileUri;
 
@@ -52,206 +57,134 @@ public class JavaHoverTest extends BasePropertiesManagerTest {
 	public static void setup() throws Exception {
 		JavaLanguageServerPlugin.getProjectsManager().setAutoBuilding(true);
 
-		IJavaProject javaProject = loadMavenProject(MavenProjectName.config_hover);
+		javaProject = loadMavenProject(MavenProjectName.config_hover);
 		IProject project = javaProject.getProject();
 		project.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
-
-		List<File> files = getApplicationPropertiesFile(javaProject);
-		Assert.assertNotNull("application.properties files cannot be empty.", !files.isEmpty());
-
-		Optional<File> app = files.stream().filter(File::exists).findAny();
-		Assert.assertTrue("application.properties '"
-				+ files.stream().map(File::getPath).collect(Collectors.joining(", ")) + "' should exist.",
-				app.isPresent());
 
 		IFile javaFile = project.getFile(new Path("src/main/java/org/acme/config/GreetingResource.java"));
 		javaFileUri = javaFile.getLocation().toFile().toURI().toString();
 
 		utils = JDTUtilsLSImpl.getInstance();
 	}
+	
+	@Before @After
+	public void cleanup() throws JavaModelException, IOException {
+		deleteFile(JDTMicroProfileProject.APPLICATION_YAML_FILE, javaProject);
+		deleteFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE, javaProject);
+	}
 
 	@Test
 	public void configPropertyNameHover() throws Exception {
-
-		MicroProfileJavaHoverParams params = new MicroProfileJavaHoverParams();
-		Position hoverPosition = new Position(14, 40);
+		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE,
+				"greeting.message = hello\r\n" + 
+				"greeting.name = quarkus\r\n" + 
+				"greeting.number = 100", javaProject);
 		// Position(14, 40) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.mes|sage")
-
-		params.setPosition(hoverPosition);
-		params.setUri(javaFileUri);
-
-		MicroProfileJavaHoverInfo info = PropertiesManagerForJava.getInstance().hover(params, utils,
-				new NullProgressMonitor());
-
-		Assert.assertNotNull(info);
-
-		Position expectedStart = new Position(14, 28);
-		Position expectedEnd = new Position(14, 44);
-		Range expectedRange = new Range(expectedStart, expectedEnd);
-
-		Assert.assertEquals(info.getPropertyKey(), "greeting.message");
-		Assert.assertEquals(info.getPropertyValue(), "hello");
-		Assert.assertEquals(info.getRange(), expectedRange);
-	}
-
-	@Test
-	public void configPropertyNameLeftEdgeHover() throws Exception {
-
-		MicroProfileJavaHoverParams params = new MicroProfileJavaHoverParams();
-		Position hoverPosition = new Position(14, 28);
+		MicroProfileJavaHoverInfo info = getActualHoverInfo(new Position(14, 40));
+		assertHoverInfo("greeting.message", "hello", 14, 28, 44, info);
+		
+		// Test left edge
 		// Position(14, 28) is the character after the | symbol:
 		// @ConfigProperty(name = "|greeting.message")
-
-		params.setPosition(hoverPosition);
-		params.setUri(javaFileUri);
-
-		MicroProfileJavaHoverInfo info = PropertiesManagerForJava.getInstance().hover(params, utils,
-				new NullProgressMonitor());
-
-		Assert.assertNotNull(info);
-
-		Position expectedStart = new Position(14, 28);
-		Position expectedEnd = new Position(14, 44);
-		Range expectedRange = new Range(expectedStart, expectedEnd);
-
-		Assert.assertEquals(info.getPropertyKey(), "greeting.message");
-		Assert.assertEquals(info.getPropertyValue(), "hello");
-		Assert.assertEquals(info.getRange(), expectedRange);
-	}
-
-	@Test
-	public void configPropertyNameRightEdgeHover() throws Exception {
-
-		MicroProfileJavaHoverParams params = new MicroProfileJavaHoverParams();
-		Position hoverPosition = new Position(14, 43);
+		info = getActualHoverInfo(new Position(14, 28));
+		assertHoverInfo("greeting.message", "hello", 14, 28, 44, info);
+		
+		// Test right edge
 		// Position(14, 43) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.messag|e")
-
-		params.setPosition(hoverPosition);
-		params.setUri(javaFileUri);
-
-		MicroProfileJavaHoverInfo info = PropertiesManagerForJava.getInstance().hover(params, utils,
-				new NullProgressMonitor());
-
-		Assert.assertNotNull(info);
-
-		Position expectedStart = new Position(14, 28);
-		Position expectedEnd = new Position(14, 44);
-		Range expectedRange = new Range(expectedStart, expectedEnd);
-
-		Assert.assertEquals(info.getPropertyKey(), "greeting.message");
-		Assert.assertEquals(info.getPropertyValue(), "hello");
-		Assert.assertEquals(info.getRange(), expectedRange);
-	}
-
-	@Test
-	public void configPropertyNameNoHover1() throws Exception {
-
-		MicroProfileJavaHoverParams params = new MicroProfileJavaHoverParams();
-		Position hoverPosition = new Position(14, 27);
+		info = getActualHoverInfo(new Position(14, 43));
+		assertHoverInfo("greeting.message", "hello", 14, 28, 44, info);
+		
+		// Test no hover
 		// Position(14, 27) is the character after the | symbol:
 		// @ConfigProperty(name = |"greeting.message")
-
-		params.setPosition(hoverPosition);
-		params.setUri(javaFileUri);
-
-		MicroProfileJavaHoverInfo info = PropertiesManagerForJava.getInstance().hover(params, utils,
-				new NullProgressMonitor());
-
+		info = getActualHoverInfo(new Position(14, 27));
 		Assert.assertNull(info);
-	}
-
-	@Test
-	public void configPropertyNameNoHover2() throws Exception {
-
-		MicroProfileJavaHoverParams params = new MicroProfileJavaHoverParams();
-		Position hoverPosition = new Position(14, 44);
+		
+        // Test no hover 2
 		// Position(14, 44) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.message|")
-
-		params.setPosition(hoverPosition);
-		params.setUri(javaFileUri);
-
-		MicroProfileJavaHoverInfo info = PropertiesManagerForJava.getInstance().hover(params, utils,
-				new NullProgressMonitor());
-
+		info = getActualHoverInfo(new Position(14, 44));
 		Assert.assertNull(info);
-	}
-
-	@Test
-	public void configPropertyNameHoverDefaultValue() throws Exception {
-
-		MicroProfileJavaHoverParams params = new MicroProfileJavaHoverParams();
-		Position hoverPosition = new Position(17, 33);
+		
+		// Hover default value
 		// Position(17, 33) is the character after the | symbol:
 		// @ConfigProperty(name = "greet|ing.suffix", defaultValue="!")
-
-		params.setPosition(hoverPosition);
-		params.setUri(javaFileUri);
-
-		MicroProfileJavaHoverInfo info = PropertiesManagerForJava.getInstance().hover(params, utils,
-				new NullProgressMonitor());
-
-		Assert.assertNotNull(info);
-
-		Position expectedStart = new Position(17, 28);
-		Position expectedEnd = new Position(17, 43);
-		Range expectedRange = new Range(expectedStart, expectedEnd);
-
-		Assert.assertEquals(info.getPropertyKey(), "greeting.suffix");
-		Assert.assertEquals(info.getPropertyValue(), "!");
-		Assert.assertEquals(info.getRange(), expectedRange);
-	}
-
-	@Test
-	public void configPropertyNameHoverOverrideDefaultValue() throws Exception {
-
-		MicroProfileJavaHoverParams params = new MicroProfileJavaHoverParams();
-		Position hoverPosition = new Position(26, 33);
+		info = getActualHoverInfo(new Position(17, 33));
+		assertHoverInfo("greeting.suffix", "!", 17, 28, 43, info);
+		
+		// Hover override default value
 		// Position(26, 33) is the character after the | symbol:
-		// @ConfigProperty(name = "greeting.number", defaultValue="0")
-
-		params.setPosition(hoverPosition);
-		params.setUri(javaFileUri);
-
-		MicroProfileJavaHoverInfo info = PropertiesManagerForJava.getInstance().hover(params, utils,
-				new NullProgressMonitor());
-
-		Assert.assertNotNull(info);
-
-		Position expectedStart = new Position(26, 28);
-		Position expectedEnd = new Position(26, 43);
-		Range expectedRange = new Range(expectedStart, expectedEnd);
-
-		Assert.assertEquals(info.getPropertyKey(), "greeting.number");
-		Assert.assertEquals(info.getPropertyValue(), "100");
-		Assert.assertEquals(info.getRange(), expectedRange);
-	}
-
-	@Test
-	public void configPropertyNameHoverNoValue() throws Exception {
-
-		MicroProfileJavaHoverParams params = new MicroProfileJavaHoverParams();
-		Position hoverPosition = new Position(23, 33);
+		// @ConfigProperty(name = "greet|ing.number", defaultValue="0")
+		info = getActualHoverInfo(new Position(26, 33));
+		assertHoverInfo("greeting.number", "100", 26, 28, 43, info);
+		
+		// Hover when no value
 		// Position(23, 33) is the character after the | symbol:
 		// @ConfigProperty(name = "greet|ing.missing")
+		info = getActualHoverInfo(new Position(23, 33));
+		assertHoverInfo("greeting.missing", null, 23, 28, 44, info);
+	}
+
+	
+	@Test
+	public void configPropertyNameYaml() throws Exception {
+		saveFile(JDTMicroProfileProject.APPLICATION_YAML_FILE,
+				"greeting:\n" + 
+				"  message: message from yaml\n" + 
+				"  number: 2001", javaProject);
+		
+		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE,
+				"greeting.message = hello\r\n" + 
+				"greeting.name = quarkus\r\n" + 
+				"greeting.number = 100", javaProject);
+
+		// Position(14, 40) is the character after the | symbol:
+		// @ConfigProperty(name = "greeting.mes|sage")
+		MicroProfileJavaHoverInfo info = getActualHoverInfo(new Position(14, 40));
+		assertHoverInfo("greeting.message", "message from yaml", 14, 28, 44, info);
+
+		// Position(26, 33) is the character after the | symbol:
+		// @ConfigProperty(name = "greet|ing.number", defaultValue="0")
+		info = getActualHoverInfo(new Position(26, 33));
+		assertHoverInfo("greeting.number", "2001", 26, 28, 43, info);
+		
+		saveFile(JDTMicroProfileProject.APPLICATION_YAML_FILE,
+				"greeting:\n" + 
+				"  message: message from yaml", javaProject);
+		
+		// fallback to application.properties
+		info = getActualHoverInfo(new Position(26, 33));
+		assertHoverInfo("greeting.number", "100", 26, 28, 43, info);
+	}
+	
+	private MicroProfileJavaHoverInfo getActualHoverInfo(Position hoverPosition) throws JavaModelException {
+		MicroProfileJavaHoverParams params = new MicroProfileJavaHoverParams();
 
 		params.setPosition(hoverPosition);
 		params.setUri(javaFileUri);
 
-		MicroProfileJavaHoverInfo info = PropertiesManagerForJava.getInstance().hover(params, utils,
+		return PropertiesManagerForJava.getInstance().hover(params, utils,
 				new NullProgressMonitor());
+	}
+	
+	private void assertHoverInfo(String expectedKey, String expectedValue, int expectedLine,
+			int expectedStartOffset, int expectedEndOffset, MicroProfileJavaHoverInfo actualInfo) {
+		Assert.assertNotNull(actualInfo);
 
-		Assert.assertNotNull(info);
-
-		Position expectedStart = new Position(23, 28);
-		Position expectedEnd = new Position(23, 44);
+		Position expectedStart = new Position(expectedLine, expectedStartOffset);
+		Position expectedEnd = new Position(expectedLine, expectedEndOffset);
 		Range expectedRange = new Range(expectedStart, expectedEnd);
-
-		Assert.assertEquals(info.getPropertyKey(), "greeting.missing");
-		Assert.assertNull(info.getPropertyValue());
-		Assert.assertEquals(info.getRange(), expectedRange);
+		
+		
+		Assert.assertEquals(expectedKey, actualInfo.getPropertyKey());
+		if (expectedValue == null) {
+			Assert.assertNull(expectedValue);
+		} else {
+			Assert.assertEquals(expectedValue, actualInfo.getPropertyValue());	
+		}
+		Assert.assertEquals(expectedRange, actualInfo.getRange());
 	}
 
 	private static List<File> getApplicationPropertiesFile(IJavaProject javaProject) {
@@ -274,5 +207,4 @@ public class JavaHoverTest extends BasePropertiesManagerTest {
 			return null;
 		}
 	}
-
 }
