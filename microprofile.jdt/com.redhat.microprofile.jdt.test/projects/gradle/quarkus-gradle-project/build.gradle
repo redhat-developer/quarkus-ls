@@ -9,6 +9,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'io.quarkus:quarkus-resteasy'
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
     implementation 'io.quarkus:quarkus-resteasy'
 
@@ -17,7 +18,7 @@ dependencies {
 }
 
 group 'org.acme'
-version '1.0.0-SNAPSHOT'
+version '1.0-SNAPSHOT'
 
 compileJava {
     options.compilerArgs << '-parameters'
