@@ -56,7 +56,7 @@ public class ProjectLabelTest {
 	
 	@Test
 	public void getProjectLabelQuarkusGradle() throws Exception {
-		IJavaProject quarkusGradle = BasePropertiesManagerTest.loadGradleProject(GradleProjectName.quarkus_gradle_project);
+		IJavaProject quarkusGradle = BasePropertiesManagerTest.loadGradleProject(GradleProjectName.quarkus_gradle_project);		
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
 		assertProjectLabelInfoContainsProject(projectLabelEntries, quarkusGradle);
 		assertLabels(projectLabelEntries, quarkusGradle, "quarkus", "gradle");
