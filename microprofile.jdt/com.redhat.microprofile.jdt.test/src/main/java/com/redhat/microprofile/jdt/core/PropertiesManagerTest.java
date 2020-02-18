@@ -15,13 +15,17 @@ import static com.redhat.microprofile.jdt.internal.core.JavaUtils.getJarPath;
 import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertProperties;
 import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.p;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaModelException;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
+import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 
@@ -36,6 +40,17 @@ public class PropertiesManagerTest extends BasePropertiesManagerTest {
 	private static final String QUARKUS_CORE_JAR = getJarPath("quarkus-core-0.28.1.jar");
 
 	private static final String QUARKUS_CORE_DEPLOYMENT_JAR = getJarPath("quarkus-core-deployment-0.28.1.jar");
+
+	@Test
+	public void notBelongToEclipseProject() throws JavaModelException, CoreException {
+		MicroProfileProjectInfoParams params = new MicroProfileProjectInfoParams();
+		params.setUri("bad-uri");
+		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(params,
+				JDTUtilsLSImpl.getInstance(), new NullProgressMonitor());
+		Assert.assertNotNull("MicroProfileProjectInfo for 'bad-uri' should not be null", info);
+		Assert.assertTrue("MicroProfileProjectInfo for 'bad-uri' should not belong to an Eclipse project ",
+				info.getProjectURI().isEmpty());
+	}
 
 	@Test
 	public void quarkusCorePropertiesWithOnlyCore() throws Exception {

@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -83,8 +84,14 @@ public class PropertiesManager {
 	public MicroProfileProjectInfo getMicroProfileProjectInfo(MicroProfileProjectInfoParams params, IJDTUtils utils,
 			IProgressMonitor progress) throws JavaModelException, CoreException {
 		IFile file = utils.findFile(params.getUri());
-		if (file == null) {
-			throw new UnsupportedOperationException(String.format("Cannot find IFile for '%s'", params.getUri()));
+		if (file == null || file.getProject() == null) {
+			// The uri doesn't belong to an Eclipse project
+			return MicroProfileProjectInfo.EMPTY_PROJECT_INFO;
+		}
+		// The uri belong to an Eclipse project
+		if (!(JavaProject.hasJavaNature(file.getProject()))) {
+			// The uri doesn't belong to a Java project
+			return createInfo(file.getProject(), ClasspathKind.NONE);
 		}
 		return getMicroProfileProjectInfo(file, params.getScopes(), utils, params.getDocumentFormat(), progress);
 	}
@@ -101,7 +108,7 @@ public class PropertiesManager {
 	public MicroProfileProjectInfo getMicroProfileProjectInfo(IJavaProject javaProject,
 			List<MicroProfilePropertiesScope> scopes, ClasspathKind classpathKind, IJDTUtils utils,
 			DocumentFormat documentFormat, IProgressMonitor monitor) throws JavaModelException, CoreException {
-		MicroProfileProjectInfo info = createInfo(javaProject, classpathKind);
+		MicroProfileProjectInfo info = createInfo(javaProject.getProject(), classpathKind);
 		if (classpathKind == ClasspathKind.NONE) {
 			info.setProperties(Collections.emptyList());
 			return info;
@@ -231,10 +238,13 @@ public class PropertiesManager {
 		}
 	}
 
-	private static MicroProfileProjectInfo createInfo(IJavaProject javaProject, ClasspathKind classpathKind) {
+	private static MicroProfileProjectInfo createInfo(IProject project, ClasspathKind classpathKind) {
 		MicroProfileProjectInfo info = new MicroProfileProjectInfo();
-		info.setProjectURI(JDTMicroProfileUtils.getProjectURI(javaProject));
+		info.setProjectURI(JDTMicroProfileUtils.getProjectURI(project));
 		info.setClasspathKind(classpathKind);
+		if (classpathKind == ClasspathKind.NONE) {
+			info.setProperties(Collections.emptyList());
+		}
 		return info;
 	}
 
