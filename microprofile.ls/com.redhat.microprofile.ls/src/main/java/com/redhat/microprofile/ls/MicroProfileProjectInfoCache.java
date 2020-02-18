@@ -11,7 +11,6 @@ package com.redhat.microprofile.ls;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -45,15 +45,6 @@ class MicroProfileProjectInfoCache {
 	private final Map<String /* application.properties URI */, CompletableFuture<MicroProfileProjectInfo>> cache;
 
 	private final MicroProfileProjectInfoProvider provider;
-
-	private static final MicroProfileProjectInfo EMPTY_PROJECT_INFO;
-	
-	static {
-		EMPTY_PROJECT_INFO = new MicroProfileProjectInfo();
-		EMPTY_PROJECT_INFO.setProperties(Collections.emptyList());
-		EMPTY_PROJECT_INFO.setHints(Collections.emptyList());
-		EMPTY_PROJECT_INFO.setProjectURI("");
-	}
 
 	/**
 	 * Computed metadata build from dynamic properties and a given hint value.
@@ -202,16 +193,22 @@ class MicroProfileProjectInfoCache {
 	 *         application.properties URI.
 	 */
 	public CompletableFuture<MicroProfileProjectInfo> getProjectInfo(MicroProfileProjectInfoParams params) {
+		return getProjectInfoFromCache(params). //
+				exceptionally(ex -> {
+					LOGGER.log(Level.WARNING, String.format(
+							"Error while getting MicroProfileProjectInfo (classpath) for '%s'", params.getUri()), ex);
+					return MicroProfileProjectInfo.EMPTY_PROJECT_INFO;
+				});
+	}
+
+	CompletableFuture<MicroProfileProjectInfo> getProjectInfoFromCache(MicroProfileProjectInfoParams params) {
 		// Search future which load project info in cache
 		CompletableFuture<MicroProfileProjectInfo> projectInfo = cache.get(params.getUri());
 		if (projectInfo == null || projectInfo.isCancelled() || projectInfo.isCompletedExceptionally()) {
 			// not found in the cache, load the project info from the JDT LS Extension
 			params.setScopes(MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
 			CompletableFuture<MicroProfileProjectInfo> future = provider.getProjectInfo(params). //
-					exceptionally(ex-> {
-						LOGGER.warning(String.format("Cannot find MicroProfileProjectInfo for '%s'", params.getUri()));
-						return new MicroProfileProjectInfoWrapper(EMPTY_PROJECT_INFO);
-					}).thenApply(info -> new MicroProfileProjectInfoWrapper(info));
+					thenApply(info -> new MicroProfileProjectInfoWrapper(info));
 			// cache the future.
 			cache.put(params.getUri(), future);
 			return future;
@@ -225,12 +222,18 @@ class MicroProfileProjectInfoCache {
 			// There are some java sources changed, get the Quarkus properties from java
 			// sources.
 			params.setScopes(MicroProfilePropertiesScope.ONLY_SOURCES);
-			return provider.getProjectInfo(params).thenApply(info ->
-			// then update the cache with the new properties
-			{
-				wrapper.update(info.getProperties(), info.getHints());
-				return wrapper;
-			});
+			return provider.getProjectInfo(params). //
+					exceptionally(ex -> {
+						LOGGER.log(Level.WARNING, String.format(
+								"Error while getting MicroProfileProjectInfo (sources) for '%s'", params.getUri()), ex);
+						return MicroProfileProjectInfo.EMPTY_PROJECT_INFO;
+					}). //
+					thenApply(info ->
+					// then update the cache with the new properties
+					{
+						wrapper.update(info.getProperties(), info.getHints());
+						return wrapper;
+					});
 		}
 
 		// Returns the cached project info

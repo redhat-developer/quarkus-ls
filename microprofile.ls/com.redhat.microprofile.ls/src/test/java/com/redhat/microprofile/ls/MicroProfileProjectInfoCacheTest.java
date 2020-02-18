@@ -9,6 +9,7 @@
 *******************************************************************************/
 package com.redhat.microprofile.ls;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
@@ -61,25 +62,48 @@ public class MicroProfileProjectInfoCacheTest {
 		}
 	}
 
-	static class MicroProfileProjectInfoProviderThrowException implements MicroProfileProjectInfoProvider {
+	static class MicroProfileProjectInfoParamsThrowException extends MicroProfileProjectInfoParams {
+		private boolean throwError;
+
+		public MicroProfileProjectInfoParamsThrowException(String uri) {
+			super(uri);
+		}
+
+		public boolean isThrowError() {
+			return throwError;
+		}
+
+		public void setThrowError(boolean throwError) {
+			this.throwError = throwError;
+		}
+	}
+
+	public static class MicroProfileProjectInfoProviderThrowException implements MicroProfileProjectInfoProvider {
 
 		@Override
 		public CompletableFuture<MicroProfileProjectInfo> getProjectInfo(MicroProfileProjectInfoParams params) {
-			CompletableFuture<MicroProfileProjectInfo> completableFuture = new CompletableFuture<>();
-			completableFuture.completeExceptionally(new UnsupportedOperationException());
-			return completableFuture;
+			boolean throwError = ((MicroProfileProjectInfoParamsThrowException) params).isThrowError();
+			if (throwError) {
+				CompletableFuture<MicroProfileProjectInfo> completableFuture = new CompletableFuture<>();
+				completableFuture.completeExceptionally(new UnsupportedOperationException());
+				return completableFuture;
+			}
+			MicroProfileProjectInfo projectInfo = new MicroProfileProjectInfo();
+			projectInfo.setProjectURI("project1");
+			projectInfo.setProperties(new ArrayList<>());
+			return CompletableFuture.completedFuture(projectInfo);
 		}
 	}
 
 	@Test
-	public void getProjectInfoCache() throws InterruptedException, ExecutionException {
+	public void getProjectInfoFromCache() throws InterruptedException, ExecutionException {
 		MicroProfileProjectInfoProviderTracker tracker = new MicroProfileProjectInfoProviderTracker();
 		MicroProfileProjectInfoCache cache = new MicroProfileProjectInfoCache(tracker);
 
 		// Execute 2 getProjectInfo in same time
 		MicroProfileProjectInfoParams params = new MicroProfileProjectInfoParams(PROJECT1_APPLICATION_PROPERTIES);
-		CompletableFuture<MicroProfileProjectInfo> request1 = cache.getProjectInfo(params);
-		CompletableFuture<MicroProfileProjectInfo> request2 = cache.getProjectInfo(params);
+		CompletableFuture<MicroProfileProjectInfo> request1 = cache.getProjectInfoFromCache(params);
+		CompletableFuture<MicroProfileProjectInfo> request2 = cache.getProjectInfoFromCache(params);
 
 		Assert.assertTrue("Same futures for getProjectInfo in same time with 2 completion requests",
 				request1 == request2);
@@ -89,7 +113,7 @@ public class MicroProfileProjectInfoCacheTest {
 				tracker.getInstanceCount());
 
 		// Execute getProjectInfo which should be get from cache
-		CompletableFuture<MicroProfileProjectInfo> request3 = cache.getProjectInfo(params);
+		CompletableFuture<MicroProfileProjectInfo> request3 = cache.getProjectInfoFromCache(params);
 
 		Assert.assertTrue("Same futures for getProjectInfo in same time with 2 completion requests",
 				request1 == request3);
@@ -104,7 +128,7 @@ public class MicroProfileProjectInfoCacheTest {
 		event.setType(MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
 		cache.propertiesChanged(event);
 
-		CompletableFuture<MicroProfileProjectInfo> request4 = cache.getProjectInfo(params);
+		CompletableFuture<MicroProfileProjectInfo> request4 = cache.getProjectInfoFromCache(params);
 
 		Assert.assertFalse("Different futures for getProjectInfo after propertiesChanged", request1 == request4);
 		Assert.assertFalse("Different instance of getProjectInfo after propertiesChanged",
@@ -113,12 +137,33 @@ public class MicroProfileProjectInfoCacheTest {
 
 	}
 
-	@Test 
+	@Test
 	public void getProjectInfoCacheProviderException() throws InterruptedException, ExecutionException {
-		MicroProfileProjectInfoProviderThrowException provider = new MicroProfileProjectInfoProviderThrowException();
+		MicroProfileProjectInfoProvider provider = new MicroProfileProjectInfoProviderThrowException();
 		MicroProfileProjectInfoCache cache = new MicroProfileProjectInfoCache(provider);
-		MicroProfileProjectInfoParams params = new MicroProfileProjectInfoParams("application.properties");
+
+		MicroProfileProjectInfoParamsThrowException params = new MicroProfileProjectInfoParamsThrowException(
+				"application.properties");
+
+		// With error
+		params.setThrowError(true);
 		CompletableFuture<MicroProfileProjectInfo> request = cache.getProjectInfo(params);
-		request.get();
+		// The call of projectInfo throws an error but it is catch and return an empty
+		// project
+		MicroProfileProjectInfo infoWithError = request.get();
+		Assert.assertNotNull("Project info after an error should be not null", infoWithError);
+		Assert.assertTrue("Project info after an error should have no project URI",
+				infoWithError.getProjectURI().isEmpty());
+
+		// With no error (after an error)
+		params.setThrowError(false);
+		request = cache.getProjectInfo(params);
+		// The call of projectInfo throws an error but it is catch and return an empty
+		// project
+		MicroProfileProjectInfo infoWithNoError = request.get();
+		Assert.assertNotNull("Project info after an error should be not null", infoWithNoError);
+		Assert.assertTrue("Project info after an error should have a project URI",
+				!infoWithNoError.getProjectURI().isEmpty());
+
 	}
 }

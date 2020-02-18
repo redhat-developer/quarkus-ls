@@ -9,6 +9,8 @@
 *******************************************************************************/
 package com.redhat.microprofile.commons;
 
+import java.util.Collections;
+
 import com.redhat.microprofile.commons.metadata.ConfigurationMetadata;
 
 /**
@@ -18,6 +20,15 @@ import com.redhat.microprofile.commons.metadata.ConfigurationMetadata;
  *
  */
 public class MicroProfileProjectInfo extends ConfigurationMetadata {
+
+	public static final MicroProfileProjectInfo EMPTY_PROJECT_INFO;
+
+	static {
+		EMPTY_PROJECT_INFO = new MicroProfileProjectInfo();
+		EMPTY_PROJECT_INFO.setProperties(Collections.emptyList());
+		EMPTY_PROJECT_INFO.setHints(Collections.emptyList());
+		EMPTY_PROJECT_INFO.setProjectURI("");
+	}
 
 	private String projectURI;
 
