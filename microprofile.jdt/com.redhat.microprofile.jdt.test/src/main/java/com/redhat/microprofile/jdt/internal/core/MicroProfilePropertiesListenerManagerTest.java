@@ -11,17 +11,18 @@ package com.redhat.microprofile.jdt.internal.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.internal.core.CreateCompilationUnitOperation;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,6 +32,7 @@ import org.junit.Test;
 import com.google.common.io.MoreFiles;
 import com.google.common.io.RecursiveDeleteOption;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
+import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.jdt.core.IMicroProfilePropertiesChangedListener;
 import com.redhat.microprofile.jdt.core.utils.JDTMicroProfileUtils;
 
@@ -44,25 +46,27 @@ public class MicroProfilePropertiesListenerManagerTest {
 
 	static class ProjectTracker implements IMicroProfilePropertiesChangedListener {
 
-		final Set<String> projects = new HashSet<>();
+		final List<MicroProfilePropertiesChangeEvent> events = new ArrayList<>();
 
 		@Override
 		public void propertiesChanged(MicroProfilePropertiesChangeEvent event) {
-			projects.addAll(event.getProjectURIs());
+			events.add(event);
 		}
 
-		public Set<String> getProjects() {
-			return projects;
+		public List<MicroProfilePropertiesChangeEvent> getEvents() {
+			return events;
 		}
 	}
 
 	private ProjectTracker projectTracker;
+	private MicroProfilePropertiesListenerManager manager;
 
 	@Before
 	public void init() {
 		cleanWorkinkingDir();
 		projectTracker = new ProjectTracker();
-		MicroProfilePropertiesListenerManager manager = MicroProfilePropertiesListenerManager.getInstance();
+		manager = new MicroProfilePropertiesListenerManager(false);
+		manager.initialize();
 		manager.addMicroProfilePropertiesChangedListener(projectTracker);
 	}
 
@@ -79,111 +83,146 @@ public class MicroProfilePropertiesListenerManagerTest {
 
 	@After
 	public void destroy() {
-		MicroProfilePropertiesListenerManager manager = MicroProfilePropertiesListenerManager.getInstance();
 		manager.removeMicroProfilePropertiesChangedListener(projectTracker);
+		manager.destroy();
+		manager = null;
 		cleanWorkinkingDir();
 	}
 
 	@Ignore
 	@Test
 	public void classpathChanged() throws Exception {
-		Assert.assertEquals(0, projectTracker.getProjects().size());
 
-		// Create a Java project -> classpath changed
-		IJavaProject project = JavaUtils.createJavaProject("test-classpath-changed", new String[] { "/test.jar" });
-		Assert.assertEquals(1, projectTracker.getProjects().size());
-		Assert.assertEquals(JDTMicroProfileUtils.getProjectURI(project),
-				projectTracker.getProjects().iterator().next());
+		IJavaProject javaProject = null;
+		try {
+			// Create a Java project -> classpath changed
+			javaProject = JavaUtils.createJavaProject("test-classpath-changed", new String[] { "/test.jar" });
 
-		projectTracker.getProjects().clear();
-		Assert.assertEquals(0, projectTracker.getProjects().size());
+			// Event 3 (sources and dependencies) :
+			// Update classpath -> classpath changed
+			javaProject.setRawClasspath(new IClasspathEntry[] {}, new NullProgressMonitor());
 
-		// Update classpath -> classpath changed
-		project.setRawClasspath(new IClasspathEntry[] {}, new NullProgressMonitor());
-		Assert.assertEquals(1, projectTracker.getProjects().size());
-		Assert.assertEquals(JDTMicroProfileUtils.getProjectURI(project),
-				projectTracker.getProjects().iterator().next());
+			assertWaitForEvents(projectTracker, 3);
+			// Event 1 (sources and dependencies) -> coming from IProject#setDescription
+			// used in JavaUtils.createJavaProject
+			Assert.assertEquals(createEvent(JDTMicroProfileUtils.getProjectURI(javaProject),
+					MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES), projectTracker.getEvents().get(0));
+			// Event 2 (sources and dependencies) -> coming from
+			// IJavaProject#setRawClasspath
+			// used in JavaUtils.createJavaProject
+			Assert.assertEquals(createEvent(JDTMicroProfileUtils.getProjectURI(javaProject),
+					MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES), projectTracker.getEvents().get(1));
+			// Event 3 (sources and dependencies) :
+			Assert.assertEquals(createEvent(JDTMicroProfileUtils.getProjectURI(javaProject),
+					MicroProfilePropertiesScope.ONLY_SOURCES), projectTracker.getEvents().get(2));
+		} finally {
+			if (javaProject != null) {
+				javaProject.getProject().close(new NullProgressMonitor());
+			}
+		}
 	}
 
 	@Ignore
 	@Test
 	public void javaSourcesChanged() throws Exception {
-		Assert.assertEquals(0, projectTracker.getProjects().size());
 
-		// Create a Java project -> classpath changed
-		IJavaProject javaProject = JavaUtils.createJavaProject("test-java-sources-changed", new String[] {});
-		Assert.assertEquals(1, projectTracker.getProjects().size());
-		Assert.assertEquals(JDTMicroProfileUtils.getProjectURI(javaProject),
-				projectTracker.getProjects().iterator().next());
+		IJavaProject javaProject = null;
+		try {
+			// Create a Java project -> classpath changed
+			javaProject = JavaUtils.createJavaProject("test-java-sources-changed", new String[] {});
 
-		projectTracker.getProjects().clear();
-		Assert.assertEquals(0, projectTracker.getProjects().size());
+			// create folder by using resources package
+			IFolder folder = javaProject.getProject().getFolder("src");
 
-		// create folder by using resources package
-		IFolder folder = javaProject.getProject().getFolder("src");
-		Assert.assertEquals(0, projectTracker.getProjects().size());
+			// Add folder to Java element
+			IPackageFragmentRoot srcFolder = javaProject.getPackageFragmentRoot(folder);
 
-		// Add folder to Java element
-		IPackageFragmentRoot srcFolder = javaProject.getPackageFragmentRoot(folder);
-		Assert.assertEquals(0, projectTracker.getProjects().size());
+			// create package fragment
+			IPackageFragment pkg = srcFolder.createPackageFragment("org.acme.config", true, null);
 
-		// create package fragment
-		IPackageFragment fragment = srcFolder.createPackageFragment("org.acme.config", true, null);
-		Assert.assertEquals(0, projectTracker.getProjects().size());
+			// Test with create of Java file
+			// --> init code string and create compilation unit
+			String source = "package org.acme.config;\r\n" + //
+					"\r\n" + //
+					"import java.util.Optional;\r\n" + //
+					"\r\n" + //
+					"import javax.ws.rs.GET;\r\n" + //
+					"import javax.ws.rs.Path;\r\n" + //
+					"import javax.ws.rs.Produces;\r\n" + //
+					"import javax.ws.rs.core.MediaType;\r\n" + //
+					"\r\n" + //
+					"import org.eclipse.microprofile.config.inject.ConfigProperty;\r\n" + //
+					"     \r\n" + //
+					"@Path(\"/greeting\") \r\n" + //
+					"public class GreetingResource {\r\n" + //
+					"  \r\n" + //
+					"    @ConfigProperty(name = \"greeting.message\")\r\n" + //
+					"    String message;\r\n" + //
+					"   \r\n" + //
+					"    @ConfigProperty(name = \"greeting.suffix\" , \r\n" + //
+					"                    defaultValue=\"!\")\r\n" + //
+					"    String suffix;\r\n" + //
+					"\r\n" + //
+					"    @ConfigProperty(name = \"greeting.name\")\r\n" + //
+					"    Optional<String> name;\r\n" + //
+					"\r\n" + //
+					"\r\n" + //
+					"    @GET\r\n" + //
+					"    @Produces(MediaType.TEXT_PLAIN)\r\n" + //
+					"    public String hello() {\r\n" + //
+					"        return message + //\" \" + //name.orElse(\"world\") + //suffix;\r\n" + //
+					"    }\r\n" + //
+					"}\r\n" + //
+					"";
+			CreateCompilationUnitOperation op = new CreateCompilationUnitOperation(pkg, "GreetingResource.java", source,
+					true);
+			op.runOperation(new NullProgressMonitor());
 
-		// Test with create of Java file
-		// --> init code string and create compilation unit
-		String str = "package org.acme.config;\r\n" + //
-				"\r\n" + //
-				"import java.util.Optional;\r\n" + //
-				"\r\n" + //
-				"import javax.ws.rs.GET;\r\n" + //
-				"import javax.ws.rs.Path;\r\n" + //
-				"import javax.ws.rs.Produces;\r\n" + //
-				"import javax.ws.rs.core.MediaType;\r\n" + //
-				"\r\n" + //
-				"import org.eclipse.microprofile.config.inject.ConfigProperty;\r\n" + //
-				"     \r\n" + //
-				"@Path(\"/greeting\") \r\n" + //
-				"public class GreetingResource {\r\n" + //
-				"  \r\n" + //
-				"    @ConfigProperty(name = \"greeting.message\")\r\n" + //
-				"    String message;\r\n" + //
-				"   \r\n" + //
-				"    @ConfigProperty(name = \"greeting.suffix\" , \r\n" + //
-				"                    defaultValue=\"!\")\r\n" + //
-				"    String suffix;\r\n" + //
-				"\r\n" + //
-				"    @ConfigProperty(name = \"greeting.name\")\r\n" + //
-				"    Optional<String> name;\r\n" + //
-				"\r\n" + //
-				"\r\n" + //
-				"    @GET\r\n" + //
-				"    @Produces(MediaType.TEXT_PLAIN)\r\n" + //
-				"    public String hello() {\r\n" + //
-				"        return message + //\" \" + //name.orElse(\"world\") + //suffix;\r\n" + //
-				"    }\r\n" + //
-				"}\r\n" + //
-				"";
-		ICompilationUnit cu = fragment.createCompilationUnit("GreetingResource.java", str, false, null);
+//		// Event 6 (sources) :
+//		// Test with update of Java file
+//		// -> create a field
+//		IType type = cu.getType("Test");
+//		type.createField("private String age;", null, true, null);
+//		cu.getUnderlyingResource().refreshLocal(IResource.DEPTH_ZERO, new NullProgressMonitor());
 
-		// The java file has been modified
-		Thread.sleep(200); // wait a moment since IQuarkusPropertiesChangedListener are fired in async mode
-		Assert.assertEquals(1, projectTracker.getProjects().size());
-		Assert.assertEquals(JDTMicroProfileUtils.getProjectURI(javaProject),
-				projectTracker.getProjects().iterator().next());
+			assertWaitForEvents(projectTracker, 3);
+			// Event 1 (sources and dependencies) -> coming from IProject#setDescription
+			// used in JavaUtils.createJavaProject
+			Assert.assertEquals(createEvent(JDTMicroProfileUtils.getProjectURI(javaProject),
+					MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES), projectTracker.getEvents().get(0));
+			// Event 2 (sources and dependencies) -> coming from
+			// IJavaProject#setRawClasspath
+			// used in JavaUtils.createJavaProject
+			Assert.assertEquals(createEvent(JDTMicroProfileUtils.getProjectURI(javaProject),
+					MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES), projectTracker.getEvents().get(1));
+			// Event 3 (sources) :
+			Assert.assertEquals(createEvent(JDTMicroProfileUtils.getProjectURI(javaProject),
+					MicroProfilePropertiesScope.ONLY_SOURCES), projectTracker.getEvents().get(2));
+		} finally {
+			if (javaProject != null) {
+				javaProject.getProject().close(new NullProgressMonitor());
+			}
+		}
 
-		// Test with update of Java file
-		// -> create a field
-		projectTracker.getProjects().clear();
-		IType type = cu.getType("Test");
-		type.createField("private String age;", null, true, null);
+	}
 
-		// The java file has been modified
-		Thread.sleep(200); // wait a moment since IQuarkusPropertiesChangedListener are fired in async mode
-		Assert.assertEquals(1, projectTracker.getProjects().size());
-		Assert.assertEquals(JDTMicroProfileUtils.getProjectURI(javaProject),
-				projectTracker.getProjects().iterator().next());
+	private static MicroProfilePropertiesChangeEvent createEvent(String projectURI,
+			List<MicroProfilePropertiesScope> type) {
+		MicroProfilePropertiesChangeEvent event = new MicroProfilePropertiesChangeEvent();
+		event.setProjectURIs(new HashSet<String>(Arrays.asList(projectURI)));
+		event.setType(type);
+		return event;
+	}
 
+	private static void assertWaitForEvents(ProjectTracker projectTracker, int nbEvents) throws InterruptedException {
+		int nbTry = 0;
+		Object lock = new Object();
+		synchronized (lock) {
+			while (projectTracker.getEvents().size() != nbEvents && nbTry < 200) {
+				lock.wait(500);
+				nbTry++;
+			}
+		}
+		Assert.assertEquals("Test events size", nbEvents, projectTracker.getEvents().size());
 	}
 }
