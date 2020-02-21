@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.core;
+package com.redhat.microprofile.jdt.core.faulttolerance;
 
 import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertHints;
 import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertHintsDuplicate;
@@ -21,7 +21,9 @@ import org.junit.Test;
 
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
-import com.redhat.microprofile.jdt.internal.core.providers.MicroProfileFaultToleranceProvider;
+import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
+import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest.MavenProjectName;
+import com.redhat.microprofile.jdt.internal.faulttolerance.MicroProfileFaultToleranceConstants;
 
 /**
  * Test collection of MicroProfile properties for MicroProfile Fault Tolerance
@@ -78,7 +80,7 @@ public class MicroProfileFaultToleranceTest extends BasePropertiesManagerTest {
 						false, "org.eclipse.microprofile.faulttolerance.Bulkhead", null, "value()I", 0, "10"),
 
 				p(null, "MP_Fault_Tolerance_NonFallback_Enabled", "boolean",
-						MicroProfileFaultToleranceProvider.MP_FAULT_TOLERANCE_NONFALLBACK_ENABLED_DESCRIPTION, false,
+						MicroProfileFaultToleranceConstants.MP_FAULT_TOLERANCE_NONFALLBACK_ENABLED_DESCRIPTION, false,
 						null, null, null, 0, "false")
 
 		);

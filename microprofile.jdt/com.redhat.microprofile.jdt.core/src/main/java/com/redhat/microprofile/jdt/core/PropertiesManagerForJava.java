@@ -11,6 +11,7 @@ package com.redhat.microprofile.jdt.core;
 
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
+import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.hasAnnotation;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -39,15 +40,21 @@ import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.util.Ranges;
 
+import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
+import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverInfo;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
+import com.redhat.microprofile.jdt.core.java.JavaDiagnosticsContext;
 import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProjectManager;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
+import com.redhat.microprofile.jdt.internal.core.java.JavaFeaturesRegistry;
 
 /**
  * JDT quarkus manager for Java files.
@@ -210,7 +217,7 @@ public class PropertiesManagerForJava {
 	}
 
 	private static boolean isJaxRsRequestMethod(IAnnotatable annotatable) throws JavaModelException {
-		return getAnnotation(annotatable, JAVAX_WS_RS_GET_ANNOTATION) != null;
+		return hasAnnotation(annotatable, JAVAX_WS_RS_GET_ANNOTATION);
 	}
 
 	private boolean overlaps(ISourceRange typeRange, ISourceRange methodRange) {
@@ -313,6 +320,42 @@ public class PropertiesManagerForJava {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Returns diagnostics for the given uris list.
+	 * 
+	 * @param params the diagnostics parameters
+	 * @param utils  the utilities class
+	 * @return diagnostics for the given uris list.
+	 * @throws JavaModelException
+	 */
+	public List<PublishDiagnosticsParams> diagnostics(MicroProfileJavaDiagnosticsParams params, IJDTUtils utils,
+			IProgressMonitor monitor) throws JavaModelException {
+		List<String> uris = params.getUris();
+		if (uris == null) {
+			return Collections.emptyList();
+		}
+		DocumentFormat documentFormat = params.getDocumentFormat();
+		List<PublishDiagnosticsParams> publishDiagnostics = new ArrayList<PublishDiagnosticsParams>();
+		for (String uri : uris) {
+			List<Diagnostic> diagnostics = new ArrayList<>();
+			PublishDiagnosticsParams publishDiagnostic = new PublishDiagnosticsParams(uri, diagnostics);
+			publishDiagnostics.add(publishDiagnostic);
+			collectDiagnostics(uri, utils, documentFormat, diagnostics, monitor);
+		}
+		return publishDiagnostics;
+	}
+
+	private void collectDiagnostics(String uri, IJDTUtils utils, DocumentFormat documentFormat,
+			List<Diagnostic> diagnostics, IProgressMonitor monitor) {
+		ITypeRoot typeRoot = resolveTypeRoot(uri, utils, monitor);
+		if (typeRoot == null) {
+			return;
+		}
+		JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, documentFormat, diagnostics);
+		JavaFeaturesRegistry.getInstance().getJavaFeatureDefinitions()
+				.forEach(definition -> definition.collectDiagnostics(context, monitor));
 	}
 
 }

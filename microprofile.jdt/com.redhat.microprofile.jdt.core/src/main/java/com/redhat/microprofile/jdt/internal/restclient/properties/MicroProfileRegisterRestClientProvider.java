@@ -7,9 +7,11 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.core.providers;
+package com.redhat.microprofile.jdt.internal.restclient.properties;
 
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
+import static com.redhat.microprofile.jdt.internal.restclient.MicroProfileRestClientConstants.REGISTER_REST_CLIENT_ANNOTATION;
+import static com.redhat.microprofile.jdt.internal.restclient.MicroProfileRestClientConstants.REGISTER_REST_CLIENT_ANNOTATION_CONFIG_KEY;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
@@ -90,9 +92,6 @@ import com.redhat.microprofile.jdt.core.SearchContext;
  */
 public class MicroProfileRegisterRestClientProvider extends AbstractAnnotationTypeReferencePropertiesProvider {
 
-	private static final String REGISTER_REST_CLIENT_ANNOTATION = "org.eclipse.microprofile.rest.client.inject.RegisterRestClient";
-	private static final String REGISTER_REST_CLIENT_ANNOTATION_CONFIG_KEY = "configKey";
-
 	private static final String[] ANNOTATION_NAMES = { REGISTER_REST_CLIENT_ANNOTATION };
 
 	private static final String MP_REST_CLIENT_CLASS_REFERENCE_TYPE = "${mp.register.rest.client.class}";
@@ -138,7 +137,8 @@ public class MicroProfileRegisterRestClientProvider extends AbstractAnnotationTy
 				super.addItemMetadata(collector, MP_REST_CLIENT_CLASS_REFERENCE_TYPE + "/mp-rest/providers",
 						"java.lang.String", docs, null, null, null, null, null, false);
 
-				// TODO : provider is managed as mapped property (with {*}). It should be improved to have
+				// TODO : provider is managed as mapped property (with {*}). It should be
+				// improved to have
 				// completion on all providers implementation
 				docs = "Override the priority of the provider for the given interface.";
 				super.addItemMetadata(collector,

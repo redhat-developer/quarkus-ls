@@ -10,7 +10,7 @@
 package com.redhat.microprofile.commons;
 
 /**
- * Quarkus Java codelens parameters.
+ * MicroProfile Java codelens parameters.
  * 
  * @author Angelo ZERR
  *

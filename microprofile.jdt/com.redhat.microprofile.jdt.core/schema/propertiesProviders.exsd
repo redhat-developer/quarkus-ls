@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="com.redhat.quarkus.jdt.core" xmlns="http://www.w3.org/2001/XMLSchema">
+<schema targetNamespace="com.redhat.microprofile.jdt.core" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="com.redhat.quarkus.jdt.core" id="propertiesProviders" name="Properties providers"/>
+         <meta.schema plugin="com.redhat.microprofile.jdt.core" id="propertiesProviders" name="Properties providers"/>
       </appinfo>
       <documentation>
          This extension point allows adding a properties provider to provide capability to collect MicroProfile/Quarkus properties from Java libraries and sources.
@@ -84,7 +84,7 @@
          The following is an example of a properties provider extension:
 
 &lt;pre&gt;
- &lt;extension point=&quot;com.redhat.quarkus.jdt.core.propertiesProvider&quot;&gt;
+ &lt;extension point=&quot;com.redhat.microprofile.jdt.core.propertiesProvider&quot;&gt;
   &lt;provider
    class=&quot;com.example.MyPropertyProvider&quot;&gt;
   &lt;/provider&gt;
