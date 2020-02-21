@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.core.providers;
+package com.redhat.microprofile.jdt.internal.faulttolerance.properties;
 
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
@@ -18,6 +18,14 @@ import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getPropertyTyp
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getResolvedResultTypeName;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceMethod;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceType;
+import static com.redhat.microprofile.jdt.internal.faulttolerance.MicroProfileFaultToleranceConstants.ASYNCHRONOUS_ANNOTATION;
+import static com.redhat.microprofile.jdt.internal.faulttolerance.MicroProfileFaultToleranceConstants.BULKHEAD_ANNOTATION;
+import static com.redhat.microprofile.jdt.internal.faulttolerance.MicroProfileFaultToleranceConstants.CIRCUITBREAKER_ANNOTATION;
+import static com.redhat.microprofile.jdt.internal.faulttolerance.MicroProfileFaultToleranceConstants.FALLBACK_ANNOTATION;
+import static com.redhat.microprofile.jdt.internal.faulttolerance.MicroProfileFaultToleranceConstants.MP_FAULT_TOLERANCE_NONFALLBACK_ENABLED_DESCRIPTION;
+import static com.redhat.microprofile.jdt.internal.faulttolerance.MicroProfileFaultToleranceConstants.MP_FAULT_TOLERANCE_NON_FALLBACK_ENABLED;
+import static com.redhat.microprofile.jdt.internal.faulttolerance.MicroProfileFaultToleranceConstants.RETRY_ANNOTATION;
+import static com.redhat.microprofile.jdt.internal.faulttolerance.MicroProfileFaultToleranceConstants.TIMEOUT_ANNOTATION;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,41 +68,6 @@ public class MicroProfileFaultToleranceProvider extends AbstractAnnotationTypeRe
 
 	private static final String MICROPROFILE_FAULT_TOLERANCE_CONTEXT_KEY = MicroProfileFaultToleranceProvider.class
 			.getName() + "#MicroProfileFaultToleranceContext";
-
-	// MicroProfile Fault Tolerance annotations
-
-	private static final String ASYNCHRONOUS_ANNOTATION = "org.eclipse.microprofile.faulttolerance.Asynchronous";
-
-	private static final String BULKHEAD_ANNOTATION = "org.eclipse.microprofile.faulttolerance.Bulkhead";
-
-	private static final String CIRCUITBREAKER_ANNOTATION = "org.eclipse.microprofile.faulttolerance.CircuitBreaker";
-
-	private static final String FALLBACK_ANNOTATION = "org.eclipse.microprofile.faulttolerance.Fallback";
-
-	private static final String RETRY_ANNOTATION = "org.eclipse.microprofile.faulttolerance.Retry";
-
-	private static final String TIMEOUT_ANNOTATION = "org.eclipse.microprofile.faulttolerance.Timeout";
-
-	// MP_Fault_Tolerance_NonFallback_Enabled
-
-	private static final String MP_FAULT_TOLERANCE_NON_FALLBACK_ENABLED = "MP_Fault_Tolerance_NonFallback_Enabled";
-
-	public static final String MP_FAULT_TOLERANCE_NONFALLBACK_ENABLED_DESCRIPTION = "Some service mesh platforms, e.g. Istio, have their own Fault Tolerance policy.\r\n"
-			+ //
-			"The operation team might want to use the platform Fault Tolerance.\r\n" + //
-			"In order to fulfil the requirement, MicroProfile Fault Tolerance provides a capability to have its resilient functionalities disabled except `fallback`.\r\n"
-			+ //
-			"The reason `fallback` is special is that the `fallback` business logic can only be defined by microservices and not by any other platforms.\r\n"
-			+ //
-			"\r\n" + //
-			"Setting the config property of `MP_Fault_Tolerance_NonFallback_Enabled` with the value of `false` means the Fault Tolerance is disabled, except `@Fallback`.\r\n"
-			+ //
-			"If the property is absent or with the value of `true`, it means that MicroProfile Fault Tolerance is enabled if any annotations are specified.  For more information about how to set config properties, refer to MicroProfile Config specification.\r\n"
-			+ //
-			"\r\n" + //
-			"In order to prevent from any unexpected behaviours, the property `MP_Fault_Tolerance_NonFallback_Enabled` will only be read on application starting.\r\n"
-			+ //
-			"Any dynamic changes afterwards will be ignored until  the application restarting.";
 
 	private static final String[] ANNOTATION_NAMES = { ASYNCHRONOUS_ANNOTATION, BULKHEAD_ANNOTATION,
 			CIRCUITBREAKER_ANNOTATION, FALLBACK_ANNOTATION, RETRY_ANNOTATION, TIMEOUT_ANNOTATION };

@@ -5,7 +5,12 @@
    <extension-point id="propertiesProviders" 
 					name="%propertiesProviders.name"
 					schema="schema/propertiesProviders.exsd" />
-   <extension-point id="projectLabelProviders" name="%projectLabelProviders.name" schema="schema/projectLabelProviders.exsd"/>
+   <extension-point id="javaFeatureParticipants" 
+					name="%javaFeatureParticipants.name"
+					schema="schema/javaFeatureParticipants.exsd" />
+   <extension-point id="projectLabelProviders" 
+                    name="%projectLabelProviders.name" 
+                    schema="schema/projectLabelProviders.exsd"/>
    
    <!-- Delegate command handler for application.properties file -->
    <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
@@ -20,6 +25,7 @@
       <delegateCommandHandler class="com.redhat.microprofile.jdt.internal.core.ls.MicroProfileDelegateCommandHandlerForJava">
             <command id="microprofile/java/codeLens"/>
             <command id="microprofile/java/hover"/>
+            <command id="microprofile/java/diagnostics"/>
        </delegateCommandHandler>
    </extension>
   
@@ -34,9 +40,16 @@
       <!-- Properties provider from the MicroProfile @ConfigProperty annotation -->
       <provider class="com.redhat.microprofile.jdt.internal.core.providers.MicroProfileConfigPropertyProvider" />
       <!-- Properties provider from the MicroProfile Fault Tolerance annotations -->
-      <provider class="com.redhat.microprofile.jdt.internal.core.providers.MicroProfileFaultToleranceProvider" />
+      <provider class="com.redhat.microprofile.jdt.internal.faulttolerance.properties.MicroProfileFaultToleranceProvider" />
       <!-- Properties provider from the MicroProfile @RegisterRestClient annotation -->
-      <provider class="com.redhat.microprofile.jdt.internal.core.providers.MicroProfileRegisterRestClientProvider" />
+      <provider class="com.redhat.microprofile.jdt.internal.restclient.properties.MicroProfileRegisterRestClientProvider" />
+   </extension>
+   
+   <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">
+       <!-- Java diagnostics for the MicroProfile Health -->
+      <diagnostics class="com.redhat.microprofile.jdt.internal.health.java.MicroProfileHealthDiagnosticsParticipant" />   
+       <!-- Java diagnostics for the MicroProfile RestClient -->
+      <diagnostics class="com.redhat.microprofile.jdt.internal.restclient.java.MicroProfileRestClientDiagnosticsParticipant" />
    </extension>
    
    <extension point="com.redhat.microprofile.jdt.core.projectLabelProviders">

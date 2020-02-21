@@ -13,6 +13,7 @@ import static com.redhat.microprofile.jdt.internal.core.ls.ArgumentUtils.getBool
 import static com.redhat.microprofile.jdt.internal.core.ls.ArgumentUtils.getFirst;
 import static com.redhat.microprofile.jdt.internal.core.ls.ArgumentUtils.getInt;
 import static com.redhat.microprofile.jdt.internal.core.ls.ArgumentUtils.getString;
+import static com.redhat.microprofile.jdt.internal.core.ls.ArgumentUtils.getStringList;
 
 import java.util.List;
 import java.util.Map;
@@ -23,8 +24,10 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.PublishDiagnosticsParams;
 
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
+import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverInfo;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
 import com.redhat.microprofile.jdt.core.PropertiesManagerForJava;
@@ -39,6 +42,7 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 
 	private static final String JAVA_CODELENS_COMMAND_ID = "microprofile/java/codeLens";
 	private static final String JAVA_HOVER_COMMAND_ID = "microprofile/java/hover";
+	private static final String JAVA_DIAGNOSTICS_COMMAND_ID = "microprofile/java/diagnostics";
 
 	public MicroProfileDelegateCommandHandlerForJava() {
 	}
@@ -50,6 +54,8 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 			return getCodeLensForJava(arguments, commandId, progress);
 		case JAVA_HOVER_COMMAND_ID:
 			return getHoverForJava(arguments, commandId, progress);
+		case JAVA_DIAGNOSTICS_COMMAND_ID:
+			return getDiagnosticsForJava(arguments, commandId, progress);
 		default:
 			throw new UnsupportedOperationException(String.format("Unsupported command '%s'!", commandId));
 		}
@@ -68,8 +74,8 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 	private static List<? extends CodeLens> getCodeLensForJava(List<Object> arguments, String commandId,
 			IProgressMonitor monitor) throws JavaModelException, CoreException {
 		// Create java code lens parameter<O
-		MicroProfileJavaCodeLensParams params = createQuarkusJavaCodeLensParams(arguments, commandId);
-		// return code lenses from the lens parameter
+		MicroProfileJavaCodeLensParams params = createMicroProfileJavaCodeLensParams(arguments, commandId);
+		// Return code lenses from the lens parameter
 		return PropertiesManagerForJava.getInstance().codeLens(params, JDTUtilsLSImpl.getInstance(), monitor);
 	}
 
@@ -81,17 +87,18 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 	 * 
 	 * @return java code lens parameter
 	 */
-	private static MicroProfileJavaCodeLensParams createQuarkusJavaCodeLensParams(List<Object> arguments,
+	private static MicroProfileJavaCodeLensParams createMicroProfileJavaCodeLensParams(List<Object> arguments,
 			String commandId) {
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
-			throw new UnsupportedOperationException(
-					String.format("Command '%s' must be call with one QuarkusJavaCodeLensParams argument!", commandId));
+			throw new UnsupportedOperationException(String
+					.format("Command '%s' must be call with one MicroProfileJavaCodeLensParams argument!", commandId));
 		}
 		String javaFileUri = getString(obj, "uri");
 		if (javaFileUri == null) {
 			throw new UnsupportedOperationException(String.format(
-					"Command '%s' must be call with required QuarkusJavaCodeLensParams.uri (java URI)!", commandId));
+					"Command '%s' must be call with required MicroProfileJavaCodeLensParams.uri (java URI)!",
+					commandId));
 		}
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams(javaFileUri);
 		params.setUrlCodeLensEnabled(getBoolean(obj, "urlCodeLensEnabled"));
@@ -102,7 +109,7 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 	}
 
 	/**
-	 * Returns the <code>QuarkusJavaHoverInfo</code> for the hover described in
+	 * Returns the <code>MicroProfileJavaHoverInfo</code> for the hover described in
 	 * <code>arguments</code>
 	 * 
 	 * @param arguments
@@ -115,8 +122,8 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 	private static MicroProfileJavaHoverInfo getHoverForJava(List<Object> arguments, String commandId,
 			IProgressMonitor monitor) throws JavaModelException, CoreException {
 		// Create java hover parameter
-		MicroProfileJavaHoverParams params = createQuarkusJavaHoverParams(arguments, commandId);
-		// return hover info from hover parameter
+		MicroProfileJavaHoverParams params = createMicroProfileJavaHoverParams(arguments, commandId);
+		// Return hover info from hover parameter
 		return PropertiesManagerForJava.getInstance().hover(params, JDTUtilsLSImpl.getInstance(), monitor);
 	}
 
@@ -128,16 +135,17 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 	 * 
 	 * @return the java hover parameters
 	 */
-	private static MicroProfileJavaHoverParams createQuarkusJavaHoverParams(List<Object> arguments, String commandId) {
+	private static MicroProfileJavaHoverParams createMicroProfileJavaHoverParams(List<Object> arguments,
+			String commandId) {
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
-			throw new UnsupportedOperationException(
-					String.format("Command '%s' must be call with one QuarkusJavaHoverParams argument!", commandId));
+			throw new UnsupportedOperationException(String
+					.format("Command '%s' must be call with one MicroProfileJavaHoverParams argument!", commandId));
 		}
 		String javaFileUri = getString(obj, "uri");
 		if (javaFileUri == null) {
 			throw new UnsupportedOperationException(String.format(
-					"Command '%s' must be call with required QuarkusJavaHoverParams.uri (java URI)!", commandId));
+					"Command '%s' must be call with required MicroProfileJavaHoverParams.uri (java URI)!", commandId));
 		}
 
 		Map<String, Object> hoverPosition = (Map<String, Object>) obj.get("position");
@@ -145,6 +153,47 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 		int character = getInt(hoverPosition, "character");
 
 		return new MicroProfileJavaHoverParams(javaFileUri, new Position(line, character));
+	}
+
+	/**
+	 * 
+	 * @param arguments
+	 * @param commandId
+	 * @param monitor
+	 * @return
+	 * @throws JavaModelException
+	 */
+	private static List<PublishDiagnosticsParams> getDiagnosticsForJava(List<Object> arguments, String commandId,
+			IProgressMonitor monitor) throws JavaModelException {
+		// Create java diagnostics parameter
+		MicroProfileJavaDiagnosticsParams params = createMicroProfileJavaDiagnosticsParams(arguments, commandId);
+		// Return diagnostics from parameter
+		return PropertiesManagerForJava.getInstance().diagnostics(params, JDTUtilsLSImpl.getInstance(), monitor);
+
+	}
+
+	/**
+	 * Returns the java diagnostics parameters from the given arguments map.
+	 * 
+	 * @param arguments
+	 * @param commandId
+	 * 
+	 * @return the java diagnostics parameters
+	 */
+	private static MicroProfileJavaDiagnosticsParams createMicroProfileJavaDiagnosticsParams(List<Object> arguments,
+			String commandId) {
+		Map<String, Object> obj = getFirst(arguments);
+		if (obj == null) {
+			throw new UnsupportedOperationException(String.format(
+					"Command '%s' must be call with one MicroProfileJavaDiagnosticsParams argument!", commandId));
+		}
+		List<String> javaFileUri = getStringList(obj, "uris");
+		if (javaFileUri == null) {
+			throw new UnsupportedOperationException(String.format(
+					"Command '%s' must be call with required MicroProfileJavaDiagnosticsParams.uri (java URIs)!",
+					commandId));
+		}
+		return new MicroProfileJavaDiagnosticsParams(javaFileUri);
 	}
 
 }

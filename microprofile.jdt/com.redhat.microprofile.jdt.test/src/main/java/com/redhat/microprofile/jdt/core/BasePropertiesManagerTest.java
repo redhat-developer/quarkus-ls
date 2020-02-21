@@ -64,6 +64,7 @@ public class BasePropertiesManagerTest {
 		hibernate_orm_resteasy_yaml("hibernate-orm-resteasy-yaml"), //
 		kubernetes("kubernetes"), //
 		microprofile_fault_tolerance("microprofile-fault-tolerance"), //
+		microprofile_health_quickstart("microprofile-health-quickstart"), //
 		rest_client_quickstart("rest-client-quickstart"), //
 		using_vertx("using-vertx");
 

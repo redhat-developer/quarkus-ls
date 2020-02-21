@@ -28,6 +28,11 @@ public class ArgumentUtils {
 		return (String) obj.get(key);
 	}
 
+	@SuppressWarnings("unchecked")
+	public static List<String> getStringList(Map<String, Object> obj, String key) {
+		return (List<String>) obj.get(key);
+	}
+
 	public static boolean getBoolean(Map<String, Object> obj, String key) {
 		Object result = obj.get(key);
 		return result != null && result instanceof Boolean && ((Boolean) result).booleanValue();

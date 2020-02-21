@@ -22,6 +22,10 @@ import org.eclipse.jdt.core.JavaModelException;
  */
 public class AnnotationUtils {
 
+	public static boolean hasAnnotation(IAnnotatable annotatable, String annotationName) throws JavaModelException {
+		return getAnnotation(annotatable, annotationName) != null;
+	}
+
 	/**
 	 * Returns the annotation from the given <code>annotatable</code> element with
 	 * the given name <code>annotationName</code> and null otherwise.

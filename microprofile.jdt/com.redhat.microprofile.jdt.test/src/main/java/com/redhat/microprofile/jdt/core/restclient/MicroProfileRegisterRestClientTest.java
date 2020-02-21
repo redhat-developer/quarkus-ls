@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.core;
+package com.redhat.microprofile.jdt.core.restclient;
 
 import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertHints;
 import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertHintsDuplicate;
@@ -21,6 +21,8 @@ import org.junit.Test;
 
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
+import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
+import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest.MavenProjectName;
 
 /**
  * Test collection of MicroProfile properties from @RegisterRestClient

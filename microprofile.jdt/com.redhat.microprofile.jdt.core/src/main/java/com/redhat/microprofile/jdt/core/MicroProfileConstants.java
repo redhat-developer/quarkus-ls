@@ -20,6 +20,8 @@ public class MicroProfileConstants {
 	private MicroProfileConstants() {
 	}
 
+	public static final String INJECT_ANNOTATION = "javax.inject.Inject";
+	
 	// MicroProfile Core annotations
 
 	public static final String CONFIG_PROPERTY_ANNOTATION = "org.eclipse.microprofile.config.inject.ConfigProperty";

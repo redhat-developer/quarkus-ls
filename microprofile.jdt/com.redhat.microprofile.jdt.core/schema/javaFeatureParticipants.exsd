@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="com.redhat.microprofile.jdt.core" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appinfo>
+         <meta.schema plugin="com.redhat.microprofile.jdt.core" id="javaFeatureParticipants" name="Java features participants"/>
+      </appinfo>
+      <documentation>
+         This extension point allows adding a Java feature (codelens, hover, diagnostics) to consume it in the Java editor.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <choice>
+               <element ref="diagnostics"/>
+            </choice>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appinfo>
+                  <meta.attribute translatable="true"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="diagnostics">
+      <annotation>
+         <documentation>
+            Java diagnostics participant.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Name of a class that implements IJavaDiagnosticsParticipant.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":com.redhat.microprofile.jdt.core.java.IJavaDiagnosticsParticipant"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="since"/>
+      </appinfo>
+      <documentation>
+         2.0
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="examples"/>
+      </appinfo>
+      <documentation>
+         The following is an example of a java feature participant extension:
+
+&lt;pre&gt;
+ &lt;extension point=&quot;com.redhat.quarkus.jdt.core.javaFeatureParticipants&quot;&gt;
+  &lt;diagnostics
+   class=&quot;com.example.MyJavaDiagnosticsParticipant&quot;&gt;
+  &lt;/diagnostics&gt;
+ &lt;/extension&gt;
+&lt;/pre&gt;
+      </documentation>
+   </annotation>
+
+
+
+
+</schema>

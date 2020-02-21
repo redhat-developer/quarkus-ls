@@ -12,7 +12,7 @@ package com.redhat.microprofile.commons;
 import org.eclipse.lsp4j.Position;
 
 /**
- * Quarkus Java codelens parameters.
+ * MicroProfile Java codelens parameters.
  * 
  * @author Angelo ZERR
  *
