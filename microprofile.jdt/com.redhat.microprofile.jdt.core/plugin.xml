@@ -79,4 +79,10 @@
       <diagnostics class="com.redhat.microprofile.jdt.internal.restclient.java.MicroProfileRestClientDiagnosticsParticipant" />
    </extension>
 
+   <!-- JAX-RS support -->
+   
+   <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">
+       <!-- Java URL codeLens for JAX-RS -->
+      <codeLens class="com.redhat.microprofile.jdt.internal.jaxrs.java.JaxRsCodeLensParticipant" />   
+   </extension>
 </plugin>

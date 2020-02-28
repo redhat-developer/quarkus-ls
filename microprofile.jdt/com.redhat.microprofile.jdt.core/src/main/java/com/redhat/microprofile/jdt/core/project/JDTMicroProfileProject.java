@@ -32,24 +32,11 @@ public class JDTMicroProfileProject {
 
 	private final List<IConfigSource> configSources;
 
-	private static final String QUARKUS_HTTP_PORT = "quarkus.http.port";
-
-	private static final int DEFAULT_PORT = 8080;
-
 	public JDTMicroProfileProject(IJavaProject javaProject) {
 		this.configSources = new ArrayList<IConfigSource>(3);
 		configSources.add(new YamlConfigSource(APPLICATION_YAML_FILE, javaProject));
 		configSources.add(new PropertiesConfigSource(APPLICATION_PROPERTIES_FILE, javaProject));
 		configSources.add(new PropertiesConfigSource(MICROPROFILE_CONFIG_PROPERTIES_FILE, javaProject));
-	}
-
-	/**
-	 * Returns the server port.
-	 * 
-	 * @return the server port.
-	 */
-	public int getServerPort() {
-		return getPropertyAsInteger(QUARKUS_HTTP_PORT, DEFAULT_PORT);
 	}
 
 	public String getProperty(String key, String defaultValue) {

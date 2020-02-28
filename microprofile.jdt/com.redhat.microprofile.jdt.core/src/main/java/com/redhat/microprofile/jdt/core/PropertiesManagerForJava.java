@@ -9,49 +9,30 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core;
 
-import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotation;
-import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
-import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.hasAnnotation;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.Flags;
-import org.eclipse.jdt.core.IAnnotatable;
-import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.ISourceRange;
-import org.eclipse.jdt.core.ISourceReference;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.CodeLens;
-import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
-import org.eclipse.lsp4j.Range;
 
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
 import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
+import com.redhat.microprofile.jdt.core.java.JavaCodeLensContext;
 import com.redhat.microprofile.jdt.core.java.JavaDiagnosticsContext;
 import com.redhat.microprofile.jdt.core.java.JavaHoverContext;
-import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProjectManager;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 import com.redhat.microprofile.jdt.internal.core.java.JavaFeatureDefinition;
 import com.redhat.microprofile.jdt.internal.core.java.JavaFeaturesRegistry;
@@ -63,16 +44,6 @@ import com.redhat.microprofile.jdt.internal.core.java.JavaFeaturesRegistry;
  *
  */
 public class PropertiesManagerForJava {
-
-	private static final String LOCALHOST = "localhost";
-
-	private static final int PING_TIMEOUT = 2000;
-
-	private static final String JAVAX_WS_RS_PATH_ANNOTATION = "javax.ws.rs.Path";
-
-	private static final String JAVAX_WS_RS_GET_ANNOTATION = "javax.ws.rs.GET";
-
-	private static final String PATH_VALUE = "value";
 
 	private static final PropertiesManagerForJava INSTANCE = new PropertiesManagerForJava();
 
@@ -99,18 +70,34 @@ public class PropertiesManagerForJava {
 		if (typeRoot == null) {
 			return Collections.emptyList();
 		}
-		IJavaElement[] elements = typeRoot.getChildren();
-		Collection<CodeLens> lenses = new LinkedHashSet<>(elements.length);
-		if (params.isUrlCodeLensEnabled()) {
-			int serverPort = JDTMicroProfileProjectManager.getInstance()
-					.getJDTMicroProfileProject(typeRoot.getJavaProject()).getServerPort();
-			params.setLocalServerPort(serverPort);
-			collectURLCodeLenses(typeRoot, elements, null, lenses, params, utils, monitor);
-		}
+		List<CodeLens> lenses = new ArrayList<>();
+		collectCodeLens(uri, typeRoot, utils, params, lenses, monitor);
 		if (monitor.isCanceled()) {
-			lenses.clear();
+			return Collections.emptyList();
 		}
-		return new ArrayList<>(lenses);
+		return lenses;
+	}
+
+	private void collectCodeLens(String uri, ITypeRoot typeRoot, IJDTUtils utils, MicroProfileJavaCodeLensParams params,
+			List<CodeLens> lenses, IProgressMonitor monitor) {
+		// Collect all adapted codeLens participant
+		JavaCodeLensContext context = new JavaCodeLensContext(uri, typeRoot, utils, params);
+		List<JavaFeatureDefinition> definitions = JavaFeaturesRegistry.getInstance().getJavaFeatureDefinitions()
+				.stream().filter(definition -> definition.isAdaptedForCodeLens(context, monitor))
+				.collect(Collectors.toList());
+		if (definitions.isEmpty()) {
+			return;
+		}
+
+		// Begin, collect, end participants
+		definitions.forEach(definition -> definition.beginCodeLens(context, monitor));
+		definitions.forEach(definition -> {
+			List<CodeLens> collectedLenses = definition.collectCodeLens(context, monitor);
+			if (collectedLenses != null && !collectedLenses.isEmpty()) {
+				lenses.addAll(collectedLenses);
+			}
+		});
+		definitions.forEach(definition -> definition.endCodeLens(context, monitor));
 	}
 
 	/**
@@ -137,120 +124,6 @@ public class PropertiesManagerForJava {
 			}
 		}
 		return unit != null ? unit : classFile;
-	}
-
-	private void collectURLCodeLenses(ITypeRoot typeRoot, IJavaElement[] elements, String rootPath,
-			Collection<CodeLens> lenses, MicroProfileJavaCodeLensParams params, IJDTUtils utils,
-			IProgressMonitor monitor) throws JavaModelException {
-		for (IJavaElement element : elements) {
-			if (monitor.isCanceled()) {
-				return;
-			}
-			if (element.getElementType() == IJavaElement.TYPE) {
-				IType type = (IType) element;
-				// Get value of JAX-RS @Path annotation from the class
-				String pathValue = getJaxRsPathValue(type);
-				if (pathValue != null) {
-					// Class is annotated with @Path
-					// Display code lens only if local server is available.
-					if (!params.isCheckServerAvailable()
-							|| isServerAvailable(LOCALHOST, params.getLocalServerPort(), PING_TIMEOUT)) {
-						// Loop for each method annotated with @Path to generate URL code lens per
-						// method.
-						collectURLCodeLenses(typeRoot, type.getChildren(), pathValue, lenses, params, utils, monitor);
-					}
-				}
-				continue;
-			} else if (element.getElementType() == IJavaElement.METHOD) {
-				if (utils.isHiddenGeneratedElement(element)) {
-					continue;
-				}
-				// ignore element if method range overlaps the type range, happens for generated
-				// bytcode, i.e. with lombok
-				IJavaElement parentType = element.getAncestor(IJavaElement.TYPE);
-				if (parentType != null && overlaps(((ISourceReference) parentType).getNameRange(),
-						((ISourceReference) element).getNameRange())) {
-					continue;
-				}
-			} else {// neither a type nor a method, we bail
-				continue;
-			}
-
-			// Here java element is a method
-			if (rootPath != null) {
-				IMethod method = (IMethod) element;
-				// A JAX-RS method is a public method annotated with @GET @POST, @DELETE, @PUT
-				// JAX-RS
-				// annotation
-				if (isJaxRsRequestMethod(method) && Flags.isPublic(method.getFlags())) {
-					CodeLens lens = createCodeLens(element, typeRoot, utils);
-					if (lens != null) {
-						String baseURL = params.getLocalBaseURL();
-						String pathValue = getJaxRsPathValue(method);
-						String url = buildURL(baseURL, rootPath, pathValue);
-						String openURICommandId = params.getOpenURICommand();
-						lens.setCommand(new Command(url, openURICommandId != null ? openURICommandId : "",
-								Collections.singletonList(url)));
-						lenses.add(lens);
-					}
-				}
-			}
-		}
-	}
-
-	private static String buildURL(String... paths) {
-		StringBuilder url = new StringBuilder();
-		for (String path : paths) {
-			if (path != null && !path.isEmpty()) {
-				if (!url.toString().isEmpty() && path.charAt(0) != '/' && url.charAt(url.length() - 1) != '/') {
-					url.append('/');
-				}
-				url.append(path);
-			}
-		}
-		return url.toString();
-	}
-
-	private static String getJaxRsPathValue(IAnnotatable annotatable) throws JavaModelException {
-		IAnnotation annotationPath = getAnnotation(annotatable, JAVAX_WS_RS_PATH_ANNOTATION);
-		return annotationPath != null ? getAnnotationMemberValue(annotationPath, PATH_VALUE) : null;
-	}
-
-	private static boolean isJaxRsRequestMethod(IAnnotatable annotatable) throws JavaModelException {
-		return hasAnnotation(annotatable, JAVAX_WS_RS_GET_ANNOTATION);
-	}
-
-	private boolean overlaps(ISourceRange typeRange, ISourceRange methodRange) {
-		if (typeRange == null || methodRange == null) {
-			return false;
-		}
-		// method range is overlapping if it appears before or actually overlaps the
-		// type's range
-		return methodRange.getOffset() < typeRange.getOffset() || methodRange.getOffset() >= typeRange.getOffset()
-				&& methodRange.getOffset() <= (typeRange.getOffset() + typeRange.getLength());
-	}
-
-	private static CodeLens createCodeLens(IJavaElement element, ITypeRoot typeRoot, IJDTUtils utils)
-			throws JavaModelException {
-		ISourceRange r = ((ISourceReference) element).getNameRange();
-		if (r == null) {
-			return null;
-		}
-		CodeLens lens = new CodeLens();
-		final Range range = utils.toRange(typeRoot, r.getOffset(), r.getLength());
-		lens.setRange(range);
-		String uri = utils.toClientUri(utils.toUri(typeRoot));
-		lens.setData(Arrays.asList(uri, range.getStart()));
-		return lens;
-	}
-
-	private static boolean isServerAvailable(String host, int port, int timeout) {
-		try (Socket socket = new Socket()) {
-			socket.connect(new InetSocketAddress(host, port), timeout);
-			return true;
-		} catch (IOException e) {
-			return false;
-		}
 	}
 
 	/**
@@ -280,6 +153,9 @@ public class PropertiesManagerForJava {
 		List<Hover> hovers = new ArrayList<>();
 		collectHover(uri, typeRoot, hoverElement, utils, hoverPosition, documentFormat, hovers, monitor);
 		if (hovers.isEmpty()) {
+			return null;
+		}
+		if (monitor.isCanceled()) {
 			return null;
 		}
 		// TODO : aggregate the hover
@@ -331,6 +207,9 @@ public class PropertiesManagerForJava {
 			publishDiagnostics.add(publishDiagnostic);
 			collectDiagnostics(uri, utils, documentFormat, diagnostics, monitor);
 		}
+		if (monitor.isCanceled()) {
+			return Collections.emptyList();
+		}
 		return publishDiagnostics;
 	}
 
@@ -342,7 +221,7 @@ public class PropertiesManagerForJava {
 		}
 
 		// Collect all adapted diagnostics participant
-		JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, documentFormat, diagnostics);
+		JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, documentFormat);
 		List<JavaFeatureDefinition> definitions = JavaFeaturesRegistry.getInstance().getJavaFeatureDefinitions()
 				.stream().filter(definition -> definition.isAdaptedForDiagnostics(context, monitor))
 				.collect(Collectors.toList());
@@ -352,7 +231,12 @@ public class PropertiesManagerForJava {
 
 		// Begin, collect, end participants
 		definitions.forEach(definition -> definition.beginDiagnostics(context, monitor));
-		definitions.forEach(definition -> definition.collectDiagnostics(context, monitor));
+		definitions.forEach(definition -> {
+			List<Diagnostic> collectedDiagnostics = definition.collectDiagnostics(context, monitor);
+			if (collectedDiagnostics != null && !collectedDiagnostics.isEmpty()) {
+				diagnostics.addAll(collectedDiagnostics);
+			}
+		});
 		definitions.forEach(definition -> definition.endDiagnostics(context, monitor));
 	}
 

@@ -19,8 +19,9 @@
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
             <choice>
-               <element ref="hover" minOccurs="0" maxOccurs="unbounded"/>
+               <element ref="codeLens" minOccurs="0" maxOccurs="unbounded"/>
                <element ref="diagnostics" minOccurs="0" maxOccurs="unbounded"/>
+               <element ref="hover" minOccurs="0" maxOccurs="unbounded"/>
             </choice>
          </sequence>
          <attribute name="point" type="string" use="required">
@@ -44,6 +45,26 @@
                </documentation>
                <appinfo>
                   <meta.attribute translatable="true"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="codeLens">
+      <annotation>
+         <documentation>
+            Java codeLens participant.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Name of a class that implements IJavaCodeLensParticipant.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":com.redhat.microprofile.jdt.core.java.IJavaCodeLensParticipant"/>
                </appinfo>
             </annotation>
          </attribute>
