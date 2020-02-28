@@ -11,9 +11,9 @@ package com.redhat.microprofile.ls.api;
 
 import java.util.concurrent.CompletableFuture;
 
+import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 
-import com.redhat.microprofile.commons.MicroProfileJavaHoverInfo;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
 
 /**
@@ -23,7 +23,7 @@ import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
 public interface MicroProfileJavaHoverProvider {
 
 	@JsonRequest("microprofile/java/hover")
-	default CompletableFuture<MicroProfileJavaHoverInfo> getJavaHover(MicroProfileJavaHoverParams javaParams) {
+	default CompletableFuture<Hover> getJavaHover(MicroProfileJavaHoverParams javaParams) {
 		return CompletableFuture.completedFuture(null);
 	}
 

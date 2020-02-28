@@ -13,17 +13,19 @@ package com.redhat.microprofile.jdt.core.java;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.lsp4j.Hover;
 
 /**
- * Java diagnostics participants API.
+ * Java hover participants API.
  * 
  * @author Angelo ZERR
  *
  */
-public interface IJavaDiagnosticsParticipant {
+public interface IJavaHoverParticipant {
 
 	/**
-	 * Returns true if diagnostics must be collected for the given context and false
+	 * Returns true if hover must be collected for the given context and false
 	 * otherwise.
 	 * 
 	 * <p>
@@ -31,48 +33,47 @@ public interface IJavaDiagnosticsParticipant {
 	 * some classes are on the classpath before deciding to process the collection.
 	 * </p>
 	 * 
-	 * @param the     java diagnostics context
+	 * @param the     java hover context
 	 * @param monitor the progress monitor
-	 * @return true if diagnostics must be collected for the given context and false
+	 * @return true if hover must be collected for the given context and false
 	 *         otherwise.
-	 * 
+	 * @throws CoreException
 	 */
-	default boolean isAdaptedForDiagnostics(JavaDiagnosticsContext context, IProgressMonitor monitor)
-			throws CoreException {
+	default boolean isAdaptedForHover(JavaHoverContext context, IProgressMonitor monitor) throws CoreException {
 		return true;
 	}
 
 	/**
-	 * Begin diagnostics collection.
+	 * Begin hover collection.
 	 * 
-	 * @param context the java diagnostics context
+	 * @param context the java hover context
 	 * @param monitor the progress monitor
-	 * 
 	 * @throws CoreException
 	 */
-	default void beginDiagnostics(JavaDiagnosticsContext context, IProgressMonitor monitor) throws CoreException {
+	default void beginHover(JavaHoverContext context, IProgressMonitor monitor)
+			throws JavaModelException, CoreException {
 
 	}
 
 	/**
-	 * Collect diagnostics according to the context.
+	 * Collect hover according to the context.
 	 * 
-	 * @param context the java diagnostics context
+	 * @param context the java hover context
 	 * @param monitor the progress monitor
 	 * 
+	 * @return the hover and null otherwise.
 	 * @throws CoreException
 	 */
-	void collectDiagnostics(JavaDiagnosticsContext context, IProgressMonitor monitor) throws CoreException;
+	Hover collectHover(JavaHoverContext context, IProgressMonitor monitor) throws CoreException;
 
 	/**
-	 * End diagnostics collection.
+	 * End hover collection.
 	 * 
-	 * @param context the java diagnostics context
+	 * @param context the java hover context
 	 * @param monitor the progress monitor
-	 * 
 	 * @throws CoreException
 	 */
-	default void endDiagnostics(JavaDiagnosticsContext context, IProgressMonitor monitor) throws CoreException {
+	default void endHover(JavaHoverContext context, IProgressMonitor monitor) throws CoreException {
 
 	}
 }

@@ -23,7 +23,6 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.ITypeRoot;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.Range;
 
 import com.redhat.microprofile.commons.DocumentFormat;
@@ -63,7 +62,7 @@ public class MicroProfileHealthDiagnosticsParticipant implements IJavaDiagnostic
 
 	@Override
 	public boolean isAdaptedForDiagnostics(JavaDiagnosticsContext context, IProgressMonitor monitor)
-			throws JavaModelException {
+			throws CoreException {
 		// Collection of diagnostics for MicroProfile Health is done only if
 		// microprofile-health is on the classpath
 		IJavaProject javaProject = context.getJavaProject();
@@ -94,7 +93,7 @@ public class MicroProfileHealthDiagnosticsParticipant implements IJavaDiagnostic
 	}
 
 	private static void validateClassType(IType classType, JavaDiagnosticsContext context, IProgressMonitor monitor)
-			throws JavaModelException {
+			throws CoreException {
 		String uri = context.getUri();
 		IJDTUtils utils = context.getUtils();
 		DocumentFormat documentFormat = context.getDocumentFormat();
@@ -151,7 +150,7 @@ public class MicroProfileHealthDiagnosticsParticipant implements IJavaDiagnostic
 	}
 
 	private static IType[] findImplementedInterfaces(IType type, IProgressMonitor progressMonitor)
-			throws JavaModelException {
+			throws CoreException {
 		ITypeHierarchy typeHierarchy = type.newSupertypeHierarchy(progressMonitor);
 		return typeHierarchy.getRootInterfaces();
 	}

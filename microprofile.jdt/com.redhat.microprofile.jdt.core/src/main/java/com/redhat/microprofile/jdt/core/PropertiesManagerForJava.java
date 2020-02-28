@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.Flags;
@@ -29,9 +30,7 @@ import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.ISourceReference;
@@ -41,19 +40,20 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.util.Ranges;
 
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
 import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
-import com.redhat.microprofile.commons.MicroProfileJavaHoverInfo;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
 import com.redhat.microprofile.jdt.core.java.JavaDiagnosticsContext;
+import com.redhat.microprofile.jdt.core.java.JavaHoverContext;
 import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProjectManager;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
+import com.redhat.microprofile.jdt.internal.core.java.JavaFeatureDefinition;
 import com.redhat.microprofile.jdt.internal.core.java.JavaFeaturesRegistry;
 
 /**
@@ -262,64 +262,51 @@ public class PropertiesManagerForJava {
 	 * @return the hover information according to the given <code>params</code>
 	 * @throws JavaModelException
 	 */
-	public MicroProfileJavaHoverInfo hover(MicroProfileJavaHoverParams params, IJDTUtils utils,
-			IProgressMonitor monitor) throws JavaModelException {
+	public Hover hover(MicroProfileJavaHoverParams params, IJDTUtils utils, IProgressMonitor monitor)
+			throws JavaModelException {
 		String uri = params.getUri();
 		ITypeRoot typeRoot = resolveTypeRoot(uri, utils, monitor);
-
+		if (typeRoot == null) {
+			return null;
+		}
 		Position hoverPosition = params.getPosition();
 		int hoveredOffset = utils.toOffset(typeRoot.getBuffer(), hoverPosition.getLine(), hoverPosition.getCharacter());
 		IJavaElement hoverElement = typeRoot.getElementAt(hoveredOffset);
 		if (hoverElement == null) {
 			return null;
 		}
-		if (hoverElement.getElementType() == IJavaElement.FIELD) {
 
-			IField hoverField = (IField) hoverElement;
+		DocumentFormat documentFormat = params.getDocumentFormat();
+		List<Hover> hovers = new ArrayList<>();
+		collectHover(uri, typeRoot, hoverElement, utils, hoverPosition, documentFormat, hovers, monitor);
+		if (hovers.isEmpty()) {
+			return null;
+		}
+		// TODO : aggregate the hover
+		return hovers.get(0);
+	}
 
-			IAnnotation annotation = getAnnotation(hoverField, MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION);
-
-			if (annotation == null) {
-				return null;
-			}
-
-			String annotationSource = ((ISourceReference) annotation).getSource();
-			String propertyKey = getAnnotationMemberValue(annotation,
-					MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION_NAME);
-
-			if (propertyKey == null) {
-				return null;
-			}
-
-			ISourceRange r = ((ISourceReference) annotation).getSourceRange();
-			int offset = annotationSource.indexOf(propertyKey);
-			final Range propertyKeyRange = utils.toRange(typeRoot, r.getOffset() + offset, propertyKey.length());
-
-			if (hoverPosition.equals(propertyKeyRange.getEnd())
-					|| !Ranges.containsPosition(propertyKeyRange, hoverPosition)) {
-				return null;
-			}
-
-			IJavaProject javaProject = typeRoot.getJavaProject();
-
-			if (javaProject == null) {
-				return null;
-			}
-
-			String propertyValue = JDTMicroProfileProjectManager.getInstance().getJDTMicroProfileProject(javaProject)
-					.getProperty(propertyKey, null);
-			if (propertyValue == null) {
-				propertyValue = getAnnotationMemberValue(annotation,
-						MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
-				if (propertyValue != null && propertyValue.length() == 0) {
-					propertyValue = null;
-				}
-			}
-
-			return new MicroProfileJavaHoverInfo(propertyKey, propertyValue, propertyKeyRange);
+	private void collectHover(String uri, ITypeRoot typeRoot, IJavaElement hoverElement, IJDTUtils utils,
+			Position hoverPosition, DocumentFormat documentFormat, List<Hover> hovers, IProgressMonitor monitor) {
+		// Collect all adapted hover participant
+		JavaHoverContext context = new JavaHoverContext(uri, typeRoot, utils, hoverElement, hoverPosition,
+				documentFormat);
+		List<JavaFeatureDefinition> definitions = JavaFeaturesRegistry.getInstance().getJavaFeatureDefinitions()
+				.stream().filter(definition -> definition.isAdaptedForHover(context, monitor))
+				.collect(Collectors.toList());
+		if (definitions.isEmpty()) {
+			return;
 		}
 
-		return null;
+		// Begin, collect, end participants
+		definitions.forEach(definition -> definition.beginHover(context, monitor));
+		definitions.forEach(definition -> {
+			Hover hover = definition.collectHover(context, monitor);
+			if (hover != null) {
+				hovers.add(hover);
+			}
+		});
+		definitions.forEach(definition -> definition.endHover(context, monitor));
 	}
 
 	/**
@@ -353,9 +340,20 @@ public class PropertiesManagerForJava {
 		if (typeRoot == null) {
 			return;
 		}
+
+		// Collect all adapted diagnostics participant
 		JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, documentFormat, diagnostics);
-		JavaFeaturesRegistry.getInstance().getJavaFeatureDefinitions()
-				.forEach(definition -> definition.collectDiagnostics(context, monitor));
+		List<JavaFeatureDefinition> definitions = JavaFeaturesRegistry.getInstance().getJavaFeatureDefinitions()
+				.stream().filter(definition -> definition.isAdaptedForDiagnostics(context, monitor))
+				.collect(Collectors.toList());
+		if (definitions.isEmpty()) {
+			return;
+		}
+
+		// Begin, collect, end participants
+		definitions.forEach(definition -> definition.beginDiagnostics(context, monitor));
+		definitions.forEach(definition -> definition.collectDiagnostics(context, monitor));
+		definitions.forEach(definition -> definition.endDiagnostics(context, monitor));
 	}
 
 }

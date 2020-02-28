@@ -4,10 +4,12 @@
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
 *
+* SPDX-License-Identifier: EPL-2.0
+*
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.core.providers;
+package com.redhat.microprofile.jdt.internal.config.properties;
 
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.findType;
@@ -26,7 +28,7 @@ import org.eclipse.jdt.core.JavaModelException;
 
 import com.redhat.microprofile.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import com.redhat.microprofile.jdt.core.IPropertiesCollector;
-import com.redhat.microprofile.jdt.core.MicroProfileConstants;
+import com.redhat.microprofile.jdt.core.MicroProfileConfigConstants;
 import com.redhat.microprofile.jdt.core.SearchContext;
 
 /**
@@ -39,7 +41,7 @@ import com.redhat.microprofile.jdt.core.SearchContext;
  */
 public class MicroProfileConfigPropertyProvider extends AbstractAnnotationTypeReferencePropertiesProvider {
 
-	private static final String[] ANNOTATION_NAMES = { MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION };
+	private static final String[] ANNOTATION_NAMES = { MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION };
 
 	@Override
 	protected String[] getAnnotationNames() {
@@ -52,7 +54,7 @@ public class MicroProfileConfigPropertyProvider extends AbstractAnnotationTypeRe
 		if (javaElement.getElementType() == IJavaElement.FIELD) {
 			IPropertiesCollector collector = context.getCollector();
 			String name = getAnnotationMemberValue(configPropertyAnnotation,
-					MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION_NAME);
+					MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_NAME);
 			if (name != null && !name.isEmpty()) {
 				IField field = (IField) javaElement;
 				String fieldTypeName = getResolvedTypeName(field);
@@ -63,7 +65,7 @@ public class MicroProfileConfigPropertyProvider extends AbstractAnnotationTypeRe
 				String sourceType = getSourceType(field);
 				String sourceField = getSourceField(field);
 				String defaultValue = getAnnotationMemberValue(configPropertyAnnotation,
-						MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
+						MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
 				String extensionName = null;
 
 				// Enumerations

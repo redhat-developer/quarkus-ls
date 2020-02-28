@@ -50,7 +50,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import com.redhat.microprofile.jdt.core.IPropertiesCollector;
-import com.redhat.microprofile.jdt.core.MicroProfileConstants;
+import com.redhat.microprofile.jdt.core.MicroProfileConfigConstants;
 import com.redhat.microprofile.jdt.core.SearchContext;
 import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProjectManager;
 import com.redhat.microprofile.jdt.internal.quarkus.JDTQuarkusUtils;
@@ -187,12 +187,12 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 						String name = null;
 						String defaultValue = null;
 						IAnnotation configPropertyAnnotation = getAnnotation(method,
-								MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION);
+								MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION);
 						if (configPropertyAnnotation != null) {
 							name = getAnnotationMemberValue(configPropertyAnnotation,
-									MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION_NAME);
+									MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_NAME);
 							defaultValue = getAnnotationMemberValue(configPropertyAnnotation,
-									MicroProfileConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
+									MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
 						}
 						if (name == null) {
 							name = getPropertyNameFromMethodName(method);

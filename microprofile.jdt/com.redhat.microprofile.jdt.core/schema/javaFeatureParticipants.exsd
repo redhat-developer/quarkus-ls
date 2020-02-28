@@ -19,7 +19,8 @@
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
             <choice>
-               <element ref="diagnostics"/>
+               <element ref="hover" minOccurs="0" maxOccurs="unbounded"/>
+               <element ref="diagnostics" minOccurs="0" maxOccurs="unbounded"/>
             </choice>
          </sequence>
          <attribute name="point" type="string" use="required">
@@ -69,6 +70,26 @@
       </complexType>
    </element>
 
+   <element name="hover">
+      <annotation>
+         <documentation>
+            Java hover participant.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Name of a class that implements IJavaHoverParticipant.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":com.redhat.microprofile.jdt.core.java.IJavaHoverParticipant"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
    <annotation>
       <appinfo>
          <meta.section type="since"/>
@@ -86,7 +107,10 @@
          The following is an example of a java feature participant extension:
 
 &lt;pre&gt;
- &lt;extension point=&quot;com.redhat.quarkus.jdt.core.javaFeatureParticipants&quot;&gt;
+ &lt;extension point=&quot;com.redhat.microprofile.jdt.core.javaFeatureParticipants&quot;&gt;
+  &lt;hover
+   class=&quot;com.example.MyJavaHoverParticipant&quot;&gt;
+  &lt;/hover&gt;
   &lt;diagnostics
    class=&quot;com.example.MyJavaDiagnosticsParticipant&quot;&gt;
   &lt;/diagnostics&gt;

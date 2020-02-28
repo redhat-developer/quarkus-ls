@@ -36,26 +36,47 @@
       </delegateCommandHandler>
    </extension>
 
-   <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
-      <!-- Properties provider from the MicroProfile @ConfigProperty annotation -->
-      <provider class="com.redhat.microprofile.jdt.internal.core.providers.MicroProfileConfigPropertyProvider" />
-      <!-- Properties provider from the MicroProfile Fault Tolerance annotations -->
-      <provider class="com.redhat.microprofile.jdt.internal.faulttolerance.properties.MicroProfileFaultToleranceProvider" />
-      <!-- Properties provider from the MicroProfile @RegisterRestClient annotation -->
-      <provider class="com.redhat.microprofile.jdt.internal.restclient.properties.MicroProfileRegisterRestClientProvider" />
-   </extension>
-   
-   <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">
-       <!-- Java diagnostics for the MicroProfile Health -->
-      <diagnostics class="com.redhat.microprofile.jdt.internal.health.java.MicroProfileHealthDiagnosticsParticipant" />   
-       <!-- Java diagnostics for the MicroProfile RestClient -->
-      <diagnostics class="com.redhat.microprofile.jdt.internal.restclient.java.MicroProfileRestClientDiagnosticsParticipant" />
-   </extension>
-   
    <extension point="com.redhat.microprofile.jdt.core.projectLabelProviders">
       <provider class="com.redhat.microprofile.jdt.internal.core.providers.MavenProjectLabelProvider" />
       <provider class="com.redhat.microprofile.jdt.internal.core.providers.GradleProjectLabelProvider" />
    </extension>
 
+   <!-- Microprofile Config support -->
+   
+   <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
+      <!-- Properties provider from the MicroProfile @ConfigProperty annotation -->
+      <provider class="com.redhat.microprofile.jdt.internal.config.properties.MicroProfileConfigPropertyProvider" />
+   </extension>
+   
+   <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">
+       <!-- Java hover for the MicroProfile @ConfigProperty annotation -->
+      <hover class="com.redhat.microprofile.jdt.internal.config.java.MicroProfileConfigHoverParticipant" />   
+   </extension>
+
+   <!-- Microprofile Fault Tolerance support -->
+   
+   <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
+      <!-- Properties provider from the MicroProfile Fault Tolerance annotations -->
+      <provider class="com.redhat.microprofile.jdt.internal.faulttolerance.properties.MicroProfileFaultToleranceProvider" />
+   </extension>
+
+   <!-- Microprofile Health support -->
+   
+   <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">
+       <!-- Java diagnostics for the MicroProfile Health -->
+      <diagnostics class="com.redhat.microprofile.jdt.internal.health.java.MicroProfileHealthDiagnosticsParticipant" />   
+   </extension>
+   
+   <!-- Microprofile RestClient support -->
+   
+   <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
+      <!-- Properties provider from the MicroProfile @RegisterRestClient annotation -->
+      <provider class="com.redhat.microprofile.jdt.internal.restclient.properties.MicroProfileRegisterRestClientProvider" />
+   </extension>
+   
+   <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">
+       <!-- Java diagnostics for the MicroProfile RestClient -->
+      <diagnostics class="com.redhat.microprofile.jdt.internal.restclient.java.MicroProfileRestClientDiagnosticsParticipant" />
+   </extension>
 
 </plugin>

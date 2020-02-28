@@ -9,7 +9,7 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.internal.restclient.java;
 
-import static com.redhat.microprofile.jdt.core.MicroProfileConstants.INJECT_ANNOTATION;
+import static com.redhat.microprofile.jdt.core.MicroProfileConfigConstants.INJECT_ANNOTATION;
 import static com.redhat.microprofile.jdt.internal.restclient.MicroProfileRestClientConstants.REGISTER_REST_CLIENT_ANNOTATION;
 import static com.redhat.microprofile.jdt.internal.restclient.MicroProfileRestClientConstants.REST_CLIENT_ANNOTATION;
 
@@ -20,7 +20,6 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeRoot;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -73,7 +72,7 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 
 	@Override
 	public boolean isAdaptedForDiagnostics(JavaDiagnosticsContext context, IProgressMonitor monitor)
-			throws JavaModelException {
+			throws CoreException {
 		// Collection of diagnostics for MicroProfile RestClient is done only if
 		// microprofile-rest-client is on the classpath
 		IJavaProject javaProject = context.getJavaProject();
@@ -106,7 +105,7 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 	}
 
 	private static void validateClassType(IType classType, JavaDiagnosticsContext context, IProgressMonitor monitor)
-			throws JavaModelException {
+			throws CoreException {
 		for (IJavaElement element : classType.getChildren()) {
 			if (monitor.isCanceled()) {
 				return;
@@ -118,7 +117,7 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 		}
 	}
 
-	private static void validateField(IField field, JavaDiagnosticsContext context) throws JavaModelException {
+	private static void validateField(IField field, JavaDiagnosticsContext context) throws CoreException {
 		String uri = context.getUri();
 		DocumentFormat documentFormat = context.getDocumentFormat();
 		boolean hasInjectAnnotation = AnnotationUtils.hasAnnotation(field, INJECT_ANNOTATION);
@@ -205,7 +204,7 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 					}
 
 					private void validateReferenceField(IField field, JavaDiagnosticsContext context)
-							throws JavaModelException {
+							throws CoreException {
 						String uri = context.getUri();
 						boolean hasInjectAnnotation = AnnotationUtils.hasAnnotation(field, INJECT_ANNOTATION);
 						boolean hasRestClientAnnotation = AnnotationUtils.hasAnnotation(field, REST_CLIENT_ANNOTATION);
@@ -220,7 +219,7 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 				}, monitor);
 	}
 
-	private static IJavaSearchScope createSearchScope(IJavaProject javaProject) throws JavaModelException {
+	private static IJavaSearchScope createSearchScope(IJavaProject javaProject) throws CoreException {
 		return SearchEngine.createJavaSearchScope(new IJavaProject[] { javaProject }, IJavaSearchScope.SOURCES);
 	}
 }

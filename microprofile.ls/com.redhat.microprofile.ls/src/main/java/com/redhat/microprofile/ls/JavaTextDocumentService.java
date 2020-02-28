@@ -34,7 +34,6 @@ import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
 import com.redhat.microprofile.ls.commons.client.CommandKind;
 import com.redhat.microprofile.settings.MicroProfileCodeLensSettings;
 import com.redhat.microprofile.settings.SharedSettings;
-import com.redhat.microprofile.utils.DocumentationUtils;
 
 /**
  * LSP text document service for Java file.
@@ -107,20 +106,11 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 
 	@Override
 	public CompletableFuture<Hover> hover(TextDocumentPositionParams params) {
+		boolean markdownSupported = sharedSettings.getHoverSettings().isContentFormatSupported(MarkupKind.MARKDOWN);
+		DocumentFormat documentFormat = markdownSupported ? DocumentFormat.Markdown : DocumentFormat.PlainText;
 		MicroProfileJavaHoverParams javaParams = new MicroProfileJavaHoverParams(params.getTextDocument().getUri(),
-				params.getPosition());
-		return microprofileLanguageServer.getLanguageClient().getJavaHover(javaParams). //
-				thenApply(info -> {
-
-					if (info == null) {
-						return null;
-					}
-
-					boolean markdownSupported = sharedSettings.getHoverSettings()
-							.isContentFormatSupported(MarkupKind.MARKDOWN);
-					Hover h = DocumentationUtils.doHover(info, markdownSupported);
-					return h;
-				});
+				params.getPosition(), documentFormat);
+		return microprofileLanguageServer.getLanguageClient().getJavaHover(javaParams);
 	}
 
 	private void triggerValidationFor(List<String> uris) {
