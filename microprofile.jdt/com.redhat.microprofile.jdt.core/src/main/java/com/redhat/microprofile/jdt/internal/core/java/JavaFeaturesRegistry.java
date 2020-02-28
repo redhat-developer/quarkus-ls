@@ -4,6 +4,8 @@
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
 *
+* SPDX-License-Identifier: EPL-2.0
+*
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
@@ -21,6 +23,7 @@ import org.eclipse.core.runtime.Platform;
 
 import com.redhat.microprofile.jdt.core.MicroProfileCorePlugin;
 import com.redhat.microprofile.jdt.core.java.IJavaDiagnosticsParticipant;
+import com.redhat.microprofile.jdt.core.java.IJavaHoverParticipant;
 
 /**
  * Registry to hold the extension point
@@ -29,9 +32,10 @@ import com.redhat.microprofile.jdt.core.java.IJavaDiagnosticsParticipant;
  */
 public class JavaFeaturesRegistry {
 
-	private static final String CLASS_ATTR = "class";
-	private static final String DIAGNOSTICS_ELT = "diagnostics";
 	private static final String EXTENSION_JAVA_FEATURE_PARTICIPANTS = "javaFeatureParticipants";
+	private static final String DIAGNOSTICS_ELT = "diagnostics";
+	private static final String HOVER_ELT = "hover";
+	private static final String CLASS_ATTR = "class";
 
 	private static final Logger LOGGER = Logger.getLogger(JavaFeaturesRegistry.class.getName());
 
@@ -89,9 +93,13 @@ public class JavaFeaturesRegistry {
 
 	private static JavaFeatureDefinition createDefinition(IConfigurationElement ce) throws CoreException {
 		switch (ce.getName()) {
+		case HOVER_ELT:
+			IJavaHoverParticipant hoverParticipant = (IJavaHoverParticipant) ce.createExecutableExtension(CLASS_ATTR);
+			return new JavaFeatureDefinition(hoverParticipant, null);
 		case DIAGNOSTICS_ELT:
-			IJavaDiagnosticsParticipant collector = (IJavaDiagnosticsParticipant) ce.createExecutableExtension(CLASS_ATTR);
-			return new JavaFeatureDefinition(collector);
+			IJavaDiagnosticsParticipant diagnosticsParticipant = (IJavaDiagnosticsParticipant) ce
+					.createExecutableExtension(CLASS_ATTR);
+			return new JavaFeatureDefinition(null, diagnosticsParticipant);
 		default:
 			return null;
 		}

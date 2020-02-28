@@ -4,6 +4,8 @@
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
 *
+* SPDX-License-Identifier: EPL-2.0
+*
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
@@ -23,12 +25,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 
+import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
 import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
-import com.redhat.microprofile.commons.MicroProfileJavaHoverInfo;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
 import com.redhat.microprofile.jdt.core.PropertiesManagerForJava;
 
@@ -119,8 +122,8 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 	 * @throws JavaModelException
 	 * @throws CoreException
 	 */
-	private static MicroProfileJavaHoverInfo getHoverForJava(List<Object> arguments, String commandId,
-			IProgressMonitor monitor) throws JavaModelException, CoreException {
+	private static Hover getHoverForJava(List<Object> arguments, String commandId, IProgressMonitor monitor)
+			throws JavaModelException, CoreException {
 		// Create java hover parameter
 		MicroProfileJavaHoverParams params = createMicroProfileJavaHoverParams(arguments, commandId);
 		// Return hover info from hover parameter
@@ -151,8 +154,12 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 		Map<String, Object> hoverPosition = (Map<String, Object>) obj.get("position");
 		int line = getInt(hoverPosition, "line");
 		int character = getInt(hoverPosition, "character");
-
-		return new MicroProfileJavaHoverParams(javaFileUri, new Position(line, character));
+		DocumentFormat documentFormat = DocumentFormat.PlainText;
+		Number documentFormatIndex = (Number) obj.get("documentFormat");
+		if (documentFormatIndex != null) {
+			documentFormat = DocumentFormat.forValue(documentFormatIndex.intValue());
+		}
+		return new MicroProfileJavaHoverParams(javaFileUri, new Position(line, character), documentFormat);
 	}
 
 	/**

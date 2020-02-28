@@ -4,24 +4,26 @@
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
 *
+* SPDX-License-Identifier: EPL-2.0
+*
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core;
 
 /**
- * MicroProfile constants
+ * MicroProfile Config constants
  * 
  * @author Angelo ZERR
  *
  */
-public class MicroProfileConstants {
+public class MicroProfileConfigConstants {
 
-	private MicroProfileConstants() {
+	private MicroProfileConfigConstants() {
 	}
 
 	public static final String INJECT_ANNOTATION = "javax.inject.Inject";
-	
+
 	// MicroProfile Core annotations
 
 	public static final String CONFIG_PROPERTY_ANNOTATION = "org.eclipse.microprofile.config.inject.ConfigProperty";
