@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 
 import com.redhat.microprofile.jdt.core.MicroProfileCorePlugin;
+import com.redhat.microprofile.jdt.core.java.IJavaCodeLensParticipant;
 import com.redhat.microprofile.jdt.core.java.IJavaDiagnosticsParticipant;
 import com.redhat.microprofile.jdt.core.java.IJavaHoverParticipant;
 
@@ -33,6 +34,7 @@ import com.redhat.microprofile.jdt.core.java.IJavaHoverParticipant;
 public class JavaFeaturesRegistry {
 
 	private static final String EXTENSION_JAVA_FEATURE_PARTICIPANTS = "javaFeatureParticipants";
+	private static final String CODELENS_ELT = "codeLens";
 	private static final String DIAGNOSTICS_ELT = "diagnostics";
 	private static final String HOVER_ELT = "hover";
 	private static final String CLASS_ATTR = "class";
@@ -82,8 +84,10 @@ public class JavaFeaturesRegistry {
 		for (IConfigurationElement ce : cf) {
 			try {
 				JavaFeatureDefinition definition = createDefinition(ce);
-				synchronized (javaFeatureDefinitions) {
-					this.javaFeatureDefinitions.add(definition);
+				if (definition != null) {
+					synchronized (javaFeatureDefinitions) {
+						this.javaFeatureDefinitions.add(definition);
+					}
 				}
 			} catch (Throwable t) {
 				LOGGER.log(Level.SEVERE, "Error while collecting java features extension contributions", t);
@@ -93,13 +97,17 @@ public class JavaFeaturesRegistry {
 
 	private static JavaFeatureDefinition createDefinition(IConfigurationElement ce) throws CoreException {
 		switch (ce.getName()) {
-		case HOVER_ELT:
-			IJavaHoverParticipant hoverParticipant = (IJavaHoverParticipant) ce.createExecutableExtension(CLASS_ATTR);
-			return new JavaFeatureDefinition(hoverParticipant, null);
+		case CODELENS_ELT:
+			IJavaCodeLensParticipant codeLensParticipant = (IJavaCodeLensParticipant) ce
+					.createExecutableExtension(CLASS_ATTR);
+			return new JavaFeatureDefinition(codeLensParticipant);
 		case DIAGNOSTICS_ELT:
 			IJavaDiagnosticsParticipant diagnosticsParticipant = (IJavaDiagnosticsParticipant) ce
 					.createExecutableExtension(CLASS_ATTR);
-			return new JavaFeatureDefinition(null, diagnosticsParticipant);
+			return new JavaFeatureDefinition(diagnosticsParticipant);
+		case HOVER_ELT:
+			IJavaHoverParticipant hoverParticipant = (IJavaHoverParticipant) ce.createExecutableExtension(CLASS_ATTR);
+			return new JavaFeatureDefinition(hoverParticipant);
 		default:
 			return null;
 		}

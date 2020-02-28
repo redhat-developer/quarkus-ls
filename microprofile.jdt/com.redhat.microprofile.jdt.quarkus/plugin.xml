@@ -11,5 +11,12 @@
    <extension point="com.redhat.microprofile.jdt.core.projectLabelProviders">
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
    </extension>
-
+   
+   <!-- Quarkus JAX-RS support -->
+   
+   <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">
+       <!-- Quarkus Java URL codeLens for JAX-RS -->
+      <codeLens class="com.redhat.microprofile.jdt.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant" />   
+   </extension>
+   
 </plugin>

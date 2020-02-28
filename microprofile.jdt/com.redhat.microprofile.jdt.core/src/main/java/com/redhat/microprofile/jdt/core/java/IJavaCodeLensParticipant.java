@@ -15,18 +15,18 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.CodeLens;
 
 /**
- * Java diagnostics participants API.
+ * Java codeLens participants API.
  * 
  * @author Angelo ZERR
  *
  */
-public interface IJavaDiagnosticsParticipant {
+public interface IJavaCodeLensParticipant {
 
 	/**
-	 * Returns true if diagnostics must be collected for the given context and false
+	 * Returns true if codeLens must be collected for the given context and false
 	 * otherwise.
 	 * 
 	 * <p>
@@ -34,50 +34,49 @@ public interface IJavaDiagnosticsParticipant {
 	 * some classes are on the classpath before deciding to process the collection.
 	 * </p>
 	 * 
-	 * @param the     java diagnostics context
+	 * @param the     java codeLens context
 	 * @param monitor the progress monitor
-	 * @return true if diagnostics must be collected for the given context and false
+	 * @return true if codeLens must be collected for the given context and false
 	 *         otherwise.
 	 * 
 	 */
-	default boolean isAdaptedForDiagnostics(JavaDiagnosticsContext context, IProgressMonitor monitor)
-			throws CoreException {
+	default boolean isAdaptedForCodeLens(JavaCodeLensContext context, IProgressMonitor monitor) throws CoreException {
 		return true;
 	}
 
 	/**
-	 * Begin diagnostics collection.
+	 * Begin codeLens collection.
 	 * 
-	 * @param context the java diagnostics context
+	 * @param context the java codeLens context
 	 * @param monitor the progress monitor
 	 * 
 	 * @throws CoreException
 	 */
-	default void beginDiagnostics(JavaDiagnosticsContext context, IProgressMonitor monitor) throws CoreException {
+	default void beginCodeLens(JavaCodeLensContext context, IProgressMonitor monitor) throws CoreException {
 
 	}
 
 	/**
-	 * Collect diagnostics according to the context.
+	 * Collect codeLens according to the context.
 	 * 
-	 * @param context the java diagnostics context
+	 * @param context the java codeLens context
 	 * @param monitor the progress monitor
 	 * 
-	 * @return diagnostics list and null otherwise.
+	 * @return the codeLens list and null otherwise.
 	 * 
 	 * @throws CoreException
 	 */
-	List<Diagnostic> collectDiagnostics(JavaDiagnosticsContext context, IProgressMonitor monitor) throws CoreException;
+	List<CodeLens> collectCodeLens(JavaCodeLensContext context, IProgressMonitor monitor) throws CoreException;
 
 	/**
-	 * End diagnostics collection.
+	 * End codeLens collection.
 	 * 
-	 * @param context the java diagnostics context
+	 * @param context the java codeLens context
 	 * @param monitor the progress monitor
 	 * 
 	 * @throws CoreException
 	 */
-	default void endDiagnostics(JavaDiagnosticsContext context, IProgressMonitor monitor) throws CoreException {
+	default void endCodeLens(JavaCodeLensContext context, IProgressMonitor monitor) throws CoreException {
 
 	}
 }

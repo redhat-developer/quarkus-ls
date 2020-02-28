@@ -11,8 +11,6 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core.java;
 
-import java.util.List;
-
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
@@ -29,32 +27,18 @@ import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
  */
 public class JavaDiagnosticsContext extends AbtractJavaContext {
 
-	private final List<Diagnostic> diagnostics;
-
 	private final DocumentFormat documentFormat;
 
-	public JavaDiagnosticsContext(String uri, ITypeRoot typeRoot, IJDTUtils utils, DocumentFormat documentFormat,
-			List<Diagnostic> diagnostics) {
+	public JavaDiagnosticsContext(String uri, ITypeRoot typeRoot, IJDTUtils utils, DocumentFormat documentFormat) {
 		super(uri, typeRoot, utils);
-		this.diagnostics = diagnostics;
 		this.documentFormat = documentFormat;
-	}
-
-	public List<Diagnostic> getDiagnostics() {
-		return diagnostics;
 	}
 
 	public DocumentFormat getDocumentFormat() {
 		return documentFormat;
 	}
 
-	public Diagnostic addDiagnostic(String uri, String message, Range range, String source, IJavaErrorCode code) {
-		Diagnostic diagnostic = createDiagnostic(uri, message, range, source, code);
-		getDiagnostics().add(diagnostic);
-		return diagnostic;
-	}
-
-	private Diagnostic createDiagnostic(String uri, String message, Range range, String source, IJavaErrorCode code) {
+	public Diagnostic createDiagnostic(String uri, String message, Range range, String source, IJavaErrorCode code) {
 		Diagnostic diagnostic = new Diagnostic();
 		diagnostic.setSource(source);
 		diagnostic.setMessage(message);

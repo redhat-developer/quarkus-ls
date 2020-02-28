@@ -11,6 +11,9 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core.java;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ITypeRoot;
 
@@ -29,6 +32,8 @@ public abstract class AbtractJavaContext {
 	private final ITypeRoot typeRoot;
 
 	private final IJDTUtils utils;
+
+	private Map<String, Object> cache;
 
 	public AbtractJavaContext(String uri, ITypeRoot typeRoot, IJDTUtils utils) {
 		this.uri = uri;
@@ -51,4 +56,34 @@ public abstract class AbtractJavaContext {
 	public IJDTUtils getUtils() {
 		return utils;
 	}
+	
+
+	/**
+	 * Associates the specified value with the specified key in the cache.
+	 * 
+	 * @param key   the key.
+	 * @param value the value.
+	 */
+	public void put(String key, Object value) {
+		if (cache == null) {
+			cache = new HashMap<>();
+		}
+		cache.put(key, value);
+	}
+
+	/**
+	 * Returns the value to which the specified key is mapped, or {@code null} if
+	 * this map contains no mapping for the key.
+	 * 
+	 * @param key the key.
+	 * @return the value to which the specified key is mapped, or {@code null} if
+	 *         this map contains no mapping for the key.
+	 */
+	public Object get(String key) {
+		if (cache == null) {
+			return null;
+		}
+		return cache.get(key);
+	}
+
 }

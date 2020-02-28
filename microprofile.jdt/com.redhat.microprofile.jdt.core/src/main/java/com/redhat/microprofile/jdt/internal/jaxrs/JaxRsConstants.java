@@ -9,23 +9,23 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.health.java;
-
-import com.redhat.microprofile.jdt.core.java.IJavaErrorCode;
+package com.redhat.microprofile.jdt.internal.jaxrs;
 
 /**
- * MicroProfile Health diagnostics error code.
+ * JAX-RS constants
  * 
  * @author Angelo ZERR
  *
  */
-public enum MicroProfileHealthErrorCode implements IJavaErrorCode {
+public class JaxRsConstants {
 
-	ImplementHealthCheck, HealthAnnotationMissing;
-
-	@Override
-	public String getCode() {
-		return name();
+	public JaxRsConstants() {
 	}
+
+	public static final String JAVAX_WS_RS_PATH_ANNOTATION = "javax.ws.rs.Path";
+
+	public static final String JAVAX_WS_RS_GET_ANNOTATION = "javax.ws.rs.GET";
+
+	public static final String PATH_VALUE = "value";
 
 }
