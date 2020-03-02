@@ -28,6 +28,8 @@ public class MicroProfileRestClientConstants {
 	
 	public static final String REGISTER_REST_CLIENT_ANNOTATION_CONFIG_KEY = "configKey";
 	
+	public static final String REGISTER_REST_CLIENT_ANNOTATION_BASE_URI = "baseUri";
+	
 	public static final String DIAGNOSTIC_SOURCE = "microprofile-restclient";
 	public static final String DIAGNOSTIC_IMPLEMENT_HEALTH_CHECK_CODE = "ImplementHealthCheck";
 	public static final String DIAGNOSTIC_HEALTH_ANNOTATION_MISSING_CODE = "HealthAnnotationMissing";
