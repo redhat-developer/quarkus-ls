@@ -77,6 +77,7 @@
    <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">
        <!-- Java diagnostics for the MicroProfile RestClient -->
       <diagnostics class="com.redhat.microprofile.jdt.internal.restclient.java.MicroProfileRestClientDiagnosticsParticipant" />
+      <codeLens class="com.redhat.microprofile.jdt.internal.restclient.java.MicroProfileRestClientCodeLensParticipant" />
    </extension>
 
    <!-- JAX-RS support -->

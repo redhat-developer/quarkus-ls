@@ -9,24 +9,24 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.jaxrs.java;
+package com.redhat.microprofile.jdt.internal.restclient.java;
 
 import static com.redhat.microprofile.jdt.core.jaxrs.JaxRsUtils.createURLCodeLens;
 import static com.redhat.microprofile.jdt.core.jaxrs.JaxRsUtils.getJaxRsPathValue;
 import static com.redhat.microprofile.jdt.core.jaxrs.JaxRsUtils.isJaxRsRequestMethod;
+import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotation;
+import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.overlaps;
-import static com.redhat.microprofile.jdt.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_PATH_ANNOTATION;
+import static com.redhat.microprofile.jdt.internal.restclient.MicroProfileRestClientConstants.REGISTER_REST_CLIENT_ANNOTATION;
+import static com.redhat.microprofile.jdt.internal.restclient.MicroProfileRestClientConstants.REGISTER_REST_CLIENT_ANNOTATION_BASE_URI;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.Flags;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
@@ -39,22 +39,19 @@ import org.eclipse.lsp4j.CodeLens;
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
 import com.redhat.microprofile.jdt.core.java.IJavaCodeLensParticipant;
 import com.redhat.microprofile.jdt.core.java.JavaCodeLensContext;
-import com.redhat.microprofile.jdt.core.jaxrs.JaxRsContext;
+import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProject;
+import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProjectManager;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 import com.redhat.microprofile.jdt.core.utils.JDTTypeUtils;
 
 /**
  *
- * JAX-RS CodeLens participant
+ * MicroProfile RestClient CodeLens participant
  * 
  * @author Angelo ZERR
  * 
  */
-public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
-
-	private static final String LOCALHOST = "localhost";
-
-	private static final int PING_TIMEOUT = 2000;
+public class MicroProfileRestClientCodeLensParticipant implements IJavaCodeLensParticipant {
 
 	@Override
 	public boolean isAdaptedForCodeLens(JavaCodeLensContext context, IProgressMonitor monitor) throws CoreException {
@@ -62,44 +59,39 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 		if (!params.isUrlCodeLensEnabled()) {
 			return false;
 		}
-		// Collection of URL codeLens is done only if JAX-RS is on the classpath
+		// Collection of URL codeLens is done only if @ResgisterRestClient annotation is
+		// on the classpath
 		IJavaProject javaProject = context.getJavaProject();
-		return JDTTypeUtils.findType(javaProject, JAVAX_WS_RS_PATH_ANNOTATION) != null;
+		return JDTTypeUtils.findType(javaProject, REGISTER_REST_CLIENT_ANNOTATION) != null;
 	}
 
 	@Override
 	public List<CodeLens> collectCodeLens(JavaCodeLensContext context, IProgressMonitor monitor) throws CoreException {
 		ITypeRoot typeRoot = context.getTypeRoot();
 		IJavaElement[] elements = typeRoot.getChildren();
-		int serverPort = JaxRsContext.getJaxRsContext(context).getServerPort();
 		IJDTUtils utils = context.getUtils();
 		MicroProfileJavaCodeLensParams params = context.getParams();
-		params.setLocalServerPort(serverPort);
 		List<CodeLens> lenses = new ArrayList<>();
-		collectURLCodeLenses(elements, null, lenses, params, utils, monitor);
+		JDTMicroProfileProject mpProject = JDTMicroProfileProjectManager.getInstance()
+				.getJDTMicroProfileProject(context.getJavaProject());
+		collectURLCodeLenses(elements, null, null, mpProject, lenses, params, utils, monitor);
 		return lenses;
 	}
 
-	private static void collectURLCodeLenses(IJavaElement[] elements, String rootPath, Collection<CodeLens> lenses,
-			MicroProfileJavaCodeLensParams params, IJDTUtils utils, IProgressMonitor monitor)
-			throws JavaModelException {
+	private static void collectURLCodeLenses(IJavaElement[] elements, String baseURL, String rootPath,
+			JDTMicroProfileProject mpProject, Collection<CodeLens> lenses, MicroProfileJavaCodeLensParams params,
+			IJDTUtils utils, IProgressMonitor monitor) throws JavaModelException {
 		for (IJavaElement element : elements) {
 			if (monitor.isCanceled()) {
 				return;
 			}
 			if (element.getElementType() == IJavaElement.TYPE) {
 				IType type = (IType) element;
-				// Get value of JAX-RS @Path annotation from the class
-				String pathValue = getJaxRsPathValue(type);
-				if (pathValue != null) {
-					// Class is annotated with @Path
-					// Display code lens only if local server is available.
-					if (!params.isCheckServerAvailable()
-							|| isServerAvailable(LOCALHOST, params.getLocalServerPort(), PING_TIMEOUT)) {
-						// Loop for each method annotated with @Path to generate URL code lens per
-						// method.
-						collectURLCodeLenses(type.getChildren(), pathValue, lenses, params, utils, monitor);
-					}
+				String url = getBaseURL(type, mpProject);
+				if (url != null) {
+					// Get value of JAX-RS @Path annotation from the class
+					String pathValue = getJaxRsPathValue(type);
+					collectURLCodeLenses(type.getChildren(), url, pathValue, mpProject, lenses, params, utils, monitor);
 				}
 				continue;
 			} else if (element.getElementType() == IJavaElement.METHOD) {
@@ -118,13 +110,12 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 			}
 
 			// Here java element is a method
-			if (rootPath != null) {
+			if (baseURL != null) {
 				IMethod method = (IMethod) element;
 				// A JAX-RS method is a public method annotated with @GET @POST, @DELETE, @PUT
 				// JAX-RS
 				// annotation
-				if (isJaxRsRequestMethod(method) && Flags.isPublic(method.getFlags())) {
-					String baseURL = params.getLocalBaseURL();
+				if (isJaxRsRequestMethod(method)) {
 					String openURICommandId = params.getOpenURICommand();
 					CodeLens lens = createURLCodeLens(baseURL, rootPath, openURICommandId, (IMethod) element, utils);
 					if (lens != null) {
@@ -135,12 +126,42 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 		}
 	}
 
-	private static boolean isServerAvailable(String host, int port, int timeout) {
-		try (Socket socket = new Socket()) {
-			socket.connect(new InetSocketAddress(host, port), timeout);
-			return true;
-		} catch (IOException e) {
-			return false;
+	/**
+	 * Returns the base URL for the given class type and null otherwise.
+	 * 
+	 * @param type      the class type.
+	 * @param mpProject the MicroProfile project
+	 * @return the base URL for the given class type and null otherwise.
+	 * @throws JavaModelException
+	 */
+	private static String getBaseURL(IType type, JDTMicroProfileProject mpProject) throws JavaModelException {
+		IAnnotation registerRestClientAnnotation = getAnnotation(type, REGISTER_REST_CLIENT_ANNOTATION);
+		if (registerRestClientAnnotation == null) {
+			return null;
 		}
+		// Search base url from the configured property $class/mp-rest/uri
+		String baseURIFromConfig = getBaseURIFromConfig(type, mpProject);
+		if (baseURIFromConfig != null) {
+			return baseURIFromConfig;
+		}
+		// Search base url from the configured property $class/mp-rest/url
+		String baseURLFromConfig = getBaseURLFromConfig(type, mpProject);
+		if (baseURLFromConfig != null) {
+			return baseURLFromConfig;
+		}
+		// Search base url from the @RegisterRestClient/baseUri
+		String baseURIFromAnnotation = getAnnotationMemberValue(registerRestClientAnnotation,
+				REGISTER_REST_CLIENT_ANNOTATION_BASE_URI);
+		return baseURIFromAnnotation;
+	}
+
+	private static String getBaseURIFromConfig(IType type, JDTMicroProfileProject mpProject) {
+		String property = new StringBuilder(type.getFullyQualifiedName()).append("/mp-rest/uri").toString();
+		return mpProject.getProperty(property, null);
+	}
+
+	private static String getBaseURLFromConfig(IType type, JDTMicroProfileProject mpProject) {
+		String property = new StringBuilder(type.getFullyQualifiedName()).append("/mp-rest/url").toString();
+		return mpProject.getProperty(property, null);
 	}
 }

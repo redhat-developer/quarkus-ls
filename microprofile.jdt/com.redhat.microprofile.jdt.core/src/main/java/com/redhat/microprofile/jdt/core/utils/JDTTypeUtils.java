@@ -19,6 +19,7 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
@@ -209,4 +210,13 @@ public class JDTTypeUtils {
 				|| (type != null && type.isEnum());
 	}
 
+	public static boolean overlaps(ISourceRange typeRange, ISourceRange methodRange) {
+		if (typeRange == null || methodRange == null) {
+			return false;
+		}
+		// method range is overlapping if it appears before or actually overlaps the
+		// type's range
+		return methodRange.getOffset() < typeRange.getOffset() || methodRange.getOffset() >= typeRange.getOffset()
+				&& methodRange.getOffset() <= (typeRange.getOffset() + typeRange.getLength());
+	}
 }

@@ -115,9 +115,7 @@ public class ApplicationPropertiesFormatterTest {
 				"\n" + //
 				"%prod.quarkus.application.version=1.0" + "\n" + //
 				"=   false" + "\n" + //
-				"\n" + 
-				"quarkus.application.version  1.0";
-
+				"\n" + "quarkus.application.version  1.0";
 
 		String expected = "quarkus.http.port       =        8080" + "\n" + //
 				"%dev.quarkus.log.syslog.async.overflow=DISCARD" + "\n" + // <-- formatted
@@ -130,7 +128,6 @@ public class ApplicationPropertiesFormatterTest {
 		assertRangeFormat(value, expected, false);
 	};
 
-
 	@Test
 	public void testRangeFormattingFullLines() throws BadLocationException {
 		String value = "|quarkus.http.port       =        8080" + "\n" + // <-- should be formatted
@@ -141,9 +138,7 @@ public class ApplicationPropertiesFormatterTest {
 				"\n" + //
 				"%prod.quarkus.application.version=1.0" + "\n" + //
 				"=   false" + "\n" + //
-				"\n" + 
-				"quarkus.application.version  1.0";
-
+				"\n" + "quarkus.application.version  1.0";
 
 		String expected = "quarkus.http.port=8080" + "\n" + // <-- formatted
 				"%dev.quarkus.log.syslog.async.overflow=DISCARD" + "\n" + // <-- formatted
@@ -159,11 +154,21 @@ public class ApplicationPropertiesFormatterTest {
 	@Test
 	public void testCommentsPersist() throws BadLocationException {
 		String value = "quarkus.http.port=8000" + "\n" + //
-		"# this is a comment" + "\n" + //
-		"quarkus.application.version=1.0" + "\n" + //
-		"# this is a comment" + "\n" + //
-		"# this is a comment";
+				"# this is a comment" + "\n" + //
+				"quarkus.application.version=1.0" + "\n" + //
+				"# this is a comment" + "\n" + //
+				"# this is a comment";
 		String expected = value;
 		assertFormat(value, expected, false);
+	};
+
+	@Test
+	public void testRangeCommentsPersist() throws BadLocationException {
+		// Test with bug https://github.com/redhat-developer/vscode-quarkus/issues/220
+		String value = "# a comment \n" + //
+				"qua|rkus.applic|ation.version    =   1.0";
+		String expected = "# a comment \n" + //
+				"quarkus.application.version=1.0"; // <-- formatted
+		assertRangeFormat(value, expected, false);
 	};
 }
