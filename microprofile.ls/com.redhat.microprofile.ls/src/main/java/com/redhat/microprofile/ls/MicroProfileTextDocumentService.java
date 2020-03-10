@@ -23,6 +23,7 @@ import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
@@ -32,13 +33,13 @@ import org.eclipse.lsp4j.DocumentRangeFormattingParams;
 import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentItem;
-import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
@@ -135,10 +136,10 @@ public class MicroProfileTextDocumentService implements TextDocumentService {
 	}
 
 	@Override
-	public CompletableFuture<Hover> hover(TextDocumentPositionParams position) {
-		TextDocumentService service = getTextDocumentService(position.getTextDocument());
+	public CompletableFuture<Hover> hover(HoverParams params) {
+		TextDocumentService service = getTextDocumentService(params.getTextDocument());
 		if (service != null) {
-			return service.hover(position);
+			return service.hover(params);
 		}
 		return CompletableFuture.completedFuture(null);
 	}
@@ -155,10 +156,10 @@ public class MicroProfileTextDocumentService implements TextDocumentService {
 
 	@Override
 	public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(
-			TextDocumentPositionParams position) {
-		TextDocumentService service = getTextDocumentService(position.getTextDocument());
+			DefinitionParams params) {
+		TextDocumentService service = getTextDocumentService(params.getTextDocument());
 		if (service != null) {
-			return service.definition(position);
+			return service.definition(params);
 		}
 		return CompletableFuture.completedFuture(null);
 	}
@@ -242,7 +243,8 @@ public class MicroProfileTextDocumentService implements TextDocumentService {
 		return index != -1 ? uri.substring(index + 1, uri.length()) : null;
 	}
 
-	public CompletableFuture<JsonSchemaForProjectInfo> getJsonSchemaForProjectInfo(MicroProfileProjectInfoParams params) {
+	public CompletableFuture<JsonSchemaForProjectInfo> getJsonSchemaForProjectInfo(
+			MicroProfileProjectInfoParams params) {
 		return applicationPropertiesTextDocumentService.getJsonSchemaForProjectInfo(params);
 	}
 
