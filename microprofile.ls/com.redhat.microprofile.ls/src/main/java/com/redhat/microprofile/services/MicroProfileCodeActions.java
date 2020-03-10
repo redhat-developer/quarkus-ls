@@ -79,10 +79,10 @@ class MicroProfileCodeActions {
 			doCodeActionForAllRequired(context.getDiagnostics(), document, formattingSettings, codeActions);
 			// Loop for all diagnostics
 			for (Diagnostic diagnostic : context.getDiagnostics()) {
-				if (ValidationType.unknown.name().equals(diagnostic.getCode())) {
+				if (ValidationType.unknown.isValidationType(diagnostic.getCode())) {
 					// Manage code action for unknown
 					doCodeActionsForUnknown(diagnostic, document, projectInfo, commandCapabilities, codeActions);
-				} else if (ValidationType.value.name().equals(diagnostic.getCode())) {
+				} else if (ValidationType.value.isValidationType(diagnostic.getCode())) {
 					doCodeActionsForUnknownEnumValue(diagnostic, document, projectInfo, valuesRulesManager,
 							codeActions);
 				}
@@ -278,7 +278,7 @@ class MicroProfileCodeActions {
 
 		TextDocument textDocument = document.getDocument();
 		List<Diagnostic> requiredDiagnostics = diagnostics.stream()
-				.filter(d -> ValidationType.required.name().equals(d.getCode())).collect(Collectors.toList());
+				.filter(d -> ValidationType.required.isValidationType(d.getCode())).collect(Collectors.toList());
 
 		if (requiredDiagnostics.isEmpty()) {
 			return;

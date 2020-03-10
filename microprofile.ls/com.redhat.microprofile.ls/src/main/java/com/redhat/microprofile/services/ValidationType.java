@@ -9,8 +9,12 @@
 *******************************************************************************/
 package com.redhat.microprofile.services;
 
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
+
+import com.redhat.microprofile.ls.commons.CodeActionFactory;
+
 /**
- * Quarkus validation types.
+ * MicroProfile validation types.
  * 
  * @author Angelo ZERR
  *
@@ -18,4 +22,17 @@ package com.redhat.microprofile.services;
 public enum ValidationType {
 
 	syntax, unknown, duplicate, value, required, requiredValue;
+
+	/**
+	 * Returns true if the given code matches the validation type and false
+	 * otherwise.
+	 * 
+	 * @param code the diagnostic code.
+	 * @return true if the given code matches the validation type and false
+	 *         otherwise.
+	 */
+	public boolean isValidationType(Either<String, Number> code) {
+		return CodeActionFactory.isDiagnosticCode(code, name());
+	}
+
 }

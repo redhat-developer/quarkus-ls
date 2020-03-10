@@ -101,4 +101,11 @@ public class CodeActionFactory {
 		insertContentAction.setEdit(workspaceEdit);
 		return insertContentAction;
 	}
+	
+	public static boolean isDiagnosticCode(Either<String, Number> diagnosticCode, String code) {
+		if (diagnosticCode == null || diagnosticCode.isRight()) {
+			return false;
+		}
+		return code.equals(diagnosticCode.getLeft());
+	}
 }

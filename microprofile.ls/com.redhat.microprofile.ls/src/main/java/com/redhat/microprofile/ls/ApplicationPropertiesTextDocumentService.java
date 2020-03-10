@@ -24,6 +24,7 @@ import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
@@ -34,6 +35,7 @@ import org.eclipse.lsp4j.DocumentRangeFormattingParams;
 import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.MarkupKind;
@@ -41,7 +43,6 @@ import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
-import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -168,7 +169,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 	}
 
 	@Override
-	public CompletableFuture<Hover> hover(TextDocumentPositionParams params) {
+	public CompletableFuture<Hover> hover(HoverParams params) {
 		// Get Quarkus project information which stores all available Quarkus
 		// properties
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument());
@@ -211,7 +212,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 
 	@Override
 	public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(
-			TextDocumentPositionParams params) {
+			DefinitionParams params) {
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument());
 		return getProjectInfoCache().getProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
 			if (projectInfo.getProperties().isEmpty()) {
@@ -406,7 +407,8 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 		projectInfoCache = new MicroProfileProjectInfoCache(microprofileLanguageServer.getLanguageClient());
 	}
 
-	public CompletableFuture<JsonSchemaForProjectInfo> getJsonSchemaForProjectInfo(MicroProfileProjectInfoParams params) {
+	public CompletableFuture<JsonSchemaForProjectInfo> getJsonSchemaForProjectInfo(
+			MicroProfileProjectInfoParams params) {
 		return getProjectInfoCache().getProjectInfo(params).thenApply(info -> {
 			String jsonSchema = JSONSchemaUtils.toJSONSchema(info, true);
 			return new JsonSchemaForProjectInfo(info.getProjectURI(), jsonSchema);
