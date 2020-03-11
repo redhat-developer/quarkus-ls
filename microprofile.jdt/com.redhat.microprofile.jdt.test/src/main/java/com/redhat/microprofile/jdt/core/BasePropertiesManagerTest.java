@@ -65,6 +65,7 @@ public class BasePropertiesManagerTest {
 		kubernetes("kubernetes"), //
 		microprofile_fault_tolerance("microprofile-fault-tolerance"), //
 		microprofile_health_quickstart("microprofile-health-quickstart"), //
+		microprofile_metrics("microprofile-metrics"), //
 		rest_client_quickstart("rest-client-quickstart"), //
 		using_vertx("using-vertx");
 

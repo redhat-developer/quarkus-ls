@@ -43,6 +43,11 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	public SearchPattern createSearchPattern() {
 		SearchPattern leftPattern = null;
 		String[] patterns = getPatterns();
+		
+		if (patterns == null) {
+			return null;
+		}
+		
 		for (String pattern : patterns) {
 			if (leftPattern == null) {
 				leftPattern = createSearchPattern(pattern);
