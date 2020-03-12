@@ -61,9 +61,17 @@
    </extension>
    
    <!-- Microprofile Metrics support -->
+   
    <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
-      <!-- Properties provider from the MicroProfile Fault Tolerance annotations -->
+      <!-- Properties provider for MicroProfile Metrics -->
       <provider class="com.redhat.microprofile.jdt.internal.metrics.properties.MicroProfileMetricsProvider" />
+   </extension>
+   
+   <!-- Microprofile OpenTracing support -->
+   
+   <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
+      <!-- Properties provider for MicroProfile OpenTracing -->
+      <provider class="com.redhat.microprofile.jdt.internal.opentracing.properties.MicroProfileOpenTracingProvider" />
    </extension>
 
    <!-- Microprofile Health support -->

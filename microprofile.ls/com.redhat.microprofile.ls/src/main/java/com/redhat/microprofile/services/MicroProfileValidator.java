@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
@@ -147,11 +149,9 @@ class MicroProfileValidator {
 			return;
 		}
 
-		String errorMessage = null;
-		if (!isValidEnum(metadata, projectInfo, property.getOwnerModel(), value)) {
-			errorMessage = "Invalid enum value: '" + value + "' is invalid for type " + metadata.getType();
-		} else if (isValueTypeMismatch(metadata, value)) {
-			errorMessage = "Type mismatch: " + metadata.getType() + " expected";
+		String errorMessage = getErrorIfInvalidEnum(metadata, projectInfo, property.getOwnerModel(), value);
+		if (errorMessage == null) {
+			errorMessage = getErrorIfValueTypeMismatch(metadata, value);
 		}
 
 		if (errorMessage != null) {
@@ -159,33 +159,58 @@ class MicroProfileValidator {
 		}
 	}
 
-	private boolean isValidEnum(ItemMetadata metadata, ConfigurationMetadata configuration, PropertiesModel model,
-			String value) {
-		if (!configuration.isValidEnum(metadata, value)) {
-			return false;
-		}
-		if (valuesRulesManager != null) {
-			return valuesRulesManager.isValidEnum(metadata, model, value);
-		}
-		return true;
-	}
-
 	/**
-	 * Returns true only if <code>value</code> is a valid value for the property
-	 * defined by <code>metadata</code>
+	 * Returns an error message only if <code>value</code> is an invalid enum
+	 * for the property defined by <code>metadata</code>
 	 * 
 	 * @param metadata metadata defining a property
 	 * @param value    value to check
-	 * @return true only if <code>value</code> is a valid value for the property
-	 *         defined by <code>metadata</code>
+	 * @return error message only if <code>value</code> is an invalid enum
+	 *         for the property defined by <code>metadata</code>
 	 */
-	private static boolean isValueTypeMismatch(ItemMetadata metadata, String value) {
-		return !isBuildtimePlaceholder(value) && ((metadata.isIntegerType() && !isIntegerString(value))
+	private String getErrorIfInvalidEnum(ItemMetadata metadata, ConfigurationMetadata configuration, PropertiesModel model,
+			String value) {
+		if (!configuration.isValidEnum(metadata, value) ||
+				(valuesRulesManager != null && !valuesRulesManager.isValidEnum(metadata, model, value))) {
+			return "Invalid enum value: '" + value + "' is invalid for type " + metadata.getType();
+		}
+		return null;
+	}
+
+	/**
+	 * Returns an error message only if <code>value</code> is an invalid value type
+	 * for the property defined by <code>metadata</code>
+	 * 
+	 * @param metadata metadata defining a property
+	 * @param value    value to check
+	 * @return error message only if <code>value</code> is an invalid value type
+	 *         for the property defined by <code>metadata</code>
+	 */
+	private static String getErrorIfValueTypeMismatch(ItemMetadata metadata, String value) {
+
+		if (isBuildtimePlaceholder(value)) {
+			return null;
+		}
+
+
+		if (metadata.isRegexType()) {
+			try {
+				Pattern.compile(value);
+				return null;
+			} catch (PatternSyntaxException e) {
+				return e.getMessage() + System.lineSeparator();
+			}
+		}
+
+		if ((metadata.isIntegerType() && !isIntegerString(value))
 				|| (metadata.isFloatType() && !isFloatString(value))
 				|| (metadata.isBooleanType() && !isBooleanString(value))
 				|| (metadata.isDoubleType() && !isDoubleString(value))
 				|| (metadata.isLongType() && !isLongString(value))
-				|| (metadata.isShortType() && !isShortString(value)));
+				|| (metadata.isShortType() && !isShortString(value))) {
+			return "Type mismatch: " + metadata.getType() + " expected";
+		}
+		return null;
 	}
 
 	private static boolean isBooleanString(String str) {

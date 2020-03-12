@@ -163,6 +163,11 @@ public class ItemMetadata extends ItemBase {
 				"java.util.Optional<java.lang.Short>".equals(getType());
 	}
 
+	public boolean isRegexType() {
+		return "java.util.regex.Pattern".equals(getType()) || //
+				"java.util.Optional<java.util.regex.Pattern>".equals(getType());
+	}
+
 	/**
 	 * Returns the paths of the metadata.
 	 * 

@@ -510,4 +510,41 @@ public class ApplicationPropertiesDiagnosticsTest {
 		testDiagnosticsFor(value, projectInfo, settings);
 
 	}
+
+	@Test
+	public void validateRegexPatternValue() {
+		MicroProfileProjectInfo projectInfo = new MicroProfileProjectInfo();
+		projectInfo.setProperties(new ArrayList<>());
+		projectInfo.setHints(new ArrayList<>());
+		MicroProfileValidationSettings settings = new MicroProfileValidationSettings();
+
+		ItemMetadata p1 = new ItemMetadata();
+		p1.setName("mp.opentracing.server.skip-pattern");
+		p1.setRequired(false);
+		p1.setType("java.util.Optional<java.util.regex.Pattern>");
+		projectInfo.getProperties().add(p1);
+
+		String value = "mp.opentracing.server.skip-pattern=/foo|/bar.*";
+		testDiagnosticsFor(value, projectInfo, settings);
+		
+		value = "mp.opentracing.server.skip-pattern=(";
+		testDiagnosticsFor(value, projectInfo, settings, //
+				d(0, 35, 36, "Unclosed group near index 1\n(\n",
+						DiagnosticSeverity.Error, ValidationType.value));
+
+		value = "mp.opentracing.server.skip-pattern=[";
+		testDiagnosticsFor(value, projectInfo, settings, //
+				d(0, 35, 36, "Unclosed character class near index 0\n[\n^\n",
+						DiagnosticSeverity.Error, ValidationType.value));
+		
+		value = "mp.opentracing.server.skip-pattern=\\";
+		testDiagnosticsFor(value, projectInfo, settings, //
+				d(0, 35, 36, "Unexpected internal error near index 1\n\\\n",
+						DiagnosticSeverity.Error, ValidationType.value));
+
+		value = "mp.opentracing.server.skip-pattern={";
+		testDiagnosticsFor(value, projectInfo, settings, //
+				d(0, 35, 36, "Illegal repetition\n{\n",
+						DiagnosticSeverity.Error, ValidationType.value));
+	}
 }
