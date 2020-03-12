@@ -9,24 +9,23 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.core.java;
-
-import java.util.List;
+package com.redhat.microprofile.jdt.core.java.hover;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.lsp4j.Hover;
 
 /**
- * Java codeLens participants API.
+ * Java hover participants API.
  * 
  * @author Angelo ZERR
  *
  */
-public interface IJavaCodeLensParticipant {
+public interface IJavaHoverParticipant {
 
 	/**
-	 * Returns true if codeLens must be collected for the given context and false
+	 * Returns true if hover must be collected for the given context and false
 	 * otherwise.
 	 * 
 	 * <p>
@@ -34,49 +33,47 @@ public interface IJavaCodeLensParticipant {
 	 * some classes are on the classpath before deciding to process the collection.
 	 * </p>
 	 * 
-	 * @param the     java codeLens context
+	 * @param the     java hover context
 	 * @param monitor the progress monitor
-	 * @return true if codeLens must be collected for the given context and false
+	 * @return true if hover must be collected for the given context and false
 	 *         otherwise.
-	 * 
+	 * @throws CoreException
 	 */
-	default boolean isAdaptedForCodeLens(JavaCodeLensContext context, IProgressMonitor monitor) throws CoreException {
+	default boolean isAdaptedForHover(JavaHoverContext context, IProgressMonitor monitor) throws CoreException {
 		return true;
 	}
 
 	/**
-	 * Begin codeLens collection.
+	 * Begin hover collection.
 	 * 
-	 * @param context the java codeLens context
+	 * @param context the java hover context
 	 * @param monitor the progress monitor
-	 * 
 	 * @throws CoreException
 	 */
-	default void beginCodeLens(JavaCodeLensContext context, IProgressMonitor monitor) throws CoreException {
+	default void beginHover(JavaHoverContext context, IProgressMonitor monitor)
+			throws JavaModelException, CoreException {
 
 	}
 
 	/**
-	 * Collect codeLens according to the context.
+	 * Collect hover according to the context.
 	 * 
-	 * @param context the java codeLens context
+	 * @param context the java hover context
 	 * @param monitor the progress monitor
 	 * 
-	 * @return the codeLens list and null otherwise.
-	 * 
+	 * @return the hover and null otherwise.
 	 * @throws CoreException
 	 */
-	List<CodeLens> collectCodeLens(JavaCodeLensContext context, IProgressMonitor monitor) throws CoreException;
+	Hover collectHover(JavaHoverContext context, IProgressMonitor monitor) throws CoreException;
 
 	/**
-	 * End codeLens collection.
+	 * End hover collection.
 	 * 
-	 * @param context the java codeLens context
+	 * @param context the java hover context
 	 * @param monitor the progress monitor
-	 * 
 	 * @throws CoreException
 	 */
-	default void endCodeLens(JavaCodeLensContext context, IProgressMonitor monitor) throws CoreException {
+	default void endHover(JavaHoverContext context, IProgressMonitor monitor) throws CoreException {
 
 	}
 }

@@ -6,7 +6,7 @@
          <meta.schema plugin="com.redhat.microprofile.jdt.core" id="javaFeatureParticipants" name="Java features participants"/>
       </appinfo>
       <documentation>
-         This extension point allows adding a Java feature (codelens, hover, diagnostics) to consume it in the Java editor.
+         This extension point allows adding a Java feature (codeAction, codelens, hover, diagnostics) to consume it in the Java editor.
       </documentation>
    </annotation>
 
@@ -19,6 +19,7 @@
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
             <choice>
+               <element ref="codeAction" minOccurs="0" maxOccurs="unbounded"/>
                <element ref="codeLens" minOccurs="0" maxOccurs="unbounded"/>
                <element ref="diagnostics" minOccurs="0" maxOccurs="unbounded"/>
                <element ref="hover" minOccurs="0" maxOccurs="unbounded"/>
@@ -45,6 +46,50 @@
                </documentation>
                <appinfo>
                   <meta.attribute translatable="true"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="codeAction">
+      <annotation>
+         <documentation>
+            Java codeAction participant.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="kind" use="default" value="quickfix">
+            <annotation>
+               <documentation>
+                  The code action kind top category. This kind is used to filter code action according the &apos;only&apos; information of LSP CodeActionContext (see https://microsoft.github.io/language-server-protocol/specification#textDocument_codeAction).
+               </documentation>
+            </annotation>
+            <simpleType>
+               <restriction base="string">
+                  <enumeration value="quickfix">
+                  </enumeration>
+                  <enumeration value="refactor">
+                  </enumeration>
+                  <enumeration value="source">
+                  </enumeration>
+               </restriction>
+            </simpleType>
+         </attribute>
+         <attribute name="targetDiagnostic" type="string">
+            <annotation>
+               <documentation>
+                  The target diagnostic where the code action must be applied. This target can use diagnostic code (ex: &apos;ImplementHealthCheck&apos;) or concat of diagnostic source, &apos;#&apos; and diagnostic code (ex:  : &apos;microprofile-health#ImplementHealthCheck&quot;)
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Name of a class that implements IJavaCodeActionParticipant
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":com.redhat.microprofile.jdt.core.java.codeaction.IJavaCodeActionParticipant"/>
                </appinfo>
             </annotation>
          </attribute>
@@ -129,12 +174,20 @@
 
 &lt;pre&gt;
  &lt;extension point=&quot;com.redhat.microprofile.jdt.core.javaFeatureParticipants&quot;&gt;
-  &lt;hover
-   class=&quot;com.example.MyJavaHoverParticipant&quot;&gt;
-  &lt;/hover&gt;
+  &lt;codeAction
+   kind=&quot;quickfix&quot;
+   diagnosticTarget=&quot;source#code&quot;
+   class=&quot;com.example.MyJavaCodeLensParticipant&quot;&gt;
+  &lt;/codeAction&gt;
+   &lt;codeLens
+   class=&quot;com.example.MyJavaCodeLensParticipant&quot;&gt;
+  &lt;/codeLens&gt;
   &lt;diagnostics
    class=&quot;com.example.MyJavaDiagnosticsParticipant&quot;&gt;
   &lt;/diagnostics&gt;
+  &lt;hover
+   class=&quot;com.example.MyJavaHoverParticipant&quot;&gt;
+  &lt;/hover&gt;  
  &lt;/extension&gt;
 &lt;/pre&gt;
       </documentation>

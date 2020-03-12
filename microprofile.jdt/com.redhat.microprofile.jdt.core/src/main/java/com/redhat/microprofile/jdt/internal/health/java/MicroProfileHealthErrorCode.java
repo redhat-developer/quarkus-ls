@@ -11,7 +11,7 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.internal.health.java;
 
-import com.redhat.microprofile.jdt.core.java.IJavaErrorCode;
+import com.redhat.microprofile.jdt.core.java.diagnostics.IJavaErrorCode;
 
 /**
  * MicroProfile Health diagnostics error code.

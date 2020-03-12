@@ -20,22 +20,29 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.microprofile.commons.DocumentFormat;
+import com.redhat.microprofile.commons.MicroProfileJavaCodeActionParams;
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
 import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
-import com.redhat.microprofile.jdt.core.java.JavaCodeLensContext;
-import com.redhat.microprofile.jdt.core.java.JavaDiagnosticsContext;
-import com.redhat.microprofile.jdt.core.java.JavaHoverContext;
+import com.redhat.microprofile.jdt.core.java.codelens.JavaCodeLensContext;
+import com.redhat.microprofile.jdt.core.java.diagnostics.JavaDiagnosticsContext;
+import com.redhat.microprofile.jdt.core.java.hover.JavaHoverContext;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
-import com.redhat.microprofile.jdt.internal.core.java.JavaFeatureDefinition;
 import com.redhat.microprofile.jdt.internal.core.java.JavaFeaturesRegistry;
+import com.redhat.microprofile.jdt.internal.core.java.codeaction.CodeActionHandler;
+import com.redhat.microprofile.jdt.internal.core.java.codelens.JavaCodeLensDefinition;
+import com.redhat.microprofile.jdt.internal.core.java.diagnostics.JavaDiagnosticsDefinition;
+import com.redhat.microprofile.jdt.internal.core.java.hover.JavaHoverDefinition;
 
 /**
  * JDT quarkus manager for Java files.
@@ -51,7 +58,24 @@ public class PropertiesManagerForJava {
 		return INSTANCE;
 	}
 
+	private final CodeActionHandler codeActionHandler;
+
 	private PropertiesManagerForJava() {
+		this.codeActionHandler = new CodeActionHandler();
+	}
+
+	/**
+	 * Returns the codeAction list according the given codeAction parameters.
+	 * 
+	 * @param params  the codeAction parameters
+	 * @param utils   the utilities class
+	 * @param monitor the monitor
+	 * @return the codeAction list according the given codeAction parameters.
+	 * @throws JavaModelException
+	 */
+	public List<? extends CodeAction> codeAction(MicroProfileJavaCodeActionParams params, IJDTUtils utils,
+			IProgressMonitor monitor) throws JavaModelException {
+		return codeActionHandler.codeAction(params, utils, monitor);
 	}
 
 	/**
@@ -82,7 +106,7 @@ public class PropertiesManagerForJava {
 			List<CodeLens> lenses, IProgressMonitor monitor) {
 		// Collect all adapted codeLens participant
 		JavaCodeLensContext context = new JavaCodeLensContext(uri, typeRoot, utils, params);
-		List<JavaFeatureDefinition> definitions = JavaFeaturesRegistry.getInstance().getJavaFeatureDefinitions()
+		List<JavaCodeLensDefinition> definitions = JavaFeaturesRegistry.getInstance().getJavaCodeLensDefinitions()
 				.stream().filter(definition -> definition.isAdaptedForCodeLens(context, monitor))
 				.collect(Collectors.toList());
 		if (definitions.isEmpty()) {
@@ -101,29 +125,58 @@ public class PropertiesManagerForJava {
 	}
 
 	/**
-	 * Given the uri returns a {@link ITypeRoot}. May return null if it can not
-	 * associate the uri with a Java file ot class file.
-	 *
-	 * @param uri
-	 * @param utils   JDT LS utilities
-	 * @param monitor the progress monitor
-	 * @return compilation unit
+	 * Returns diagnostics for the given uris list.
+	 * 
+	 * @param params the diagnostics parameters
+	 * @param utils  the utilities class
+	 * @return diagnostics for the given uris list.
+	 * @throws JavaModelException
 	 */
-	private static ITypeRoot resolveTypeRoot(String uri, IJDTUtils utils, IProgressMonitor monitor) {
-		utils.waitForLifecycleJobs(monitor);
-		final ICompilationUnit unit = utils.resolveCompilationUnit(uri);
-		IClassFile classFile = null;
-		if (unit == null) {
-			classFile = utils.resolveClassFile(uri);
-			if (classFile == null) {
-				return null;
-			}
-		} else {
-			if (!unit.getResource().exists() || monitor.isCanceled()) {
-				return null;
-			}
+	public List<PublishDiagnosticsParams> diagnostics(MicroProfileJavaDiagnosticsParams params, IJDTUtils utils,
+			IProgressMonitor monitor) throws JavaModelException {
+		List<String> uris = params.getUris();
+		if (uris == null) {
+			return Collections.emptyList();
 		}
-		return unit != null ? unit : classFile;
+		DocumentFormat documentFormat = params.getDocumentFormat();
+		List<PublishDiagnosticsParams> publishDiagnostics = new ArrayList<PublishDiagnosticsParams>();
+		for (String uri : uris) {
+			List<Diagnostic> diagnostics = new ArrayList<>();
+			PublishDiagnosticsParams publishDiagnostic = new PublishDiagnosticsParams(uri, diagnostics);
+			publishDiagnostics.add(publishDiagnostic);
+			collectDiagnostics(uri, utils, documentFormat, diagnostics, monitor);
+		}
+		if (monitor.isCanceled()) {
+			return Collections.emptyList();
+		}
+		return publishDiagnostics;
+	}
+
+	private void collectDiagnostics(String uri, IJDTUtils utils, DocumentFormat documentFormat,
+			List<Diagnostic> diagnostics, IProgressMonitor monitor) {
+		ITypeRoot typeRoot = resolveTypeRoot(uri, utils, monitor);
+		if (typeRoot == null) {
+			return;
+		}
+
+		// Collect all adapted diagnostics participant
+		JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, documentFormat);
+		List<JavaDiagnosticsDefinition> definitions = JavaFeaturesRegistry.getInstance().getJavaDiagnosticsDefinitions()
+				.stream().filter(definition -> definition.isAdaptedForDiagnostics(context, monitor))
+				.collect(Collectors.toList());
+		if (definitions.isEmpty()) {
+			return;
+		}
+
+		// Begin, collect, end participants
+		definitions.forEach(definition -> definition.beginDiagnostics(context, monitor));
+		definitions.forEach(definition -> {
+			List<Diagnostic> collectedDiagnostics = definition.collectDiagnostics(context, monitor);
+			if (collectedDiagnostics != null && !collectedDiagnostics.isEmpty()) {
+				diagnostics.addAll(collectedDiagnostics);
+			}
+		});
+		definitions.forEach(definition -> definition.endDiagnostics(context, monitor));
 	}
 
 	/**
@@ -167,9 +220,8 @@ public class PropertiesManagerForJava {
 		// Collect all adapted hover participant
 		JavaHoverContext context = new JavaHoverContext(uri, typeRoot, utils, hoverElement, hoverPosition,
 				documentFormat);
-		List<JavaFeatureDefinition> definitions = JavaFeaturesRegistry.getInstance().getJavaFeatureDefinitions()
-				.stream().filter(definition -> definition.isAdaptedForHover(context, monitor))
-				.collect(Collectors.toList());
+		List<JavaHoverDefinition> definitions = JavaFeaturesRegistry.getInstance().getJavaHoverDefinitions().stream()
+				.filter(definition -> definition.isAdaptedForHover(context, monitor)).collect(Collectors.toList());
 		if (definitions.isEmpty()) {
 			return;
 		}
@@ -186,58 +238,29 @@ public class PropertiesManagerForJava {
 	}
 
 	/**
-	 * Returns diagnostics for the given uris list.
-	 * 
-	 * @param params the diagnostics parameters
-	 * @param utils  the utilities class
-	 * @return diagnostics for the given uris list.
-	 * @throws JavaModelException
+	 * Given the uri returns a {@link ITypeRoot}. May return null if it can not
+	 * associate the uri with a Java file ot class file.
+	 *
+	 * @param uri
+	 * @param utils   JDT LS utilities
+	 * @param monitor the progress monitor
+	 * @return compilation unit
 	 */
-	public List<PublishDiagnosticsParams> diagnostics(MicroProfileJavaDiagnosticsParams params, IJDTUtils utils,
-			IProgressMonitor monitor) throws JavaModelException {
-		List<String> uris = params.getUris();
-		if (uris == null) {
-			return Collections.emptyList();
-		}
-		DocumentFormat documentFormat = params.getDocumentFormat();
-		List<PublishDiagnosticsParams> publishDiagnostics = new ArrayList<PublishDiagnosticsParams>();
-		for (String uri : uris) {
-			List<Diagnostic> diagnostics = new ArrayList<>();
-			PublishDiagnosticsParams publishDiagnostic = new PublishDiagnosticsParams(uri, diagnostics);
-			publishDiagnostics.add(publishDiagnostic);
-			collectDiagnostics(uri, utils, documentFormat, diagnostics, monitor);
-		}
-		if (monitor.isCanceled()) {
-			return Collections.emptyList();
-		}
-		return publishDiagnostics;
-	}
-
-	private void collectDiagnostics(String uri, IJDTUtils utils, DocumentFormat documentFormat,
-			List<Diagnostic> diagnostics, IProgressMonitor monitor) {
-		ITypeRoot typeRoot = resolveTypeRoot(uri, utils, monitor);
-		if (typeRoot == null) {
-			return;
-		}
-
-		// Collect all adapted diagnostics participant
-		JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, documentFormat);
-		List<JavaFeatureDefinition> definitions = JavaFeaturesRegistry.getInstance().getJavaFeatureDefinitions()
-				.stream().filter(definition -> definition.isAdaptedForDiagnostics(context, monitor))
-				.collect(Collectors.toList());
-		if (definitions.isEmpty()) {
-			return;
-		}
-
-		// Begin, collect, end participants
-		definitions.forEach(definition -> definition.beginDiagnostics(context, monitor));
-		definitions.forEach(definition -> {
-			List<Diagnostic> collectedDiagnostics = definition.collectDiagnostics(context, monitor);
-			if (collectedDiagnostics != null && !collectedDiagnostics.isEmpty()) {
-				diagnostics.addAll(collectedDiagnostics);
+	private static ITypeRoot resolveTypeRoot(String uri, IJDTUtils utils, IProgressMonitor monitor) {
+		utils.waitForLifecycleJobs(monitor);
+		final ICompilationUnit unit = utils.resolveCompilationUnit(uri);
+		IClassFile classFile = null;
+		if (unit == null) {
+			classFile = utils.resolveClassFile(uri);
+			if (classFile == null) {
+				return null;
 			}
-		});
-		definitions.forEach(definition -> definition.endDiagnostics(context, monitor));
+		} else {
+			if (!unit.getResource().exists() || monitor.isCanceled()) {
+				return null;
+			}
+		}
+		return unit != null ? unit : classFile;
 	}
 
 }

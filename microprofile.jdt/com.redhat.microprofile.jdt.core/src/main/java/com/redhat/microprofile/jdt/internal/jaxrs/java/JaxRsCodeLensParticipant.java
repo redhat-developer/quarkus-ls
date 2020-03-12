@@ -37,8 +37,8 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.CodeLens;
 
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
-import com.redhat.microprofile.jdt.core.java.IJavaCodeLensParticipant;
-import com.redhat.microprofile.jdt.core.java.JavaCodeLensContext;
+import com.redhat.microprofile.jdt.core.java.codelens.IJavaCodeLensParticipant;
+import com.redhat.microprofile.jdt.core.java.codelens.JavaCodeLensContext;
 import com.redhat.microprofile.jdt.core.jaxrs.JaxRsContext;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 import com.redhat.microprofile.jdt.core.utils.JDTTypeUtils;

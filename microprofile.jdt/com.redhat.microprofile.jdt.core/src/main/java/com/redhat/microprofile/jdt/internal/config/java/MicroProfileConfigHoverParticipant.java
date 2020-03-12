@@ -35,8 +35,8 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.util.Ranges;
 
 import com.redhat.microprofile.commons.DocumentFormat;
-import com.redhat.microprofile.jdt.core.java.IJavaHoverParticipant;
-import com.redhat.microprofile.jdt.core.java.JavaHoverContext;
+import com.redhat.microprofile.jdt.core.java.hover.IJavaHoverParticipant;
+import com.redhat.microprofile.jdt.core.java.hover.JavaHoverContext;
 import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProjectManager;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 import com.redhat.microprofile.jdt.core.utils.JDTTypeUtils;

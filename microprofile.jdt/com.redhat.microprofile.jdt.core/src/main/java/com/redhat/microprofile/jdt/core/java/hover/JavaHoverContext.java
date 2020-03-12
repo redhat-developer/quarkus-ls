@@ -9,13 +9,14 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.core.java;
+package com.redhat.microprofile.jdt.core.java.hover;
 
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.lsp4j.Position;
 
 import com.redhat.microprofile.commons.DocumentFormat;
+import com.redhat.microprofile.jdt.core.java.AbtractJavaContext;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 
 /**

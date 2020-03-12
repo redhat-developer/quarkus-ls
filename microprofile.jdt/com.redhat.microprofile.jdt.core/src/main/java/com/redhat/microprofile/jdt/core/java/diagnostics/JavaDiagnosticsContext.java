@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.core.java;
+package com.redhat.microprofile.jdt.core.java.diagnostics;
 
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.lsp4j.Diagnostic;
@@ -17,6 +17,7 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Range;
 
 import com.redhat.microprofile.commons.DocumentFormat;
+import com.redhat.microprofile.jdt.core.java.AbtractJavaContext;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 
 /**

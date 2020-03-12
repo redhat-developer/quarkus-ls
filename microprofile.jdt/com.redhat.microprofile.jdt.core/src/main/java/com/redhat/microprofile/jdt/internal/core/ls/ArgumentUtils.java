@@ -11,6 +11,13 @@ package com.redhat.microprofile.jdt.internal.core.ls;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.eclipse.lsp4j.CodeActionContext;
+import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.TextDocumentIdentifier;
 
 /**
  * Arguments utilities.
@@ -41,5 +48,52 @@ public class ArgumentUtils {
 	public static int getInt(Map<String, Object> obj, String key) {
 		Object result = obj.get(key);
 		return result != null && result instanceof Number ? ((Number) result).intValue() : 0;
+	}
+
+	public static TextDocumentIdentifier getTextDocumentIdentifier(Map<String, Object> obj, String key) {
+		Map<String, Object> textDocumentIdentifierObj = (Map<String, Object>) obj.get(key);
+		if (textDocumentIdentifierObj == null) {
+			return null;
+		}
+		String uri = getString(textDocumentIdentifierObj, "uri");
+		return new TextDocumentIdentifier(uri);
+	}
+
+	public static Position getPosition(Map<String, Object> obj, String key) {
+		Map<String, Object> positionObj = (Map<String, Object>) obj.get(key);
+		if (positionObj == null) {
+			return null;
+		}
+		int line = getInt(positionObj, "line");
+		int character = getInt(positionObj, "character");
+		return new Position(line, character);
+	}
+
+	public static Range getRange(Map<String, Object> obj, String key) {
+		Map<String, Object> rangeObj = (Map<String, Object>) obj.get(key);
+		if (rangeObj == null) {
+			return null;
+		}
+		Position start = getPosition(rangeObj, "start");
+		Position end = getPosition(rangeObj, "end");
+		return new Range(start, end);
+	}
+
+	public static CodeActionContext getCodeActionContext(Map<String, Object> obj, String key) {
+		Map<String, Object> contextObj = (Map<String, Object>) obj.get(key);
+		if (contextObj == null) {
+			return null;
+		}
+		List<Map<String, Object>> diagnosticsObj = (List<Map<String, Object>>) contextObj.get("diagnostics");
+		List<Diagnostic> diagnostics = diagnosticsObj.stream().map(diagnosticObj -> {
+			Diagnostic diagnostic = new Diagnostic();
+			diagnostic.setRange(getRange(diagnosticObj, "range"));
+			diagnostic.setCode(getString(diagnosticObj, "code"));
+			diagnostic.setMessage(getString(diagnosticObj, "message"));
+			diagnostic.setSource(getString(diagnosticObj, "source"));
+			return diagnostic;
+		}).collect(Collectors.toList());
+		List<String> only = null;
+		return new CodeActionContext(diagnostics, only);
 	}
 }

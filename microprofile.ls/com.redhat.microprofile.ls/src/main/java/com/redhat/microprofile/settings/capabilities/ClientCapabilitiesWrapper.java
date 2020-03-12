@@ -9,6 +9,7 @@ package com.redhat.microprofile.settings.capabilities;
 
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.DynamicRegistrationCapabilities;
+import org.eclipse.lsp4j.ResourceOperationKind;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
 
 import com.redhat.microprofile.ls.commons.client.ExtendedClientCapabilities;
@@ -84,5 +85,16 @@ public class ClientCapabilitiesWrapper {
 
 	public ExtendedClientCapabilities getExtendedCapabilities() {
 		return extendedCapabilities;
+	}
+	
+	public boolean isResourceOperationSupported() {
+		//@formatter:off
+		return capabilities.getWorkspace() != null
+				&& capabilities.getWorkspace().getWorkspaceEdit() != null
+				&& capabilities.getWorkspace().getWorkspaceEdit().getResourceOperations() != null
+				&& capabilities.getWorkspace().getWorkspaceEdit().getResourceOperations().contains(ResourceOperationKind.Create)
+				&& capabilities.getWorkspace().getWorkspaceEdit().getResourceOperations().contains(ResourceOperationKind.Rename)
+				&& capabilities.getWorkspace().getWorkspaceEdit().getResourceOperations().contains(ResourceOperationKind.Delete);
+		//@formatter:on
 	}
 }

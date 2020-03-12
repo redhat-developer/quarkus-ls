@@ -14,19 +14,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 
 import com.redhat.microprofile.jdt.core.IProjectLabelProvider;
-import com.redhat.microprofile.jdt.core.ProjectLabelDefinition;
 import com.redhat.microprofile.jdt.core.MicroProfileCorePlugin;
+import com.redhat.microprofile.jdt.core.ProjectLabelDefinition;
 
 /**
  *  Registry to hold the extension point

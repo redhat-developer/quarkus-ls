@@ -14,9 +14,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionParams;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CodeLensParams;
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
@@ -26,8 +30,10 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.microprofile.commons.DocumentFormat;
+import com.redhat.microprofile.commons.MicroProfileJavaCodeActionParams;
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
 import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
@@ -83,7 +89,6 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 	@Override
 	public CompletableFuture<List<? extends CodeLens>> codeLens(CodeLensParams params) {
 		boolean urlCodeLensEnabled = sharedSettings.getCodeLensSettings().isUrlCodeLensEnabled();
-		;
 		if (!urlCodeLensEnabled) {
 			// Don't consume JDT LS extension if all code lens are disabled.
 			return CompletableFuture.completedFuture(Collections.emptyList());
@@ -98,6 +103,25 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 		// javaParams.setLocalServerPort(8080); // TODO : manage this server port from
 		// the settings
 		return microprofileLanguageServer.getLanguageClient().getJavaCodelens(javaParams);
+	}
+
+	@Override
+	public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActionParams params) {
+		MicroProfileJavaCodeActionParams javaParams = new MicroProfileJavaCodeActionParams();
+		javaParams.setTextDocument(params.getTextDocument());
+		javaParams.setRange(params.getRange());
+		javaParams.setContext(params.getContext());
+		javaParams.setResourceOperationSupported(microprofileLanguageServer.getCapabilityManager()
+				.getClientCapabilities().isResourceOperationSupported());
+		return microprofileLanguageServer.getLanguageClient().getJavaCodeAction(javaParams). //
+				thenApply(codeActions -> {
+					return codeActions.stream() //
+							.map(ca -> {
+								Either<Command, CodeAction> e = Either.forRight(ca);
+								return e;
+							}) //
+							.collect(Collectors.toList());
+				});
 	}
 
 	public void updateCodeLensSettings(MicroProfileCodeLensSettings newCodeLens) {
