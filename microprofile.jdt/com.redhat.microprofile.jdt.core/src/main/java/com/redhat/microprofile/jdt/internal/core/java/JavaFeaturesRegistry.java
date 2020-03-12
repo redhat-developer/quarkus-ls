@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -22,9 +23,10 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 
 import com.redhat.microprofile.jdt.core.MicroProfileCorePlugin;
-import com.redhat.microprofile.jdt.core.java.IJavaCodeLensParticipant;
-import com.redhat.microprofile.jdt.core.java.IJavaDiagnosticsParticipant;
-import com.redhat.microprofile.jdt.core.java.IJavaHoverParticipant;
+import com.redhat.microprofile.jdt.internal.core.java.codeaction.JavaCodeActionDefinition;
+import com.redhat.microprofile.jdt.internal.core.java.codelens.JavaCodeLensDefinition;
+import com.redhat.microprofile.jdt.internal.core.java.diagnostics.JavaDiagnosticsDefinition;
+import com.redhat.microprofile.jdt.internal.core.java.hover.JavaHoverDefinition;
 
 /**
  * Registry to hold the extension point
@@ -34,16 +36,22 @@ import com.redhat.microprofile.jdt.core.java.IJavaHoverParticipant;
 public class JavaFeaturesRegistry {
 
 	private static final String EXTENSION_JAVA_FEATURE_PARTICIPANTS = "javaFeatureParticipants";
+	private static final String CODEACTION_ELT = "codeAction";
 	private static final String CODELENS_ELT = "codeLens";
 	private static final String DIAGNOSTICS_ELT = "diagnostics";
 	private static final String HOVER_ELT = "hover";
-	private static final String CLASS_ATTR = "class";
 
 	private static final Logger LOGGER = Logger.getLogger(JavaFeaturesRegistry.class.getName());
 
 	private static final JavaFeaturesRegistry INSTANCE = new JavaFeaturesRegistry();
 
-	private final List<JavaFeatureDefinition> javaFeatureDefinitions;
+	private final List<JavaCodeActionDefinition> javaCodeActionDefinitions;
+
+	private final List<JavaCodeLensDefinition> javaCodeLensDefinitions;
+
+	private final List<JavaDiagnosticsDefinition> javaDiagnosticsDefinitions;
+
+	private final List<JavaHoverDefinition> javaHoverDefinitions;
 
 	private boolean javaFeatureDefinitionsLoaded;
 
@@ -53,17 +61,40 @@ public class JavaFeaturesRegistry {
 
 	public JavaFeaturesRegistry() {
 		javaFeatureDefinitionsLoaded = false;
-		javaFeatureDefinitions = new ArrayList<>();
+		javaCodeActionDefinitions = new ArrayList<>();
+		javaCodeLensDefinitions = new ArrayList<>();
+		javaDiagnosticsDefinitions = new ArrayList<>();
+		javaHoverDefinitions = new ArrayList<>();
 	}
 
 	/**
-	 * Returns a list of javaFeature label definitions
+	 * Returns a list of codeLens definition.
 	 *
-	 * @return a list of javaFeature label definitions
+	 * @return a list of codeLens definition.
 	 */
-	public List<JavaFeatureDefinition> getJavaFeatureDefinitions() {
+	public List<JavaCodeLensDefinition> getJavaCodeLensDefinitions() {
 		loadJavaFeatureDefinitions();
-		return javaFeatureDefinitions;
+		return javaCodeLensDefinitions;
+	}
+
+	/**
+	 * Returns a list of diagnostics definition.
+	 *
+	 * @return a list of diagnostics definition.
+	 */
+	public List<JavaDiagnosticsDefinition> getJavaDiagnosticsDefinitions() {
+		loadJavaFeatureDefinitions();
+		return javaDiagnosticsDefinitions;
+	}
+
+	/**
+	 * Returns a list of hover definition.
+	 *
+	 * @return a list of hover definition.
+	 */
+	public List<JavaHoverDefinition> getJavaHoverDefinitions() {
+		loadJavaFeatureDefinitions();
+		return javaHoverDefinitions;
 	}
 
 	private synchronized void loadJavaFeatureDefinitions() {
@@ -83,33 +114,51 @@ public class JavaFeaturesRegistry {
 	private void addJavaFeatureDefinition(IConfigurationElement[] cf) {
 		for (IConfigurationElement ce : cf) {
 			try {
-				JavaFeatureDefinition definition = createDefinition(ce);
-				if (definition != null) {
-					synchronized (javaFeatureDefinitions) {
-						this.javaFeatureDefinitions.add(definition);
-					}
-				}
+				createAndAddDefinition(ce);
 			} catch (Throwable t) {
 				LOGGER.log(Level.SEVERE, "Error while collecting java features extension contributions", t);
 			}
 		}
 	}
 
-	private static JavaFeatureDefinition createDefinition(IConfigurationElement ce) throws CoreException {
+	private void createAndAddDefinition(IConfigurationElement ce) throws CoreException {
 		switch (ce.getName()) {
-		case CODELENS_ELT:
-			IJavaCodeLensParticipant codeLensParticipant = (IJavaCodeLensParticipant) ce
-					.createExecutableExtension(CLASS_ATTR);
-			return new JavaFeatureDefinition(codeLensParticipant);
-		case DIAGNOSTICS_ELT:
-			IJavaDiagnosticsParticipant diagnosticsParticipant = (IJavaDiagnosticsParticipant) ce
-					.createExecutableExtension(CLASS_ATTR);
-			return new JavaFeatureDefinition(diagnosticsParticipant);
-		case HOVER_ELT:
-			IJavaHoverParticipant hoverParticipant = (IJavaHoverParticipant) ce.createExecutableExtension(CLASS_ATTR);
-			return new JavaFeatureDefinition(hoverParticipant);
-		default:
-			return null;
+		case CODEACTION_ELT: {
+			JavaCodeActionDefinition definition = new JavaCodeActionDefinition(ce);
+			synchronized (javaCodeActionDefinitions) {
+				javaCodeActionDefinitions.add(definition);
+			}
+			break;
 		}
+		case CODELENS_ELT: {
+			JavaCodeLensDefinition definition = new JavaCodeLensDefinition(ce);
+			synchronized (javaCodeLensDefinitions) {
+				javaCodeLensDefinitions.add(definition);
+			}
+			break;
+		}
+		case DIAGNOSTICS_ELT: {
+			JavaDiagnosticsDefinition definition = new JavaDiagnosticsDefinition(ce);
+			synchronized (javaDiagnosticsDefinitions) {
+				javaDiagnosticsDefinitions.add(definition);
+			}
+			break;
+		}
+		case HOVER_ELT: {
+			JavaHoverDefinition definition = new JavaHoverDefinition(ce);
+			synchronized (javaHoverDefinitions) {
+				javaHoverDefinitions.add(definition);
+			}
+			break;
+		}
+		default:
+
+		}
+	}
+
+	public List<JavaCodeActionDefinition> getJavaCodeActionDefinitions(String codeActionKind) {
+		loadJavaFeatureDefinitions();
+		return javaCodeActionDefinitions.stream().filter(definition -> codeActionKind.startsWith(definition.getKind()))
+				.collect(Collectors.toList());
 	}
 }

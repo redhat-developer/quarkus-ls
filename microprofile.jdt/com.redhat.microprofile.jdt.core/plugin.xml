@@ -23,9 +23,10 @@
    <!-- Delegate command handler for Java file -->
    <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
       <delegateCommandHandler class="com.redhat.microprofile.jdt.internal.core.ls.MicroProfileDelegateCommandHandlerForJava">
+            <command id="microprofile/java/codeAction"/>
             <command id="microprofile/java/codeLens"/>
-            <command id="microprofile/java/hover"/>
             <command id="microprofile/java/diagnostics"/>
+            <command id="microprofile/java/hover"/>
        </delegateCommandHandler>
    </extension>
   
@@ -71,14 +72,21 @@
    
    <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
       <!-- Properties provider for MicroProfile OpenTracing -->
-      <provider class="com.redhat.microprofile.jdt.internal.opentracing.properties.MicroProfileOpenTracingProvider" />
+      <provider class="com.redhat.microprofile.jdt.internal.opentracing.properties.MicroProfileOpenTracingProvider" />     
    </extension>
 
    <!-- Microprofile Health support -->
    
    <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">
-       <!-- Java diagnostics for the MicroProfile Health -->
-      <diagnostics class="com.redhat.microprofile.jdt.internal.health.java.MicroProfileHealthDiagnosticsParticipant" />   
+      <!-- Java diagnostics for the MicroProfile Health -->
+      <diagnostics class="com.redhat.microprofile.jdt.internal.health.java.MicroProfileHealthDiagnosticsParticipant" />
+      <!-- Java codeActions for the MicroProfile Health -->
+      <codeAction kind="quickfix"
+                  targetDiagnostic="microprofile-health#ImplementHealthCheck"
+                  class="com.redhat.microprofile.jdt.internal.health.java.ImplementHealthCheckQuickFix" />   
+      <codeAction kind="quickfix"
+                  targetDiagnostic="microprofile-health#HealthAnnotationMissing"
+                  class="com.redhat.microprofile.jdt.internal.health.java.HealthAnnotationMissingQuickFix" />
    </extension>
    
    <!-- Microprofile RestClient support -->

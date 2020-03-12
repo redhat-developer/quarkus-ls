@@ -31,8 +31,8 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Range;
 
 import com.redhat.microprofile.commons.DocumentFormat;
-import com.redhat.microprofile.jdt.core.java.IJavaDiagnosticsParticipant;
-import com.redhat.microprofile.jdt.core.java.JavaDiagnosticsContext;
+import com.redhat.microprofile.jdt.core.java.diagnostics.IJavaDiagnosticsParticipant;
+import com.redhat.microprofile.jdt.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.microprofile.jdt.core.utils.AnnotationUtils;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 import com.redhat.microprofile.jdt.core.utils.JDTTypeUtils;

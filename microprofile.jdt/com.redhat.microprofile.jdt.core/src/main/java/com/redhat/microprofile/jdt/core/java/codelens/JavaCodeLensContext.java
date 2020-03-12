@@ -9,11 +9,12 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.core.java;
+package com.redhat.microprofile.jdt.core.java.codelens;
 
 import org.eclipse.jdt.core.ITypeRoot;
 
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
+import com.redhat.microprofile.jdt.core.java.AbtractJavaContext;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 
 /**

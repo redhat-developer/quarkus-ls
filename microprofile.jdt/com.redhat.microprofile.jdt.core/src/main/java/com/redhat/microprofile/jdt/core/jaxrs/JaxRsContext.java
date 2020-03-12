@@ -11,7 +11,7 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core.jaxrs;
 
-import com.redhat.microprofile.jdt.core.java.JavaCodeLensContext;
+import com.redhat.microprofile.jdt.core.java.codelens.JavaCodeLensContext;
 
 /**
  * JAX-RS context.

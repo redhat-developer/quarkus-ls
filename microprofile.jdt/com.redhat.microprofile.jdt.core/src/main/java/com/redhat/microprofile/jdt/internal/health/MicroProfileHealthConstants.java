@@ -28,5 +28,8 @@ public class MicroProfileHealthConstants {
 
 	public static final String HEALTH_CHECK_INTERFACE_NAME = "HealthCheck";
 
+	public static final String HEALTH_CHECK_INTERFACE = "org.eclipse.microprofile.health."
+			+ HEALTH_CHECK_INTERFACE_NAME;
+
 	public static final String DIAGNOSTIC_SOURCE = "microprofile-health";
 }

@@ -15,7 +15,6 @@ import java.util.List;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 
 import com.redhat.microprofile.jdt.core.IProjectLabelProvider;
 import com.redhat.microprofile.jdt.core.utils.JDTMicroProfileUtils;

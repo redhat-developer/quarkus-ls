@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.core.java;
+package com.redhat.microprofile.jdt.core.java.diagnostics;
 
 import java.util.List;
 
