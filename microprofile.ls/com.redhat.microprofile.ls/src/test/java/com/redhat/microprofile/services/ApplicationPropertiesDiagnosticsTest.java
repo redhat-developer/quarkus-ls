@@ -527,24 +527,25 @@ public class ApplicationPropertiesDiagnosticsTest {
 		String value = "mp.opentracing.server.skip-pattern=/foo|/bar.*";
 		testDiagnosticsFor(value, projectInfo, settings);
 		
+		String ls = System.lineSeparator();
 		value = "mp.opentracing.server.skip-pattern=(";
 		testDiagnosticsFor(value, projectInfo, settings, //
-				d(0, 35, 36, "Unclosed group near index 1\n(\n",
+				d(0, 35, 36, "Unclosed group near index 1" + ls + "(" + ls + "",
 						DiagnosticSeverity.Error, ValidationType.value));
 
 		value = "mp.opentracing.server.skip-pattern=[";
 		testDiagnosticsFor(value, projectInfo, settings, //
-				d(0, 35, 36, "Unclosed character class near index 0\n[\n^\n",
+				d(0, 35, 36, "Unclosed character class near index 0" + ls + "[" + ls + "^" + ls + "",
 						DiagnosticSeverity.Error, ValidationType.value));
 		
 		value = "mp.opentracing.server.skip-pattern=\\";
 		testDiagnosticsFor(value, projectInfo, settings, //
-				d(0, 35, 36, "Unexpected internal error near index 1\n\\\n",
+				d(0, 35, 36, "Unexpected internal error near index 1" + ls + "\\" + ls + "",
 						DiagnosticSeverity.Error, ValidationType.value));
 
 		value = "mp.opentracing.server.skip-pattern={";
 		testDiagnosticsFor(value, projectInfo, settings, //
-				d(0, 35, 36, "Illegal repetition\n{\n",
+				d(0, 35, 36, "Illegal repetition" + ls + "{" + ls,
 						DiagnosticSeverity.Error, ValidationType.value));
 	}
 

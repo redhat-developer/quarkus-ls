@@ -1,0 +1,118 @@
+
+{
+  "@Operation": {
+    "prefix": [
+      "@Operation"
+    ],
+    "body": [
+      "@Operation(",
+      "\tsummary = \"${1:summary}\",",
+      "\tdescription = \"${2:description}\"",
+      ")"
+    ],
+    "description": "Describes an operation or typically a HTTP method against a specific path."
+  },
+  "@Content": {
+    "prefix": [
+      "@Content"
+    ],
+    "body": [
+      "@Content(mediaType = \"${1:text/plain}\")"
+    ],
+    "description": "Provides media type"
+  },
+  "@Content with Schema": {
+    "prefix": [
+      "@Content"
+    ],
+    "body": [
+      "@Content(",
+      "\tmediaType = \"${1:application/json}\",",
+      "\tschema = $2",
+      ")"
+    ],
+    "description": "Provides schema and examples for a particular media type."
+  },
+  "@Schema with implementation": {
+    "prefix": [
+      "@Schema"
+    ],
+    "body": [
+      "@Schema(implementation = $1)"
+    ],
+    "description": "Allows the definition of input and output data types."
+  },
+  "@Schema with type": {
+    "prefix": [
+      "@Schema"
+    ],
+    "body": [
+      "@Schema(type = $1)"
+    ],
+    "description": "Allows the definition of input and output data types."
+  },
+  "@Schema with implementation and type": {
+    "prefix": [
+      "@Schema"
+    ],
+    "body": [
+      "@Schema(",
+      "\timplementation = $1,",
+      "\ttype = $2",
+      ")"
+    ],
+    "description": "Allows the definition of input and output data types."
+  },
+  "@Parameters": {
+    "prefix": [
+      "@Parameters"
+    ],
+    "body": [
+      "@Parameters(",
+      "\tvalue = {$1",
+      "\t}",
+      ")"
+    ],
+    "description": "Encapsulates input parameters."
+  },
+  "@Parameter": {
+    "prefix": [
+      "@Parameter"
+    ],
+    "body": [
+      "@Parameter(",
+      "\tdescription = \"$1\",",
+      "\trequired = ${2:true}, ",
+      "\texample = \"$3\",",
+      "\tschema = $4",
+      ")"
+    ],
+    "description": "Describes a single operation parameter."
+  },
+  "@APIResponses": {
+    "prefix": [
+      "@APIResponses"
+    ],
+    "body": [
+      "@APIResponses(",
+      "\tvalue = {$1",
+      "\t}",
+      ")"
+    ],
+    "description": "A container for multiple responses from an API operation."
+  },
+  "@APIResponse": {
+    "prefix": [
+      "@APIResponse"
+    ],
+    "body": [
+      "@APIResponse(",
+      "\tresponseCode = \"${1:200}\",",
+      "\tdescription = \"$2\",",
+      "\tcontent = $3",
+      "\tschema = $4",
+      ")"
+    ],
+    "description": "Describes a single response from an API operation."
+  }
+}

@@ -56,6 +56,7 @@ import com.redhat.microprofile.ls.commons.TextDocument;
 import com.redhat.microprofile.ls.commons.client.CommandCapabilities;
 import com.redhat.microprofile.ls.commons.client.CommandKind;
 import com.redhat.microprofile.ls.commons.client.CommandKindCapabilities;
+import com.redhat.microprofile.ls.commons.snippets.TextDocumentSnippetRegistry;
 import com.redhat.microprofile.model.PropertiesModel;
 import com.redhat.microprofile.settings.MicroProfileCommandCapabilities;
 import com.redhat.microprofile.settings.MicroProfileCompletionSettings;
@@ -246,6 +247,25 @@ public class MicroProfileAssert {
 		Position end = new Position(endLine, endChar);
 		return new Range(start, end);
 	}
+
+	// ------------------- Snippet completion assert
+
+	public static void assertCompletion(String value, TextDocumentSnippetRegistry registry, CompletionItem... expectedItems) {
+		assertCompletion(value, null, registry, expectedItems);
+	}
+
+	public static void assertCompletion(String value, Integer expectedCount, TextDocumentSnippetRegistry registry,
+			CompletionItem... expectedItems) {
+		int offset = value.indexOf('|');
+		value = value.substring(0, offset) + value.substring(offset + 1);
+		TextDocument document = new TextDocument(value, "application.properties");
+		List<CompletionItem> items = registry.getCompletionItems(document, offset, true, context -> {
+			return true;
+		});
+		CompletionList actual = new CompletionList(items);
+		assertCompletions(actual, expectedCount, expectedItems);
+	}
+
 	// ------------------- Hover assert
 
 	public static void assertHoverMarkdown(String value, String expectedHoverLabel, Integer expectedHoverOffset)

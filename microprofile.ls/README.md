@@ -1,17 +1,19 @@
-Quarkus Language Server (quarkus-ls)
+MicroProfile Language Server (microprofile-ls)
 ===========================
 
-The Quarkus language server is an implementation of the 
+The MicroProfile language server is an implementation of the 
 [Language Server Protocol](https://github.com/Microsoft/language-server-protocol), providing
-language features for an application.properties file from a
-[Quarkus](https://quarkus.io/) project.
+language features for: 
 
-The Quarkus language works alongside the
-[Quarkus jdt.ls extension](https://github.com/redhat-developer/quarkus-ls/tree/master/quarkus.jdt)
-which is also located in this repository. The Quarkus jdt.ls extension is able to index
-a Quarkus project for metadata (config properties, documentation, sources, etc.) to provide the 
-Quarkus language server the information required for the language features.
-The relationship between the Quarkus language server and the Quarkus jdt.ls extension is explained 
+ * Properties files: microprofile-config.properties, application.properties, application.yaml files from a
+[MicroProfile](https://microprofile.io/) or [Quarkus](https://quarkus.io/) project.
+ * Java files (URL CodeLens for JAX-RS, Java MicroProfile snippets, etc).
+
+The MicroProfile language server works alongside the [MicroProfile jdt.ls extension](https://github.com/redhat-developer/quarkus-ls/tree/master/microprofile.jdt)
+which is also located in this repository. The MicroProfile jdt.ls extension is able to index
+a MicroProfile project for metadata (config properties, documentation, sources, etc.) to provide the 
+MicroProfile language server the information required for the language features.
+The relationship between the MicroProfile language server and the MicroProfile jdt.ls extension is explained 
 in more detail in the 
 [vscode-quarkus contributing guide](https://github.com/redhat-developer/vscode-quarkus/blob/master/CONTRIBUTING.md).
 
@@ -43,8 +45,52 @@ Building the Language Server
 Clients
 -------
 
-Here are some clients consuming the Quarkus language server:
+Here are some clients consuming the MicroProfile language server:
 
  * Eclipse with [quarkus-lsp4e (POC)](https://github.com/angelozerr/quarkus-lsp4e)
  * IntelliJ with [intellij-quarkus](https://github.com/jeffmaury/intellij-quarkus)
  * Visual Studio Code with [vscode-quarkus](https://github.com/redhat-developer/vscode-quarkus)
+ 
+Code Snippets
+-------
+
+Java and properties completion snippets are managed by the MicroProfile LS (snippets on server side) by using Java SPI.
+
+## Describing snippets in JSON
+
+`Snippets` are described in JSON files using the [vscode snippet format](https://code.visualstudio.com/docs/editor/userdefinedsnippets#_create-your-own-snippets).
+
+The `"context"` key can be provided to specify the condition in which the snippet should appear:
+
+ * for `properties files`: the context/extension can be declared in the snippet to show the snippet only if the extension belongs to the project.
+
+```json
+"Add datasource properties": {
+		"prefix": "qds",
+		"body": [
+			...
+		],
+		"context": {
+			"extension": "quarkus-agroal"
+		}
+	}
+```
+
+means that the snippet is shown only if the project has the `quarkus-agroal` dependency.
+    
+ * for `Java files` (not available for the moment)
+ 
+## Adding new internal snippets
+
+To register a snippet, it must be added in:
+
+ * [MicroProfileJavaSnippetRegistryLoader](https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.ls/com.redhat.microprofile.ls/src/main/java/com/redhat/microprofile/snippets/MicroProfileJavaSnippetRegistryLoader.java) if the new snippet is for Java files. 
+ * [MicroProfilePropertiesSnippetRegistryLoader](https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.ls/com.redhat.microprofile.ls/src/main/java/com/redhat/microprofile/snippets/MicroProfilePropertiesSnippetRegistryLoader.java) if the new snippet is for properties files.
+
+## Adding new external snippets
+
+To add external snippets (like Quarkus snippets) an implementation of `ISnippetRegistryLoader` must be created and registered with Java SPI. See for Quarkus snippets:
+
+ * [Java Quarkus snippets loader](https://github.com/redhat-developer/quarkus-ls/tree/master/microprofile.ls/com.redhat.microprofile.ls/src/main/java/com/redhat/quarkus/snippets).
+ * [JSON Quarkus snippet](https://github.comredhat-developer/quarkus-ls/tree/master/microprofile.ls/com.redhat.microprofile.ls/src/main/resources/com/redhat/quarkus/snippets).
+ * Java Quarkus snippets loader must be declared in [META-INF/services/com.redhat.microprofile.ls.commons.snippets.ISnippetRegistryLoader](https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.ls/com.redhat.microprofile.ls/src/main/resources/META-INF/services/com.redhat.microprofile.ls.commons.snippets.ISnippetRegistryLoader) 
