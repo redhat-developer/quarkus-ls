@@ -4,6 +4,8 @@
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
 *
+* SPDX-License-Identifier: EPL-2.0
+*
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
@@ -36,6 +38,7 @@ import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.ls.commons.BadLocationException;
 import com.redhat.microprofile.ls.commons.SnippetsBuilder;
 import com.redhat.microprofile.ls.commons.TextDocument;
+import com.redhat.microprofile.ls.commons.snippets.TextDocumentSnippetRegistry;
 import com.redhat.microprofile.model.Node;
 import com.redhat.microprofile.model.Node.NodeType;
 import com.redhat.microprofile.model.PropertiesModel;
@@ -44,12 +47,14 @@ import com.redhat.microprofile.model.PropertyKey;
 import com.redhat.microprofile.model.values.ValuesRulesManager;
 import com.redhat.microprofile.settings.MicroProfileCompletionSettings;
 import com.redhat.microprofile.settings.MicroProfileFormattingSettings;
+import com.redhat.microprofile.snippets.LanguageId;
+import com.redhat.microprofile.snippets.SnippetContextProperties;
 import com.redhat.microprofile.utils.DocumentationUtils;
 import com.redhat.microprofile.utils.MicroProfilePropertiesUtils;
 import com.redhat.microprofile.utils.MicroProfilePropertiesUtils.FormattedPropertyResult;
 
 /**
- * The Quarkus completions
+ * The MicroProfile completions
  * 
  * @author Angelo ZERR
  *
@@ -57,13 +62,14 @@ import com.redhat.microprofile.utils.MicroProfilePropertiesUtils.FormattedProper
 class MicroProfileCompletions {
 
 	private static final Logger LOGGER = Logger.getLogger(MicroProfileCompletions.class.getName());
+	private TextDocumentSnippetRegistry snippetRegistry;
 
 	/**
 	 * Returns completion list for the given position
 	 * 
 	 * @param document           the properties model document
 	 * @param position           the position where completion was triggered
-	 * @param projectInfo        the Quarkus project information
+	 * @param projectInfo        the MicroProfile project information
 	 * @param valuesRulesManager manager for values rules
 	 * @param completionSettings the completion settings
 	 * @param cancelChecker      the cancel checker
@@ -79,7 +85,7 @@ class MicroProfileCompletions {
 			offset = document.offsetAt(position);
 			node = document.findNodeAt(offset);
 		} catch (BadLocationException e) {
-			LOGGER.log(Level.SEVERE, "In QuarkusCompletion, position error", e);
+			LOGGER.log(Level.SEVERE, "In MicroProfileCompletion, position error", e);
 			return list;
 		}
 		if (node == null) {
@@ -99,6 +105,9 @@ class MicroProfileCompletions {
 			// completion on property key
 			collectPropertyKeySuggestions(offset, node, document, projectInfo, valuesRulesManager, completionSettings,
 					formattingSettings, list);
+			// Collect completion items with snippet
+			collectSnippetSuggestions(offset, node, document, projectInfo, completionSettings, getSnippetRegistry(),
+					list);
 			break;
 		}
 		return list;
@@ -109,7 +118,7 @@ class MicroProfileCompletions {
 	 * 
 	 * @param offset             the property key node
 	 * @param node
-	 * @param projectInfo        the Quarkus project information
+	 * @param projectInfo        the MicroProfile project information
 	 * @param valuesRulesManager
 	 * @param completionSettings the completion settings
 	 * @param list               the completion list to fill
@@ -126,7 +135,7 @@ class MicroProfileCompletions {
 		try {
 			range = model.getDocument().lineRangeAt(offset);
 		} catch (BadLocationException e) {
-			LOGGER.log(Level.SEVERE, "In QuarkusCompletion#collectPropertyKeySuggestions, position error", e);
+			LOGGER.log(Level.SEVERE, "In MicroProfileCompletion#collectPropertyKeySuggestions, position error", e);
 			return;
 		}
 
@@ -162,7 +171,7 @@ class MicroProfileCompletions {
 
 		Set<String> existingProperties = getExistingProperties(model);
 
-		// Completion on Quarkus properties
+		// Completion on MicroProfile properties
 		for (ItemMetadata property : projectInfo.getProperties()) {
 			if (property == null) {
 				continue;
@@ -299,7 +308,7 @@ class MicroProfileCompletions {
 	 * Collect property values.
 	 * 
 	 * @param node               the property value node
-	 * @param projectInfo        the Quarkus project information
+	 * @param projectInfo        the MicroProfile project information
 	 * @param completionSettings the completion settings
 	 * @param list               the completion list to fill
 	 */
@@ -360,7 +369,7 @@ class MicroProfileCompletions {
 			range = doc.lineRangeAt(startOffset);
 			range.setStart(doc.positionAt(startOffset));
 		} catch (BadLocationException e) {
-			LOGGER.log(Level.SEVERE, "In QuarkusCompletion#getEnumCompletionItem, position error", e);
+			LOGGER.log(Level.SEVERE, "In MicroProfileCompletion#getEnumCompletionItem, position error", e);
 		}
 
 		TextEdit textEdit = new TextEdit(range, value);
@@ -368,6 +377,41 @@ class MicroProfileCompletions {
 		completionItem.setDocumentation(DocumentationUtils.getDocumentation(item, markdownSupported));
 
 		return completionItem;
+	}
+
+	private static void collectSnippetSuggestions(int completionOffset, Node node, PropertiesModel document,
+			MicroProfileProjectInfo projectInfo, MicroProfileCompletionSettings completionSettings,
+			TextDocumentSnippetRegistry snippetRegistry, CompletionList list) {
+		Set<String> extensions = projectInfo.getProperties().stream().map(ItemMetadata::getExtensionName).distinct()
+				.collect(Collectors.toSet());
+
+		boolean markdownSupported = completionSettings.isDocumentationFormatSupported(MarkupKind.MARKDOWN);
+		snippetRegistry.getCompletionItems(document.getDocument(), completionOffset, markdownSupported, context -> {
+			if (context instanceof SnippetContextProperties) {
+				SnippetContextProperties contextProperties = (SnippetContextProperties) context;
+				return contextProperties.isMatch(extensions);
+			}
+			return false;
+		}).forEach(item -> {
+			list.getItems().add(item);
+		});
+	}
+
+	private TextDocumentSnippetRegistry getSnippetRegistry() {
+		if (snippetRegistry == null) {
+			snippetRegistry = new TextDocumentSnippetRegistry(LanguageId.properties.name()) {
+
+				@Override
+				protected String getExpr(TextDocument document, int completionOffset) {
+					String expr = super.getExpr(document, completionOffset);
+					if (expr.length() > 0 && expr.charAt(0) == '%') {
+						return null;
+					}
+					return expr;
+				}
+			};
+		}
+		return snippetRegistry;
 	}
 
 }

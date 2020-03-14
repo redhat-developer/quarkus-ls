@@ -1,0 +1,84 @@
+
+{
+  "@Metric": {
+    "prefix": [
+      "@Metric"
+    ],
+    "body": [
+      "@Metric(",
+      "\tname = \"${1:name}\",",
+      "\tdescription = \"${2:description}\"",
+      ")"
+    ],
+    "description": "An annotation that contains the metadata information when requesting a metric to be injected or produced. This annotation can be used on fields of type Meter, Timer, Counter, and Histogram. For Gauge, the @Metric annotation can only be used on producer methods/fields."
+  },
+  "@Counted": {
+    "prefix": [
+      "@Counted"
+    ],
+    "body": [
+      "@Counted(",
+      "\tname = \"${1:name}\",",
+      "\tdescription = \"${2:description}\"",
+      ")"
+    ],
+    "description": "Denotes a counter, which counts the invocations of the annotated object."
+  },
+  "@Gauge": {
+    "prefix": [
+      "@Gauge"
+    ],
+    "body": [
+      "@Gauge(",
+      "\tname = \"${1:name}\",",
+      "\tdescription = \"${2:description}\"",
+      ")"
+    ],
+    "description": "Denotes a gauge, which samples the value of the annotated object."
+  },
+  "@ConcurrentGauge": {
+    "prefix": [
+      "@ConcurrentGauge"
+    ],
+    "body": [
+      "@ConcurrentGauge(",
+      "\tname = \"${1:name}\",",
+      "\tdescription = \"${2:description}\"",
+      ")"
+    ],
+    "description": "Denotes a gauge which counts the parallel invocations of the annotated object."
+  },
+  "@Metered": {
+    "prefix": [
+      "@Metered"
+    ],
+    "body": [
+      "@Metered(",
+      "\tname = \"${1:name}\",",
+      "\tdescription = \"${2:description}\"",
+      ")"
+    ],
+    "description": "Denotes a meter, which tracks the frequency of invocations of the annotated object."
+  },
+  "@Timed": {
+    "prefix": [
+      "@Timed"
+    ],
+    "body": [
+      "@Timed(",
+      "\tname = \"${1:name}\",",
+      "\tdescription = \"${2:description}\"",
+      ")"
+    ],
+    "description": "Denotes a timer, which tracks duration of the annotated object."
+  },
+  "@RegistryType": {
+    "prefix": [
+      "@RegistryType"
+    ],
+    "body": [
+      "@RegistryType(type=$1)"
+    ],
+    "description": "Qualifies the scope of Metric Registry to inject when injecting a MetricRegistry."
+  }
+}

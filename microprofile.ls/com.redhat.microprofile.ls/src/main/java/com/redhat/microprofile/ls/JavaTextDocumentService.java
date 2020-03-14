@@ -4,6 +4,8 @@
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
 *
+* SPDX-License-Identifier: EPL-2.0
+* 
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
@@ -14,6 +16,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.CodeAction;
@@ -21,6 +25,9 @@ import org.eclipse.lsp4j.CodeActionParams;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CodeLensParams;
 import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
@@ -30,6 +37,7 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
+import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.microprofile.commons.DocumentFormat;
@@ -37,9 +45,14 @@ import com.redhat.microprofile.commons.MicroProfileJavaCodeActionParams;
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
 import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
+import com.redhat.microprofile.ls.commons.BadLocationException;
+import com.redhat.microprofile.ls.commons.TextDocument;
+import com.redhat.microprofile.ls.commons.TextDocuments;
 import com.redhat.microprofile.ls.commons.client.CommandKind;
+import com.redhat.microprofile.ls.commons.snippets.TextDocumentSnippetRegistry;
 import com.redhat.microprofile.settings.MicroProfileCodeLensSettings;
 import com.redhat.microprofile.settings.SharedSettings;
+import com.redhat.microprofile.snippets.LanguageId;
 
 /**
  * LSP text document service for Java file.
@@ -49,41 +62,70 @@ import com.redhat.microprofile.settings.SharedSettings;
  */
 public class JavaTextDocumentService extends AbstractTextDocumentService {
 
+	private static final Logger LOGGER = Logger.getLogger(JavaTextDocumentService.class.getName());
+
 	private final MicroProfileLanguageServer microprofileLanguageServer;
 	private final SharedSettings sharedSettings;
 
-	private final List<String> openedJavaFiles;
+	private final TextDocuments<?> documents;
 
-	public JavaTextDocumentService(MicroProfileLanguageServer quarkusLanguageServer, SharedSettings sharedSettings) {
-		this.microprofileLanguageServer = quarkusLanguageServer;
+	private TextDocumentSnippetRegistry snippetRegistry;
+
+	public JavaTextDocumentService(MicroProfileLanguageServer microprofileLanguageServer,
+			SharedSettings sharedSettings) {
+		this.microprofileLanguageServer = microprofileLanguageServer;
 		this.sharedSettings = sharedSettings;
-		this.openedJavaFiles = new ArrayList<>();
+		this.documents = new TextDocuments<>();
 	}
 
 	@Override
 	public void didOpen(DidOpenTextDocumentParams params) {
+		documents.onDidOpenTextDocument(params);
 		String uri = params.getTextDocument().getUri();
-		openedJavaFiles.add(uri);
 		triggerValidationFor(Arrays.asList(uri));
 	}
 
 	@Override
 	public void didChange(DidChangeTextDocumentParams params) {
+		documents.onDidChangeTextDocument(params);
 		String uri = params.getTextDocument().getUri();
 		triggerValidationFor(Arrays.asList(uri));
 	}
 
 	@Override
 	public void didClose(DidCloseTextDocumentParams params) {
+		documents.onDidCloseTextDocument(params);
 		String uri = params.getTextDocument().getUri();
-		openedJavaFiles.remove(uri);
 		microprofileLanguageServer.getLanguageClient()
 				.publishDiagnostics(new PublishDiagnosticsParams(uri, new ArrayList<Diagnostic>()));
 	}
 
 	@Override
 	public void didSave(DidSaveTextDocumentParams params) {
-		triggerValidationFor(openedJavaFiles);
+		triggerValidationFor(documents.all().stream().map(TextDocument::getUri).collect(Collectors.toList()));
+	}
+
+	@Override
+	public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
+		return CompletableFutures.computeAsync(cancel -> {
+			try {
+				// Returns java snippets
+				TextDocument document = documents.get(params.getTextDocument().getUri());
+				int completionOffset = document.offsetAt(params.getPosition());
+				boolean canSupportMarkdown = true;
+				CompletionList list = new CompletionList();
+				list.setItems(new ArrayList<>());
+				getSnippetRegistry().getCompletionItems(document, completionOffset, canSupportMarkdown, context -> {
+					return true;
+				}).forEach(item -> {
+					list.getItems().add(item);
+				});
+				return Either.forRight(list);
+			} catch (BadLocationException e) {
+				LOGGER.log(Level.SEVERE, "Error while getting java completions", e);
+				return Either.forRight(null);
+			}
+		});
 	}
 
 	@Override
@@ -153,5 +195,12 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 					}
 					return null;
 				});
+	}
+
+	private TextDocumentSnippetRegistry getSnippetRegistry() {
+		if (snippetRegistry == null) {
+			snippetRegistry = new TextDocumentSnippetRegistry(LanguageId.java.name());
+		}
+		return snippetRegistry;
 	}
 }
