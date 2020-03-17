@@ -74,6 +74,13 @@
       <!-- Properties provider for MicroProfile OpenTracing -->
       <provider class="com.redhat.microprofile.jdt.internal.opentracing.properties.MicroProfileOpenTracingProvider" />     
    </extension>
+   
+   <!-- Microprofile OpenAPI support -->
+   
+   <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
+      <!-- Properties provider for the MicroProfile OpenAPI -->
+      <provider class="com.redhat.microprofile.jdt.internal.openapi.properties.MicroProfileOpenAPIProvider" />
+   </extension>
 
    <!-- Microprofile Health support -->
    
