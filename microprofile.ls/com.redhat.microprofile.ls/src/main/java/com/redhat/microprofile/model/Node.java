@@ -81,7 +81,7 @@ public abstract class Node {
 		if (start == -1 || end == -1) {
 			return null;
 		}
-		return getOwnerModel().getText(start, end);
+		return getOwnerModel().getText(start, end).replace("\\\n", "");
 	}
 
 	/**
