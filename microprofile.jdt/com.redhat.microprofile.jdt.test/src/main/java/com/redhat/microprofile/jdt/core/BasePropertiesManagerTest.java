@@ -70,6 +70,7 @@ public class BasePropertiesManagerTest {
 		microprofile_health_quickstart("microprofile-health-quickstart"), //
 		microprofile_metrics("microprofile-metrics"), //
 		microprofile_opentracing("microprofile-opentracing"), //
+		microprofile_openapi("microprofile-openapi"), //
 		rest_client_quickstart("rest-client-quickstart"), //
 		using_vertx("using-vertx");
 
