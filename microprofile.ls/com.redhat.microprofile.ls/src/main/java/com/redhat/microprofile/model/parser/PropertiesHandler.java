@@ -121,5 +121,4 @@ public interface PropertiesHandler {
 	void blankLine(ParseContext context);
 
 	void delimiterAssign(ParseContext context);
-
 }
