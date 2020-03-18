@@ -164,8 +164,48 @@ public class PropertiesModel extends Node {
 		return model;
 	}
 
-	public String getText(int start, int end) {
-		return document.getText().substring(start, end);
+	/**
+	 * Returns the text from the <code>start</code> offset (inclusive) to the <code>end</code>
+	 * offset (exclusive).
+	 * 
+	 * @param start         the start offset
+	 * @param end           the end offset
+	 * @param skipMultiLine determines whether or not new lines characters and backslashes
+	 * should be preserved for multi line text values
+	 * @return the text from the <code>start</code> offset (inclusive) to the <code>end</code>
+	 * offset (exclusive).
+	 */
+	public String getText(int start, int end, boolean skipMultiLine) {
+		String text = document.getText();
+		if (!skipMultiLine) {
+			return text.substring(start, end);
+		}
+
+		StringBuilder sb = new StringBuilder();
+		int i = start;
+		boolean trimLeading = false;
+		while (i < end) {
+			char curr = text.charAt(i);
+			if (curr == '\\') {
+				if (i < end - 1 && text.charAt(i + 1) == '\n') {
+					i += 2;
+					trimLeading = true;
+					continue;
+				} else if (i < end - 2 && text.charAt(i + 1) == '\r' && text.charAt(i + 2) == '\n') {
+					i += 3;
+					trimLeading = true;
+					continue;
+				}
+			}
+
+			if (!trimLeading || !Character.isWhitespace(curr)) {
+				trimLeading = false;
+				sb.append(curr);
+			} 
+			
+			i++;
+		}
+		return sb.toString();
 	}
 
 	public int offsetAt(Position position) throws BadLocationException {

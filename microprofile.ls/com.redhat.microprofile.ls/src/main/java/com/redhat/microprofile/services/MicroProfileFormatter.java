@@ -172,7 +172,7 @@ class MicroProfileFormatter {
 			if (insertSpaces) {
 				formattedContent.append(" ");
 			}
-			formattedContent.append(property.getValue().getValue());
+			formattedContent.append(property.getValue().getText().trim());
 		}
 
 		if (keyExists || delimiterExists || valueExists) {

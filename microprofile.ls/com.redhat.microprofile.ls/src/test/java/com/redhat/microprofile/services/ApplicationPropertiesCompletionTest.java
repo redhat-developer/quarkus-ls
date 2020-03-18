@@ -200,6 +200,28 @@ public class ApplicationPropertiesCompletionTest {
 	}
 
 	@Test
+	public void noCompletionForExistingPropertiesWithProfile() throws BadLocationException {
+
+		String value = "%prod.quarkus.application.name=name\n" +
+				"%prod.|";
+
+		MicroProfileProjectInfo projectInfo = new MicroProfileProjectInfo();
+		List<ItemMetadata> properties = new ArrayList<ItemMetadata>();
+
+		ItemMetadata p1 = new ItemMetadata();
+		p1.setName("quarkus.http.cors");
+		properties.add(p1);
+		ItemMetadata p2 = new ItemMetadata();
+		p2.setName("quarkus.application.name");
+		properties.add(p2);
+
+		projectInfo.setProperties(properties);
+
+		testCompletionFor(value, false, null, 1, projectInfo,
+				c("quarkus.http.cors", "%prod.quarkus.http.cors=", r(1, 0, 6)));
+	}
+
+	@Test
 	public void completionForExistingPropertiesDifferentProfile() throws BadLocationException {
 
 		String value = "|";
