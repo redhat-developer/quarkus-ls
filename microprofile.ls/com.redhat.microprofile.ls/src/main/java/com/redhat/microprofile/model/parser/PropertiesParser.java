@@ -290,7 +290,7 @@ public class PropertiesParser implements ParseContext {
 	 */
 	private boolean continueReadPropertyKey() {
 		readString(StopReading.PropertyName);
-		if (last != '\\') {
+		if (last != '\\' || isWhiteSpace(current)) {
 			handler.endPropertyName(this);
 			return true;
 		}

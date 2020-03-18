@@ -25,10 +25,13 @@ public class PropertyValue extends Node {
 	/**
 	 * Returns the property value and null otherwise.
 	 * 
+	 * For multiline property values, this method returns the property value
+	 * with backslashes and newlines removed.
+	 * 
 	 * @return the property value and null otherwise
 	 */
 	public String getValue() {
-		String text = getText();
+		String text = getText(true);
 		return text != null ? text.trim() : null;
 	}
 

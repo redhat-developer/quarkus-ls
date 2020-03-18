@@ -98,10 +98,18 @@ public class Property extends Node {
 	 * Returns the property name without the profile of the property key and null
 	 * otherwise.
 	 * 
+	 * For multiline property names, this method returns the property name
+	 * with the backslashes and newlines removed.
+	 * 
 	 * <ul>
 	 * <li>'%dev.' will return null.</li>
 	 * <li>'%dev.key' will return 'key'.</li>
 	 * <li>'key' will return 'key'.</li>
+	 * <li>
+	 *   'key1.\
+	 *    key2.\
+	 *    key3' will return 'key1.key2.key3'
+	 * </li>
 	 * </ul>
 	 * 
 	 * @return the property name without the profile of the property key and null
@@ -119,10 +127,18 @@ public class Property extends Node {
 	 * Returns the property name with the profile of the property key and null
 	 * otherwise.
 	 * 
+	 * For multiline property names, this method returns the property name
+	 * with the profile, with backslashes and newlines removed.
+	 * 
 	 * <ul>
 	 * <li>'%dev.' will return '%dev.'.</li>
 	 * <li>'%dev.key' will return '%dev.key'.</li>
 	 * <li>'key' will return 'key'.</li>
+	 * <li>
+	 *   '%dev.\'
+	 *   'key1.\
+	 *    key2' will return '%dev.key1.key2'
+	 * </li>
 	 * </ul>
 	 * 
 	 * @return the property name with the profile of the property key and null
@@ -138,6 +154,9 @@ public class Property extends Node {
 
 	/**
 	 * Returns the property value and null otherwise.
+	 * 
+	 * For multiline property values, this method returns the property value
+	 * with backslashes and newlines removed.
 	 * 
 	 * @return the property value and null otherwise.
 	 */

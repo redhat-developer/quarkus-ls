@@ -45,10 +45,18 @@ public class PropertyKey extends Node {
 	 * Returns the property name without the profile of the property key and null
 	 * otherwise.
 	 * 
+	 * For multiline property names, this method returns the property name
+	 * with the backslashes and newlines removed.
+	 * 
 	 * <ul>
 	 * <li>'%dev.' will return null.</li>
 	 * <li>'%dev.key' will return 'key'.</li>
 	 * <li>'key' will return 'key'.</li>
+	 * <li>
+	 *   'key1.\
+	 *    key2.\
+	 *    key3' will return 'key1.key2.key3'
+	 * </li>
 	 * </ul>
 	 * 
 	 * @return the property name without the profile of the property key and null
@@ -59,29 +67,36 @@ public class PropertyKey extends Node {
 		if (profileEndOffset != -1) {
 			int end = getEnd();
 			if (profileEndOffset < end) {
-				String fulltext = getOwnerModel().getText();
-				return fulltext.substring(profileEndOffset + 1, end);
+				return getOwnerModel().getText(profileEndOffset + 1, end, true);
 			}
 			return null;
 		}
-		return getText();
+		return getText(true);
 	}
 
 	/**
 	 * Returns the property name with the profile of the property key and null
 	 * otherwise.
 	 * 
+	 * For multiline property names, this method returns the property name
+	 * with the profile, with backslashes and newlines removed.
+	 * 
 	 * <ul>
 	 * <li>'%dev.' will return '%dev.'.</li>
 	 * <li>'%dev.key' will return '%dev.key'.</li>
 	 * <li>'key' will return 'key'.</li>
+	 * <li>
+	 *   '%dev.\'
+	 *   'key1.\
+	 *    key2' will return '%dev.key1.key2'
+	 * </li>
 	 * </ul>
 	 * 
 	 * @return the property name with the profile of the property key and null
 	 *         otherwise.
 	 */
 	public String getPropertyNameWithProfile() {
-		return getText();
+		return getText(true);
 	}
 
 	/**

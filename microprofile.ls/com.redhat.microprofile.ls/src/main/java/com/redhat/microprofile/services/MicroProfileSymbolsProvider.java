@@ -116,7 +116,7 @@ class MicroProfileSymbolsProvider {
 		if (key == null) {
 			return null;
 		}
-		return key.getText();
+		return key.getPropertyNameWithProfile();
 	}
 
 	private static Range getSymbolRange(Property property) {

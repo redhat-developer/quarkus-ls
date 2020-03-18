@@ -81,7 +81,21 @@ public abstract class Node {
 		if (start == -1 || end == -1) {
 			return null;
 		}
-		return getOwnerModel().getText(start, end).replace("\\\n", "");
+		return getOwnerModel().getText(start, end, false);
+	}
+
+	/**
+	 * Returns the text of the node
+	 * 
+	 * @param skipMultiLine determines whether or not new lines characters and backslashes
+	 * should be preserved for multi line text values
+	 * @return the text of the node
+	 */
+	public String getText(boolean skipMultiLine) {
+		if (start == -1 || end == -1) {
+			return null;
+		}
+		return getOwnerModel().getText(start, end, skipMultiLine);
 	}
 
 	/**

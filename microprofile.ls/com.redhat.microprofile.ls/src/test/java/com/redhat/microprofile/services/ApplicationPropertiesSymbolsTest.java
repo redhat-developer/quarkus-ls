@@ -93,4 +93,15 @@ public class ApplicationPropertiesSymbolsTest {
 												)))))) //
 		);
 	};
+
+	@Test
+	public void multiLineKeyValueSymbols() throws BadLocationException {
+		String value = "quarkus.\\\n" + //
+				"application.name = quarkus \\\n" + //
+				"application \\\n" + //
+				"name";
+		testSymbolInformationsFor(value, //
+				s("quarkus.application.name", SymbolKind.Property, "application.properties", r(0, 0, 3, 4))
+		);
+	};
 }

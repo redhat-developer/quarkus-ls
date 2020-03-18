@@ -171,4 +171,20 @@ public class ApplicationPropertiesFormatterTest {
 				"quarkus.application.version=1.0"; // <-- formatted
 		assertRangeFormat(value, expected, false);
 	};
+
+	@Test
+	public void testMultiLineKeyAndValue() throws BadLocationException {
+		String value = "quarkus.\\\n" +
+		"application.\\\n" +
+		"name=my\\\n" +
+		"application\\\n" +
+		"name   ";
+
+		String expected = "quarkus.\\\n" +
+		"application.\\\n" +
+		"name=my\\\n" +
+		"application\\\n" +
+		"name";
+		assertFormat(value, expected, false);
+	}
 }

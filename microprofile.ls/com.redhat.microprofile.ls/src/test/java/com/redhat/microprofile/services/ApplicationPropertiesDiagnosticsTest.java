@@ -547,4 +547,25 @@ public class ApplicationPropertiesDiagnosticsTest {
 				d(0, 35, 36, "Illegal repetition\n{\n",
 						DiagnosticSeverity.Error, ValidationType.value));
 	}
+
+	@Test
+	public void validateMultilineKey() {
+		String value = "quarkus.\\\n" +
+		"application.\\\n" +
+		"name=name";
+		MicroProfileValidationSettings settings = new MicroProfileValidationSettings();
+		testDiagnosticsFor(value, getDefaultMicroProfileProjectInfo(), settings);
+
+		value = "quarkus.\\\r\n" +
+		"application.\\\r\n" +
+		"name=name";
+		testDiagnosticsFor(value, getDefaultMicroProfileProjectInfo(), settings);
+
+		value = "qu.\\\n" +
+		"application.\\\n" +
+		"name=name";
+		testDiagnosticsFor(value, getDefaultMicroProfileProjectInfo(), settings, //
+				d(0, 0, 2, 4, "Unknown property 'qu.application.name'",
+						DiagnosticSeverity.Warning, ValidationType.unknown));
+	}
 }
