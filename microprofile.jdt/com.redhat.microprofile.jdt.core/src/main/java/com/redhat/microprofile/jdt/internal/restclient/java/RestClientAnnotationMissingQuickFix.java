@@ -9,29 +9,28 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.health.java;
+package com.redhat.microprofile.jdt.internal.restclient.java;
 
 import com.redhat.microprofile.jdt.core.java.codeaction.InsertAnnotationMissingQuickFix;
-import com.redhat.microprofile.jdt.internal.health.MicroProfileHealthConstants;
+import com.redhat.microprofile.jdt.internal.restclient.MicroProfileRestClientConstants;
+import com.redhat.microprofile.jdt.internal.restclient.MicroProfileRestClientErrorCode;
 
 /**
  * QuickFix for fixing
- * {@link MicroProfileHealthErrorCode#HealthAnnotationMissing} error by
+ * {@link MicroProfileRestClientErrorCode#RestClientAnnotationMissing} error by
  * providing several code actions:
  * 
  * <ul>
- * <li>Insert @Liveness annotation and the proper import.</li>
- * <li>Insert @Readiness annotation and the proper import.</li>
- * <li>Insert @Health annotation and the proper import.</li>
+ * <li>Insert @RestClient annotation and the proper import.</li>
  * </ul>
  * 
  * @author Angelo ZERR
  *
  */
-public class HealthAnnotationMissingQuickFix extends InsertAnnotationMissingQuickFix {
+public class RestClientAnnotationMissingQuickFix extends InsertAnnotationMissingQuickFix {
 
-	public HealthAnnotationMissingQuickFix() {
-		super(MicroProfileHealthConstants.LIVENESS_ANNOTATION, MicroProfileHealthConstants.READINESS_ANNOTATION,
-				MicroProfileHealthConstants.HEALTH_ANNOTATION);
+	public RestClientAnnotationMissingQuickFix() {
+		super(MicroProfileRestClientConstants.REST_CLIENT_ANNOTATION);
 	}
+
 }

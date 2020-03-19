@@ -17,6 +17,7 @@ import static com.redhat.microprofile.jdt.internal.restclient.MicroProfileRestCl
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -42,6 +43,7 @@ import com.redhat.microprofile.jdt.core.utils.AnnotationUtils;
 import com.redhat.microprofile.jdt.core.utils.JDTTypeUtils;
 import com.redhat.microprofile.jdt.core.utils.PositionUtils;
 import com.redhat.microprofile.jdt.internal.restclient.MicroProfileRestClientConstants;
+import com.redhat.microprofile.jdt.internal.restclient.MicroProfileRestClientErrorCode;
 
 /**
  *
@@ -154,7 +156,8 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 				Range restClientRange = PositionUtils.toNameRange(field, context.getUtils());
 				Diagnostic d = context.createDiagnostic(uri,
 						"The Rest Client object should have the @RestClient annotation to be injected as a CDI bean.",
-						restClientRange, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE, null);
+						restClientRange, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
+						MicroProfileRestClientErrorCode.RestClientAnnotationMissing);
 				diagnostics.add(d);
 			} else if (!hasInjectAnnotation && hasRestClientAnnotation) {
 				// Diagnostic 4: Field on current type has RestClient and not Inject
@@ -162,7 +165,8 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 				Range restClientRange = PositionUtils.toNameRange(field, context.getUtils());
 				Diagnostic d = context.createDiagnostic(uri,
 						"The Rest Client object should have the @Inject annotation to be injected as a CDI bean.",
-						restClientRange, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE, null);
+						restClientRange, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
+						MicroProfileRestClientErrorCode.InjectAnnotationMissing);
 				diagnostics.add(d);
 			} else if (!hasInjectAnnotation && !hasRestClientAnnotation) {
 				// Diagnostic 5: Field on current type has not RestClient and not Inject
@@ -171,7 +175,8 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 				Range restClientRange = PositionUtils.toNameRange(field, context.getUtils());
 				Diagnostic d = context.createDiagnostic(uri,
 						"The Rest Client object should have the @Inject and @RestClient annotations to be injected as a CDI bean.",
-						restClientRange, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE, null);
+						restClientRange, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
+						MicroProfileRestClientErrorCode.InjectAndRestClientAnnotationMissing);
 				diagnostics.add(d);
 			}
 		}
@@ -204,6 +209,8 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 		if (hasRegisterRestClient) {
 			return;
 		}
+
+		final AtomicInteger nbReferences = new AtomicInteger(0);
 		SearchPattern pattern = SearchPattern.createPattern(interfaceType, IJavaSearchConstants.REFERENCES);
 		SearchEngine engine = new SearchEngine();
 		engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
@@ -213,25 +220,30 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 					public void acceptSearchMatch(SearchMatch match) throws CoreException {
 						Object o = match.getElement();
 						if (o instanceof IField) {
-							validateReferenceField((IField) o, context);
+							validateReferenceField((IField) o);
 						}
 					}
 
-					private void validateReferenceField(IField field, JavaDiagnosticsContext context)
-							throws CoreException {
-						String uri = context.getUri();
+					private void validateReferenceField(IField field) throws CoreException {
 						boolean hasInjectAnnotation = AnnotationUtils.hasAnnotation(field, INJECT_ANNOTATION);
 						boolean hasRestClientAnnotation = AnnotationUtils.hasAnnotation(field, REST_CLIENT_ANNOTATION);
-
 						if (hasInjectAnnotation && hasRestClientAnnotation) {
-							Range restInterfaceRange = PositionUtils.toNameRange(interfaceType, context.getUtils());
-							Diagnostic d = context.createDiagnostic(uri,
-									"This interface does not have the @RegisterRestClient annotation. Any references will not be injected as CDI beans.",
-									restInterfaceRange, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE, null);
-							diagnostics.add(d);
+							nbReferences.incrementAndGet();
 						}
 					}
 				}, monitor);
+
+		if (nbReferences.get() > 0) {
+			String uri = context.getUri();
+			Range restInterfaceRange = PositionUtils.toNameRange(interfaceType, context.getUtils());
+			Diagnostic d = context.createDiagnostic(uri,
+					"The interface `" + interfaceType.getElementName()
+							+ "` does not have the @RegisterRestClient annotation. The " + nbReferences.get()
+							+ " fields references will not be injected as CDI beans.",
+					restInterfaceRange, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
+					MicroProfileRestClientErrorCode.RegisterRestClientAnnotationMissing);
+			diagnostics.add(d);
+		}
 	}
 
 	private static IJavaSearchScope createSearchScope(IJavaProject javaProject) throws CoreException {
