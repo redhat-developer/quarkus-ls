@@ -19,12 +19,14 @@ import java.util.stream.Collectors;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentEdit;
+import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceEdit;
@@ -47,6 +49,17 @@ public class MicroProfileForJavaAssert {
 
 	// ------------------- CodeAction assert
 
+	public static MicroProfileJavaCodeActionParams createCodeActionParams(String uri, Diagnostic d) {
+		TextDocumentIdentifier textDocument = new TextDocumentIdentifier(uri);
+		Range range = d.getRange();
+		CodeActionContext context = new CodeActionContext();
+		context.setDiagnostics(Arrays.asList(d));
+		MicroProfileJavaCodeActionParams codeActionParams = new MicroProfileJavaCodeActionParams(textDocument, range,
+				context);
+		codeActionParams.setResourceOperationSupported(true);
+		return codeActionParams;
+	}
+	
 	public static void assertJavaCodeAction(MicroProfileJavaCodeActionParams params, IJDTUtils utils,
 			CodeAction... expected) throws JavaModelException {
 		List<? extends CodeAction> actual = PropertiesManagerForJava.getInstance().codeAction(params, utils,

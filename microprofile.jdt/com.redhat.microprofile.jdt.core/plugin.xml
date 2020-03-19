@@ -104,15 +104,29 @@
    </extension>
    
    <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">
-       <!-- Java diagnostics for the MicroProfile RestClient -->
-      <diagnostics class="com.redhat.microprofile.jdt.internal.restclient.java.MicroProfileRestClientDiagnosticsParticipant" />
+      <!-- Java URL codeLens for RestClient -->   
       <codeLens class="com.redhat.microprofile.jdt.internal.restclient.java.MicroProfileRestClientCodeLensParticipant" />
+      <!-- Java diagnostics for the MicroProfile RestClient -->
+      <diagnostics class="com.redhat.microprofile.jdt.internal.restclient.java.MicroProfileRestClientDiagnosticsParticipant" />
+      <!-- Java codeActions for the MicroProfile RestClient -->
+      <codeAction kind="quickfix"
+                  targetDiagnostic="microprofile-restclient#InjectAnnotationMissing"
+                  class="com.redhat.microprofile.jdt.internal.restclient.java.InjectAnnotationMissingQuickFix" />
+      <codeAction kind="quickfix"
+                  targetDiagnostic="microprofile-restclient#RestClientAnnotationMissing"
+                  class="com.redhat.microprofile.jdt.internal.restclient.java.RestClientAnnotationMissingQuickFix" />
+      <codeAction kind="quickfix"
+                  targetDiagnostic="microprofile-restclient#InjectAndRestClientAnnotationMissing"
+                  class="com.redhat.microprofile.jdt.internal.restclient.java.InjectAndRestClientAnnotationMissingQuickFix" />
+      <codeAction kind="quickfix"
+                  targetDiagnostic="microprofile-restclient#RegisterRestClientAnnotationMissing"
+                  class="com.redhat.microprofile.jdt.internal.restclient.java.RegisterRestClientAnnotationMissingQuickFix" />
    </extension>
 
    <!-- JAX-RS support -->
    
    <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">
-       <!-- Java URL codeLens for JAX-RS -->
+      <!-- Java URL codeLens for JAX-RS -->
       <codeLens class="com.redhat.microprofile.jdt.internal.jaxrs.java.JaxRsCodeLensParticipant" />   
    </extension>
 </plugin>

@@ -14,6 +14,7 @@ package com.redhat.microprofile.jdt.core.health;
 import static com.redhat.microprofile.jdt.internal.core.java.MicroProfileForJavaAssert.assertJavaCodeAction;
 import static com.redhat.microprofile.jdt.internal.core.java.MicroProfileForJavaAssert.assertJavaDiagnostics;
 import static com.redhat.microprofile.jdt.internal.core.java.MicroProfileForJavaAssert.ca;
+import static com.redhat.microprofile.jdt.internal.core.java.MicroProfileForJavaAssert.createCodeActionParams;
 import static com.redhat.microprofile.jdt.internal.core.java.MicroProfileForJavaAssert.d;
 import static com.redhat.microprofile.jdt.internal.core.java.MicroProfileForJavaAssert.te;
 
@@ -22,11 +23,8 @@ import java.util.Arrays;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.junit.Test;
 
 import com.redhat.microprofile.commons.DocumentFormat;
@@ -112,14 +110,4 @@ public class JavaDiagnosticsMicroProfileHealthTest extends BasePropertiesManager
 		);
 	}
 
-	private MicroProfileJavaCodeActionParams createCodeActionParams(String uri, Diagnostic d) {
-		TextDocumentIdentifier textDocument = new TextDocumentIdentifier(uri);
-		Range range = d.getRange();
-		CodeActionContext context = new CodeActionContext();
-		context.setDiagnostics(Arrays.asList(d));
-		MicroProfileJavaCodeActionParams codeActionParams = new MicroProfileJavaCodeActionParams(textDocument, range,
-				context);
-		codeActionParams.setResourceOperationSupported(true);
-		return codeActionParams;
-	}
 }
