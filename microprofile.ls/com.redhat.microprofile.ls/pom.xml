@@ -8,7 +8,7 @@
 
 	<name>MicroProfile Language Server</name>
 	<description>MicroProfile Language Server</description>
-	<url>http://maven.apache.org</url>
+	<url>https://github.com/redhat-developer/quarkus-ls</url>
 	<licenses>
 	   <license>
 	       <name>EPL-2.0</name>
