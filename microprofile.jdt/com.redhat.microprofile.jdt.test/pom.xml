@@ -12,6 +12,29 @@
 	<packaging>eclipse-test-plugin</packaging>
 	<name>quarkus.jdt.ls :: test</name>
 	<description>quarkus.jdt.ls Test Plugin</description>
+	
+	<build>
+	   <pluginManagement>
+	       <plugins>
+	           <plugin>
+	               <groupId>org.eclipse.tycho</groupId>
+	               <artifactId>target-platform-configuration</artifactId>
+	               <version>${tycho.version}</version>
+	               <configuration>
+	                   <dependency-resolution>
+	                       <extraRequirements>
+	                           <requirement>
+	                               <id>com.redhat.microprofile.jdt.quarkus</id>
+	                               <versionRange>0.0.0</versionRange>
+	                               <type>eclipse-plugin</type>
+	                           </requirement>
+	                       </extraRequirements>
+	                   </dependency-resolution>
+	               </configuration>
+	           </plugin>
+	       </plugins>
+	   </pluginManagement>
+	</build>
 	<profiles>
 		<profile>
 			<id>macosx-jvm-flags</id>

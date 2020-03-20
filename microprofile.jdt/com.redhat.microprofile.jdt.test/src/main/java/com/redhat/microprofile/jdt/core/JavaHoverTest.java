@@ -32,9 +32,7 @@ import org.junit.Test;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
 import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProject;
-import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 import com.redhat.microprofile.jdt.internal.config.java.MicroProfileConfigHoverParticipant;
-import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 
 /**
  * JDT Quarkus manager test for hover in Java file.
@@ -44,7 +42,6 @@ import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 public class JavaHoverTest extends BasePropertiesManagerTest {
 
 	private static IJavaProject javaProject;
-	private static IJDTUtils utils;
 	private static String javaFileUri;
 
 	@BeforeClass
@@ -58,7 +55,6 @@ public class JavaHoverTest extends BasePropertiesManagerTest {
 		IFile javaFile = project.getFile(new Path("src/main/java/org/acme/config/GreetingResource.java"));
 		javaFileUri = javaFile.getLocation().toFile().toURI().toString();
 
-		utils = JDTUtilsLSImpl.getInstance();
 	}
 
 	@Before
@@ -152,7 +148,7 @@ public class JavaHoverTest extends BasePropertiesManagerTest {
 		params.setPosition(hoverPosition);
 		params.setUri(javaFileUri);
 
-		return PropertiesManagerForJava.getInstance().hover(params, utils, new NullProgressMonitor());
+		return PropertiesManagerForJava.getInstance().hover(params, JDT_UTILS, new NullProgressMonitor());
 	}
 
 	private void assertHover(String expectedKey, String expectedValue, int expectedLine, int expectedStartOffset,

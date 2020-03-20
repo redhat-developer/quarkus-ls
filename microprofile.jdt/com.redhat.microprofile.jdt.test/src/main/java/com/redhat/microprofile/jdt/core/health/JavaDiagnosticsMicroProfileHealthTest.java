@@ -34,7 +34,6 @@ import com.redhat.microprofile.commons.MicroProfileJavaCodeActionParams;
 import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
 import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
-import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 import com.redhat.microprofile.jdt.internal.health.MicroProfileHealthConstants;
 import com.redhat.microprofile.jdt.internal.health.java.MicroProfileHealthErrorCode;
 
@@ -49,7 +48,7 @@ public class JavaDiagnosticsMicroProfileHealthTest extends BasePropertiesManager
 	@Test
 	public void ImplementHealthCheck() throws Exception {
 		IJavaProject javaProject = loadMavenProject(MavenProjectName.microprofile_health_quickstart);
-		IJDTUtils utils = JDTUtilsLSImpl.getInstance();
+		IJDTUtils utils = JDT_UTILS;
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 		IFile javaFile = javaProject.getProject()

@@ -28,7 +28,6 @@ import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
 import com.redhat.microprofile.jdt.core.PropertiesManagerForJava;
 import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProject;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
-import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 
 /**
  * MicroProfile RestClient URL Codelens test for Java file.
@@ -41,7 +40,7 @@ public class JavaCodeLensMicroProfileRestClientTest extends BasePropertiesManage
 	@Test
 	public void urlCodeLensProperties() throws Exception {
 		IJavaProject javaProject = loadMavenProject(MavenProjectName.rest_client_quickstart);
-		IJDTUtils utils = JDTUtilsLSImpl.getInstance();
+		IJDTUtils utils = JDT_UTILS;
 
 		// Initialize file
 		initConfigFile(javaProject);
@@ -80,7 +79,7 @@ public class JavaCodeLensMicroProfileRestClientTest extends BasePropertiesManage
 	@Test
 	public void urlCodeLensPropertiesWithAnnotationBaseUri() throws Exception {
 		IJavaProject javaProject = loadMavenProject(MavenProjectName.rest_client_quickstart);
-		IJDTUtils utils = JDTUtilsLSImpl.getInstance();
+		IJDTUtils utils = JDT_UTILS;
 
 		// Initialize file
 		initConfigFile(javaProject);
@@ -113,7 +112,7 @@ public class JavaCodeLensMicroProfileRestClientTest extends BasePropertiesManage
 	@Test
 	public void urlCodeLensYaml() throws Exception {
 		IJavaProject javaProject = loadMavenProject(MavenProjectName.rest_client_quickstart);
-		IJDTUtils utils = JDTUtilsLSImpl.getInstance();
+		IJDTUtils utils = JDT_UTILS;
 
 		// Initialize file
 		initConfigFile(javaProject);

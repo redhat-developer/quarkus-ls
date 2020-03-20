@@ -20,8 +20,6 @@ import org.eclipse.lsp4j.Location;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
-
 /**
  * Test with find MicroProfile definition.
  * 
@@ -40,21 +38,21 @@ public class PropertiesManagerLocationTest extends BasePropertiesManagerTest {
 		// Test with JAR
 		// quarkus.datasource.url
 		Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
-				"io.quarkus.reactive.pg.client.runtime.DataSourceConfig", "url", null, JDTUtilsLSImpl.getInstance(),
+				"io.quarkus.reactive.pg.client.runtime.DataSourceConfig", "url", null, JDT_UTILS,
 				new NullProgressMonitor());
 		Assert.assertNotNull("Definition from JAR", location);
 
 		// Test with deployment JAR
 		// quarkus.arc.auto-inject-fields
 		location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
-				"io.quarkus.arc.deployment.ArcConfig", "autoInjectFields", null, JDTUtilsLSImpl.getInstance(),
+				"io.quarkus.arc.deployment.ArcConfig", "autoInjectFields", null, JDT_UTILS,
 				new NullProgressMonitor());
 		Assert.assertNotNull("Definition deployment from JAR", location);
 
 		// Test with Java sources
 		// myapp.schema.create
 		location = PropertiesManager.getInstance().findPropertyLocation(javaProject, "org.acme.vertx.FruitResource",
-				"schemaCreate", null, JDTUtilsLSImpl.getInstance(), new NullProgressMonitor());
+				"schemaCreate", null, JDT_UTILS, new NullProgressMonitor());
 		Assert.assertNotNull("Definition from Java Sources", location);
 	}
 
@@ -69,7 +67,7 @@ public class PropertiesManagerLocationTest extends BasePropertiesManagerTest {
 		// greetingInterface.name
 		Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
 				"org.acme.config.IGreetingConfiguration", null, "getName()QOptional<QString;>;",
-				JDTUtilsLSImpl.getInstance(), new NullProgressMonitor());
+				JDT_UTILS, new NullProgressMonitor());
 		Assert.assertNotNull("Definition from IGreetingConfiguration#getName() method", location);
 	}
 

@@ -41,7 +41,6 @@ import com.redhat.microprofile.commons.metadata.ItemHint;
 import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
-import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 
 /**
  * Generator to generate JSON properties and definitions used for Junit test of
@@ -121,7 +120,7 @@ public class GenerateAllPropertiesAndDefinition extends BasePropertiesManagerTes
 	@Test
 	@Ignore
 	public void generateAllQuarkusExtensionProperties() throws JavaModelException, CoreException, Exception {
-		generateJsonFiles(MavenProjectName.all_quarkus_extensions, JDTUtilsLSImpl.getInstance(), false);
+		generateJsonFiles(MavenProjectName.all_quarkus_extensions, JDT_UTILS, false);
 	}
 
 	/**
@@ -151,7 +150,7 @@ public class GenerateAllPropertiesAndDefinition extends BasePropertiesManagerTes
 	@Ignore
 	public void generateAllQuarkusExtensionPropertiesAndDefinitions()
 			throws JavaModelException, CoreException, Exception {
-		generateJsonFiles(MavenProjectName.all_quarkus_extensions, JDTUtilsLSImpl.getInstance(), true);
+		generateJsonFiles(MavenProjectName.all_quarkus_extensions, JDT_UTILS, true);
 	}
 
 	private void generateJsonFiles(MavenProjectName mavenProject, IJDTUtils utils, boolean generateDefinition)
