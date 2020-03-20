@@ -85,7 +85,7 @@ class MicroProfileCompletions {
 			offset = document.offsetAt(position);
 			node = document.findNodeAt(offset);
 		} catch (BadLocationException e) {
-			LOGGER.log(Level.SEVERE, "In MicroProfileCompletion, position error", e);
+			LOGGER.log(Level.SEVERE, "In MicroProfileCompletions, position error", e);
 			return list;
 		}
 		if (node == null) {
@@ -116,10 +116,10 @@ class MicroProfileCompletions {
 	/**
 	 * Collect property keys.
 	 * 
-	 * @param offset             the property key node
-	 * @param node
+	 * @param offset             the offset where completion was invoked
+	 * @param node               the property key node
 	 * @param projectInfo        the MicroProfile project information
-	 * @param valuesRulesManager
+	 * @param valuesRulesManager the values rules manager
 	 * @param completionSettings the completion settings
 	 * @param list               the completion list to fill
 	 */
@@ -143,27 +143,7 @@ class MicroProfileCompletions {
 		if (node != null && node.getNodeType() == NodeType.PROPERTY_KEY) {
 			PropertyKey key = (PropertyKey) node;
 			if (key.isBeforeProfile(offset)) {
-				// Collect all existing profiles declared in application.properties
-				Set<String> profiles = model.getChildren().stream().filter(n -> n.getNodeType() == NodeType.PROPERTY)
-						.map(n -> {
-							Property property = (Property) n;
-							return property.getProfile();
-						}).filter(Objects::nonNull).filter(not(String::isEmpty)).distinct().collect(Collectors.toSet());
-				// merge existings profiles with default profiles.
-				profiles.addAll(QuarkusModel.getDefaultProfileNames());
-				// Completion on profiles
-				for (String p : profiles) {
-					CompletionItem item = new CompletionItem(p);
-					item.setKind(CompletionItemKind.Struct);
-					String insertText = new StringBuilder("%").append(p).toString();
-
-					TextEdit textEdit = new TextEdit(range, insertText);
-					item.setTextEdit(textEdit);
-					item.setInsertTextFormat(InsertTextFormat.PlainText);
-					item.setFilterText(insertText);
-					addDocumentationIfDefaultProfile(item, markdownSupported);
-					list.getItems().add(item);
-				}
+				collectProfileSuggestions(offset, key, model, markdownSupported, list);
 				return;
 			}
 			profile = key.getProfile();
@@ -246,6 +226,59 @@ class MicroProfileCompletions {
 
 			item.setInsertTextFormat(snippetsSupported ? InsertTextFormat.Snippet : InsertTextFormat.PlainText);
 			item.setDocumentation(DocumentationUtils.getDocumentation(property, profile, markdownSupported));
+			list.getItems().add(item);
+		}
+	}
+
+	/**
+	 * Collect Quarkus profiles
+	 * @param offset            the offset where completion was invoked
+	 * @param key               the property key
+	 * @param model             the properties model
+	 * @param markdownSupported boolean determining if markdown is supported
+	 * @param list              the completion list
+	 */
+	private static void collectProfileSuggestions(int offset, PropertyKey key,
+			PropertiesModel model, boolean markdownSupported, CompletionList list) {
+
+		Range range = null;
+		Position currPosition = null;
+		boolean addPeriod = false;
+		String line = null;
+		TextDocument textDocument = model.getDocument();
+		try {
+			range = textDocument.lineRangeAt(offset);
+			currPosition = textDocument.positionAt(offset);
+			line = textDocument.lineText(currPosition.getLine());
+			addPeriod = currPosition.getCharacter() < line.length() && line.charAt(currPosition.getCharacter()) != '.';
+		} catch (BadLocationException e) {
+			LOGGER.log(Level.SEVERE, "In MicroProfileCompletion#collectPropertyKeySuggestions, position error", e);
+			return;
+		}
+		
+
+		// Collect all existing profiles declared in application.properties
+		Set<String> profiles = model.getChildren().stream().filter(n -> n.getNodeType() == NodeType.PROPERTY)
+				.map(n -> {
+					Property property = (Property) n;
+					return property.getProfile();
+				}).filter(Objects::nonNull).filter(not(String::isEmpty)).distinct().collect(Collectors.toSet());
+		// merge existings profiles with default profiles.
+		profiles.addAll(QuarkusModel.getDefaultProfileNames());
+		// Completion on profiles
+		for (String p : profiles) {
+			if (p.equals(key.getProfile())) continue;
+
+			CompletionItem item = new CompletionItem(p);
+			item.setKind(CompletionItemKind.Struct);
+
+			String insertText = new StringBuilder("%").append(p).append(addPeriod ? "." : "").toString();
+			range.setEnd(currPosition);
+			TextEdit textEdit = new TextEdit(range, insertText);
+			item.setTextEdit(textEdit);
+			item.setInsertTextFormat(InsertTextFormat.PlainText);
+			item.setFilterText(insertText);
+			addDocumentationIfDefaultProfile(item, markdownSupported);
 			list.getItems().add(item);
 		}
 	}

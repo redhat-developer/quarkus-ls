@@ -143,25 +143,49 @@ public class ApplicationPropertiesCompletionTest {
 						+ "The default profile when not running in development or test mode." + System.lineSeparator()), //
 				c("test", "%test", r(0, 0, 1), "test" + System.lineSeparator() + System.lineSeparator()
 						+ "Profile activated when running tests." + System.lineSeparator()));
-
-		value = "%st|aging.";
-		testCompletionFor(value, true, 4, c("staging", "%staging", r(0, 0, 9)), //
-				c("dev", "%dev", r(0, 0, 9),
+		
+		value = "%st|\n" + //
+				"%staging.property=123";
+		testCompletionFor(value, true, 4, c("staging", "%staging", r(0, 0, 3)), //
+				c("dev", "%dev", r(0, 0, 3),
 						"dev" + System.lineSeparator() + System.lineSeparator()
 								+ "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator()), //
-				c("prod", "%prod", r(0, 0, 9), "prod" + System.lineSeparator() + System.lineSeparator()
+				c("prod", "%prod", r(0, 0, 3), "prod" + System.lineSeparator() + System.lineSeparator()
 						+ "The default profile when not running in development or test mode." + System.lineSeparator()), //
-				c("test", "%test", r(0, 0, 9), "test" + System.lineSeparator() + System.lineSeparator()
+				c("test", "%test", r(0, 0, 3), "test" + System.lineSeparator() + System.lineSeparator()
 						+ "Profile activated when running tests." + System.lineSeparator()));
 
 		value = "%staging|.";
-		testCompletionFor(value, true, 4, c("staging", "%staging", r(0, 0, 9)), //
-				c("dev", "%dev", r(0, 0, 9),
+		testCompletionFor(value, true, 3,
+				c("dev", "%dev", r(0, 0, 8),
 						"dev" + System.lineSeparator() + System.lineSeparator()
 								+ "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator()), //
-				c("prod", "%prod", r(0, 0, 9), "prod" + System.lineSeparator() + System.lineSeparator()
+				c("prod", "%prod", r(0, 0, 8), "prod" + System.lineSeparator() + System.lineSeparator()
 						+ "The default profile when not running in development or test mode." + System.lineSeparator()), //
-				c("test", "%test", r(0, 0, 9), "test" + System.lineSeparator() + System.lineSeparator()
+				c("test", "%test", r(0, 0, 8), "test" + System.lineSeparator() + System.lineSeparator()
+						+ "Profile activated when running tests." + System.lineSeparator()));
+	}
+
+	@Test
+	public void completionOnProfileWithPropertyName() throws BadLocationException {
+		String value = "%pr|quarkus.application.name";
+		testCompletionFor(value, true, 3,
+				c("dev", "%dev.", r(0, 0, 3),
+						"dev" + System.lineSeparator() + System.lineSeparator()
+								+ "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator()), //
+				c("prod", "%prod.", r(0, 0, 3), "prod" + System.lineSeparator() + System.lineSeparator()
+						+ "The default profile when not running in development or test mode." + System.lineSeparator()), //
+				c("test", "%test.", r(0, 0, 3), "test" + System.lineSeparator() + System.lineSeparator()
+						+ "Profile activated when running tests." + System.lineSeparator()));
+
+		value = "%d|.quarkus.application.name";
+		testCompletionFor(value, true, 3,
+				c("dev", "%dev", r(0, 0, 2),
+						"dev" + System.lineSeparator() + System.lineSeparator()
+								+ "Profile activated when in development mode (quarkus:dev)." + System.lineSeparator()), //
+				c("prod", "%prod", r(0, 0, 2), "prod" + System.lineSeparator() + System.lineSeparator()
+						+ "The default profile when not running in development or test mode." + System.lineSeparator()), //
+				c("test", "%test", r(0, 0, 2), "test" + System.lineSeparator() + System.lineSeparator()
 						+ "Profile activated when running tests." + System.lineSeparator()));
 	}
 
