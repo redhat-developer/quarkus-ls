@@ -49,7 +49,7 @@ public class JavaCodeActionDefinition extends AbstractJavaFeatureDefinition<IJav
 
 	private static String getKind(IConfigurationElement element) throws InvalidRegistryObjectException {
 		String kind = element.getAttribute(KIND_ATTR);
-		return StringUtils.isEmpty(kind) ? kind : CodeActionKind.QuickFix;
+		return !StringUtils.isEmpty(kind) ? kind : CodeActionKind.QuickFix;
 	}
 
 	@Override
