@@ -78,7 +78,7 @@ public class JavaDiagnosticsMicroProfileHealthTest extends BasePropertiesManager
 	@Test
 	public void HealthAnnotationMissing() throws Exception {
 		IJavaProject javaProject = loadMavenProject(MavenProjectName.microprofile_health_quickstart);
-		IJDTUtils utils = JDTUtilsLSImpl.getInstance();
+		IJDTUtils utils = JDT_UTILS;
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 		IFile javaFile = javaProject.getProject()
