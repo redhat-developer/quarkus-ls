@@ -23,7 +23,6 @@ import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProject;
-import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 
 /**
  * Test collection of Quarkus properties from @ConfigProperties
@@ -53,7 +52,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 
 		MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(
 				javaProject, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC,
-				JDTUtilsLSImpl.getInstance(), DocumentFormat.Markdown, new NullProgressMonitor());
+				JDT_UTILS, DocumentFormat.Markdown, new NullProgressMonitor());
 
 		int nbProperties = 0;
 
@@ -177,7 +176,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 
 		MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(
 				javaProject, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC,
-				JDTUtilsLSImpl.getInstance(), DocumentFormat.Markdown, new NullProgressMonitor());
+				JDT_UTILS, DocumentFormat.Markdown, new NullProgressMonitor());
 
 		int nbProperties = 0;
 

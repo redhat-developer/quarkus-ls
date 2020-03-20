@@ -37,6 +37,7 @@ import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
+import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 import com.redhat.microprofile.jdt.internal.core.JavaUtils;
 import com.redhat.microprofile.jdt.internal.core.JobHelpers;
 import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
@@ -51,6 +52,8 @@ public class BasePropertiesManagerTest {
 
 	private static final Logger LOGGER = Logger.getLogger(BasePropertiesManagerTest.class.getSimpleName());
 	private static Level oldLevel;
+	
+	protected static IJDTUtils JDT_UTILS = JDTUtilsLSImpl.getInstance();
 
 	public enum MavenProjectName {
 
@@ -107,6 +110,10 @@ public class BasePropertiesManagerTest {
 	public static void tearDown() {
 		LOGGER.setLevel(oldLevel);
 	}
+	
+	protected static void setJDTUtils(IJDTUtils newUtils) {
+		JDT_UTILS = newUtils;
+	}
 
 	protected static MicroProfileProjectInfo getMicroProfileProjectInfoFromMavenProject(MavenProjectName mavenProject)
 			throws CoreException, Exception, JavaModelException {
@@ -118,7 +125,7 @@ public class BasePropertiesManagerTest {
 			List<MicroProfilePropertiesScope> scopes) throws CoreException, Exception, JavaModelException {
 		IJavaProject javaProject = loadMavenProject(mavenProject);
 		return PropertiesManager.getInstance().getMicroProfileProjectInfo(javaProject, scopes, ClasspathKind.SRC,
-				JDTUtilsLSImpl.getInstance(), DocumentFormat.Markdown, new NullProgressMonitor());
+				JDT_UTILS, DocumentFormat.Markdown, new NullProgressMonitor());
 	}
 
 	public static IJavaProject loadMavenProject(MavenProjectName mavenProject) throws CoreException, Exception {

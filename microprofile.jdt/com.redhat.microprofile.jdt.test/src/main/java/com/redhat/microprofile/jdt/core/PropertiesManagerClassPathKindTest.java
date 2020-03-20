@@ -26,7 +26,6 @@ import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
-import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 import com.redhat.microprofile.jdt.internal.core.utils.DependencyUtil;
 
 /**
@@ -51,7 +50,7 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
 		// not in classpath -> 0 quarkus properties
 		IFile fileFromNone = javaProject.getProject().getFile(new Path("application.properties"));
 		MicroProfileProjectInfo infoFromNone = PropertiesManager.getInstance().getMicroProfileProjectInfo(fileFromNone,
-				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDTUtilsLSImpl.getInstance(),
+				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDT_UTILS,
 				DocumentFormat.Markdown, new NullProgressMonitor());
 		Assert.assertEquals(ClasspathKind.NONE, infoFromNone.getClasspathKind());
 		Assert.assertEquals(0, infoFromNone.getProperties().size());
@@ -63,7 +62,7 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
 		// in /java/main/src classpath -> N quarkus properties
 		IFile fileFromSrc = javaProject.getProject().getFile(new Path("src/main/resources/application.properties"));
 		MicroProfileProjectInfo infoFromSrc = PropertiesManager.getInstance().getMicroProfileProjectInfo(fileFromSrc,
-				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDTUtilsLSImpl.getInstance(),
+				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDT_UTILS,
 				DocumentFormat.Markdown, new NullProgressMonitor());
 		Assert.assertEquals(ClasspathKind.SRC, infoFromSrc.getClasspathKind());
 		assertProperties(infoFromSrc, 185 /* properties from JAR */ + 3 /* properties from Java sources */,
@@ -98,7 +97,7 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
 
 		IFile filefromTest = javaProject.getProject().getFile(new Path("src/test/resources/application.properties"));
 		MicroProfileProjectInfo infoFromTest = PropertiesManager.getInstance().getMicroProfileProjectInfo(filefromTest,
-				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDTUtilsLSImpl.getInstance(),
+				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDT_UTILS,
 				DocumentFormat.Markdown, new NullProgressMonitor());
 		Assert.assertEquals(ClasspathKind.TEST, infoFromTest.getClasspathKind());
 		assertProperties(infoFromTest, 185 /* properties from JAR */ + 3 /* properties from JAR (test) */ + 3 /*

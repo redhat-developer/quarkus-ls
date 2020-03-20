@@ -37,3 +37,4 @@ Export-Package: com.redhat.microprofile.commons,
  io.quarkus.runtime.util
 Bundle-ClassPath: lib/snakeyaml-1.25.jar,
  .
+Eclipse-ExtensibleAPI: true

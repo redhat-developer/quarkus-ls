@@ -26,7 +26,6 @@ import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
 import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
-import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 import com.redhat.microprofile.jdt.internal.restclient.MicroProfileRestClientConstants;
 
 /**
@@ -40,7 +39,7 @@ public class JavaDiagnosticsMicroProfileRestClientTest extends BasePropertiesMan
 	@Test
 	public void restClientDiagnostics() throws Exception {
 		IJavaProject javaProject = loadMavenProject(MavenProjectName.rest_client_quickstart);
-		IJDTUtils utils = JDTUtilsLSImpl.getInstance();
+		IJDTUtils utils = JDT_UTILS;
 
 		MicroProfileJavaDiagnosticsParams params = new MicroProfileJavaDiagnosticsParams();
 		IFile javaFile = javaProject.getProject().getFile(new Path("src/main/java/org/acme/restclient/Fields.java"));

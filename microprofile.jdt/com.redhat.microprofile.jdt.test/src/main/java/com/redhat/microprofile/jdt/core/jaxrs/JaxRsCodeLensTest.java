@@ -27,7 +27,6 @@ import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
 import com.redhat.microprofile.jdt.core.PropertiesManagerForJava;
 import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProject;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
-import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 
 /**
  * JAX-RS URL Codelens test for Java file.
@@ -40,7 +39,7 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 	@Test
 	public void urlCodeLensProperties() throws Exception {
 		IJavaProject javaProject = loadMavenProject(MavenProjectName.hibernate_orm_resteasy);
-		IJDTUtils utils = JDTUtilsLSImpl.getInstance();
+		IJDTUtils utils = JDT_UTILS;
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
 		params.setCheckServerAvailable(false);
@@ -74,7 +73,7 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 	@Test
 	public void urlCodeLensYaml() throws Exception {
 		IJavaProject javaProject = loadMavenProject(MavenProjectName.hibernate_orm_resteasy_yaml);
-		IJDTUtils utils = JDTUtilsLSImpl.getInstance();
+		IJDTUtils utils = JDT_UTILS;
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
 		params.setCheckServerAvailable(false);

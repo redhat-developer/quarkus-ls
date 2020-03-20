@@ -9,9 +9,6 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.internal.core.utils;
 
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.redhat.microprofile.jdt.core.utils.JDTMicroProfileUtils;
 
 //import com.redhat.microprofile.jdt.internal.quarkus.JDTQuarkusUtils;

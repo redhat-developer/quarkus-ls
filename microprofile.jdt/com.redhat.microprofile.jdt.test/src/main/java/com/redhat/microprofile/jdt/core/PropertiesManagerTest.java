@@ -27,7 +27,6 @@ import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
-import com.redhat.microprofile.jdt.internal.core.ls.JDTUtilsLSImpl;
 
 /**
  * JDT Quarkus manager test.
@@ -46,7 +45,7 @@ public class PropertiesManagerTest extends BasePropertiesManagerTest {
 		MicroProfileProjectInfoParams params = new MicroProfileProjectInfoParams();
 		params.setUri("bad-uri");
 		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(params,
-				JDTUtilsLSImpl.getInstance(), new NullProgressMonitor());
+				JDT_UTILS, new NullProgressMonitor());
 		Assert.assertNotNull("MicroProfileProjectInfo for 'bad-uri' should not be null", info);
 		Assert.assertTrue("MicroProfileProjectInfo for 'bad-uri' should not belong to an Eclipse project ",
 				info.getProjectURI().isEmpty());
@@ -71,7 +70,7 @@ public class PropertiesManagerTest extends BasePropertiesManagerTest {
 			throws Exception {
 		IJavaProject project = createJavaProject(projectName, classpath);
 		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(project,
-				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, JDTUtilsLSImpl.getInstance(),
+				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, JDT_UTILS,
 				DocumentFormat.Markdown, new NullProgressMonitor());
 
 		assertProperties(info,

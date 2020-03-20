@@ -22,7 +22,6 @@ import org.junit.Test;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
-import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest.MavenProjectName;
 import com.redhat.microprofile.jdt.internal.faulttolerance.MicroProfileFaultToleranceConstants;
 
 /**
