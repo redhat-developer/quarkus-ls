@@ -12,3 +12,8 @@ Require-Bundle: org.junit,
  com.google.guava,
  org.eclipse.lsp4j
 Import-Package: com.google.gson
+Export-Package: com.redhat.microprofile.jdt.core.faulttolerance,
+ com.redhat.microprofile.jdt.core.health,
+ com.redhat.microprofile.jdt.core.metrics,
+ com.redhat.microprofile.jdt.core.opentracing,
+ com.redhat.microprofile.jdt.core.restclient
