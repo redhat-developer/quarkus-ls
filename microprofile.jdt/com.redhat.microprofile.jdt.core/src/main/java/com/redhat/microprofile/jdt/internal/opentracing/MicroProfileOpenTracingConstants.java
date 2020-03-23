@@ -17,10 +17,7 @@ package com.redhat.microprofile.jdt.internal.opentracing;
  * @see https://github.com/eclipse/microprofile-opentracing
  */
 public class MicroProfileOpenTracingConstants {
-	
-	public static final String TRACED_ANNOTATION = "org.eclipse.microprofile.opentracing.Traced";
-	
-	public static final String SKIP_PATTERN = "mp.opentracing.server.skip-pattern";
 
-	public static final String OPERATION_NAME_PROVIDER = "mp.opentracing.server.operation-name-provider";
+	public static final String TRACED_ANNOTATION = "org.eclipse.microprofile.opentracing.Traced";
+
 }

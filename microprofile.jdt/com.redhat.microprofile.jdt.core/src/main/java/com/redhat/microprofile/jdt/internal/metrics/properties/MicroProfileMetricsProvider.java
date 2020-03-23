@@ -11,15 +11,13 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.internal.metrics.properties;
 
-import static com.redhat.microprofile.jdt.internal.metrics.MicroProfileMetricsConstants.APPLICATION_NAME_VARIABLE;
-import static com.redhat.microprofile.jdt.internal.metrics.MicroProfileMetricsConstants.GLOBAL_TAGS_VARIABLE;
 import static com.redhat.microprofile.jdt.internal.metrics.MicroProfileMetricsConstants.METRIC_ID;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 
 import com.redhat.microprofile.jdt.core.AbstractStaticPropertiesProvider;
-import com.redhat.microprofile.jdt.core.IPropertiesCollector;
+import com.redhat.microprofile.jdt.core.MicroProfileCorePlugin;
 import com.redhat.microprofile.jdt.core.SearchContext;
 import com.redhat.microprofile.jdt.core.utils.JDTTypeUtils;
 
@@ -32,24 +30,14 @@ import com.redhat.microprofile.jdt.core.utils.JDTTypeUtils;
  *
  */
 public class MicroProfileMetricsProvider extends AbstractStaticPropertiesProvider {
+	
+	public MicroProfileMetricsProvider() {
+		super(MicroProfileCorePlugin.PLUGIN_ID, "/static-properties/mp-metrics-metadata.json");
+	}
 
 	@Override
 	protected boolean isAdaptedFor(SearchContext context, IProgressMonitor monitor) {
 		IJavaProject javaProject = context.getJavaProject();
 		return (JDTTypeUtils.findType(javaProject, METRIC_ID) != null);
 	}
-
-	@Override
-	protected void collectStaticProperties(SearchContext context, IProgressMonitor monitor) {
-		IPropertiesCollector collector = context.getCollector();
-		String docs = "List of tag values.\r\n"
-				+ "Tag values set through `mp.metrics.tags` MUST escape equal symbols `=` and commas `,` with a backslash `\\`.";
-		super.addItemMetadata(collector, GLOBAL_TAGS_VARIABLE, "java.util.Optional<java.lang.String>", docs, null, null,
-				null, null, null, false);
-
-		docs = "The app name.";
-		super.addItemMetadata(collector, APPLICATION_NAME_VARIABLE, "java.util.Optional<java.lang.String>", docs, null,
-				null, null, null, null, false);
-	}
-
 }

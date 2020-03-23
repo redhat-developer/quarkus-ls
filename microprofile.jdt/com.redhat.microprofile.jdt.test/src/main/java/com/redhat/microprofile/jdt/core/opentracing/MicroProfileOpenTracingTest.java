@@ -39,13 +39,13 @@ public class MicroProfileOpenTracingTest extends BasePropertiesManagerTest {
 
 		assertProperties(infoFromClasspath,
 
-				p(null, "mp.opentracing.server.skip-pattern", "java.util.Optional<java.util.regex.Pattern>",
+				p("microprofile-opentracing", "mp.opentracing.server.skip-pattern", "java.util.regex.Pattern",
 						"Specifies a skip pattern to avoid tracing of selected REST endpoints.",
-						false, null, null, null, 0, null),
+						true, null, null, null, 0, null),
 
-				p(null, "mp.opentracing.server.operation-name-provider", "\"http-path\" or \"class-method\"",
+				p("microprofile-opentracing", "mp.opentracing.server.operation-name-provider", "\"http-path\" or \"class-method\"",
 						"Specifies operation name provider for server spans. Possible values are `http-path` and `class-method`.",
-						false, null, null, null, 0, "class-method")
+						true, null, null, null, 0, "class-method")
 
 		);
 

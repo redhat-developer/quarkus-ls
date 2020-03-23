@@ -21,7 +21,4 @@ public class MicroProfileMetricsConstants{
 
 	public static final String METRIC_ID = "org.eclipse.microprofile.metrics.MetricID";
 
-	public static final String GLOBAL_TAGS_VARIABLE = "mp.metrics.tags";
-
-	public static final String APPLICATION_NAME_VARIABLE = "mp.metrics.appName";
 }
