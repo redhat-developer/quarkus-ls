@@ -38,3 +38,5 @@ Export-Package: com.redhat.microprofile.commons,
 Bundle-ClassPath: lib/snakeyaml-1.25.jar,
  .
 Eclipse-ExtensibleAPI: true
+Import-Package: com.google.gson,
+ com.google.gson.stream

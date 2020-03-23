@@ -35,14 +35,14 @@ public class MicroProfileMetricsTest extends BasePropertiesManagerTest {
 
 		assertProperties(infoFromClasspath,
 
-				p(null, "mp.metrics.tags", "java.util.Optional<java.lang.String>", 
+				p("microprofile-metrics", "mp.metrics.tags", "java.lang.String", 
 						"List of tag values.\r\n"
 						+ "Tag values set through `mp.metrics.tags` MUST escape equal symbols `=` and commas `,` with a backslash `\\`.",
-						false, null, null, null, 0, null),
+						true, null, null, null, 0, null),
 
-				p(null, "mp.metrics.appName", "java.util.Optional<java.lang.String>",
+				p("microprofile-metrics", "mp.metrics.appName", "java.lang.String",
 						"The app name.",
-						false, null, null, null, 0, null)
+						true, null, null, null, 0, null)
 
 		);
 
