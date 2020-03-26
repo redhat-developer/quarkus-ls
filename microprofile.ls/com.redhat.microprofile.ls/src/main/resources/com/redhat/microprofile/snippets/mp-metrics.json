@@ -10,7 +10,10 @@
       "\tdescription = \"${2:description}\"",
       ")"
     ],
-    "description": "An annotation that contains the metadata information when requesting a metric to be injected or produced. This annotation can be used on fields of type Meter, Timer, Counter, and Histogram. For Gauge, the @Metric annotation can only be used on producer methods/fields."
+    "description": "An annotation that contains the metadata information when requesting a metric to be injected or produced. This annotation can be used on fields of type Meter, Timer, Counter, and Histogram. For Gauge, the @Metric annotation can only be used on producer methods/fields.",
+    "context": {
+      "type": "org.eclipse.microprofile.metrics.annotation.Metric"
+    }
   },
   "@Counted": {
     "prefix": [
@@ -22,7 +25,10 @@
       "\tdescription = \"${2:description}\"",
       ")"
     ],
-    "description": "Denotes a counter, which counts the invocations of the annotated object."
+    "description": "Denotes a counter, which counts the invocations of the annotated object.",
+    "context": {
+      "type": "org.eclipse.microprofile.metrics.annotation.Counted"
+    }
   },
   "@Gauge": {
     "prefix": [
@@ -34,7 +40,10 @@
       "\tdescription = \"${2:description}\"",
       ")"
     ],
-    "description": "Denotes a gauge, which samples the value of the annotated object."
+    "description": "Denotes a gauge, which samples the value of the annotated object.",
+    "context": {
+      "type": "org.eclipse.microprofile.metrics.annotation.Gauge"
+    }
   },
   "@ConcurrentGauge": {
     "prefix": [
@@ -46,7 +55,10 @@
       "\tdescription = \"${2:description}\"",
       ")"
     ],
-    "description": "Denotes a gauge which counts the parallel invocations of the annotated object."
+    "description": "Denotes a gauge which counts the parallel invocations of the annotated object.",
+    "context": {
+      "type": "org.eclipse.microprofile.metrics.annotation.ConcurrentGauge"
+    }
   },
   "@Metered": {
     "prefix": [
@@ -58,7 +70,10 @@
       "\tdescription = \"${2:description}\"",
       ")"
     ],
-    "description": "Denotes a meter, which tracks the frequency of invocations of the annotated object."
+    "description": "Denotes a meter, which tracks the frequency of invocations of the annotated object.",
+    "context": {
+      "type": "org.eclipse.microprofile.metrics.annotation.Metered"
+    }
   },
   "@Timed": {
     "prefix": [
@@ -70,7 +85,25 @@
       "\tdescription = \"${2:description}\"",
       ")"
     ],
-    "description": "Denotes a timer, which tracks duration of the annotated object."
+    "description": "Denotes a timer, which tracks duration of the annotated object.",
+    "context": {
+      "type": "org.eclipse.microprofile.metrics.annotation.Timed"
+    }
+  },
+  "@SimplyTimed": {
+    "prefix": [
+      "@SimplyTimed"
+    ],
+    "body": [
+      "@SimplyTimed(",
+      "\tname = \"${1:name}\",",
+      "\tdescription = \"${2:description}\"",
+      ")"
+    ],
+    "description": "Denotes a simple timer, which tracks duration and invocations of the annotated object.",
+    "context": {
+      "type": "org.eclipse.microprofile.metrics.annotation.SimplyTimed"
+    }
   },
   "@RegistryType": {
     "prefix": [
@@ -79,6 +112,9 @@
     "body": [
       "@RegistryType(type=$1)"
     ],
-    "description": "Qualifies the scope of Metric Registry to inject when injecting a MetricRegistry."
+    "description": "Qualifies the scope of Metric Registry to inject when injecting a MetricRegistry.",
+    "context": {
+      "type": "org.eclipse.microprofile.metrics.annotation.RegistryType"
+    }
   }
 }
