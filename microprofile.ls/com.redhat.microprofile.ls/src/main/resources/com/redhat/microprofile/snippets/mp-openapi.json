@@ -10,7 +10,10 @@
       "\tdescription = \"${2:description}\"",
       ")"
     ],
-    "description": "Describes an operation or typically a HTTP method against a specific path."
+    "description": "Describes an operation or typically a HTTP method against a specific path.",
+    "context": {
+    	"type": "org.eclipse.microprofile.openapi.annotations.Operation"
+    }
   },
   "@Content": {
     "prefix": [
@@ -19,7 +22,10 @@
     "body": [
       "@Content(mediaType = \"${1:text/plain}\")"
     ],
-    "description": "Provides media type"
+    "description": "Provides media type",
+    "context": {
+      "type": "org.eclipse.microprofile.openapi.annotations.Content"
+    }
   },
   "@Content with Schema": {
     "prefix": [
@@ -31,7 +37,10 @@
       "\tschema = $2",
       ")"
     ],
-    "description": "Provides schema and examples for a particular media type."
+    "description": "Provides schema and examples for a particular media type.",
+    "context": {
+      "type": "org.eclipse.microprofile.openapi.annotations.Content"
+    }
   },
   "@Schema with implementation": {
     "prefix": [
@@ -40,7 +49,10 @@
     "body": [
       "@Schema(implementation = $1)"
     ],
-    "description": "Allows the definition of input and output data types."
+    "description": "Allows the definition of input and output data types.",
+    "context": {
+      "type": "org.eclipse.microprofile.openapi.annotations.Schema"
+    }
   },
   "@Schema with type": {
     "prefix": [
@@ -49,7 +61,10 @@
     "body": [
       "@Schema(type = $1)"
     ],
-    "description": "Allows the definition of input and output data types."
+    "description": "Allows the definition of input and output data types.",
+    "context": {
+      "type": "org.eclipse.microprofile.openapi.annotations.Schema"
+    }
   },
   "@Schema with implementation and type": {
     "prefix": [
@@ -61,7 +76,10 @@
       "\ttype = $2",
       ")"
     ],
-    "description": "Allows the definition of input and output data types."
+    "description": "Allows the definition of input and output data types.",
+    "context": {
+      "type": "org.eclipse.microprofile.openapi.annotations.Schema"
+    }
   },
   "@Parameters": {
     "prefix": [
@@ -73,7 +91,10 @@
       "\t}",
       ")"
     ],
-    "description": "Encapsulates input parameters."
+    "description": "Encapsulates input parameters.",
+    "context": {
+      "type": "org.eclipse.microprofile.openapi.annotations.Parameters"
+    }
   },
   "@Parameter": {
     "prefix": [
@@ -87,7 +108,10 @@
       "\tschema = $4",
       ")"
     ],
-    "description": "Describes a single operation parameter."
+    "description": "Describes a single operation parameter.",
+    "context": {
+      "type": "org.eclipse.microprofile.openapi.annotations.Parameter"
+    }
   },
   "@APIResponses": {
     "prefix": [
@@ -99,7 +123,10 @@
       "\t}",
       ")"
     ],
-    "description": "A container for multiple responses from an API operation."
+    "description": "A container for multiple responses from an API operation.",
+    "context": {
+      "type": "org.eclipse.microprofile.openapi.annotations.APIResponses"
+    }
   },
   "@APIResponse": {
     "prefix": [
@@ -113,6 +140,9 @@
       "\tschema = $4",
       ")"
     ],
-    "description": "Describes a single response from an API operation."
+    "description": "Describes a single response from an API operation.",
+    "context": {
+      "type": "org.eclipse.microprofile.openapi.annotations.APIResponse"
+    }
   }
 }
