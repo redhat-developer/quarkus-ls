@@ -24,7 +24,6 @@ import org.eclipse.lsp4j.Diagnostic;
 import com.redhat.microprofile.jdt.core.java.codeaction.IJavaCodeActionParticipant;
 import com.redhat.microprofile.jdt.core.java.codeaction.JavaCodeActionContext;
 import com.redhat.microprofile.jdt.core.java.corrections.proposal.ChangeCorrectionProposal;
-import com.redhat.microprofile.jdt.core.java.corrections.proposal.OpenAPIAnnotationProposal;
 import com.redhat.microprofile.jdt.internal.openapi.MicroProfileOpenAPIConstants;
 
 /**

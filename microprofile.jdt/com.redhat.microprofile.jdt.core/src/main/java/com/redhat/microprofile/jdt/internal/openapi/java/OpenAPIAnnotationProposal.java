@@ -12,7 +12,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package com.redhat.microprofile.jdt.core.java.corrections.proposal;
+package com.redhat.microprofile.jdt.internal.openapi.java;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -35,6 +35,9 @@ import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite.ImportRewriteContext;
 import org.eclipse.jdt.internal.corext.codemanipulation.ContextSensitiveImportRewriteContext;
 import org.eclipse.lsp4j.CodeActionKind;
+
+import com.redhat.microprofile.jdt.core.java.corrections.proposal.ASTRewriteCorrectionProposal;
+import com.redhat.microprofile.jdt.internal.openapi.MicroProfileOpenAPIConstants;
 
 /**
  * A proposal for generating OpenAPI annotations that works on an AST rewrite.  
@@ -62,7 +65,8 @@ public class OpenAPIAnnotationProposal extends ASTRewriteCorrectionProposal {
 		List<MethodDeclaration> responseReturnMethods = new ArrayList<>();
 		for (MethodDeclaration method : methods) {
 			boolean operationFlag = false;
-			if (method.getReturnType2().resolveBinding().getQualifiedName().equals("javax.ws.rs.core.Response")) {
+			if (method.getReturnType2().resolveBinding().getQualifiedName().
+					equals(MicroProfileOpenAPIConstants.RESPONSE_TYPE)) {
 				List<?> modifiers = method.modifiers();
 				for (Iterator<?> iter = modifiers.iterator(); iter.hasNext();) {
 					Object next = iter.next();
@@ -71,7 +75,7 @@ public class OpenAPIAnnotationProposal extends ASTRewriteCorrectionProposal {
 						if (modifier.isAnnotation()) {
 							Annotation annotation = (Annotation) modifier;
 							if (annotation.resolveTypeBinding().getQualifiedName()
-									.equals("org.eclipse.microprofile.openapi.annotations.Operation")) {
+									.equals(MicroProfileOpenAPIConstants.OPERATION_ANNOTATION)) {
 								operationFlag = true;
 								break;
 							}
@@ -92,8 +96,8 @@ public class OpenAPIAnnotationProposal extends ASTRewriteCorrectionProposal {
 			ImportRewrite imports = createImportRewrite(this.fInvocationNode);
 			ImportRewriteContext importRewriteContext= new ContextSensitiveImportRewriteContext(this.fInvocationNode, imports);
 			
-			NormalAnnotation marker = ast.newNormalAnnotation(); //newMarkerAnnotation();
-			marker.setTypeName(ast.newName(imports.addImport(fAnnotation, importRewriteContext))); //$NON-NLS-1$
+			NormalAnnotation marker = ast.newNormalAnnotation();
+			marker.setTypeName(ast.newName(imports.addImport(fAnnotation, importRewriteContext)));
 			List<MemberValuePair> values = marker.values();
 			// "summary" parameter
 			MemberValuePair memberValuePair = ast.newMemberValuePair();
