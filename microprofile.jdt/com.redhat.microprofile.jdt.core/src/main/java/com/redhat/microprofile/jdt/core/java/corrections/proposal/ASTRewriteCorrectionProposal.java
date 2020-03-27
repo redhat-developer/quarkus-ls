@@ -22,9 +22,10 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.core.manipulation.CodeStyleConfiguration;
-import org.eclipse.jdt.ls.core.internal.StatusFactory;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.text.edits.TextEdit;
+
+import com.redhat.microprofile.jdt.internal.core.StatusFactory;
 
 /**
  * A proposal for quick fixes and quick assists that works on an AST rewrite. Either a rewrite is
