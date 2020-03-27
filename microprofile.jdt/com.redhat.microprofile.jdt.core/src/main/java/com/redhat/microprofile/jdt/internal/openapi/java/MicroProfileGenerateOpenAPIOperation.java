@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.lsp4j.CodeAction;
@@ -24,6 +25,7 @@ import org.eclipse.lsp4j.Diagnostic;
 import com.redhat.microprofile.jdt.core.java.codeaction.IJavaCodeActionParticipant;
 import com.redhat.microprofile.jdt.core.java.codeaction.JavaCodeActionContext;
 import com.redhat.microprofile.jdt.core.java.corrections.proposal.ChangeCorrectionProposal;
+import com.redhat.microprofile.jdt.core.utils.JDTTypeUtils;
 import com.redhat.microprofile.jdt.internal.openapi.MicroProfileOpenAPIConstants;
 
 /**
@@ -33,27 +35,36 @@ import com.redhat.microprofile.jdt.internal.openapi.MicroProfileOpenAPIConstants
  *
  */
 public class MicroProfileGenerateOpenAPIOperation implements IJavaCodeActionParticipant {
+	
+	@Override
+	public boolean isAdaptedForCodeAction(JavaCodeActionContext context, IProgressMonitor monitor)
+			throws CoreException {
+		IJavaProject javaProject = context.getJavaProject();
+		return JDTTypeUtils.findType(javaProject, MicroProfileOpenAPIConstants.OPERATION_ANNOTATION) != null;
+	}
 
 	@Override
 	public List<? extends CodeAction> getCodeActions(JavaCodeActionContext context, Diagnostic diagnostic,
 			IProgressMonitor monitor) throws CoreException {
-		CompilationUnit cu = context.getASTRoot();
-		List<?> types = cu.types();
 		List<CodeAction> codeActions = new ArrayList<>();
-		for (Object type : types){
-			if (type instanceof TypeDeclaration) {
-				ChangeCorrectionProposal proposal = new OpenAPIAnnotationProposal(
-						"Generate OpenAPI Annotations", context.getCompilationUnit(), context.getASTRoot(),
-						(TypeDeclaration) type, MicroProfileOpenAPIConstants.OPERATION_ANNOTATION, 0);
-				// Convert the proposal to LSP4J CodeAction
-				CodeAction codeAction = context.convertToCodeAction(proposal);
-				if (codeAction == null) {
-					codeAction = new CodeAction(proposal.getName());
-					codeAction.setKind(proposal.getKind());
+		if (isAdaptedForCodeAction(context, monitor)) {
+			CompilationUnit cu = context.getASTRoot();
+			List<?> types = cu.types();
+			for (Object type : types){
+				if (type instanceof TypeDeclaration) {
+					ChangeCorrectionProposal proposal = new OpenAPIAnnotationProposal(
+							"Generate OpenAPI Annotations", context.getCompilationUnit(), context.getASTRoot(),
+							(TypeDeclaration) type, MicroProfileOpenAPIConstants.OPERATION_ANNOTATION, 0);
+					// Convert the proposal to LSP4J CodeAction
+					CodeAction codeAction = context.convertToCodeAction(proposal);
+					if (codeAction == null) {
+						codeAction = new CodeAction(proposal.getName());
+						codeAction.setKind(proposal.getKind());
+					}
+					codeActions.add(codeAction);	
 				}
-				codeActions.add(codeAction);	
 			}
-		}		
+		}
 		return codeActions;
 	}
 	
