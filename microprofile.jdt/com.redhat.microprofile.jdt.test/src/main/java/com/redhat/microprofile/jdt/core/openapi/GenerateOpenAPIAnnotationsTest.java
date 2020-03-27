@@ -13,6 +13,7 @@ package com.redhat.microprofile.jdt.core.openapi;
 
 import static com.redhat.microprofile.jdt.internal.core.java.MicroProfileForJavaAssert.assertJavaCodeAction;
 import static com.redhat.microprofile.jdt.internal.core.java.MicroProfileForJavaAssert.ca;
+import static com.redhat.microprofile.jdt.internal.core.java.MicroProfileForJavaAssert.createCodeActionParams;
 import static com.redhat.microprofile.jdt.internal.core.java.MicroProfileForJavaAssert.te;
 
 import java.util.Collections;
@@ -36,7 +37,7 @@ import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 /**
  * Code action for generating MicroProfile OpenAPI annotations.
  * 
- * @author
+ * @author Benson Ning
  *
  */
 public class GenerateOpenAPIAnnotationsTest extends BasePropertiesManagerTest {
@@ -51,7 +52,10 @@ public class GenerateOpenAPIAnnotationsTest extends BasePropertiesManagerTest {
 		IFile javaFile = javaProject.getProject()
 				.getFile(new Path("src/main/java/org/acme/openapi/NoOperationAnnotation.java"));
 		String uri = javaFile.getLocation().toFile().toURI().toString();
-		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri);
+		Diagnostic d = new Diagnostic();
+		Position start = new Position(8, 23);
+		d.setRange(new Range(start, start));
+		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
 		
 		String newText = "\r\n\r\nimport org.eclipse.microprofile.openapi.annotations.Operation;" + 
 						 "\r\n\r\n@RequestScoped\r\n@Path(\"/systems\")\r\npublic class NoOperationAnnotation {" + 
@@ -60,20 +64,9 @@ public class GenerateOpenAPIAnnotationsTest extends BasePropertiesManagerTest {
 						 "Response.ok(listContents()).build();\r\n\t}\r\n\r\n\t@Operation(summary = \"\", " + 
 						 "description = \"\")\r\n\t";
 		assertJavaCodeAction(codeActionParams, utils, 
-				ca(uri, "Generate OpenAPI Annotations", new Diagnostic(), 
+				ca(uri, "Generate OpenAPI Annotations", d, 
 						te(6, 33, 17, 1, newText))
 		);
 	}
 
-	private MicroProfileJavaCodeActionParams createCodeActionParams(String uri) {
-		TextDocumentIdentifier textDocument = new TextDocumentIdentifier(uri);
-		Position start = new Position(8, 6);
-		Range range = new Range(start, start);
-		CodeActionContext context = new CodeActionContext();
-		context.setDiagnostics(Collections.emptyList());
-		MicroProfileJavaCodeActionParams codeActionParams = new MicroProfileJavaCodeActionParams(textDocument, range,
-				context);
-		codeActionParams.setResourceOperationSupported(true);
-		return codeActionParams;
-	}		
 }

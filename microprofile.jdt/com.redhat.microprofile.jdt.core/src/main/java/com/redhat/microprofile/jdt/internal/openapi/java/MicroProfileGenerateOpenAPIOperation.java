@@ -30,7 +30,7 @@ import com.redhat.microprofile.jdt.internal.openapi.MicroProfileOpenAPIConstants
 /**
  * Generate OpenAPI annotations by the "Source" kind code action.
  * 
- * @author
+ * @author Benson Ning
  *
  */
 public class MicroProfileGenerateOpenAPIOperation implements IJavaCodeActionParticipant {

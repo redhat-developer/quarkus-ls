@@ -36,7 +36,12 @@ import org.eclipse.jdt.core.dom.rewrite.ImportRewrite.ImportRewriteContext;
 import org.eclipse.jdt.internal.corext.codemanipulation.ContextSensitiveImportRewriteContext;
 import org.eclipse.lsp4j.CodeActionKind;
 
-
+/**
+ * A proposal for generating OpenAPI annotations that works on an AST rewrite.  
+ *  
+ * @author Benson Ning
+ *
+ */
 public class OpenAPIAnnotationProposal extends ASTRewriteCorrectionProposal {
 
 	private final CompilationUnit fInvocationNode;
