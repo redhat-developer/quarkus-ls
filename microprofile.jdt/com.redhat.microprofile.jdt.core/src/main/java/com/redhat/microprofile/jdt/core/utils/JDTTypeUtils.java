@@ -14,7 +14,9 @@ import java.util.List;
 
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJarEntryResource;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
@@ -37,6 +39,27 @@ public class JDTTypeUtils {
 	public static IType findType(IJavaProject project, String name) {
 		try {
 			return project.findType(name);
+		} catch (JavaModelException e) {
+			return null;
+		}
+	}
+
+	public static String getResolvedTypeName(IJavaElement javaElement) {
+		switch (javaElement.getElementType()) {
+		case IJavaElement.LOCAL_VARIABLE:
+			return getResolvedTypeName((ILocalVariable) javaElement);
+		case IJavaElement.FIELD:
+			return getResolvedTypeName((IField) javaElement);
+		default:
+			return null;
+		}
+	}
+
+	public static String getResolvedTypeName(ILocalVariable localVar) {
+		try {
+			String signature = localVar.getTypeSignature();
+			IType primaryType = localVar.getTypeRoot().findPrimaryType();
+			return JavaModelUtil.getResolvedTypeName(signature, primaryType);
 		} catch (JavaModelException e) {
 			return null;
 		}
@@ -97,11 +120,37 @@ public class JDTTypeUtils {
 		return type != null ? type.getFullyQualifiedName('.') : typeName;
 	}
 
+	public static boolean isBinary(IJavaElement javaElement) {
+		if (javaElement instanceof IMember) {
+			return ((IMember) javaElement).isBinary();
+		} else if (javaElement instanceof ILocalVariable) {
+			return isBinary(((ILocalVariable) javaElement).getDeclaringMember());
+		}
+		return false;
+	}
+
+	public static String getSourceType(IJavaElement javaElement) {
+		switch (javaElement.getElementType()) {
+		case IJavaElement.LOCAL_VARIABLE:
+			return getSourceType((ILocalVariable) javaElement);
+		case IJavaElement.FIELD:
+			return getSourceType((IField) javaElement);
+		case IJavaElement.METHOD:
+			return getSourceType((IMethod) javaElement);
+		default:
+			return null;
+		}
+	}
+
+	public static String getSourceType(ILocalVariable member) {
+		return getSourceType(member.getDeclaringMember());
+	}
+
 	public static String getSourceType(IMember member) {
 		return getPropertyType(member.getDeclaringType(), null);
 	}
 
-	public static String getSourceField(IField field) {
+	public static String getSourceField(IJavaElement field) {
 		return field.getElementName();
 	}
 

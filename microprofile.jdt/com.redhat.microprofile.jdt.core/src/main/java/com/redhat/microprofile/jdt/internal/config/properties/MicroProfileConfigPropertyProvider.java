@@ -18,11 +18,12 @@ import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getPropertyTyp
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getResolvedTypeName;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceField;
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceType;
+import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isBinary;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
-import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
@@ -51,29 +52,30 @@ public class MicroProfileConfigPropertyProvider extends AbstractAnnotationTypeRe
 	@Override
 	protected void processAnnotation(IJavaElement javaElement, IAnnotation configPropertyAnnotation,
 			String annotationName, SearchContext context, IProgressMonitor monitor) throws JavaModelException {
-		if (javaElement.getElementType() == IJavaElement.FIELD) {
+		if (javaElement.getElementType() == IJavaElement.FIELD
+				|| javaElement.getElementType() == IJavaElement.LOCAL_VARIABLE) {
 			IPropertiesCollector collector = context.getCollector();
 			String name = getAnnotationMemberValue(configPropertyAnnotation,
 					MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_NAME);
 			if (name != null && !name.isEmpty()) {
-				IField field = (IField) javaElement;
-				String fieldTypeName = getResolvedTypeName(field);
-				IType fieldClass = findType(field.getJavaProject(), fieldTypeName);
-
-				String type = getPropertyType(fieldClass, fieldTypeName);
+				IJavaProject javaProject = javaElement.getJavaProject();
+				String varTypeName = getResolvedTypeName(javaElement);
+				IType varType = findType(javaProject, varTypeName);
+				String type = getPropertyType(varType, varTypeName);
 				String description = null;
-				String sourceType = getSourceType(field);
-				String sourceField = getSourceField(field);
+				String sourceType = getSourceType(javaElement);
+				String sourceField = getSourceField(javaElement);
 				String defaultValue = getAnnotationMemberValue(configPropertyAnnotation,
 						MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
 				String extensionName = null;
 
 				// Enumerations
-				IType enclosedType = getEnclosedType(fieldClass, type, field.getJavaProject());
+				IType enclosedType = getEnclosedType(varType, type, javaProject);
 				super.updateHint(collector, enclosedType);
 
+				boolean binary = isBinary(javaElement);
 				addItemMetadata(collector, name, type, description, sourceType, sourceField, null, defaultValue,
-						extensionName, field.isBinary());
+						extensionName, binary);
 			}
 		}
 	}

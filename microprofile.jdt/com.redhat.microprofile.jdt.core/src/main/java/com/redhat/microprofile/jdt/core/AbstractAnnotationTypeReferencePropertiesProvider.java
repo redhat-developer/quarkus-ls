@@ -19,6 +19,7 @@ import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.search.ReferenceMatch;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchPattern;
 
@@ -30,7 +31,8 @@ import org.eclipse.jdt.core.search.SearchPattern;
  */
 public abstract class AbstractAnnotationTypeReferencePropertiesProvider extends AbstractPropertiesProvider {
 
-	private static final Logger LOGGER = Logger.getLogger(AbstractAnnotationTypeReferencePropertiesProvider.class.getName());
+	private static final Logger LOGGER = Logger
+			.getLogger(AbstractAnnotationTypeReferencePropertiesProvider.class.getName());
 
 	@Override
 	protected String[] getPatterns() {
@@ -51,29 +53,47 @@ public abstract class AbstractAnnotationTypeReferencePropertiesProvider extends 
 
 	@Override
 	public void collectProperties(SearchMatch match, SearchContext context, IProgressMonitor monitor) {
-		Object element = match.getElement();
-		if (element instanceof IAnnotatable && element instanceof IJavaElement) {
-			IJavaElement javaElement = (IJavaElement) element;
-			processAnnotation(javaElement, context, monitor);
-		}
-	}
-
-	protected void processAnnotation(IJavaElement javaElement, SearchContext context, IProgressMonitor monitor) {
+		IJavaElement javaElement = null;
 		try {
-			String[] names = getAnnotationNames();
-			IAnnotation[] annotations = ((IAnnotatable) javaElement).getAnnotations();
-			for (IAnnotation annotation : annotations) {
-				for (String annotationName : names) {
-					if (isMatchAnnotation(annotation, annotationName)) {
-						processAnnotation(javaElement, annotation, annotationName, context, monitor);
-						break;
-					}
+			Object element = match instanceof ReferenceMatch ? ((ReferenceMatch) match).getLocalElement()
+					: match.getElement();
+			if (element instanceof IAnnotation) {
+				// ex : for Local variable
+				IAnnotation annotation = ((IAnnotation) element);
+				javaElement = annotation.getParent();
+				processAnnotation(javaElement, context, monitor, annotation);
+			} else {
+				if (element instanceof IAnnotatable && element instanceof IJavaElement) {
+					javaElement = (IJavaElement) element;
+					processAnnotation(javaElement, context, monitor);
 				}
 			}
 		} catch (Exception e) {
 			if (LOGGER.isLoggable(Level.SEVERE)) {
-				LOGGER.log(Level.SEVERE, "Cannot compute MicroProfile properties for the Java element '"
-						+ javaElement.getElementName() + "'.", e);
+				LOGGER.log(Level.SEVERE,
+						"Cannot compute MicroProfile properties for the Java element '" + javaElement != null
+								? javaElement.getElementName()
+								: match.getElement() + "'.",
+						e);
+			}
+		}
+	}
+
+	protected void processAnnotation(IJavaElement javaElement, SearchContext context, IProgressMonitor monitor)
+			throws JavaModelException {
+		IAnnotation[] annotations = ((IAnnotatable) javaElement).getAnnotations();
+		for (IAnnotation annotation : annotations) {
+			processAnnotation(javaElement, context, monitor, annotation);
+		}
+	}
+
+	private void processAnnotation(IJavaElement javaElement, SearchContext context, IProgressMonitor monitor,
+			IAnnotation annotation) throws JavaModelException {
+		String[] names = getAnnotationNames();
+		for (String annotationName : names) {
+			if (isMatchAnnotation(annotation, annotationName)) {
+				processAnnotation(javaElement, annotation, annotationName, context, monitor);
+				break;
 			}
 		}
 	}

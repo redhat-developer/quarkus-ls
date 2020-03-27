@@ -92,7 +92,7 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 		return SearchPattern.createPattern(annotationName, IJavaSearchConstants.ANNOTATION_TYPE,
 				IJavaSearchConstants.DECLARATIONS, SearchPattern.R_EXACT_MATCH);
 	}
-
+	
 	/**
 	 * Add item metadata.
 	 * 

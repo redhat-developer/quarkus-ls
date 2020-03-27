@@ -53,7 +53,7 @@ public class MavenArtifactResolver implements ArtifactResolver {
 		String artifactId = artifact.getArtifactId();
 		String version = artifact.getVersion();
 		try {
-			return DependencyUtil.getDependencies(groupId, artifactId, version, monitor);
+			return Collections.emptySet(); //DependencyUtil.getDependencies(groupId, artifactId, version, monitor);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Maven artifact JAR dependencies (groupId=" + groupId + ", artifactId="
 					+ artifactId + ", version=" + version + ") failed.", e);
