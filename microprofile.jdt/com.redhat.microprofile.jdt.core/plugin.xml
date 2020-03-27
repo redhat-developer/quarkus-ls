@@ -82,6 +82,12 @@
       <provider class="com.redhat.microprofile.jdt.internal.openapi.properties.MicroProfileOpenAPIProvider" />
    </extension>
 
+   <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">
+      <!-- Java codeAction for generating MicroProfile OpenAPI annotations -->
+      <codeAction kind="source" 
+                  class="com.redhat.microprofile.jdt.internal.openapi.java.MicroProfileGenerateOpenAPIOperation" />
+   </extension>
+
    <!-- Microprofile Health support -->
    
    <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">

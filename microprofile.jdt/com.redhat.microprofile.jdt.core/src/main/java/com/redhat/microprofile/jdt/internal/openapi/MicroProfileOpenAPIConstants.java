@@ -21,4 +21,5 @@ public class MicroProfileOpenAPIConstants {
 
 	public static String OPEN_API_CONFIG = "org.eclipse.microprofile.openapi.OASConfig";
 
+	public static final String OPERATION_ANNOTATION = "org.eclipse.microprofile.openapi.annotations.Operation";
 }
