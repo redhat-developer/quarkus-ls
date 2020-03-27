@@ -31,7 +31,7 @@ public class ConfigItemIntBoolDefaultValueTest extends BasePropertiesManagerTest
 		String intDefault = "0";
 
 		assertProperties(infoFromClasspath, 185 /* properties from JAR */ + //
-				3 /* properties from Java sources with ConfigProperty */ + //
+				9 /* properties from Java sources with ConfigProperty */ + //
 				2 /* properties from Java sources with ConfigRoot */,
 				
 				// @ConfigItem(name = ConfigItem.PARENT)
@@ -144,7 +144,33 @@ public class ConfigItemIntBoolDefaultValueTest extends BasePropertiesManagerTest
 				// public boolean clustered;
 				p("quarkus-vertx-core", "quarkus.vertx.cluster.clustered", "boolean",
 						"Enables or disables the clustering.", true,
-						"io.quarkus.vertx.core.runtime.config.ClusterConfiguration", "clustered", null, CONFIG_PHASE_RUN_TIME, booleanDefault));
+						"io.quarkus.vertx.core.runtime.config.ClusterConfiguration", "clustered", null, CONFIG_PHASE_RUN_TIME, booleanDefault),
+	
+				// GreetingConstructorResource(
+				// 		@ConfigProperty(name = "greeting.constructor.message") String message,
+				//		@ConfigProperty(name = "greeting.constructor.suffix" , defaultValue="!") String suffix,
+				//		@ConfigProperty(name = "greeting.constructor.name") Optional<String> name)
+				p(null, "greeting.constructor.message", "java.lang.String", null, false, "org.acme.config.GreetingConstructorResource",
+						null, "GreetingConstructorResource(QString;QString;QOptional<QString;>;)V", 0, null),
+
+				p(null, "greeting.constructor.suffix", "java.lang.String", null, false, "org.acme.config.GreetingConstructorResource",
+						null, "GreetingConstructorResource(QString;QString;QOptional<QString;>;)V", 0, "!"),
+
+				p(null, "greeting.constructor.name", "java.util.Optional", null, false, "org.acme.config.GreetingConstructorResource",
+						null, "GreetingConstructorResource(QString;QString;QOptional<QString;>;)V", 0, null),
+
+				// setMessage(@ConfigProperty(name = "greeting.method.message") String message)
+				p(null, "greeting.method.message", "java.lang.String", null, false, "org.acme.config.GreetingMethodResource",
+						null, "setMessage(QString;)V", 0, null),
+
+				// setSuffix(@ConfigProperty(name = "greeting.method.suffix" , defaultValue="!") String suffix)
+				p(null, "greeting.method.suffix", "java.lang.String", null, false, "org.acme.config.GreetingMethodResource",
+						null, "setSuffix(QString;)V", 0, "!"),
+
+				// setName(@ConfigProperty(name = "greeting.method.name") Optional<String> name)
+				p(null, "greeting.method.name", "java.util.Optional", null, false, "org.acme.config.GreetingMethodResource",
+						null, "setName(QOptional<QString;>;)V", 0, null)
+				);
 
 		assertPropertiesDuplicate(infoFromClasspath);
 	}

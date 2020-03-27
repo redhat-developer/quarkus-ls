@@ -103,11 +103,11 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	 * @param sourceType    the source type (class or interface) of the property.
 	 * @param sourceField   the source field (field name) and null otherwise.
 	 * @param sourceMethod  the source method (signature method) and null otherwise.
-	 * @param defaultValue  the default vaue and null otherwise.
+	 * @param defaultValue  the default value and null otherwise.
 	 * @param extensionName the extension name and null otherwise.
 	 * @param binary        true if the property comes from a JAR and false
 	 *                      otherwise.
-	 * @param phase         teh Quarkus config phase.
+	 * @param phase         the Quarkus config phase.
 	 * @return the item metadata.
 	 */
 	protected ItemMetadata addItemMetadata(IPropertiesCollector collector, String name, String type, String description,
@@ -127,7 +127,7 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	 * @param sourceType    the source type (class or interface) of the property.
 	 * @param sourceField   the source field (field name) and null otherwise.
 	 * @param sourceMethod  the source method (signature method) and null otherwise.
-	 * @param defaultValue  the default vaue and null otherwise.
+	 * @param defaultValue  the default value and null otherwise.
 	 * @param extensionName the extension name and null otherwise.
 	 * @param binary        true if the property comes from a JAR and false
 	 *                      otherwise.
