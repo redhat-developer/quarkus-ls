@@ -26,7 +26,6 @@ import org.eclipse.lsp4j.Diagnostic;
 
 import com.redhat.microprofile.jdt.core.java.codeaction.IJavaCodeActionParticipant;
 import com.redhat.microprofile.jdt.core.java.codeaction.JavaCodeActionContext;
-import com.redhat.microprofile.jdt.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.microprofile.jdt.internal.core.java.AbstractJavaFeatureDefinition;
 
 /**
