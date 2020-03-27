@@ -26,6 +26,7 @@ import org.eclipse.lsp4j.Diagnostic;
 
 import com.redhat.microprofile.jdt.core.java.codeaction.IJavaCodeActionParticipant;
 import com.redhat.microprofile.jdt.core.java.codeaction.JavaCodeActionContext;
+import com.redhat.microprofile.jdt.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.microprofile.jdt.internal.core.java.AbstractJavaFeatureDefinition;
 
 /**
@@ -50,6 +51,16 @@ public class JavaCodeActionDefinition extends AbstractJavaFeatureDefinition<IJav
 	private static String getKind(IConfigurationElement element) throws InvalidRegistryObjectException {
 		String kind = element.getAttribute(KIND_ATTR);
 		return !StringUtils.isEmpty(kind) ? kind : CodeActionKind.QuickFix;
+	}
+	
+	@Override
+	public boolean isAdaptedForCodeAction(JavaCodeActionContext context, IProgressMonitor monitor) {
+		try {
+			return getParticipant().isAdaptedForCodeAction(context, monitor);
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while calling isAdaptedForCodeAction", e);
+			return false;
+		}
 	}
 
 	@Override

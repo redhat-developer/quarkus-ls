@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -85,7 +86,9 @@ public class CodeActionHandler {
 		for (String codeActionKind : codeActionKinds) {
 			// Get list of code action definition for the given kind
 			List<JavaCodeActionDefinition> codeActionDefinitions = JavaFeaturesRegistry.getInstance()
-					.getJavaCodeActionDefinitions(codeActionKind);
+					.getJavaCodeActionDefinitions(codeActionKind).stream()
+					.filter(definition -> definition.isAdaptedForCodeAction(context, monitor))
+					.collect(Collectors.toList());
 			if (codeActionDefinitions != null) {
 				// Loop for each code action definition
 				for (JavaCodeActionDefinition definition : codeActionDefinitions) {
