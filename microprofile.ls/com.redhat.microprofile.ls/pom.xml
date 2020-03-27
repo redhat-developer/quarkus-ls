@@ -10,26 +10,26 @@
 	<description>MicroProfile Language Server</description>
 	<url>https://github.com/redhat-developer/quarkus-ls</url>
 	<licenses>
-	   <license>
-	       <name>EPL-2.0</name>
-	       <url>https://www.eclipse.org/legal/epl-2.0/</url>
-	       <comments>Eclipse Public License 2.0</comments>
-	   </license>
+		<license>
+			<name>EPL-2.0</name>
+			<url>https://www.eclipse.org/legal/epl-2.0/</url>
+			<comments>Eclipse Public License 2.0</comments>
+		</license>
 	</licenses>
 	<scm>
-	   <connection>scm:git:git@github.com:redhat-developer/quarkus-ls.git</connection>
-	   <developerConnection>scm:git:git@github.com:redhat-developer/quarkus-ls.git</developerConnection>
-	   <url>https://github.com/redhat-developer/quarkus-ls</url>
-	   <tag>${project.version}</tag>
+		<connection>scm:git:git@github.com:redhat-developer/quarkus-ls.git</connection>
+		<developerConnection>scm:git:git@github.com:redhat-developer/quarkus-ls.git</developerConnection>
+		<url>https://github.com/redhat-developer/quarkus-ls</url>
+		<tag>${project.version}</tag>
 	</scm>
 
 	<developers>
-	   <developer>
-	       <id>team</id>
-	       <name>Red Hat Developer</name>
-	       <organization>Red Hat</organization>
-	       <organizationUrl>https://www.redhat.com</organizationUrl>
-	   </developer>
+		<developer>
+			<id>team</id>
+			<name>Red Hat Developer</name>
+			<organization>Red Hat</organization>
+			<organizationUrl>https://www.redhat.com</organizationUrl>
+		</developer>
 	</developers>
 
 	<properties>
@@ -112,14 +112,14 @@
 				</executions>
 			</plugin>
 			<plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.8</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <nexusUrl>${jbossNexus}/nexus/</nexusUrl>
-                    <serverId>${jboss.releases.repo.id}</serverId>
-                </configuration>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.8</version>
+				<extensions>true</extensions>
+				<configuration>
+					<nexusUrl>${jbossNexus}/nexus/</nexusUrl>
+					<serverId>${jboss.releases.repo.id}</serverId>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
