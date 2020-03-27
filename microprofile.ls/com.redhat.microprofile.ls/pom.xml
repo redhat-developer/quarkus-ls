@@ -7,7 +7,30 @@
 	<version>0.0.6-SNAPSHOT</version>
 
 	<name>MicroProfile Language Server</name>
-	<url>http://maven.apache.org</url>
+	<description>MicroProfile Language Server</description>
+	<url>https://github.com/redhat-developer/quarkus-ls</url>
+	<licenses>
+		<license>
+			<name>EPL-2.0</name>
+			<url>https://www.eclipse.org/legal/epl-2.0/</url>
+			<comments>Eclipse Public License 2.0</comments>
+		</license>
+	</licenses>
+	<scm>
+		<connection>scm:git:git@github.com:redhat-developer/quarkus-ls.git</connection>
+		<developerConnection>scm:git:git@github.com:redhat-developer/quarkus-ls.git</developerConnection>
+		<url>https://github.com/redhat-developer/quarkus-ls</url>
+		<tag>${project.version}</tag>
+	</scm>
+
+	<developers>
+		<developer>
+			<id>team</id>
+			<name>Red Hat Developer</name>
+			<organization>Red Hat</organization>
+			<organizationUrl>https://www.redhat.com</organizationUrl>
+		</developer>
+	</developers>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,7 +42,8 @@
 		<jboss.releases.repo.id>jboss-releases-repository</jboss.releases.repo.id>
 		<jboss.releases.repo.url>https://repository.jboss.org/nexus/service/local/staging/deploy/maven2/</jboss.releases.repo.url>
 		<jboss.snapshots.repo.id>jboss-snapshots-repository</jboss.snapshots.repo.id>
-		<jboss.snapshots.repo.url>https://repository.jboss.org/nexus/content/repositories/snapshots/</jboss.snapshots.repo.url>		
+		<jboss.snapshots.repo.url>https://repository.jboss.org/nexus/content/repositories/snapshots/</jboss.snapshots.repo.url>
+		<jbossNexus>https://repository.jboss.org</jbossNexus>
 	</properties>
 
 	<build>
@@ -86,6 +110,16 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.8</version>
+				<extensions>true</extensions>
+				<configuration>
+					<nexusUrl>${jbossNexus}/nexus/</nexusUrl>
+					<serverId>${jboss.releases.repo.id}</serverId>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
