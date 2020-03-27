@@ -14,7 +14,9 @@ import java.util.List;
 
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJarEntryResource;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
@@ -42,6 +44,51 @@ public class JDTTypeUtils {
 		}
 	}
 
+	/**
+	 * Returns the resolved type name of the
+	 * <code>javaElement</code> and null otherwise
+	 * 
+	 * @param javaElement the Java element
+	 * @return the resolved type name of the
+	 * <code>javaElement</code> and null otherwise
+	 */
+	public static String getResolvedTypeName(IJavaElement javaElement) {
+		switch (javaElement.getElementType()) {
+		case IJavaElement.LOCAL_VARIABLE:
+			return getResolvedTypeName((ILocalVariable) javaElement);
+		case IJavaElement.FIELD:
+			return getResolvedTypeName((IField) javaElement);
+		default:
+			return null;
+		}
+	}
+
+	/**
+	 * Returns the resolved type name of the given
+	 * <code>localVar</code> and null otherwise
+	 * 
+	 * @param localVar the local variable
+	 * @return the resolved type name of the given
+	 * <code>localVar</code> and null otherwise
+	 */
+	public static String getResolvedTypeName(ILocalVariable localVar) {
+		try {
+			String signature = localVar.getTypeSignature().replace("/", ".");
+			IType primaryType = localVar.getTypeRoot().findPrimaryType();
+			return JavaModelUtil.getResolvedTypeName(signature, primaryType);
+		} catch (JavaModelException e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Returns the resolved type name of the
+	 * given <code>field</code> and null otherwise
+	 * 
+	 * @param field the field
+	 * @return the resolved type name of the
+	 * given <code>field</code> and null otherwise
+	 */
 	public static String getResolvedTypeName(IField field) {
 		try {
 			String signature = field.getTypeSignature();
@@ -52,6 +99,14 @@ public class JDTTypeUtils {
 		}
 	}
 
+	/**
+	 * Returns the resolved return type name of the
+	 * given <code>method</code> and null otherwise
+	 * 
+	 * @param method the method
+	 * @return the resolved return type name of the
+	 * given <code>method</code> and null otherwise
+	 */
 	public static String getResolvedResultTypeName(IMethod method) {
 		try {
 			String signature = method.getReturnType();
@@ -97,11 +152,74 @@ public class JDTTypeUtils {
 		return type != null ? type.getFullyQualifiedName('.') : typeName;
 	}
 
+	/**
+	 * Returns true if the given <code>javaElement</code>
+	 * is from a Java binary, and false otherwise
+	 * 
+	 * @param javaElement the Java element
+	 * @return true if the given <code>javaElement</code>
+	 * is from a Java binary, and false otherwise
+	 */
+	public static boolean isBinary(IJavaElement javaElement) {
+		if (javaElement instanceof IMember) {
+			return ((IMember) javaElement).isBinary();
+		} else if (javaElement instanceof ILocalVariable) {
+			return isBinary(((ILocalVariable) javaElement).getDeclaringMember());
+		}
+		return false;
+	}
+
+	/**
+	 * Returns the source type of the given
+	 * <code>javaElement</code> and null otherwise
+	 * 
+	 * @param javaElement the Java element
+	 * @return the source type of the <code>javaElement</code>
+	 */
+	public static String getSourceType(IJavaElement javaElement) {
+		switch (javaElement.getElementType()) {
+		case IJavaElement.LOCAL_VARIABLE:
+			return getSourceType((ILocalVariable) javaElement);
+		case IJavaElement.FIELD:
+			return getSourceType((IField) javaElement);
+		case IJavaElement.METHOD:
+			return getSourceType((IMethod) javaElement);
+		default:
+			return null;
+		}
+	}
+
+	/**
+	 * Returns the source type of the given local
+	 * variable <code>member</code> and null otherwise
+	 * 
+	 * @param member the local variable to get the source type from
+	 * @return the source type of the given local
+	 * variable <code>member</code> and null otherwise
+	 */
+	public static String getSourceType(ILocalVariable member) {
+		return getSourceType(member.getDeclaringMember());
+	}
+
+	/**
+	 * Returns the source type of the given <code>member</code>
+	 * and null otherwise
+	 * 
+	 * @param member the member
+	 * @return the source type of the given <code>member</code>
+	 * and null otherwise
+	 */
 	public static String getSourceType(IMember member) {
 		return getPropertyType(member.getDeclaringType(), null);
 	}
 
-	public static String getSourceField(IField field) {
+	/**
+	 * Returns the source field of the given <code>field</code>
+	 * 
+	 * @param field the field
+	 * @return the source field of the given <code>field</code>
+	 */
+	public static String getSourceField(IJavaElement field) {
 		return field.getElementName();
 	}
 

@@ -26,6 +26,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -509,10 +510,13 @@ public class PropertiesManager {
 				// Method signature has been generated with JDT API, so we are sure that we have
 				// a ')' character.
 				int endBracketIndex = sourceMethod.indexOf(')');
-				String methodSignature = sourceMethod.substring(startBracketIndex + 1, endBracketIndex);
+				String methodSignature = sourceMethod.substring(startBracketIndex, endBracketIndex + 1);
 				String[] paramTypes = methodSignature.isEmpty() ? CharOperation.NO_STRINGS
 						: Signature.getParameterTypes(methodSignature);
-				return JavaModelUtil.findMethod(methodName, paramTypes, false, type);
+				
+				// try findMethod for non constructor. If result is null, findMethod for constructor
+				IMethod method = JavaModelUtil.findMethod(methodName, paramTypes, false, type);
+				return method != null ? method : JavaModelUtil.findMethod(methodName, paramTypes, true, type);
 			}
 			return type;
 		} finally {
