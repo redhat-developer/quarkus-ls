@@ -34,7 +34,7 @@ import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 
 /**
- * Java diagnostics and code action for MicroProfile Health.
+ * Code action for generating MicroProfile OpenAPI annotations.
  * 
  * @author
  *
@@ -75,34 +75,5 @@ public class GenerateOpenAPIAnnotationsTest extends BasePropertiesManagerTest {
 				context);
 		codeActionParams.setResourceOperationSupported(true);
 		return codeActionParams;
-	}
-		
-	public boolean teEquals(TextEdit te1, TextEdit te2) {
-	    if (te1 == te2)
-	      return true;
-	 
-	    LOGGER.info("      =================>>>>>> teEquals1: ");   
-	    
-	    if (te1.getClass() != te2.getClass())
-	      return false; 
-	    
-	    LOGGER.info("      =================>>>>>> teEquals2: " + te1.getRange().equals(te2.getRange()));
-	    LOGGER.info("         =================>>>>>> teEquals2.1: " + te1.getRange());
-	    LOGGER.info("         =================>>>>>> teEquals2.2: " + te2.getRange());
-	    
-	    if (te1.getRange() == null) {
-	      if (te2.getRange() != null)
-	        return false;
-	    } else if (!te1.getRange().equals(te2.getRange()))
-	      return false;
-	    
-	    LOGGER.info("      =================>>>>>> teEquals3: ");    
-	    
-	    if (te1.getNewText() == null) {
-	      if (te2.getNewText() != null)
-	        return false;
-	    } else if (!te1.getNewText().equals(te2.getNewText()))
-	      return false;
-	    return true;
-  }
+	}		
 }
