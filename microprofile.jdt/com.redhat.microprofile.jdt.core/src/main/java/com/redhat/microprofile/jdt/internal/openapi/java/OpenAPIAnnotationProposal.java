@@ -24,7 +24,6 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.IExtendedModifier;
-import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MemberValuePair;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
@@ -37,6 +36,7 @@ import org.eclipse.jdt.internal.corext.codemanipulation.ContextSensitiveImportRe
 import org.eclipse.lsp4j.CodeActionKind;
 
 import com.redhat.microprofile.jdt.core.java.corrections.proposal.ASTRewriteCorrectionProposal;
+import com.redhat.microprofile.jdt.internal.jaxrs.JaxRsConstants;
 import com.redhat.microprofile.jdt.internal.openapi.MicroProfileOpenAPIConstants;
 
 /**
@@ -66,7 +66,7 @@ public class OpenAPIAnnotationProposal extends ASTRewriteCorrectionProposal {
 		for (MethodDeclaration method : methods) {
 			boolean operationFlag = false;
 			if (method.getReturnType2().resolveBinding().getQualifiedName().
-					equals(MicroProfileOpenAPIConstants.RESPONSE_TYPE)) {
+					equals(JaxRsConstants.JAVAX_WS_RS_RESPONSE_TYPE)) {
 				List<?> modifiers = method.modifiers();
 				for (Iterator<?> iter = modifiers.iterator(); iter.hasNext();) {
 					Object next = iter.next();

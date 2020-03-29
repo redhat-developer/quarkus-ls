@@ -27,5 +27,7 @@ public class JaxRsConstants {
 	public static final String JAVAX_WS_RS_GET_ANNOTATION = "javax.ws.rs.GET";
 
 	public static final String PATH_VALUE = "value";
+	
+	public static final String JAVAX_WS_RS_RESPONSE_TYPE = "javax.ws.rs.core.Response";
 
 }
