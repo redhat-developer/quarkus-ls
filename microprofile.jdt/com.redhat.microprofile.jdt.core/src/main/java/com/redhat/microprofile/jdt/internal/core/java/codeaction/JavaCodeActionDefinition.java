@@ -51,6 +51,16 @@ public class JavaCodeActionDefinition extends AbstractJavaFeatureDefinition<IJav
 		String kind = element.getAttribute(KIND_ATTR);
 		return !StringUtils.isEmpty(kind) ? kind : CodeActionKind.QuickFix;
 	}
+	
+	@Override
+	public boolean isAdaptedForCodeAction(JavaCodeActionContext context, IProgressMonitor monitor) {
+		try {
+			return getParticipant().isAdaptedForCodeAction(context, monitor);
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while calling isAdaptedForCodeAction", e);
+			return false;
+		}
+	}
 
 	@Override
 	public List<? extends CodeAction> getCodeActions(JavaCodeActionContext context, Diagnostic diagnostic,

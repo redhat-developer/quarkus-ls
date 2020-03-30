@@ -25,6 +25,26 @@ import org.eclipse.lsp4j.Diagnostic;
  *
  */
 public interface IJavaCodeActionParticipant {
+	
+	/**
+	 * Returns true if the code actions are adaptable for the given context and false
+	 * otherwise.
+	 * 
+	 * <p>
+	 * Participants can override this to check if some classes are on the classpath 
+	 * before deciding to process the code actions.
+	 * </p>
+	 * 
+	 * @param context java code action context
+	 * @param monitor the progress monitor
+	 * @return true if adaptable and false
+	 *         otherwise.
+	 * 
+	 */
+	default boolean isAdaptedForCodeAction(JavaCodeActionContext context, IProgressMonitor monitor)
+			throws CoreException {
+		return true;
+	}
 
 	/**
 	 * Return the code action list for a given compilation unit and null otherwise.
