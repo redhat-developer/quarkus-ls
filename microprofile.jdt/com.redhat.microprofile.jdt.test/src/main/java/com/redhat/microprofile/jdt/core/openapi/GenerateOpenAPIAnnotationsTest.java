@@ -49,12 +49,12 @@ public class GenerateOpenAPIAnnotationsTest extends BasePropertiesManagerTest {
 		d.setRange(new Range(start, start));
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
 		
-		String newText = "\r\n\r\nimport org.eclipse.microprofile.openapi.annotations.Operation;" + 
-						 "\r\n\r\n@RequestScoped\r\n@Path(\"/systems\")\r\npublic class NoOperationAnnotation {" + 
-						 "\r\n\r\n\t@Operation(summary = \"\", description = \"\")\r\n\t@GET\r\n" + 
-						 "\tpublic Response getMyInformation(String hostname) {\r\n\t\treturn " + 
-						 "Response.ok(listContents()).build();\r\n\t}\r\n\r\n\t@Operation(summary = \"\", " + 
-						 "description = \"\")\r\n\t";
+		String newText = "\n\nimport org.eclipse.microprofile.openapi.annotations.Operation;" + 
+						 "\n\n@RequestScoped\n@Path(\"/systems\")\npublic class NoOperationAnnotation {" + 
+						 "\n\n\t@Operation(summary = \"\", description = \"\")\n\t@GET\n" + 
+						 "\tpublic Response getMyInformation(String hostname) {\n\t\treturn " + 
+						 "Response.ok(listContents()).build();\n\t}\n\n\t@Operation(summary = \"\", " + 
+						 "description = \"\")\n\t";
 		assertJavaCodeAction(codeActionParams, utils, 
 				ca(uri, "Generate OpenAPI Annotations", d, 
 						te(6, 33, 17, 1, newText))
