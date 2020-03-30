@@ -56,11 +56,9 @@ public class MicroProfileGenerateOpenAPIOperation implements IJavaCodeActionPart
 						(TypeDeclaration) type, MicroProfileOpenAPIConstants.OPERATION_ANNOTATION, 0);
 				// Convert the proposal to LSP4J CodeAction
 				CodeAction codeAction = context.convertToCodeAction(proposal);
-				if (codeAction == null) {	// Always show the code action 
-					codeAction = new CodeAction(proposal.getName());
-					codeAction.setKind(proposal.getKind());
+				if (codeAction != null) { 
+					codeActions.add(codeAction);
 				}
-				codeActions.add(codeAction);	
 			}
 		}
 		return codeActions;
