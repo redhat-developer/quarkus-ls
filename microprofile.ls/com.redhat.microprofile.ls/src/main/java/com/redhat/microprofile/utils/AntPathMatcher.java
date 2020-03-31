@@ -216,7 +216,7 @@ public class AntPathMatcher implements PathMatcher {
 	 * as far as the given base path goes is sufficient)
 	 * @return {@code true} if the supplied {@code path} matched, {@code false} if it didn't
 	 */
-	protected boolean doMatch(String pattern,  String path, boolean fullMatch,
+	protected boolean doMatch(String pattern, String path, boolean fullMatch,
 			 Map<String, String> uriTemplateVariables) {
 
 		if (path == null || path.startsWith(this.pathSeparator) != pattern.startsWith(this.pathSeparator)) {
@@ -228,7 +228,17 @@ public class AntPathMatcher implements PathMatcher {
 			return false;
 		}
 
-		String[] pathDirs = tokenizePath(path);
+		String[] pathDirs = null;
+		if (pattern.indexOf("/") > -1) {
+			// if pattern includes '/', this means that the
+			// path string should be tokenized with this.pathSeparator = "/"
+			pathDirs = tokenizePath(path);
+		} else {
+			// else, assume that '/' in the path string is not being
+			// treated differently than any other character.
+			// As a result, the path string is considered one single entity.
+			pathDirs = new String[] {path};
+		}
 		int pattIdxStart = 0;
 		int pattIdxEnd = pattDirs.length - 1;
 		int pathIdxStart = 0;
@@ -266,8 +276,11 @@ public class AntPathMatcher implements PathMatcher {
 			return true;
 		}
 		else if (pattIdxStart > pattIdxEnd) {
-			// String not exhausted, but pattern is. Failure.
-			return false;
+			// Path not exhausted, but pattern is.
+
+			// If the pattern's last character is a wildcard (*),
+			// match the whole remaining path.
+			return pattern.charAt(pattern.length() - 1) == '*';
 		}
 		else if (!fullMatch && "**".equals(pattDirs[pattIdxStart])) {
 			// Path start definitely matches due to "**" part in pattern.

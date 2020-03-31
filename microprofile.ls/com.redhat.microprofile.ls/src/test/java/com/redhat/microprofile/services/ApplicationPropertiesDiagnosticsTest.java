@@ -139,7 +139,8 @@ public class ApplicationPropertiesDiagnosticsTest {
 	@Test
 	public void validateUnknownPropertiesExcludedWithPattern() throws BadLocationException {
 		String value = "com.mycompany.remoteServices.MyServiceClient/mp-rest/url=url\n" + //
-				"com.mycompany.remoteServices.MyServiceClient/mp-rest/uri=uri";
+				"com.mycompany.remoteServices.MyServiceClient/mp-rest/uri=uri\n" + //
+				"com.mycompany.foo=bar";
 
 		MicroProfileValidationSettings settings = new MicroProfileValidationSettings();
 		MicroProfileValidationTypeSettings unknown = new MicroProfileValidationTypeSettings();
@@ -149,14 +150,86 @@ public class ApplicationPropertiesDiagnosticsTest {
 		// */mp-rest/url pattern --> only
 		// com.mycompany.remoteServices.MyServiceClient/mp-rest/url is ignored
 		unknown.setExcluded(new String[] { "*/mp-rest/url" });
-		testDiagnosticsFor(value, 1, getDefaultMicroProfileProjectInfo(), settings,
+		testDiagnosticsFor(value, 2, getDefaultMicroProfileProjectInfo(), settings,
 				d(1, 0, 56, "Unknown property 'com.mycompany.remoteServices.MyServiceClient/mp-rest/uri'",
+						DiagnosticSeverity.Error, ValidationType.unknown),
+				d(2, 0, 17, "Unknown property 'com.mycompany.foo'",
 						DiagnosticSeverity.Error, ValidationType.unknown));
 
-		// */mp-rest/* pattern --> all errors are ignored
+		// */mp-rest/* pattern --> all errors containing path 'mp-rest' are ignored
 		unknown.setExcluded(new String[] { "*/mp-rest/*" });
+		testDiagnosticsFor(value, 1, getDefaultMicroProfileProjectInfo(), settings,
+				d(2, 0, 17, "Unknown property 'com.mycompany.foo'",
+						DiagnosticSeverity.Error, ValidationType.unknown));
+
+		value = "com.mycompany.remoteServices.MyServiceClient/mp-rest/url/foo=url\n" + //
+				"com.mycompany.remoteServices.MyServiceClient/mp-rest/uri/bar=uri\n" + //
+				"com.mycompany.remoteServices.MyOtherClient/mp-rest/url/foo=url\n" + //
+				"com.mycompany.remoteServices.MyOtherClient/mp-rest/uri/bar=uri\n" + //
+				"com.mycompany.foo=bar";
+
+		// com.mycompany.* pattern --> all errors are ignored
+		unknown.setExcluded(new String[] { "com.mycompany.*" });
 		testDiagnosticsFor(value, 0, getDefaultMicroProfileProjectInfo(), settings);
 
+		// com.mycompany.remoteServices.MyServiceClient/**/ --> all 'MyServiceClient' errors are ignored
+		unknown.setExcluded(new String[] { "com.mycompany.remoteServices.MyServiceClient/**/" });
+		testDiagnosticsFor(value, 3, getDefaultMicroProfileProjectInfo(), settings,
+				d(2, 0, 58, "Unknown property 'com.mycompany.remoteServices.MyOtherClient/mp-rest/url/foo'",
+						DiagnosticSeverity.Error, ValidationType.unknown),
+				d(3, 0, 58, "Unknown property 'com.mycompany.remoteServices.MyOtherClient/mp-rest/uri/bar'",
+						DiagnosticSeverity.Error, ValidationType.unknown),
+				d(4, 0, 17, "Unknown property 'com.mycompany.foo'",
+						DiagnosticSeverity.Error, ValidationType.unknown));
+		
+		// com.mycompany.remoteServices.MyServiceClient/**/foo --> all errors
+		// for 'MyServiceClient' properties ending with path 'foo' are ignored
+		unknown.setExcluded(new String[] { "com.mycompany.remoteServices.MyServiceClient/**/foo" });
+		testDiagnosticsFor(value, 4, getDefaultMicroProfileProjectInfo(), settings,
+				d(1, 0, 60, "Unknown property 'com.mycompany.remoteServices.MyServiceClient/mp-rest/uri/bar'",
+						DiagnosticSeverity.Error, ValidationType.unknown),
+				d(2, 0, 58, "Unknown property 'com.mycompany.remoteServices.MyOtherClient/mp-rest/url/foo'",
+						DiagnosticSeverity.Error, ValidationType.unknown),
+				d(3, 0, 58, "Unknown property 'com.mycompany.remoteServices.MyOtherClient/mp-rest/uri/bar'",
+						DiagnosticSeverity.Error, ValidationType.unknown),
+				d(4, 0, 17, "Unknown property 'com.mycompany.foo'",
+						DiagnosticSeverity.Error, ValidationType.unknown));
+
+		// com.mycompany.*/**/foo --> all errors for properties
+		// ending with path 'foo' are ignored
+		unknown.setExcluded(new String[] { "com.mycompany.*/**/foo" });
+		testDiagnosticsFor(value, 3, getDefaultMicroProfileProjectInfo(), settings,
+				d(1, 0, 60, "Unknown property 'com.mycompany.remoteServices.MyServiceClient/mp-rest/uri/bar'",
+						DiagnosticSeverity.Error, ValidationType.unknown),
+				d(3, 0, 58, "Unknown property 'com.mycompany.remoteServices.MyOtherClient/mp-rest/uri/bar'",
+						DiagnosticSeverity.Error, ValidationType.unknown),
+				d(4, 0, 17, "Unknown property 'com.mycompany.foo'",
+						DiagnosticSeverity.Error, ValidationType.unknown));
+
+		// com*MyService*/**/foo --> all errors for 'MyService' properties
+		// ending with path 'foo' are ignored
+		unknown.setExcluded(new String[] { "com*MyService*/**/foo" });
+		testDiagnosticsFor(value, 4, getDefaultMicroProfileProjectInfo(), settings,
+				d(1, 0, 60, "Unknown property 'com.mycompany.remoteServices.MyServiceClient/mp-rest/uri/bar'",
+						DiagnosticSeverity.Error, ValidationType.unknown),
+				d(2, 0, 58, "Unknown property 'com.mycompany.remoteServices.MyOtherClient/mp-rest/url/foo'",
+						DiagnosticSeverity.Error, ValidationType.unknown),
+				d(3, 0, 58, "Unknown property 'com.mycompany.remoteServices.MyOtherClient/mp-rest/uri/bar'",
+						DiagnosticSeverity.Error, ValidationType.unknown),
+				d(4, 0, 17, "Unknown property 'com.mycompany.foo'",
+						DiagnosticSeverity.Error, ValidationType.unknown));
+
+		// *foo --> all errors ending with 'foo' are ignored
+		unknown.setExcluded(new String[] { "*foo" });
+		testDiagnosticsFor(value, 2, getDefaultMicroProfileProjectInfo(), settings,
+				d(1, 0, 60, "Unknown property 'com.mycompany.remoteServices.MyServiceClient/mp-rest/uri/bar'",
+						DiagnosticSeverity.Error, ValidationType.unknown),
+				d(3, 0, 58, "Unknown property 'com.mycompany.remoteServices.MyOtherClient/mp-rest/uri/bar'",
+						DiagnosticSeverity.Error, ValidationType.unknown));
+
+		// * pattern --> all errors are ignored
+		unknown.setExcluded(new String[] { "*" });
+		testDiagnosticsFor(value, 0, getDefaultMicroProfileProjectInfo(), settings);
 	};
 
 	@Test
