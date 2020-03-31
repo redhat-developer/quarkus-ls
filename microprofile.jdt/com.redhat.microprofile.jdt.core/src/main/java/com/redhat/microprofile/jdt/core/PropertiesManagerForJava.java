@@ -18,16 +18,17 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ILocalVariable;
+import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeLens;
-import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileJavaCodeActionParams;
@@ -195,13 +196,11 @@ public class PropertiesManagerForJava {
 		if (typeRoot == null) {
 			return null;
 		}
+		
 		Position hoverPosition = params.getPosition();
 		int hoveredOffset = utils.toOffset(typeRoot.getBuffer(), hoverPosition.getLine(), hoverPosition.getCharacter());
-		IJavaElement hoverElement = typeRoot.getElementAt(hoveredOffset);
-		if (hoverElement == null) {
-			return null;
-		}
-
+		IJavaElement hoverElement = getHoveredElement(typeRoot, hoveredOffset);
+		
 		DocumentFormat documentFormat = params.getDocumentFormat();
 		List<Hover> hovers = new ArrayList<>();
 		collectHover(uri, typeRoot, hoverElement, utils, hoverPosition, documentFormat, hovers, monitor);
@@ -213,6 +212,53 @@ public class PropertiesManagerForJava {
 		}
 		// TODO : aggregate the hover
 		return hovers.get(0);
+	}
+	
+	/**
+	 * Returns the hovered element from the given <code>typeRoot</code>
+	 * and <code>offset</code>. Returns null otherwise
+	 * 
+	 * @param typeRoot the typeRoot
+	 * @param offset   the offset representing the hover location
+	 * @return the hovered element from the given <code>typeRoot</code>
+	 * and <code>offset</code>. Returns null otherwise
+	 * @throws JavaModelException 
+	 */
+	private IJavaElement getHoveredElement(ITypeRoot typeRoot, int offset) throws JavaModelException {
+		IJavaElement hoverElement = typeRoot.getElementAt(offset);
+		if (hoverElement == null) {
+			return null;
+		}
+		if (hoverElement.getElementType() == IJavaElement.METHOD) {
+			hoverElement = getHoveredMethodParameter((IMethod) hoverElement, offset);
+		}
+		return hoverElement;
+	}
+	
+	/**
+	 * Returns the parameter element from the given <code>method</code> that
+	 * contains the given <code>offset</code>.
+	 * 
+	 * Returns the given <code>method</code> if the correct parameter
+	 * element cannot be found
+	 * 
+	 * @param method the method
+	 * @param offset the offset
+	 * @return the parameter element from the given <code>method</code> that
+	 * contains the given <code>offset</code>
+	 * @throws JavaModelException
+	 */
+	private IJavaElement getHoveredMethodParameter(IMethod method, int offset) throws JavaModelException {
+		ILocalVariable[] parameters = method.getParameters();
+		for (int i = 0; i < parameters.length; i++) {
+			ISourceRange range = parameters[i].getSourceRange();
+			int start = range.getOffset();
+			int end = start + range.getLength();
+			if (start <= offset && offset <= end) {
+				return parameters[i];
+			}
+		}
+		return method;
 	}
 
 	private void collectHover(String uri, ITypeRoot typeRoot, IJavaElement hoverElement, IJDTUtils utils,
