@@ -19,8 +19,8 @@ import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotati
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
-import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ISourceRange;
@@ -62,7 +62,7 @@ public class MicroProfileConfigHoverParticipant implements IJavaHoverParticipant
 	@Override
 	public Hover collectHover(JavaHoverContext context, IProgressMonitor monitor) throws CoreException {
 		IJavaElement hoverElement = context.getHoverElement();
-		if (hoverElement.getElementType() != IJavaElement.FIELD) {
+		if (hoverElement.getElementType() != IJavaElement.FIELD && hoverElement.getElementType() != IJavaElement.LOCAL_VARIABLE) {
 			return null;
 		}
 
@@ -70,7 +70,7 @@ public class MicroProfileConfigHoverParticipant implements IJavaHoverParticipant
 		IJDTUtils utils = context.getUtils();
 
 		Position hoverPosition = context.getHoverPosition();
-		IField hoverField = (IField) hoverElement;
+		IAnnotatable hoverField = (IAnnotatable) hoverElement;
 
 		IAnnotation annotation = getAnnotation(hoverField, CONFIG_PROPERTY_ANNOTATION);
 
