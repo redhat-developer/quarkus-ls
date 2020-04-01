@@ -1,8 +1,10 @@
 /*******************************************************************************
-* Copyright (c) 2019 Red Hat Inc. and others.
+* Copyright (c) 2019-2020 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
+*
+* SPDX-License-Identifier: EPL-2.0
 *
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
@@ -12,8 +14,6 @@ package com.redhat.microprofile.jdt.internal.core.ls;
 import static com.redhat.microprofile.jdt.internal.core.ls.ArgumentUtils.getFirst;
 import static com.redhat.microprofile.jdt.internal.core.ls.ArgumentUtils.getString;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +24,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.lsp4j.Location;
 
 import com.redhat.microprofile.commons.DocumentFormat;
@@ -33,9 +31,7 @@ import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.commons.MicroProfilePropertyDefinitionParams;
-import com.redhat.microprofile.jdt.core.IMicroProfilePropertiesChangedListener;
 import com.redhat.microprofile.jdt.core.PropertiesManager;
-import com.redhat.microprofile.jdt.internal.core.MicroProfilePropertiesListenerManager;
 
 /**
  * JDT LS delegate command handler for application.properties file.
@@ -43,34 +39,13 @@ import com.redhat.microprofile.jdt.internal.core.MicroProfilePropertiesListenerM
  * @author Angelo ZERR
  *
  */
-public class MicroProfileDelegateCommandHandler implements IDelegateCommandHandler {
+public class MicroProfileDelegateCommandHandler extends AbstractMicroProfileDelegateCommandHandler {
 
 	private static final Logger LOGGER = Logger.getLogger(MicroProfileDelegateCommandHandler.class.getName());
 
 	private static final String PROJECT_INFO_COMMAND_ID = "microprofile/projectInfo";
 
 	private static final String PROPERTY_DEFINITION_COMMAND_ID = "microprofile/propertyDefinition";
-
-	/**
-	 * MicroProfile client commands
-	 */
-	private static final String MICROPROFILE_PROPERTIES_CHANGED_COMMAND = "microprofile/propertiesChanged";
-
-	private static final IMicroProfilePropertiesChangedListener LISTENER = (event) -> {
-		try {
-			// Execute client command with a timeout of 5 seconds to avoid blocking jobs.
-			JavaLanguageServerPlugin.getInstance().getClientConnection().executeClientCommand(
-					Duration.of(5, ChronoUnit.SECONDS), MICROPROFILE_PROPERTIES_CHANGED_COMMAND, event);
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while sending 'microprofile/propertiesChanged' event to the client", e);
-		}
-	};
-
-	public MicroProfileDelegateCommandHandler() {
-		// Add a classpath changed listener to execute client command
-		// "quarkusTools.classpathChanged"
-		MicroProfilePropertiesListenerManager.getInstance().addMicroProfilePropertiesChangedListener(LISTENER);
-	}
 
 	@Override
 	public Object executeCommand(String commandId, List<Object> arguments, IProgressMonitor progress) throws Exception {
@@ -99,13 +74,13 @@ public class MicroProfileDelegateCommandHandler implements IDelegateCommandHandl
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
 			throw new UnsupportedOperationException(String
-					.format("Command '%s' must be call with one MicroProfileProjectInfoParams argument!", commandId));
+					.format("Command '%s' must be called with one MicroProfileProjectInfoParams argument!", commandId));
 		}
 		// Get project name from the application.properties URI
 		String applicationPropertiesUri = getString(obj, "uri");
 		if (applicationPropertiesUri == null) {
 			throw new UnsupportedOperationException(String.format(
-					"Command '%s' must be call with required MicroProfileProjectInfoParams.uri (application.properties URI)!",
+					"Command '%s' must be called with required MicroProfileProjectInfoParams.uri (application.properties URI)!",
 					commandId));
 		}
 		List<Number> scopesIndex = (List<Number>) obj.get("scopes");
@@ -153,19 +128,19 @@ public class MicroProfileDelegateCommandHandler implements IDelegateCommandHandl
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
 			throw new UnsupportedOperationException(String.format(
-					"Command '%s' must be call with one MicroProfilePropertyDefinitionParams argument!", commandId));
+					"Command '%s' must be called with one MicroProfilePropertyDefinitionParams argument!", commandId));
 		}
 		// Get project name from the application.properties URI
 		String applicationPropertiesUri = getString(obj, "uri");
 		if (applicationPropertiesUri == null) {
 			throw new UnsupportedOperationException(String.format(
-					"Command '%s' must be call with required MicroProfilePropertyDefinitionParams.uri (application.properties URI)!",
+					"Command '%s' must be called with required MicroProfilePropertyDefinitionParams.uri (application.properties URI)!",
 					commandId));
 		}
 		String sourceType = getString(obj, "sourceType");
 		if (sourceType == null) {
 			throw new UnsupportedOperationException(String.format(
-					"Command '%s' must be call with required MicroProfilePropertyDefinitionParams.sourceType!",
+					"Command '%s' must be called with required MicroProfilePropertyDefinitionParams.sourceType!",
 					commandId));
 		}
 		String sourceField = getString(obj, "sourceField");

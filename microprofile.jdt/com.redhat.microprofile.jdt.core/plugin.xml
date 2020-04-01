@@ -34,12 +34,14 @@
    <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
       <delegateCommandHandler class="com.redhat.microprofile.jdt.internal.core.ls.JavaProjectDelegateCommandHandler">
             <command id="microprofile/java/projectLabels"/>
+            <command id="microprofile/java/workspaceLabels"/>
       </delegateCommandHandler>
    </extension>
 
    <extension point="com.redhat.microprofile.jdt.core.projectLabelProviders">
       <provider class="com.redhat.microprofile.jdt.internal.core.providers.MavenProjectLabelProvider" />
       <provider class="com.redhat.microprofile.jdt.internal.core.providers.GradleProjectLabelProvider" />
+      <provider class="com.redhat.microprofile.jdt.internal.core.providers.MicroProfileProjectLabelProvider" />
    </extension>
 
    <!-- Microprofile Config support -->

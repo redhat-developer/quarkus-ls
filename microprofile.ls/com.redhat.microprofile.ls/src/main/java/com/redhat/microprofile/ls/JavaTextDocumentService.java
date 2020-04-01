@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,9 +46,10 @@ import com.redhat.microprofile.commons.MicroProfileJavaCodeActionParams;
 import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
 import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
+import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
+import com.redhat.microprofile.ls.JavaTextDocuments.JavaTextDocument;
 import com.redhat.microprofile.ls.commons.BadLocationException;
 import com.redhat.microprofile.ls.commons.TextDocument;
-import com.redhat.microprofile.ls.commons.TextDocuments;
 import com.redhat.microprofile.ls.commons.client.CommandKind;
 import com.redhat.microprofile.ls.commons.snippets.TextDocumentSnippetRegistry;
 import com.redhat.microprofile.settings.MicroProfileCodeLensSettings;
@@ -67,7 +69,7 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 	private final MicroProfileLanguageServer microprofileLanguageServer;
 	private final SharedSettings sharedSettings;
 
-	private final TextDocuments<?> documents;
+	private final JavaTextDocuments documents;
 
 	private TextDocumentSnippetRegistry snippetRegistry;
 
@@ -75,21 +77,19 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 			SharedSettings sharedSettings) {
 		this.microprofileLanguageServer = microprofileLanguageServer;
 		this.sharedSettings = sharedSettings;
-		this.documents = new TextDocuments<>();
+		this.documents = new JavaTextDocuments(microprofileLanguageServer);
 	}
+
+	// ------------------------------ did* for Java file ------------------------------
 
 	@Override
 	public void didOpen(DidOpenTextDocumentParams params) {
-		documents.onDidOpenTextDocument(params);
-		String uri = params.getTextDocument().getUri();
-		triggerValidationFor(Arrays.asList(uri));
+		triggerValidationFor(documents.onDidOpenTextDocument(params));
 	}
 
 	@Override
 	public void didChange(DidChangeTextDocumentParams params) {
-		documents.onDidChangeTextDocument(params);
-		String uri = params.getTextDocument().getUri();
-		triggerValidationFor(Arrays.asList(uri));
+		triggerValidationFor(documents.onDidChangeTextDocument(params));
 	}
 
 	@Override
@@ -102,8 +102,11 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 
 	@Override
 	public void didSave(DidSaveTextDocumentParams params) {
-		triggerValidationFor(documents.all().stream().map(TextDocument::getUri).collect(Collectors.toList()));
+		// validate all opened java files which belong to a MicroProfile project
+		triggerValidationForAll(null);
 	}
+
+	// ------------------------------ Completion ------------------------------
 
 	@Override
 	public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
@@ -128,6 +131,19 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 		});
 	}
 
+	private TextDocumentSnippetRegistry getSnippetRegistry() {
+		if (snippetRegistry == null) {
+			snippetRegistry = new TextDocumentSnippetRegistry(LanguageId.java.name());
+		}
+		return snippetRegistry;
+	}
+
+	// ------------------------------ Code Lens ------------------------------
+
+	public void updateCodeLensSettings(MicroProfileCodeLensSettings newCodeLens) {
+		sharedSettings.getCodeLensSettings().setUrlCodeLensEnabled(newCodeLens.isUrlCodeLensEnabled());
+	}
+
 	@Override
 	public CompletableFuture<List<? extends CodeLens>> codeLens(CodeLensParams params) {
 		boolean urlCodeLensEnabled = sharedSettings.getCodeLensSettings().isUrlCodeLensEnabled();
@@ -135,58 +151,103 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 			// Don't consume JDT LS extension if all code lens are disabled.
 			return CompletableFuture.completedFuture(Collections.emptyList());
 		}
-		MicroProfileJavaCodeLensParams javaParams = new MicroProfileJavaCodeLensParams(
-				params.getTextDocument().getUri());
-		if (sharedSettings.getCommandCapabilities().isCommandSupported(CommandKind.COMMAND_OPEN_URI)) {
-			javaParams.setOpenURICommand(CommandKind.COMMAND_OPEN_URI);
-		}
-		javaParams.setCheckServerAvailable(true);
-		javaParams.setUrlCodeLensEnabled(urlCodeLensEnabled);
-		// javaParams.setLocalServerPort(8080); // TODO : manage this server port from
-		// the settings
-		return microprofileLanguageServer.getLanguageClient().getJavaCodelens(javaParams);
+		JavaTextDocument document = documents.get(params.getTextDocument().getUri());
+		return document.executeIfInMicroProfileProject(() -> {
+			MicroProfileJavaCodeLensParams javaParams = new MicroProfileJavaCodeLensParams(
+					params.getTextDocument().getUri());
+			if (sharedSettings.getCommandCapabilities().isCommandSupported(CommandKind.COMMAND_OPEN_URI)) {
+				javaParams.setOpenURICommand(CommandKind.COMMAND_OPEN_URI);
+			}
+			javaParams.setCheckServerAvailable(true);
+			javaParams.setUrlCodeLensEnabled(urlCodeLensEnabled);
+			// javaParams.setLocalServerPort(8080); // TODO : manage this server port from
+			// the settings
+			return microprofileLanguageServer.getLanguageClient().getJavaCodelens(javaParams);
+		}, Collections.emptyList());
 	}
+
+	// ------------------------------ Code Action ------------------------------
 
 	@Override
 	public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActionParams params) {
-		MicroProfileJavaCodeActionParams javaParams = new MicroProfileJavaCodeActionParams();
-		javaParams.setTextDocument(params.getTextDocument());
-		javaParams.setRange(params.getRange());
-		javaParams.setContext(params.getContext());
-		javaParams.setResourceOperationSupported(microprofileLanguageServer.getCapabilityManager()
-				.getClientCapabilities().isResourceOperationSupported());
-		return microprofileLanguageServer.getLanguageClient().getJavaCodeAction(javaParams). //
-				thenApply(codeActions -> {
-					return codeActions.stream() //
-							.map(ca -> {
-								Either<Command, CodeAction> e = Either.forRight(ca);
-								return e;
-							}) //
-							.collect(Collectors.toList());
-				});
+		JavaTextDocument document = documents.get(params.getTextDocument().getUri());
+		return document.executeIfInMicroProfileProject(() -> {
+			MicroProfileJavaCodeActionParams javaParams = new MicroProfileJavaCodeActionParams();
+			javaParams.setTextDocument(params.getTextDocument());
+			javaParams.setRange(params.getRange());
+			javaParams.setContext(params.getContext());
+			javaParams.setResourceOperationSupported(microprofileLanguageServer.getCapabilityManager()
+					.getClientCapabilities().isResourceOperationSupported());
+			return microprofileLanguageServer.getLanguageClient().getJavaCodeAction(javaParams) //
+					.thenApply(codeActions -> {
+						return codeActions.stream() //
+								.map(ca -> {
+									Either<Command, CodeAction> e = Either.forRight(ca);
+									return e;
+								}) //
+								.collect(Collectors.toList());
+					});
+		}, Collections.emptyList());
 	}
 
-	public void updateCodeLensSettings(MicroProfileCodeLensSettings newCodeLens) {
-		sharedSettings.getCodeLensSettings().setUrlCodeLensEnabled(newCodeLens.isUrlCodeLensEnabled());
-	}
+	// ------------------------------ Hover ------------------------------
 
 	@Override
 	public CompletableFuture<Hover> hover(HoverParams params) {
-		boolean markdownSupported = sharedSettings.getHoverSettings().isContentFormatSupported(MarkupKind.MARKDOWN);
-		DocumentFormat documentFormat = markdownSupported ? DocumentFormat.Markdown : DocumentFormat.PlainText;
-		MicroProfileJavaHoverParams javaParams = new MicroProfileJavaHoverParams(params.getTextDocument().getUri(),
-				params.getPosition(), documentFormat);
-		return microprofileLanguageServer.getLanguageClient().getJavaHover(javaParams);
+		JavaTextDocument document = documents.get(params.getTextDocument().getUri());
+		return document.executeIfInMicroProfileProject(() -> {
+			boolean markdownSupported = sharedSettings.getHoverSettings().isContentFormatSupported(MarkupKind.MARKDOWN);
+			DocumentFormat documentFormat = markdownSupported ? DocumentFormat.Markdown : DocumentFormat.PlainText;
+			MicroProfileJavaHoverParams javaParams = new MicroProfileJavaHoverParams(params.getTextDocument().getUri(),
+					params.getPosition(), documentFormat);
+			return microprofileLanguageServer.getLanguageClient().getJavaHover(javaParams);
+		}, null);
 	}
 
+	// ------------------------------ Diagnostics ------------------------------
+
+	/**
+	 * Validate the given opened Java file.
+	 * 
+	 * @param document the opened Java file.
+	 */
+	private void triggerValidationFor(JavaTextDocument document) {
+		document.executeIfInMicroProfileProject(() -> {
+			String uri = document.getUri();
+			triggerValidationFor(Arrays.asList(uri));
+			return null;
+		}, null);
+	}
+
+	/**
+	 * Validate all opened Java files which belong to a MicroProfile project.
+	 * 
+	 * @param projectURIs list of project URIs filter and null otherwise.
+	 */
+	private void triggerValidationForAll(Set<String> projectURIs) {
+		triggerValidationFor(documents.all().stream() //
+				.filter(document -> projectURIs == null || projectURIs.contains(document.getProjectURI())) //
+				.filter(JavaTextDocument::isInMicroProfileProject) //
+				.map(TextDocument::getUri) //
+				.collect(Collectors.toList()));
+	}
+
+	/**
+	 * Validate all given Java files uris.
+	 * 
+	 * @param uris Java files uris to validate.
+	 */
 	private void triggerValidationFor(List<String> uris) {
+		if (uris.isEmpty()) {
+			return;
+		}
 		MicroProfileJavaDiagnosticsParams javaParams = new MicroProfileJavaDiagnosticsParams(uris);
 		boolean markdownSupported = sharedSettings.getHoverSettings().isContentFormatSupported(MarkupKind.MARKDOWN);
 		if (markdownSupported) {
 			javaParams.setDocumentFormat(DocumentFormat.Markdown);
 		}
-		microprofileLanguageServer.getLanguageClient().getJavaDiagnostics(javaParams). //
-				thenApply(diagnostics -> {
+		microprofileLanguageServer.getLanguageClient().getJavaDiagnostics(javaParams) //
+				.thenApply(diagnostics -> {
 					if (diagnostics == null) {
 						return null;
 					}
@@ -197,10 +258,10 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 				});
 	}
 
-	private TextDocumentSnippetRegistry getSnippetRegistry() {
-		if (snippetRegistry == null) {
-			snippetRegistry = new TextDocumentSnippetRegistry(LanguageId.java.name());
+	public void propertiesChanged(MicroProfilePropertiesChangeEvent event) {
+		if (documents.propertiesChanged(event)) {
+			triggerValidationForAll(event.getProjectURIs());
 		}
-		return snippetRegistry;
 	}
+
 }

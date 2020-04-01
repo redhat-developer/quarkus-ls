@@ -24,8 +24,11 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
+import com.redhat.microprofile.commons.MicroProfileJavaProjectLabelsParams;
 import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
+import com.redhat.microprofile.commons.ProjectLabelInfoEntry;
+import com.redhat.microprofile.ls.api.MicroProfileJavaProjectLabelsProvider;
 import com.redhat.microprofile.ls.api.MicroProfileLanguageClientAPI;
 import com.redhat.microprofile.ls.api.MicroProfileLanguageServerAPI;
 import com.redhat.microprofile.ls.commons.ParentProcessWatcher.ProcessLanguageServer;
@@ -46,7 +49,8 @@ import com.redhat.microprofile.settings.capabilities.ServerCapabilitiesInitializ
  * Quarkus language server.
  *
  */
-public class MicroProfileLanguageServer implements LanguageServer, ProcessLanguageServer, MicroProfileLanguageServerAPI {
+public class MicroProfileLanguageServer implements LanguageServer, ProcessLanguageServer, MicroProfileLanguageServerAPI,
+		MicroProfileJavaProjectLabelsProvider {
 
 	private static final Logger LOGGER = Logger.getLogger(MicroProfileLanguageServer.class.getName());
 
@@ -181,8 +185,14 @@ public class MicroProfileLanguageServer implements LanguageServer, ProcessLangua
 	}
 
 	@Override
-	public CompletableFuture<JsonSchemaForProjectInfo> getJsonSchemaForProjectInfo(MicroProfileProjectInfoParams params) {
+	public CompletableFuture<JsonSchemaForProjectInfo> getJsonSchemaForProjectInfo(
+			MicroProfileProjectInfoParams params) {
 		return textDocumentService.getJsonSchemaForProjectInfo(params);
 	}
 
+	@Override
+	public CompletableFuture<ProjectLabelInfoEntry> getJavaProjectlabels(
+			MicroProfileJavaProjectLabelsParams javaParams) {
+		return getLanguageClient().getJavaProjectlabels(javaParams);
+	}
 }
