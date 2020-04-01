@@ -195,6 +195,7 @@ public class JavaHoverTest extends BasePropertiesManagerTest {
 		params.setDocumentFormat(DocumentFormat.Markdown);
 		params.setPosition(hoverPosition);
 		params.setUri(javaFileUri);
+		params.setSurroundEqualsWithSpaces(true);
 
 		return PropertiesManagerForJava.getInstance().hover(params, JDT_UTILS, new NullProgressMonitor());
 	}

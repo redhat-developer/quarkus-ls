@@ -24,16 +24,18 @@ public class MicroProfileJavaHoverParams {
 	private String uri;
 	private Position position;
 	private DocumentFormat documentFormat;
+	private boolean surroundEqualsWithSpaces;
 
 	public MicroProfileJavaHoverParams() {
 
 	}
 
-	public MicroProfileJavaHoverParams(String uri, Position position, DocumentFormat documentFormat) {
+	public MicroProfileJavaHoverParams(String uri, Position position, DocumentFormat documentFormat, boolean surroundEqualsWithSpaces) {
 		this();
 		setUri(uri);
 		setPosition(position);
 		setDocumentFormat(documentFormat);
+		setSurroundEqualsWithSpaces(surroundEqualsWithSpaces);
 	}
 
 	/**
@@ -78,5 +80,13 @@ public class MicroProfileJavaHoverParams {
 
 	public void setDocumentFormat(DocumentFormat documentFormat) {
 		this.documentFormat = documentFormat;
+	}
+
+	public boolean getSurroundEqualsWithSpaces() {
+		return surroundEqualsWithSpaces;
+	}
+
+	public void setSurroundEqualsWithSpaces(boolean surroundEqualsWithSpaces) {
+		this.surroundEqualsWithSpaces = surroundEqualsWithSpaces;
 	}
 }

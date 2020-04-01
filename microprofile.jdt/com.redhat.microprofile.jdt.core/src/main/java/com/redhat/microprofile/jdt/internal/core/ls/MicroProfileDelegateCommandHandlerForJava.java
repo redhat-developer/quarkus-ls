@@ -260,6 +260,7 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 		if (documentFormatIndex != null) {
 			documentFormat = DocumentFormat.forValue(documentFormatIndex.intValue());
 		}
-		return new MicroProfileJavaHoverParams(javaFileUri, hoverPosition, documentFormat);
+		boolean surroundEqualsWithSpaces = ((Boolean) obj.get("surroundEqualsWithSpaces")).booleanValue();
+		return new MicroProfileJavaHoverParams(javaFileUri, hoverPosition, documentFormat, surroundEqualsWithSpaces);
 	}
 }

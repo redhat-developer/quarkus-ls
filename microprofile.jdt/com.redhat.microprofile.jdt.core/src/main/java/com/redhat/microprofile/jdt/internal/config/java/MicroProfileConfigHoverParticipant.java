@@ -17,6 +17,11 @@ import static com.redhat.microprofile.jdt.core.MicroProfileConfigConstants.CONFI
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotatable;
@@ -37,6 +42,7 @@ import org.eclipse.lsp4j.util.Ranges;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.jdt.core.java.hover.IJavaHoverParticipant;
 import com.redhat.microprofile.jdt.core.java.hover.JavaHoverContext;
+import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProject;
 import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProjectManager;
 import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
 import com.redhat.microprofile.jdt.core.utils.JDTTypeUtils;
@@ -100,43 +106,101 @@ public class MicroProfileConfigHoverParticipant implements IJavaHoverParticipant
 			return null;
 		}
 
-		String propertyValue = JDTMicroProfileProjectManager.getInstance().getJDTMicroProfileProject(javaProject)
-				.getProperty(propertyKey, null);
-		if (propertyValue == null) {
-			propertyValue = getAnnotationMemberValue(annotation, CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
+		JDTMicroProfileProject mpProject = JDTMicroProfileProjectManager.getInstance().getJDTMicroProfileProject(javaProject);
+		Set<String> matchingKeys =getMatchingKeys(propertyKey, mpProject);
+		
+		MarkupContent documentation = null;
+		if (matchingKeys.size() == 0) {
+			String propertyValue = getAnnotationMemberValue(annotation, CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
 			if (propertyValue != null && propertyValue.length() == 0) {
 				propertyValue = null;
 			}
+			documentation = getDocumentation(propertyKey, propertyValue,
+					context.getDocumentFormat(), context.isSurroundEqualsWithSpaces());
+		} else {
+			documentation = getDocumentation(matchingKeys, mpProject,
+					context.getDocumentFormat(), context.isSurroundEqualsWithSpaces());
 		}
-		DocumentFormat documentFormat = context.getDocumentFormat();
-		return new Hover(getDocumentation(propertyKey, propertyValue, documentFormat, true), propertyKeyRange);
+		return new Hover(documentation, propertyKeyRange);
 	}
-
+	
+	public static Set<String> getMatchingKeys(String keyToMatch, JDTMicroProfileProject project) {
+		Set<String> result = new HashSet<String>();
+		Set<String> allKeys = project.getPropertyKeys();
+		for (String key: allKeys) {
+			if (key.endsWith(keyToMatch)) {
+				result.add(key);
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * Returns documentation about the provided keys in <code>propertyKeys<code>
+	 * 
+	 * @param propertyKeys   the property keys to create documentation for
+	 * @param project        the project
+	 * @param documentFormat the document format
+	 * @param insertSpacing  true if spacing should be inserted around the equals
+	 *                       sign and false otherwise
+	 * @return documentation about the provided keys in <code>propertyKeys<code>
+	 * @throws JavaModelException
+	 */
+	public static MarkupContent getDocumentation(Set<String> propertyKeys, JDTMicroProfileProject project,
+			DocumentFormat documentFormat, boolean insertSpacing) throws JavaModelException {
+		StringBuilder content = new StringBuilder();
+		boolean markdown = DocumentFormat.Markdown.equals(documentFormat);
+		
+		List<String> sortedKeys = propertyKeys.stream().sorted((o1, o2)->{
+			if (o1.charAt(0) != '%') return -1;
+			if (o2.charAt(0) != '%') return 1;
+			return o1.compareTo(o2);
+		}).collect(Collectors.toList());
+		for (String key: sortedKeys) {
+			String value = project.getProperty(key, null);
+			if (value != null) {
+				buildDocumentation(key, value, markdown, insertSpacing, content);
+			}
+		}
+		
+		return new MarkupContent(markdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT, content.toString());
+		
+	}
+	
 	/**
 	 * Returns documentation about the provided <code>propertyKey</code>'s value,
 	 * <code>propertyValue</code>
 	 * 
-	 * @param propertyKey   the property key
-	 * @param propertyValue the property key's value
-	 * @param markdown      true if documentation must be formatted as markdown and
-	 *                      false otherwise
-	 * @param insertSpacing true if spacing should be inserted around the equals
-	 *                      sign and false otherwise
+	 * @param propertyKey    the property key
+	 * @param propertyValue  the property key's value
+	 * @param documentFormat the document format
+	 * @param insertSpacing  true if spacing should be inserted around the equals
+	 *                       sign and false otherwise
 	 * @return
 	 */
 	public static MarkupContent getDocumentation(String propertyKey, String propertyValue,
 			DocumentFormat documentFormat, boolean insertSpacing) {
-		boolean markdown = DocumentFormat.Markdown.equals(documentFormat);
 		StringBuilder content = new StringBuilder();
-
-		if (markdown) {
+		boolean markdown = DocumentFormat.Markdown.equals(documentFormat);
+		buildDocumentation(propertyKey, propertyValue, markdown, insertSpacing, content);
+		return new MarkupContent(markdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT, content.toString());
+	}
+	
+	private static void buildDocumentation(String propertyKey,
+			String propertyValue, boolean markdownSupported, boolean insertSpacing, StringBuilder content) {
+		
+		if (content.length() > 0) {
+			content.append("  \n");
+		}
+		
+		if (markdownSupported) {
 			content.append("`");
 		}
 
 		content.append(propertyKey);
 
 		if (propertyValue == null) {
-			if (markdown) {
+			if (markdownSupported) {
 				content.append("`");
 			}
 			content.append(" is not set.");
@@ -147,10 +211,9 @@ public class MicroProfileConfigHoverParticipant implements IJavaHoverParticipant
 				content.append("=");
 			}
 			content.append(propertyValue);
-			if (markdown) {
+			if (markdownSupported) {
 				content.append("`");
 			}
 		}
-		return new MarkupContent(markdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT, content.toString());
 	}
 }

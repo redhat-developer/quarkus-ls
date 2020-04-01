@@ -173,9 +173,10 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 	@Override
 	public CompletableFuture<Hover> hover(HoverParams params) {
 		boolean markdownSupported = sharedSettings.getHoverSettings().isContentFormatSupported(MarkupKind.MARKDOWN);
+		boolean surroundEqualsWithSpaces = sharedSettings.getFormattingSettings().isSurroundEqualsWithSpaces();
 		DocumentFormat documentFormat = markdownSupported ? DocumentFormat.Markdown : DocumentFormat.PlainText;
 		MicroProfileJavaHoverParams javaParams = new MicroProfileJavaHoverParams(params.getTextDocument().getUri(),
-				params.getPosition(), documentFormat);
+				params.getPosition(), documentFormat, surroundEqualsWithSpaces);
 		return microprofileLanguageServer.getLanguageClient().getJavaHover(javaParams);
 	}
 

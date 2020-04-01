@@ -16,7 +16,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -144,6 +146,15 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 		}
 		return null;
 	}
+	
+	@Override
+	public final Set<String> getPropertyKeys() {
+		T config = getConfig();
+		if (config == null) {
+			return Collections.<String>emptySet();
+		}
+		return getPropertyKeys(config);
+	}
 
 	private void reset() {
 		config = null;
@@ -166,5 +177,13 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 	 * @return the property from the given <code>key</code> and null otherwise.
 	 */
 	protected abstract String getProperty(String key, T config);
+	
+	/**
+	 * Returns all property keys defined in the config.
+	 * 
+	 * @param config
+	 * @return all property keys defined in the config.
+	 */
+	protected abstract Set<String> getPropertyKeys(T config);
 
 }

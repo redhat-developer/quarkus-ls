@@ -12,6 +12,7 @@ package com.redhat.microprofile.jdt.internal.core.project;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.jdt.core.IJavaProject;
 import org.yaml.snakeyaml.Yaml;
@@ -19,7 +20,7 @@ import org.yaml.snakeyaml.Yaml;
 /**
  * Yaml config source implementation
  * 
- * @author dakwon
+ * @author David Kwon
  *
  */
 public class YamlConfigSource extends AbstractConfigSource<Map<String, Object>> {
@@ -65,6 +66,11 @@ public class YamlConfigSource extends AbstractConfigSource<Map<String, Object>> 
 		}
 		
 		return String.valueOf(value);
+	}
+
+	@Override
+	protected Set<String> getPropertyKeys(Map<String, Object> config) {
+		return config.keySet();
 	}
 
 }

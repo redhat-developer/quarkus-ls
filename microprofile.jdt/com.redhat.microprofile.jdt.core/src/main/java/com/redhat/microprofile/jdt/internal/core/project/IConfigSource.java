@@ -9,6 +9,8 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.internal.core.project;
 
+import java.util.Set;
+
 /**
  * Configuration file API
  * 
@@ -34,4 +36,11 @@ public interface IConfigSource {
 	 *         otherwise.
 	 */
 	Integer getPropertyAsInt(String key);
+	
+	/**
+	 * Returns all property keys defined in the config.
+	 * 
+	 * @return all property keys defined in the config.
+	 */
+	Set<String> getPropertyKeys();
 }

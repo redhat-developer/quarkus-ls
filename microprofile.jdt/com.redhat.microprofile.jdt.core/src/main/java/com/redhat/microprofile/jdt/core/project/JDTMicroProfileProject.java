@@ -10,7 +10,9 @@
 package com.redhat.microprofile.jdt.core.project;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jdt.core.IJavaProject;
 
@@ -47,6 +49,14 @@ public class JDTMicroProfileProject {
 			}
 		}
 		return defaultValue;
+	}
+	
+	public Set<String> getPropertyKeys() {
+		Set<String> results = new HashSet<String>();
+		for (IConfigSource configSource : configSources) {
+			results.addAll(configSource.getPropertyKeys());
+		}
+		return results;
 	}
 
 	public Integer getPropertyAsInteger(String key, Integer defaultValue) {
