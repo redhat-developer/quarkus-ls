@@ -9,6 +9,9 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.core.utils;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -20,6 +23,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaProject;
 
 import com.redhat.microprofile.commons.ClasspathKind;
+import com.redhat.microprofile.jdt.core.MicroProfileConfigConstants;
 
 /**
  * JDT MicroProfile utilities.
@@ -28,6 +32,8 @@ import com.redhat.microprofile.commons.ClasspathKind;
  *
  */
 public class JDTMicroProfileUtils {
+
+	private static final Logger LOGGER = Logger.getLogger(JDTMicroProfileUtils.class.getName());
 
 	private JDTMicroProfileUtils() {
 
@@ -104,7 +110,7 @@ public class JDTMicroProfileUtils {
 		return ClasspathKind.NONE;
 
 	}
-	
+
 	/**
 	 * Returns true if the given <code>project</code> has a nature specified by
 	 * <code>natureId</code> and false otherwise.
@@ -121,8 +127,24 @@ public class JDTMicroProfileUtils {
 			return false;
 		}
 	}
-	
+
 	private static ClasspathKind getClasspathKind(IClasspathEntry entry) {
 		return entry.isTest() ? ClasspathKind.TEST : ClasspathKind.SRC;
+	}
+
+	/**
+	 * Returns true if <code>javaProject</code> is a MicroProfile project. Returns
+	 * false otherwise.
+	 * 
+	 * @param javaProject the Java project to check
+	 * @return true only if <code>javaProject</code> is a MicroProfile project.
+	 */
+	public static boolean isMicroProfileProject(IJavaProject javaProject) {
+		try {
+			return javaProject.findType(MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION) != null;
+		} catch (JavaModelException e) {
+			LOGGER.log(Level.INFO, "Current Java project is not a MicroProfile project", e);
+			return false;
+		}
 	}
 }

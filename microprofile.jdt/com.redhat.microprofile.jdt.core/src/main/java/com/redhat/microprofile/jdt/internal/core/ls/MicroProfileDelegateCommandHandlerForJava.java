@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2019 Red Hat Inc. and others.
+* Copyright (c) 2019-2020 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
@@ -27,17 +27,14 @@ import java.util.Map;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.CodeLens;
-import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileJavaCodeActionParams;
@@ -52,7 +49,7 @@ import com.redhat.microprofile.jdt.core.PropertiesManagerForJava;
  * @author Angelo ZERR
  *
  */
-public class MicroProfileDelegateCommandHandlerForJava implements IDelegateCommandHandler {
+public class MicroProfileDelegateCommandHandlerForJava extends AbstractMicroProfileDelegateCommandHandler {
 
 	private static final String JAVA_CODEACTION_COMMAND_ID = "microprofile/java/codeAction";
 	private static final String JAVA_CODELENS_COMMAND_ID = "microprofile/java/codeLens";
@@ -109,12 +106,12 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
 			throw new UnsupportedOperationException(String.format(
-					"Command '%s' must be call with one MicroProfileJavaCodeActionParams argument!", commandId));
+					"Command '%s' must be called with one MicroProfileJavaCodeActionParams argument!", commandId));
 		}
 		TextDocumentIdentifier texdDocumentIdentifier = getTextDocumentIdentifier(obj, "textDocument");
 		if (texdDocumentIdentifier == null) {
 			throw new UnsupportedOperationException(String.format(
-					"Command '%s' must be call with required MicroProfileJavaCodeActionParams.texdDocumentIdentifier",
+					"Command '%s' must be called with required MicroProfileJavaCodeActionParams.texdDocumentIdentifier",
 					commandId));
 		}
 		Range range = getRange(obj, "range");
@@ -157,12 +154,12 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
 			throw new UnsupportedOperationException(String
-					.format("Command '%s' must be call with one MicroProfileJavaCodeLensParams argument!", commandId));
+					.format("Command '%s' must be called with one MicroProfileJavaCodeLensParams argument!", commandId));
 		}
 		String javaFileUri = getString(obj, "uri");
 		if (javaFileUri == null) {
 			throw new UnsupportedOperationException(String.format(
-					"Command '%s' must be call with required MicroProfileJavaCodeLensParams.uri (java URI)!",
+					"Command '%s' must be called with required MicroProfileJavaCodeLensParams.uri (java URI)!",
 					commandId));
 		}
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams(javaFileUri);
@@ -203,12 +200,12 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
 			throw new UnsupportedOperationException(String.format(
-					"Command '%s' must be call with one MicroProfileJavaDiagnosticsParams argument!", commandId));
+					"Command '%s' must be called with one MicroProfileJavaDiagnosticsParams argument!", commandId));
 		}
 		List<String> javaFileUri = getStringList(obj, "uris");
 		if (javaFileUri == null) {
 			throw new UnsupportedOperationException(String.format(
-					"Command '%s' must be call with required MicroProfileJavaDiagnosticsParams.uri (java URIs)!",
+					"Command '%s' must be called with required MicroProfileJavaDiagnosticsParams.uri (java URIs)!",
 					commandId));
 		}
 		return new MicroProfileJavaDiagnosticsParams(javaFileUri);
@@ -246,12 +243,12 @@ public class MicroProfileDelegateCommandHandlerForJava implements IDelegateComma
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
 			throw new UnsupportedOperationException(String
-					.format("Command '%s' must be call with one MicroProfileJavaHoverParams argument!", commandId));
+					.format("Command '%s' must be called with one MicroProfileJavaHoverParams argument!", commandId));
 		}
 		String javaFileUri = getString(obj, "uri");
 		if (javaFileUri == null) {
 			throw new UnsupportedOperationException(String.format(
-					"Command '%s' must be call with required MicroProfileJavaHoverParams.uri (java URI)!", commandId));
+					"Command '%s' must be called with required MicroProfileJavaHoverParams.uri (java URI)!", commandId));
 		}
 
 		Position hoverPosition = getPosition(obj, "position");

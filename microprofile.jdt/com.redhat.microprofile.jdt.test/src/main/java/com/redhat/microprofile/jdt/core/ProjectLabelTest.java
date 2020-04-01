@@ -15,14 +15,13 @@ import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.redhat.microprofile.commons.ProjectLabelInfoEntry;
 import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest.GradleProjectName;
 import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest.MavenProjectName;
 import com.redhat.microprofile.jdt.core.utils.JDTMicroProfileUtils;
-
-import org.junit.Assert;
 
 /**
  * Project label tests
@@ -51,7 +50,7 @@ public class ProjectLabelTest {
 		IJavaProject quarkusMaven = BasePropertiesManagerTest.loadMavenProject(MavenProjectName.using_vertx);
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
 		assertProjectLabelInfoContainsProject(projectLabelEntries, quarkusMaven);
-		assertLabels(projectLabelEntries, quarkusMaven, "quarkus", "maven");
+		assertLabels(projectLabelEntries, quarkusMaven, "quarkus", "microprofile", "maven");
 	}
 
 	@Test
@@ -60,7 +59,7 @@ public class ProjectLabelTest {
 				.loadGradleProject(GradleProjectName.quarkus_gradle_project);
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
 		assertProjectLabelInfoContainsProject(projectLabelEntries, quarkusGradle);
-		assertLabels(projectLabelEntries, quarkusGradle, "quarkus", "gradle");
+		assertLabels(projectLabelEntries, quarkusGradle, "quarkus", "microprofile", "gradle");
 	}
 
 	@Test
@@ -73,8 +72,8 @@ public class ProjectLabelTest {
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
 
 		assertProjectLabelInfoContainsProject(projectLabelEntries, quarkusMaven, quarkusGradle, maven, gradle);
-		assertLabels(projectLabelEntries, quarkusMaven, "quarkus", "maven");
-		assertLabels(projectLabelEntries, quarkusGradle, "quarkus", "gradle");
+		assertLabels(projectLabelEntries, quarkusMaven, "quarkus", "microprofile", "maven");
+		assertLabels(projectLabelEntries, quarkusGradle, "quarkus", "microprofile", "gradle");
 		assertLabels(projectLabelEntries, maven, "maven");
 		assertLabels(projectLabelEntries, gradle, "gradle");
 	}

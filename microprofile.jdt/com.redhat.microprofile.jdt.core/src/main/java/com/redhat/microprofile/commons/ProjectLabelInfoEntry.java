@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.microprofile.commons;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -20,6 +21,9 @@ import java.util.List;
  *
  */
 public class ProjectLabelInfoEntry {
+	public static final ProjectLabelInfoEntry EMPTY_PROJECT_INFO = new ProjectLabelInfoEntry("",
+			Collections.emptyList());
+
 	private final String uri;
 	private final List<String> labels;
 
@@ -30,6 +34,7 @@ public class ProjectLabelInfoEntry {
 
 	/**
 	 * Returns the project uri
+	 * 
 	 * @return the project uri
 	 */
 	public String getUri() {
@@ -38,9 +43,20 @@ public class ProjectLabelInfoEntry {
 
 	/**
 	 * Returns the labels for the current project uri
+	 * 
 	 * @return the labels for the current project uri
 	 */
 	public List<String> getLabels() {
 		return labels;
+	}
+
+	/**
+	 * Returns true if the project has the given label and false otherwise.
+	 * 
+	 * @param label the label.
+	 * @return true if the project has the given label and false otherwise.
+	 */
+	public boolean hasLabel(String label) {
+		return labels != null && labels.contains(label);
 	}
 }
