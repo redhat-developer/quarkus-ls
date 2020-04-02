@@ -13,6 +13,12 @@
 	<name>quarkus.jdt.ls :: test</name>
 	<description>quarkus.jdt.ls Test Plugin</description>
 	
+	<properties>
+	   <deploySourceFolder>${project.build.directory}/projects</deploySourceFolder>
+	   <deployTargetFolder>vscode/snapshots/builds/microprofile-jdt/${project.version}</deployTargetFolder>
+	   <skipDeployToJBossOrg>false</skipDeployToJBossOrg>
+	</properties>
+	
 	<build>
 	   <pluginManagement>
 	       <plugins>
@@ -34,6 +40,26 @@
 	           </plugin>
 	       </plugins>
 	   </pluginManagement>
+	   <plugins>
+	       <plugin>
+	           <artifactId>maven-assembly-plugin</artifactId>
+	           <executions>
+	               <execution>
+	                   <phase>package</phase>
+	                   <goals>
+	                       <goal>single</goal>
+	                   </goals>
+	                   <configuration>
+	                       <appendAssemblyId>true</appendAssemblyId>
+	                       <outputDirectory>${project.build.directory}/projects</outputDirectory>
+	                       <descriptors>
+	                           <descriptor>src/main/assembly/projects.xml</descriptor>
+	                       </descriptors>
+	                   </configuration>
+	               </execution>
+	           </executions>
+	       </plugin>
+	   </plugins>
 	</build>
 	<profiles>
 		<profile>
