@@ -10,6 +10,8 @@
 package com.redhat.microprofile.jdt.core;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -101,6 +103,48 @@ public class JavaHoverTest extends BasePropertiesManagerTest {
 		// @ConfigProperty(name = "greet|ing.missing")
 		info = getActualHover(new Position(23, 33), javaFileUri);
 		assertHover("greeting.missing", null, 23, 28, 44, info);
+	}
+	
+	@Test
+	public void configPropertyNameHoverWithProfiles() throws Exception {
+		
+		javaProject = loadMavenProject(MavenProjectName.config_hover);
+		IProject project = javaProject.getProject();
+		IFile javaFile = project.getFile(new Path("src/main/java/org/acme/config/GreetingResource.java"));
+		String javaFileUri = javaFile.getLocation().toFile().toURI().toString();
+		
+		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE,
+				"greeting.message = hello\r\n" + //
+				"%dev.greeting.message = hello dev\r\n" + //
+				"%prod.greeting.message = hello prod\r\n" + //
+				"my.greeting.message\r\n" + //
+				"%dev.my.greeting.message", javaProject);
+		
+		// Position(14, 40) is the character after the | symbol:
+		// @ConfigProperty(name = "greeting.mes|sage")
+		Hover info = getActualHover(new Position(14, 40), javaFileUri);
+		
+		Map<String, String> keyValues = new HashMap<String, String>();
+		keyValues.put("greeting.message", "hello");
+		keyValues.put("%dev.greeting.message", "hello dev");
+		keyValues.put("%prod.greeting.message", "hello prod");
+		assertHover(keyValues, 14, 28, 44, info);
+		
+		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE,
+				"%dev.greeting.message = hello dev\r\n" + //
+				"%prod.greeting.message = hello prod\r\n" + //
+				"my.greeting.message\r\n" + //
+				"%dev.my.greeting.message", javaProject);
+		
+		// Position(14, 40) is the character after the | symbol:
+		// @ConfigProperty(name = "greeting.mes|sage")
+		info = getActualHover(new Position(14, 40), javaFileUri);
+		
+		keyValues = new HashMap<String, String>();
+		keyValues.put("greeting.message", null);
+		keyValues.put("%dev.greeting.message", "hello dev");
+		keyValues.put("%prod.greeting.message", "hello prod");
+		assertHover(keyValues, 14, 28, 44, info);
 	}
 
 	@Test
@@ -202,13 +246,20 @@ public class JavaHoverTest extends BasePropertiesManagerTest {
 
 	private void assertHover(String expectedKey, String expectedValue, int expectedLine, int expectedStartOffset,
 			int expectedEndOffset, Hover actualInfo) {
+		Map<String, String> map = new HashMap<String, String>();
+		map.put(expectedKey, expectedValue);
+		assertHover(map, expectedLine, expectedStartOffset, expectedEndOffset, actualInfo);
+	}
+	
+	private void assertHover(Map<String, String> expectedKeyValues, int expectedLine, int expectedStartOffset,
+			int expectedEndOffset, Hover actualInfo) {
 		Assert.assertNotNull(actualInfo);
 
 		Position expectedStart = new Position(expectedLine, expectedStartOffset);
 		Position expectedEnd = new Position(expectedLine, expectedEndOffset);
 		Range expectedRange = new Range(expectedStart, expectedEnd);
 
-		MarkupContent expectedContent = MicroProfileConfigHoverParticipant.getDocumentation(expectedKey, expectedValue,
+		MarkupContent expectedContent = MicroProfileConfigHoverParticipant.getDocumentation(expectedKeyValues,
 				DocumentFormat.Markdown, true);
 
 		Assert.assertEquals(expectedContent, actualInfo.getContents().getRight());

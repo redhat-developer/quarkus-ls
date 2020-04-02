@@ -17,8 +17,10 @@ import static com.redhat.microprofile.jdt.core.MicroProfileConfigConstants.CONFI
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -107,112 +109,115 @@ public class MicroProfileConfigHoverParticipant implements IJavaHoverParticipant
 		}
 
 		JDTMicroProfileProject mpProject = JDTMicroProfileProjectManager.getInstance().getJDTMicroProfileProject(javaProject);
-		Set<String> matchingKeys =getMatchingKeys(propertyKey, mpProject);
-		
-		MarkupContent documentation = null;
-		if (matchingKeys.size() == 0) {
-			String propertyValue = getAnnotationMemberValue(annotation, CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
+		Map<String, String> matchingKeys = getKeyValueMapWithProfiles(propertyKey, annotation, mpProject);
+		return new Hover(getDocumentation(matchingKeys, context.getDocumentFormat(), context.isSurroundEqualsWithSpaces()), propertyKeyRange);
+	}
+	
+	
+	/**
+	 * Returns a map with property keys and values, where keys include <code>propertyKey</code>
+	 * and its value. The map also includes <code>propertyKey</code> with profiles and its
+	 * respective values.
+	 * 
+	 * For example if <code>propertyKey</code> is "greeting.message", here
+	 * is a possible resulting map:
+	 * 
+	 * "greeting.message" -> "hello"
+	 * "%dev.greeting.message"-> "hi"
+	 * "%prod.greeting.message"-> "good morning"
+	 * 
+	 * @param propertyKey the property key
+	 * @param annotation  the annotation
+	 * @param project     the project
+	 * @return
+	 * @throws JavaModelException
+	 */
+	public static Map<String, String> getKeyValueMapWithProfiles(String propertyKey, IAnnotation annotation,
+			JDTMicroProfileProject project) throws JavaModelException {
+		Map<String, String> result = new HashMap<String, String>();
+		String propertyValue = project.getProperty(propertyKey, null);
+		if (propertyValue == null) {
+			propertyValue = getAnnotationMemberValue(annotation, CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
 			if (propertyValue != null && propertyValue.length() == 0) {
 				propertyValue = null;
 			}
-			documentation = getDocumentation(propertyKey, propertyValue,
-					context.getDocumentFormat(), context.isSurroundEqualsWithSpaces());
-		} else {
-			documentation = getDocumentation(matchingKeys, mpProject,
-					context.getDocumentFormat(), context.isSurroundEqualsWithSpaces());
 		}
-		return new Hover(documentation, propertyKeyRange);
-	}
-	
-	public static Set<String> getMatchingKeys(String keyToMatch, JDTMicroProfileProject project) {
-		Set<String> result = new HashSet<String>();
+		
+		result.put(propertyKey, propertyValue);
+		
+		Set<String> matchingKeysWithProfile = new HashSet<String>();
 		Set<String> allKeys = project.getPropertyKeys();
 		for (String key: allKeys) {
-			if (key.endsWith(keyToMatch)) {
-				result.add(key);
+			if (!key.equals(propertyKey) && key.charAt(0) == '%' && key.endsWith(propertyKey)) {
+				//check if key is keyToMatch with profile
+				String beforeMatch = key.substring(0, key.indexOf(propertyKey) - 1);
+				if (beforeMatch.indexOf('.') == -1) {
+					matchingKeysWithProfile.add(key);
+				}
 			}
 		}
+		
+		for (String key: matchingKeysWithProfile.stream().sorted().collect(Collectors.toList())) {
+			String value = project.getProperty(key, null);
+			if (value != null) {
+				result.put(key, value);
+			}
+		}
+		
 		return result;
 	}
 	
 	/**
-	 * Returns documentation about the provided keys in <code>propertyKeys<code>
+	 * Returns documentation about the property keys and values provided
+	 * in <code>propertyMap</code>
 	 * 
-	 * @param propertyKeys   the property keys to create documentation for
-	 * @param project        the project
+	 * @param propertyMap    the map containing property keys and values
 	 * @param documentFormat the document format
 	 * @param insertSpacing  true if spacing should be inserted around the equals
 	 *                       sign and false otherwise
-	 * @return documentation about the provided keys in <code>propertyKeys<code>
-	 * @throws JavaModelException
+	 *
+	 * @return documentation about the property keys and values provided
+	 * in <code>propertyMap</code>
 	 */
-	public static MarkupContent getDocumentation(Set<String> propertyKeys, JDTMicroProfileProject project,
-			DocumentFormat documentFormat, boolean insertSpacing) throws JavaModelException {
-		StringBuilder content = new StringBuilder();
-		boolean markdown = DocumentFormat.Markdown.equals(documentFormat);
-		
-		List<String> sortedKeys = propertyKeys.stream().sorted((o1, o2)->{
-			if (o1.charAt(0) != '%') return -1;
-			if (o2.charAt(0) != '%') return 1;
-			return o1.compareTo(o2);
-		}).collect(Collectors.toList());
-		for (String key: sortedKeys) {
-			String value = project.getProperty(key, null);
-			if (value != null) {
-				buildDocumentation(key, value, markdown, insertSpacing, content);
-			}
-		}
-		
-		return new MarkupContent(markdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT, content.toString());
-		
-	}
-	
-	/**
-	 * Returns documentation about the provided <code>propertyKey</code>'s value,
-	 * <code>propertyValue</code>
-	 * 
-	 * @param propertyKey    the property key
-	 * @param propertyValue  the property key's value
-	 * @param documentFormat the document format
-	 * @param insertSpacing  true if spacing should be inserted around the equals
-	 *                       sign and false otherwise
-	 * @return
-	 */
-	public static MarkupContent getDocumentation(String propertyKey, String propertyValue,
+	public static MarkupContent getDocumentation(Map<String, String> propertyMap,
 			DocumentFormat documentFormat, boolean insertSpacing) {
 		StringBuilder content = new StringBuilder();
 		boolean markdown = DocumentFormat.Markdown.equals(documentFormat);
-		buildDocumentation(propertyKey, propertyValue, markdown, insertSpacing, content);
+		buildDocumentation(propertyMap, markdown, insertSpacing, content);
 		return new MarkupContent(markdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT, content.toString());
 	}
 	
-	private static void buildDocumentation(String propertyKey,
-			String propertyValue, boolean markdownSupported, boolean insertSpacing, StringBuilder content) {
+	private static void buildDocumentation(Map<String, String> propertyMap,
+			boolean markdownSupported, boolean insertSpacing, StringBuilder content) {
 		
-		if (content.length() > 0) {
-			content.append("  \n");
-		}
-		
-		if (markdownSupported) {
-			content.append("`");
-		}
+		for (Map.Entry<String, String> property : propertyMap.entrySet()) {
 
-		content.append(propertyKey);
-
-		if (propertyValue == null) {
+			if (content.length() > 0) {
+				content.append("  \n");
+			}
+			
 			if (markdownSupported) {
 				content.append("`");
 			}
-			content.append(" is not set.");
-		} else {
-			if (insertSpacing) {
-				content.append(" = ");
+			
+			
+			content.append(property.getKey());
+
+			if (property.getValue() == null) {
+				if (markdownSupported) {
+					content.append("`");
+				}
+				content.append(" is not set.");
 			} else {
-				content.append("=");
-			}
-			content.append(propertyValue);
-			if (markdownSupported) {
-				content.append("`");
+				if (insertSpacing) {
+					content.append(" = ");
+				} else {
+					content.append("=");
+				}
+				content.append(property.getValue());
+				if (markdownSupported) {
+					content.append("`");
+				}
 			}
 		}
 	}
