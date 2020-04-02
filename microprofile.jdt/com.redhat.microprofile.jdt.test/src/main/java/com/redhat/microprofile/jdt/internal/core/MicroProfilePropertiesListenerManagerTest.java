@@ -25,6 +25,7 @@ import org.eclipse.jdt.core.IType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.io.MoreFiles;
@@ -83,6 +84,7 @@ public class MicroProfilePropertiesListenerManagerTest {
 		cleanWorkinkingDir();
 	}
 
+	@Ignore
 	@Test
 	public void classpathChanged() throws Exception {
 		Assert.assertEquals(0, projectTracker.getProjects().size());
@@ -103,6 +105,7 @@ public class MicroProfilePropertiesListenerManagerTest {
 				projectTracker.getProjects().iterator().next());
 	}
 
+	@Ignore
 	@Test
 	public void javaSourcesChanged() throws Exception {
 		Assert.assertEquals(0, projectTracker.getProjects().size());
