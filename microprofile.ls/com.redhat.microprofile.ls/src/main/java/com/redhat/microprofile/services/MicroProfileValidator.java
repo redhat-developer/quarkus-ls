@@ -9,6 +9,8 @@
 *******************************************************************************/
 package com.redhat.microprofile.services;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +34,7 @@ import com.redhat.microprofile.model.values.ValuesRulesManager;
 import com.redhat.microprofile.settings.MicroProfileValidationSettings;
 import com.redhat.microprofile.utils.MicroProfilePropertiesUtils;
 import com.redhat.microprofile.utils.PositionUtils;
+import com.redhat.microprofile.utils.StringUtils;
 
 /**
  * Quarkus validator to validate properties declared in application.properties.
@@ -207,7 +210,9 @@ class MicroProfileValidator {
 				|| (metadata.isBooleanType() && !isBooleanString(value))
 				|| (metadata.isDoubleType() && !isDoubleString(value))
 				|| (metadata.isLongType() && !isLongString(value))
-				|| (metadata.isShortType() && !isShortString(value))) {
+				|| (metadata.isShortType() && !isShortString(value))
+				|| (metadata.isBigDecimalType() && !isBigDecimalString(value))
+				|| (metadata.isBigIntegerType() && !isBigIntegerString(value))) {
 			return "Type mismatch: " + metadata.getType() + " expected";
 		}
 		return null;
@@ -218,6 +223,9 @@ class MicroProfileValidator {
 	}
 
 	private static boolean isIntegerString(String str) {
+		if (!StringUtils.hasText(str)) {
+			return false;
+		}
 		try {
 			Integer.parseInt(str);
 			return true;
@@ -227,6 +235,9 @@ class MicroProfileValidator {
 	}
 
 	private static boolean isFloatString(String str) {
+		if (!StringUtils.hasText(str)) {
+			return false;
+		}
 		try {
 			Float.parseFloat(str);
 			return true;
@@ -236,6 +247,9 @@ class MicroProfileValidator {
 	}
 
 	private static boolean isLongString(String str) {
+		if (!StringUtils.hasText(str)) {
+			return false;
+		}
 		try {
 			Long.parseLong(str);
 			return true;
@@ -245,6 +259,9 @@ class MicroProfileValidator {
 	}
 
 	private static boolean isDoubleString(String str) {
+		if (!StringUtils.hasText(str)) {
+			return false;
+		}
 		try {
 			Double.parseDouble(str);
 			return true;
@@ -254,8 +271,35 @@ class MicroProfileValidator {
 	}
 
 	private static boolean isShortString(String str) {
+		if (!StringUtils.hasText(str)) {
+			return false;
+		}
 		try {
 			Short.parseShort(str);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
+
+	private static boolean isBigDecimalString(String str) {
+		if (!StringUtils.hasText(str)) {
+			return false;
+		}
+		try {
+			new BigDecimal(str);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
+
+	private static boolean isBigIntegerString(String str) {
+		if (!StringUtils.hasText(str)) {
+			return false;
+		}
+		try {
+			new BigInteger(str);
 			return true;
 		} catch (NumberFormatException e) {
 			return false;
