@@ -323,10 +323,10 @@ public class JSONSchemaUtils {
 		if (item.isBooleanType()) {
 			return JSONSchemaType.booleanType;
 		}
-		if (item.isIntegerType()) {
+		if (item.isIntegerType() || item.isBigIntegerType()) {
 			return JSONSchemaType.integer;
 		}
-		if (item.isLongType() || item.isShortType() || item.isDoubleType() || item.isFloatType()) {
+		if (item.isLongType() || item.isShortType() || item.isDoubleType() || item.isFloatType() || item.isBigDecimalType()) {
 			return JSONSchemaType.number;
 		}
 		// In case of enum and no type has been found, we use string

@@ -4,6 +4,8 @@
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
 *
+* SPDX-License-Identifier: EPL-2.0
+*
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
@@ -161,6 +163,16 @@ public class ItemMetadata extends ItemBase {
 		return "short".equals(getType()) || //
 				"java.lang.Short".equals(getType()) || //
 				"java.util.Optional<java.lang.Short>".equals(getType());
+	}
+
+	public boolean isBigDecimalType() {
+		return "java.math.BigDecimal".equals(getType()) || //
+				"java.util.Optional<java.math.BigDecimal>".equals(getType());
+	}
+
+	public boolean isBigIntegerType() {
+		return "java.math.BigInteger".equals(getType()) || //
+				"java.util.Optional<java.math.BigInteger>".equals(getType());
 	}
 
 	public boolean isRegexType() {

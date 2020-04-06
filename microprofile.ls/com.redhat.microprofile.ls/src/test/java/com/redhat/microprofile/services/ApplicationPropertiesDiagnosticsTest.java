@@ -15,6 +15,7 @@ import static com.redhat.microprofile.services.MicroProfileAssert.testDiagnostic
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.Test;
@@ -404,6 +405,100 @@ public class ApplicationPropertiesDiagnosticsTest {
 		value = "quarkus.thread-pool.growth-resistance=hello";
 		testDiagnosticsFor(value, getDefaultMicroProfileProjectInfo(), settings,
 				d(0, 38, 43, "Type mismatch: float expected", DiagnosticSeverity.Error, ValidationType.value));
+	}
+
+	@Test
+	public void validateBigDecimalError() throws BadLocationException {
+		MicroProfileProjectInfo projectInfo = new MicroProfileProjectInfo();
+		List<ItemMetadata> properties = new ArrayList<ItemMetadata>();
+		ItemMetadata p1 = new ItemMetadata();
+		p1.setName("quarkus.BigDecimal");
+		p1.setType("java.math.BigDecimal");
+		properties.add(p1);
+		ItemMetadata p2 = new ItemMetadata();
+		p2.setName("quarkus.Optional.BigDecimal");
+		p2.setType("java.util.Optional<java.math.BigDecimal>");
+		properties.add(p2);
+		projectInfo.setProperties(properties);
+
+		MicroProfileValidationSettings settings = new MicroProfileValidationSettings();
+		
+		String value = "quarkus.BigDecimal=12\n" + //
+				"quarkus.Optional.BigDecimal=12";
+		testDiagnosticsFor(value, projectInfo, settings);
+
+		value = "quarkus.BigDecimal=-19\n" + //
+				"quarkus.Optional.BigDecimal=-19";
+		testDiagnosticsFor(value, projectInfo, settings);
+
+		value = "quarkus.BigDecimal=3.14159\n" + //
+				"quarkus.Optional.BigDecimal=3.14159";
+		testDiagnosticsFor(value, projectInfo, settings);
+
+		value = "quarkus.BigDecimal=314.159e-2\n" + //
+				"quarkus.Optional.BigDecimal=314.159e-2";
+		testDiagnosticsFor(value, projectInfo, settings);
+
+		value = "quarkus.BigDecimal=hello world\n" + //
+				"quarkus.Optional.BigDecimal=hello world";
+		testDiagnosticsFor(value, projectInfo, settings,
+				d(0, 19, 30, "Type mismatch: java.math.BigDecimal expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(1, 28, 39, "Type mismatch: java.util.Optional<java.math.BigDecimal> expected", DiagnosticSeverity.Error, ValidationType.value));
+		
+		value = "quarkus.BigDecimal=true\n" + //
+				"quarkus.Optional.BigDecimal=true";
+		testDiagnosticsFor(value, projectInfo, settings,
+				d(0, 19, 23, "Type mismatch: java.math.BigDecimal expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(1, 28, 32, "Type mismatch: java.util.Optional<java.math.BigDecimal> expected", DiagnosticSeverity.Error, ValidationType.value));
+	}
+
+	@Test
+	public void validateBigIntegerError() throws BadLocationException {
+		MicroProfileProjectInfo projectInfo = new MicroProfileProjectInfo();
+		List<ItemMetadata> properties = new ArrayList<ItemMetadata>();
+		ItemMetadata p1 = new ItemMetadata();
+		p1.setName("quarkus.BigInteger");
+		p1.setType("java.math.BigInteger");
+		properties.add(p1);
+		ItemMetadata p2 = new ItemMetadata();
+		p2.setName("quarkus.Optional.BigInteger");
+		p2.setType("java.util.Optional<java.math.BigInteger>");
+		properties.add(p2);
+		projectInfo.setProperties(properties);
+
+		MicroProfileValidationSettings settings = new MicroProfileValidationSettings();
+		
+		String value = "quarkus.BigInteger=12\n" + //
+				"quarkus.Optional.BigInteger=12";
+		testDiagnosticsFor(value, projectInfo, settings);
+
+		value = "quarkus.BigInteger=-19\n" + //
+				"quarkus.Optional.BigInteger=-19";
+		testDiagnosticsFor(value, projectInfo, settings);
+
+		value = "quarkus.BigInteger=hello world\n" + //
+				"quarkus.Optional.BigInteger=hello world";
+		testDiagnosticsFor(value, projectInfo, settings,
+				d(0, 19, 30, "Type mismatch: java.math.BigInteger expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(1, 28, 39, "Type mismatch: java.util.Optional<java.math.BigInteger> expected", DiagnosticSeverity.Error, ValidationType.value));
+		
+		value = "quarkus.BigInteger=true\n" + //
+				"quarkus.Optional.BigInteger=true";
+		testDiagnosticsFor(value, projectInfo, settings,
+				d(0, 19, 23, "Type mismatch: java.math.BigInteger expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(1, 28, 32, "Type mismatch: java.util.Optional<java.math.BigInteger> expected", DiagnosticSeverity.Error, ValidationType.value));
+
+		value = "quarkus.BigInteger=3.14159\n" + //
+				"quarkus.Optional.BigInteger=3.14159";
+		testDiagnosticsFor(value, projectInfo, settings,
+				d(0, 19, 26, "Type mismatch: java.math.BigInteger expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(1, 28, 35, "Type mismatch: java.util.Optional<java.math.BigInteger> expected", DiagnosticSeverity.Error, ValidationType.value));
+
+		value = "quarkus.BigInteger=314.159e-2\n" + //
+				"quarkus.Optional.BigInteger=314.159e-2";
+		testDiagnosticsFor(value, projectInfo, settings,
+				d(0, 19, 29, "Type mismatch: java.math.BigInteger expected", DiagnosticSeverity.Error, ValidationType.value),
+				d(1, 28, 38, "Type mismatch: java.util.Optional<java.math.BigInteger> expected", DiagnosticSeverity.Error, ValidationType.value));
 	}
 
 	@Test

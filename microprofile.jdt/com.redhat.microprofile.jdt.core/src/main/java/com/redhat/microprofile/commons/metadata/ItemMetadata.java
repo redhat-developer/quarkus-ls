@@ -165,6 +165,16 @@ public class ItemMetadata extends ItemBase {
 				"java.util.Optional<java.lang.Short>".equals(getType());
 	}
 
+	public boolean isBigDecimalType() {
+		return "java.math.BigDecimal".equals(getType()) || //
+				"java.util.Optional<java.math.BigDecimal>".equals(getType());
+	}
+
+	public boolean isBigIntegerType() {
+		return "java.math.BigInteger".equals(getType()) || //
+				"java.util.Optional<java.math.BigInteger>".equals(getType());
+	}
+
 	public boolean isRegexType() {
 		return "java.util.regex.Pattern".equals(getType()) || //
 				"java.util.Optional<java.util.regex.Pattern>".equals(getType());
