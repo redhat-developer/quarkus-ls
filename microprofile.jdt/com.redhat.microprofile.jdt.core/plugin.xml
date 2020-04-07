@@ -63,6 +63,13 @@
       <provider class="com.redhat.microprofile.jdt.internal.faulttolerance.properties.MicroProfileFaultToleranceProvider" />
    </extension>
    
+   <!-- Microprofile LRA support -->
+   
+   <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
+      <!-- Properties provider for MicroProfile LRA -->
+      <provider class="com.redhat.microprofile.jdt.internal.lra.properties.MicroProfileLRAProvider" />
+   </extension>
+   
    <!-- Microprofile Metrics support -->
    
    <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">

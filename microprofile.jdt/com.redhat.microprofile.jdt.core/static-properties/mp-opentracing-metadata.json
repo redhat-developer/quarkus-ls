@@ -2,7 +2,7 @@
 	"properties": [
 		{
 			"type": "java.util.regex.Pattern",
-			"extensionName": "microprofile-opentracing",
+			"extensionName": "microprofile-opentracing-api",
 			"required": false,
 			"name": "mp.opentracing.server.skip-pattern",
 			"description": "Specifies a skip pattern to avoid tracing of selected REST endpoints."
@@ -10,7 +10,7 @@
 		{
 			"type": "\"http-path\" or \"class-method\"",
 			"defaultValue": "class-method",
-			"extensionName": "microprofile-opentracing",
+			"extensionName": "microprofile-opentracing-api",
 			"required": false,
 			"name": "mp.opentracing.server.operation-name-provider",
 			"description": "Specifies operation name provider for server spans. Possible values are `http-path` and `class-method`."
