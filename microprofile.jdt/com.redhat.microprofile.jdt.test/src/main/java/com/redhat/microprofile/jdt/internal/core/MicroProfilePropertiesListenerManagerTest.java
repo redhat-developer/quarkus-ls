@@ -10,11 +10,12 @@
 package com.redhat.microprofile.jdt.internal.core;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -42,6 +43,9 @@ import com.redhat.microprofile.jdt.core.utils.JDTMicroProfileUtils;
  */
 public class MicroProfilePropertiesListenerManagerTest {
 
+	private static final String TEST_CLASSPATH_CHANGED_PROJECT = "test-classpath-changed";
+	private static final String TEST_JAVA_SOURCES_CHANGED_PROJECT = "test-java-sources-changed";
+
 	static class ProjectTracker implements IMicroProfilePropertiesChangedListener {
 
 		final Set<String> projects = new HashSet<>();
@@ -68,11 +72,18 @@ public class MicroProfilePropertiesListenerManagerTest {
 
 	private void cleanWorkinkingDir() {
 		try {
+			IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+			for (IProject project : projects) {
+				if (TEST_CLASSPATH_CHANGED_PROJECT.equals(project.getName())
+						|| TEST_JAVA_SOURCES_CHANGED_PROJECT.equals(project.getName())) {
+					project.delete(true, null);
+				}
+			}
 			File dir = JavaUtils.getWorkingProjectDirectory();
 			if (dir.exists()) {
 				MoreFiles.deleteRecursively(dir.toPath(), RecursiveDeleteOption.ALLOW_INSECURE);
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -90,7 +101,9 @@ public class MicroProfilePropertiesListenerManagerTest {
 		Assert.assertEquals(0, projectTracker.getProjects().size());
 
 		// Create a Java project -> classpath changed
-		IJavaProject project = JavaUtils.createJavaProject("test-classpath-changed", new String[] { "/test.jar" });
+		IJavaProject project = JavaUtils.createJavaProject(TEST_CLASSPATH_CHANGED_PROJECT,
+				new String[] { "/test.jar" });
+		JobHelpers.waitForJobsToComplete();
 		Assert.assertEquals(1, projectTracker.getProjects().size());
 		Assert.assertEquals(JDTMicroProfileUtils.getProjectURI(project),
 				projectTracker.getProjects().iterator().next());
@@ -100,6 +113,7 @@ public class MicroProfilePropertiesListenerManagerTest {
 
 		// Update classpath -> classpath changed
 		project.setRawClasspath(new IClasspathEntry[] {}, new NullProgressMonitor());
+		JobHelpers.waitForJobsToComplete();
 		Assert.assertEquals(1, projectTracker.getProjects().size());
 		Assert.assertEquals(JDTMicroProfileUtils.getProjectURI(project),
 				projectTracker.getProjects().iterator().next());
@@ -111,7 +125,8 @@ public class MicroProfilePropertiesListenerManagerTest {
 		Assert.assertEquals(0, projectTracker.getProjects().size());
 
 		// Create a Java project -> classpath changed
-		IJavaProject javaProject = JavaUtils.createJavaProject("test-java-sources-changed", new String[] {});
+		IJavaProject javaProject = JavaUtils.createJavaProject(TEST_JAVA_SOURCES_CHANGED_PROJECT, new String[] {});
+		JobHelpers.waitForJobsToComplete();
 		Assert.assertEquals(1, projectTracker.getProjects().size());
 		Assert.assertEquals(JDTMicroProfileUtils.getProjectURI(javaProject),
 				projectTracker.getProjects().iterator().next());
@@ -168,7 +183,7 @@ public class MicroProfilePropertiesListenerManagerTest {
 		ICompilationUnit cu = fragment.createCompilationUnit("GreetingResource.java", str, false, null);
 
 		// The java file has been modified
-		Thread.sleep(200); // wait a moment since IQuarkusPropertiesChangedListener are fired in async mode
+		JobHelpers.waitForJobsToComplete();
 		Assert.assertEquals(1, projectTracker.getProjects().size());
 		Assert.assertEquals(JDTMicroProfileUtils.getProjectURI(javaProject),
 				projectTracker.getProjects().iterator().next());
@@ -180,7 +195,7 @@ public class MicroProfilePropertiesListenerManagerTest {
 		type.createField("private String age;", null, true, null);
 
 		// The java file has been modified
-		Thread.sleep(200); // wait a moment since IQuarkusPropertiesChangedListener are fired in async mode
+		JobHelpers.waitForJobsToComplete();
 		Assert.assertEquals(1, projectTracker.getProjects().size());
 		Assert.assertEquals(JDTMicroProfileUtils.getProjectURI(javaProject),
 				projectTracker.getProjects().iterator().next());

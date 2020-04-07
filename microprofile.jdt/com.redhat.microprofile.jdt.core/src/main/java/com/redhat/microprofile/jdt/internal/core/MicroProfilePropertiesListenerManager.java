@@ -1,8 +1,10 @@
 /*******************************************************************************
-* Copyright (c) 2019 Red Hat Inc. and others.
+* Copyright (c) 2019-2020 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
+*
+* SPDX-License-Identifier: EPL-2.0
 *
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
@@ -149,7 +151,7 @@ public class MicroProfilePropertiesListenerManager {
 				return resource.isAccessible();
 			case IResource.FILE:
 				IFile file = (IFile) resource;
-				if (isJavaFile(file)) {
+				if (isJavaFile(file) && isFileContentChanged(delta)) {
 					// A Java file has been saved
 					MicroProfilePropertiesChangeEvent event = new MicroProfilePropertiesChangeEvent();
 					event.setType(MicroProfilePropertiesScope.ONLY_SOURCES);
@@ -182,6 +184,10 @@ public class MicroProfilePropertiesListenerManager {
 
 		private boolean isJavaFile(IFile file) {
 			return JAVA_FILE_EXTENSION.equals(file.getFileExtension());
+		}
+
+		private boolean isFileContentChanged(IResourceDelta delta) {
+			return (delta.getKind() == IResourceDelta.CHANGED && (delta.getFlags() & IResourceDelta.CONTENT) != 0);
 		}
 
 	}
