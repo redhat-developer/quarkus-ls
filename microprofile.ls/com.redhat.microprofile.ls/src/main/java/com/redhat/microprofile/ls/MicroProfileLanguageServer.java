@@ -46,7 +46,7 @@ import com.redhat.microprofile.settings.capabilities.MicroProfileCapabilityManag
 import com.redhat.microprofile.settings.capabilities.ServerCapabilitiesInitializer;
 
 /**
- * Quarkus language server.
+ * MicroProfile language server.
  *
  */
 public class MicroProfileLanguageServer implements LanguageServer, ProcessLanguageServer, MicroProfileLanguageServerAPI,
@@ -54,7 +54,7 @@ public class MicroProfileLanguageServer implements LanguageServer, ProcessLangua
 
 	private static final Logger LOGGER = Logger.getLogger(MicroProfileLanguageServer.class.getName());
 
-	private final MicroProfileLanguageService quarkusLanguageService;
+	private final MicroProfileLanguageService microProfileLanguageService;
 	private final MicroProfileTextDocumentService textDocumentService;
 	private final WorkspaceService workspaceService;
 
@@ -63,14 +63,14 @@ public class MicroProfileLanguageServer implements LanguageServer, ProcessLangua
 	private MicroProfileCapabilityManager capabilityManager;
 
 	public MicroProfileLanguageServer() {
-		quarkusLanguageService = new MicroProfileLanguageService();
+		microProfileLanguageService = new MicroProfileLanguageService();
 		textDocumentService = new MicroProfileTextDocumentService(this);
 		workspaceService = new MicroProfileWorkspaceService(this);
 	}
 
 	@Override
 	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-		LOGGER.info("Initializing Quarkus server " + getVersion() + " with " + System.getProperty("java.home"));
+		LOGGER.info("Initializing MicroProfile server " + getVersion() + " with " + System.getProperty("java.home"));
 
 		this.parentProcessId = params.getProcessId();
 
@@ -102,32 +102,32 @@ public class MicroProfileLanguageServer implements LanguageServer, ProcessLangua
 	}
 
 	/**
-	 * Update Quarkus settings configured from the client.
+	 * Update MicroProfile settings configured from the client.
 	 * 
-	 * @param initializationOptionsSettings the Quarkus settings
+	 * @param initializationOptionsSettings the MicroProfile settings
 	 */
 	public synchronized void updateSettings(Object initializationOptionsSettings) {
 		if (initializationOptionsSettings == null) {
 			return;
 		}
 		// Update client settings
-		initializationOptionsSettings = AllMicroProfileSettings.getQuarkusToolsSettings(initializationOptionsSettings);
-		MicroProfileGeneralClientSettings quarkusClientSettings = MicroProfileGeneralClientSettings
-				.getGeneralQuarkusSettings(initializationOptionsSettings);
-		if (quarkusClientSettings != null) {
-			MicroProfileSymbolSettings newSymbols = quarkusClientSettings.getSymbols();
+		initializationOptionsSettings = AllMicroProfileSettings.getMicroProfileToolsSettings(initializationOptionsSettings);
+		MicroProfileGeneralClientSettings clientSettings = MicroProfileGeneralClientSettings
+				.getGeneralMicroProfileSettings(initializationOptionsSettings);
+		if (clientSettings != null) {
+			MicroProfileSymbolSettings newSymbols = clientSettings.getSymbols();
 			if (newSymbols != null) {
 				textDocumentService.updateSymbolSettings(newSymbols);
 			}
-			MicroProfileValidationSettings newValidation = quarkusClientSettings.getValidation();
+			MicroProfileValidationSettings newValidation = clientSettings.getValidation();
 			if (newValidation != null) {
 				textDocumentService.updateValidationSettings(newValidation);
 			}
-			MicroProfileFormattingSettings newFormatting = quarkusClientSettings.getFormatting();
+			MicroProfileFormattingSettings newFormatting = clientSettings.getFormatting();
 			if (newFormatting != null) {
 				textDocumentService.updateFormattingSettings(newFormatting);
 			}
-			MicroProfileCodeLensSettings newCodeLens = quarkusClientSettings.getCodeLens();
+			MicroProfileCodeLensSettings newCodeLens = clientSettings.getCodeLens();
 			if (newCodeLens != null) {
 				textDocumentService.updateCodeLensSettings(newCodeLens);
 			}
@@ -175,8 +175,8 @@ public class MicroProfileLanguageServer implements LanguageServer, ProcessLangua
 		return parentProcessId != null ? parentProcessId : 0;
 	}
 
-	public MicroProfileLanguageService getQuarkusLanguageService() {
-		return quarkusLanguageService;
+	public MicroProfileLanguageService getMicroProfileLanguageService() {
+		return microProfileLanguageService;
 	}
 
 	@Override

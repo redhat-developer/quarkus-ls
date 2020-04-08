@@ -10,7 +10,7 @@
 package com.redhat.microprofile.settings;
 
 /**
- * Quarkus code lens settings.
+ * MicroProfile code lens settings.
  * 
  * @author Angelo ZERR
  *

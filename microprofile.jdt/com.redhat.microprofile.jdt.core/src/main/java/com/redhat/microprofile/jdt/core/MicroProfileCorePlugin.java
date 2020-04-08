@@ -16,7 +16,7 @@ import com.redhat.microprofile.jdt.internal.core.MicroProfilePropertiesListenerM
 import com.redhat.microprofile.jdt.internal.core.PropertiesProviderRegistry;
 
 /**
- * The activator class controls the Quarkus JDT LS Extension plug-in life cycle
+ * The activator class controls the MicroProfile JDT LS Extension plug-in life cycle
  */
 public class MicroProfileCorePlugin implements BundleActivator {
 
@@ -48,20 +48,20 @@ public class MicroProfileCorePlugin implements BundleActivator {
 	}
 
 	/**
-	 * Add the given quarkus properties changed listener.
+	 * Add the given MicroProfile properties changed listener.
 	 * 
 	 * @param listener the listener to add
 	 */
-	public void addQuarkusPropertiesChangedListener(IMicroProfilePropertiesChangedListener listener) {
+	public void addMicroProfilePropertiesChangedListener(IMicroProfilePropertiesChangedListener listener) {
 		MicroProfilePropertiesListenerManager.getInstance().addMicroProfilePropertiesChangedListener(listener);
 	}
 
 	/**
-	 * Remove the given quarkus properties changed listener.
+	 * Remove the given MicroProfile properties changed listener.
 	 * 
 	 * @param listener the listener to remove
 	 */
-	public void removeQuarkusPropertiesChangedListener(IMicroProfilePropertiesChangedListener listener) {
+	public void removeMicroProfilePropertiesChangedListener(IMicroProfilePropertiesChangedListener listener) {
 		MicroProfilePropertiesListenerManager.getInstance().removeMicroProfilePropertiesChangedListener(listener);
 	}
 }

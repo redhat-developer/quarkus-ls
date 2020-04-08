@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The quarkus project properties change event.
+ * The MicroProfile project properties change event.
  * 
  * @author Angelo ZERR
  *
@@ -27,18 +27,18 @@ public class MicroProfilePropertiesChangeEvent {
 	private Set<String> projectURIs;
 
 	/**
-	 * Returns the search scope to collect the Quarkus properties.
+	 * Returns the search scope to collect the MicroProfile properties.
 	 * 
-	 * @return the search scope to collect the Quarkus properties.
+	 * @return the search scope to collect the MicroProfile properties.
 	 */
 	public List<MicroProfilePropertiesScope> getType() {
 		return type;
 	}
 
 	/**
-	 * Set the search scope to collect the Quarkus properties.
+	 * Set the search scope to collect the MicroProfile properties.
 	 * 
-	 * @param type the search scope to collect the Quarkus properties.
+	 * @param type the search scope to collect the MicroProfile properties.
 	 */
 	public void setType(List<MicroProfilePropertiesScope> type) {
 		this.type = type;

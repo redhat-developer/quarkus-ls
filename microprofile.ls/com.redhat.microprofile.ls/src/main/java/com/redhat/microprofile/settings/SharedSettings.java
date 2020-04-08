@@ -10,7 +10,7 @@
 package com.redhat.microprofile.settings;
 
 /**
- * Quarkus shared settings.
+ * Shared settings.
  * 
  * @author Angelo ZERR
  *

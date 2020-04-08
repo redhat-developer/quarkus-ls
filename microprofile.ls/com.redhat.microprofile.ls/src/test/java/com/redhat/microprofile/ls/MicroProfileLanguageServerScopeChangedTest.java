@@ -89,7 +89,7 @@ public class MicroProfileLanguageServerScopeChangedTest {
 	public void classpathChanged() throws InterruptedException, ExecutionException {
 		MicroProfileLanguageServer server = createServer();
 		MockMicroProfileLanguageClient client = (MockMicroProfileLanguageClient) server.getLanguageClient();
-		// Initialize quarkus properties
+		// Initialize properties
 		client.changedClasspath(PROJECT1, property1FromJar, property2FromJar, property1FromSources);
 
 		didOpen(PROJECT1_APPLICATION_PROPERTIES, server);
@@ -128,7 +128,7 @@ public class MicroProfileLanguageServerScopeChangedTest {
 	public void javaSourcesChangedInThreadContext() throws InterruptedException, ExecutionException {
 		MicroProfileLanguageServer server = createServer();
 		MockMicroProfileLanguageClient client = (MockMicroProfileLanguageClient) server.getLanguageClient();
-		// Initialize quarkus properties
+		// Initialize properties
 		client.changedClasspath(PROJECT1, property1FromJar, property2FromJar, property1FromSources);
 
 		didOpen(PROJECT1_APPLICATION_PROPERTIES, server);
@@ -143,8 +143,8 @@ public class MicroProfileLanguageServerScopeChangedTest {
 		assertCompletions(list, 2, c("quarkus.application.name", "quarkus.application.name=", r(0, 0, 0)), //
 				c("greeting.message", "greeting.message=", r(0, 0, 0)));
 
-		// create a lot of thread which change java sources (update Quarkus properties)
-		// and execute completion (to recompute Quarkus properties)
+		// create a lot of thread which change java sources (update properties)
+		// and execute completion (to recompute properties)
 		List<Thread> threads = new ArrayList<>();
 		List<Integer> count = new ArrayList<>();
 		for (int i = 0; i < 1000; i++) {

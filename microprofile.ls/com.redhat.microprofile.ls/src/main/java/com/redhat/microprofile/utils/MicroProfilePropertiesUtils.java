@@ -23,7 +23,7 @@ import com.redhat.microprofile.model.values.ValuesRulesManager;
 import com.redhat.microprofile.services.QuarkusModel;
 
 /**
- * Quarkus project information utilities.
+ * MicroProfile project information utilities.
  * 
  * @author Angelo ZERR
  *
@@ -83,7 +83,7 @@ public class MicroProfilePropertiesUtils {
 	/**
 	 * Returns the enums values according the property type.
 	 * 
-	 * @param property           the Quarkus property
+	 * @param property           the property
 	 * @param projectInfo
 	 * @param valuesRulesManager
 	 * @param model
@@ -105,12 +105,12 @@ public class MicroProfilePropertiesUtils {
 	}
 
 	/**
-	 * Returns the Quarkus property from the given property name and null otherwise.
+	 * Returns the MicroProfile property from the given property name and null otherwise.
 	 * 
 	 * @param propertyName the property name
-	 * @param info         the quarkus project information which hosts the Quarkus
+	 * @param info         the MicroProfile project information which hosts the MicroProfile
 	 *                     properties.
-	 * @return the Quarkus property from the given property name and null otherwise.
+	 * @return the MicroProfile property from the given property name and null otherwise.
 	 */
 	public static ItemMetadata getProperty(String propertyName, MicroProfileProjectInfo info) {
 		Collection<ItemMetadata> properties = info.getProperties();

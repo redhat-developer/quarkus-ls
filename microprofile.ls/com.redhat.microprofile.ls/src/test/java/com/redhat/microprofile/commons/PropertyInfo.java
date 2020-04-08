@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2019 Red Hat Inc. and others.
+* Copyright (c) 2019-2020 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
@@ -15,7 +15,7 @@ import com.redhat.microprofile.commons.metadata.ItemMetadata;
  * Property information which contains:
  * 
  * <ul>
- * <li>a Quarkus property</li>
+ * <li>a MicroProfile property</li>
  * <li>a profile</li>
  * <ul>
  * 
@@ -34,9 +34,9 @@ public class PropertyInfo {
 	}
 
 	/**
-	 * Returns the Quarkus property and null otherwise.
+	 * Returns the MicroProfile property and null otherwise.
 	 * 
-	 * @return the Quarkus property and null otherwise.
+	 * @return the MicroProfile property and null otherwise.
 	 */
 	public ItemMetadata getProperty() {
 		return property;

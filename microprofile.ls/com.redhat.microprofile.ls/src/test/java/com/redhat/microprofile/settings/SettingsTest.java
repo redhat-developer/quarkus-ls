@@ -17,9 +17,6 @@ import org.junit.Test;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.redhat.microprofile.settings.AllMicroProfileSettings;
-import com.redhat.microprofile.settings.InitializationOptionsSettings;
-import com.redhat.microprofile.settings.MicroProfileGeneralClientSettings;
 
 /**
  * Tests for settings.
@@ -58,15 +55,15 @@ public class SettingsTest {
 	public void initializationOptionsSettings() {
 
 		// Emulate InitializeParams#getInitializationOptions() object created as
-		// JSONObject when QuarkusLanguageServer#initialize(InitializeParams params) is
+		// JSONObject when MicroProfileLanguageServer#initialize(InitializeParams params) is
 		// called
 		InitializeParams params = createInitializeParams(json);
 		Object initializationOptionsSettings = InitializationOptionsSettings.getSettings(params);
 
 		// Test client commons settings
-		initializationOptionsSettings = AllMicroProfileSettings.getQuarkusToolsSettings(initializationOptionsSettings);
+		initializationOptionsSettings = AllMicroProfileSettings.getMicroProfileToolsSettings(initializationOptionsSettings);
 		MicroProfileGeneralClientSettings settings = MicroProfileGeneralClientSettings
-				.getGeneralQuarkusSettings(initializationOptionsSettings);
+				.getGeneralMicroProfileSettings(initializationOptionsSettings);
 		assertNotNull(settings);
 
 		// Symbols

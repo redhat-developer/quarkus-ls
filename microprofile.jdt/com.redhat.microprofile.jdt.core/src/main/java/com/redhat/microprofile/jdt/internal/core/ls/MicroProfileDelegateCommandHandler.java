@@ -60,7 +60,7 @@ public class MicroProfileDelegateCommandHandler extends AbstractMicroProfileDele
 	}
 
 	/**
-	 * Returns the Quarkus project information
+	 * Returns the MicroProfile project information
 	 * 
 	 * @param arguments
 	 * @param commandId

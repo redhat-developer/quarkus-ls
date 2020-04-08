@@ -31,7 +31,7 @@ public class ApplicationPropertiesHoverTest {
 	};
 
 	@Test
-	public void testQuarkusKeyHoverMarkdown() throws BadLocationException {
+	public void testKeyHoverMarkdown() throws BadLocationException {
 		String value = "quarkus.applica|tion.name = name";
 		String hoverLabel = "**quarkus.application.name**" + System.lineSeparator() + System.lineSeparator() + //
 				"The name of the application.\nIf not set, defaults to the name of the project (except for tests where it is not set at all)."
@@ -43,7 +43,7 @@ public class ApplicationPropertiesHoverTest {
 	};
 
 	@Test
-	public void testQuarkusKeyHoverPlaintext() throws BadLocationException {
+	public void testKeyHoverPlaintext() throws BadLocationException {
 		String value = "quarkus.applica|tion.name = name";
 		String hoverLabel = "quarkus.application.name" + System.lineSeparator() + System.lineSeparator() + //
 				"The name of the application.\nIf not set, defaults to the name of the project (except for tests where it is not set at all)."
@@ -55,7 +55,7 @@ public class ApplicationPropertiesHoverTest {
 	};
 
 	@Test
-	public void testQuarkusKeyHoverNoSpaces() throws BadLocationException {
+	public void testKeyHoverNoSpaces() throws BadLocationException {
 		String value = "quarkus.applica|tion.name=name";
 		String hoverLabel = "**quarkus.application.name**" + System.lineSeparator() + System.lineSeparator() + //
 				"The name of the application.\nIf not set, defaults to the name of the project (except for tests where it is not set at all)."
@@ -67,14 +67,14 @@ public class ApplicationPropertiesHoverTest {
 	};
 
 	@Test
-	public void testNoQuarkusKeyHoverOnEqualsSign() throws BadLocationException {
+	public void testNoKeyHoverOnEqualsSign() throws BadLocationException {
 		assertHoverMarkdown("quarkus.application.name |= name", null, 0);
 		assertHoverMarkdown("quarkus.application.name|=name", null, 0);
 		assertHoverMarkdown("quarkus.log.syslog.async.overflow|=DISCARD", null, 0);
 	};
 
 	@Test
-	public void testNoQuarkusValueHoverOnEqualsSign() throws BadLocationException {
+	public void testNoValueHoverOnEqualsSign() throws BadLocationException {
 		assertHoverMarkdown("quarkus.log.syslog.async.overflow |= DISCARD", null, 0);
 		assertHoverMarkdown("quarkus.log.syslog.async.overflow|=DISCARD", null, 0);
 	};
@@ -134,7 +134,7 @@ public class ApplicationPropertiesHoverTest {
 	};
 
 	@Test
-	public void testQuarkusKeyWithProfileHoverMarkdown() throws BadLocationException {
+	public void testKeyWithProfileHoverMarkdown() throws BadLocationException {
 		String value = "%dev.quarkus.applica|tion.name = name";
 		String hoverLabel = "**quarkus.application.name**" + System.lineSeparator() + System.lineSeparator() + //
 				"The name of the application.\nIf not set, defaults to the name of the project (except for tests where it is not set at all)."
@@ -147,7 +147,7 @@ public class ApplicationPropertiesHoverTest {
 	};
 
 	@Test
-	public void testQuarkusKeyMap() throws BadLocationException {
+	public void testKeyMap() throws BadLocationException {
 		String value = "quar|kus.log.category.\"com.lordofthejars\".level=DEBUG";
 		String hoverLabel = "**quarkus.log.category.\\{\\*\\}.level**" + System.lineSeparator() + System.lineSeparator()
 				+ //

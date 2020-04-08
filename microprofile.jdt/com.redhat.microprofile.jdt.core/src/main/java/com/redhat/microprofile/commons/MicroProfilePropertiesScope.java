@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Quarkus properties scope. Quarkus properties can be changed when:
+ * MicroProfile properties scope. MicroProfile properties can be changed when:
  * 
  * <ul>
  * <li>{@link #dependencies}: a dependency changed (ex : add, remove a new JAR

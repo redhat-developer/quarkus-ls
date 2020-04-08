@@ -25,7 +25,7 @@ import com.redhat.microprofile.ls.api.MicroProfileLanguageClientAPI;
 import com.redhat.microprofile.ls.commons.ParentProcessWatcher;
 
 /**
- * Quarkus server launcher
+ * MicroProfile server launcher
  *
  */
 public class MicroProfileServerLauncher {
@@ -64,7 +64,7 @@ public class MicroProfileServerLauncher {
 		return new Builder<LanguageClient>().setLocalService(server).setRemoteInterface(MicroProfileLanguageClientAPI.class) // Set
 																														// client
 																														// as
-																														// Quarkus
+																														// MicroProfile
 																														// language
 																														// client
 				.setInput(in).setOutput(out).setExecutorService(executorService).wrapMessages(wrapper).create();

@@ -10,7 +10,7 @@
 package com.redhat.microprofile.settings;
 
 /**
- * Quarkus formatting settings
+ * MicroProfile formatting settings
  */
 public class MicroProfileFormattingSettings {
 

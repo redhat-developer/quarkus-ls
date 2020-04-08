@@ -18,7 +18,7 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import com.redhat.microprofile.utils.AntPathMatcher;
 
 /**
- * Quarkus validation type settings.
+ * MicroProfile validation type settings.
  * 
  * @author Angelo ZERR
  *

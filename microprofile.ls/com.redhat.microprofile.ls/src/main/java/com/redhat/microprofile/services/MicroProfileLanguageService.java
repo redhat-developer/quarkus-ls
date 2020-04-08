@@ -38,7 +38,7 @@ import com.redhat.microprofile.settings.MicroProfileHoverSettings;
 import com.redhat.microprofile.settings.MicroProfileValidationSettings;
 
 /**
- * The Quarkus language service.
+ * The MicroProfile language service.
  * 
  * @author Angelo ZERR
  *
@@ -74,7 +74,7 @@ public class MicroProfileLanguageService {
 	 * 
 	 * @param document           the properties model document
 	 * @param position           the position where completion was triggered
-	 * @param projectInfo        the Quarkus project information
+	 * @param projectInfo        the MicroProfile project information
 	 * @param completionSettings the completion settings
 	 * @param cancelChecker      the cancel checker
 	 * @return completion list for the given position
@@ -91,7 +91,7 @@ public class MicroProfileLanguageService {
 	 * 
 	 * @param document      the properties model document
 	 * @param position      the hover position
-	 * @param projectInfo   the Quarkus project information
+	 * @param projectInfo   the MicroProfile project information
 	 * @param hoverSettings the hover settings
 	 * @return Hover object for the currently hovered token
 	 */
@@ -129,8 +129,8 @@ public class MicroProfileLanguageService {
 	 * 
 	 * @param document              the properties model.
 	 * @param position              the position where definition was triggered
-	 * @param projectInfo           the Quarkus properties
-	 * @param provider              the Quarkus property definition provider.
+	 * @param projectInfo           the MicroProfile project info
+	 * @param provider              the MicroProfile property definition provider.
 	 * @param definitionLinkSupport true if {@link LocationLink} must be returned
 	 *                              and false otherwise.
 	 * @return as promise the Java field definition location of the property at the
@@ -173,10 +173,10 @@ public class MicroProfileLanguageService {
 
 	/**
 	 * Validate the given application.properties <code>document</code> by using the
-	 * given Quarkus properties metadata <code>projectInfo</code>.
+	 * given MicroProfile properties metadata <code>projectInfo</code>.
 	 * 
 	 * @param document           the properties model.
-	 * @param projectInfo        the Quarkus properties
+	 * @param projectInfo        the MicroProfile project info.
 	 * @param validationSettings the validation settings.
 	 * @param cancelChecker      the cancel checker.
 	 * @return the result of the validation.
@@ -189,13 +189,13 @@ public class MicroProfileLanguageService {
 
 	/**
 	 * Returns code actions for the given diagnostics of the application.properties
-	 * <code>document</code> by using the given Quarkus properties metadata
+	 * <code>document</code> by using the given MicroProfile properties metadata
 	 * <code>projectInfo</code>.
 	 * 
 	 * @param context             the code action context
 	 * @param range               the range
 	 * @param document            the properties model.
-	 * @param projectInfo         the Quarkus properties
+	 * @param projectInfo         the MicroProfile project info
 	 * @param formattingSettings  the formatting settings.
 	 * @param commandCapabilities the command capabilities
 	 * @return the result of the code actions.

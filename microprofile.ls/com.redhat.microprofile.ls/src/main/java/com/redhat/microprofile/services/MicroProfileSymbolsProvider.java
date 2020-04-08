@@ -27,7 +27,7 @@ import com.redhat.microprofile.model.Node.NodeType;
 import com.redhat.microprofile.utils.PositionUtils;
 
 /**
- * The Quarkus symbols provider
+ * The MicroProfile symbols provider
  * 
  * @author Angelo ZERR
  *

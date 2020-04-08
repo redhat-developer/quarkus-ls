@@ -10,7 +10,7 @@
 package com.redhat.microprofile.settings;
 
 /**
- * Quarkus validation settings.
+ * MicroProfile validation settings.
  * 
  * @author Angelo ZERR
  *
@@ -97,9 +97,9 @@ public class MicroProfileValidationSettings {
 	}
 
 	/**
-	 * Returns the settings for unknown Quarkus properties validation.
+	 * Returns the settings for unknown MicroProfile properties validation.
 	 * 
-	 * @return the settings for unknown Quarkus properties validation.
+	 * @return the settings for unknown MicroProfile properties validation.
 	 */
 	public MicroProfileValidationTypeSettings getUnknown() {
 		updateDefault();
@@ -107,9 +107,9 @@ public class MicroProfileValidationSettings {
 	}
 
 	/**
-	 * Set the settings for unknown Quarkus properties validation.
+	 * Set the settings for unknown MicroProfile properties validation.
 	 * 
-	 * @param unknown the settings for unknown Quarkus properties validation.
+	 * @param unknown the settings for unknown MicroProfile properties validation.
 	 */
 	public void setUnknown(MicroProfileValidationTypeSettings unknown) {
 		this.unknown = unknown;
@@ -117,9 +117,9 @@ public class MicroProfileValidationSettings {
 	}
 
 	/**
-	 * Returns the settings for duplicate Quarkus properties validation.
+	 * Returns the settings for duplicate MicroProfile properties validation.
 	 * 
-	 * @return the settings for duplicate Quarkus properties validation.
+	 * @return the settings for duplicate MicroProfile properties validation.
 	 */
 	public MicroProfileValidationTypeSettings getDuplicate() {
 		updateDefault();
@@ -127,9 +127,9 @@ public class MicroProfileValidationSettings {
 	}
 
 	/**
-	 * Set the settings for duplicate Quarkus properties validation.
+	 * Set the settings for duplicate MicroProfile properties validation.
 	 * 
-	 * @param duplicate the settings for duplicate Quarkus properties validation.
+	 * @param duplicate the settings for duplicate MicroProfile properties validation.
 	 */
 	public void setDuplicate(MicroProfileValidationTypeSettings duplicate) {
 		this.duplicate = duplicate;
@@ -147,9 +147,9 @@ public class MicroProfileValidationSettings {
 	}
 
 	/**
-	 * Returns the settings for value of Quarkus properties validation.
+	 * Returns the settings for value of MicroProfile properties validation.
 	 * 
-	 * @return the settings for value of Quarkus properties validation.
+	 * @return the settings for value of MicroProfile properties validation.
 	 */
 	public MicroProfileValidationTypeSettings getValue() {
 		updateDefault();
@@ -157,9 +157,9 @@ public class MicroProfileValidationSettings {
 	}
 
 	/**
-	 * Set the settings for value of Quarkus properties validation.
+	 * Set the settings for value of MicroProfile properties validation.
 	 * 
-	 * @param value the settings for value of Quarkus properties validation.
+	 * @param value the settings for value of MicroProfile properties validation.
 	 */
 	public void setValue(MicroProfileValidationTypeSettings value) {
 		this.value = value;

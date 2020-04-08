@@ -37,14 +37,14 @@ import com.redhat.microprofile.utils.PositionUtils;
 import com.redhat.microprofile.utils.StringUtils;
 
 /**
- * Quarkus validator to validate properties declared in application.properties.
+ * MicroProfile validator to validate properties declared in application.properties.
  * 
  * @author Angelo ZERR
  *
  */
 class MicroProfileValidator {
 
-	private static final String QUARKUS_DIAGNOSTIC_SOURCE = "quarkus";
+	private static final String MICROPROFILE_DIAGNOSTIC_SOURCE = "microprofile";
 
 	private final MicroProfileProjectInfo projectInfo;
 	private final ValuesRulesManager valuesRulesManager;
@@ -360,7 +360,7 @@ class MicroProfileValidator {
 
 	private void addDiagnostic(String message, Node node, DiagnosticSeverity severity, String code) {
 		Range range = PositionUtils.createRange(node);
-		diagnostics.add(new Diagnostic(range, message, severity, QUARKUS_DIAGNOSTIC_SOURCE, code));
+		diagnostics.add(new Diagnostic(range, message, severity, MICROPROFILE_DIAGNOSTIC_SOURCE, code));
 	}
 
 	public MicroProfileValidationSettings getValidationSettings() {

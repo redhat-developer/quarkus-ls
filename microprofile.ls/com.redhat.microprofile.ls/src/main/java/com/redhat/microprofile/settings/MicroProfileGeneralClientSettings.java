@@ -114,7 +114,7 @@ public class MicroProfileGeneralClientSettings {
 	 * @param initializationOptionsSettings the initialization options
 	 * @return the general settings from the given initialization options
 	 */
-	public static MicroProfileGeneralClientSettings getGeneralQuarkusSettings(Object initializationOptionsSettings) {
+	public static MicroProfileGeneralClientSettings getGeneralMicroProfileSettings(Object initializationOptionsSettings) {
 		return JSONUtility.toModel(initializationOptionsSettings, MicroProfileGeneralClientSettings.class);
 	}
 }

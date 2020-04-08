@@ -103,7 +103,7 @@ class MicroProfileProjectInfoCache {
 		}
 
 		/**
-		 * Clear the cache only for Quarkus properties coming from java sources.
+		 * Clear the cache only for MicroProfile properties coming from java sources.
 		 */
 		public void clearPropertiesFromSource() {
 			setReloadFromSource(true);
@@ -115,7 +115,7 @@ class MicroProfileProjectInfoCache {
 		}
 
 		/**
-		 * Add the new quarkus properties in the cache coming java sources.
+		 * Add the new MicroProfile properties in the cache coming java sources.
 		 * 
 		 * @param propertiesFromJavaSource properties to add in the cache.
 		 */
@@ -219,7 +219,7 @@ class MicroProfileProjectInfoCache {
 
 		MicroProfileProjectInfoWrapper wrapper = getProjectInfoWrapper(projectInfo);
 		if (wrapper.isReloadFromSource()) {
-			// There are some java sources changed, get the Quarkus properties from java
+			// There are some java sources changed, get the MicroProfile properties from java
 			// sources.
 			params.setScopes(MicroProfilePropertiesScope.ONLY_SOURCES);
 			return provider.getProjectInfo(params). //

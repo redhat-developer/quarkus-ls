@@ -49,7 +49,7 @@ public class AllMicroProfileSettings {
 		this.quarkus = quarkus;
 	}
 
-	public static Object getQuarkusToolsSettings(Object initializationOptionsSettings) {
+	public static Object getMicroProfileToolsSettings(Object initializationOptionsSettings) {
 		AllMicroProfileSettings rootSettings = JSONUtility.toModel(initializationOptionsSettings, AllMicroProfileSettings.class);
 		if (rootSettings == null) {
 			return null;

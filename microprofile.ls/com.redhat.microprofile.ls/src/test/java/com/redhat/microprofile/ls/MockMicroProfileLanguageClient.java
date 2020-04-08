@@ -167,7 +167,7 @@ public class MockMicroProfileLanguageClient implements MicroProfileLanguageClien
 			}
 
 		}
-		// Throw Quarkus event
+		// Throw properties change event
 		MicroProfilePropertiesChangeEvent event = new MicroProfilePropertiesChangeEvent();
 		event.setType(MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
 		event.setProjectURIs(new HashSet<String>(Arrays.asList(projectURI)));
@@ -199,7 +199,7 @@ public class MockMicroProfileLanguageClient implements MicroProfileLanguageClien
 				hintsFromSources.add((ItemHint) item);
 			}
 		}
-		// Throw Quarkus event
+		// Throw properties change event
 		MicroProfilePropertiesChangeEvent event = new MicroProfilePropertiesChangeEvent();
 		event.setType(MicroProfilePropertiesScope.ONLY_SOURCES);
 		event.setProjectURIs(new HashSet<String>(Arrays.asList(projectURI)));

@@ -14,7 +14,7 @@ import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
 /**
- * Quarkus workspace service.
+ * MicroProfile workspace service.
  *
  */
 public class MicroProfileWorkspaceService implements WorkspaceService {

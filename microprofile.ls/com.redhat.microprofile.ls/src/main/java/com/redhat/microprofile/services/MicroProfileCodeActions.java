@@ -47,7 +47,7 @@ import com.redhat.microprofile.utils.PositionUtils;
 import com.redhat.microprofile.utils.StringUtils;
 
 /**
- * The Quarkus code actions
+ * The MicroProfile code actions
  * 
  * @author Angelo ZERR
  *
@@ -60,13 +60,13 @@ class MicroProfileCodeActions {
 
 	/**
 	 * Returns code actions for the given diagnostics of the application.properties
-	 * <code>document</code> by using the given Quarkus properties metadata
+	 * <code>document</code> by using the given MicroProfile properties metadata
 	 * <code>projectInfo</code>.
 	 * 
 	 * @param context             the code action context
 	 * @param range               the range
 	 * @param document            the properties model.
-	 * @param projectInfo         the Quarkus properties
+	 * @param projectInfo         the MicroProfile project info
 	 * @param formattingSettings  the formatting settings.
 	 * @param commandCapabilities the command capabilities
 	 * @return the result of the code actions.
@@ -93,7 +93,7 @@ class MicroProfileCodeActions {
 
 	/**
 	 * Creation code action for 'unknown' property by searching similar name from
-	 * the known Quarkus properties.
+	 * the known MicroProfile properties.
 	 * 
 	 * <p>
 	 * LIMITATION: mapped property are not supported.
@@ -101,7 +101,7 @@ class MicroProfileCodeActions {
 	 * 
 	 * @param diagnostic          the diagnostic
 	 * @param document            the properties model.
-	 * @param projectInfo         the Quarkus properties
+	 * @param projectInfo         the MicroProfile project info
 	 * @param commandCapabilities the command capabilities
 	 * @param codeActions         code actions list to fill.
 	 */
@@ -132,7 +132,7 @@ class MicroProfileCodeActions {
 				doCodeActionForIgnoreUnknownValidation(propertyName, diagnostic, document, projectInfo, codeActions);
 			}
 		} catch (BadLocationException e) {
-			LOGGER.log(Level.SEVERE, "In QuarkusCodeActions, position error", e);
+			LOGGER.log(Level.SEVERE, "In MicroProfileCodeActions, position error", e);
 		}
 	}
 
@@ -147,7 +147,7 @@ class MicroProfileCodeActions {
 	 *
 	 * @param diagnostic         the diagnostic
 	 * @param document           the properties model
-	 * @param projectInfo        the Quarkus properties
+	 * @param projectInfo        the MicroProfile properties
 	 * @param valuesRulesManager the ValueRulesManager
 	 * @param codeActions        the code actions list to fill
 	 */
@@ -210,7 +210,7 @@ class MicroProfileCodeActions {
 			}
 
 		} catch (BadLocationException e) {
-			LOGGER.log(Level.SEVERE, "In QuarkusCodeActions, position error", e);
+			LOGGER.log(Level.SEVERE, "In MicroProfileCodeActions, position error", e);
 		}
 	}
 
@@ -221,7 +221,7 @@ class MicroProfileCodeActions {
 	 * @param propertyName the property name to add to array for code action
 	 * @param diagnostic   the corresponding unknown property diagnostic
 	 * @param document     the properties model
-	 * @param projectInfo  the Quarkus properties
+	 * @param projectInfo  the MicroProfile properties
 	 * @param codeActions  the list of code actions
 	 */
 	private void doCodeActionForIgnoreUnknownValidation(String propertyName, Diagnostic diagnostic,
@@ -309,7 +309,7 @@ class MicroProfileCodeActions {
 					stringToInsert.toString(), textDocument, requiredDiagnostics);
 			codeActions.add(insertAction);
 		} catch (BadLocationException e) {
-			LOGGER.log(Level.SEVERE, "In QuarkusCodeActions, position error", e);
+			LOGGER.log(Level.SEVERE, "In MicroProfileCodeActions, position error", e);
 		}
 
 	}

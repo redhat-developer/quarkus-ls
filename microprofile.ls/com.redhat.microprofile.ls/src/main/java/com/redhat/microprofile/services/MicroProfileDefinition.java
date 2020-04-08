@@ -53,8 +53,8 @@ public class MicroProfileDefinition {
 	 * 
 	 * @param document              the properties model.
 	 * @param position              the position where definition was triggered
-	 * @param projectInfo           the Quarkus properties
-	 * @param provider              the Quarkus property definition provider.
+	 * @param projectInfo           the MicroProfile project info
+	 * @param provider              the MicroProfile property definition provider.
 	 * @param definitionLinkSupport true if {@link LocationLink} must be returned
 	 *                              and false otherwise.
 	 * @return as promise the Java field definition location of the property at the
