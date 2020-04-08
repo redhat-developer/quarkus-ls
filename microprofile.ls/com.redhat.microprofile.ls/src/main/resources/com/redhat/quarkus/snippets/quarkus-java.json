@@ -19,7 +19,10 @@
 			"\t}",
 			"}"
 		],
-		"description": "Quarkus REST resource class"
+		"description": "Quarkus REST resource class",
+		"context": {
+			"type": "javax.ws.rs.GET"
+		}
 	},
 	"Quarkus - new resource method": {
 		"prefix": "qrm",
@@ -30,7 +33,10 @@
 			"\treturn \"hello\";",
 			"}"
 		],
-		"description": "Quarkus REST resource method"
+		"description": "Quarkus REST resource method",
+		"context": {
+			"type": "javax.ws.rs.GET"
+		}
 	},
 	"Quarkus - new test resource class": {
 		"prefix": "qtrc",
@@ -57,7 +63,10 @@
 			"",
 			"}"
 		],
-		"description": "Quarkus test resource class"
+		"description": "Quarkus test resource class",
+		"context": {
+			"type": "io.quarkus.test.junit.QuarkusTest"
+		}
 	},
 	"Quarkus - new native test resource class": {
 		"prefix": "qntrc",
@@ -72,6 +81,9 @@
 			"\t// Execute the same tests, but in native mode.",
 			"}"
 		],
-		"description": "Quarkus native test resource class"
+		"description": "Quarkus native test resource class",
+		"context": {
+			"type": "io.quarkus.test.junit.SubstrateTest"
+		}
 	}
 }

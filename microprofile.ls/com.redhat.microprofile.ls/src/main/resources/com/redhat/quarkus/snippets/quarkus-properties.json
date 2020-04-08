@@ -10,7 +10,7 @@
 		],
 		"description": "Configure Quarkus datasource",
 		"context": {
-			"extension": "quarkus-agroal"
+			"dependency": "quarkus-agroal"
 		}
 	},
 	"Add Jaeger properties": {
@@ -23,7 +23,7 @@
 		],
 		"description": "Configure Jaeger tracer",
 		"context": {
-			"extension": "quarkus-jaeger"
+			"dependency": "quarkus-jaeger"
 		}
 	}
 }

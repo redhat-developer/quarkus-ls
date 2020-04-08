@@ -21,6 +21,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.TypeAdapter;
 
 /**
  * GSON deserializer to build Snippet from vscode JSON snippet.
@@ -36,9 +37,9 @@ class SnippetDeserializer implements JsonDeserializer<Snippet> {
 	private static final String BODY_ELT = "body";
 	private static final String CONTEXT_ELT = "context";
 
-	private final JsonDeserializer<? extends ISnippetContext<?>> contextDeserializer;
+	private final TypeAdapter<? extends ISnippetContext<?>> contextDeserializer;
 
-	public SnippetDeserializer(JsonDeserializer<? extends ISnippetContext<?>> contextDeserializer) {
+	public SnippetDeserializer(TypeAdapter<? extends ISnippetContext<?>> contextDeserializer) {
 		this.contextDeserializer = contextDeserializer;
 	}
 
@@ -96,7 +97,7 @@ class SnippetDeserializer implements JsonDeserializer<Snippet> {
 		if (contextDeserializer != null) {
 			JsonElement contextElt = snippetObj.get(CONTEXT_ELT);
 			if (contextElt != null) {
-				ISnippetContext<?> snippetContext = contextDeserializer.deserialize(contextElt, typeOfT, context);
+				ISnippetContext<?> snippetContext = contextDeserializer.fromJsonTree(contextElt);
 				snippet.setContext(snippetContext);
 			}
 		}

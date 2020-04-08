@@ -11,12 +11,17 @@
 *******************************************************************************/
 package com.redhat.microprofile.snippets;
 
+import java.io.IOException;
 import java.util.Set;
 
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 import com.redhat.microprofile.ls.commons.snippets.ISnippetContext;
 
 /**
- * A snippet context properties which matches extension. You can write a vscode
+ * A snippet context properties which matches dependency. You can write a vscode
  * snippet that declares a context like this:
  * 
  * <code>
@@ -32,7 +37,7 @@ import com.redhat.microprofile.ls.commons.snippets.ISnippetContext;
 		],
 		"description": "Configure Quarkus datasource",
 		"context": {
-			"extension": "quarkus-agroal"
+			"dependency": "quarkus-agroal"
 		}
 	}
 
@@ -44,17 +49,46 @@ import com.redhat.microprofile.ls.commons.snippets.ISnippetContext;
  * @author Angelo ZERR
  *
  */
-public class SnippetContextProperties implements ISnippetContext<Set<String>> {
+public class SnippetContextForProperties implements ISnippetContext<Set<String>> {
 
-	private String extension;
+	public static final TypeAdapter<SnippetContextForProperties> TYPE_ADAPTER = new SnippetContextForPropertiesAdapter();
 
-	public SnippetContextProperties(String extension) {
-		this.extension = extension;
+	private String dependency;
+
+	public SnippetContextForProperties(String dependency) {
+		this.dependency = dependency;
 	}
 
 	@Override
-	public boolean isMatch(Set<String> extensions) {
-		return extensions.contains(extension);
+	public boolean isMatch(Set<String> dependencys) {
+		return dependencys.contains(dependency);
+	}
+
+	private static class SnippetContextForPropertiesAdapter extends TypeAdapter<SnippetContextForProperties> {
+		public SnippetContextForProperties read(JsonReader in) throws IOException {
+			if (in.peek() == JsonToken.NULL) {
+				in.nextNull();
+				return null;
+			}
+			String dependency = null;
+			in.beginObject();
+			while (in.hasNext()) {
+				String name = in.nextName();
+				switch (name) {
+				case "dependency":
+					dependency = in.nextString();
+					break;
+				default:
+					in.skipValue();
+				}
+			}
+			in.endObject();
+			return new SnippetContextForProperties(dependency);
+		}
+
+		public void write(JsonWriter writer, SnippetContextForProperties value) throws IOException {
+			// Do nothing
+		}
 	}
 
 }

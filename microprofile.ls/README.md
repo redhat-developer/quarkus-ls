@@ -62,23 +62,39 @@ Java and properties completion snippets are managed by the MicroProfile LS (snip
 
 The `"context"` key can be provided to specify the condition in which the snippet should appear:
 
- * for `properties files`: the context/extension can be declared in the snippet to show the snippet only if the extension belongs to the project.
+ * for `properties files`: the context/dependency can be declared in the snippet to show the snippet only if the extension belongs to the project.
 
 ```json
-"Add datasource properties": {
+	"Add datasource properties": {
 		"prefix": "qds",
 		"body": [
 			...
 		],
 		"context": {
-			"extension": "quarkus-agroal"
+			"dependency": "quarkus-agroal"
 		}
 	}
 ```
 
 means that the snippet is shown only if the project has the `quarkus-agroal` dependency.
     
- * for `Java files` (not available for the moment)
+ * for `Java files`: the context/type can be declared in the snippet to show the snippet only if the Java type belongs to the project.
+
+```json
+  "@Operation": {
+    "prefix": [
+      "@Operation"
+    ],
+    "body": [
+      ...
+    ],
+    "context": {
+    	"type": "org.eclipse.microprofile.openapi.annotations.Operation"
+    }
+  }
+```
+
+means that the snippet is shown only if the project has the `org.eclipse.microprofile.openapi.annotations.Operation` Java Annotation in the classpath. In other words, only when the Java project has a dependency on MicroProfile Open API.
  
 ## Adding new internal snippets
 

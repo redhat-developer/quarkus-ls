@@ -14,7 +14,7 @@ package com.redhat.quarkus.snippets;
 import com.redhat.microprofile.ls.commons.snippets.ISnippetRegistryLoader;
 import com.redhat.microprofile.ls.commons.snippets.SnippetRegistry;
 import com.redhat.microprofile.snippets.LanguageId;
-import com.redhat.microprofile.snippets.SnippetContextPropertiesDeserializer;
+import com.redhat.microprofile.snippets.SnippetContextForProperties;
 
 /**
  * Snippet loader for Quarkus in properties files.
@@ -28,7 +28,7 @@ public class QuarkusPropertiesSnippetRegistryLoader implements ISnippetRegistryL
 	public void load(SnippetRegistry registry) throws Exception {
 		registry.registerSnippets(
 				QuarkusPropertiesSnippetRegistryLoader.class.getResourceAsStream("quarkus-properties.json"),
-				new SnippetContextPropertiesDeserializer());
+				SnippetContextForProperties.TYPE_ADAPTER);
 	}
 
 	@Override

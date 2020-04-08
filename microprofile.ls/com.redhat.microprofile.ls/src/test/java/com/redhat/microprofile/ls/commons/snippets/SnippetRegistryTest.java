@@ -145,4 +145,5 @@ public class SnippetRegistryTest {
 		assertCompletion("m |", registry, c("mp", "", r(0, 2, 2)), c("quarkus", "", r(0, 2, 2)));
 		assertCompletion("m|", registry, c("mp", "", r(0, 0, 1)), c("quarkus", "", r(0, 0, 1)));
 	}
+
 }

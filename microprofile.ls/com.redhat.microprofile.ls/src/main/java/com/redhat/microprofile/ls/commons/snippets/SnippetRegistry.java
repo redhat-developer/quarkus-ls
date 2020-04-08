@@ -36,9 +36,9 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 
 /**
@@ -106,7 +106,7 @@ public class SnippetRegistry {
 	 *                            context.
 	 * @throws IOException
 	 */
-	public void registerSnippets(InputStream in, JsonDeserializer<? extends ISnippetContext<?>> contextDeserializer)
+	public void registerSnippets(InputStream in, TypeAdapter<? extends ISnippetContext<?>> contextDeserializer)
 			throws IOException {
 		registerSnippets(new InputStreamReader(in, StandardCharsets.UTF_8.name()), contextDeserializer);
 	}
@@ -130,7 +130,7 @@ public class SnippetRegistry {
 	 *                            context.
 	 * @throws IOException
 	 */
-	public void registerSnippets(Reader in, JsonDeserializer<? extends ISnippetContext<?>> contextDeserializer)
+	public void registerSnippets(Reader in, TypeAdapter<? extends ISnippetContext<?>> contextDeserializer)
 			throws IOException {
 		JsonReader reader = new JsonReader(in);
 		reader.beginObject();
@@ -146,8 +146,7 @@ public class SnippetRegistry {
 	}
 
 	private static Snippet createSnippet(JsonReader reader,
-			JsonDeserializer<? extends ISnippetContext<?>> contextDeserializer)
-			throws JsonIOException, JsonSyntaxException {
+			TypeAdapter<? extends ISnippetContext<?>> contextDeserializer) throws JsonIOException, JsonSyntaxException {
 		GsonBuilder builder = new GsonBuilder();
 		builder.registerTypeAdapter(Snippet.class, new SnippetDeserializer(contextDeserializer));
 		return builder.create().fromJson(reader, Snippet.class);
