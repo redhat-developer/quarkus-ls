@@ -35,7 +35,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
 /**
- * Abstract class for text document service. As Quarkus LS manages
+ * Abstract class for text document service. As MicroProfile LS manages
  * application.properties and java file, we need to implement completion, hover
  * with empty result.
  * 

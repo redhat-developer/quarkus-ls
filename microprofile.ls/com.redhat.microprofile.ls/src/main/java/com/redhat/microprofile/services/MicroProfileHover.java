@@ -47,7 +47,7 @@ class MicroProfileHover {
 	 * 
 	 * @param document           the properties model document
 	 * @param position           the hover position
-	 * @param projectInfo        the Quarkus project information
+	 * @param projectInfo        the MicroProfile project information
 	 * @param valuesRulesManager manager for values rules
 	 * @param hoverSettings      the hover settings
 	 * @return Hover object for the currently hovered token
@@ -61,7 +61,7 @@ class MicroProfileHover {
 			node = document.findNodeAt(position);
 			offset = document.offsetAt(position);
 		} catch (BadLocationException e) {
-			LOGGER.log(Level.SEVERE, "In QuarkusHover, position error", e);
+			LOGGER.log(Level.SEVERE, "MicroProfileHover, position error", e);
 			return null;
 		}
 		if (node == null) {
@@ -121,19 +121,19 @@ class MicroProfileHover {
 	 * 
 	 * @param key           the property key
 	 * @param offset        the hover offset
-	 * @param projectInfo   the Quarkus project information
+	 * @param projectInfo   the MicroProfile project information
 	 * @param hoverSettings the hover settings
 	 * @return the documentation hover for property key represented by token
 	 */
 	private static Hover getPropertyKeyHover(PropertyKey key, MicroProfileProjectInfo projectInfo,
 			MicroProfileHoverSettings hoverSettings) {
 		boolean markdownSupported = hoverSettings.isContentFormatSupported(MarkupKind.MARKDOWN);
-		// retrieve Quarkus property from the project information
+		// retrieve MicroProfile property from the project information
 		String propertyName = key.getPropertyName();
 
 		ItemMetadata item = MicroProfilePropertiesUtils.getProperty(propertyName, projectInfo);
 		if (item != null) {
-			// Quarkus property, found, display her documentation as hover
+			// MicroProfile property, found, display her documentation as hover
 			MarkupContent markupContent = DocumentationUtils.getDocumentation(item, key.getProfile(),
 					markdownSupported);
 			Hover hover = new Hover();
@@ -149,7 +149,7 @@ class MicroProfileHover {
 	 * key <code>node</code>
 	 * 
 	 * @param node          the property key node
-	 * @param projectInfo   the Quarkus project information
+	 * @param projectInfo   the MicroProfile project information
 	 * @param hoverSettings the hover settings
 	 * @return the documentation hover for property key represented by token
 	 */
@@ -157,7 +157,7 @@ class MicroProfileHover {
 			ValuesRulesManager valuesRulesManager, MicroProfileHoverSettings hoverSettings) {
 		PropertyValue value = ((PropertyValue) node);
 		boolean markdownSupported = hoverSettings.isContentFormatSupported(MarkupKind.MARKDOWN);
-		// retrieve Quarkus property from the project information
+		// retrieve MicroProfile property from the project information
 		String propertyValue = value.getValue();
 		if (propertyValue == null || propertyValue.isEmpty()) {
 			return null;
@@ -166,7 +166,7 @@ class MicroProfileHover {
 		ItemMetadata item = MicroProfilePropertiesUtils.getProperty(propertyName, projectInfo);
 		ValueHint enumItem = getValueHint(propertyValue, item, projectInfo, valuesRulesManager, value.getOwnerModel());
 		if (enumItem != null) {
-			// Quarkus property enumeration item, found, display her documentation as hover
+			// MicroProfile property enumeration item, found, display its documentation as hover
 			MarkupContent markupContent = DocumentationUtils.getDocumentation(enumItem, markdownSupported);
 			Hover hover = new Hover();
 			hover.setContents(markupContent);

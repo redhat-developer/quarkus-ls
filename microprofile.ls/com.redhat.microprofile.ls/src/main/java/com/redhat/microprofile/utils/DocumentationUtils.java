@@ -30,13 +30,13 @@ public class DocumentationUtils {
 	}
 
 	/**
-	 * Returns the documentation of the given Quarkus property.
+	 * Returns the documentation of the given MicroProfile property.
 	 * 
-	 * @param item     the Quarkus property.
+	 * @param item     the MicroProfile property.
 	 * @param profile  the profile
 	 * @param markdown true if documentation must be formatted as markdown and false
 	 *                 otherwise.
-	 * @return the documentation of the given Quarkus property.
+	 * @return the documentation of the given MicroProfile property.
 	 */
 	public static MarkupContent getDocumentation(ItemMetadata item, String profile, boolean markdown) {
 
@@ -115,7 +115,7 @@ public class DocumentationUtils {
 	 * @param item     the enumeration item
 	 * @param markdown true if documentation must be formatted as markdown and false
 	 *                 otherwise.
-	 * @return the documentation of the given Quarkus property.
+	 * @return the documentation of the given enumeration item.
 	 */
 	public static MarkupContent getDocumentation(ValueHint item, boolean markdown) {
 

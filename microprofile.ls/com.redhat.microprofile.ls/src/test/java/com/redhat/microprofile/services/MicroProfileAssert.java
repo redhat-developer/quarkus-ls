@@ -67,7 +67,7 @@ import com.redhat.microprofile.utils.DocumentationUtils;
 import com.redhat.microprofile.utils.PositionUtils;
 
 /**
- * Quarkus assert
+ * MicroProfile assert
  * 
  * @author Angelo ZERR
  *
@@ -78,7 +78,7 @@ public class MicroProfileAssert {
 
 	private static MicroProfilePropertyDefinitionProvider DEFAULT_DEFINITION_PROVIDER;
 
-	private static final String QUARKUS_DIAGNOSTIC_SOURCE = "quarkus";
+	private static final String MICROPROFILE_DIAGNOSTIC_SOURCE = "microprofile";
 
 	public static MicroProfileProjectInfo getDefaultMicroProfileProjectInfo() {
 		if (DEFAULT_PROJECT == null) {
@@ -467,7 +467,7 @@ public class MicroProfileAssert {
 	public static Diagnostic d(int startLine, int startCharacter, int endLine, int endCharacter, String message,
 			DiagnosticSeverity severity, ValidationType code) {
 		return new Diagnostic(r(startLine, startCharacter, endLine, endCharacter), message, severity,
-				QUARKUS_DIAGNOSTIC_SOURCE, code.name());
+				MICROPROFILE_DIAGNOSTIC_SOURCE, code.name());
 	}
 
 	// ------------------- CodeAction assert
@@ -503,16 +503,16 @@ public class MicroProfileAssert {
 		CodeActionContext context = new CodeActionContext();
 		context.setDiagnostics(diagnostics);
 
-		MicroProfileCommandCapabilities quarkusCommandCapabilities = new MicroProfileCommandCapabilities();
+		MicroProfileCommandCapabilities mpCommandCapabilities = new MicroProfileCommandCapabilities();
 
 		List<String> valueSet = Arrays.asList(CommandKind.COMMAND_CONFIGURATION_UPDATE);
 		CommandKindCapabilities commandKindCapabilities = new CommandKindCapabilities(valueSet);
 		CommandCapabilities commandCapabilities = new CommandCapabilities(commandKindCapabilities);
 
-		quarkusCommandCapabilities.setCapabilities(commandCapabilities);
+		mpCommandCapabilities.setCapabilities(commandCapabilities);
 
 		List<CodeAction> actual = languageService.doCodeActions(context, range, model, projectInfo, formattingSettings,
-				quarkusCommandCapabilities);
+				mpCommandCapabilities);
 		assertCodeActions(actual, expected);
 	}
 

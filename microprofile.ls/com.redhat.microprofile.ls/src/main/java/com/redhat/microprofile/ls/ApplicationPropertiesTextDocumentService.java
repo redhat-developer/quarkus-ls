@@ -81,9 +81,9 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 
 	private DocumentFormat documentFormat;
 
-	public ApplicationPropertiesTextDocumentService(MicroProfileLanguageServer quarkusLanguageServer,
+	public ApplicationPropertiesTextDocumentService(MicroProfileLanguageServer microProfileLanguageServer,
 			SharedSettings sharedSettings) {
-		this.microprofileLanguageServer = quarkusLanguageServer;
+		this.microprofileLanguageServer = microProfileLanguageServer;
 		this.documents = new ModelTextDocuments<PropertiesModel>((document, cancelChecker) -> {
 			return PropertiesModel.parse(document);
 		});
@@ -149,7 +149,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 
 	@Override
 	public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
-		// Get Quarkus project information which stores all available Quarkus
+		// Get MicroProfile project information which stores all available MicroProfile
 		// properties
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument());
 		return getProjectInfoCache().getProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
@@ -158,7 +158,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 			}
 			// then get the Properties model document
 			return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
-				// then return completion by using the Quarkus project information and the
+				// then return completion by using the MicroProfile project information and the
 				// Properties model document
 				CompletionList list = getMicroProfileLanguageService().doComplete(document, params.getPosition(),
 						projectInfo, sharedSettings.getCompletionSettings(), sharedSettings.getFormattingSettings(),
@@ -170,7 +170,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 
 	@Override
 	public CompletableFuture<Hover> hover(HoverParams params) {
-		// Get Quarkus project information which stores all available Quarkus
+		// Get MicroProfile project information which stores all available MicroProfile
 		// properties
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(params.getTextDocument());
 		return getProjectInfoCache().getProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
@@ -179,7 +179,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 			}
 			// then get the Properties model document
 			return getPropertiesModel(params.getTextDocument(), (cancelChecker, document) -> {
-				// then return hover by using the Quarkus project information and the
+				// then return hover by using the MicroProfile project information and the
 				// Properties model document
 				return getMicroProfileLanguageService().doHover(document, params.getPosition(), projectInfo,
 						sharedSettings.getHoverSettings());
@@ -274,12 +274,12 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 	}
 
 	private MicroProfileLanguageService getMicroProfileLanguageService() {
-		return microprofileLanguageServer.getQuarkusLanguageService();
+		return microprofileLanguageServer.getMicroProfileLanguageService();
 	}
 
 	private void triggerValidationFor(ModelTextDocument<PropertiesModel> document) {
-		// Get Quarkus project information which stores all available Quarkus
-		// properties
+		// Get MicroProfile project information which stores all available
+		// MicroProfile properties
 		MicroProfileProjectInfoParams projectInfoParams = createProjectInfoParams(document.getUri());
 		getProjectInfoCache().getProjectInfo(projectInfoParams).thenComposeAsync(projectInfo -> {
 			if (projectInfo.getProperties().isEmpty()) {
@@ -287,7 +287,7 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 			}
 			// then get the Properties model document
 			return getPropertiesModel(document, (cancelChecker, model) -> {
-				// then return do validation by using the Quarkus project information and the
+				// then return do validation by using the MicroProfile project information and the
 				// Properties model document
 				List<Diagnostic> diagnostics = getMicroProfileLanguageService().doDiagnostics(model, projectInfo,
 						getSharedSettings().getValidationSettings(), cancelChecker);
@@ -380,9 +380,9 @@ public class ApplicationPropertiesTextDocumentService extends AbstractTextDocume
 	}
 
 	/**
-	 * Updates Quarkus formatting settings configured from the client.
+	 * Updates MicroProfile formatting settings configured from the client.
 	 * 
-	 * @param newFormatting the new Quarkus formatting settings
+	 * @param newFormatting the new MicroProfile formatting settings
 	 */
 	public void updateFormattingSettings(MicroProfileFormattingSettings newFormatting) {
 		MicroProfileFormattingSettings formatting = sharedSettings.getFormattingSettings();

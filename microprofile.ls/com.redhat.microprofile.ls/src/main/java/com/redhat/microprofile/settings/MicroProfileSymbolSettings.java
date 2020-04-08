@@ -11,7 +11,7 @@
 package com.redhat.microprofile.settings;
 
 /**
- * Quarkus symbol settings.
+ * MicroProfile symbol settings.
  * 
  * @author Angelo ZERR
  *

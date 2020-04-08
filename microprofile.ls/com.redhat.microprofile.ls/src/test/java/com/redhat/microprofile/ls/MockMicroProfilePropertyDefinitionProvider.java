@@ -22,7 +22,7 @@ import com.redhat.microprofile.ls.api.MicroProfilePropertyDefinitionProvider;
 import com.redhat.microprofile.services.MicroProfileAssert;
 
 /**
- * Mock for Quarkus property definition provider.
+ * Mock for MicroProfile property definition provider.
  * 
  * @author Angelo ZERR
  *

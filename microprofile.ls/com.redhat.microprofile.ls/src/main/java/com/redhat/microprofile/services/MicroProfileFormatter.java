@@ -36,7 +36,7 @@ import com.redhat.microprofile.utils.PositionUtils;
  * <li>Remove extra newlines in between properties</li>
  * <li>Remove whitespaces before and after properties</li>
  * <li>Add/remove spacing surrounding the equals sign, depending on
- * <code>QuarkusFormattingSettings</code></li>
+ * <code>MicroProfileFormattingSettings</code></li>
  * </ul>
  * 
  */
@@ -73,7 +73,7 @@ class MicroProfileFormatter {
 	 * 
 	 * @param document           the properties model document
 	 * @param range              the range specifying the lines to format
-	 * @param formattingSettings the client's <code>QuarkusFormattingSettings</code>
+	 * @param formattingSettings the client's <code>MicroProfileFormattingSettings</code>
 	 * @return Returns a <code>List<TextEdit></code> that formats the the
 	 *         application.properties file represented by <code>document</code>,
 	 *         within the lines covered by the specified <code>range</code>.

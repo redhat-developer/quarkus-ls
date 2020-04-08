@@ -28,7 +28,7 @@ import com.redhat.microprofile.commons.DocumentFormat;
 /**
  * JDT LS utils provides some helpful utilities. To avoid having a strong
  * dependencies to JDT-LS, we use this API. This API gives the capability to
- * consume Quarkus manager without having JDT LS.
+ * consume MicroProfile manager without having JDT LS.
  * 
  * @author Angelo ZERR
  *

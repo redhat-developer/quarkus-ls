@@ -107,7 +107,7 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	 * @param extensionName the extension name and null otherwise.
 	 * @param binary        true if the property comes from a JAR and false
 	 *                      otherwise.
-	 * @param phase         the Quarkus config phase.
+	 * @param phase         the MicroProfile config phase.
 	 * @return the item metadata.
 	 */
 	protected ItemMetadata addItemMetadata(IPropertiesCollector collector, String name, String type, String description,
