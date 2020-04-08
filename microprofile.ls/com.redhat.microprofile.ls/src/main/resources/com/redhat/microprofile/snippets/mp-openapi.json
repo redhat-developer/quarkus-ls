@@ -24,7 +24,7 @@
     ],
     "description": "Provides media type",
     "context": {
-      "type": "org.eclipse.microprofile.openapi.annotations.Content"
+      "type": "org.eclipse.microprofile.openapi.annotations.media.Content"
     }
   },
   "@Content with Schema": {
@@ -39,7 +39,7 @@
     ],
     "description": "Provides schema and examples for a particular media type.",
     "context": {
-      "type": "org.eclipse.microprofile.openapi.annotations.Content"
+      "type": "org.eclipse.microprofile.openapi.annotations.media.Content"
     }
   },
   "@Schema with implementation": {
@@ -51,7 +51,7 @@
     ],
     "description": "Allows the definition of input and output data types.",
     "context": {
-      "type": "org.eclipse.microprofile.openapi.annotations.Schema"
+      "type": "org.eclipse.microprofile.openapi.annotations.media.Schema"
     }
   },
   "@Schema with type": {
@@ -63,7 +63,7 @@
     ],
     "description": "Allows the definition of input and output data types.",
     "context": {
-      "type": "org.eclipse.microprofile.openapi.annotations.Schema"
+      "type": "org.eclipse.microprofile.openapi.annotations.media.Schema"
     }
   },
   "@Schema with implementation and type": {
@@ -78,7 +78,7 @@
     ],
     "description": "Allows the definition of input and output data types.",
     "context": {
-      "type": "org.eclipse.microprofile.openapi.annotations.Schema"
+      "type": "org.eclipse.microprofile.openapi.annotations.media.Schema"
     }
   },
   "@Parameters": {
@@ -93,7 +93,7 @@
     ],
     "description": "Encapsulates input parameters.",
     "context": {
-      "type": "org.eclipse.microprofile.openapi.annotations.Parameters"
+      "type": "org.eclipse.microprofile.openapi.annotations.parameters.Parameters"
     }
   },
   "@Parameter": {
@@ -103,14 +103,14 @@
     "body": [
       "@Parameter(",
       "\tdescription = \"$1\",",
-      "\trequired = ${2:true}, ",
+      "\trequired = ${2:true},",
       "\texample = \"$3\",",
       "\tschema = $4",
       ")"
     ],
     "description": "Describes a single operation parameter.",
     "context": {
-      "type": "org.eclipse.microprofile.openapi.annotations.Parameter"
+      "type": "org.eclipse.microprofile.openapi.annotations.parameters.Parameter"
     }
   },
   "@APIResponses": {
@@ -125,7 +125,7 @@
     ],
     "description": "A container for multiple responses from an API operation.",
     "context": {
-      "type": "org.eclipse.microprofile.openapi.annotations.APIResponses"
+      "type": "org.eclipse.microprofile.openapi.annotations.responses.APIResponses"
     }
   },
   "@APIResponse": {
@@ -142,7 +142,7 @@
     ],
     "description": "Describes a single response from an API operation.",
     "context": {
-      "type": "org.eclipse.microprofile.openapi.annotations.APIResponse"
+      "type": "org.eclipse.microprofile.openapi.annotations.responses.APIResponse"
     }
   }
 }

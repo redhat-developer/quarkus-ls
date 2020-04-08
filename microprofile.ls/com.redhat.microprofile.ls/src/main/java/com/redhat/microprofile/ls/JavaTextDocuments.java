@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,6 +49,8 @@ class JavaTextDocuments extends TextDocuments<JavaTextDocument> {
 
 	private final MicroProfileJavaProjectLabelsProvider provider;
 
+	private JavaTextDocumentSnippetRegistry snippetRegistry;
+
 	/**
 	 * Opened Java file.
 	 *
@@ -80,13 +82,13 @@ class JavaTextDocuments extends TextDocuments<JavaTextDocument> {
 		 * @return the given code only if the Java file belongs to a MicroProfile
 		 *         project.
 		 */
-		public <T> CompletableFuture<T> executeIfInMicroProfileProject(Supplier<CompletableFuture<T>> code,
-				T defaultValue) {
+		public <T> CompletableFuture<T> executeIfInMicroProfileProject(
+				Function<ProjectLabelInfoEntry, CompletableFuture<T>> code, T defaultValue) {
 			return getProjectInfo(this).thenComposeAsync(projectInfo -> {
 				if (!isMicroProfileProject(projectInfo)) {
 					return CompletableFuture.completedFuture(defaultValue);
 				}
-				return code.get();
+				return code.apply(projectInfo);
 			});
 		}
 
@@ -150,6 +152,7 @@ class JavaTextDocuments extends TextDocuments<JavaTextDocument> {
 			// not found in the cache, load the project info from the JDT LS Extension
 			MicroProfileJavaProjectLabelsParams params = new MicroProfileJavaProjectLabelsParams();
 			params.setUri(documentURI);
+			params.setTypes(getSnippetRegistry().getTypes());
 			final CompletableFuture<ProjectLabelInfoEntry> future = provider.getJavaProjectlabels(params);
 			future.thenApply(entry -> {
 				if (entry != null) {
@@ -199,5 +202,12 @@ class JavaTextDocuments extends TextDocuments<JavaTextDocument> {
 	 */
 	private static boolean isMicroProfileProject(ProjectLabelInfoEntry projectInfo) {
 		return projectInfo != null && projectInfo.hasLabel(MICROPROFILE_PROJECT_LABEL);
+	}
+
+	public JavaTextDocumentSnippetRegistry getSnippetRegistry() {
+		if (snippetRegistry == null) {
+			snippetRegistry = new JavaTextDocumentSnippetRegistry();
+		}
+		return snippetRegistry;
 	}
 }

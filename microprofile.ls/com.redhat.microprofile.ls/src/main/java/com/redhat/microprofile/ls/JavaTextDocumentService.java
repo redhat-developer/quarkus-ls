@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2019 Red Hat Inc. and others.
+* Copyright (c) 2019-2020 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
@@ -54,7 +54,7 @@ import com.redhat.microprofile.ls.commons.client.CommandKind;
 import com.redhat.microprofile.ls.commons.snippets.TextDocumentSnippetRegistry;
 import com.redhat.microprofile.settings.MicroProfileCodeLensSettings;
 import com.redhat.microprofile.settings.SharedSettings;
-import com.redhat.microprofile.snippets.LanguageId;
+import com.redhat.microprofile.snippets.SnippetContextForJava;
 
 /**
  * LSP text document service for Java file.
@@ -80,7 +80,7 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 		this.documents = new JavaTextDocuments(microprofileLanguageServer);
 	}
 
-	// ------------------------------ did* for Java file ------------------------------
+	// ------------------------------ did* for Java file -------------------------
 
 	@Override
 	public void didOpen(DidOpenTextDocumentParams params) {
@@ -110,32 +110,31 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 
 	@Override
 	public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
-		return CompletableFutures.computeAsync(cancel -> {
-			try {
-				// Returns java snippets
-				TextDocument document = documents.get(params.getTextDocument().getUri());
-				int completionOffset = document.offsetAt(params.getPosition());
-				boolean canSupportMarkdown = true;
-				CompletionList list = new CompletionList();
-				list.setItems(new ArrayList<>());
-				getSnippetRegistry().getCompletionItems(document, completionOffset, canSupportMarkdown, context -> {
-					return true;
-				}).forEach(item -> {
-					list.getItems().add(item);
-				});
-				return Either.forRight(list);
-			} catch (BadLocationException e) {
-				LOGGER.log(Level.SEVERE, "Error while getting java completions", e);
-				return Either.forRight(null);
-			}
-		});
-	}
-
-	private TextDocumentSnippetRegistry getSnippetRegistry() {
-		if (snippetRegistry == null) {
-			snippetRegistry = new TextDocumentSnippetRegistry(LanguageId.java.name());
-		}
-		return snippetRegistry;
+		JavaTextDocument document = documents.get(params.getTextDocument().getUri());
+		return document.executeIfInMicroProfileProject((projectInfo) -> {
+			return CompletableFutures.computeAsync(cancel -> {
+				try {
+					// Returns java snippets
+					int completionOffset = document.offsetAt(params.getPosition());
+					boolean canSupportMarkdown = true;
+					CompletionList list = new CompletionList();
+					list.setItems(new ArrayList<>());
+					documents.getSnippetRegistry()
+							.getCompletionItems(document, completionOffset, canSupportMarkdown, context -> {
+								if (context != null && context instanceof SnippetContextForJava) {
+									return ((SnippetContextForJava) context).isMatch(projectInfo);
+								}
+								return true;
+							}).forEach(item -> {
+								list.getItems().add(item);
+							});
+					return Either.forRight(list);
+				} catch (BadLocationException e) {
+					LOGGER.log(Level.SEVERE, "Error while getting java completions", e);
+					return Either.forRight(null);
+				}
+			});
+		}, Either.forRight(null));
 	}
 
 	// ------------------------------ Code Lens ------------------------------
@@ -152,7 +151,7 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 			return CompletableFuture.completedFuture(Collections.emptyList());
 		}
 		JavaTextDocument document = documents.get(params.getTextDocument().getUri());
-		return document.executeIfInMicroProfileProject(() -> {
+		return document.executeIfInMicroProfileProject((projectInfo) -> {
 			MicroProfileJavaCodeLensParams javaParams = new MicroProfileJavaCodeLensParams(
 					params.getTextDocument().getUri());
 			if (sharedSettings.getCommandCapabilities().isCommandSupported(CommandKind.COMMAND_OPEN_URI)) {
@@ -171,7 +170,7 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 	@Override
 	public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActionParams params) {
 		JavaTextDocument document = documents.get(params.getTextDocument().getUri());
-		return document.executeIfInMicroProfileProject(() -> {
+		return document.executeIfInMicroProfileProject((projectInfo) -> {
 			MicroProfileJavaCodeActionParams javaParams = new MicroProfileJavaCodeActionParams();
 			javaParams.setTextDocument(params.getTextDocument());
 			javaParams.setRange(params.getRange());
@@ -195,7 +194,7 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 	@Override
 	public CompletableFuture<Hover> hover(HoverParams params) {
 		JavaTextDocument document = documents.get(params.getTextDocument().getUri());
-		return document.executeIfInMicroProfileProject(() -> {
+		return document.executeIfInMicroProfileProject((projectinfo) -> {
 			boolean markdownSupported = sharedSettings.getHoverSettings().isContentFormatSupported(MarkupKind.MARKDOWN);
 			DocumentFormat documentFormat = markdownSupported ? DocumentFormat.Markdown : DocumentFormat.PlainText;
 			MicroProfileJavaHoverParams javaParams = new MicroProfileJavaHoverParams(params.getTextDocument().getUri(),
@@ -212,7 +211,7 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 	 * @param document the opened Java file.
 	 */
 	private void triggerValidationFor(JavaTextDocument document) {
-		document.executeIfInMicroProfileProject(() -> {
+		document.executeIfInMicroProfileProject((projectinfo) -> {
 			String uri = document.getUri();
 			triggerValidationFor(Arrays.asList(uri));
 			return null;

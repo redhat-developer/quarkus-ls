@@ -48,7 +48,7 @@ import com.redhat.microprofile.model.values.ValuesRulesManager;
 import com.redhat.microprofile.settings.MicroProfileCompletionSettings;
 import com.redhat.microprofile.settings.MicroProfileFormattingSettings;
 import com.redhat.microprofile.snippets.LanguageId;
-import com.redhat.microprofile.snippets.SnippetContextProperties;
+import com.redhat.microprofile.snippets.SnippetContextForProperties;
 import com.redhat.microprofile.utils.DocumentationUtils;
 import com.redhat.microprofile.utils.MicroProfilePropertiesUtils;
 import com.redhat.microprofile.utils.MicroProfilePropertiesUtils.FormattedPropertyResult;
@@ -420,8 +420,8 @@ class MicroProfileCompletions {
 
 		boolean markdownSupported = completionSettings.isDocumentationFormatSupported(MarkupKind.MARKDOWN);
 		snippetRegistry.getCompletionItems(document.getDocument(), completionOffset, markdownSupported, context -> {
-			if (context instanceof SnippetContextProperties) {
-				SnippetContextProperties contextProperties = (SnippetContextProperties) context;
+			if (context instanceof SnippetContextForProperties) {
+				SnippetContextForProperties contextProperties = (SnippetContextForProperties) context;
 				return contextProperties.isMatch(extensions);
 			}
 			return false;

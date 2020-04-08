@@ -11,6 +11,7 @@ package com.redhat.microprofile.jdt.internal.core.ls;
 
 import static com.redhat.microprofile.jdt.internal.core.ls.ArgumentUtils.getFirst;
 import static com.redhat.microprofile.jdt.internal.core.ls.ArgumentUtils.getString;
+import static com.redhat.microprofile.jdt.internal.core.ls.ArgumentUtils.getStringList;
 
 import java.util.List;
 import java.util.Map;
@@ -57,8 +58,10 @@ public class JavaProjectDelegateCommandHandler extends AbstractMicroProfileDeleg
 					"Command '%s' must be called with required MicroProfileJavaProjectLabelsParams.uri (java file URI)!",
 					commandId));
 		}
+		List<String> types = getStringList(obj, "types");
 		MicroProfileJavaProjectLabelsParams params = new MicroProfileJavaProjectLabelsParams();
 		params.setUri(javaFileUri);
+		params.setTypes(types);
 		return ProjectLabelManager.getInstance().getProjectLabelInfo(params, JDTUtilsLSImpl.getInstance(), monitor);
 	}
 }
