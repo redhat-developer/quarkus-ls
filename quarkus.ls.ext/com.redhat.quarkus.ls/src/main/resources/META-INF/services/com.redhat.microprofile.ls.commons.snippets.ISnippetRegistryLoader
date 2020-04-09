@@ -1,0 +1,2 @@
+com.redhat.quarkus.snippets.QuarkusJavaSnippetRegistryLoader
+com.redhat.quarkus.snippets.QuarkusPropertiesSnippetRegistryLoader
