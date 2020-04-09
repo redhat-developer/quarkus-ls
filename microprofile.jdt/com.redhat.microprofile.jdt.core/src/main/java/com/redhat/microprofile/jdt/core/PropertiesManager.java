@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2019 Red Hat Inc. and others.
+* Copyright (c) 2019-2020 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
@@ -204,7 +204,7 @@ public class PropertiesManager {
 			IJavaSearchScope scope = createSearchScope(javaProjectForSearch, scopes, excludeTestCode, subMonitor);
 
 			// Execute the search
-			PropertiesCollector collector = new PropertiesCollector(info);
+			PropertiesCollector collector = new PropertiesCollector(info, scopes);
 			SearchContext context = new SearchContext(javaProjectForSearch, collector, utils, documentFormat, scopes);
 			beginSearch(context, subMonitor);
 			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
@@ -513,8 +513,9 @@ public class PropertiesManager {
 				String methodSignature = sourceMethod.substring(startBracketIndex, endBracketIndex + 1);
 				String[] paramTypes = methodSignature.isEmpty() ? CharOperation.NO_STRINGS
 						: Signature.getParameterTypes(methodSignature);
-				
-				// try findMethod for non constructor. If result is null, findMethod for constructor
+
+				// try findMethod for non constructor. If result is null, findMethod for
+				// constructor
 				IMethod method = JavaModelUtil.findMethod(methodName, paramTypes, false, type);
 				return method != null ? method : JavaModelUtil.findMethod(methodName, paramTypes, true, type);
 			}

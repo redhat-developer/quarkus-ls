@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.commons.metadata.ConfigurationMetadata;
 import com.redhat.microprofile.commons.metadata.ItemHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
@@ -31,11 +32,14 @@ public class PropertiesCollector implements IPropertiesCollector {
 
 	private final Map<String, ItemHint> hintsCache;
 
-	public PropertiesCollector(ConfigurationMetadata configuration) {
+	private final boolean onlySources;
+
+	public PropertiesCollector(ConfigurationMetadata configuration, List<MicroProfilePropertiesScope> scopes) {
 		this.configuration = configuration;
 		this.configuration.setProperties(new ArrayList<>());
 		this.configuration.setHints(new ArrayList<>());
 		this.hintsCache = new HashMap<>();
+		this.onlySources = MicroProfilePropertiesScope.isOnlySources(scopes);
 	}
 
 	@Override
@@ -86,12 +90,23 @@ public class PropertiesCollector implements IPropertiesCollector {
 		addItemHint(itemHint);
 		return itemHint;
 	}
-	
+
 	@Override
 	public void merge(ConfigurationMetadata metadata) {
 		List<ItemMetadata> properties = metadata.getProperties();
 		if (properties != null) {
-			configuration.getProperties().addAll(properties);
+			if (!onlySources) {
+				configuration.getProperties().addAll(properties);
+			} else {
+				for (ItemMetadata property : properties) {
+					// In the case of the scopes is only sources, the property which is a binary
+					// property must not be added.
+					if (property.getSource() != null && property.getSource()) {
+						configuration.getProperties().add(property);
+					}
+				}
+			}
+
 		}
 		List<ItemHint> hints = metadata.getHints();
 		if (hints != null) {
@@ -100,5 +115,4 @@ public class PropertiesCollector implements IPropertiesCollector {
 			}
 		}
 	}
-
 }
