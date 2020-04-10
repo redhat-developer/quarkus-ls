@@ -180,7 +180,7 @@
 				</property>
 			</activation>
 			<properties>
-				<jbosstoolsRelengPublishVersion>4.6.0</jbosstoolsRelengPublishVersion>
+				<jbosstoolsRelengPublishVersion>4.9.0-SNAPSHOT</jbosstoolsRelengPublishVersion>
 				<deployScriptDir>${project.build.directory}/releng-scripts/sources</deployScriptDir>
 				<deployScript>${deployScriptDir}/publish/rsync.sh</deployScript>
 				<deploySourceFolder>${project.build.directory}/repository</deploySourceFolder>
