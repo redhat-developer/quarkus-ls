@@ -1,6 +1,50 @@
 # MicroProfile Language Server Changelog
 
-## 0.0.5 (February 20, 2019)
+## 0.0.6 (April 15, 2020)
+
+### Enhancements
+
+ * Hover support for `@ConfigProperty` name bounded to method parameters. See [#286](https://github.com/redhat-developer/quarkus-ls/pull/286)
+ * Filter for Java (server) snippets. See [#265](https://github.com/redhat-developer/quarkus-ls/issues/265)
+ * Support for `java.math.BigDecimal` values. See [#261](https://github.com/redhat-developer/quarkus-ls/issues/261)
+ * Support for MicroProfile RestClient CodeAction. See [#255](https://github.com/redhat-developer/quarkus-ls/issues/255)
+ * Manage client snippet on server side. See [#251](https://github.com/redhat-developer/quarkus-ls/pull/251)
+ * Code complete snippets for Open API Annotations. See [#246](https://github.com/redhat-developer/quarkus-ls/issues/246)
+ * Support for MicroProfile LRA properties. See [#243](https://github.com/redhat-developer/quarkus-ls/issues/243)
+ * Support for MicroProfile Metrics properties. See [#241](https://github.com/redhat-developer/quarkus-ls/issues/241)
+ * Support for MicroProfile OpenTracing properties. See [#240](https://github.com/redhat-developer/quarkus-ls/issues/240)
+ * CodeAction to Generate Open API Annotations. See [#239](https://github.com/redhat-developer/quarkus-ls/issues/239)
+ * Support for MicroProfile Health CodeAction. See [#236](https://github.com/redhat-developer/quarkus-ls/issues/236)
+ * Provide codeLens participant. See [#232](https://github.com/redhat-developer/quarkus-ls/pull/232)
+ * Provide hover participant. See [#231](https://github.com/redhat-developer/quarkus-ls/pull/231)
+ * Support for MicroProfile RestClient/Health Diagnostics. See [#217](https://github.com/redhat-developer/quarkus-ls/issues/217)
+ * Support for MicroProfile Open API properties. See [#216](https://github.com/redhat-developer/quarkus-ls/issues/216)
+
+### Bug Fixes
+
+ * Duplicate static properties after saving Java files. See [#301](https://github.com/redhat-developer/quarkus-ls/issues/301)
+ * Bad performance when working with non Quarkus/MP projects. See [#290](https://github.com/redhat-developer/quarkus-ls/pull/290)
+ * Allow excluded unknown property pattern * to match forward slashes. See [#284](https://github.com/redhat-developer/quarkus-ls/pull/284)
+ * Hide OpenAPI source action if it is not applicable. See [#280](https://github.com/redhat-developer/quarkus-ls/issues/280)
+ * Parse PropertyValue when spanning multiple lines. See [#254](https://github.com/redhat-developer/quarkus-ls/pull/254)
+ * Classpath changed sends too many microprofile/propertiesChanged notifications. See [#235](https://github.com/redhat-developer/quarkus-ls/pull/235)
+ * Fixed duplicated comments on range formatting. See [#233](https://github.com/redhat-developer/quarkus-ls/pull/233)
+ * Empty completion after an error from microprofile/projectInfo. See [#228](https://github.com/redhat-developer/quarkus-ls/issues/228)
+
+### Build
+
+ * Deploy test projects for reuse. See [#288](https://github.com/redhat-developer/quarkus-ls/issues/288)
+ * Missing exports for reusing unit tests. See [#263](https://github.com/redhat-developer/quarkus-ls/issues/263)
+ * Remove Quarkus name in MicroProfile LS. See [#262](https://github.com/redhat-developer/quarkus-ls/issues/262)
+ * Refactor unit test so that they can be reused. See [#258](https://github.com/redhat-developer/quarkus-ls/pull/258)
+ * Consume LSP4J 0.9.0. See [#237](https://github.com/redhat-developer/quarkus-ls/issues/237)
+ * `com.redhat.microprofile.ls` cannot be released to JBoss Nexus. See [#226](https://github.com/redhat-developer/quarkus-ls/issues/226)
+
+### Others
+
+ * Split Quarkus/MicroProfile support. See [#229](https://github.com/redhat-developer/quarkus-ls/issues/229)
+
+## 0.0.5 (February 20, 2020)
 
 The Quarkus language server has been refactored to the MicroProfile language server.
 Package names and file names have been adjusted to reflect the changes, 
