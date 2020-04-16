@@ -1,2 +1,13 @@
+arguments=
+auto.sync=false
+build.scans.enabled=false
+connection.gradle.distribution=GRADLE_DISTRIBUTION(WRAPPER)
 connection.project.dir=
 eclipse.preferences.version=1
+gradle.user.home=/Users/fbricon/Dev/GRADLE_CACHE
+java.home=/Users/fbricon/.sdkman/candidates/java/11.0.6.hs-adpt
+jvm.arguments=
+offline.mode=false
+override.workspace.settings=true
+show.console.view=true
+show.executions.view=true

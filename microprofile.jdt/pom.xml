@@ -3,15 +3,10 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.redhat.microprofile</groupId>
   <artifactId>parent</artifactId>
-  <version>0.0.6-SNAPSHOT</version>
+  <version>0.7.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>microprofile.jdt.ls :: parent</name>
   <description>microprofile.jdt.ls parent</description>
-
-  <prerequisites>
-    <maven>3.0</maven>
-  </prerequisites>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
