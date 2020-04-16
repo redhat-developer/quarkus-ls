@@ -1,0 +1,93 @@
+{
+  "@Timeout": {
+    "prefix": [
+      "@Timeout"
+    ],
+    "body": [
+      "@Timeout($1)"
+    ],
+    "description": "The annotation to define a method execution timeout.",
+    "context": {
+      "type": "org.eclipse.microprofile.faulttolerance.Timeout"
+    }
+  },
+  "@Retry": {
+    "prefix": [
+      "@Retry"
+    ],
+    "body": [
+      "@Retry(",
+      "\tretryOn = $1,",
+      "\tmaxRetries = $2,",
+      "\tmaxDuration = $3,",
+      "\tabortOn = $4",
+      ")"
+    ],
+    "description": "The retry annotation to define the number of retries",
+    "context": {
+      "type": "org.eclipse.microprofile.faulttolerance.Retry"
+    }
+  },
+  "@Fallback with method": {
+    "prefix": [
+      "@Fallback"
+    ],
+    "body": [
+      "@Fallback(",
+      "\tfallbackMethod = \"$1\",",
+      "\tapplyOn = $2,",
+      "\tskipOn = $3",
+      ")"
+    ],
+    "description": "The fallback annotation using a fallback method",
+    "context": {
+      "type": "org.eclipse.microprofile.faulttolerance.Fallback"
+    }
+  },
+  "@Fallback with class": {
+    "prefix": [
+      "@Fallback"
+    ],
+    "body": [
+      "@Fallback(",
+      "\tvalue = $1,",
+      "\tapplyOn = $2,",
+      "\tskipOn = $3",
+      ")"
+    ],
+    "description": "The fallback annotation using a fallback class",
+    "context": {
+      "type": "org.eclipse.microprofile.faulttolerance.Fallback"
+    }
+  },
+  "@CircuitBreaker": {
+    "prefix": [
+      "@CircuitBreaker"
+    ],
+    "body": [
+      "@CircuitBreaker(",
+      "\trequestVolumeThreshold=$1,",
+      "\tfailureRatio=$2,",
+      "\tsuccessThreshold=$3,",
+      "\tfailOn = $4,",
+      "\tskipOn = $5",
+      ")"
+    ],
+    "description": "Defines a circuit breaker policy to an individual method or a class.",
+    "context": {
+      "type": "org.eclipse.microprofile.faulttolerance.CircuitBreaker"
+    }
+  },
+  "@Bulkhead": {
+    "prefix": [
+      "@Bulkhead"
+    ],
+    "body": [
+      "@Bulkhead(value=$1)"
+    ],
+    "description": "Define bulkhead policy to limit the number of the concurrent calls to an instance.",
+    "context": {
+      "type": "org.eclipse.microprofile.faulttolerance.Bulkhead"
+    }
+  }
+}

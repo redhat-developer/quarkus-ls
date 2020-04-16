@@ -30,6 +30,8 @@ public class MicroProfileJavaSnippetRegistryLoader implements ISnippetRegistryLo
 				SnippetContextForJava.TYPE_ADAPTER);
 		registry.registerSnippets(MicroProfileJavaSnippetRegistryLoader.class.getResourceAsStream("mp-openapi.json"),
 				SnippetContextForJava.TYPE_ADAPTER);
+		registry.registerSnippets(MicroProfileJavaSnippetRegistryLoader.class.getResourceAsStream("mp-faulttolerance.json"),
+				SnippetContextForJava.TYPE_ADAPTER);
 	}
 
 	@Override
