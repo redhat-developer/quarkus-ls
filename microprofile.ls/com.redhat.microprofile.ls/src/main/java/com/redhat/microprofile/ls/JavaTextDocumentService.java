@@ -134,7 +134,7 @@ public class JavaTextDocumentService extends AbstractTextDocumentService {
 					return Either.forRight(null);
 				}
 			});
-		}, Either.forRight(null));
+		}, Either.forLeft(Collections.emptyList()));
 	}
 
 	// ------------------------------ Code Lens ------------------------------
