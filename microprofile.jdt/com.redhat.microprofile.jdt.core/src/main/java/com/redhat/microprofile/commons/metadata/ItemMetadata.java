@@ -35,9 +35,15 @@ public class ItemMetadata extends ItemBase {
 	public static final int CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED = 2;
 	/**
 	 * Values are read and available for usage at run time and are re-read on each
+	 * program execution. These values are used to configure ConfigSourceProvider
+	 * implementations
+	 */
+	public static final int CONFIG_PHASE_BOOTSTRAP = 3;
+	/**
+	 * Values are read and available for usage at run time and are re-read on each
 	 * program execution.
 	 */
-	public static final int CONFIG_PHASE_RUN_TIME = 3;
+	public static final int CONFIG_PHASE_RUN_TIME = 4;
 
 	private String type;
 
@@ -115,10 +121,6 @@ public class ItemMetadata extends ItemBase {
 
 	public void setConverterKinds(List<ConverterKind> converterKinds) {
 		this.converterKinds = converterKinds;
-	}
-
-	public boolean isAvailableAtRun() {
-		return phase == CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED || phase == CONFIG_PHASE_RUN_TIME;
 	}
 
 	public boolean isStringType() {

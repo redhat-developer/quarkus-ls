@@ -20,7 +20,7 @@ public class QuarkusConstants {
 	/**
 	 * Quarkus prefix used in the Quarkus property.
 	 */
-	public static final String QUARKUS_PREFIX = "quarkus.";
+	public static final String QUARKUS_PREFIX = "quarkus";
 
 	/**
 	 * The Quarkus @ConfigRoot annotation

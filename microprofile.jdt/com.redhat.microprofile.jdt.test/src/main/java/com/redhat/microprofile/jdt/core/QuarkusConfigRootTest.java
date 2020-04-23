@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
+import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.commons.metadata.ItemHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 
@@ -103,9 +104,9 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 						CONFIG_PHASE_RUN_TIME, null),
 
 				// test with java.util.Optional enumeration
-				p("quarkus-agroal", "quarkus.datasource.transaction-isolation-level",
+				p("quarkus-agroal", "quarkus.datasource.jdbc.transaction-isolation-level",
 						"java.util.Optional<io.agroal.api.configuration.AgroalConnectionFactoryConfiguration.TransactionIsolation>",
-						"The transaction isolation level.", true, "io.quarkus.agroal.runtime.DataSourceRuntimeConfig",
+						"The transaction isolation level.", true, "io.quarkus.agroal.runtime.DataSourceJdbcRuntimeConfig",
 						"transactionIsolationLevel", null, CONFIG_PHASE_RUN_TIME, null),
 
 				// test with enumeration
@@ -164,6 +165,42 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 		Assert.assertNotNull("Check existing of values hint for quarkus.log.console.async.overflow", hint.getValues());
 		Assert.assertFalse("Check has values hint for quarkus.log.console.async.overflow", hint.getValues().isEmpty());
 
+	}
+
+	@Test
+	public void configQuickStart() throws Exception {
+		// Test for https://github.com/redhat-developer/vscode-quarkus/issues/249
+
+		MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(MavenProjectName.config_quickstart,
+				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
+
+		assertProperties(info,
+
+				// io.quarkus.deployment.ApplicationConfig
+				p("quarkus-core", "quarkus.application.name", "java.util.Optional<java.lang.String>",
+						"The name of the application.\nIf not set, defaults to the name of the project (except for tests where it is not set at all).",
+						true, "io.quarkus.runtime.ApplicationConfig", "name", null,
+						CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED, null),
+
+				p("quarkus-core", "quarkus.application.version", "java.util.Optional<java.lang.String>",
+						"The version of the application.\nIf not set, defaults to the version of the project (except for tests where it is not set at all).",
+						true, "io.quarkus.runtime.ApplicationConfig", "version", null,
+						CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED, null),
+
+				p("quarkus-core", "quarkus.banner.enabled", "boolean", "Whether or not the banner will be displayed",
+						true, "io.quarkus.runtime.BannerRuntimeConfig", "enabled", null, CONFIG_PHASE_RUN_TIME, "true"),
+
+				p("quarkus-core", "quarkus.locales", "java.util.Set<java.util.Locale>",
+						"The set of supported locales that can be consumed by the extensions.\n<p>\nThe locales must be specified in the IETF BCP 47 format e.g. en-US or fr-FR.\n<p>\nFor instance, the Hibernate Validator extension makes use of it.",
+						true, "io.quarkus.runtime.LocalesBuildTimeConfig", "locales", null,
+						CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED, "${user.language:en}-${user.country:}"),
+
+				p("quarkus-core", "quarkus.default-locale", "java.util.Locale",
+						"Default locale that can be consumed by the extensions.\n<p>\nThe locales must be specified in the IETF BCP 47 format e.g. en-US or fr-FR.\n<p>\nFor instance, the Hibernate Validator extension makes use of it.",
+						true, "io.quarkus.runtime.LocalesBuildTimeConfig", "defaultLocale", null,
+						CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED, "${user.language:en}-${user.country:}")
+
+		);
 	}
 
 	private static Optional<ItemMetadata> getItemMetadata(String propertyName, MicroProfileProjectInfo info) {

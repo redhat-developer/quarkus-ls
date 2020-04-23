@@ -38,10 +38,10 @@ public class ApplicationPropertiesDefinitionTest {
 
 	@Test
 	public void definitionOnKey() throws BadLocationException, InterruptedException, ExecutionException {
-		String value = "quarkus.datasource.driv|er";
+		String value = "quarkus.application.na|me";
 		testDefinitionFor(value, ll(
-				"jdt://contents/quarkus-agroal-1.1.1.Final.jar/io.quarkus.agroal.runtime/DataSourceBuildTimeConfig.class?=all-quarkus-extensions/C:%5C/Users%5C/azerr%5C/.m2%5C/repository%5C/io%5C/quarkus%5C/quarkus-agroal%5C/1.1.1.Final%5C/quarkus-agroal-1.1.1.Final.jar%3Cio.quarkus.agroal.runtime(DataSourceBuildTimeConfig.class",
-				r(0, 0, 25), r(14, 28, 34)));
+				"jdt://contents/quarkus-core-1.3.2.Final.jar/io.quarkus.runtime/ApplicationConfig.class?=all-quarkus-extensions/C:%5C/Users%5C/azerr%5C/.m2%5C/repository%5C/io%5C/quarkus%5C/quarkus-core%5C/1.3.2.Final%5C/quarkus-core-1.3.2.Final.jar%3Cio.quarkus.runtime(ApplicationConfig.class",
+				r(0, 0, 24), r(16, 28, 32)));
 	}
 
 	@Test

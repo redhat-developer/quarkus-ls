@@ -86,6 +86,8 @@ public class DocumentationUtils {
 			return "runtime";
 		case ItemMetadata.CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED:
 			return "buildtime & runtime";
+		case ItemMetadata.CONFIG_PHASE_BOOTSTRAP:
+			return "bootstrap";
 		default:
 			return null;
 		}

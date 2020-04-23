@@ -152,7 +152,7 @@ public class ApplicationPropertiesHoverTest {
 		String hoverLabel = "**quarkus.log.category.\\{\\*\\}.level**" + System.lineSeparator() + System.lineSeparator()
 				+ //
 				"The log level level for this category" + System.lineSeparator() + System.lineSeparator() + //
-				" * Type: `java.lang.String`" + System.lineSeparator() + //
+				" * Type: `io.quarkus.runtime.logging.InheritableLevel`" + System.lineSeparator() + //
 				" * Default: `inherit`" + System.lineSeparator() + //
 				" * Phase: `runtime`" + System.lineSeparator() + //
 				" * Extension: `quarkus-core`";

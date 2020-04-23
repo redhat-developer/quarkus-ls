@@ -30,7 +30,7 @@ public class ConfigItemIntBoolDefaultValueTest extends BasePropertiesManagerTest
 		String booleanDefault = "false";
 		String intDefault = "0";
 
-		assertProperties(infoFromClasspath, 185 /* properties from JAR */ + //
+		assertProperties(infoFromClasspath, 257 /* properties from JAR */ + //
 				9 /* properties from Java sources with ConfigProperty */ + //
 				2 /* properties from Java sources with ConfigRoot */,
 				
@@ -92,10 +92,7 @@ public class ConfigItemIntBoolDefaultValueTest extends BasePropertiesManagerTest
 				p("quarkus-vertx-http", "quarkus.http.auth.basic", "boolean",
 						"If basic auth should be enabled. If both basic and form auth is enabled then basic auth will be enabled in silent mode.\n" + 
 						"\n" + 
-						"If no authentication mechanisms are configured basic auth is the default, unless an\n" +
-						"{@link io.quarkus.security.identity.IdentityProvider}\n" +
-						"is present that supports {@link io.quarkus.security.identity.request.TokenAuthenticationRequest} in which case\n" +
-						"form auth will be the default.", true,
+						"If no authentication mechanisms are configured basic auth is the default.", true,
 						"io.quarkus.vertx.http.runtime.AuthConfig", "basic", null, CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED, booleanDefault),
 				
 				// @ConfigItem
