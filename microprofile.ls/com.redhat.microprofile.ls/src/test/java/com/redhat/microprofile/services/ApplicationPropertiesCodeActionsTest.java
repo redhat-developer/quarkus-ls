@@ -141,7 +141,7 @@ public class ApplicationPropertiesCodeActionsTest {
 	public void codeActionsForUnknownLogLevelValue() throws BadLocationException {
 		String value = "quarkus.log.level=WARNIN";
 		Diagnostic d = d(0, 18, 24,
-				"Invalid enum value: 'WARNIN' is invalid for type java.util.Optional<java.util.logging.Level>",
+				"Invalid enum value: 'WARNIN' is invalid for type java.util.logging.Level",
 				DiagnosticSeverity.Error, ValidationType.value);
 
 		testDiagnosticsFor(value, d);
@@ -152,7 +152,7 @@ public class ApplicationPropertiesCodeActionsTest {
 	public void codeActionsForUnknownLogLevelStartsWith() throws BadLocationException {
 		String value = "quarkus.log.level=F";
 		Diagnostic d = d(0, 18, 19,
-				"Invalid enum value: 'F' is invalid for type java.util.Optional<java.util.logging.Level>",
+				"Invalid enum value: 'F' is invalid for type java.util.logging.Level",
 				DiagnosticSeverity.Error, ValidationType.value);
 
 		testDiagnosticsFor(value, d);
@@ -164,7 +164,7 @@ public class ApplicationPropertiesCodeActionsTest {
 	@Test
 	public void codeActionsForUnknownLogLevelValueMappedProperty() throws BadLocationException {
 		String value = "quarkus.log.category.\"org.acme\".level=WARNIN";
-		Diagnostic d = d(0, 38, 44, "Invalid enum value: 'WARNIN' is invalid for type java.lang.String",
+		Diagnostic d = d(0, 38, 44, "Invalid enum value: 'WARNIN' is invalid for type io.quarkus.runtime.logging.InheritableLevel",
 				DiagnosticSeverity.Error, ValidationType.value);
 
 		testDiagnosticsFor(value, d);

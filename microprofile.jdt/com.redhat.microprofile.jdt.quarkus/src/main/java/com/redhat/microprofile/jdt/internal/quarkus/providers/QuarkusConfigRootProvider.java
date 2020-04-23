@@ -25,9 +25,9 @@ import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isPrimitiveBoo
 import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isPrimitiveType;
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
-import static io.quarkus.runtime.util.StringUtil.join;
 import static io.quarkus.runtime.util.StringUtil.lowerCase;
 import static io.quarkus.runtime.util.StringUtil.lowerCaseFirst;
+import static io.quarkus.runtime.util.StringUtil.toList;
 import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
 
 import java.util.ArrayList;
@@ -45,6 +45,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -268,7 +269,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 		// Quarkus Extension name
 		String extensionName = JDTQuarkusUtils.getExtensionName(location);
 
-		String baseKey = QuarkusConstants.QUARKUS_PREFIX + extension;
+		String baseKey = extension.isEmpty() ? QuarkusConstants.QUARKUS_PREFIX
+				: QuarkusConstants.QUARKUS_PREFIX + '.' + extension;
 		processConfigGroup(extensionName, javaElement, baseKey, configPhase, javadocCache, collector, monitor);
 	}
 
@@ -287,6 +289,9 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 			}
 			if (value.endsWith(ConfigPhase.BUILD_AND_RUN_TIME_FIXED.name())) {
 				return ConfigPhase.BUILD_AND_RUN_TIME_FIXED;
+			}
+			if (value.endsWith(ConfigPhase.BOOTSTRAP.name())) {
+				return ConfigPhase.BOOTSTRAP;
 			}
 		}
 		return ConfigPhase.BUILD_TIME;
@@ -341,29 +346,34 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	private static String getExtensionName(String configRootClassSimpleName, String configRootAnnotationName,
 			ConfigPhase configPhase) {
 		// See
-		// https://github.com/quarkusio/quarkus/blob/master/core/deployment/src/main/java/io/quarkus/deployment/configuration/ConfigDefinition.java#L173
-		// registerConfigRoot
-		final String containingName;
+		// https://github.com/quarkusio/quarkus/blob/2f522a8553a835c95cea59771bf4c3b4735a8291/core/deployment/src/main/java/io/quarkus/deployment/configuration/definition/RootDefinition.java#L33
+		String rootName = configRootAnnotationName;
+		final List<String> segments = toList(camelHumpsIterator(configRootClassSimpleName));
+		final List<String> trimmedSegments;
 		if (configPhase == ConfigPhase.RUN_TIME) {
-			containingName = join(withoutSuffix(lowerCaseFirst(camelHumpsIterator(configRootClassSimpleName)), "Config",
-					"Configuration", "RunTimeConfig", "RunTimeConfiguration"));
+			trimmedSegments = withoutSuffix(
+					withoutSuffix(
+							withoutSuffix(
+									withoutSuffix(withoutSuffix(withoutSuffix(segments, "Runtime", "Configuration"),
+											"Runtime", "Config"), "Run", "Time", "Configuration"),
+									"Run", "Time", "Config"),
+							"Configuration"),
+					"Config");
+		} else if (configPhase == ConfigPhase.BOOTSTRAP) {
+			trimmedSegments = withoutSuffix(withoutSuffix(
+					withoutSuffix(withoutSuffix(segments, "Bootstrap", "Configuration"), "Bootstrap", "Config"),
+					"Configuration"), "Config");
 		} else {
-			containingName = join(withoutSuffix(lowerCaseFirst(camelHumpsIterator(configRootClassSimpleName)), "Config",
-					"Configuration", "BuildTimeConfig", "BuildTimeConfiguration"));
+			trimmedSegments = withoutSuffix(withoutSuffix(
+					withoutSuffix(withoutSuffix(segments, "Build", "Time", "Configuration"), "Build", "Time", "Config"),
+					"Configuration"), "Config");
 		}
-		final String name = configRootAnnotationName;
-		final String rootName;
-		if (name.equals(ConfigItem.PARENT)) {
-			// throw reportError(configRoot, "Root cannot inherit parent name because it has
-			// no parent");
-			return null;
-		} else if (name.equals(ConfigItem.ELEMENT_NAME)) {
-			rootName = containingName;
-		} else if (name.equals(ConfigItem.HYPHENATED_ELEMENT_NAME)) {
-			rootName = join("-",
-					withoutSuffix(lowerCase(camelHumpsIterator(configRootClassSimpleName)), "config", "configuration"));
-		} else {
-			rootName = name;
+		if (rootName.equals(ConfigItem.PARENT)) {
+			rootName = "";
+		} else if (rootName.equals(ConfigItem.ELEMENT_NAME)) {
+			rootName = String.join("", (Iterable<String>) () -> lowerCaseFirst(trimmedSegments.iterator()));
+		} else if (rootName.equals(ConfigItem.HYPHENATED_ELEMENT_NAME)) {
+			rootName = String.join("-", (Iterable<String>) () -> lowerCase(trimmedSegments.iterator()));
 		}
 		return rootName;
 	}
@@ -393,6 +403,10 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 			for (IJavaElement child : elements) {
 				if (child.getElementType() == IJavaElement.FIELD) {
 					IField field = (IField) child;
+					if (!canProcess(field)) {
+						continue;
+					}
+
 					final IAnnotation configItemAnnotation = getAnnotation((IAnnotatable) field,
 							QuarkusConstants.CONFIG_ITEM_ANNOTATION);
 					String name = configItemAnnotation == null ? hyphenate(field.getElementName())
@@ -429,6 +443,20 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 				}
 			}
 		}
+	}
+
+	/**
+	 * Returns true if the given field can generate a Quarkus property and false
+	 * otherwise.
+	 * 
+	 * @param field
+	 * @return true if the given field can generate a Quarkus property and false
+	 *         otherwise.
+	 * @throws JavaModelException
+	 */
+	private static boolean canProcess(IField field) throws JavaModelException {
+		int flags = field.getFlags();
+		return !Flags.isStatic(flags) && !Flags.isPrivate(flags);
 	}
 
 	private void addItemMetadata(String extensionName, IField field, String fieldTypeName, IType fieldClass,
@@ -595,6 +623,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 			return ItemMetadata.CONFIG_PHASE_BUILD_TIME;
 		case BUILD_AND_RUN_TIME_FIXED:
 			return ItemMetadata.CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED;
+		case BOOTSTRAP:
+			return ItemMetadata.CONFIG_PHASE_BOOTSTRAP;
 		case RUN_TIME:
 			return ItemMetadata.CONFIG_PHASE_RUN_TIME;
 		default:
