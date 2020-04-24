@@ -32,7 +32,8 @@ public class ConfigItemIntBoolDefaultValueTest extends BasePropertiesManagerTest
 
 		assertProperties(infoFromClasspath, 257 /* properties from JAR */ + //
 				9 /* properties from Java sources with ConfigProperty */ + //
-				2 /* properties from Java sources with ConfigRoot */,
+				2 /* properties from Java sources with ConfigRoot */ + //
+				7 /* static properties from microprofile-context-propagation-api */,
 				
 				// @ConfigItem(name = ConfigItem.PARENT)
 				// boolean enable;

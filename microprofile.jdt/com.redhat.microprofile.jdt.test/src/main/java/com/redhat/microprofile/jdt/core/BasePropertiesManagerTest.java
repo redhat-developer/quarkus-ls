@@ -69,6 +69,7 @@ public class BasePropertiesManagerTest {
 		microprofile_fault_tolerance("microprofile-fault-tolerance"), //
 		microprofile_health_quickstart("microprofile-health-quickstart"), //
 		microprofile_lra("microprofile-lra"), //
+		microprofile_context_propagation("microprofile-context-propagation"), //
 		microprofile_metrics("microprofile-metrics"), //
 		microprofile_opentracing("microprofile-opentracing"), //
 		microprofile_openapi("microprofile-openapi"), //

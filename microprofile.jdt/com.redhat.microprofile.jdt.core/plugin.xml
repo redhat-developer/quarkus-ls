@@ -56,6 +56,13 @@
       <hover class="com.redhat.microprofile.jdt.internal.config.java.MicroProfileConfigHoverParticipant" />   
    </extension>
 
+    <!-- Microprofile Context Propagation support -->
+
+   <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
+      <!-- Properties provider for MicroProfile Context Propagation -->
+      <provider class="com.redhat.microprofile.jdt.internal.contextpropagation.properties.MicroProfileContextPropagationProvider" />
+   </extension>
+
    <!-- Microprofile Fault Tolerance support -->
    
    <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
