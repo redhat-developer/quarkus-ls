@@ -65,7 +65,9 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
 				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDT_UTILS,
 				DocumentFormat.Markdown, new NullProgressMonitor());
 		Assert.assertEquals(ClasspathKind.SRC, infoFromSrc.getClasspathKind());
-		assertProperties(infoFromSrc, 181 /* properties from JAR */ + 3 /* properties from Java sources */,
+		assertProperties(infoFromSrc, 181 /* properties from JAR */ + //
+				3 /* properties from Java sources */ + //
+				7 /* static properties from microprofile-context-propagation-api */,
 
 				// quarkus-resteasy JAR
 				p("quarkus-resteasy-common", "quarkus.resteasy.gzip.enabled", "boolean", "If gzip is enabled", true,
@@ -100,14 +102,11 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
 				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDT_UTILS,
 				DocumentFormat.Markdown, new NullProgressMonitor());
 		Assert.assertEquals(ClasspathKind.TEST, infoFromTest.getClasspathKind());
-		assertProperties(infoFromTest, 181 /* properties from JAR */ + 3 /* properties from JAR (test) */ + 3 /*
-																												 * properties
-																												 * from
-																												 * (src)
-																												 * Java
-																												 * sources
-																												 */
-				+ 3 /* properties from (test) Java sources */,
+		assertProperties(infoFromTest, 181 /* properties from JAR */ + //
+		 3 /* properties from JAR (test) */ +  // 
+		 3 /* properties from (src) Java sources */ + //
+		 3 /* properties from (test) Java sources */ + //
+		 7 /* static properties from microprofile-context-propagation-api */,
 
 				// quarkus-resteasy JAR
 				p("quarkus-resteasy-common", "quarkus.resteasy.gzip.enabled", "boolean", "If gzip is enabled", true,
