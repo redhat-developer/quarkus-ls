@@ -1,5 +1,18 @@
 # MicroProfile Language Server Changelog
 
+## 0.0.7 (April 30, 2020)
+
+### Enhancements
+
+ * Update Quarkus datasource snippet. See [#310](https://github.com/redhat-developer/quarkus-ls/pull/310)
+ * Code snippets for MicroProfile fault tolerance annotations. See [#307](https://github.com/redhat-developer/quarkus-ls/issues/307)
+ * Support for MicroProfile Context Propagation properties. See [#242](https://github.com/redhat-developer/quarkus-ls/issues/242)
+
+### Bug Fixes
+
+ * `quarkus.banner.enabled` marked as error. See [#309](https://github.com/redhat-developer/quarkus-ls/pull/309)
+ * Completion in non-Quarkus and non-MicroProfile project causes errors. See [#308](https://github.com/redhat-developer/quarkus-ls/pull/308)
+
 ## 0.0.6 (April 15, 2020)
 
 ### Enhancements
@@ -47,7 +60,7 @@
 ## 0.0.5 (February 20, 2020)
 
 The Quarkus language server has been refactored to the MicroProfile language server.
-Package names and file names have been adjusted to reflect the changes, 
+Package names and file names have been adjusted to reflect the changes,
 i.e., `quarkus.ls.*` to `microprofile.ls.*` and `QuarkusHover.java` to `MicroProfileHover.java`.
 
 ### Enhancements
