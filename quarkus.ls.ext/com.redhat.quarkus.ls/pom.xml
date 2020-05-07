@@ -4,9 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.redhat.microprofile</groupId>
 	<artifactId>com.redhat.quarkus.ls</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.8.0-SNAPSHOT</version>
 
-	<name>Quarkus Language Server</name>
+	<name>Quarkus Extension for the MicroProfile Language Server</name>
 	<description>Quarkus extension for MicroProfile Language Server</description>
 	<url>https://github.com/redhat-developer/quarkus-ls</url>
 	<licenses>
@@ -39,6 +39,7 @@
 		<maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
 		<dev.build.timestamp>${maven.build.timestamp}</dev.build.timestamp>
 		<lsp4j.version>0.9.0</lsp4j.version>
+		<microprofile.ls.version>${project.version}</microprofile.ls.version>
 		<jboss.releases.repo.id>jboss-releases-repository</jboss.releases.repo.id>
 		<jboss.releases.repo.url>https://repository.jboss.org/nexus/service/local/staging/deploy/maven2/</jboss.releases.repo.url>
 		<jboss.snapshots.repo.id>jboss-snapshots-repository</jboss.snapshots.repo.id>
@@ -78,26 +79,25 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<descriptors combine.children="append">
-						<descriptor>src/assembly/distribution.xml</descriptor>
-					</descriptors>
-					<finalName>${project.artifactId}</finalName>
-					<archive>
-						<!-- <manifest>
-							<mainClass>com.redhat.microprofile.ls.MicroProfileServerLauncher</mainClass>
-						</manifest> -->
-					</archive>
-				</configuration>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
-					<execution>
-						<id>make-assembly</id> <!-- this is used for inheritance merges -->
-						<phase>package</phase> <!-- bind to the packaging phase -->
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
+						<execution>
+								<phase>package</phase>
+								<goals>
+										<goal>copy-dependencies</goal>
+								</goals>
+								<configuration>
+										<outputDirectory>${project.build.directory}/lib</outputDirectory>
+										<!-- exclude copying test and provided dependencies -->
+										<includeScope>runtime</includeScope>
+										<excludeScope>provided</excludeScope>
+								</configuration>
+						</execution>
 				</executions>
 			</plugin>
 			<plugin>
@@ -129,6 +129,7 @@
 			<groupId>org.eclipse.lsp4j</groupId>
 			<artifactId>org.eclipse.lsp4j</artifactId>
 			<version>${lsp4j.version}</version>
+			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<groupId>com.google.errorprone</groupId>
@@ -144,11 +145,13 @@
 			<groupId>org.eclipse.lsp4j</groupId>
 			<artifactId>org.eclipse.lsp4j.jsonrpc</artifactId>
 			<version>${lsp4j.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.redhat.microprofile</groupId>
 			<artifactId>com.redhat.microprofile.ls</artifactId>
-			<version>0.0.6-SNAPSHOT</version>
+			<version>${microprofile.ls.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
