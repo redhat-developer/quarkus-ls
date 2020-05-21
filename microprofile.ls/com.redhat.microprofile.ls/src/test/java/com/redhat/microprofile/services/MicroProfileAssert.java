@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -63,6 +64,8 @@ import com.redhat.microprofile.settings.MicroProfileCompletionSettings;
 import com.redhat.microprofile.settings.MicroProfileFormattingSettings;
 import com.redhat.microprofile.settings.MicroProfileHoverSettings;
 import com.redhat.microprofile.settings.MicroProfileValidationSettings;
+import com.redhat.microprofile.snippets.LanguageId;
+import com.redhat.microprofile.snippets.SnippetContextForProperties;
 import com.redhat.microprofile.utils.DocumentationUtils;
 import com.redhat.microprofile.utils.PositionUtils;
 
@@ -261,6 +264,22 @@ public class MicroProfileAssert {
 		TextDocument document = new TextDocument(value, "application.properties");
 		List<CompletionItem> items = registry.getCompletionItems(document, offset, true, context -> {
 			return true;
+		});
+		CompletionList actual = new CompletionList(items);
+		assertCompletions(actual, expectedCount, expectedItems);
+	}
+	
+	public static void assertCompletionWithDependencies(String value, Integer expectedCount, String[] dependencies, CompletionItem... expectedItems) {
+		int offset = value.indexOf('|');
+		value = value.substring(0, offset) + value.substring(offset + 1);
+		TextDocumentSnippetRegistry registry = new TextDocumentSnippetRegistry(LanguageId.properties.name());
+		TextDocument document = new TextDocument(value, "application.properties");
+		List<CompletionItem> items = registry.getCompletionItems(document, offset, true, context -> {
+			if (context instanceof SnippetContextForProperties) {
+				SnippetContextForProperties contextProperties = (SnippetContextForProperties) context;
+				return contextProperties.isMatch(new HashSet<>(Arrays.asList(dependencies)));
+			}
+			return false;
 		});
 		CompletionList actual = new CompletionList(items);
 		assertCompletions(actual, expectedCount, expectedItems);
