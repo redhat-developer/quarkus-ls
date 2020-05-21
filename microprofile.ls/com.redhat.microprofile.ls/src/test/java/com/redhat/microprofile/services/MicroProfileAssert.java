@@ -109,12 +109,12 @@ public class MicroProfileAssert {
 
 	public static void testCompletionFor(String value, boolean snippetSupport, CompletionItem... expectedItems)
 			throws BadLocationException {
-		testCompletionFor(value, snippetSupport, false, null, expectedItems);
+		testCompletionFor(value, snippetSupport, false, expectedItems.length, expectedItems);
 	}
 
 	public static void testCompletionFor(String value, boolean snippetSupport, boolean insertSpacing,
 			CompletionItem... expectedItems) throws BadLocationException {
-		testCompletionFor(value, snippetSupport, insertSpacing, null, expectedItems);
+		testCompletionFor(value, snippetSupport, insertSpacing, expectedItems.length, expectedItems);
 	}
 
 	public static void testCompletionFor(String value, boolean snippetSupport, Integer expectedCount,
