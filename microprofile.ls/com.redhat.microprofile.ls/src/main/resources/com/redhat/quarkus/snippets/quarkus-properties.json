@@ -26,5 +26,15 @@
 		"context": {
 			"dependency": "quarkus-jaeger"
 		}
+	},
+	"Add Hibernate ORM datasource properties": {
+		"prefix": "qhormd",
+		"body": [
+			"quarkus.hibernate-orm.database.generation=${5|none,drop-and-create,create,drop,update|}"
+		],
+		"description": "Configure Quarkus Hibernate ORM datasource",
+		"context": {
+			"dependency": "quarkus-hibernate-orm"
+		}
 	}
 }
