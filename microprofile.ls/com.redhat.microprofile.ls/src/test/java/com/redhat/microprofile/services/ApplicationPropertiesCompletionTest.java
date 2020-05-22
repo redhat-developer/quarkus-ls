@@ -327,14 +327,4 @@ public class ApplicationPropertiesCompletionTest {
 		assertCompletionWithDependencies(value, 0, new String[]{});
 	}
 
-	@Test
-	public void snippetCompletionHibernateORM() throws BadLocationException {
-		String value = "qhormd|";
-		assertCompletionWithDependencies(value, null, new String[] {"quarkus-hibernate-orm"},
-				c("qhormd",
-				"quarkus.hibernate-orm.database.generation=${5|none,drop-and-create,create,drop,update|}",
-				r(0, 0, 6)));
-		assertCompletionWithDependencies(value, 0, new String[]{});
-	}
-
 }
