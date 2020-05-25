@@ -100,7 +100,7 @@ public class JaxRsUtils {
 		return lens;
 	}
 
-	static String buildURL(String... paths) {
+	public static String buildURL(String... paths) {
 		StringBuilder url = new StringBuilder();
 		for (String path : paths) {
 			if (path != null && !path.isEmpty()) {

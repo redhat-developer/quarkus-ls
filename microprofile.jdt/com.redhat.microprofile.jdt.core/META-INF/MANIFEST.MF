@@ -34,9 +34,16 @@ Export-Package: com.redhat.microprofile.commons,
  com.redhat.microprofile.jdt.core.jaxrs,
  com.redhat.microprofile.jdt.core.project,
  com.redhat.microprofile.jdt.core.utils,
+ com.redhat.microprofile.jdt.internal.config.java;x-friends:="com.redhat.microprofile.jdt.test",
+ com.redhat.microprofile.jdt.internal.core;x-friends:="com.redhat.microprofile.jdt.test",
+ com.redhat.microprofile.jdt.internal.core.ls;x-friends:="com.redhat.microprofile.jdt.test",
+ com.redhat.microprofile.jdt.internal.core.utils;x-friends:="com.redhat.microprofile.jdt.test",
+ com.redhat.microprofile.jdt.internal.faulttolerance;x-friends:="com.redhat.microprofile.jdt.test",
+ com.redhat.microprofile.jdt.internal.health;x-friends:="com.redhat.microprofile.jdt.test",
+ com.redhat.microprofile.jdt.internal.health.java;x-friends:="com.redhat.microprofile.jdt.test",
+ com.redhat.microprofile.jdt.internal.restclient;x-friends:="com.redhat.microprofile.jdt.test",
  io.quarkus.runtime.util
 Bundle-ClassPath: lib/snakeyaml-1.25.jar,
  .
-Eclipse-ExtensibleAPI: true
 Import-Package: com.google.gson,
  com.google.gson.stream
