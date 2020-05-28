@@ -37,7 +37,7 @@ Click [here](./demos/DEMO.md) to view a demo for the rest of the language featur
 Building the Language Server
 --------------
 * Clone this repository
-* Navigate to the `quarkus-ls/microprofile.ls` folder in your terminal or command line
+* Navigate to the `quarkus-ls/microprofile.ls/com.redhat.microprofile.ls` folder in your terminal or command line
 * Run `./mvnw clean verify` (OSX, Linux) or `mvnw.cmd clean verify` (Windows)
 * After successful compilation you can find the resulting `com.redhat.microprofile.ls-uber.jar` in the
 `quarkus-ls/microprofile.ls/com.redhat.microprofile.ls/target` folder.

@@ -1,4 +1,2 @@
 com.redhat.microprofile.snippets.MicroProfileJavaSnippetRegistryLoader
 com.redhat.microprofile.snippets.MicroProfilePropertiesSnippetRegistryLoader
-com.redhat.quarkus.snippets.QuarkusJavaSnippetRegistryLoader
-com.redhat.quarkus.snippets.QuarkusPropertiesSnippetRegistryLoader
