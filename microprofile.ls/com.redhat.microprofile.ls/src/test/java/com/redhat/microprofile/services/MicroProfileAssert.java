@@ -474,8 +474,7 @@ public class MicroProfileAssert {
 	}
 
 	public static void assertDiagnostics(List<Diagnostic> actual, List<Diagnostic> expected) {
-		List<Diagnostic> received = actual;
-		Assert.assertEquals("Unexpected diagnostics:\n" + actual, expected, received);
+		Assert.assertEquals("Unexpected diagnostics:\n", expected, actual);
 	}
 
 	public static Diagnostic d(int line, int startCharacter, int endCharacter, String message,
