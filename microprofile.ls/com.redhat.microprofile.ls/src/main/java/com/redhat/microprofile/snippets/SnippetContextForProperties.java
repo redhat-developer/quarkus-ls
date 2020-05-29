@@ -60,8 +60,8 @@ public class SnippetContextForProperties implements ISnippetContext<Set<String>>
 	}
 
 	@Override
-	public boolean isMatch(Set<String> dependencys) {
-		return dependencys.contains(dependency);
+	public boolean isMatch(Set<String> dependencies) {
+		return dependencies != null && dependencies.contains(dependency);
 	}
 
 	private static class SnippetContextForPropertiesAdapter extends TypeAdapter<SnippetContextForProperties> {

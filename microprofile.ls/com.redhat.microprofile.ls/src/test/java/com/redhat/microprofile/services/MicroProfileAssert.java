@@ -12,6 +12,7 @@ package com.redhat.microprofile.services;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -269,7 +270,7 @@ public class MicroProfileAssert {
 		assertCompletions(actual, expectedCount, expectedItems);
 	}
 	
-	public static void assertCompletionWithDependencies(String value, Integer expectedCount, String[] dependencies, CompletionItem... expectedItems) {
+	public static void assertCompletionWithDependencies(String value, Integer expectedCount, Collection<String> dependencies, CompletionItem... expectedItems) {
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
 		TextDocumentSnippetRegistry registry = new TextDocumentSnippetRegistry(LanguageId.properties.name());
@@ -277,7 +278,7 @@ public class MicroProfileAssert {
 		List<CompletionItem> items = registry.getCompletionItems(document, offset, true, context -> {
 			if (context instanceof SnippetContextForProperties) {
 				SnippetContextForProperties contextProperties = (SnippetContextForProperties) context;
-				return contextProperties.isMatch(new HashSet<>(Arrays.asList(dependencies)));
+				return contextProperties.isMatch(new HashSet<>(dependencies));
 			}
 			return false;
 		});
