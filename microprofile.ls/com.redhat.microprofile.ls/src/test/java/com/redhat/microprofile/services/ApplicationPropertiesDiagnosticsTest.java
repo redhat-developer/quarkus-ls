@@ -20,6 +20,7 @@ import java.util.List;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.Test;
 
+import com.redhat.microprofile.commons.JavaVersion;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.metadata.ConverterKind;
 import com.redhat.microprofile.commons.metadata.ItemHint;
@@ -697,6 +698,7 @@ public class ApplicationPropertiesDiagnosticsTest {
 		
 		String ls = System.lineSeparator();
 		value = "mp.opentracing.server.skip-pattern=(";
+
 		testDiagnosticsFor(value, projectInfo, settings, //
 				d(0, 35, 36, "Unclosed group near index 1" + ls + "(" + ls + "",
 						DiagnosticSeverity.Error, ValidationType.value));
@@ -712,9 +714,16 @@ public class ApplicationPropertiesDiagnosticsTest {
 						DiagnosticSeverity.Error, ValidationType.value));
 
 		value = "mp.opentracing.server.skip-pattern={";
+		
+		StringBuilder message = new StringBuilder("Illegal repetition");
+		if (JavaVersion.CURRENT > 12) {
+			message.append(" near index 1");
+		}
+		message.append(ls).append("{").append(ls);
+		
 		testDiagnosticsFor(value, projectInfo, settings, //
-				d(0, 35, 36, "Illegal repetition" + ls + "{" + ls,
-						DiagnosticSeverity.Error, ValidationType.value));
+				d(0, 35, 36, message.toString(),
+						DiagnosticSeverity.Error, ValidationType.value));			
 	}
 
 	@Test
