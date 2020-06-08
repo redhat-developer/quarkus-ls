@@ -121,37 +121,37 @@
 					<serverId>${jboss.releases.repo.id}</serverId>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptors combine.children="append">
+						<descriptor>src/assembly/distribution.xml</descriptor>
+					</descriptors>
+					<finalName>${project.artifactId}</finalName>
+					<archive>
+						<manifest>
+							<mainClass>com.redhat.microprofile.ls.MicroProfileServerLauncher</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id> <!-- this is used for inheritance merges -->
+						<phase>package</phase> <!-- bind to the packaging phase -->
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
 	<dependencies>
 		<dependency>
-			<groupId>org.eclipse.lsp4j</groupId>
-			<artifactId>org.eclipse.lsp4j</artifactId>
-			<version>${lsp4j.version}</version>
-			<scope>provided</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>com.google.errorprone</groupId>
-					<artifactId>error_prone_annotations</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>animal-sniffer-annotations</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.lsp4j</groupId>
-			<artifactId>org.eclipse.lsp4j.jsonrpc</artifactId>
-			<version>${lsp4j.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>com.redhat.microprofile</groupId>
 			<artifactId>com.redhat.microprofile.ls</artifactId>
 			<version>${microprofile.ls.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.redhat.microprofile</groupId>
