@@ -25,14 +25,10 @@ public class SettingsTest {
 
 	private final String json = "{\r\n" + 
 			"    \"settings\": {\r\n" + 
-			"        \"quarkus\": {\r\n" + 
+			"        \"microprofile\": {\r\n" + 
 			"            \"tools\": {\r\n" + 
 			"                \"trace\": {\r\n" + 
 			"                    \"server\": \"verbose\"\r\n" + 
-			"                },\r\n" + 
-			"                \"starter\": {\r\n" + 
-			"                    \"api\": \"http://code.quarkus.io/api\",\r\n" + 
-			"                    \"defaults\": {}\r\n" + 
 			"                },\r\n" + 
 			"                \"symbols\": {\r\n" + 
 			"                    \"showAsTree\": true\r\n" + 

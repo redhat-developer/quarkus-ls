@@ -15,9 +15,9 @@ import com.google.gson.annotations.JsonAdapter;
 import com.redhat.microprofile.utils.JSONUtility;
 
 /**
- * Represents all settings under the 'quarkus' key
+ * Represents all settings under the 'microprofile' key
  * 
- * { 'quarkus': {...} }
+ * { 'microprofile': {...} }
  */
 public class AllMicroProfileSettings {
 
@@ -33,20 +33,20 @@ public class AllMicroProfileSettings {
 	}
 
 	@JsonAdapter(JsonElementTypeAdapter.Factory.class)
-	private Object quarkus;
+	private Object microprofile;
 
 	/**
-	 * @return the quarkus
+	 * @return the microprofile
 	 */
-	public Object getQuarkus() {
-		return quarkus;
+	public Object getMicroProfile() {
+		return microprofile;
 	}
 
 	/**
-	 * @param quarkus the quarkus to set
+	 * @param microprofile the microprofile to set
 	 */
-	public void setQuarkus(Object quarkus) {
-		this.quarkus = quarkus;
+	public void setQuarkus(Object microprofile) {
+		this.microprofile = microprofile;
 	}
 
 	public static Object getMicroProfileToolsSettings(Object initializationOptionsSettings) {
@@ -54,7 +54,7 @@ public class AllMicroProfileSettings {
 		if (rootSettings == null) {
 			return null;
 		}
-		ToolsSettings quarkusSettings = JSONUtility.toModel(rootSettings.getQuarkus(), ToolsSettings.class);
-		return quarkusSettings != null ? quarkusSettings.getTools() : null;
+		ToolsSettings microprofileSettings = JSONUtility.toModel(rootSettings.getMicroProfile(), ToolsSettings.class);
+		return microprofileSettings != null ? microprofileSettings.getTools() : null;
 	}
 }
