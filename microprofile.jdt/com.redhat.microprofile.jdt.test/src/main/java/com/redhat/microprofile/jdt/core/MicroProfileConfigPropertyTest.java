@@ -34,21 +34,9 @@ public class MicroProfileConfigPropertyTest extends BasePropertiesManagerTest {
 		MicroProfileProjectInfo infoFromClasspath = getMicroProfileProjectInfoFromMavenProject(
 				MavenProjectName.config_quickstart, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
 
-		assertProperties(infoFromClasspath, 257 /* properties from JAR */ + //
+		assertProperties(infoFromClasspath,
 				9 /* properties from Java sources with ConfigProperty */ + //
-				2 /* properties from Java sources with ConfigRoot */ + //
 				7 /* static properties from microprofile-context-propagation-api */,
-
-				// io.quarkus.deployment.ApplicationConfig
-				p("quarkus-core", "quarkus.application.name", "java.util.Optional<java.lang.String>",
-						"The name of the application.\nIf not set, defaults to the name of the project (except for tests where it is not set at all).",
-						true, "io.quarkus.runtime.ApplicationConfig", "name", null,
-						CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED, null),
-
-				p("quarkus-core", "quarkus.application.version", "java.util.Optional<java.lang.String>",
-						"The version of the application.\nIf not set, defaults to the version of the project (except for tests where it is not set at all).",
-						true, "io.quarkus.runtime.ApplicationConfig", "version", null,
-						CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED, null),
 
 				// GreetingResource
 				// @ConfigProperty(name = "greeting.message")
@@ -94,15 +82,7 @@ public class MicroProfileConfigPropertyTest extends BasePropertiesManagerTest {
 
 				// setName(@ConfigProperty(name = "greeting.method.name") Optional<String> name)
 				p(null, "greeting.method.name", "java.util.Optional", null, false,
-						"org.acme.config.GreetingMethodResource", null, "setName(QOptional<QString;>;)V", 0, null),
-
-				// @ConfigRoot / CustomExtensionConfig / property1
-				p(null, "quarkus.custom-extension.property1", "java.lang.String", null, false,
-						"org.acme.config.CustomExtensionConfig", "property1", null, CONFIG_PHASE_BUILD_TIME, null),
-
-				// @ConfigRoot / CustomExtensionConfig / property2
-				p(null, "quarkus.custom-extension.property2", "java.lang.Integer", null, false,
-						"org.acme.config.CustomExtensionConfig", "property2", null, CONFIG_PHASE_BUILD_TIME, null));
+						"org.acme.config.GreetingMethodResource", null, "setName(QOptional<QString;>;)V", 0, null));
 
 		assertPropertiesDuplicate(infoFromClasspath);
 	}
@@ -113,8 +93,7 @@ public class MicroProfileConfigPropertyTest extends BasePropertiesManagerTest {
 		MicroProfileProjectInfo infoFromJavaSources = getMicroProfileProjectInfoFromMavenProject(
 				MavenProjectName.config_quickstart, MicroProfilePropertiesScope.ONLY_SOURCES);
 
-		assertProperties(infoFromJavaSources, 9 /* properties from Java sources with ConfigProperty */ + //
-				2 /* properties from Java sources with ConfigRoot */,
+		assertProperties(infoFromJavaSources, 9 /* properties from Java sources with ConfigProperty */,
 
 				// GreetingResource
 				// @ConfigProperty(name = "greeting.message")
@@ -160,15 +139,7 @@ public class MicroProfileConfigPropertyTest extends BasePropertiesManagerTest {
 
 				// setName(@ConfigProperty(name = "greeting.method.name") Optional<String> name)
 				p(null, "greeting.method.name", "java.util.Optional", null, false,
-						"org.acme.config.GreetingMethodResource", null, "setName(QOptional<QString;>;)V", 0, null),
-
-				// @ConfigRoot / CustomExtensionConfig / property1
-				p(null, "quarkus.custom-extension.property1", "java.lang.String", null, false,
-						"org.acme.config.CustomExtensionConfig", "property1", null, CONFIG_PHASE_BUILD_TIME, null),
-
-				// @ConfigRoot / CustomExtensionConfig / property2
-				p(null, "quarkus.custom-extension.property2", "java.lang.Integer", null, false,
-						"org.acme.config.CustomExtensionConfig", "property2", null, CONFIG_PHASE_BUILD_TIME, null));
+						"org.acme.config.GreetingMethodResource", null, "setName(QOptional<QString;>;)V", 0, null));
 
 		assertPropertiesDuplicate(infoFromJavaSources);
 	}

@@ -50,7 +50,7 @@ public class ProjectLabelTest {
 		IJavaProject quarkusMaven = BasePropertiesManagerTest.loadMavenProject(MavenProjectName.using_vertx);
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
 		assertProjectLabelInfoContainsProject(projectLabelEntries, quarkusMaven);
-		assertLabels(projectLabelEntries, quarkusMaven, "quarkus", "microprofile", "maven");
+		assertLabels(projectLabelEntries, quarkusMaven, "microprofile", "maven");
 	}
 
 	@Test
@@ -59,7 +59,7 @@ public class ProjectLabelTest {
 				.loadGradleProject(GradleProjectName.quarkus_gradle_project);
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
 		assertProjectLabelInfoContainsProject(projectLabelEntries, quarkusGradle);
-		assertLabels(projectLabelEntries, quarkusGradle, "quarkus", "microprofile", "gradle");
+		assertLabels(projectLabelEntries, quarkusGradle, "microprofile", "gradle");
 	}
 
 	@Test
@@ -72,8 +72,8 @@ public class ProjectLabelTest {
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
 
 		assertProjectLabelInfoContainsProject(projectLabelEntries, quarkusMaven, quarkusGradle, maven, gradle);
-		assertLabels(projectLabelEntries, quarkusMaven, "quarkus", "microprofile", "maven");
-		assertLabels(projectLabelEntries, quarkusGradle, "quarkus", "microprofile", "gradle");
+		assertLabels(projectLabelEntries, quarkusMaven, "microprofile", "maven");
+		assertLabels(projectLabelEntries, quarkusGradle, "microprofile", "gradle");
 		assertLabels(projectLabelEntries, maven, "maven");
 		assertLabels(projectLabelEntries, gradle, "gradle");
 	}

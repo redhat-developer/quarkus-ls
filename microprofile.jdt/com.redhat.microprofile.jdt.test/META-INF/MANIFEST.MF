@@ -21,8 +21,7 @@ Require-Bundle: org.junit,
  org.eclipse.buildship.core,
  org.eclipse.ltk.core.refactoring,
  org.eclipse.text,
- com.redhat.microprofile.jdt.core,
- com.redhat.microprofile.jdt.quarkus
+ com.redhat.microprofile.jdt.core
 Import-Package: com.google.gson
 Export-Package: com.redhat.microprofile.jdt.core,
  com.redhat.microprofile.jdt.core.contextpropagation,

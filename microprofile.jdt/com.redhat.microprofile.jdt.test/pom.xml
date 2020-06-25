@@ -26,17 +26,6 @@
 	               <groupId>org.eclipse.tycho</groupId>
 	               <artifactId>target-platform-configuration</artifactId>
 	               <version>${tycho.version}</version>
-	               <configuration>
-	                   <dependency-resolution>
-	                       <extraRequirements>
-	                           <requirement>
-	                               <id>com.redhat.microprofile.jdt.quarkus</id>
-	                               <versionRange>0.0.0</versionRange>
-	                               <type>eclipse-plugin</type>
-	                           </requirement>
-	                       </extraRequirements>
-	                   </dependency-resolution>
-	               </configuration>
 	           </plugin>
 	       </plugins>
 	   </pluginManagement>
