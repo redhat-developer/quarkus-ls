@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.core.jaxrs;
+package com.redhat.microprofile.jdt.quarkus.jaxrs;
 
 import java.util.List;
 
