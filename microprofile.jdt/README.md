@@ -1,4 +1,4 @@
-# quarkus-jdt-ls-extension
+# microprofile-jdt-ls-extension
 
 Simple jdt.ls extension which communicates with VSCode-Quarkus.
 

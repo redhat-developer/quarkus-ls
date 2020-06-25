@@ -24,6 +24,7 @@ Require-Bundle: org.junit,
  com.redhat.microprofile.jdt.core
 Import-Package: com.google.gson
 Export-Package: com.redhat.microprofile.jdt.core,
+ com.redhat.microprofile.jdt.internal.core,
  com.redhat.microprofile.jdt.core.contextpropagation,
  com.redhat.microprofile.jdt.core.faulttolerance,
  com.redhat.microprofile.jdt.core.health,

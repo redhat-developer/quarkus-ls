@@ -10,8 +10,8 @@
 	</parent>
 	<artifactId>com.redhat.microprofile.jdt.test</artifactId>
 	<packaging>eclipse-test-plugin</packaging>
-	<name>quarkus.jdt.ls :: test</name>
-	<description>quarkus.jdt.ls Test Plugin</description>
+	<name>microprofile.jdt.ls :: test</name>
+	<description>microprofile.jdt.ls Test Plugin</description>
 	
 	<properties>
 	   <deploySourceFolder>${project.build.directory}/projects</deploySourceFolder>

@@ -1,0 +1,16 @@
+<site>
+   <bundle id="com.redhat.microprofile.jdt.quarkus.test" version="0.0.0">
+      <category name="sdk"/>
+   </bundle>
+   <bundle id="com.redhat.microprofile.jdt.quarkus.test.source" version="0.0.0">
+      <category name="sdk"/>
+   </bundle>
+   <bundle id="com.redhat.microprofile.jdt.quarkus.source" version="0.0.0">
+      <category name="sdk"/>
+   </bundle>
+   <bundle id="com.redhat.microprofile.jdt.quarkus" version="0.0.0">
+      <category name="core"/>
+   </bundle>   
+   <category-def name="core" label="quarkus.jdt.ls extension"/>
+   <category-def name="sdk" label="quarkus.jdt.ls extension (Developer Resources)"/>
+</site>

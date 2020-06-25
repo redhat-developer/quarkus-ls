@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.5"?>
+<plugin>
+   
+   <extension point="com.redhat.microprofile.jdt.core.propertiesProviders">
+      <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigRootProvider" />
+      <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigPropertiesProvider" />
+      <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusKubernetesProvider" />
+   </extension>
+   
+   <extension point="com.redhat.microprofile.jdt.core.projectLabelProviders">
+      <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
+   </extension>
+   
+   <!-- Quarkus JAX-RS support -->
+   
+   <extension point="com.redhat.microprofile.jdt.core.javaFeatureParticipants">
+       <!-- Quarkus Java URL codeLens for JAX-RS -->
+      <codeLens class="com.redhat.microprofile.jdt.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant" />   
+   </extension>
+   
+</plugin>
