@@ -21,14 +21,16 @@ import java.util.List;
  *
  */
 public class ProjectLabelInfoEntry {
-	public static final ProjectLabelInfoEntry EMPTY_PROJECT_INFO = new ProjectLabelInfoEntry("",
+	public static final ProjectLabelInfoEntry EMPTY_PROJECT_INFO = new ProjectLabelInfoEntry("", "",
 			Collections.emptyList());
 
 	private final String uri;
+	private final String name;
 	private final List<String> labels;
 
-	public ProjectLabelInfoEntry(String uri, List<String> labels) {
+	public ProjectLabelInfoEntry(String uri, String name, List<String> labels) {
 		this.uri = uri;
+		this.name = name;
 		this.labels = labels;
 	}
 
@@ -39,6 +41,15 @@ public class ProjectLabelInfoEntry {
 	 */
 	public String getUri() {
 		return uri;
+	}
+
+	/**
+	 * Returns the name of the project
+	 * 
+	 * @return The name of this project
+	 */
+	public String getName() {
+		return name;
 	}
 
 	/**

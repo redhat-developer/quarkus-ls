@@ -90,7 +90,8 @@ public class BasePropertiesManagerTest {
 	public enum GradleProjectName {
 
 		empty_gradle_project("empty-gradle-project"), //
-		quarkus_gradle_project("quarkus-gradle-project");
+		quarkus_gradle_project("quarkus-gradle-project"), //
+		renamed_quarkus_gradle_project("renamed-gradle");
 
 		private final String name;
 
@@ -146,7 +147,7 @@ public class BasePropertiesManagerTest {
 
 		IPath path = new Path(new File(projectFolder, "/.project").getAbsolutePath());
 		IProjectDescription description = ResourcesPlugin.getWorkspace().loadProjectDescription(path);
-		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(description.getName());
+		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
 		if (!project.exists()) {
 			project.create(description, null);
 			project.open(null);

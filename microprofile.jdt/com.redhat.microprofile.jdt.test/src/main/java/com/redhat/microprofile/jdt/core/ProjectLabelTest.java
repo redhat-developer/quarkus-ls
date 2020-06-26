@@ -78,7 +78,27 @@ public class ProjectLabelTest {
 		assertLabels(projectLabelEntries, gradle, "gradle");
 	}
 
-	private void assertProjectLabelInfoContainsProject(List<ProjectLabelInfoEntry> projectLabelEntries,
+	@Test
+	public void projectNameMaven() throws Exception {
+		IJavaProject quarkusMaven = BasePropertiesManagerTest.loadMavenProject(MavenProjectName.using_vertx);
+		IJavaProject maven = BasePropertiesManagerTest.loadMavenProject(MavenProjectName.empty_maven_project);
+		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
+		assertName(projectLabelEntries, quarkusMaven, "using-vertx");
+		assertName(projectLabelEntries, maven, "empty-maven-project");
+	}
+
+	@Test
+	public void projectNameGradle() throws Exception {
+		IJavaProject quarkusGradle = BasePropertiesManagerTest.loadGradleProject(GradleProjectName.quarkus_gradle_project);
+		IJavaProject gradle = BasePropertiesManagerTest.loadGradleProject(GradleProjectName.empty_gradle_project);
+		IJavaProject renamedGradle = BasePropertiesManagerTest.loadGradleProject(GradleProjectName.renamed_quarkus_gradle_project);
+		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
+		assertName(projectLabelEntries, quarkusGradle, "quarkus-gradle-project");
+		assertName(projectLabelEntries, gradle, "empty-gradle-project");
+		assertName(projectLabelEntries, renamedGradle, "renamed-gradle");
+	}
+
+	private static void assertProjectLabelInfoContainsProject(List<ProjectLabelInfoEntry> projectLabelEntries,
 			IJavaProject... javaProjects) throws CoreException {
 		List<String> actualProjectPaths = projectLabelEntries.stream().map(e -> e.getUri())
 				.collect(Collectors.toList());
@@ -87,7 +107,7 @@ public class ProjectLabelTest {
 		}
 	}
 
-	private void assertLabels(List<ProjectLabelInfoEntry> projectLabelEntries, IJavaProject javaProject,
+	private static void assertLabels(List<ProjectLabelInfoEntry> projectLabelEntries, IJavaProject javaProject,
 			String... expectedLabels) throws CoreException {
 		String javaProjectPath = JDTMicroProfileUtils.getProjectURI(javaProject.getProject());
 		List<String> actualLabels = getLabelsFromProjectPath(projectLabelEntries, javaProjectPath);
@@ -100,7 +120,20 @@ public class ProjectLabelTest {
 		}
 	}
 
-	private List<String> getLabelsFromProjectPath(List<ProjectLabelInfoEntry> projectLabelEntries, String projectPath) {
+	private static void assertName(List<ProjectLabelInfoEntry> projectLabelEntries, IJavaProject javaProject,
+			String expectedName) {
+		String javaProjectPath = JDTMicroProfileUtils.getProjectURI(javaProject.getProject());
+		String actualName = null;
+		for (ProjectLabelInfoEntry entry : projectLabelEntries) {
+			if (entry.getUri().equals(javaProjectPath)) {
+				actualName = entry.getName();
+				break;
+			}
+		}
+		Assert.assertEquals("Test project name in label", expectedName, actualName);
+	}
+
+	private static List<String> getLabelsFromProjectPath(List<ProjectLabelInfoEntry> projectLabelEntries, String projectPath) {
 		for (ProjectLabelInfoEntry entry : projectLabelEntries) {
 			if (entry.getUri().equals(projectPath)) {
 				return entry.getLabels();
@@ -109,7 +142,7 @@ public class ProjectLabelTest {
 		return Collections.emptyList();
 	}
 
-	private void assertContains(List<String> list, String strToFind) {
+	private static void assertContains(List<String> list, String strToFind) {
 		for (String str : list) {
 			if (str.equals(strToFind)) {
 				return;
