@@ -1,5 +1,5 @@
 # quarkus-jdt-ls-extension
 
-Simple jdt.ls extension which communicates with VSCode-Quarkus.
+jdt.ls extension to microprofile.jdt.ls, providing Quarkus specific support
 
-The main functionality is written in `SampleDelegateCommandHandler.java`.
+

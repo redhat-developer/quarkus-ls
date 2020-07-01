@@ -41,20 +41,6 @@ public class PropertiesManagerLocationTest extends BasePropertiesManagerTest {
 
 		IJavaProject javaProject = loadMavenProject(MavenProjectName.using_vertx);
 
-		// Test with JAR
-		// // quarkus.datasource.url
-		// Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
-		// 		"io.quarkus.reactive.pg.client.runtime.DataSourceConfig", "url", null, JDT_UTILS,
-		// 		new NullProgressMonitor());
-		// Assert.assertNotNull("Definition from JAR", location);
-
-		// // Test with deployment JAR
-		// // quarkus.arc.auto-inject-fields
-		// location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
-		// 		"io.quarkus.arc.deployment.ArcConfig", "autoInjectFields", null, JDT_UTILS,
-		// 		new NullProgressMonitor());
-		// Assert.assertNotNull("Definition deployment from JAR", location);
-
 		// Test with Java sources
 		// myapp.schema.create
 		Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject, "org.acme.vertx.FruitResource",
