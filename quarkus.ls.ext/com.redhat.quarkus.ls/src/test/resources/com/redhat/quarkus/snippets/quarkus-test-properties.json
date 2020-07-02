@@ -1,6 +1,6 @@
 {
-	"Add datasource properties": {
-		"prefix": "qds",
+	"Sample with array context properties": {
+		"prefix": "qdstest",
 		"body": [
 			"quarkus.datasource.db-kind=${1|mariadb,mysql,h2,postgresql,derby,mssql|}",
 			"quarkus.datasource.username=${2:developer}",
@@ -11,20 +11,10 @@
 		],
 		"description": "Configure Quarkus datasource",
 		"context": {
-			"properties": "quarkus.datasource.jdbc.url"
-		}
-	},
-	"Add Jaeger properties": {
-		"prefix": "qj",
-		"body": [
-			"quarkus.jaeger.service-name=${1:myservice}",
-			"quarkus.jaeger.sampler-type=${2:const}",
-			"quarkus.jaeger.sampler-param=${3:1}",
-			"quarkus.jaeger.endpoint=${4:http://localhost:14268/api/traces}"
-		],
-		"description": "Configure Jaeger tracer",
-		"context": {
-			"properties": "quarkus.jaeger.service-name"
+			"properties": [
+				"quarkus.datasource.db-kind",
+				"quarkus.datasource.jdbc.url"
+			]
 		}
 	}
 }

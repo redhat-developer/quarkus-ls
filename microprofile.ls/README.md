@@ -62,21 +62,23 @@ Java and properties completion snippets are managed by the MicroProfile LS (snip
 
 The `"context"` key can be provided to specify the condition in which the snippet should appear:
 
- * for `properties files`: the context/dependency can be declared in the snippet to show the snippet only if the extension belongs to the project.
+ * for `properties files`: the context/properties (can be String or String array) can be declared by the snippet to show the snippet only if the declared property belongs to the project. If an array of properties were provided, the snippet will be displayed if all properties belongs to the project.
 
 ```json
 	"Add datasource properties": {
 		"prefix": "qds",
 		"body": [
+			"quarkus.datasource.db-kind=...",
 			...
+			"quarkus.datasource.jdbc.url=..."
 		],
 		"context": {
-			"dependency": "quarkus-agroal"
+			"properties": "quarkus.datasource.jdbc.url"
 		}
 	}
 ```
-
-means that the snippet is shown only if the project has the `quarkus-agroal` dependency.
+		
+means that the snippet is shown only if the project has the `quarkus.datasource.jdbc.url` property.
     
  * for `Java files`: the context/type can be declared in the snippet to show the snippet only if the Java type belongs to the project.
 

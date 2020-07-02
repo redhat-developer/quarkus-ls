@@ -12,7 +12,6 @@ package com.redhat.microprofile.services;
 import static com.redhat.microprofile.services.MicroProfileAssert.c;
 import static com.redhat.microprofile.services.MicroProfileAssert.r;
 import static com.redhat.microprofile.services.MicroProfileAssert.testCompletionFor;
-import static com.redhat.microprofile.services.MicroProfileAssert.assertCompletionWithDependencies;
 
 import java.util.ArrayList;
 import java.util.List;
