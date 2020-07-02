@@ -12,16 +12,20 @@
 package com.redhat.microprofile.snippets;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import com.redhat.microprofile.commons.MicroProfileProjectInfo;
+import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.ls.commons.snippets.ISnippetContext;
+import com.redhat.microprofile.utils.MicroProfilePropertiesUtils;
 
 /**
- * A snippet context properties which matches dependency. You can write a vscode
+ * A snippet context properties which matches properties. You can write a vscode
  * snippet that declares a context like this:
  * 
  * <code>
@@ -37,31 +41,37 @@ import com.redhat.microprofile.ls.commons.snippets.ISnippetContext;
 		],
 		"description": "Configure Quarkus datasource",
 		"context": {
-			"dependency": "quarkus-agroal"
+			"properties": ["quarkus.datasource.url", "quarkus.hibernate-orm.database.generation"]
 		}
 	}
 
  * </code>
  * 
- * This snippet will be available only if "quarkus-agroal" is present as
- * dependency in the project.
+ * This snippet will be available only if
+ * "quarkus.hibernate-orm.database.generation" is present for the project.
  * 
  * @author Angelo ZERR
  *
  */
-public class SnippetContextForProperties implements ISnippetContext<Set<String>> {
+public class SnippetContextForProperties implements ISnippetContext<MicroProfileProjectInfo> {
 
 	public static final TypeAdapter<SnippetContextForProperties> TYPE_ADAPTER = new SnippetContextForPropertiesAdapter();
 
-	private String dependency;
+	private List<String> properties;
 
-	public SnippetContextForProperties(String dependency) {
-		this.dependency = dependency;
+	public SnippetContextForProperties(List<String> properties) {
+		this.properties = properties;
 	}
 
 	@Override
-	public boolean isMatch(Set<String> dependencies) {
-		return dependencies != null && dependencies.contains(dependency);
+	public boolean isMatch(MicroProfileProjectInfo projectInfo) {
+		for (String propertyName : this.properties) {
+			ItemMetadata metadata = MicroProfilePropertiesUtils.getProperty(propertyName, projectInfo);
+			if (metadata == null) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private static class SnippetContextForPropertiesAdapter extends TypeAdapter<SnippetContextForProperties> {
@@ -70,20 +80,28 @@ public class SnippetContextForProperties implements ISnippetContext<Set<String>>
 				in.nextNull();
 				return null;
 			}
-			String dependency = null;
+			List<String> properties = new ArrayList<>();
 			in.beginObject();
 			while (in.hasNext()) {
 				String name = in.nextName();
 				switch (name) {
-				case "dependency":
-					dependency = in.nextString();
+				case "properties":
+					if (in.peek() == JsonToken.BEGIN_ARRAY) {
+						in.beginArray();
+						while (in.peek() != JsonToken.END_ARRAY) {
+							properties.add(in.nextString());
+						}
+						in.endArray();
+					} else {
+						properties.add(in.nextString());
+					}
 					break;
 				default:
 					in.skipValue();
 				}
 			}
 			in.endObject();
-			return new SnippetContextForProperties(dependency);
+			return new SnippetContextForProperties(properties);
 		}
 
 		public void write(JsonWriter writer, SnippetContextForProperties value) throws IOException {

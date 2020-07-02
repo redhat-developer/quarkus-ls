@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -51,6 +50,7 @@ import org.junit.Assert;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
+import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import com.redhat.microprofile.ls.MockMicroProfilePropertyDefinitionProvider;
 import com.redhat.microprofile.ls.api.MicroProfilePropertyDefinitionProvider;
 import com.redhat.microprofile.ls.commons.BadLocationException;
@@ -254,7 +254,8 @@ public class MicroProfileAssert {
 
 	// ------------------- Snippet completion assert
 
-	public static void assertCompletion(String value, TextDocumentSnippetRegistry registry, CompletionItem... expectedItems) {
+	public static void assertCompletion(String value, TextDocumentSnippetRegistry registry,
+			CompletionItem... expectedItems) {
 		assertCompletion(value, null, registry, expectedItems);
 	}
 
@@ -269,16 +270,24 @@ public class MicroProfileAssert {
 		CompletionList actual = new CompletionList(items);
 		assertCompletions(actual, expectedCount, expectedItems);
 	}
-	
-	public static void assertCompletionWithDependencies(String value, Integer expectedCount, Collection<String> dependencies, CompletionItem... expectedItems) {
+
+	public static void assertCompletionWithProperties(String value, Integer expectedCount,
+			Collection<String> propertyNames, CompletionItem... expectedItems) {
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
+		// Create project info from the property names
+		MicroProfileProjectInfo projectInfo = new MicroProfileProjectInfo();
+		projectInfo.setProperties(propertyNames.stream().map(propertyName -> {
+			ItemMetadata metadata = new ItemMetadata();
+			metadata.setName(propertyName);
+			return metadata;
+		}).collect(Collectors.toList()));
 		TextDocumentSnippetRegistry registry = new TextDocumentSnippetRegistry(LanguageId.properties.name());
 		TextDocument document = new TextDocument(value, "application.properties");
 		List<CompletionItem> items = registry.getCompletionItems(document, offset, true, context -> {
 			if (context instanceof SnippetContextForProperties) {
 				SnippetContextForProperties contextProperties = (SnippetContextForProperties) context;
-				return contextProperties.isMatch(new HashSet<>(dependencies));
+				return contextProperties.isMatch(projectInfo);
 			}
 			return false;
 		});

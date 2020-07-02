@@ -232,14 +232,15 @@ class MicroProfileCompletions {
 
 	/**
 	 * Collect Quarkus profiles
+	 * 
 	 * @param offset            the offset where completion was invoked
 	 * @param key               the property key
 	 * @param model             the properties model
 	 * @param markdownSupported boolean determining if markdown is supported
 	 * @param list              the completion list
 	 */
-	private static void collectProfileSuggestions(int offset, PropertyKey key,
-			PropertiesModel model, boolean markdownSupported, CompletionList list) {
+	private static void collectProfileSuggestions(int offset, PropertyKey key, PropertiesModel model,
+			boolean markdownSupported, CompletionList list) {
 
 		Range range = null;
 		Position currPosition = null;
@@ -255,19 +256,19 @@ class MicroProfileCompletions {
 			LOGGER.log(Level.SEVERE, "In MicroProfileCompletion#collectPropertyKeySuggestions, position error", e);
 			return;
 		}
-		
 
 		// Collect all existing profiles declared in application.properties
-		Set<String> profiles = model.getChildren().stream().filter(n -> n.getNodeType() == NodeType.PROPERTY)
-				.map(n -> {
-					Property property = (Property) n;
-					return property.getProfile();
-				}).filter(Objects::nonNull).filter(not(String::isEmpty)).distinct().collect(Collectors.toSet());
+		Set<String> profiles = model.getChildren().stream().filter(n -> n.getNodeType() == NodeType.PROPERTY).map(n -> {
+			Property property = (Property) n;
+			return property.getProfile();
+		}).filter(Objects::nonNull).filter(not(String::isEmpty)).distinct().collect(Collectors.toSet());
 		// merge existings profiles with default profiles.
 		profiles.addAll(QuarkusModel.getDefaultProfileNames());
 		// Completion on profiles
 		for (String p : profiles) {
-			if (p.equals(key.getProfile())) continue;
+			if (p.equals(key.getProfile())) {
+				continue;
+			}
 
 			CompletionItem item = new CompletionItem(p);
 			item.setKind(CompletionItemKind.Struct);
@@ -415,14 +416,11 @@ class MicroProfileCompletions {
 	private static void collectSnippetSuggestions(int completionOffset, Node node, PropertiesModel document,
 			MicroProfileProjectInfo projectInfo, MicroProfileCompletionSettings completionSettings,
 			TextDocumentSnippetRegistry snippetRegistry, CompletionList list) {
-		Set<String> extensions = projectInfo.getProperties().stream().map(ItemMetadata::getExtensionName).distinct()
-				.collect(Collectors.toSet());
-
 		boolean markdownSupported = completionSettings.isDocumentationFormatSupported(MarkupKind.MARKDOWN);
 		snippetRegistry.getCompletionItems(document.getDocument(), completionOffset, markdownSupported, context -> {
 			if (context instanceof SnippetContextForProperties) {
 				SnippetContextForProperties contextProperties = (SnippetContextForProperties) context;
-				return contextProperties.isMatch(extensions);
+				return contextProperties.isMatch(projectInfo);
 			}
 			return false;
 		}).forEach(item -> {
