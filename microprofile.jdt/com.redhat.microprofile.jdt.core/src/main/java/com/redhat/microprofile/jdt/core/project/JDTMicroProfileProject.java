@@ -27,7 +27,10 @@ import com.redhat.microprofile.jdt.internal.core.project.YamlConfigSource;
 public class JDTMicroProfileProject {
 
 	public static final String MICROPROFILE_CONFIG_PROPERTIES_FILE = "META-INF/microprofile-config.properties";
+
+	@Deprecated
 	public static final String APPLICATION_PROPERTIES_FILE = "application.properties";
+	@Deprecated
 	public static final String APPLICATION_YAML_FILE = "application.yaml";
 
 	private final List<IConfigSource> configSources;
