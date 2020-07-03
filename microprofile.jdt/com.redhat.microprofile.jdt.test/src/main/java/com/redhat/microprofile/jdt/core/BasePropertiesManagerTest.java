@@ -63,6 +63,8 @@ public class BasePropertiesManagerTest {
 		config_quickstart("config-quickstart"), //
 		config_quickstart_test("config-quickstart-test"), //
 		empty_maven_project("empty-maven-project"), //
+		other_empty_maven_project("empty-maven-project"), //
+		folder_name_different_maven("folder-name-different-maven"), //
 		hibernate_orm_resteasy("hibernate-orm-resteasy"), //
 		hibernate_orm_resteasy_yaml("hibernate-orm-resteasy-yaml"), //
 		kubernetes("kubernetes"), //
@@ -140,6 +142,10 @@ public class BasePropertiesManagerTest {
 	public static IJavaProject loadGradleProject(GradleProjectName gradleProject) throws CoreException, Exception {
 		return loadJavaProject(gradleProject.getName(), "gradle");
 	}
+
+	public static IJavaProject loadMavenProjectFromSubFolder(MavenProjectName mavenProject, String subFolder) throws Exception {
+		return loadJavaProject(mavenProject.getName(), java.nio.file.Paths.get("maven", subFolder).toString());
+	}
 	
 	private static IJavaProject loadJavaProject(String projectName, String parentDirName) throws CoreException, Exception {
 		// Move project to working directory
@@ -147,7 +153,8 @@ public class BasePropertiesManagerTest {
 
 		IPath path = new Path(new File(projectFolder, "/.project").getAbsolutePath());
 		IProjectDescription description = ResourcesPlugin.getWorkspace().loadProjectDescription(path);
-		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(description.getName());
+		
 		if (!project.exists()) {
 			project.create(description, null);
 			project.open(null);
@@ -180,13 +187,13 @@ public class BasePropertiesManagerTest {
 		// property:
 		// deployment-artifact=io.quarkus\:quarkus-hibernate-orm-deployment\:0.21.1
 
-		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
+		IJavaProject javaProject = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(description.getName());
 		return javaProject;
 	}
 
 	private static File copyProjectToWorkingDirectory(String projectName,  String parentDirName) throws IOException {
 		File from = new File("projects/" + parentDirName+ "/" + projectName);
-		File to = new File(JavaUtils.getWorkingProjectDirectory(), parentDirName + "/" + projectName);
+		File to = new File(JavaUtils.getWorkingProjectDirectory(), java.nio.file.Paths.get(parentDirName, projectName).toString());
 
 		if (to.exists()) {
 			FileUtils.forceDelete(to);
