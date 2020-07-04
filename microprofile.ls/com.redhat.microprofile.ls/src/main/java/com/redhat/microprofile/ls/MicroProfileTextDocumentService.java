@@ -65,6 +65,8 @@ public class MicroProfileTextDocumentService implements TextDocumentService {
 	private final JavaTextDocumentService javaTextDocumentService;
 	private SharedSettings sharedSettings;
 
+	private static final CompletableFuture COMPLETED = CompletableFuture.completedFuture(null);
+
 	public MicroProfileTextDocumentService(MicroProfileLanguageServer quarkusLanguageServer) {
 		textDocumentServicesMap = new HashMap<>();
 		this.sharedSettings = new SharedSettings();
@@ -96,108 +98,132 @@ public class MicroProfileTextDocumentService implements TextDocumentService {
 
 	@Override
 	public void didOpen(DidOpenTextDocumentParams params) {
-		TextDocumentService service = getTextDocumentService(params.getTextDocument());
-		if (service != null) {
-			service.didOpen(params);
-		}
+		CompletableFuture.runAsync(() -> {
+			TextDocumentService service = getTextDocumentService(params.getTextDocument());
+			if (service != null) {
+				service.didOpen(params);
+			}
+		});
 	}
 
 	@Override
 	public void didChange(DidChangeTextDocumentParams params) {
-		TextDocumentService service = getTextDocumentService(params.getTextDocument());
-		if (service != null) {
-			service.didChange(params);
-		}
+		CompletableFuture.runAsync(() -> {
+			TextDocumentService service = getTextDocumentService(params.getTextDocument());
+			if (service != null) {
+				service.didChange(params);
+			}
+		});
 	}
 
 	@Override
 	public void didClose(DidCloseTextDocumentParams params) {
-		TextDocumentService service = getTextDocumentService(params.getTextDocument());
-		if (service != null) {
-			service.didClose(params);
-		}
+		CompletableFuture.runAsync(() -> {
+			TextDocumentService service = getTextDocumentService(params.getTextDocument());
+			if (service != null) {
+				service.didClose(params);
+			}
+		});
 	}
 
 	@Override
 	public void didSave(DidSaveTextDocumentParams params) {
-		TextDocumentService service = getTextDocumentService(params.getTextDocument());
-		if (service != null) {
-			service.didSave(params);
-		}
+		CompletableFuture.runAsync(() -> {
+			TextDocumentService service = getTextDocumentService(params.getTextDocument());
+			if (service != null) {
+				service.didSave(params);
+			}
+		});
 	}
 
 	@Override
 	public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams position) {
-		TextDocumentService service = getTextDocumentService(position.getTextDocument());
-		if (service != null) {
-			return service.completion(position);
-		}
-		return CompletableFuture.completedFuture(null);
+		return COMPLETED.thenComposeAsync(it -> {
+			TextDocumentService service = getTextDocumentService(position.getTextDocument());
+			if (service != null) {
+				return service.completion(position);
+			}
+			return CompletableFuture.completedFuture(null);
+		});
 	}
 
 	@Override
 	public CompletableFuture<Hover> hover(HoverParams params) {
-		TextDocumentService service = getTextDocumentService(params.getTextDocument());
-		if (service != null) {
-			return service.hover(params);
-		}
-		return CompletableFuture.completedFuture(null);
+		return COMPLETED.thenComposeAsync(it -> {
+			TextDocumentService service = getTextDocumentService(params.getTextDocument());
+			if (service != null) {
+				return service.hover(params);
+			}
+			return CompletableFuture.completedFuture(null);
+		});
 	}
 
 	@Override
 	public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(
 			DocumentSymbolParams params) {
-		TextDocumentService service = getTextDocumentService(params.getTextDocument());
-		if (service != null) {
-			return service.documentSymbol(params);
-		}
-		return CompletableFuture.completedFuture(null);
+		return COMPLETED.thenComposeAsync(it -> {
+			TextDocumentService service = getTextDocumentService(params.getTextDocument());
+			if (service != null) {
+				return service.documentSymbol(params);
+			}
+			return CompletableFuture.completedFuture(null);
+		});
 	}
 
 	@Override
 	public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(
 			DefinitionParams params) {
-		TextDocumentService service = getTextDocumentService(params.getTextDocument());
-		if (service != null) {
-			return service.definition(params);
-		}
-		return CompletableFuture.completedFuture(null);
+		return COMPLETED.thenComposeAsync(it -> {
+			TextDocumentService service = getTextDocumentService(params.getTextDocument());
+			if (service != null) {
+				return service.definition(params);
+			}
+			return CompletableFuture.completedFuture(null);
+		});
 	}
 
 	@Override
 	public CompletableFuture<List<? extends TextEdit>> formatting(DocumentFormattingParams params) {
-		TextDocumentService service = getTextDocumentService(params.getTextDocument());
-		if (service != null) {
-			return service.formatting(params);
-		}
-		return CompletableFuture.completedFuture(null);
+		return COMPLETED.thenComposeAsync(it -> {
+			TextDocumentService service = getTextDocumentService(params.getTextDocument());
+			if (service != null) {
+				return service.formatting(params);
+			}
+			return CompletableFuture.completedFuture(null);
+		});
 	}
 
 	@Override
 	public CompletableFuture<List<? extends TextEdit>> rangeFormatting(DocumentRangeFormattingParams params) {
-		TextDocumentService service = getTextDocumentService(params.getTextDocument());
-		if (service != null) {
-			return service.rangeFormatting(params);
-		}
-		return CompletableFuture.completedFuture(null);
+		return COMPLETED.thenComposeAsync(it -> {
+			TextDocumentService service = getTextDocumentService(params.getTextDocument());
+			if (service != null) {
+				return service.rangeFormatting(params);
+			}
+			return CompletableFuture.completedFuture(null);
+		});
 	}
 
 	@Override
 	public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActionParams params) {
-		TextDocumentService service = getTextDocumentService(params.getTextDocument());
-		if (service != null) {
-			return service.codeAction(params);
-		}
-		return CompletableFuture.completedFuture(null);
+		return COMPLETED.thenComposeAsync(it -> {
+			TextDocumentService service = getTextDocumentService(params.getTextDocument());
+			if (service != null) {
+				return service.codeAction(params);
+			}
+			return CompletableFuture.completedFuture(null);
+		});
 	}
 
 	@Override
 	public CompletableFuture<List<? extends CodeLens>> codeLens(CodeLensParams params) {
-		TextDocumentService service = getTextDocumentService(params.getTextDocument());
-		if (service != null) {
-			return service.codeLens(params);
-		}
-		return CompletableFuture.completedFuture(null);
+		return COMPLETED.thenComposeAsync(it -> {
+			TextDocumentService service = getTextDocumentService(params.getTextDocument());
+			if (service != null) {
+				return service.codeLens(params);
+			}
+			return CompletableFuture.completedFuture(null);
+		});
 	}
 
 	public void propertiesChanged(MicroProfilePropertiesChangeEvent event) {
