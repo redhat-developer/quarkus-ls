@@ -82,31 +82,25 @@ public class ProjectLabelTest {
 	public void projectNameMaven() throws Exception {
 		IJavaProject quarkusMaven = BasePropertiesManagerTest.loadMavenProject(MavenProjectName.using_vertx);
 		IJavaProject maven = BasePropertiesManagerTest.loadMavenProject(MavenProjectName.empty_maven_project);
-		IJavaProject folderNameDifferent = BasePropertiesManagerTest.loadMavenProject(MavenProjectName.folder_name_different_maven);
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
 		assertName(projectLabelEntries, quarkusMaven, "using-vertx");
 		assertName(projectLabelEntries, maven, "empty-maven-project");
-		assertName(projectLabelEntries, folderNameDifferent, "mostly.empty");
 	}
-
+	
 	@Test
-	public void projectNameSameFolderName() throws Exception {
-		IJavaProject empty1 = BasePropertiesManagerTest.loadMavenProject(MavenProjectName.empty_maven_project);
-		IJavaProject empty2 = BasePropertiesManagerTest.loadMavenProjectFromSubFolder(MavenProjectName.other_empty_maven_project, "folder");
+	public void projectNameMavenDifferentName() throws Exception {
+		IJavaProject folderNameDifferent = BasePropertiesManagerTest.loadMavenProject(MavenProjectName.folder_name_different_maven);
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
-		assertName(projectLabelEntries, empty1, "empty-maven-project");
-		assertName(projectLabelEntries, empty2, "other-empty-maven-project");
+		assertName(projectLabelEntries, folderNameDifferent, "mostly.empty");
 	}
 
 	@Test
 	public void projectNameGradle() throws Exception {
 		IJavaProject quarkusGradle = BasePropertiesManagerTest.loadGradleProject(GradleProjectName.quarkus_gradle_project);
 		IJavaProject gradle = BasePropertiesManagerTest.loadGradleProject(GradleProjectName.empty_gradle_project);
-		IJavaProject renamedGradle = BasePropertiesManagerTest.loadGradleProject(GradleProjectName.renamed_quarkus_gradle_project);
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
 		assertName(projectLabelEntries, quarkusGradle, "quarkus-gradle-project");
 		assertName(projectLabelEntries, gradle, "empty-gradle-project");
-		assertName(projectLabelEntries, renamedGradle, "my-gradle-project");
 	}
 
 	private static void assertProjectLabelInfoContainsProject(List<ProjectLabelInfoEntry> projectLabelEntries,

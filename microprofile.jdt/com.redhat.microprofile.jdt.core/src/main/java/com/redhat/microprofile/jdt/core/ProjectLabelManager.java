@@ -14,10 +14,13 @@ package com.redhat.microprofile.jdt.core;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -35,7 +38,10 @@ import com.redhat.microprofile.jdt.internal.core.ProjectLabelRegistry;
  *
  */
 public class ProjectLabelManager {
+
 	private static final ProjectLabelManager INSTANCE = new ProjectLabelManager();
+	
+	private static final Logger LOGGER = Logger.getLogger(ProjectLabelManager.class.getName());
 
 	public static ProjectLabelManager getInstance() {
 		return INSTANCE;
@@ -73,7 +79,11 @@ public class ProjectLabelManager {
 	private ProjectLabelInfoEntry getProjectLabelInfo(IProject project, List<String> types) {
 		String uri = JDTMicroProfileUtils.getProjectURI(project);
 		if (uri != null) {
-			return new ProjectLabelInfoEntry(uri, project.getName(), getProjectLabels(project, types));
+			try {
+				return new ProjectLabelInfoEntry(uri, project.getDescription().getName(), getProjectLabels(project, types));
+			} catch (CoreException e) {
+				LOGGER.log(Level.SEVERE, "Error while retrieving project name.", e);
+			}
 		}
 		return null;
 	}
