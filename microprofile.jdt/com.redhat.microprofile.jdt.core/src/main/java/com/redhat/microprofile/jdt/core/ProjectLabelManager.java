@@ -73,7 +73,7 @@ public class ProjectLabelManager {
 	private ProjectLabelInfoEntry getProjectLabelInfo(IProject project, List<String> types) {
 		String uri = JDTMicroProfileUtils.getProjectURI(project);
 		if (uri != null) {
-			return new ProjectLabelInfoEntry(uri, getProjectLabels(project, types));
+			return new ProjectLabelInfoEntry(uri, project.getName(), getProjectLabels(project, types));
 		}
 		return null;
 	}
