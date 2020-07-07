@@ -1,5 +1,21 @@
 # MicroProfile Language Server Changelog
 
+## 0.0.8 (July 9, 2020)
+
+### Enhancements
+
+* Let quarkus-ls extensions advertise their formatting support. See [#332](https://github.com/redhat-developer/quarkus-ls/pull/332).
+* Send project name to the client along with labels. See [#330](https://github.com/redhat-developer/quarkus-ls/pull/330).
+
+### Bug Fixes
+
+ * Quarkus datasource snippet is invalid. See [#316](https://github.com/redhat-developer/quarkus-ls/issues/316).
+ * Missing support for container-image properties. See [#315](https://github.com/redhat-developer/quarkus-ls/issues/315).
+ * Filter properties snippet with properties instead of dependency. See [#312](https://github.com/redhat-developer/quarkus-ls/issues/312).
+
+### Build 
+ * Remove test fragment to prevent Eclipse build errors. See [#319](https://github.com/redhat-developer/quarkus-ls/pull/319).
+
 ## 0.0.7 (April 30, 2020)
 
 ### Enhancements
