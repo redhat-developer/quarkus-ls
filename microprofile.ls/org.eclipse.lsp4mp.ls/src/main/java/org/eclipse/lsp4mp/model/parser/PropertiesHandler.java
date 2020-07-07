@@ -93,11 +93,41 @@ public interface PropertiesHandler {
 	void startPropertyValue(ParseContext context);
 
 	/**
-	 * Start of a property name
+	 * End of a property value
 	 *
 	 * @param context the {@link ParseContext}
 	 */
 	void endPropertyValue(ParseContext context);
+
+	/**
+	 * Start of a text literal section in the property value
+	 * 
+	 * @param context the {@link ParseContext}
+	 */
+	void startPropertyValueLiteral(ParseContext context);
+
+	/**
+	 * End of a text literal section in the property value
+	 * 
+	 * @param context the {@link ParseContext}
+	 */
+	void endPropertyValueLiteral(ParseContext context);
+
+	/**
+	 * Start of a property value expression, which is a portion of a property value
+	 * that refers to the value of another property
+	 * 
+	 * @param context the {@link ParseContext}
+	 */
+	void startPropertyValueExpression(ParseContext context);
+
+	/**
+	 * End of a property value expression, which is a portion of a property value
+	 * that refers to the value of another property
+	 * 
+	 * @param context the {@link ParseContext}
+	 */
+	void endPropertyValueExpression(ParseContext context);
 
 	/**
 	 * Start of a comment line

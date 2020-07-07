@@ -9,6 +9,9 @@
 *******************************************************************************/
 package org.eclipse.lsp4mp.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * The property value node
  * 
