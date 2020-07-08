@@ -6,6 +6,7 @@
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigRootProvider" />
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigPropertiesProvider" />
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusKubernetesProvider" />
+      <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusContainerImagesProvider" />      
    </extension>
    
    <extension point="com.redhat.microprofile.jdt.core.projectLabelProviders">
