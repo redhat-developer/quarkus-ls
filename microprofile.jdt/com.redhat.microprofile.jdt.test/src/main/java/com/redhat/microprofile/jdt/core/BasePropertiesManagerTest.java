@@ -75,6 +75,7 @@ public class BasePropertiesManagerTest {
 		microprofile_metrics("microprofile-metrics"), //
 		microprofile_opentracing("microprofile-opentracing"), //
 		microprofile_openapi("microprofile-openapi"), //
+		quarkus_container_images("quarkus-container-images"), //
 		rest_client_quickstart("rest-client-quickstart"), //
 		using_vertx("using-vertx");
 
