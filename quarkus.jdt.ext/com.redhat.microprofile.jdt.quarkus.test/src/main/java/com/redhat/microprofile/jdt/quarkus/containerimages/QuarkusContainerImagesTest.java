@@ -7,7 +7,8 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.core.containerimages;
+package com.redhat.microprofile.jdt.quarkus.containerimages;
+
 
 import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertProperties;
 import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertPropertiesDuplicate;
@@ -18,6 +19,7 @@ import org.junit.Test;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
+
 
 /**
  * Test the availability of the Quarkus Container Images properties
