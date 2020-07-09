@@ -254,7 +254,6 @@
 	  </profiles>
   <modules>
     <module>com.redhat.microprofile.jdt.core</module>
-    <module>com.redhat.microprofile.jdt.quarkus</module>
     <module>com.redhat.microprofile.jdt.test</module>
     <module>com.redhat.microprofile.jdt.site</module>
   </modules>

@@ -65,14 +65,8 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
 				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDT_UTILS,
 				DocumentFormat.Markdown, new NullProgressMonitor());
 		Assert.assertEquals(ClasspathKind.SRC, infoFromSrc.getClasspathKind());
-		assertProperties(infoFromSrc, 181 /* properties from JAR */ + //
-				3 /* properties from Java sources */ + //
+		assertProperties(infoFromSrc, 3 /* properties from Java sources */ + //
 				7 /* static properties from microprofile-context-propagation-api */,
-
-				// quarkus-resteasy JAR
-				p("quarkus-resteasy-common", "quarkus.resteasy.gzip.enabled", "boolean", "If gzip is enabled", true,
-						"io.quarkus.resteasy.common.deployment.ResteasyCommonProcessor.ResteasyCommonConfigGzip",
-						"enabled", null, 1, "false"),
 
 				// GreetingResource
 				// @ConfigProperty(name = "greeting.message")
@@ -102,27 +96,9 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
 				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDT_UTILS,
 				DocumentFormat.Markdown, new NullProgressMonitor());
 		Assert.assertEquals(ClasspathKind.TEST, infoFromTest.getClasspathKind());
-		assertProperties(infoFromTest, 181 /* properties from JAR */ + //
-		 3 /* properties from JAR (test) */ +  // 
-		 3 /* properties from (src) Java sources */ + //
+		assertProperties(infoFromTest, 3 /* properties from (src) Java sources */ + //
 		 3 /* properties from (test) Java sources */ + //
 		 7 /* static properties from microprofile-context-propagation-api */,
-
-				// quarkus-resteasy JAR
-				p("quarkus-resteasy-common", "quarkus.resteasy.gzip.enabled", "boolean", "If gzip is enabled", true,
-						"io.quarkus.resteasy.common.deployment.ResteasyCommonProcessor.ResteasyCommonConfigGzip",
-						"enabled", null, 1, "false"),
-
-				// quarkus-undertow has maven test scope, add it
-				// <dependency>
-				// <groupId>io.quarkus</groupId>
-				// <artifactId>quarkus-undertow</artifactId>
-				// <scope>test</scope>
-				// </dependency>
-
-				p("quarkus-undertow", "quarkus.servlet.context-path", "java.util.Optional<java.lang.String>",
-						"The context path to serve all Servlet context from. This will also affect any resources\nthat run as a Servlet, e.g. JAX-RS.\n\nNote that this is relative to the HTTP root path set in quarkus.http.root-path, so if the context path\nis /bar and the http root is /foo then the actual Servlet path will be /foo/bar.",
-						true, "io.quarkus.undertow.deployment.ServletConfig", "contextPath", null, 1, null),
 
 				// GreetingResource
 				// @ConfigProperty(name = "greeting.message")
