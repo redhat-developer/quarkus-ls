@@ -4,7 +4,7 @@ Bundle-Name: %pluginName
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Bundle-SymbolicName: com.redhat.microprofile.jdt.core;singleton:=true
-Bundle-Version: 0.8.0.qualifier
+Bundle-Version: 0.0.9.qualifier
 Bundle-Activator: com.redhat.microprofile.jdt.core.MicroProfileCorePlugin
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jdt.core,
