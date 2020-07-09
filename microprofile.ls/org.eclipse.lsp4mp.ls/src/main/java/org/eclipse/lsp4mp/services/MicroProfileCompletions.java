@@ -11,6 +11,7 @@
 *******************************************************************************/
 package org.eclipse.lsp4mp.services;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +42,7 @@ import org.eclipse.lsp4mp.ls.commons.snippets.TextDocumentSnippetRegistry;
 import org.eclipse.lsp4mp.model.Node;
 import org.eclipse.lsp4mp.model.PropertiesModel;
 import org.eclipse.lsp4mp.model.Property;
+import org.eclipse.lsp4mp.model.PropertyGraph;
 import org.eclipse.lsp4mp.model.PropertyKey;
 import org.eclipse.lsp4mp.model.Node.NodeType;
 import org.eclipse.lsp4mp.model.values.ValuesRulesManager;
@@ -100,6 +102,8 @@ class MicroProfileCompletions {
 			// completion on property value
 			collectPropertyValueSuggestions(node, document, projectInfo, valuesRulesManager, completionSettings, list);
 			break;
+		case PROPERTY_VALUE_EXPRESSION:
+			collectPropertyValueExpressionSuggestions(node, document, projectInfo, valuesRulesManager, completionSettings, list);
 		default:
 			// completion on property key
 			collectPropertyKeySuggestions(offset, node, document, projectInfo, valuesRulesManager, completionSettings,
@@ -368,6 +372,56 @@ class MicroProfileCompletions {
 				}
 			}
 		}
+	}
+
+	private static void collectPropertyValueExpressionSuggestions(Node node,
+			PropertiesModel model, MicroProfileProjectInfo projectInfo, ValuesRulesManager valuesRulesManager,
+			MicroProfileCompletionSettings completionSettings, CompletionList list) {
+		
+			PropertyGraph graph = new PropertyGraph();
+			// get all properties from application.properties file
+			for (Node child: model.getChildren()) {
+				if (child.getNodeType() == NodeType.PROPERTY) {
+					Property property = (Property) child;
+					
+					// check if property already exists in the graph.
+					// if it does, this means that there are duplicate properties in 
+					// this application.properties file.
+
+					graph.addNode(property.getPropertyKey());
+
+					if (containsPropertyExpression(property)) {
+						// iterate over all property expressions and populate the adjacency list
+	
+						// String to = property expression name
+						// graph.addEdge(property.getPropertyKey(), to); 
+					}
+				}
+			}
+
+			// graph is built
+
+			// traverse up to get the property name for which property expression completion was done for
+			String completionPropertyName =  ((Property) node.getParent().getParent()).getPropertyKey(); 
+			
+			// gather the completion items that do not cause a cycle
+			List<String> completionItems = new ArrayList<>();
+			for (Node child: model.getChildren()) {
+				if (child.getNodeType() == NodeType.PROPERTY) {
+					String propertyKey = ((Property) child).getPropertyKey();
+					if (!graph.isConnected(propertyKey, completionPropertyName)) {
+						completionItems.add(propertyKey);
+					}
+				}
+			}
+
+		
+			// accummulate properties from projectInfo.getProperties()
+	}
+
+	private static boolean containsPropertyExpression(Property property) {
+		// TODO
+		return false;
 	}
 
 	/**
