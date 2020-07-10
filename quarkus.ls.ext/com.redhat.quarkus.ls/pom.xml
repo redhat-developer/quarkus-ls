@@ -46,7 +46,12 @@
 		<jboss.snapshots.repo.url>https://repository.jboss.org/nexus/content/repositories/snapshots/</jboss.snapshots.repo.url>
 		<jbossNexus>https://repository.jboss.org</jbossNexus>
 	</properties>
-
+	<repositories>
+		<repository>
+			<id>lsp4mp.maven</id>
+			<url>https://repo.eclipse.org/content/repositories/lsp4mp/</url>
+		</repository>
+	</repositories>
 	<build>
 		<resources>
 			<resource>
