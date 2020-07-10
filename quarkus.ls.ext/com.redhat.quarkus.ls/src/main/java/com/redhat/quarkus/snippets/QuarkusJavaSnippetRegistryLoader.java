@@ -13,10 +13,10 @@ package com.redhat.quarkus.snippets;
 
 import java.io.IOException;
 
-import com.redhat.microprofile.ls.commons.snippets.ISnippetRegistryLoader;
-import com.redhat.microprofile.ls.commons.snippets.SnippetRegistry;
-import com.redhat.microprofile.snippets.LanguageId;
-import com.redhat.microprofile.snippets.SnippetContextForJava;
+import org.eclipse.lsp4mp.ls.commons.snippets.ISnippetRegistryLoader;
+import org.eclipse.lsp4mp.ls.commons.snippets.SnippetRegistry;
+import org.eclipse.lsp4mp.snippets.LanguageId;
+import org.eclipse.lsp4mp.snippets.SnippetContextForJava;
 
 /**
  * Snippet loader for Quarkus in java files.

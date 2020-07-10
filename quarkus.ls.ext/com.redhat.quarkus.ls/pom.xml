@@ -148,14 +148,14 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.redhat.microprofile</groupId>
-			<artifactId>com.redhat.microprofile.ls</artifactId>
+			<groupId>org.eclipse.lsp4mp</groupId>
+			<artifactId>org.eclipse.lsp4mp.ls</artifactId>
 			<version>${microprofile.ls.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.redhat.microprofile</groupId>
-			<artifactId>com.redhat.microprofile.ls</artifactId>
+			<groupId>org.eclipse.lsp4mp</groupId>
+			<artifactId>org.eclipse.lsp4mp.ls</artifactId>
 			<classifier>tests</classifier>
 			<version>${microprofile.ls.version}</version>
 			<scope>test</scope>

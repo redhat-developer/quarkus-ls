@@ -18,9 +18,8 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-
-import com.redhat.microprofile.commons.metadata.ConverterKind;
-import com.redhat.microprofile.commons.metadata.ItemMetadata;
+import org.eclipse.lsp4mp.commons.metadata.ConverterKind;
+import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 
 /**
  * JDT Quarkus utilities.

@@ -12,10 +12,9 @@ package com.redhat.microprofile.jdt.internal.quarkus.providers;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchPattern;
-
-import com.redhat.microprofile.jdt.core.AbstractPropertiesProvider;
-import com.redhat.microprofile.jdt.core.BuildingScopeContext;
-import com.redhat.microprofile.jdt.core.SearchContext;
+import org.eclipse.lsp4mp.jdt.core.AbstractPropertiesProvider;
+import org.eclipse.lsp4mp.jdt.core.BuildingScopeContext;
+import org.eclipse.lsp4mp.jdt.core.SearchContext;
 
 /**
  * Properties provider to collect Quarkus properties from Quarkus container images jib, docker and s2i.

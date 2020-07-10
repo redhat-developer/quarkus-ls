@@ -14,8 +14,8 @@ import java.util.List;
 
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.lsp4mp.jdt.core.IProjectLabelProvider;
 
-import com.redhat.microprofile.jdt.core.IProjectLabelProvider;
 import com.redhat.microprofile.jdt.internal.quarkus.JDTQuarkusUtils;;
 
 /**

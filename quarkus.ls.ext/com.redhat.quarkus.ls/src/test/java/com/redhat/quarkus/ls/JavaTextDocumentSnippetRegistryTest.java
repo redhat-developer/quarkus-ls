@@ -18,12 +18,12 @@ import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.redhat.microprofile.ls.JavaTextDocumentSnippetRegistry;
-import com.redhat.microprofile.commons.ProjectLabelInfoEntry;
-import com.redhat.microprofile.ls.commons.snippets.ISnippetContext;
-import com.redhat.microprofile.ls.commons.snippets.Snippet;
-import com.redhat.microprofile.ls.commons.snippets.SnippetRegistry;
-import com.redhat.microprofile.snippets.SnippetContextForJava;
+import org.eclipse.lsp4mp.ls.JavaTextDocumentSnippetRegistry;
+import org.eclipse.lsp4mp.commons.ProjectLabelInfoEntry;
+import org.eclipse.lsp4mp.ls.commons.snippets.ISnippetContext;
+import org.eclipse.lsp4mp.ls.commons.snippets.Snippet;
+import org.eclipse.lsp4mp.ls.commons.snippets.SnippetRegistry;
+import org.eclipse.lsp4mp.snippets.SnippetContextForJava;
 
 /**
  * test for Java snippet registry.

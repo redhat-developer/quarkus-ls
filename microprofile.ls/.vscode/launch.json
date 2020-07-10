@@ -9,6 +9,6 @@
 		"request": "attach",
 		"hostName": "localhost",
 		"port": 1064,
-		"projectName": "com.redhat.microprofile.ls"
+		"projectName": "org.eclipse.lsp4mp.ls"
 	}]
 }

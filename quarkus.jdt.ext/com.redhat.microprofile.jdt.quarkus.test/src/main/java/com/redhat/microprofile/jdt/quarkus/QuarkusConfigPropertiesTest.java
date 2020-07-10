@@ -9,23 +9,21 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.quarkus;
 
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertProperties;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertPropertiesDuplicate;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.p;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertProperties;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertPropertiesDuplicate;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.p;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.lsp4mp.commons.ClasspathKind;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
+import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
+import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
+import org.eclipse.lsp4mp.jdt.core.PropertiesManager;
+import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProject;
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.redhat.microprofile.commons.ClasspathKind;
-import com.redhat.microprofile.commons.DocumentFormat;
-import com.redhat.microprofile.commons.MicroProfileProjectInfo;
-import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
-import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProject;
-
-import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
-import com.redhat.microprofile.jdt.core.PropertiesManager;
 
 /**
  * Test collection of Quarkus properties from @ConfigProperties
