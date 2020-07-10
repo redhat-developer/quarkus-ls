@@ -28,7 +28,7 @@ import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
 public class MicroProfileLRATest extends BasePropertiesManagerTest {
 
 	@Test
-	public void microprofileMetrics() throws Exception {
+	public void microprofileLRAPropertiesTest() throws Exception {
 
 		MicroProfileProjectInfo infoFromClasspath = getMicroProfileProjectInfoFromMavenProject(
 				MavenProjectName.microprofile_lra, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
