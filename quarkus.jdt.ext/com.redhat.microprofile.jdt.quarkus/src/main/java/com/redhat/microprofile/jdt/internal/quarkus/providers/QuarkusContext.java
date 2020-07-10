@@ -12,7 +12,7 @@ package com.redhat.microprofile.jdt.internal.quarkus.providers;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.redhat.microprofile.jdt.core.BuildingScopeContext;
+import org.eclipse.lsp4mp.jdt.core.BuildingScopeContext;
 
 /**
  * The Quarkus context.

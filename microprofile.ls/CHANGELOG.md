@@ -67,7 +67,7 @@
  * Remove Quarkus name in MicroProfile LS. See [#262](https://github.com/redhat-developer/quarkus-ls/issues/262)
  * Refactor unit test so that they can be reused. See [#258](https://github.com/redhat-developer/quarkus-ls/pull/258)
  * Consume LSP4J 0.9.0. See [#237](https://github.com/redhat-developer/quarkus-ls/issues/237)
- * `com.redhat.microprofile.ls` cannot be released to JBoss Nexus. See [#226](https://github.com/redhat-developer/quarkus-ls/issues/226)
+ * `org.eclipse.lsp4mp.ls` cannot be released to JBoss Nexus. See [#226](https://github.com/redhat-developer/quarkus-ls/issues/226)
 
 ### Others
 

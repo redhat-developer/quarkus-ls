@@ -9,13 +9,13 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.internal.quarkus.providers;
 
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.findType;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getDefaultValue;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getEnclosedType;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getPropertyType;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getResolvedResultTypeName;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceMethod;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isSimpleFieldType;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.findType;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getDefaultValue;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getEnclosedType;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getPropertyType;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getResolvedResultTypeName;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceMethod;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.isSimpleFieldType;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IMethod;
@@ -23,13 +23,12 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.search.SearchPattern;
-
-import com.redhat.microprofile.commons.DocumentFormat;
-import com.redhat.microprofile.jdt.core.AbstractTypeDeclarationPropertiesProvider;
-import com.redhat.microprofile.jdt.core.BuildingScopeContext;
-import com.redhat.microprofile.jdt.core.IPropertiesCollector;
-import com.redhat.microprofile.jdt.core.SearchContext;
-import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
+import org.eclipse.lsp4mp.jdt.core.AbstractTypeDeclarationPropertiesProvider;
+import org.eclipse.lsp4mp.jdt.core.BuildingScopeContext;
+import org.eclipse.lsp4mp.jdt.core.IPropertiesCollector;
+import org.eclipse.lsp4mp.jdt.core.SearchContext;
+import org.eclipse.lsp4mp.jdt.core.utils.IJDTUtils;
 
 import io.quarkus.runtime.util.StringUtil;
 

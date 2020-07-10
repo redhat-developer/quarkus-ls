@@ -9,9 +9,9 @@
 *******************************************************************************/
 package com.redhat.quarkus.ls;
 
-import static com.redhat.microprofile.services.MicroProfileAssert.assertCompletionWithProperties;
-import static com.redhat.microprofile.services.MicroProfileAssert.c;
-import static com.redhat.microprofile.services.MicroProfileAssert.r;
+import static org.eclipse.lsp4mp.services.MicroProfileAssert.assertCompletionWithProperties;
+import static org.eclipse.lsp4mp.services.MicroProfileAssert.c;
+import static org.eclipse.lsp4mp.services.MicroProfileAssert.r;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
@@ -19,7 +19,7 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import com.redhat.microprofile.ls.commons.BadLocationException;
+import org.eclipse.lsp4mp.ls.commons.BadLocationException;
 
 /**
  * Test with completion in 'application.properties' file.

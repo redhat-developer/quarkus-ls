@@ -9,22 +9,22 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.internal.quarkus.providers;
 
-import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotation;
-import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.findType;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getEnclosedType;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getPropertyType;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getResolvedResultTypeName;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getResolvedTypeName;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceField;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceMethod;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceType;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isSimpleFieldType;
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.runtime.util.StringUtil.join;
 import static io.quarkus.runtime.util.StringUtil.lowerCase;
 import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
+import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getAnnotation;
+import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.findType;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getEnclosedType;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getPropertyType;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getResolvedResultTypeName;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getResolvedTypeName;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceField;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceMethod;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceType;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.isSimpleFieldType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,13 +46,13 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
+import org.eclipse.lsp4mp.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
+import org.eclipse.lsp4mp.jdt.core.IPropertiesCollector;
+import org.eclipse.lsp4mp.jdt.core.MicroProfileConfigConstants;
+import org.eclipse.lsp4mp.jdt.core.SearchContext;
+import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProjectManager;
 
-import com.redhat.microprofile.commons.metadata.ItemMetadata;
-import com.redhat.microprofile.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
-import com.redhat.microprofile.jdt.core.IPropertiesCollector;
-import com.redhat.microprofile.jdt.core.MicroProfileConfigConstants;
-import com.redhat.microprofile.jdt.core.SearchContext;
-import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProjectManager;
 import com.redhat.microprofile.jdt.internal.quarkus.JDTQuarkusUtils;
 import com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants;
 

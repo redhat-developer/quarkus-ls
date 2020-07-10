@@ -17,12 +17,11 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.CodeLens;
-
-import com.redhat.microprofile.jdt.core.java.codelens.IJavaCodeLensParticipant;
-import com.redhat.microprofile.jdt.core.java.codelens.JavaCodeLensContext;
-import com.redhat.microprofile.jdt.core.jaxrs.JaxRsContext;
-import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProject;
-import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProjectManager;
+import org.eclipse.lsp4mp.jdt.core.java.codelens.IJavaCodeLensParticipant;
+import org.eclipse.lsp4mp.jdt.core.java.codelens.JavaCodeLensContext;
+import org.eclipse.lsp4mp.jdt.core.jaxrs.JaxRsContext;
+import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProject;
+import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProjectManager;
 
 /**
  *

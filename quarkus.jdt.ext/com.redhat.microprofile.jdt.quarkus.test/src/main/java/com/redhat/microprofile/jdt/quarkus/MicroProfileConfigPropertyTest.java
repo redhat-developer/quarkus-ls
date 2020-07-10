@@ -9,18 +9,16 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.quarkus;
 
-import static com.redhat.microprofile.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED;
-import static com.redhat.microprofile.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_TIME;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertProperties;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertPropertiesDuplicate;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.p;
+import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED;
+import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_TIME;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertProperties;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertPropertiesDuplicate;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.p;
 
+import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
+import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
+import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
 import org.junit.Test;
-
-import com.redhat.microprofile.commons.MicroProfileProjectInfo;
-import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
-
-import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
 
 /**
  * Test collection of Quarkus properties from @ConfigProperty

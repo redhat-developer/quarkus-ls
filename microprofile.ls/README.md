@@ -37,10 +37,10 @@ Click [here](./demos/DEMO.md) to view a demo for the rest of the language featur
 Building the Language Server
 --------------
 * Clone this repository
-* Navigate to the `quarkus-ls/microprofile.ls/com.redhat.microprofile.ls` folder in your terminal or command line
+* Navigate to the `quarkus-ls/microprofile.ls/org.eclipse.lsp4mp.ls` folder in your terminal or command line
 * Run `./mvnw clean verify` (OSX, Linux) or `mvnw.cmd clean verify` (Windows)
-* After successful compilation you can find the resulting `com.redhat.microprofile.ls-uber.jar` in the
-`quarkus-ls/microprofile.ls/com.redhat.microprofile.ls/target` folder.
+* After successful compilation you can find the resulting `org.eclipse.lsp4mp.ls-uber.jar` in the
+`quarkus-ls/microprofile.ls/org.eclipse.lsp4mp.ls/target` folder.
 
 Clients
 -------
@@ -102,13 +102,13 @@ means that the snippet is shown only if the project has the `org.eclipse.micropr
 
 To register a snippet, it must be added in:
 
- * [MicroProfileJavaSnippetRegistryLoader](https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.ls/com.redhat.microprofile.ls/src/main/java/com/redhat/microprofile/snippets/MicroProfileJavaSnippetRegistryLoader.java) if the new snippet is for Java files. 
- * [MicroProfilePropertiesSnippetRegistryLoader](https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.ls/com.redhat.microprofile.ls/src/main/java/com/redhat/microprofile/snippets/MicroProfilePropertiesSnippetRegistryLoader.java) if the new snippet is for properties files.
+ * [MicroProfileJavaSnippetRegistryLoader](https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.ls/org.eclipse.lsp4mp.ls/src/main/java/com/redhat/microprofile/snippets/MicroProfileJavaSnippetRegistryLoader.java) if the new snippet is for Java files. 
+ * [MicroProfilePropertiesSnippetRegistryLoader](https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.ls/org.eclipse.lsp4mp.ls/src/main/java/com/redhat/microprofile/snippets/MicroProfilePropertiesSnippetRegistryLoader.java) if the new snippet is for properties files.
 
 ## Adding new external snippets
 
 To add external snippets (like Quarkus snippets) an implementation of `ISnippetRegistryLoader` must be created and registered with Java SPI. See for Quarkus snippets:
 
- * [Java Quarkus snippets loader](https://github.com/redhat-developer/quarkus-ls/tree/master/microprofile.ls/com.redhat.microprofile.ls/src/main/java/com/redhat/quarkus/snippets).
- * [JSON Quarkus snippet](https://github.comredhat-developer/quarkus-ls/tree/master/microprofile.ls/com.redhat.microprofile.ls/src/main/resources/com/redhat/quarkus/snippets).
- * Java Quarkus snippets loader must be declared in [META-INF/services/com.redhat.microprofile.ls.commons.snippets.ISnippetRegistryLoader](https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.ls/com.redhat.microprofile.ls/src/main/resources/META-INF/services/com.redhat.microprofile.ls.commons.snippets.ISnippetRegistryLoader) 
+ * [Java Quarkus snippets loader](https://github.com/redhat-developer/quarkus-ls/tree/master/microprofile.ls/org.eclipse.lsp4mp.ls/src/main/java/com/redhat/quarkus/snippets).
+ * [JSON Quarkus snippet](https://github.comredhat-developer/quarkus-ls/tree/master/microprofile.ls/org.eclipse.lsp4mp.ls/src/main/resources/com/redhat/quarkus/snippets).
+ * Java Quarkus snippets loader must be declared in [META-INF/services/org.eclipse.lsp4mp.ls.commons.snippets.ISnippetRegistryLoader](https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.ls/org.eclipse.lsp4mp.ls/src/main/resources/META-INF/services/org.eclipse.lsp4mp.ls.commons.snippets.ISnippetRegistryLoader) 

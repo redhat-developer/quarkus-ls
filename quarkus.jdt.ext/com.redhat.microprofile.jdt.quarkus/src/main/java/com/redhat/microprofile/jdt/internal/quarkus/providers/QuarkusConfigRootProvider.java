@@ -9,26 +9,26 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.internal.quarkus.providers;
 
-import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotation;
-import static com.redhat.microprofile.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.findType;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getEnclosedType;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getPropertyType;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getResolvedTypeName;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceField;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.getSourceType;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isList;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isMap;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isNumber;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isOptional;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isPrimitiveBoolean;
-import static com.redhat.microprofile.jdt.core.utils.JDTTypeUtils.isPrimitiveType;
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.runtime.util.StringUtil.lowerCase;
 import static io.quarkus.runtime.util.StringUtil.lowerCaseFirst;
 import static io.quarkus.runtime.util.StringUtil.toList;
 import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
+import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getAnnotation;
+import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.findType;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getEnclosedType;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getPropertyType;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getResolvedTypeName;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceField;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceType;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.isList;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.isMap;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.isNumber;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.isOptional;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.isPrimitiveBoolean;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.isPrimitiveType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,16 +57,16 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
+import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
+import org.eclipse.lsp4mp.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
+import org.eclipse.lsp4mp.jdt.core.ArtifactResolver;
+import org.eclipse.lsp4mp.jdt.core.BuildingScopeContext;
+import org.eclipse.lsp4mp.jdt.core.IPropertiesCollector;
+import org.eclipse.lsp4mp.jdt.core.SearchContext;
+import org.eclipse.lsp4mp.jdt.core.ArtifactResolver.Artifact;
+import org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils;
 
-import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
-import com.redhat.microprofile.commons.metadata.ItemMetadata;
-import com.redhat.microprofile.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
-import com.redhat.microprofile.jdt.core.ArtifactResolver;
-import com.redhat.microprofile.jdt.core.ArtifactResolver.Artifact;
-import com.redhat.microprofile.jdt.core.BuildingScopeContext;
-import com.redhat.microprofile.jdt.core.IPropertiesCollector;
-import com.redhat.microprofile.jdt.core.SearchContext;
-import com.redhat.microprofile.jdt.core.utils.JDTTypeUtils;
 import com.redhat.microprofile.jdt.internal.quarkus.JDTQuarkusUtils;
 import com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants;
 

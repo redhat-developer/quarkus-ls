@@ -12,14 +12,14 @@
  */
 package com.redhat.quarkus.settings.capabilities;
 
-import static com.redhat.microprofile.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_FORMATTING;
-import static com.redhat.microprofile.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_RANGE_FORMATTING;
+import static org.eclipse.lsp4mp.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_FORMATTING;
+import static org.eclipse.lsp4mp.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_RANGE_FORMATTING;
 
 import org.eclipse.lsp4j.DocumentFilter;
 import org.eclipse.lsp4j.Registration;
 import org.eclipse.lsp4j.TextDocumentRegistrationOptions;
 
-import com.redhat.microprofile.settings.capabilities.IMicroProfileRegistrationConfiguration;
+import org.eclipse.lsp4mp.settings.capabilities.IMicroProfileRegistrationConfiguration;
 
 /**
  * Specific Quarkus LSP Registration configuration
