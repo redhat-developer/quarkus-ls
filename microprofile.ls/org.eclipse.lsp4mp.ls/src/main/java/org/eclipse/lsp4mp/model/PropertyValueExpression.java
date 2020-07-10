@@ -69,7 +69,7 @@ public class PropertyValueExpression extends Node {
 	 * @return the name of the referenced property, or null if brackets were missing
 	 *         in the property expression.
 	 */
-	private String getReferencedPropertyName() {
+	public String getReferencedPropertyName() {
 		String val = getValue();
 		if (val.length() < 3) {
 			return null; // Just a $

@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.CompletionItem;
@@ -33,18 +34,19 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.metadata.ConverterKind;
-import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 import org.eclipse.lsp4mp.commons.metadata.ItemHint.ValueHint;
+import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 import org.eclipse.lsp4mp.ls.commons.BadLocationException;
 import org.eclipse.lsp4mp.ls.commons.SnippetsBuilder;
 import org.eclipse.lsp4mp.ls.commons.TextDocument;
 import org.eclipse.lsp4mp.ls.commons.snippets.TextDocumentSnippetRegistry;
 import org.eclipse.lsp4mp.model.Node;
+import org.eclipse.lsp4mp.model.Node.NodeType;
 import org.eclipse.lsp4mp.model.PropertiesModel;
 import org.eclipse.lsp4mp.model.Property;
 import org.eclipse.lsp4mp.model.PropertyGraph;
 import org.eclipse.lsp4mp.model.PropertyKey;
-import org.eclipse.lsp4mp.model.Node.NodeType;
+import org.eclipse.lsp4mp.model.PropertyValueExpression;
 import org.eclipse.lsp4mp.model.values.ValuesRulesManager;
 import org.eclipse.lsp4mp.settings.MicroProfileCompletionSettings;
 import org.eclipse.lsp4mp.settings.MicroProfileFormattingSettings;
@@ -64,6 +66,7 @@ class MicroProfileCompletions {
 
 	private static final Logger LOGGER = Logger.getLogger(MicroProfileCompletions.class.getName());
 	private TextDocumentSnippetRegistry snippetRegistry;
+	private static final Pattern PROP_EXPR_PATTERN = Pattern.compile("[^}]*");
 
 	/**
 	 * Returns completion list for the given position
@@ -99,11 +102,13 @@ class MicroProfileCompletions {
 			break;
 		case ASSIGN:
 		case PROPERTY_VALUE:
+		case PROPERTY_VALUE_LITERAL:
 			// completion on property value
 			collectPropertyValueSuggestions(node, document, projectInfo, valuesRulesManager, completionSettings, list);
 			break;
 		case PROPERTY_VALUE_EXPRESSION:
 			collectPropertyValueExpressionSuggestions(node, document, projectInfo, valuesRulesManager, completionSettings, list);
+			break;
 		default:
 			// completion on property key
 			collectPropertyKeySuggestions(offset, node, document, projectInfo, valuesRulesManager, completionSettings,
@@ -375,48 +380,64 @@ class MicroProfileCompletions {
 	}
 
 	private static void collectPropertyValueExpressionSuggestions(Node node,
-			PropertiesModel model, MicroProfileProjectInfo projectInfo, ValuesRulesManager valuesRulesManager,
-			MicroProfileCompletionSettings completionSettings, CompletionList list) {
-		
-			PropertyGraph graph = new PropertyGraph();
-			// get all properties from application.properties file
-			for (Node child: model.getChildren()) {
-				if (child.getNodeType() == NodeType.PROPERTY) {
-					Property property = (Property) child;
-					
-					// check if property already exists in the graph.
-					// if it does, this means that there are duplicate properties in 
-					// this application.properties file.
-
-					graph.addNode(property.getPropertyKey());
-
-					if (containsPropertyExpression(property)) {
-						// iterate over all property expressions and populate the adjacency list
+		PropertiesModel model, MicroProfileProjectInfo projectInfo, ValuesRulesManager valuesRulesManager,
+		MicroProfileCompletionSettings completionSettings, CompletionList list) {
 	
-						// String to = property expression name
-						// graph.addEdge(property.getPropertyKey(), to); 
+		PropertyGraph graph = new PropertyGraph();
+		// get all properties from application.properties file
+		for (Node child: model.getChildren()) {
+			if (child.getNodeType() == NodeType.PROPERTY) {
+				Property property = (Property) child;
+				
+				// check if property already exists in the graph.
+				// if it does, this means that there are duplicate properties in 
+				// this application.properties file.
+
+				if (graph.hasNode(property.getPropertyKey())) {
+					continue;
+				}
+
+				graph.addNode(property.getPropertyKey());
+
+				if (containsPropertyExpression(property)) {
+					// iterate over all property expressions and populate the adjacency list
+					
+					for (Node n : property.getValue().getChildren()) {
+						if (n.getNodeType() == NodeType.PROPERTY_VALUE_EXPRESSION) {
+							PropertyValueExpression asPropValExpr = (PropertyValueExpression) n;
+							graph.addEdge(property.getPropertyKey(), asPropValExpr.getReferencedPropertyName()); 
+						}
 					}
 				}
 			}
+		}
 
-			// graph is built
+		// graph is built
 
-			// traverse up to get the property name for which property expression completion was done for
-			String completionPropertyName =  ((Property) node.getParent().getParent()).getPropertyKey(); 
-			
-			// gather the completion items that do not cause a cycle
-			List<String> completionItems = new ArrayList<>();
-			for (Node child: model.getChildren()) {
-				if (child.getNodeType() == NodeType.PROPERTY) {
-					String propertyKey = ((Property) child).getPropertyKey();
-					if (!graph.isConnected(propertyKey, completionPropertyName)) {
-						completionItems.add(propertyKey);
-					}
-				}
-			}
-
+		// traverse up to get the property name for which property expression completion was done for
+		String completionPropertyName = ((Property) node.getParent().getParent()).getPropertyKey(); 
 		
-			// accummulate properties from projectInfo.getProperties()
+		// gather the completion items that do not cause a cycle
+		List<String> completionItems = new ArrayList<>();
+		// for (Node child: model.getChildren()) {
+		// 	if (child.getNodeType() == NodeType.PROPERTY) {
+		// 		String propertyKey = ((Property) child).getPropertyKey();
+		// 		if (!graph.isConnected(propertyKey, completionPropertyName) && !propertyKey.equals(completionPropertyName)) {
+		// 			completionItems.add(propertyKey);
+		// 		}
+		// 	}
+		// }
+
+		for (Node child : model.getChildren()) {
+			if (child.getNodeType() == NodeType.PROPERTY) {
+				completionItems.add(((Property)child).getPropertyKey());
+			}
+		}		
+
+		// accumulate properties from projectInfo.getProperties()
+		for (ItemMetadata propertyMetadata : projectInfo.getProperties()) {
+			list.getItems().add(getPropertyCompletionItem(propertyMetadata, (PropertyValueExpression) node, model));
+		}
 	}
 
 	private static boolean containsPropertyExpression(Property property) {
@@ -464,6 +485,24 @@ class MicroProfileCompletions {
 		completionItem.setDocumentation(DocumentationUtils.getDocumentation(item, markdownSupported));
 
 		return completionItem;
+	}
+
+	/**
+	 * Make a completion item for a property given its metadata
+	 * 
+	 * @param property the metadata of the property to create a completion item for
+	 */
+	private static CompletionItem getPropertyCompletionItem(ItemMetadata propertyMetadata, PropertyValueExpression propertyValueExpression, PropertiesModel model) {
+		String completionText = new StringBuilder("${").append(propertyMetadata.getName()).append("}").toString();
+		CompletionItem completionItem = new CompletionItem(completionText);
+		completionItem.setKind(CompletionItemKind.Value);
+		try {
+			Range range = new Range(model.getDocument().positionAt(propertyValueExpression.getStart()), model.getDocument().positionAt(propertyValueExpression.getEnd()));
+			completionItem.setTextEdit(new TextEdit(range, completionText));
+			return completionItem;
+		} catch (BadLocationException e) {
+			return null;
+		}
 	}
 
 	private static void collectSnippetSuggestions(int completionOffset, Node node, PropertiesModel document,

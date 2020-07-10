@@ -34,6 +34,7 @@ import org.eclipse.lsp4mp.ls.commons.TextDocument;
 import org.eclipse.lsp4mp.ls.commons.client.CommandKind;
 import org.eclipse.lsp4mp.ls.commons.client.ConfigurationItemEdit;
 import org.eclipse.lsp4mp.ls.commons.client.ConfigurationItemEditType;
+import org.eclipse.lsp4mp.model.Node;
 import org.eclipse.lsp4mp.model.PropertiesModel;
 import org.eclipse.lsp4mp.model.Property;
 import org.eclipse.lsp4mp.model.PropertyKey;
@@ -153,7 +154,19 @@ class MicroProfileCodeActions {
 	private void doCodeActionsForUnknownEnumValue(Diagnostic diagnostic, PropertiesModel document,
 			MicroProfileProjectInfo projectInfo, ValuesRulesManager valuesRulesManager, List<CodeAction> codeActions) {
 		try {
-			PropertyValue propertyValue = (PropertyValue) document.findNodeAt(diagnostic.getRange().getStart());
+			Node node = document.findNodeAt((diagnostic.getRange().getStart()));
+			PropertyValue propertyValue = null;
+			switch (node.getNodeType()) {
+				case PROPERTY_VALUE:
+					propertyValue = (PropertyValue) document.findNodeAt(diagnostic.getRange().getStart());
+					break;
+				case PROPERTY_VALUE_EXPRESSION:
+				case PROPERTY_VALUE_LITERAL:
+					propertyValue = (PropertyValue) document.findNodeAt(diagnostic.getRange().getStart()).getParent();
+					break;
+				default:
+					assert false;
+			}
 			PropertyKey propertyKey = ((Property) propertyValue.getParent()).getKey();
 			String value = propertyValue.getValue();
 			String propertyName = propertyKey.getPropertyName();

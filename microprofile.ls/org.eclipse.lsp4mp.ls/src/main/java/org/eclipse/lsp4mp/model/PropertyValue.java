@@ -38,4 +38,23 @@ public class PropertyValue extends Node {
 		return text != null ? text.trim() : null;
 	}
 
+	/**
+	 * Returns the leaf node that is at the given offset, or null if no child of
+	 * this node is at the given offset
+	 * 
+	 * @return the child node that is at the given offset
+	 */
+	@Override
+	public Node findNodeAt(int offset) {
+		if (offset < getStart() || getEnd() < offset) {
+			return null;
+		}
+		for (Node child : getChildren()) {
+			if (child.getEnd() > offset && child.getStart() <= offset) {
+				return child;
+			}
+		}
+		return null;
+	}
+
 }

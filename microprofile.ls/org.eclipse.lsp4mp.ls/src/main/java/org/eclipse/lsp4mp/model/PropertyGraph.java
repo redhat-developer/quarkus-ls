@@ -12,13 +12,17 @@ public class PropertyGraph {
 
 	private Map<String /* name of property */, List<String> /* adjacency list */> nodes;
 
-    public PropertyGraph() {
+	public PropertyGraph() {
 		// this.nodes = new HashMap<String, List<Property>>();
 		this.nodes = new HashMap<String, List<String>>();
 	}
 	
 	public void addNode(String property) {
-        this.nodes.put(property, new ArrayList<String>());
+		this.nodes.put(property, new ArrayList<String>());
+	}
+
+	public boolean hasNode(String property) {
+		return this.nodes.containsKey(property);
 	}
 
 	public void addEdge(String from, String to) {

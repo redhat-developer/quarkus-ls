@@ -238,6 +238,20 @@ public class PropertiesModelTest {
 				new MockNode(35, 51, NodeType.PROPERTY_VALUE_EXPRESSION));
 	}
 
+	@Test
+	public void parseTrailingPropertyLiteral() {
+		String text = "mp.openstracking.server.skip = ${test}:9090\n" + //
+				"quarkus.made.up.property=${test}:90\\\n" + //
+				"00";
+		PropertiesModel model = PropertiesModel.parse(text, "application.properties");
+		Property property0 = (Property) model.getChildren().get(0);
+		Property property1 = (Property) model.getChildren().get(1);
+		assertPropertyValue(property0, new MockNode(31, 38, NodeType.PROPERTY_VALUE_EXPRESSION),
+				new MockNode(38, 43, NodeType.PROPERTY_VALUE_LITERAL));
+		assertPropertyValue(property1, new MockNode(69, 76, NodeType.PROPERTY_VALUE_EXPRESSION),
+				new MockNode(76, 83, NodeType.PROPERTY_VALUE_LITERAL));
+	}
+
 	private static void assertComments(Node comments, int expectedStart, int expectedEnd, String expectedText) {
 		Assert.assertEquals(comments.getNodeType(), NodeType.COMMENTS);
 		Assert.assertEquals(expectedText, comments.getText());

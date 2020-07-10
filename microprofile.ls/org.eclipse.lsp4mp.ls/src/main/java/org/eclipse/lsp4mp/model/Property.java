@@ -186,7 +186,7 @@ public class Property extends Node {
 		}
 		if (offset >= assign.getStart()) {
 			Node value = getValue();
-			return value != null ? value : assign;
+			return value != null ? value.findNodeAt(offset) : assign;
 		}
 		return key;
 	}
