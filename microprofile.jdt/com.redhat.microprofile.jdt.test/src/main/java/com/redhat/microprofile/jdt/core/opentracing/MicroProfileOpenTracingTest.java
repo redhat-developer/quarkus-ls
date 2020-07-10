@@ -32,7 +32,7 @@ import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
 public class MicroProfileOpenTracingTest extends BasePropertiesManagerTest {
 
 	@Test
-	public void microprofileOpenTracing() throws Exception {
+	public void microprofileOpenTracingPropertiesTest() throws Exception {
 
 		MicroProfileProjectInfo infoFromClasspath = getMicroProfileProjectInfoFromMavenProject(
 				MavenProjectName.microprofile_opentracing, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);

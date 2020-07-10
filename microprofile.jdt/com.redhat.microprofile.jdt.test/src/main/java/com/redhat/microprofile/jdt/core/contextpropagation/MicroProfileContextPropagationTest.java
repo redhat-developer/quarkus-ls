@@ -28,7 +28,7 @@ import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
 public class MicroProfileContextPropagationTest extends BasePropertiesManagerTest {
 
 	@Test
-	public void microprofileContextPropagation() throws Exception {
+	public void microprofileContextPropagationPropertiesTest() throws Exception {
 
 		MicroProfileProjectInfo infoFromClasspath = getMicroProfileProjectInfoFromMavenProject(
 				MavenProjectName.microprofile_context_propagation, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);

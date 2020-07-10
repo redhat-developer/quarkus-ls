@@ -34,7 +34,7 @@ import com.redhat.microprofile.jdt.internal.faulttolerance.MicroProfileFaultTole
 public class MicroProfileFaultToleranceTest extends BasePropertiesManagerTest {
 
 	@Test
-	public void microprofileFaultTolerance() throws Exception {
+	public void microprofileFaultTolerancePropertiesTest() throws Exception {
 
 		MicroProfileProjectInfo infoFromClasspath = getMicroProfileProjectInfoFromMavenProject(
 				MavenProjectName.microprofile_fault_tolerance, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
