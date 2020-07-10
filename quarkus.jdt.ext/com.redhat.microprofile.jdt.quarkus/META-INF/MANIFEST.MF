@@ -5,7 +5,7 @@ Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Bundle-SymbolicName: com.redhat.microprofile.jdt.quarkus;singleton:=true
 Bundle-Version: 0.0.9.qualifier
-Require-Bundle: com.redhat.microprofile.jdt.core,
+Require-Bundle: org.eclipse.lsp4mp.jdt.core,
  org.eclipse.core.runtime,
  org.eclipse.jdt.core,
  org.eclipse.core.resources,

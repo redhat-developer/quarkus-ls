@@ -10,15 +10,14 @@
 package com.redhat.microprofile.jdt.quarkus.containerimages;
 
 
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertProperties;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertPropertiesDuplicate;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.p;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertProperties;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertPropertiesDuplicate;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.p;
 
+import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
+import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
+import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
 import org.junit.Test;
-
-import com.redhat.microprofile.commons.MicroProfileProjectInfo;
-import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
-import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
 
 
 /**

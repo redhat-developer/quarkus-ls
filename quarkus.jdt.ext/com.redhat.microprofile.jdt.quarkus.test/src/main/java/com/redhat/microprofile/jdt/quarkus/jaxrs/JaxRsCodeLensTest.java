@@ -19,16 +19,13 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
+import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
+import org.eclipse.lsp4mp.jdt.core.PropertiesManagerForJava;
+import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProject;
+import org.eclipse.lsp4mp.jdt.core.utils.IJDTUtils;
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.redhat.microprofile.commons.MicroProfileJavaCodeLensParams;
-import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
-import com.redhat.microprofile.jdt.core.PropertiesManagerForJava;
-import com.redhat.microprofile.jdt.core.project.JDTMicroProfileProject;
-import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
-
-import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
 
 /**
  * JAX-RS URL Codelens test for Java file.

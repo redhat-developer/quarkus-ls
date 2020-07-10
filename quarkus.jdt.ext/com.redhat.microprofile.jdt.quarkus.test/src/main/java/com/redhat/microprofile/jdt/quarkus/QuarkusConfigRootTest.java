@@ -9,27 +9,25 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.quarkus;
 
-import static com.redhat.microprofile.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED;
-import static com.redhat.microprofile.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_TIME;
-import static com.redhat.microprofile.commons.metadata.ItemMetadata.CONFIG_PHASE_RUN_TIME;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertHints;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertHintsDuplicate;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertProperties;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.h;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.p;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.vh;
+import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED;
+import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_TIME;
+import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_RUN_TIME;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertHints;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertHintsDuplicate;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertProperties;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.h;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.p;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.vh;
 
 import java.util.Optional;
 
+import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
+import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
+import org.eclipse.lsp4mp.commons.metadata.ItemHint;
+import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
+import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.redhat.microprofile.commons.MicroProfileProjectInfo;
-import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
-import com.redhat.microprofile.commons.metadata.ItemHint;
-import com.redhat.microprofile.commons.metadata.ItemMetadata;
-
-import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
 
 /**
  * Test to download and use in classpath deployment JARs declared in //

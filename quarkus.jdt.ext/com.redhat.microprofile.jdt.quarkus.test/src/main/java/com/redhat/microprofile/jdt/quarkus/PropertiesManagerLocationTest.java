@@ -21,13 +21,11 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
+import org.eclipse.lsp4mp.jdt.core.PropertiesManager;
+import org.eclipse.lsp4mp.jdt.core.utils.IJDTUtils;
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.redhat.microprofile.jdt.core.utils.IJDTUtils;
-
-import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
-import com.redhat.microprofile.jdt.core.PropertiesManager;
 
 
 /**

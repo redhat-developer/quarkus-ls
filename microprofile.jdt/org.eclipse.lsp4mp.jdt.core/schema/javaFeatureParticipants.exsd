@@ -1,0 +1,199 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.eclipse.lsp4mp.jdt.core" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appinfo>
+         <meta.schema plugin="org.eclipse.lsp4mp.jdt.core" id="javaFeatureParticipants" name="Java features participants"/>
+      </appinfo>
+      <documentation>
+         This extension point allows adding a Java feature (codeAction, codelens, hover, diagnostics) to consume it in the Java editor.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <choice>
+               <element ref="codeAction" minOccurs="0" maxOccurs="unbounded"/>
+               <element ref="codeLens" minOccurs="0" maxOccurs="unbounded"/>
+               <element ref="diagnostics" minOccurs="0" maxOccurs="unbounded"/>
+               <element ref="hover" minOccurs="0" maxOccurs="unbounded"/>
+            </choice>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appinfo>
+                  <meta.attribute translatable="true"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="codeAction">
+      <annotation>
+         <documentation>
+            Java codeAction participant.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="kind" use="default" value="quickfix">
+            <annotation>
+               <documentation>
+                  The code action kind top category. This kind is used to filter code action according the &apos;only&apos; information of LSP CodeActionContext (see https://microsoft.github.io/language-server-protocol/specification#textDocument_codeAction).
+               </documentation>
+            </annotation>
+            <simpleType>
+               <restriction base="string">
+                  <enumeration value="quickfix">
+                  </enumeration>
+                  <enumeration value="refactor">
+                  </enumeration>
+                  <enumeration value="source">
+                  </enumeration>
+               </restriction>
+            </simpleType>
+         </attribute>
+         <attribute name="targetDiagnostic" type="string">
+            <annotation>
+               <documentation>
+                  The target diagnostic where the code action must be applied. This target can use diagnostic code (ex: &apos;ImplementHealthCheck&apos;) or concat of diagnostic source, &apos;#&apos; and diagnostic code (ex:  : &apos;microprofile-health#ImplementHealthCheck&quot;)
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Name of a class that implements IJavaCodeActionParticipant
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.lsp4mp.jdt.core.java.codeaction.IJavaCodeActionParticipant"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="codeLens">
+      <annotation>
+         <documentation>
+            Java codeLens participant.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Name of a class that implements IJavaCodeLensParticipant.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.lsp4mp.jdt.core.java.IJavaCodeLensParticipant"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="diagnostics">
+      <annotation>
+         <documentation>
+            Java diagnostics participant.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Name of a class that implements IJavaDiagnosticsParticipant.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.lsp4mp.jdt.core.java.IJavaDiagnosticsParticipant"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="hover">
+      <annotation>
+         <documentation>
+            Java hover participant.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Name of a class that implements IJavaHoverParticipant.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.lsp4mp.jdt.core.java.IJavaHoverParticipant"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="since"/>
+      </appinfo>
+      <documentation>
+         2.0
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="examples"/>
+      </appinfo>
+      <documentation>
+         The following is an example of a java feature participant extension:
+
+&lt;pre&gt;
+ &lt;extension point=&quot;org.eclipse.lsp4mp.jdt.core.javaFeatureParticipants&quot;&gt;
+  &lt;codeAction
+   kind=&quot;quickfix&quot;
+   diagnosticTarget=&quot;source#code&quot;
+   class=&quot;com.example.MyJavaCodeLensParticipant&quot;&gt;
+  &lt;/codeAction&gt;
+   &lt;codeLens
+   class=&quot;com.example.MyJavaCodeLensParticipant&quot;&gt;
+  &lt;/codeLens&gt;
+  &lt;diagnostics
+   class=&quot;com.example.MyJavaDiagnosticsParticipant&quot;&gt;
+  &lt;/diagnostics&gt;
+  &lt;hover
+   class=&quot;com.example.MyJavaHoverParticipant&quot;&gt;
+  &lt;/hover&gt;  
+ &lt;/extension&gt;
+&lt;/pre&gt;
+      </documentation>
+   </annotation>
+
+
+
+
+</schema>

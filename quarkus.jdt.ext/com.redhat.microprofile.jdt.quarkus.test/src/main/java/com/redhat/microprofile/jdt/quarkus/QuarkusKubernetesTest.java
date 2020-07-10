@@ -9,19 +9,17 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.quarkus;
 
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertHints;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertHintsDuplicate;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertProperties;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.assertPropertiesDuplicate;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.h;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.p;
-import static com.redhat.microprofile.jdt.internal.core.MicroProfileAssert.vh;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertHints;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertHintsDuplicate;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertProperties;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertPropertiesDuplicate;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.h;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.p;
+import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.vh;
 
+import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
+import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
 import org.junit.Test;
-
-import com.redhat.microprofile.commons.MicroProfileProjectInfo;
-
-import com.redhat.microprofile.jdt.core.BasePropertiesManagerTest;
 
 /**
  * Quarkus Kubernetes properties test.
