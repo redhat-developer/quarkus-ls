@@ -10,13 +10,14 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <tycho.version>1.6.0</tycho.version>
+    <tycho.version>1.7.0</tycho.version>
     <tycho.extras.version>${tycho.version}</tycho.extras.version>
     <tycho.scmUrl>scm:git:https://github.com/redhat-developer/quarkus-ls</tycho.scmUrl>
     <tycho.generateSourceReferences>true</tycho.generateSourceReferences>
     <jdt.ls.version>0.52.1.20200318153300</jdt.ls.version>
     <tycho.test.platformArgs />
     <tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
+    <lsp4mp.p2.url>http://download.eclipse.org/lsp4mp/snapshots/0.0.9/repository/</lsp4mp.p2.url>
 
 
     <!-- Code coverage -->
@@ -41,7 +42,13 @@
       <url>http://download.eclipse.org/jdtls/snapshots/repository/latest/</url>
     </repository>
     <repository>
+      <id>lsp4mp.p2</id>
+      <layout>p2</layout>
+      <url>${lsp4mp.p2.url}</url>
+    </repository>
+    <repository>
       <id>jdt.ls.maven</id>
+      <!-- Used to resolve the jdt.ls TP -->
       <url>https://repo.eclipse.org/content/repositories/jdtls-releases/</url>
     </repository>
   </repositories>
@@ -100,7 +107,7 @@
             <useUIHarness>false</useUIHarness>
             <argLine>${tycho.test.jvmArgs}</argLine>
             <!-- kill test JVM if tests take more than 1 minute (60 seconds) to finish -->
-	    <forkedProcessTimeoutInSeconds>${surefire.timeout}</forkedProcessTimeoutInSeconds>
+	          <forkedProcessTimeoutInSeconds>${surefire.timeout}</forkedProcessTimeoutInSeconds>
           </configuration>
         </plugin>
       </plugins>
