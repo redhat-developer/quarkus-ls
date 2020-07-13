@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4mp.commons.ProjectLabelInfoEntry;
-import org.eclipse.lsp4mp.jdt.core.ProjectLabelManager;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest.GradleProjectName;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest.MavenProjectName;
 import org.eclipse.lsp4mp.jdt.core.utils.JDTMicroProfileUtils;
