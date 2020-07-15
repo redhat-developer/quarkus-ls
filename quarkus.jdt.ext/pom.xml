@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.redhat.microprofile</groupId>
   <artifactId>parent</artifactId>
-  <version>0.0.9-SNAPSHOT</version>
+  <version>0.9.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>quarkus.jdt.ls :: parent</name>
   <description>quarkus.jdt.ls parent</description>
@@ -17,7 +17,7 @@
     <jdt.ls.version>0.52.1.20200318153300</jdt.ls.version>
     <tycho.test.platformArgs />
     <tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
-    <lsp4mp.p2.url>http://download.eclipse.org/lsp4mp/snapshots/0.0.9/repository/</lsp4mp.p2.url>
+    <lsp4mp.p2.url>http://download.eclipse.org/lsp4mp/snapshots/0.9.0/repository/</lsp4mp.p2.url>
 
 
     <!-- Code coverage -->
