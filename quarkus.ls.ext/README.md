@@ -1,6 +1,6 @@
 # Quarkus LS extension
 
-Provides additional functionality for [Quarkus](https://quarkus.io/) to the MicroProfile Language Server ([microprofile-ls](https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.ls)) using Java SPI contributions.
+Provides additional functionality for [Quarkus](https://quarkus.io/) to the MicroProfile Language Server ([microprofile-ls](https://github.com/eclipse/lsp4mp/tree/master/microprofile.ls)) using Java SPI contributions.
 
 ## Building the Quarkus language server extension
 
