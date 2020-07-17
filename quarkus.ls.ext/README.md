@@ -1,8 +1,8 @@
 # Quarkus LS extension
 
-Provides additional functionality for [Quarkus](https://quarkus.io/) to the MicroProfile Language Server ([microprofile-ls](https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.ls)) using Java SPI contributions.
+Provides [Quarkus](https://quarkus.io/) specific functionality to the MicroProfile Language Server [lsp4mp](https://github.com/eclipse/lsp4mp/blob/master/microprofile.ls) using Java SPI contributions.
 
-## Building the Quarkus language server extension
+## Building the Quarkus lsp4mp extension
 
 - Clone this repository
 - Navigate to the `quarkus-ls/quarkus.ls.ext/com.redhat.quarkus.ls` folder in your terminal or command line
@@ -10,4 +10,6 @@ Provides additional functionality for [Quarkus](https://quarkus.io/) to the Micr
 - After successful compilation you can find the resulting `com.redhat.quarkus.ls-uber.jar` in the
   `quarkus-ls/quarkus.ls.ext/com.redhat.quarkus.ls/target` folder.
 
-Java and properties completion snippets are managed by the MicroProfile LS (snippets on server side) by using Java SPI.
+Java and properties completion snippets are managed by
+[lsp4mp](https://github.com/eclipse/lsp4mp) and are expanded on by this
+extension using Java SPI.
