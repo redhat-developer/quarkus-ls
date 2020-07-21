@@ -25,3 +25,6 @@ Require-Bundle: org.junit,
  org.eclipse.lsp4mp.jdt.test,
  com.redhat.microprofile.jdt.quarkus
 Import-Package: com.google.gson
+Export-Package: com.redhat.microprofile.jdt.quarkus,
+ com.redhat.microprofile.jdt.quarkus.containerimages,
+ com.redhat.microprofile.jdt.quarkus.jaxrs
