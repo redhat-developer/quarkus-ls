@@ -67,8 +67,8 @@ import org.eclipse.lsp4mp.jdt.core.SearchContext;
 import org.eclipse.lsp4mp.jdt.core.ArtifactResolver.Artifact;
 import org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils;
 
-import com.redhat.microprofile.jdt.internal.quarkus.JDTQuarkusUtils;
 import com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants;
+import com.redhat.microprofile.jdt.quarkus.JDTQuarkusUtils;
 
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;

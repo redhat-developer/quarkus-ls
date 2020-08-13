@@ -12,3 +12,4 @@ Require-Bundle: org.eclipse.lsp4mp.jdt.core,
  org.eclipse.lsp4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
+Export-Package: com.redhat.microprofile.jdt.quarkus
