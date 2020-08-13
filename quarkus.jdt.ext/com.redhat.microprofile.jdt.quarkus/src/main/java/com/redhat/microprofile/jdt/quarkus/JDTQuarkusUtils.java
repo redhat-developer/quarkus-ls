@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.quarkus;
+package com.redhat.microprofile.jdt.quarkus;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +20,8 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4mp.commons.metadata.ConverterKind;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
+
+import com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants;
 
 /**
  * JDT Quarkus utilities.

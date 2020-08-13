@@ -53,8 +53,8 @@ import org.eclipse.lsp4mp.jdt.core.MicroProfileConfigConstants;
 import org.eclipse.lsp4mp.jdt.core.SearchContext;
 import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProjectManager;
 
-import com.redhat.microprofile.jdt.internal.quarkus.JDTQuarkusUtils;
 import com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants;
+import com.redhat.microprofile.jdt.quarkus.JDTQuarkusUtils;
 
 import io.quarkus.arc.config.ConfigProperties;
 import io.quarkus.deployment.bean.JavaBeanUtil;
