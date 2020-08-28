@@ -1,43 +1,4 @@
 {
-	"Quarkus - new resource class": {
-		"prefix": "qrc",
-		"body": [
-			"package ${1:packagename};",
-			"",
-			"import javax.ws.rs.GET;",
-			"import javax.ws.rs.Path;",
-			"import javax.ws.rs.Produces;",
-			"import javax.ws.rs.core.MediaType;",
-			"",
-			"@Path(\"${2:/path}\")",
-			"public class ${TM_FILENAME_BASE} {",
-			"",
-			"\t@GET",
-			"\t@Produces(MediaType.TEXT_PLAIN)",
-			"\tpublic String ${3:methodname}() {",
-			"\t\treturn \"hello\";",
-			"\t}",
-			"}"
-		],
-		"description": "Quarkus REST resource class",
-		"context": {
-			"type": "javax.ws.rs.GET"
-		}
-	},
-	"Quarkus - new resource method": {
-		"prefix": "qrm",
-		"body": [
-			"@GET",
-			"@Produces(MediaType.TEXT_PLAIN)",
-			"public String ${1:methodname}() {",
-			"\treturn \"hello\";",
-			"}"
-		],
-		"description": "Quarkus REST resource method",
-		"context": {
-			"type": "javax.ws.rs.GET"
-		}
-	},
 	"Quarkus - new test resource class": {
 		"prefix": "qtrc",
 		"body": [

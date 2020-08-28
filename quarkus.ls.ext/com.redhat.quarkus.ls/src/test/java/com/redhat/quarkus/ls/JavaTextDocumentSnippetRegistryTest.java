@@ -38,21 +38,21 @@ public class JavaTextDocumentSnippetRegistryTest {
     JavaTextDocumentSnippetRegistry registry = new JavaTextDocumentSnippetRegistry();
     Assert.assertFalse("Tests has Quarkus Java snippets", registry.getSnippets().isEmpty());
 
-    Optional<Snippet> qrcSnippet = findByPrefix("qrc", registry);
-    Assert.assertTrue("Tests has Quarkus - new resource class (qrc) snippets", qrcSnippet.isPresent());
+    Optional<Snippet> qrtcSnippet = findByPrefix("qtrc", registry);
+    Assert.assertTrue("Tests has Quarkus - new test resource class (qtrc) snippets", qrtcSnippet.isPresent());
 
-    ISnippetContext<?> context = qrcSnippet.get().getContext();
-    Assert.assertNotNull("Quarkus - new resource class (qrc) snippet has context", context);
+    ISnippetContext<?> context = qrtcSnippet.get().getContext();
+    Assert.assertNotNull("Quarkus - new test resource class (qtrc) snippet has context", context);
 
-    Assert.assertTrue("Quarkus - new resource class (qrc) snippet context is Java context", context instanceof SnippetContextForJava);
+    Assert.assertTrue("Quarkus - new test resource class (qtrc) snippet context is Java context", context instanceof SnippetContextForJava);
 
     ProjectLabelInfoEntry projectInfo = new ProjectLabelInfoEntry("", new ArrayList<>());
     boolean match = ((SnippetContextForJava) context).isMatch(projectInfo);
-    Assert.assertFalse("Project has no javax.ws.rs.GET type", match);
+    Assert.assertFalse("Project has no io.quarkus.test.junit.QuarkusTest type", match);
 
-    ProjectLabelInfoEntry projectInfo2 = new ProjectLabelInfoEntry("", Arrays.asList("javax.ws.rs.GET"));
+    ProjectLabelInfoEntry projectInfo2 = new ProjectLabelInfoEntry("", Arrays.asList("io.quarkus.test.junit.QuarkusTest"));
     boolean match2 = ((SnippetContextForJava) context).isMatch(projectInfo2);
-    Assert.assertTrue("Project has javax.ws.rs.GET type", match2);
+    Assert.assertTrue("Project has io.quarkus.test.junit.QuarkusTest type", match2);
   }
 
   private static Optional<Snippet> findByPrefix(String prefix, SnippetRegistry registry) {
