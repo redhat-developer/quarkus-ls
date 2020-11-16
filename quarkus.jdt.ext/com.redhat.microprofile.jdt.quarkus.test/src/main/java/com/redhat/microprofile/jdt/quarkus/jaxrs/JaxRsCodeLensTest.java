@@ -67,6 +67,11 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 		// remove quarkus.http.port from application.properties
 		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE, "", javaProject);
 		assertCodeLenses(8081, params, utils); // here port is 8081 coming from META-INF/microprofile-config.properties
+		
+		// Set a different value for the dev profile.
+		// If the dev profile for quarkus.http.port exists, this should be used instead of the default profile
+		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE, "quarkus.http.port = 8080\n%dev.quarkus.http.port = 9090", javaProject);
+		assertCodeLenses(9090, params, utils);
 	}
 
 	@Test
