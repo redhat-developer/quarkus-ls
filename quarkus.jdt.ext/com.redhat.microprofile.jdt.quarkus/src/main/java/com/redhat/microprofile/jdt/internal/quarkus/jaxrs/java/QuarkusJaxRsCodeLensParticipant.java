@@ -27,12 +27,13 @@ import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProjectManager;
  *
  * Quarkus JAX-RS CodeLens participant used to update the server port declared
  * with "quarkus.http.port" property.
- * 
+ *
  * @author Angelo ZERR
- * 
+ *
  */
 public class QuarkusJaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 
+	private static final String QUARKUS_DEV_HTTP_PORT = "%dev.quarkus.http.port";
 	private static final String QUARKUS_HTTP_PORT = "quarkus.http.port";
 
 	@Override
@@ -43,7 +44,8 @@ public class QuarkusJaxRsCodeLensParticipant implements IJavaCodeLensParticipant
 		JDTMicroProfileProject mpProject = JDTMicroProfileProjectManager.getInstance()
 				.getJDTMicroProfileProject(javaProject);
 		int serverPort = mpProject.getPropertyAsInteger(QUARKUS_HTTP_PORT, JaxRsContext.DEFAULT_PORT);
-		JaxRsContext.getJaxRsContext(context).setServerPort(serverPort);
+		int devServerPort = mpProject.getPropertyAsInteger(QUARKUS_DEV_HTTP_PORT, serverPort);
+		JaxRsContext.getJaxRsContext(context).setServerPort(devServerPort);
 	}
 
 	@Override
