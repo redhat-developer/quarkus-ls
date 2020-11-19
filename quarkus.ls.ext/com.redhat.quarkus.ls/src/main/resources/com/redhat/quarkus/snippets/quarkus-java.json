@@ -2,9 +2,7 @@
 	"Quarkus - new test resource class": {
 		"prefix": "qtrc",
 		"body": [
-			"package ${1:packagename};",
-			"",
-			"import io.quarkus.test.junit.QuarkusTest;",
+			"${packagename}import io.quarkus.test.junit.QuarkusTest;",
 			"import org.junit.jupiter.api.Test;",
 			"",
 			"import static io.restassured.RestAssured.given;",
@@ -32,9 +30,7 @@
 	"Quarkus - new native test resource class": {
 		"prefix": "qntrc",
 		"body": [
-			"package ${1:packagename};",
-			"",
-			"import io.quarkus.test.junit.SubstrateTest;",
+			"${packagename}import io.quarkus.test.junit.SubstrateTest;",
 			"",
 			"@SubstrateTest",
 			"public class ${TM_FILENAME_BASE} extends ${2:${TM_FILENAME_BASE/^Native(.*)IT/$1/}Test} {",
