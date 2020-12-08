@@ -46,6 +46,11 @@ public class QuarkusConstants {
 	public static final String CONFIG_ITEM_ANNOTATION_NAME = "name";
 
 	/**
+	 * The Quarkus @Scheduled annotation
+	 */
+	public static final String SCHEDULED_ANNOTATION = "io.quarkus.scheduler.Scheduled";
+
+	/**
 	 * The Quarkus @ConfigProperties annotation
 	 */
 	public static final String CONFIG_PROPERTIES_ANNOTATION = "io.quarkus.arc.config.ConfigProperties";
