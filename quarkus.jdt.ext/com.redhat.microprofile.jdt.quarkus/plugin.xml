@@ -9,6 +9,7 @@
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusKubernetesProvider" />
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusContainerImagesProvider" />
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusHibernateORMProvider" />
+      <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusScheduledPropertiesProvider" />
    </extension>
    
    <extension point="org.eclipse.lsp4mp.jdt.core.projectLabelProviders">
