@@ -37,7 +37,7 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 
 	@Test
 	public void urlCodeLensProperties() throws Exception {
-		IJavaProject javaProject = loadMavenProject(MavenProjectName.hibernate_orm_resteasy);
+		IJavaProject javaProject = loadMavenProject(MicroProfileMavenProjectName.hibernate_orm_resteasy);
 		IJDTUtils utils = JDT_UTILS;
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
@@ -76,7 +76,7 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 
 	@Test
 	public void urlCodeLensYaml() throws Exception {
-		IJavaProject javaProject = loadMavenProject(MavenProjectName.hibernate_orm_resteasy_yaml);
+		IJavaProject javaProject = loadMavenProject(MicroProfileMavenProjectName.hibernate_orm_resteasy_yaml);
 		IJDTUtils utils = JDT_UTILS;
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
