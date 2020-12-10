@@ -32,7 +32,7 @@ public class MicroProfileConfigPropertyTest extends BasePropertiesManagerTest {
 	public void configQuickstartFromClasspath() throws Exception {
 
 		MicroProfileProjectInfo infoFromClasspath = getMicroProfileProjectInfoFromMavenProject(
-				MavenProjectName.config_quickstart, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
+				MicroProfileMavenProjectName.config_quickstart, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
 
 		assertProperties(infoFromClasspath, 257 /* properties from JAR */ + //
 				9 /* properties from Java sources with ConfigProperty */ + //
@@ -111,7 +111,7 @@ public class MicroProfileConfigPropertyTest extends BasePropertiesManagerTest {
 	public void configQuickstartFromJavaSources() throws Exception {
 
 		MicroProfileProjectInfo infoFromJavaSources = getMicroProfileProjectInfoFromMavenProject(
-				MavenProjectName.config_quickstart, MicroProfilePropertiesScope.ONLY_SOURCES);
+				MicroProfileMavenProjectName.config_quickstart, MicroProfilePropertiesScope.ONLY_SOURCES);
 
 		assertProperties(infoFromJavaSources, 9 /* properties from Java sources with ConfigProperty */ + //
 				2 /* properties from Java sources with ConfigRoot */,

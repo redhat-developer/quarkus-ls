@@ -43,7 +43,7 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 	@Test
 	public void hibernateOrmResteasy() throws Exception {
 		MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(
-				MavenProjectName.hibernate_orm_resteasy);
+				MicroProfileMavenProjectName.hibernate_orm_resteasy);
 		assertProperties(info,
 
 				// io.quarkus.hibernate.orm.deployment.HibernateOrmConfig
@@ -65,7 +65,7 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 	@Test
 	public void allQuarkusExtensions() throws Exception {
 		MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(
-				MavenProjectName.all_quarkus_extensions);
+				MicroProfileMavenProjectName.all_quarkus_extensions);
 
 		assertProperties(info,
 
@@ -171,7 +171,7 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 	public void configQuickStart() throws Exception {
 		// Test for https://github.com/redhat-developer/vscode-quarkus/issues/249
 
-		MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(MavenProjectName.config_quickstart,
+		MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(MicroProfileMavenProjectName.config_quickstart,
 				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
 
 		assertProperties(info,

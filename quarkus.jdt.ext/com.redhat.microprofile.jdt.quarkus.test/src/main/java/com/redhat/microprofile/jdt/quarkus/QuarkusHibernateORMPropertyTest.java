@@ -32,7 +32,7 @@ public class QuarkusHibernateORMPropertyTest extends BasePropertiesManagerTest {
 	public void quarkusContainerImages() throws Exception {
 
 		MicroProfileProjectInfo infoFromClasspath = getMicroProfileProjectInfoFromMavenProject(
-				MavenProjectName.hibernate_orm_resteasy, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
+				MicroProfileMavenProjectName.hibernate_orm_resteasy, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
 
 		assertProperties(infoFromClasspath,
 

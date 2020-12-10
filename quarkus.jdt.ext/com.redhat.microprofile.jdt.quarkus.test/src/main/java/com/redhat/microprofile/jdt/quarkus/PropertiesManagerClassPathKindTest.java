@@ -46,7 +46,7 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
   @Test
   public void configQuickstartTest() throws Exception {
 
-    IJavaProject javaProject = loadMavenProject(MavenProjectName.config_quickstart_test);
+    IJavaProject javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart_test);
 
     // not in classpath -> 0 quarkus properties
     IFile fileFromNone = javaProject.getProject().getFile(new Path("application.properties"));

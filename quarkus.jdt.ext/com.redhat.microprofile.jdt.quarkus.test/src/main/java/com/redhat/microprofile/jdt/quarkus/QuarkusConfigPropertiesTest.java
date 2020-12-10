@@ -47,7 +47,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 
 	@Test
 	public void configPropertiesNoDefaultNamingStrategy() throws Exception {
-		IJavaProject javaProject = loadMavenProject(MavenProjectName.config_properties);
+		IJavaProject javaProject = loadMavenProject(MicroProfileMavenProjectName.config_properties);
 		// no quarkus.arc.config-properties-default-naming-strategy
 		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE, "", javaProject);
 
@@ -170,7 +170,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 
 	@Test
 	public void configPropertiesVerbatimDefaultNamingStrategy() throws Exception {
-		IJavaProject javaProject = loadMavenProject(MavenProjectName.config_properties);
+		IJavaProject javaProject = loadMavenProject(MicroProfileMavenProjectName.config_properties);
 		// quarkus.arc.config-properties-default-naming-strategy = verbatim
 		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE,
 				"quarkus.arc.config-properties-default-naming-strategy = verbatim", javaProject);

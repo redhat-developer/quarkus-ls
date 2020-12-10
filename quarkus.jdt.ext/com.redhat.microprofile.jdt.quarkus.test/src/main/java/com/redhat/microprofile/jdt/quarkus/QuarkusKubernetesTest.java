@@ -31,7 +31,7 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
 
   @Test
   public void kubernetes() throws Exception {
-    MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(MavenProjectName.kubernetes);
+    MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(QuarkusMavenProjectName.kubernetes);
 
     assertProperties(info,
 
@@ -82,7 +82,7 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
 
   @Test
   public void openshift() throws Exception {
-    MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(MavenProjectName.kubernetes);
+    MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(QuarkusMavenProjectName.kubernetes);
 
     assertProperties(info,
 
@@ -126,7 +126,7 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
 
   @Test
   public void s2i() throws Exception {
-    MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(MavenProjectName.kubernetes);
+    MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(QuarkusMavenProjectName.kubernetes);
 
     assertProperties(info,
 
@@ -148,7 +148,7 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
 
   @Test
   public void docker() throws Exception {
-    MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(MavenProjectName.kubernetes);
+    MicroProfileProjectInfo info = getMicroProfileProjectInfoFromMavenProject(QuarkusMavenProjectName.kubernetes);
 
     assertProperties(info,
 

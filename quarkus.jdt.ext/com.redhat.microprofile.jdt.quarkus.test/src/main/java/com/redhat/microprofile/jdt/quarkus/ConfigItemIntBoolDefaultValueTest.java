@@ -34,7 +34,7 @@ public class ConfigItemIntBoolDefaultValueTest extends BasePropertiesManagerTest
 	public void configItemIntBoolDefaultValueTest() throws Exception {
 
 		MicroProfileProjectInfo infoFromClasspath = getMicroProfileProjectInfoFromMavenProject(
-				MavenProjectName.config_quickstart, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
+				MicroProfileMavenProjectName.config_quickstart, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
 		
 		String booleanDefault = "false";
 		String intDefault = "0";

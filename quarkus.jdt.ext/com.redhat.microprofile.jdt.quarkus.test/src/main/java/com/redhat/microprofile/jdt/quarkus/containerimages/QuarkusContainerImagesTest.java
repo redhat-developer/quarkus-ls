@@ -19,6 +19,8 @@ import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
 import org.junit.Test;
 
+import com.redhat.microprofile.jdt.quarkus.QuarkusMavenProjectName;
+
 
 /**
  * Test the availability of the Quarkus Container Images properties
@@ -32,7 +34,7 @@ public class QuarkusContainerImagesTest extends BasePropertiesManagerTest {
 	public void quarkusContainerImages() throws Exception {
 
 		MicroProfileProjectInfo infoFromClasspath = getMicroProfileProjectInfoFromMavenProject(
-				MavenProjectName.quarkus_container_images, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
+				QuarkusMavenProjectName.quarkus_container_images, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
 
 		assertProperties(infoFromClasspath,
 

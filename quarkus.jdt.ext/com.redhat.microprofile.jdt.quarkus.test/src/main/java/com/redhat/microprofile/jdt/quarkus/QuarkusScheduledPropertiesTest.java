@@ -27,7 +27,7 @@ public class QuarkusScheduledPropertiesTest extends BasePropertiesManagerTest {
 	public void configQuickstartFromClasspath() throws Exception {
 
 		MicroProfileProjectInfo infoFromClasspath = getMicroProfileProjectInfoFromMavenProject(
-				MavenProjectName.scheduler_quickstart, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
+				QuarkusMavenProjectName.scheduler_quickstart, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
 
 		assertProperties(infoFromClasspath,
 				// CounterBean
@@ -43,7 +43,7 @@ public class QuarkusScheduledPropertiesTest extends BasePropertiesManagerTest {
 	public void configQuickstartFromJavaSources() throws Exception {
 
 		MicroProfileProjectInfo infoFromJavaSources = getMicroProfileProjectInfoFromMavenProject(
-				MavenProjectName.scheduler_quickstart, MicroProfilePropertiesScope.ONLY_SOURCES);
+				QuarkusMavenProjectName.scheduler_quickstart, MicroProfilePropertiesScope.ONLY_SOURCES);
 
 		assertProperties(infoFromJavaSources,
 				// CounterBean

@@ -19,7 +19,7 @@ import org.eclipse.lsp4mp.commons.ProjectLabelInfoEntry;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
 import org.eclipse.lsp4mp.jdt.core.ProjectLabelManager;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest.GradleProjectName;
-import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest.MavenProjectName;
+import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest.MicroProfileMavenProjectName;
 import org.eclipse.lsp4mp.jdt.core.utils.JDTMicroProfileUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,7 +33,7 @@ public class ProjectLabelTest {
 
 	@Test
 	public void getProjectLabelInfoOnlyMaven() throws Exception {
-		IJavaProject maven = BasePropertiesManagerTest.loadMavenProject(MavenProjectName.empty_maven_project);
+		IJavaProject maven = BasePropertiesManagerTest.loadMavenProject(MicroProfileMavenProjectName.empty_maven_project);
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
 		assertProjectLabelInfoContainsProject(projectLabelEntries, maven);
 		assertLabels(projectLabelEntries, maven, "maven");
@@ -49,7 +49,7 @@ public class ProjectLabelTest {
 
 	@Test
 	public void getProjectLabelQuarkusMaven() throws Exception {
-		IJavaProject quarkusMaven = BasePropertiesManagerTest.loadMavenProject(MavenProjectName.using_vertx);
+		IJavaProject quarkusMaven = BasePropertiesManagerTest.loadMavenProject(MicroProfileMavenProjectName.using_vertx);
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
 		assertProjectLabelInfoContainsProject(projectLabelEntries, quarkusMaven);
 		assertLabels(projectLabelEntries, quarkusMaven, "quarkus", "microprofile", "maven");
@@ -66,10 +66,10 @@ public class ProjectLabelTest {
 
 	@Test
 	public void getProjectLabelMultipleProjects() throws Exception {
-		IJavaProject quarkusMaven = BasePropertiesManagerTest.loadMavenProject(MavenProjectName.using_vertx);
+		IJavaProject quarkusMaven = BasePropertiesManagerTest.loadMavenProject(MicroProfileMavenProjectName.using_vertx);
 		IJavaProject quarkusGradle = BasePropertiesManagerTest
 				.loadGradleProject(GradleProjectName.quarkus_gradle_project);
-		IJavaProject maven = BasePropertiesManagerTest.loadMavenProject(MavenProjectName.empty_maven_project);
+		IJavaProject maven = BasePropertiesManagerTest.loadMavenProject(MicroProfileMavenProjectName.empty_maven_project);
 		IJavaProject gradle = BasePropertiesManagerTest.loadGradleProject(GradleProjectName.empty_gradle_project);
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
 
