@@ -12,12 +12,12 @@ package com.redhat.microprofile.jdt.quarkus;
 import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED;
 import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_TIME;
 import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_RUN_TIME;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertHints;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertHintsDuplicate;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertProperties;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.h;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.p;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.vh;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.assertHints;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.assertHintsDuplicate;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.assertProperties;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.h;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.p;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.vh;
 
 import java.util.Optional;
 

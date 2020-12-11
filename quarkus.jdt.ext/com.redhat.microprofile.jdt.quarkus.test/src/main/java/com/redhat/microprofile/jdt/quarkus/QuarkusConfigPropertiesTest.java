@@ -9,9 +9,9 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.quarkus;
 
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertProperties;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertPropertiesDuplicate;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.p;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.assertProperties;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.assertPropertiesDuplicate;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.p;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
