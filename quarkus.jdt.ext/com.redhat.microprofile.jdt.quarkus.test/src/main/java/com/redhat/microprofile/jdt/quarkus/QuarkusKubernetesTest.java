@@ -9,13 +9,13 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.quarkus;
 
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertHints;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertHintsDuplicate;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertProperties;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.assertPropertiesDuplicate;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.h;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.p;
-import static org.eclipse.lsp4mp.jdt.internal.core.MicroProfileAssert.vh;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.assertHints;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.assertHintsDuplicate;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.assertProperties;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.assertPropertiesDuplicate;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.h;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.p;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.vh;
 
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;

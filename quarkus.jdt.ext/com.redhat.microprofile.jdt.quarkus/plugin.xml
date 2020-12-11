@@ -23,4 +23,11 @@
       <codeLens class="com.redhat.microprofile.jdt.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant" />   
    </extension>
    
+   <!-- Quarkus @Scheduled annotation support -->
+   
+   <extension point="org.eclipse.lsp4mp.jdt.core.javaFeatureParticipants">
+       <!-- Java hover for the Quarkus @Scheduled annotation -->
+      <hover class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusScheduledHoverParticipant" />   
+   </extension>
+   
 </plugin>

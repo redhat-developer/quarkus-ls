@@ -27,7 +27,7 @@ public class CounterBean {
         System.out.println(execution.getScheduledFireTime());
     }
 
-    @Scheduled(cron = "{cron.expr}")
+    @Scheduled(cron = "{cron.expr}", every = "{every.expr}")
     void cronJobWithExpressionInConfig() {
         counter.incrementAndGet();
         System.out.println("Cron expression configured in application.properties");
