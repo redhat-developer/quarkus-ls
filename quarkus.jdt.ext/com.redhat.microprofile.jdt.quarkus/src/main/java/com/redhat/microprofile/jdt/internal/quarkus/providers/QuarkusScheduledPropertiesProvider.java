@@ -14,6 +14,7 @@
 package com.redhat.microprofile.jdt.internal.quarkus.providers;
 
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceMethod;
+import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceType;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.isBinary;
 
 import java.util.regex.Matcher;
@@ -54,7 +55,8 @@ public class QuarkusScheduledPropertiesProvider extends AbstractAnnotationTypeRe
 			String extensionName = null;
 			IPropertiesCollector collector = context.getCollector();
 			String description = null;
-			String sourceMethod = getSourceMethod((IMethod) javaElement);;
+			String sourceMethod = getSourceMethod((IMethod) javaElement);
+			String sourceType = getSourceType(javaElement);
 			boolean binary = isBinary(javaElement);
 
 			for (IMemberValuePair mvp : configPropertyAnnotation.getMemberValuePairs()) {
@@ -63,7 +65,7 @@ public class QuarkusScheduledPropertiesProvider extends AbstractAnnotationTypeRe
 					Matcher m = PROP_PATTERN.matcher(name);
 					if (m.matches()) {
 						name = m.group(1);
-						addItemMetadata(collector, name, "java.lang.String", description, null, null, sourceMethod, null,
+						addItemMetadata(collector, name, "java.lang.String", description, sourceType, null, sourceMethod, null,
 								extensionName, binary);
 					}
 				}

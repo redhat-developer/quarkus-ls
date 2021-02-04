@@ -33,8 +33,9 @@ public class QuarkusScheduledPropertiesTest extends BasePropertiesManagerTest {
 				// CounterBean
 				// @Scheduled(cron = "{cron.expr}")
 				// void cronJobWithExpressionInConfig()
-				p(null, "cron.expr", "java.lang.String", null, false, null,
-						null, "cronJobWithExpressionInConfig()V", 0, null));
+				p(null, "cron.expr", "java.lang.String", null, false,
+						"org.acme.scheduler.CounterBean", null, "cronJobWithExpressionInConfig()V",
+						0, null));
 
 		assertPropertiesDuplicate(infoFromClasspath);
 	}
@@ -49,8 +50,9 @@ public class QuarkusScheduledPropertiesTest extends BasePropertiesManagerTest {
 				// CounterBean
 				// @Scheduled(cron = "{cron.expr}")
 				// void cronJobWithExpressionInConfig()
-				p(null, "cron.expr", "java.lang.String", null, false, null,
-						null, "cronJobWithExpressionInConfig()V", 0, null));
+				p(null, "cron.expr", "java.lang.String", null, false,
+						"org.acme.scheduler.CounterBean", null, "cronJobWithExpressionInConfig()V",
+						0, null));
 
 		assertPropertiesDuplicate(infoFromJavaSources);
 	}
