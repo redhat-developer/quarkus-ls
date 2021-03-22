@@ -18,6 +18,7 @@ import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.p;
 import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.vh;
 
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
+import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
 import org.junit.Test;
 
@@ -42,8 +43,11 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
                 + "    " + System.lineSeparator() + "     *  The specified application name.",
             true, "io.dekorate.kubernetes.annotation.KubernetesApplication", null, "name()Ljava/lang/String;", 0, null),
 
-        p(null, "kubernetes.readiness-probe.initial-delay-seconds", "int", null, true,
-            "io.dekorate.kubernetes.annotation.Probe", null, "initialDelaySeconds()I", 0, "0"),
+        p(null, "kubernetes.readiness-probe.initial-delay-seconds", "int", "The amount of time to wait in seconds before starting to probe." + //
+                  System.lineSeparator() + "" + System.lineSeparator() + //
+                  " *  **Returns:**" + System.lineSeparator() + //
+                  "    " + System.lineSeparator() + "     *  The initial delay.",
+                  true, "io.dekorate.kubernetes.annotation.Probe", null, "initialDelaySeconds()I", 0, "0"),
 
         p(null, "kubernetes.annotations[*].key", "java.lang.String", null, true,
             "io.dekorate.kubernetes.annotation.Annotation", null, "key()Ljava/lang/String;", 0, null),
@@ -51,13 +55,6 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
         p(null, "kubernetes.init-containers[*].ports[*].protocol", "io.dekorate.kubernetes.annotation.Protocol", null,
             true, "io.dekorate.kubernetes.annotation.Port", null,
             "protocol()Lio/dekorate/kubernetes/annotation/Protocol;", 0, "TCP"),
-
-        p(null, "kubernetes.group", "java.lang.String",
-            "The group of the application. This value will be use as: - docker image repo - labeling resources"
-                + System.lineSeparator() + "" + System.lineSeparator() + " *  **Returns:**" + System.lineSeparator()
-                + "    " + System.lineSeparator() + "     *  The specified group name.",
-            true, "io.dekorate.kubernetes.annotation.KubernetesApplication", null, "group()Ljava/lang/String;", 0,
-            null),
 
         p(null, "kubernetes.deployment.target", "java.lang.String",
             "To enable the generation of OpenShift resources, you need to include OpenShift in the target platforms: `kubernetes.deployment.target=openshift`."
@@ -93,7 +90,10 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
                 + "    " + System.lineSeparator() + "     *  The specified application name.",
             true, "io.dekorate.openshift.annotation.OpenshiftApplication", null, "name()Ljava/lang/String;", 0, null),
 
-        p(null, "openshift.readiness-probe.initial-delay-seconds", "int", null, true,
+        p(null, "openshift.readiness-probe.initial-delay-seconds", "int", "The amount of time to wait in seconds before starting to probe." + //
+                  System.lineSeparator() + "" + System.lineSeparator() + //
+                  " *  **Returns:**" + System.lineSeparator() + //
+                  "    " + System.lineSeparator() + "     *  The initial delay.", true,
             "io.dekorate.kubernetes.annotation.Probe", null, "initialDelaySeconds()I", 0, "0"),
 
         p(null, "openshift.annotations[*].key", "java.lang.String", null, true,
@@ -102,12 +102,6 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
         p(null, "openshift.init-containers[*].ports[*].protocol", "io.dekorate.kubernetes.annotation.Protocol", null,
             true, "io.dekorate.kubernetes.annotation.Port", null,
             "protocol()Lio/dekorate/kubernetes/annotation/Protocol;", 0, "TCP"),
-
-        p(null, "openshift.group", "java.lang.String",
-            "The group of the application. This value will be use as: - docker image repo - labeling resources"
-                + System.lineSeparator() + "" + System.lineSeparator() + " *  **Returns:**" + System.lineSeparator()
-                + "    " + System.lineSeparator() + "     *  The specified group name.",
-            true, "io.dekorate.openshift.annotation.OpenshiftApplication", null, "group()Ljava/lang/String;", 0, null),
 
         p(null, "openshift.registry", "java.lang.String", "Specify the docker registry.", true, null, null, null, 0,
             null));
@@ -138,7 +132,21 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
             "    " + //
             System.lineSeparator() + //
             "     *  The relative path.", true, "io.dekorate.s2i.annotation.S2iBuild", null,
-            "dockerFile()Ljava/lang/String;", 0, "Dockerfile"));
+            "dockerFile()Ljava/lang/String;", 0, "Dockerfile"),
+
+                   p(null, "s2i.group", "java.lang.String",
+            "The group of the application. This value will be use as image user."
+                  + System.lineSeparator() + "" + System.lineSeparator() + " *  **Returns:**" + System.lineSeparator()
+                  + "    " + System.lineSeparator() + "     *  The specified group name.",
+            true, "io.dekorate.s2i.annotation.S2iBuild", null, "group()Ljava/lang/String;", 0,
+            null),
+
+                   p("quarkus-container-image-s2i", "quarkus.s2i.jar-directory", "java.lang.String",
+            "The directory where the jar is added during the assemble phase." + //
+            System.lineSeparator() + //
+            "This is dependent on the S2I image and should be supplied if a non default image is used.",
+            true, "io.quarkus.container.image.s2i.deployment.S2iConfig", "jarDirectory", null, 1,
+            "/deployments/"));
 
     assertPropertiesDuplicate(info);
 
