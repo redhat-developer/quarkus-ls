@@ -89,6 +89,7 @@ public class QuarkusKubernetesProvider extends AbstractTypeDeclarationProperties
 		// the dependencies of quarkus-kubernetes-deployment artifact must be downloaded
 		QuarkusContext quarkusContext = QuarkusContext.getQuarkusContext(context);
 		quarkusContext.collectDependenciesFor("quarkus-kubernetes-deployment");
+		quarkusContext.collectDependenciesFor("quarkus-openshift-deployment");
 	}
 
 	@Override
