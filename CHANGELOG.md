@@ -1,5 +1,19 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## 0.10.0 (March 31, 2021)
+
+### Enhancements
+
+ * Hover support for `@Scheduled/cron`. See [#376](https://github.com/redhat-developer/quarkus-ls/issues/376).
+ * `quarkus.hibernate-orm.database.generation` values should be enumerated. See [#374](https://github.com/redhat-developer/quarkus-ls/pull/374).
+
+### Bug Fixes
+
+ * Schedule properties are shown as unknown. See [#375](https://github.com/redhat-developer/quarkus-ls/pull/375).
+ * REST endpoint codelenses should be computed from `%dev.quarkus.http.port` by default. See [#371](https://github.com/redhat-developer/quarkus-ls/pull/371).
+ * Wrong/Missing Log Levels in application.properties. See [#370](https://github.com/redhat-developer/quarkus-ls/pull/370).
+ * `mp.messaging` properties now work for Emitters. See [#369](https://github.com/redhat-developer/quarkus-ls/issues/369).
+
 ## 0.9.0 (September 21, 2020)
 
 Since `0.9.0`, quarkus-ls becomes an extension of [lsp4mp](https://github.com/eclipse/lsp4mp), the Language Server for Eclipse MicroProfile, see the upstream [lsp4mp CHANGELOG](https://github.com/eclipse/lsp4mp/blob/master/CHANGELOG.md#010-september-21-2020).
