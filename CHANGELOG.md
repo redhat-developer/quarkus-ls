@@ -1,6 +1,6 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
-## 0.10.0 (March 31, 2021)
+## 0.10.0 (April 02, 2021)
 
 ### Enhancements
 
