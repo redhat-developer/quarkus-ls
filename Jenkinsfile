@@ -12,10 +12,6 @@ pipeline {
           MVN="${COMMON_TOOLS}${SEP}maven3-latest/bin/mvn -V -Dmaven.repo.local=${WORKSPACE}/.repository/"
           ${MVN} -B -f ${WORKSPACE}/quarkus.jdt.ext/pom.xml org.eclipse.tycho:tycho-versions-plugin:1.7.0:set-version -DnewVersion=${VERSION}-SNAPSHOT -Dtycho.mode=maven
           ${MVN} -B -f ${WORKSPACE}/quarkus.ls.ext/com.redhat.quarkus.ls/pom.xml versions:set -DnewVersion=$VERSION -DnewVersion=${VERSION} -Dtycho.mode=maven
-          git config --global user.email "tools@jboss.org"
-          git config --global user.name "Quarkus LS GitHub Bot"
-          git add -v '**/pom.xml' '**/MANIFEST.MF'
-          git commit -s -m "Release ${VERSION}"
         '''
       }
     }
@@ -61,17 +57,8 @@ pipeline {
     }
   }
   post {
-    success {
-      sh '''
-        if [[ ${VERSION} != "" ]]; then
-          git tag '${VERSION}'
-          git push origin '${VERSION}'
-        fi
-      '''
-    }
     always {
       archiveArtifacts artifacts: '**/*.jar*', fingerprint: true
-      sh 'git push origin ${GIT_LOCAL_BRANCH}'
       deleteDir()
     }
   }
