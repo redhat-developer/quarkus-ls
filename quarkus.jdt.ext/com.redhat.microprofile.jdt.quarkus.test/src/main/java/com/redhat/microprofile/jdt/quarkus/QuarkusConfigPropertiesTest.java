@@ -25,9 +25,11 @@ import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProject;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigSourceProvider;
+
 /**
  * Test collection of Quarkus properties from @ConfigProperties
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -49,7 +51,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 	public void configPropertiesNoDefaultNamingStrategy() throws Exception {
 		IJavaProject javaProject = loadMavenProject(MicroProfileMavenProjectName.config_properties);
 		// no quarkus.arc.config-properties-default-naming-strategy
-		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE, "", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
 
 		MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(
 				javaProject, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC,
@@ -172,7 +174,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 	public void configPropertiesVerbatimDefaultNamingStrategy() throws Exception {
 		IJavaProject javaProject = loadMavenProject(MicroProfileMavenProjectName.config_properties);
 		// quarkus.arc.config-properties-default-naming-strategy = verbatim
-		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE,
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE,
 				"quarkus.arc.config-properties-default-naming-strategy = verbatim", javaProject);
 
 		MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(
