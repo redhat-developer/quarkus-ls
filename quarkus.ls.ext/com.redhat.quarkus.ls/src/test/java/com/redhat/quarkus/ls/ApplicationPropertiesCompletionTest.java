@@ -9,9 +9,9 @@
 *******************************************************************************/
 package com.redhat.quarkus.ls;
 
-import static org.eclipse.lsp4mp.services.MicroProfileAssert.assertCompletionWithProperties;
-import static org.eclipse.lsp4mp.services.MicroProfileAssert.c;
-import static org.eclipse.lsp4mp.services.MicroProfileAssert.r;
+import static org.eclipse.lsp4mp.services.properties.PropertiesFileAssert.assertCompletionWithProperties;
+import static org.eclipse.lsp4mp.services.properties.PropertiesFileAssert.c;
+import static org.eclipse.lsp4mp.services.properties.PropertiesFileAssert.r;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
@@ -23,7 +23,7 @@ import org.eclipse.lsp4mp.ls.commons.BadLocationException;
 
 /**
  * Test with completion in 'application.properties' file.
- * 
+ *
  * @author Angelo ZERR
  *
  */

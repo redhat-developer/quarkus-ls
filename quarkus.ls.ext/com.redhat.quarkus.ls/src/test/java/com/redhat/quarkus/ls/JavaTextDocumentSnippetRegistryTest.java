@@ -5,7 +5,7 @@
 * http://www.eclipse.org/legal/epl-v20.html
 *
 * SPDX-License-Identifier: EPL-2.0
-* 
+*
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
@@ -18,7 +18,7 @@ import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 
-import org.eclipse.lsp4mp.ls.JavaTextDocumentSnippetRegistry;
+import org.eclipse.lsp4mp.ls.java.JavaTextDocumentSnippetRegistry;
 import org.eclipse.lsp4mp.commons.ProjectLabelInfoEntry;
 import org.eclipse.lsp4mp.ls.commons.snippets.ISnippetContext;
 import org.eclipse.lsp4mp.ls.commons.snippets.Snippet;
@@ -27,7 +27,7 @@ import org.eclipse.lsp4mp.snippets.SnippetContextForJava;
 
 /**
  * test for Java snippet registry.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -46,11 +46,11 @@ public class JavaTextDocumentSnippetRegistryTest {
 
     Assert.assertTrue("Quarkus - new test resource class (qtrc) snippet context is Java context", context instanceof SnippetContextForJava);
 
-    ProjectLabelInfoEntry projectInfo = new ProjectLabelInfoEntry("", new ArrayList<>());
+    ProjectLabelInfoEntry projectInfo = new ProjectLabelInfoEntry("", "", new ArrayList<>());
     boolean match = ((SnippetContextForJava) context).isMatch(projectInfo);
     Assert.assertFalse("Project has no io.quarkus.test.junit.QuarkusTest type", match);
 
-    ProjectLabelInfoEntry projectInfo2 = new ProjectLabelInfoEntry("", Arrays.asList("io.quarkus.test.junit.QuarkusTest"));
+    ProjectLabelInfoEntry projectInfo2 = new ProjectLabelInfoEntry("", "", Arrays.asList("io.quarkus.test.junit.QuarkusTest"));
     boolean match2 = ((SnippetContextForJava) context).isMatch(projectInfo2);
     Assert.assertTrue("Project has io.quarkus.test.junit.QuarkusTest type", match2);
   }
