@@ -24,12 +24,15 @@ import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
 import org.eclipse.lsp4mp.jdt.core.PropertiesManagerForJava;
 import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProject;
 import org.eclipse.lsp4mp.jdt.core.utils.IJDTUtils;
+import org.eclipse.lsp4mp.jdt.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigSourceProvider;
+
 /**
  * JAX-RS URL Codelens test for Java file.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -51,26 +54,26 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 		assertCodeLenses(8080, params, utils);
 
 		// META-INF/microprofile-config.properties : 8081
-		saveFile(JDTMicroProfileProject.MICROPROFILE_CONFIG_PROPERTIES_FILE, "quarkus.http.port = 8081", javaProject);
+		saveFile(DefaultMicroProfilePropertiesConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, "quarkus.http.port = 8081", javaProject);
 		assertCodeLenses(8081, params, utils);
 
 		// application.properties : 8082 -> it overrides 8081 coming from the
 		// META-INF/microprofile-config.properties
-		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE, "quarkus.http.port = 8082", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.port = 8082", javaProject);
 		assertCodeLenses(8082, params, utils);
 
 		// application.properties : 8083
 		// META-INF/microprofile-config.properties
-		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE, "quarkus.http.port = 8083", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.port = 8083", javaProject);
 		assertCodeLenses(8083, params, utils);
 
 		// remove quarkus.http.port from application.properties
-		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE, "", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
 		assertCodeLenses(8081, params, utils); // here port is 8081 coming from META-INF/microprofile-config.properties
-		
+
 		// Set a different value for the dev profile.
 		// If the dev profile for quarkus.http.port exists, this should be used instead of the default profile
-		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE, "quarkus.http.port = 8080\n%dev.quarkus.http.port = 9090", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.port = 8080\n%dev.quarkus.http.port = 9090", javaProject);
 		assertCodeLenses(9090, params, utils);
 	}
 
@@ -90,21 +93,21 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 		assertCodeLenses(8080, params, utils);
 
 		// application.yaml : 8081
-		saveFile(JDTMicroProfileProject.APPLICATION_YAML_FILE, "quarkus:\n" + "  http:\n" + "    port: 8081",
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "quarkus:\n" + "  http:\n" + "    port: 8081",
 				javaProject);
 		assertCodeLenses(8081, params, utils);
 
 		// application.properties : 8082 -> application.yaml overrides
 		// application.properties
-		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE, "quarkus.http.port = 8082", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.port = 8082", javaProject);
 		assertCodeLenses(8081, params, utils);
 
 		// remove quarkus.http.port from application.yaml
-		saveFile(JDTMicroProfileProject.APPLICATION_YAML_FILE, "", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "", javaProject);
 		assertCodeLenses(8082, params, utils); // here port is 8082 coming from application.properties
 
 		// application.yaml: 8083 with more keys and a prefix related name conflict
-		saveFile(JDTMicroProfileProject.APPLICATION_YAML_FILE, "quarkus:\r\n" + //
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "quarkus:\r\n" + //
 				"  application:\r\n" + //
 				"    name: name\r\n" + //
 				"    version: version\r\n" + //

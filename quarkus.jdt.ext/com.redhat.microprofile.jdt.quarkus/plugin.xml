@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.5"?>
 <plugin>
-   
+
+   <extension point="org.eclipse.lsp4mp.jdt.core.configSourceProviders">
+      <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigSourceProvider" />
+   </extension>
+
    <extension point="org.eclipse.lsp4mp.jdt.core.projectLabelProviders">
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
    </extension>

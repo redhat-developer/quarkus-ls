@@ -26,6 +26,8 @@ import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
 import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProject;
 import org.junit.Test;
 
+import com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigSourceProvider;
+
 /**
  * Quarkus Scheduled annotation property test for hover in Java file.
  */
@@ -43,7 +45,7 @@ public class QuarkusScheduledHoverTest extends BasePropertiesManagerTest {
 		IFile propertiesFile = project.getFile(new Path("src/main/resources/application.properties"));
 		String propertiesFileUri = fixURI(propertiesFile.getLocation().toFile().toURI());
 
-		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE,
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE,
 				"cron.expr=*/5 * * * * ?\r\n",
 				javaProject);
 
@@ -63,7 +65,7 @@ public class QuarkusScheduledHoverTest extends BasePropertiesManagerTest {
 		IFile propertiesFile = project.getFile(new Path("src/main/resources/application.properties"));
 		String propertiesFileUri = fixURI(propertiesFile.getLocation().toFile().toURI());
 
-		saveFile(JDTMicroProfileProject.APPLICATION_PROPERTIES_FILE,
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE,
 				"every.expr=*/5 * * * * ?\r\n",
 				javaProject);
 

@@ -4,7 +4,7 @@ Bundle-Name: %pluginName
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Bundle-SymbolicName: com.redhat.microprofile.jdt.quarkus;singleton:=true
-Bundle-Version: 0.10.2.qualifier
+Bundle-Version: 0.11.0.qualifier
 Require-Bundle: org.eclipse.lsp4mp.jdt.core,
  org.eclipse.core.runtime,
  org.eclipse.jdt.core,
@@ -13,4 +13,9 @@ Require-Bundle: org.eclipse.lsp4mp.jdt.core,
  org.apache.commons.lang3
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
-Export-Package: com.redhat.microprofile.jdt.quarkus
+Export-Package: com.redhat.microprofile.jdt.quarkus,
+ com.redhat.microprofile.jdt.internal.quarkus.providers;x-friends:="com.redhat.microprofile.jdt.quarkus.test",
+ com.redhat.microprofile.jdt.internal.quarkus.utils;x-friends:="com.redhat.microprofile.jdt.quarkus.test",
+ org.yaml.snakeyaml;x-friends:="com.redhat.microprofile.jdt.quarkus.test"
+Bundle-ClassPath: lib/snakeyaml-1.25.jar,
+ .
