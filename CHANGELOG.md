@@ -1,5 +1,13 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## 0.10.1 (July 20, 2021)
+
+## Build
+
+ * Do not commit, tag, or push in the release pipeline. See [#393](https://github.com/redhat-developer/quarkus-ls/issues/393).
+ * Update lsp4mp to 0.3.0. See [#388](https://github.com/redhat-developer/quarkus-ls/issues/388).
+ * Add existing build script to the repo as a Jenkinsfile. See [#392](https://github.com/redhat-developer/quarkus-ls/pull/392).
+
 ## 0.10.0 (April 02, 2021)
 
 ### Enhancements
