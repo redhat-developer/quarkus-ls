@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/redhat-developer/quarkus-ls.svg?branch=master)](https://travis-ci.org/redhat-developer/quarkus-ls)
+[![Tests workflow](https://github.com/redhat-developer/quarkus-ls/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/redhat-developer/quarkus-ls/actions)
 
 # quarkus-ls
 
