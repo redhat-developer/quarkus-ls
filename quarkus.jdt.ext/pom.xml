@@ -17,7 +17,7 @@
     <jdt.ls.version>0.57.0.20200619102332</jdt.ls.version>
     <tycho.test.platformArgs />
     <tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
-    <lsp4mp.p2.url>http://download.eclipse.org/lsp4mp/snapshots/0.3.0/repository/</lsp4mp.p2.url>
+    <lsp4mp.p2.url>http://download.eclipse.org/lsp4mp/releases/0.3.0/repository/</lsp4mp.p2.url>
 
 
     <!-- Code coverage -->
