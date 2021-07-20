@@ -4,6 +4,11 @@ pipeline {
     string(name: 'VERSION', defaultValue: '', description: 'Setting this field will create a tag and deploy the version')
   }
   stages {
+    stage ("Checkout") {
+      steps {
+        git url: "https://github.com/${params.FORK}/quarkus-ls.git", branch: params.BRANCH
+      }
+    }
     stage ("Update version number") {
       when { not { equals expected: '', actual: VERSION } }
       steps {
@@ -26,9 +31,9 @@ pipeline {
           MVN="${COMMON_TOOLS}${SEP}maven3-latest/bin/mvn -V -Dmaven.repo.local=${WORKSPACE}/.repository/"
           BUILD_TIMESTAMP=`date -u +%Y-%m-%d_%H-%M-%S`
           if [[ ${pomVersion} == *"-SNAPSHOT" ]]; then
-            ${MVN} -B -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/snapshots/builds/quarkus-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=1800
+            ${MVN} -B -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/snapshots/builds/quarkus-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=1800 -Dmaven.test.failure.ignore=true
           else
-            ${MVN} -B -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/stable/builds/quarkus-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=1800
+            ${MVN} -B -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/stable/builds/quarkus-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=1800 -Dmaven.test.failure.ignore=true
           fi
         '''
       }
