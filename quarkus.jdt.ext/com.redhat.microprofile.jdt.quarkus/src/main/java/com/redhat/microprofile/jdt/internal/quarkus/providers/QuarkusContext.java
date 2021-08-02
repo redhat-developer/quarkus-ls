@@ -15,7 +15,7 @@ import java.util.Set;
 import org.eclipse.lsp4mp.jdt.core.BuildingScopeContext;
 
 /**
- * The Quarkus context.
+ * The Quarkus context used while building scope process.
  * 
  * @author Angelo ZERR
  *
@@ -66,4 +66,5 @@ public class QuarkusContext {
 	public boolean isCollectDependenciesFor(String deploymentArtifact) {
 		return dependenciesToCollect.contains(deploymentArtifact);
 	}
+
 }

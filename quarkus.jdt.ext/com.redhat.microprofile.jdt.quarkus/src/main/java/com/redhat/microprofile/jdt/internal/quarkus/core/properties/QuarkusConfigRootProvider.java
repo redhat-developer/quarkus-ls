@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.quarkus.providers;
+package com.redhat.microprofile.jdt.internal.quarkus.core.properties;
 
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
@@ -61,13 +61,15 @@ import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 import org.eclipse.lsp4mp.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import org.eclipse.lsp4mp.jdt.core.ArtifactResolver;
+import org.eclipse.lsp4mp.jdt.core.ArtifactResolver.Artifact;
 import org.eclipse.lsp4mp.jdt.core.BuildingScopeContext;
 import org.eclipse.lsp4mp.jdt.core.IPropertiesCollector;
 import org.eclipse.lsp4mp.jdt.core.SearchContext;
-import org.eclipse.lsp4mp.jdt.core.ArtifactResolver.Artifact;
 import org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils;
 
 import com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants;
+import com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusContext;
+import com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusSearchContext;
 import com.redhat.microprofile.jdt.quarkus.JDTQuarkusUtils;
 
 import io.quarkus.runtime.annotations.ConfigItem;
@@ -237,7 +239,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 			SearchContext context, IProgressMonitor monitor) throws JavaModelException {
 		Map<IPackageFragmentRoot, Properties> javadocCache = (Map<IPackageFragmentRoot, Properties>) context
 				.get(JAVADOC_CACHE_KEY);
-		processConfigRoot(javaElement, annotation, javadocCache, context.getCollector(), monitor);
+		QuarkusSearchContext quarkusContext = QuarkusSearchContext.getQuarkusContext(context);
+		processConfigRoot(javaElement, annotation, javadocCache, quarkusContext, context.getCollector(), monitor);
 	}
 
 	// ------------- Process Quarkus ConfigRoot -------------
@@ -250,12 +253,13 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 *                             ConfigRoot annotations.
 	 * @param configRootAnnotation the Quarkus ConfigRoot annotation.
 	 * @param javadocCache         the documentation cache.
+	 * @param quarkusContext       Quarkus context.
 	 * @param collector            the properties to fill.
 	 * @param monitor              the progress monitor.
 	 */
 	private void processConfigRoot(IJavaElement javaElement, IAnnotation configRootAnnotation,
-			Map<IPackageFragmentRoot, Properties> javadocCache, IPropertiesCollector collector,
-			IProgressMonitor monitor) throws JavaModelException {
+			Map<IPackageFragmentRoot, Properties> javadocCache, QuarkusSearchContext quarkusContext,
+			IPropertiesCollector collector, IProgressMonitor monitor) throws JavaModelException {
 		ConfigPhase configPhase = getConfigPhase(configRootAnnotation);
 		String configRootAnnotationName = getConfigRootName(configRootAnnotation);
 		String extension = getExtensionName(getSimpleName(javaElement), configRootAnnotationName, configPhase);
@@ -271,7 +275,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 
 		String baseKey = extension.isEmpty() ? QuarkusConstants.QUARKUS_PREFIX
 				: QuarkusConstants.QUARKUS_PREFIX + '.' + extension;
-		processConfigGroup(extensionName, javaElement, baseKey, configPhase, javadocCache, collector, monitor);
+		processConfigGroup(extensionName, javaElement, baseKey, configPhase, javadocCache, quarkusContext, collector,
+				monitor);
 	}
 
 	/**
@@ -396,8 +401,9 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * @throws JavaModelException
 	 */
 	private void processConfigGroup(String extensionName, IJavaElement javaElement, String baseKey,
-			ConfigPhase configPhase, Map<IPackageFragmentRoot, Properties> javadocCache, IPropertiesCollector collector,
-			IProgressMonitor monitor) throws JavaModelException {
+			ConfigPhase configPhase, Map<IPackageFragmentRoot, Properties> javadocCache,
+			QuarkusSearchContext quarkusContext, IPropertiesCollector collector, IProgressMonitor monitor)
+			throws JavaModelException {
 		if (javaElement.getElementType() == IJavaElement.TYPE) {
 			IJavaElement[] elements = ((IType) javaElement).getChildren();
 			for (IJavaElement child : elements) {
@@ -434,11 +440,11 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 					final IAnnotation configGroupAnnotation = getAnnotation((IAnnotatable) fieldClass,
 							QuarkusConstants.CONFIG_GROUP_ANNOTATION);
 					if (configGroupAnnotation != null) {
-						processConfigGroup(extensionName, fieldClass, subKey, configPhase, javadocCache, collector,
-								monitor);
+						processConfigGroup(extensionName, fieldClass, subKey, configPhase, javadocCache, quarkusContext,
+								collector, monitor);
 					} else {
 						addItemMetadata(extensionName, field, fieldTypeName, fieldClass, subKey, defaultValue,
-								javadocCache, configPhase, collector, monitor);
+								javadocCache, configPhase, quarkusContext, collector, monitor);
 					}
 				}
 			}
@@ -461,8 +467,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 
 	private void addItemMetadata(String extensionName, IField field, String fieldTypeName, IType fieldClass,
 			String name, String defaultValue, Map<IPackageFragmentRoot, Properties> javadocCache,
-			ConfigPhase configPhase, IPropertiesCollector collector, IProgressMonitor monitor)
-			throws JavaModelException {
+			ConfigPhase configPhase, QuarkusSearchContext quarkusContext, IPropertiesCollector collector,
+			IProgressMonitor monitor) throws JavaModelException {
 
 		// Class type
 		String type = getPropertyType(fieldClass, fieldTypeName);
@@ -496,7 +502,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 			if ((rawTypeParameters[0].trim().equals("java.lang.String"))) {
 				// The key Map must be a String
 				processMap(field, name, rawTypeParameters[1], description, extensionName, sourceType, configPhase,
-						javadocCache, collector, monitor);
+						javadocCache, 0, quarkusContext, collector, monitor);
 			}
 		} else if (isList(fieldTypeName)) {
 			item = super.addItemMetadata(collector, name, type, description, sourceType, sourceField, null,
@@ -527,15 +533,17 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	}
 
 	private void processMap(IField field, String baseKey, String mapValueClass, String docs, String extensionName,
-			String source, ConfigPhase configPhase, Map<IPackageFragmentRoot, Properties> javadocCache,
-			IPropertiesCollector collector, IProgressMonitor monitor) throws JavaModelException {
-		final String subKey = baseKey + ".{*}";
+			String source, ConfigPhase configPhase, Map<IPackageFragmentRoot, Properties> javadocCache, int keyIndex,
+			QuarkusSearchContext quarkusContext, IPropertiesCollector collector, IProgressMonitor monitor)
+			throws JavaModelException {
+
+		final String subKey = baseKey + "." + quarkusContext.getPropertyMapKey(extensionName, baseKey, keyIndex);
 		if ("java.util.Map".equals(mapValueClass)) {
 			// ignore, Map must be parameterized
 		} else if (isMap(mapValueClass)) {
 			String[] rawTypeParameters = getRawTypeParameters(mapValueClass);
 			processMap(field, subKey, rawTypeParameters[1], docs, extensionName, source, configPhase, javadocCache,
-					collector, monitor);
+					keyIndex + 1, quarkusContext, collector, monitor);
 		} else if (isOptional(mapValueClass)) {
 			// Optionals are not allowed as a map value type
 		} else {
@@ -545,9 +553,10 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 				// - Simple type, like java.lang.String
 				// - Type which cannot be found (bad classpath?)
 				addItemMetadata(extensionName, field, mapValueClass, null, subKey, null, javadocCache, configPhase,
-						collector, monitor);
+						quarkusContext, collector, monitor);
 			} else {
-				processConfigGroup(extensionName, type, subKey, configPhase, javadocCache, collector, monitor);
+				processConfigGroup(extensionName, type, subKey, configPhase, javadocCache, quarkusContext, collector,
+						monitor);
 			}
 		}
 	}

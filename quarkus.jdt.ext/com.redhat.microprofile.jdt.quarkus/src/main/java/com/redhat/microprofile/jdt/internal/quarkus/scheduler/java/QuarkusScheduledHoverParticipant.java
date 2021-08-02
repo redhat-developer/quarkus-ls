@@ -11,7 +11,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.quarkus.providers;
+package com.redhat.microprofile.jdt.internal.quarkus.scheduler.java;
 
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.lsp4mp.jdt.core.java.hover.PropertiesHoverParticipant;
