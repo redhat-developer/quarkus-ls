@@ -11,7 +11,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.quarkus.providers;
+package com.redhat.microprofile.jdt.internal.quarkus.scheduler.properties;
 
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceMethod;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceType;

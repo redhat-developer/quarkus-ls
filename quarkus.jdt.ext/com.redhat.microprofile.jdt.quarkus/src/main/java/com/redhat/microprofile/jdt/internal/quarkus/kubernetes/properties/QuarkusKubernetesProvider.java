@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.quarkus.providers;
+package com.redhat.microprofile.jdt.internal.quarkus.kubernetes.properties;
 
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.findType;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getDefaultValue;
@@ -29,6 +29,8 @@ import org.eclipse.lsp4mp.jdt.core.BuildingScopeContext;
 import org.eclipse.lsp4mp.jdt.core.IPropertiesCollector;
 import org.eclipse.lsp4mp.jdt.core.SearchContext;
 import org.eclipse.lsp4mp.jdt.core.utils.IJDTUtils;
+
+import com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusContext;
 
 import io.quarkus.runtime.util.StringUtil;
 

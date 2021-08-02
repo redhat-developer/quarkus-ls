@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.internal.quarkus.providers;
+package com.redhat.microprofile.jdt.internal.quarkus.container.properties;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.search.SearchMatch;
@@ -15,6 +15,8 @@ import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.lsp4mp.jdt.core.AbstractPropertiesProvider;
 import org.eclipse.lsp4mp.jdt.core.BuildingScopeContext;
 import org.eclipse.lsp4mp.jdt.core.SearchContext;
+
+import com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusContext;
 
 /**
  * Properties provider to collect Quarkus properties from Quarkus container images jib, docker and s2i.
