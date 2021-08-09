@@ -37,6 +37,7 @@ public class QuarkusConfigJavaHoverTest extends BasePropertiesManagerTest {
 		deleteFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, javaProject);
 		deleteFile(QuarkusConfigSourceProvider.APPLICATION_YML_FILE, javaProject);
 		deleteFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, javaProject);
+		deleteFile("application-foo.properties", javaProject);
 	}
 
 	@Test
@@ -158,6 +159,23 @@ public class QuarkusConfigJavaHoverTest extends BasePropertiesManagerTest {
 		// fallback to application.properties
 		assertJavaHover(new Position(26, 33), javaFileUri, JDT_UTILS,
 				h("`greeting.number = 100` *in* [application.properties](" + propertiesFileUri + ")", 26, 28, 43));
+	}
+
+	@Test
+	public void perProfileConfigPropertyFile() throws Exception {
+
+		javaProject = loadMavenProject(MicroProfileMavenProjectName.config_hover);
+		IProject project = javaProject.getProject();
+		IFile javaFile = project.getFile(new Path("src/main/java/org/acme/config/GreetingResource.java"));
+		String javaFileUri = fixURI(javaFile.getLocation().toFile().toURI());
+		IFile propertiesFile = project.getFile(new Path("src/main/resources/application-foo.properties"));
+		String propertiesFileUri = fixURI(propertiesFile.getLocation().toFile().toURI());
+
+		saveFile("application-foo.properties", "greeting.message = hello from foo profile\n",
+				javaProject);
+		assertJavaHover(new Position(14, 29), javaFileUri, JDT_UTILS,
+				h("`%foo.greeting.message = hello from foo profile` *in* [application-foo.properties](" + propertiesFileUri + ")  \n`greeting.message` is not set", 14, 28, 44));
+
 	}
 
 }
