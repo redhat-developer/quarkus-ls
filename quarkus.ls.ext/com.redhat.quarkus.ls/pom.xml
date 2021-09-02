@@ -38,7 +38,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
 		<dev.build.timestamp>${maven.build.timestamp}</dev.build.timestamp>
-		<lsp4j.version>0.9.0</lsp4j.version>
+		<lsp4j.version>0.11.0</lsp4j.version>
 		<microprofile.ls.version>0.4.0-SNAPSHOT</microprofile.ls.version>
 		<jboss.releases.repo.id>jboss-releases-repository</jboss.releases.repo.id>
 		<jboss.releases.repo.url>https://repository.jboss.org/nexus/service/local/staging/deploy/maven2/</jboss.releases.repo.url>
