@@ -143,7 +143,7 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
 
                    p("quarkus-container-image-s2i", "quarkus.s2i.jar-directory", "java.lang.String",
             "The directory where the jar is added during the assemble phase." + //
-            System.lineSeparator() + //
+            "\n" + //
             "This is dependent on the S2I image and should be supplied if a non default image is used.",
             true, "io.quarkus.container.image.s2i.deployment.S2iConfig", "jarDirectory", null, 1,
             "/deployments/"));

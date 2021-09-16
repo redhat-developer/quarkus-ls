@@ -9,7 +9,6 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.quarkus.config;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -67,7 +66,7 @@ public class JavaCodeLensQuarkusRestClientTest extends BasePropertiesManagerTest
 		assertCodeLenses("https://restcountries.uri/rest", params, utils);
 	}
 
-	private static void initConfigFile(IJavaProject javaProject) throws JavaModelException, IOException {
+	private static void initConfigFile(IJavaProject javaProject) throws Exception {
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "", javaProject);
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
 	}
