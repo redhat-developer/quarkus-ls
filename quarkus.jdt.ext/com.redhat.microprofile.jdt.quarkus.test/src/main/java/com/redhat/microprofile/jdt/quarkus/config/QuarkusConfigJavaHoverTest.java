@@ -13,16 +13,13 @@ import static org.eclipse.lsp4mp.jdt.core.MicroProfileForJavaAssert.assertJavaHo
 import static org.eclipse.lsp4mp.jdt.core.MicroProfileForJavaAssert.fixURI;
 import static org.eclipse.lsp4mp.jdt.core.MicroProfileForJavaAssert.h;
 
-import java.io.IOException;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
-import org.eclipse.lsp4mp.jdt.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider;
+import org.eclipse.lsp4mp.jdt.internal.core.providers.MicroProfileConfigSourceProvider;
 import org.junit.After;
 import org.junit.Test;
 
@@ -33,7 +30,7 @@ public class QuarkusConfigJavaHoverTest extends BasePropertiesManagerTest {
 	private static IJavaProject javaProject;
 
 	@After
-	public void cleanup() throws JavaModelException, IOException {
+	public void cleanup() throws Exception {
 		deleteFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, javaProject);
 		deleteFile(QuarkusConfigSourceProvider.APPLICATION_YML_FILE, javaProject);
 		deleteFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, javaProject);
@@ -51,8 +48,8 @@ public class QuarkusConfigJavaHoverTest extends BasePropertiesManagerTest {
 		String propertiesFileUri = fixURI(propertiesFile.getLocation().toFile().toURI());
 
 		// microprofile-config.properties exists
-		saveFile(DefaultMicroProfilePropertiesConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, "greeting.constructor.message = hello 1",
-				javaProject);
+		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE,
+				"greeting.constructor.message = hello 1", javaProject);
 		assertJavaHover(new Position(23, 48), javaFileUri, JDT_UTILS,
 				h("`greeting.constructor.message = hello 1` *in* META-INF/microprofile-config.properties", 23, 36, 64));
 
@@ -171,10 +168,10 @@ public class QuarkusConfigJavaHoverTest extends BasePropertiesManagerTest {
 		IFile propertiesFile = project.getFile(new Path("src/main/resources/application-foo.properties"));
 		String propertiesFileUri = fixURI(propertiesFile.getLocation().toFile().toURI());
 
-		saveFile("application-foo.properties", "greeting.message = hello from foo profile\n",
-				javaProject);
+		saveFile("application-foo.properties", "greeting.message = hello from foo profile\n", javaProject);
 		assertJavaHover(new Position(14, 29), javaFileUri, JDT_UTILS,
-				h("`%foo.greeting.message = hello from foo profile` *in* [application-foo.properties](" + propertiesFileUri + ")  \n`greeting.message` is not set", 14, 28, 44));
+				h("`%foo.greeting.message = hello from foo profile` *in* [application-foo.properties]("
+						+ propertiesFileUri + ")  \n`greeting.message` is not set", 14, 28, 44));
 
 	}
 

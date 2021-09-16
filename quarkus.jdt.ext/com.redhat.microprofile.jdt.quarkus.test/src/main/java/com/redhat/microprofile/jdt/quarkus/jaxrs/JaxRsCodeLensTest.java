@@ -22,9 +22,8 @@ import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
 import org.eclipse.lsp4mp.jdt.core.PropertiesManagerForJava;
-import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProject;
 import org.eclipse.lsp4mp.jdt.core.utils.IJDTUtils;
-import org.eclipse.lsp4mp.jdt.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider;
+import org.eclipse.lsp4mp.jdt.internal.core.providers.MicroProfileConfigSourceProvider;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -54,7 +53,8 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 		assertCodeLenses(8080, "", params, utils);
 
 		// META-INF/microprofile-config.properties : 8081
-		saveFile(DefaultMicroProfilePropertiesConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, "quarkus.http.port = 8081", javaProject);
+		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, "quarkus.http.port = 8081",
+				javaProject);
 		assertCodeLenses(8081, "", params, utils);
 
 		// application.properties : 8082 -> it overrides 8081 coming from the
@@ -69,20 +69,27 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 
 		// remove quarkus.http.port from application.properties
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
-		assertCodeLenses(8081, "", params, utils); // here port is 8081 coming from META-INF/microprofile-config.properties
+		assertCodeLenses(8081, "", params, utils); // here port is 8081 coming from
+													// META-INF/microprofile-config.properties
 
 		// Set a different value for the dev profile.
-		// If the dev profile for quarkus.http.port exists, this should be used instead of the default profile
-		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.port = 8080\n%dev.quarkus.http.port = 9090", javaProject);
+		// If the dev profile for quarkus.http.port exists, this should be used instead
+		// of the default profile
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE,
+				"quarkus.http.port = 8080\n%dev.quarkus.http.port = 9090", javaProject);
 		assertCodeLenses(9090, "", params, utils);
-		
+
 		// quarkus.http.root-path property in application.properties
-		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.port = 8080\nquarkus.http.root-path = /foo/bar", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE,
+				"quarkus.http.port = 8080\nquarkus.http.root-path = /foo/bar", javaProject);
 		assertCodeLenses(8080, "/foo/bar", params, utils);
-		
+
 		// Different value in dev profile
-		// If the dev profile for quarkus.http.root-path exists, this should be used instead of the default profile
-		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.port = 8080\nquarkus.http.root-path = /foo/bar\n%dev.quarkus.http.root-path = /bar/foo", javaProject);
+		// If the dev profile for quarkus.http.root-path exists, this should be used
+		// instead of the default profile
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE,
+				"quarkus.http.port = 8080\nquarkus.http.root-path = /foo/bar\n%dev.quarkus.http.root-path = /bar/foo",
+				javaProject);
 		assertCodeLenses(8080, "/bar/foo", params, utils);
 	}
 
@@ -102,8 +109,10 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 		assertCodeLenses(8080, "", params, utils);
 
 		// application.yaml : 8081
-		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "quarkus:\n" + "  http:\n" + "    port: 8081",
-				javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "quarkus:\n" + //
+				"  http:\n" + //
+				"    port: 8081" //
+				, javaProject);
 		assertCodeLenses(8081, "", params, utils);
 
 		// application.properties : 8082 -> application.yaml overrides
@@ -128,8 +137,8 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 
 	}
 
-	private static void assertCodeLenses(int port, String rootPath, MicroProfileJavaCodeLensParams params, IJDTUtils utils)
-			throws JavaModelException {
+	private static void assertCodeLenses(int port, String rootPath, MicroProfileJavaCodeLensParams params,
+			IJDTUtils utils) throws JavaModelException {
 		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils,
 				new NullProgressMonitor());
 		Assert.assertEquals(2, lenses.size());
@@ -145,7 +154,8 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 		// public Fruit getSingle(@PathParam Integer id) {
 		CodeLens lensForGetSingle = lenses.get(1);
 		Assert.assertNotNull(lensForGetSingle.getCommand());
-		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits/{id}", lensForGetSingle.getCommand().getTitle());
+		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits/{id}",
+				lensForGetSingle.getCommand().getTitle());
 	}
 
 }
