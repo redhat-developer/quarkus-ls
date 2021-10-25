@@ -16,6 +16,7 @@
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.core.properties.QuarkusCoreProvider" />
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.core.properties.QuarkusConfigRootProvider" />
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.core.properties.QuarkusConfigPropertiesProvider" />
+      <provider class="com.redhat.microprofile.jdt.internal.quarkus.core.properties.QuarkusConfigMappingProvider" />      
    </extension>
    
    <!-- Quarkus JAX-RS support -->
