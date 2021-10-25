@@ -13,6 +13,7 @@ import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest.MicroProfileMavenPr
 
 public class QuarkusMavenProjectName extends MicroProfileMavenProjectName {
 
+	public static final String config_mapping = "config-mapping";
 	public static String cache_quickstart = "cache-quickstart";
 	public static String kubernetes = "kubernetes";
 	public static String quarkus_container_images = "quarkus-container-images";
