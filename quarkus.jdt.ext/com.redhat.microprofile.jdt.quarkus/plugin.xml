@@ -58,5 +58,19 @@
 
    <extension point="org.eclipse.lsp4mp.jdt.core.propertiesProviders">
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.cache.properties.QuarkusCacheResultProvider" />
-   </extension>      
+   </extension>
+   
+   <!-- Quarkus Scheduled annotation -->
+   
+   <extension point="org.eclipse.lsp4mp.jdt.core.javaASTValidators">
+      <!-- Java validation for the Quarkus @Scheduled annotation -->
+      <validator class="com.redhat.microprofile.jdt.internal.quarkus.scheduler.java.QuarkusSchedulerASTVisitor" />
+   </extension>
+   
+   <extension point="org.eclipse.lsp4mp.jdt.core.javaASTValidators">
+      <!-- Java validation for the Quarkus @Scheduled annotation delay member-->
+      <annotationValidator annotation="io.quarkus.scheduler.Scheduled" source="quarkus">
+         <attribute name="delay" range="0" /> <!-- x >=0 -->
+      </annotationValidator>
+   </extension>
 </plugin>

@@ -15,7 +15,9 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: com.redhat.microprofile.jdt.quarkus,
  com.redhat.microprofile.jdt.internal.quarkus.providers;x-friends:="com.redhat.microprofile.jdt.quarkus.test",
+ com.redhat.microprofile.jdt.internal.quarkus.scheduler;x-friends:="com.redhat.microprofile.jdt.quarkus.test",
  com.redhat.microprofile.jdt.internal.quarkus.utils;x-friends:="com.redhat.microprofile.jdt.quarkus.test",
+ com.redhat.microprofile.jdt.internal.quarkus;x-friends:="com.redhat.microprofile.jdt.quarkus.test",
  org.yaml.snakeyaml;x-friends:="com.redhat.microprofile.jdt.quarkus.test"
 Bundle-ClassPath: lib/snakeyaml-1.25.jar,
  .

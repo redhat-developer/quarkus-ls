@@ -11,7 +11,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.jdt.quarkus;
+package com.redhat.microprofile.jdt.quarkus.scheduler;
 
 import static org.eclipse.lsp4mp.jdt.core.MicroProfileForJavaAssert.assertJavaHover;
 import static org.eclipse.lsp4mp.jdt.core.MicroProfileForJavaAssert.fixURI;
@@ -23,10 +23,10 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
-import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProject;
 import org.junit.Test;
 
 import com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigSourceProvider;
+import com.redhat.microprofile.jdt.quarkus.QuarkusMavenProjectName;
 
 /**
  * Quarkus Scheduled annotation property test for hover in Java file.
@@ -45,9 +45,7 @@ public class QuarkusScheduledHoverTest extends BasePropertiesManagerTest {
 		IFile propertiesFile = project.getFile(new Path("src/main/resources/application.properties"));
 		String propertiesFileUri = fixURI(propertiesFile.getLocation().toFile().toURI());
 
-		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE,
-				"cron.expr=*/5 * * * * ?\r\n",
-				javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "cron.expr=*/5 * * * * ?\r\n", javaProject);
 
 		// Position(29, 25) is the character after the | symbol:
 		// @Scheduled(cron = "{c|ron.expr}", every = "{every.expr}")
@@ -65,9 +63,7 @@ public class QuarkusScheduledHoverTest extends BasePropertiesManagerTest {
 		IFile propertiesFile = project.getFile(new Path("src/main/resources/application.properties"));
 		String propertiesFileUri = fixURI(propertiesFile.getLocation().toFile().toURI());
 
-		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE,
-				"every.expr=*/5 * * * * ?\r\n",
-				javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "every.expr=*/5 * * * * ?\r\n", javaProject);
 
 		// Position(29, 48) is the character after the | symbol:
 		// @Scheduled(cron = "{cron.expr}", every = "{e|very.expr}")
