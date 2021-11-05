@@ -94,7 +94,7 @@ public class QuarkusConstants {
 	public static final String WITH_DEFAULT_ANNOTATION = "io.smallrye.config.WithDefault";
 
 	public static final String WITH_DEFAULT_ANNOTATION_VALUE = "value";
-	
+
 	/**
 	 * The Quarkus @ConfigProperties annotation
 	 */
