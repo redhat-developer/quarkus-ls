@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.5"?>
+<plugin>
+
+   <!-- Delegate command handler for Qute template -->
+   <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
+      <delegateCommandHandler class="com.redhat.qute.jdt.internal.ls.QuteSupportForTemplateDelegateCommandHandler">      
+            <command id="qute/template/project"/>
+            <command id="qute/template/projectDataModel"/>            
+            <command id="qute/template/javaTypes"/>
+            <command id="qute/template/resolvedJavaType"/>
+            <command id="qute/template/javaDefinition"/>
+       </delegateCommandHandler>
+   </extension>
+
+   <!-- Delegate command handler for Java files-->
+   <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
+      <delegateCommandHandler class="com.redhat.qute.jdt.internal.ls.QuteSupportForJavaDelegateCommandHandler">      
+            <command id="qute/java/codeLens"/>
+            <command id="qute/java/diagnostics"/>
+            <command id="qute/java/documentLink"/>
+       </delegateCommandHandler>
+   </extension>
+   
+</plugin>

@@ -1,0 +1,24 @@
+{@java.util.List<com.redhat.qute.services.commands.ResolvedDataModelParameter> classes}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+</head>
+<body>
+{#for class in classes}
+	<p>
+		{class.key} : {class.sourceType}
+		{#if class.resolvedJavaType.isIterable}
+			{|{#each|} {class.key}}
+				{|{it.|}
+			{|{/each}|}
+		{#else}
+		<ul>{#for field in class.resolvedJavaType.fields}
+			<li>{field.name}: {|{|}{class.key}.{field.name}}</li>{/for}
+		</ul>
+		{/if}
+
+	</p>
+{/for}
+</body>

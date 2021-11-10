@@ -1,0 +1,129 @@
+{	"#each": {
+		"prefix": ["each", "{#"],
+		"body": [
+			"{#each ${1:items}}",
+			"\t{it.${2:name}}$0",
+			"{/each}"
+		],
+		"description": "Loop section with implicit alias"
+	},
+	"#eval": {
+		"prefix": "eval",
+		"body": [
+			"{#eval ${1:content} /}$0"
+		],
+		"description": "Parse and evaluate a template dynamically"
+	},
+	"#for": {
+		"prefix": "for",
+		"body": [
+			"{#for ${1:item} in ${2:items}}",
+			"\t{${1:item}.${3:name}}$0",
+			"{/for}"
+		],
+		"description": "Loop section with alias"
+	},
+	"#if": {
+		"prefix": "if",
+		"body": [
+			"{#if ${1:condition}}",
+			"\t$0",
+			"{/if}"
+		],
+		"description": "If section"
+	},
+	"#else": {
+		"prefix": "else",
+		"body": [
+			"{#if ${1:condition}}",
+			"\t$2",
+			"{#else}",
+			"\t$0",
+			"{/if}"
+		],
+		"description": "Else section"
+	},
+	"#elseif": {
+		"prefix": "elseif",
+		"body": [
+			"{#if ${1:condition}}",
+			"\t$2",
+			"{#else if ${3:condition}}",
+			"\t$4",
+			"{#else}",
+			"\t$0",
+			"{/if}"
+		],
+		"description": "Else If section"
+	},
+	"#include": {
+		"prefix": "include",
+		"body": [
+			"{#include ${1:base}}",
+			"\t$0",
+			"{/include}"
+		],
+		"description": "Include section"
+	},
+	"#insert": {
+		"prefix": "insert",
+		"body": [
+			"{#insert ${1:body}}",
+			"\t$0",
+			"{/insert}"
+		],
+		"description": "Insert section"
+	},
+	"#let": {
+		"prefix": "let",
+		"body": [
+			"{#let ${1:name}=${2:value}}",
+			"\t$0",
+			"{/let}"
+		],
+		"description": "Let section"
+	},
+	"#parameter": {
+		"prefix": "parameter",
+		"body": [
+			"{@${1:class} ${2:alias}}$0"
+		],
+		"description": "Insert parameter declaration"
+	},
+	"#set": {
+		"prefix": "set",
+		"body": [
+			"{#set ${1:name}=${2:value}}",
+			"\t$0",
+			"{/set}"
+		],
+		"description": "Let section"
+	},		
+	"#switch": {
+		"prefix": "switch",
+		"body": [
+			"{#switch ${1:value}}",
+			"\t{#case ${2:case}}$0",
+			"{/switch}"
+		],
+		"description": "Switch section"
+	},		
+	"#with": {
+		"prefix": "with",
+		"body": [
+			"{#with ${1:item}}",
+			"\t{${2:name}}$0",
+			"{/with}"
+		],
+		"description": "With section"
+	},		
+	"#when": {
+		"prefix": "when",
+		"body": [
+			"{#when ${1:value}}",
+			"\t{#is ${2:case}}$0",
+			"{/when}"
+		],
+		"description": "When section"
+	}
+}

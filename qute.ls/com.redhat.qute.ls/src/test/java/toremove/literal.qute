@@ -1,0 +1,5 @@
+{true}
+
+{#let p=12L}
+{p.byteValue}
+{/let}

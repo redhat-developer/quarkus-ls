@@ -1,0 +1,11 @@
+{@org.acme.Item item}
+{#with item}
+  <h1>{name}</h1>  
+  <p>{reviews}</p>
+  {#with reviews}
+	<p>{size}</p>
+	<h1>{name}</h1>  
+	<h1>{item.name}</h1>
+	<h1>{data:item.name}</h1>
+  {/with}
+{/with}

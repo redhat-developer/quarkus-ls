@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigSourceProvider;
@@ -35,6 +36,7 @@ public class QuarkusScheduledHoverTest extends BasePropertiesManagerTest {
 
 	private static IJavaProject javaProject;
 
+	@Ignore
 	@Test
 	public void configFirstPropertyNameHover() throws Exception {
 
@@ -52,7 +54,8 @@ public class QuarkusScheduledHoverTest extends BasePropertiesManagerTest {
 		assertJavaHover(new Position(29, 25), javaFileUri, JDT_UTILS,
 				h("`cron.expr = */5 * * * * ?` *in* [application.properties](" + propertiesFileUri + ")", 29, 23, 34));
 	}
-
+	
+	@Ignore
 	@Test
 	public void configSecondPropertyNameHover() throws Exception {
 

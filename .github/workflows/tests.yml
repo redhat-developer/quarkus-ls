@@ -21,7 +21,11 @@ jobs:
         with:
           java-version: '11'
           distribution: 'adopt'
-      - name: Build and test language server component
+      - name: Build and test Quarkus jdt component
         run: cd quarkus.jdt.ext && ./mvnw -B -U clean verify && cd ..
-      - name: Build and test jdt component
+      - name: Build and test Quarkus language server component
         run: cd quarkus.ls.ext/com.redhat.quarkus.ls && ./mvnw -B -U clean verify
+      - name: Build and test Qute jdt component
+        run: cd qute.jdt && ./mvnw -B -U clean verify && cd ..
+      - name: Build and test Qute language server component
+        run: cd qute.ls/com.redhat.qute.ls && ./mvnw -B -U clean verify

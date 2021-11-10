@@ -1,0 +1,9 @@
+{@java.util.List<toremove.Item> items}
+
+{#each i in items}
+	{i.getName()}
+	
+	{#each j in i.reviews}
+		{j.getName()}
+	{/each}
+{/each}
