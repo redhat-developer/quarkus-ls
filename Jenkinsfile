@@ -17,6 +17,8 @@ pipeline {
           MVN="${COMMON_TOOLS}${SEP}maven3-latest/bin/mvn -V -Dmaven.repo.local=${WORKSPACE}/.repository/"
           ${MVN} -B -f ${WORKSPACE}/quarkus.jdt.ext/pom.xml org.eclipse.tycho:tycho-versions-plugin:1.7.0:set-version -DnewVersion=${VERSION}-SNAPSHOT -Dtycho.mode=maven
           ${MVN} -B -f ${WORKSPACE}/quarkus.ls.ext/com.redhat.quarkus.ls/pom.xml versions:set -DnewVersion=$VERSION -DnewVersion=${VERSION} -Dtycho.mode=maven
+          ${MVN} -B -f ${WORKSPACE}/qute.jdt/pom.xml org.eclipse.tycho:tycho-versions-plugin:1.7.0:set-version -DnewVersion=${VERSION}-SNAPSHOT -Dtycho.mode=maven
+          ${MVN} -B -f ${WORKSPACE}/qute.ls/com.redhat.qute.ls/pom.xml versions:set -DnewVersion=$VERSION -DnewVersion=${VERSION} -Dtycho.mode=maven
         '''
       }
     }

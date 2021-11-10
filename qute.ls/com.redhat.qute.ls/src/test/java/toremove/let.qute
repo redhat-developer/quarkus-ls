@@ -1,0 +1,10 @@
+{@org.acme.Item item}
+
+{#set name=item.name age=10 long=10L negDouble=-10D isActive=true simpleQuote='abcd' doubleQuote="efgh"}
+  {true}
+  {name}
+  {negDouble}
+  {isActive}
+  {simpleQuote}
+  {doubleQuote}
+{/set}

@@ -10,14 +10,14 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <tycho.version>2.2.0</tycho.version>
+    <tycho.version>2.5.0</tycho.version>
     <tycho.extras.version>${tycho.version}</tycho.extras.version>
     <tycho.scmUrl>scm:git:https://github.com/redhat-developer/quarkus-ls</tycho.scmUrl>
     <tycho.generateSourceReferences>true</tycho.generateSourceReferences>
     <jdt.ls.version>1.5.0.20211019160210</jdt.ls.version>
     <tycho.test.platformArgs />
     <tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
-    <lsp4mp.p2.url>http://download.eclipse.org/lsp4mp/snapshots/0.4.0/repository/</lsp4mp.p2.url>
+    <lsp4mp.p2.url>https://download.eclipse.org/lsp4mp/snapshots/0.4.0/repository/</lsp4mp.p2.url>
 
     <!-- Code coverage -->
     <jacoco.version>0.7.9</jacoco.version>
@@ -33,12 +33,12 @@
     <repository>
       <id>2019-06</id>
       <layout>p2</layout>
-      <url>http://download.eclipse.org/releases/2019-06</url>
+      <url>https://download.eclipse.org/releases/2019-06</url>
     </repository>
     <repository>
       <id>jdt.ls.p2</id>
       <layout>p2</layout>
-      <url>http://download.eclipse.org/jdtls/snapshots/repository/latest/</url>
+      <url>https://download.eclipse.org/jdtls/snapshots/repository/latest/</url>
     </repository>
     <repository>
       <id>lsp4mp.p2</id>

@@ -1,0 +1,9 @@
+{@java.util.List<toremoves.Item> items}
+
+{#each i in items}
+	{i}
+{/each}
+
+{#let a=['items']}
+
+{/let}
