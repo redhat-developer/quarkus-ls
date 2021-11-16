@@ -10,11 +10,11 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <tycho.version>1.7.0</tycho.version>
+    <tycho.version>2.2.0</tycho.version>
     <tycho.extras.version>${tycho.version}</tycho.extras.version>
     <tycho.scmUrl>scm:git:https://github.com/redhat-developer/quarkus-ls</tycho.scmUrl>
     <tycho.generateSourceReferences>true</tycho.generateSourceReferences>
-    <jdt.ls.version>0.57.0.20200619102332</jdt.ls.version>
+    <jdt.ls.version>1.5.0.20211019160210</jdt.ls.version>
     <tycho.test.platformArgs />
     <tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
     <lsp4mp.p2.url>http://download.eclipse.org/lsp4mp/snapshots/0.4.0/repository/</lsp4mp.p2.url>
