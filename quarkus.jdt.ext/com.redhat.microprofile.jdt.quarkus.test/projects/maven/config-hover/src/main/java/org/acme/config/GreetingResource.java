@@ -26,6 +26,9 @@ public class GreetingResource {
 
     @ConfigProperty(name = "greeting.number", defaultValue="0")
     int number;
+    
+    @ConfigProperty(name = "${greeting.hover}")
+    String hover;
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
