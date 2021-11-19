@@ -69,7 +69,6 @@ public class QuarkusConfigJavaHoverTest extends BasePropertiesManagerTest {
 				javaProject);
 		assertJavaHover(new Position(23, 48), javaFileUri, JDT_UTILS,
 				h("`greeting.constructor.message = hello 3` *in* application.yaml", 23, 36, 64));
-
 	}
 
 	@Test
@@ -156,6 +155,20 @@ public class QuarkusConfigJavaHoverTest extends BasePropertiesManagerTest {
 		// fallback to application.properties
 		assertJavaHover(new Position(26, 33), javaFileUri, JDT_UTILS,
 				h("`greeting.number = 100` *in* [application.properties](" + propertiesFileUri + ")", 26, 28, 43));
+	}
+
+	@Test
+	public void configPropertyHoverPropertyExpression() throws Exception {
+
+		javaProject = loadMavenProject(MicroProfileMavenProjectName.config_hover);
+		IProject project = javaProject.getProject();
+		IFile javaFile = project.getFile(new Path("src/main/java/org/acme/config/GreetingResource.java"));
+		String javaFileUri = fixURI(javaFile.getLocation().toFile().toURI());
+
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "greeting.hover = test", javaProject);
+
+		// no hover should show for property expression
+		assertJavaHover(new Position(31, 29), javaFileUri, JDT_UTILS, null);
 	}
 
 	@Test

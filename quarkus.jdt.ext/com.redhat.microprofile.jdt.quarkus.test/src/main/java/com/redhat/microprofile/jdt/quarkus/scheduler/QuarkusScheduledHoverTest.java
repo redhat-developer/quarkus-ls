@@ -23,7 +23,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigSourceProvider;
@@ -36,7 +35,6 @@ public class QuarkusScheduledHoverTest extends BasePropertiesManagerTest {
 
 	private static IJavaProject javaProject;
 
-	@Ignore
 	@Test
 	public void configFirstPropertyNameHover() throws Exception {
 
@@ -54,8 +52,7 @@ public class QuarkusScheduledHoverTest extends BasePropertiesManagerTest {
 		assertJavaHover(new Position(29, 25), javaFileUri, JDT_UTILS,
 				h("`cron.expr = */5 * * * * ?` *in* [application.properties](" + propertiesFileUri + ")", 29, 23, 34));
 	}
-	
-	@Ignore
+
 	@Test
 	public void configSecondPropertyNameHover() throws Exception {
 
@@ -72,6 +69,31 @@ public class QuarkusScheduledHoverTest extends BasePropertiesManagerTest {
 		// @Scheduled(cron = "{cron.expr}", every = "{e|very.expr}")
 		assertJavaHover(new Position(29, 48), javaFileUri, JDT_UTILS,
 				h("`every.expr = */5 * * * * ?` *in* [application.properties](" + propertiesFileUri + ")", 29, 46, 58));
+	}
+
+	@Test
+	public void configPropertyExpressionHover() throws Exception {
+
+		javaProject = loadMavenProject(QuarkusMavenProjectName.scheduler_quickstart);
+		IProject project = javaProject.getProject();
+		IFile javaFile = project.getFile(new Path("src/main/java/org/acme/scheduler/CounterBean.java"));
+		String javaFileUri = fixURI(javaFile.getLocation().toFile().toURI());
+		IFile propertiesFile = project.getFile(new Path("src/main/resources/application.properties"));
+		String propertiesFileUri = fixURI(propertiesFile.getLocation().toFile().toURI());
+
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "cron.expr=*/5 * * * * ?\r\n", javaProject);
+
+		// Position(35, 26) is the character after the | symbol:
+		// @Scheduled(cron = "${c|ron.expr}", every = "${every.expr}")
+		assertJavaHover(new Position(35, 26), javaFileUri, JDT_UTILS,
+				h("`cron.expr = */5 * * * * ?` *in* [application.properties](" + propertiesFileUri + ")", 35, 23, 35));
+
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "every.expr=*/5 * * * * ?\r\n", javaProject);
+
+		// Position(35, 50) is the character after the | symbol:
+		// @Scheduled(cron = "{cron.expr}", every = "{e|very.expr}")
+		assertJavaHover(new Position(35, 50), javaFileUri, JDT_UTILS,
+				h("`every.expr = */5 * * * * ?` *in* [application.properties](" + propertiesFileUri + ")", 35, 47, 60));
 	}
 
 }

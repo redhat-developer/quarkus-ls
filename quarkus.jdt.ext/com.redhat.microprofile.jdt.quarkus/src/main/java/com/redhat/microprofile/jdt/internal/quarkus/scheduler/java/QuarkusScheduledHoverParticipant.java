@@ -13,6 +13,8 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.internal.quarkus.scheduler.java;
 
+import java.util.function.Function;
+
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.lsp4mp.jdt.core.java.hover.PropertiesHoverParticipant;
 
@@ -21,12 +23,20 @@ import com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants;
 public class QuarkusScheduledHoverParticipant extends PropertiesHoverParticipant {
 
 	public QuarkusScheduledHoverParticipant() {
-		super(QuarkusConstants.SCHEDULED_ANNOTATION,
-				new String [] { "cron", "every", "delay", "delayed", "delayUnit"}, null);
+		super(QuarkusConstants.SCHEDULED_ANNOTATION, new String[] {
+				"cron", "every", "delay", "delayed", "delayUnit"
+		}, null, createPropertyReplacer());
 	}
 
 	@Override
 	protected boolean isAdaptableFor(IJavaElement hoverElement) {
 		return hoverElement.getElementType() == IJavaElement.METHOD;
 	}
+
+	private static Function<String, String> createPropertyReplacer() {
+		Function<String, String> propertyReplacer = propertyKey -> propertyKey.replace("{", "").replace("}", "")
+				.replace("$", "");
+		return propertyReplacer;
+	}
+
 }
