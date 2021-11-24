@@ -223,8 +223,8 @@ class QuteDiagnostics {
 				for (Parameter parameter : parameters) {
 					Expression expression = parameter.getJavaTypeExpression();
 					if (expression != null) {
-						ResolvedJavaTypeInfo result = validateExpression(expression, section, template,
-								previousContext, resolvingJavaTypeContext, diagnostics);
+						ResolvedJavaTypeInfo result = validateExpression(expression, section, template, previousContext,
+								resolvingJavaTypeContext, diagnostics);
 						switch (section.getSectionKind()) {
 						case FOR:
 						case EACH:
@@ -274,16 +274,16 @@ class QuteDiagnostics {
 	 * @param diagnostics    the diagnostics to fill.
 	 */
 	private static void validateIncludeSection(IncludeSection includeSection, List<Diagnostic> diagnostics) {
-		Parameter includedTemplateId = includeSection.getParameterAtIndex(0);
-		if (includedTemplateId != null) {
+		Parameter templateParameter = includeSection.getTemplateParameter();
+		if (templateParameter != null) {
 			// include defines a template to include
 			// ex : {#include base}
-			Path templateFile = includeSection.getLinkedTemplateFile();
+			Path templateFile = includeSection.getReferencedTemplateFile();
 			if (templateFile == null || Files.notExists(templateFile)) {
 				// It doesn't exists a file named base, base.qute.html, base.html, etc
-				Range range = QutePositionUtility.createRange(includedTemplateId);
+				Range range = QutePositionUtility.createRange(templateParameter);
 				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-						QuteErrorCode.TemplateNotFound, includedTemplateId.getValue());
+						QuteErrorCode.TemplateNotFound, templateParameter.getValue());
 				diagnostics.add(diagnostic);
 			}
 		} else {
@@ -328,20 +328,20 @@ class QuteDiagnostics {
 		String namespace = null;
 		for (int i = 0; i < parts.getChildCount(); i++) {
 			Part current = ((Part) parts.getChild(i));
-			
+
 			if (current.isLast()) {
 				// It's the last part, check if it is not ended with '.'
 				int end = current.getEnd();
 				Template template = parts.getOwnerTemplate();
 				char c = template.getText().charAt(end);
 				if (c == '.') {
-					Range range = QutePositionUtility.createRange(end , end + 1, template);
-					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-							QuteErrorCode.SyntaxError, "Unexpected '.' token.");
+					Range range = QutePositionUtility.createRange(end, end + 1, template);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.SyntaxError,
+							"Unexpected '.' token.");
 					diagnostics.add(diagnostic);
 				}
 			}
-			
+
 			switch (current.getPartKind()) {
 
 			case Namespace: {
@@ -391,7 +391,7 @@ class QuteDiagnostics {
 				}
 				break;
 			}
-			}			
+			}
 		}
 		return resolvedJavaClass;
 	}

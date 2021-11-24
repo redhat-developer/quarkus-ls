@@ -1,3 +1,14 @@
+/*******************************************************************************
+* Copyright (c) 2021 Red Hat Inc. and others.
+* All rights reserved. This program and the accompanying materials
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v20.html
+*
+* SPDX-License-Identifier: EPL-2.0
+*
+* Contributors:
+*     Red Hat Inc. - initial API and implementation
+*******************************************************************************/
 package com.redhat.qute.services.diagnostics;
 
 import static com.redhat.qute.QuteAssert.ca;
@@ -10,6 +21,12 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Test with #for section
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public class QuteDiagnosticsInExpressionWithForSectionTest {
 
 	@Test

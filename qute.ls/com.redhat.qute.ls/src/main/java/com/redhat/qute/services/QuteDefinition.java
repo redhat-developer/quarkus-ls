@@ -155,7 +155,7 @@ class QuteDefinition {
 							if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
 								IncludeSection includeSection = (IncludeSection) parentSection;
 								List<QuteIndex> indexes = project
-										.findInsertTagParameter(includeSection.getLinkedTemplateId(), section.getTag());
+										.findInsertTagParameter(includeSection.getReferencedTemplateId(), section.getTag());
 								if (indexes != null) {
 									for (QuteIndex index : indexes) {
 										String linkedTemplateUri = index.getTemplatePath().toUri().toString();
