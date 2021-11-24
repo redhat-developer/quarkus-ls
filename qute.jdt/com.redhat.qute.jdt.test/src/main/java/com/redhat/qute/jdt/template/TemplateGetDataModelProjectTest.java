@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.jdt;
+package com.redhat.qute.jdt.template;
 
 import static com.redhat.qute.jdt.internal.QuteProjectTest.getJDTUtils;
 import static com.redhat.qute.jdt.internal.QuteProjectTest.loadMavenProject;
@@ -26,6 +26,7 @@ import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
+import com.redhat.qute.jdt.QuteSupportForTemplate;
 import com.redhat.qute.jdt.internal.QuteProjectTest.QuteMavenProjectName;
 
 /**
@@ -35,7 +36,7 @@ import com.redhat.qute.jdt.internal.QuteProjectTest.QuteMavenProjectName;
  * @author Angelo ZERR
  *
  */
-public class QuteSupportForTemplateGetDataModelProjectTest {
+public class TemplateGetDataModelProjectTest {
 
 	@Test
 	public void quteQuickStart() throws Exception {

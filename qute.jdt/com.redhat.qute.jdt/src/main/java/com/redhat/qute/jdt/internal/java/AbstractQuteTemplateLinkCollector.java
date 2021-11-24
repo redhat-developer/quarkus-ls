@@ -26,9 +26,9 @@ import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
-import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
@@ -95,8 +95,8 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 		levelTypeDecl++;
 		List modifiers = node.modifiers();
 		for (Object modifier : modifiers) {
-			if (modifier instanceof MarkerAnnotation) {
-				MarkerAnnotation annotation = (MarkerAnnotation) modifier;
+			if (modifier instanceof Annotation) {
+				Annotation annotation = (Annotation) modifier;
 				if (AnnotationUtils.isMatchAnnotation(annotation, CHECKED_TEMPLATE_ANNOTATION)
 						|| AnnotationUtils.isMatchAnnotation(annotation, OLD_CHECKED_TEMPLATE_ANNOTATION)) {
 					// @CheckedTemplate

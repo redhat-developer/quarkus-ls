@@ -11,7 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.java;
 
-import java.text.MessageFormat;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -41,7 +40,7 @@ import com.redhat.qute.jdt.utils.IJDTUtils;
  */
 public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollector {
 
-	private static final String NO_TEMPLATE_MATCHING_ERROR = "No template matching the path {0} could be found for: {1}";
+	public static final String QUTE_SOURCE = "qute";
 
 	private final List<Diagnostic> diagnostics;
 
@@ -62,8 +61,8 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
 			ITypeBinding binding = type.resolveBinding();
 			String fullQualifiedName = ((IType) binding.getJavaElement()).getFullyQualifiedName();
 			Range range = createRange(fieldOrMethod);
-			String message = MessageFormat.format(NO_TEMPLATE_MATCHING_ERROR, path, fullQualifiedName);
-			Diagnostic diagnostic = new Diagnostic(range, message, DiagnosticSeverity.Error, "qute", "");
+			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.NoMatchingTemplate,
+					path, fullQualifiedName);
 			this.diagnostics.add(diagnostic);
 		}
 	}
@@ -78,4 +77,9 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
 		return className + '/' + fieldOrMethodName;
 	}
 
+	private static Diagnostic createDiagnostic(Range range, DiagnosticSeverity severity, IQuteErrorCode errorCode,
+			Object... arguments) {
+		String message = errorCode.getMessage(arguments);
+		return new Diagnostic(range, message, severity, QUTE_SOURCE, errorCode.getCode());
+	}
 }
