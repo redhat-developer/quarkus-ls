@@ -21,6 +21,11 @@ public class ItemResource {
 		static native TemplateInstance items(List<Item> items);
 	}
 
+	@CheckedTemplate(requireTypeSafeExpressions = true)
+	static class Templates2 {
+		static native TemplateInstance items2(List<Item> items);
+	}
+	
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public TemplateInstance get() {

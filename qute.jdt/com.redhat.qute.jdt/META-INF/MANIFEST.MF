@@ -13,12 +13,14 @@ Require-Bundle: org.eclipse.core.runtime,
  org.apache.commons.lang3,
  org.eclipse.jdt.core.manipulation,
  org.eclipse.xtext.xbase.lib
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ActivationPolicy: lazy
 Export-Package: com.redhat.qute.commons,
  com.redhat.qute.commons.datamodel,
  com.redhat.qute.jdt,
+ com.redhat.qute.jdt.internal.java;x-friends:="com.redhat.qute.jdt.test",
  com.redhat.qute.jdt.internal.ls;x-friends:="com.redhat.qute.jdt.test",
+ com.redhat.qute.jdt.internal.template;x-friends:="com.redhat.qute.jdt.test",
  com.redhat.qute.jdt.utils
 Bundle-Activator: com.redhat.qute.jdt.QutePlugin
 
