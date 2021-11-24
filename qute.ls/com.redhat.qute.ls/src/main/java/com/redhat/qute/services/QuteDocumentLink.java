@@ -56,7 +56,7 @@ public class QuteDocumentLink {
 						Range range = QutePositionUtility.createRange(includedTemplateId.getStart(),
 								includedTemplateId.getEnd(), template);
 						if (range != null) {
-							Path templateFile = includeSection.getLinkedTemplateFile();
+							Path templateFile = includeSection.getReferencedTemplateFile();
 							if (templateFile != null) {
 								String target = templateFile.toUri().toString();
 								links.add(new DocumentLink(range, target != null ? target : ""));

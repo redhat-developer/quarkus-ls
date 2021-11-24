@@ -16,6 +16,12 @@ import java.util.function.Predicate;
 import com.redhat.qute.parser.scanner.AbstractScanner;
 import com.redhat.qute.parser.scanner.Scanner;
 
+/**
+ * Qute Template scanner.
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public class TemplateScanner extends AbstractScanner<TokenType, ScannerState> {
 
 	private static final Predicate<Integer> TAG_NAME_PREDICATE = ch -> {
@@ -228,7 +234,16 @@ public class TemplateScanner extends AbstractScanner<TokenType, ScannerState> {
 				return finishToken(offset, TokenType.StartTagClose);
 			}
 
-			stream.advanceUntilChars('}');
+			stream.advanceUntilChar('}',  '/', '"', '\'', ' ');
+			int c = stream.peekChar();
+			if (c == '"' || c == '\'') {
+				stream.advance(1);
+				stream.advanceUntilChar(c);
+				if (stream.peekChar() == c) {
+					stream.advance(1);	
+				}
+			}
+			
 			return finishToken(offset, TokenType.ParameterTag);
 		}
 

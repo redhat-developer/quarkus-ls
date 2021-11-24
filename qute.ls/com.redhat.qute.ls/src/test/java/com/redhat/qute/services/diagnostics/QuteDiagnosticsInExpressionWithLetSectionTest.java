@@ -60,7 +60,7 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 		Diagnostic d = d(0, 11, 0, 15, QuteErrorCode.UndefinedVariable, "`item` cannot be resolved to a variable.",
 				DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
-		
+
 		testDiagnosticsFor(template, d, //
 				d(2, 3, 2, 7, QuteErrorCode.UnkwownType, "`name` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
@@ -68,4 +68,25 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}\r\n")));
 	}
 
+	@Test
+	public void autoClose() throws Exception {
+		String template = "{#let name='value' }\r\n" + //
+				" {name}\r\n" + //
+				"{/let}";
+		testDiagnosticsFor(template);
+
+		template = "{#let name='value' /}\r\n" + //
+				" {name}\r\n" + //
+				"{/let}";
+		Diagnostic d = d(1, 2, 1, 6, QuteErrorCode.UndefinedVariable, "`name` cannot be resolved to a variable.",
+				DiagnosticSeverity.Warning);
+		d.setData(DiagnosticDataFactory.createUndefinedVariableData("name", false));
+
+		testDiagnosticsFor(template, //
+				d(2, 6, 2, 6, null, "Parser error on line 3: no section start tag found for {/let}",
+						DiagnosticSeverity.Error), //
+				d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String name}\r\n")));
+	}
 }

@@ -59,7 +59,7 @@
 	"#include": {
 		"prefix": "include",
 		"body": [
-			"{#include ${1:base}}",
+			"{#include ${1:template}}",
 			"\t$0",
 			"{/include}"
 		],

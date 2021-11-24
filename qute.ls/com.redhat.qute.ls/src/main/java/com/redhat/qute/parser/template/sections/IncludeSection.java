@@ -29,7 +29,8 @@ public class IncludeSection extends Section {
 
 	public static final String TAG = "include";
 
-	private static String[] suffixes = { "", ".html", ".qute.html", ".json", ".qute.json", ".txt", ".qute.txt", ".yaml", ".qute.yaml" };
+	private static String[] suffixes = { "", ".html", ".qute.html", ".json", ".qute.json", ".txt", ".qute.txt", ".yaml",
+			".qute.yaml" };
 
 	public IncludeSection(int start, int end) {
 		super(TAG, start, end);
@@ -41,15 +42,15 @@ public class IncludeSection extends Section {
 	}
 
 	/**
-	 * Returns the template file defined in the first parameter of the section and
-	 * null otherwise.
+	 * Returns the referenced template file defined in the first parameter of the
+	 * section and null otherwise.
 	 * 
-	 * @return the template file defined in the first parameter of the section and
-	 *         null otherwise.
+	 * @return the referenced template file defined in the first parameter of the
+	 *         section and null otherwise.
 	 */
-	public Path getLinkedTemplateFile() {
-		String linkedTemplateId = getLinkedTemplateId();
-		if (linkedTemplateId == null) {
+	public Path getReferencedTemplateFile() {
+		String referencedTemplateId = getReferencedTemplateId();
+		if (referencedTemplateId == null) {
 			return null;
 		}
 
@@ -58,23 +59,39 @@ public class IncludeSection extends Section {
 			return null;
 		}
 		for (String suffix : suffixes) {
-			Path includedTemplateFile = templateBaseDir.resolve(linkedTemplateId + suffix);
-			if (Files.exists(includedTemplateFile)) {
+			Path referencedTemplateFile = templateBaseDir.resolve(referencedTemplateId + suffix);
+			if (Files.exists(referencedTemplateFile)) {
 				// The template file exists
-				return includedTemplateFile;
+				return referencedTemplateFile;
 			}
 		}
 		// The template file doesn't exists, we return a file to create it if user wants
 		// to do that (only available on vscode when Ctrl+Click is processed).
-		return templateBaseDir.resolve(linkedTemplateId + ".qute.html");
+		return templateBaseDir.resolve(referencedTemplateId + ".qute.html");
 	}
 
-	public String getLinkedTemplateId() {
-		Parameter includedTemplateId = super.getParameterAtIndex(0);
-		if (includedTemplateId == null) {
+	/**
+	 * Returns the template id defined in parameter template of the include section
+	 * and null otherwise.
+	 * 
+	 * @return the template id defined in parameter template of the include section
+	 *         and null otherwise.
+	 */
+	public String getReferencedTemplateId() {
+		Parameter templateParameter = getTemplateParameter();
+		if (templateParameter == null) {
 			return null;
 		}
-		return includedTemplateId.getValue();
+		return templateParameter.getValue();
+	}
+
+	/**
+	 * Returns the template parameter of the include section and null otherwise.
+	 * 
+	 * @return the template parameter of the include section and null otherwise.
+	 */
+	public Parameter getTemplateParameter() {
+		return super.getParameterAtIndex(0);
 	}
 
 }

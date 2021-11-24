@@ -105,12 +105,12 @@ public class TemplateParser {
 
 			case StartTagClose:
 				if (curr.getKind() == NodeKind.Section) {
-					Section element = (Section) curr;
+					Section section = (Section) curr;
 					curr.setEnd(scanner.getTokenEnd()); // might be later set to end tag position
-					element.setStartTagCloseOffset(scanner.getTokenOffset());
+					section.setStartTagCloseOffset(scanner.getTokenOffset());
 
 					// never enters isEmptyElement() is always false
-					if (element.getTag() != null && isEmptyElement(element.getTag()) && curr.getParent() != null) {
+					if (section.getTag() != null && isEmptyElement(section.getTag()) && curr.getParent() != null) {
 						curr.setClosed(true);
 						curr = curr.getParent();
 					}
@@ -156,7 +156,9 @@ public class TemplateParser {
 			case StartTagSelfClose:
 				if (curr.getParent() != null) {
 					curr.setClosed(true);
-					((Section) curr).setSelfClosed(true);
+					Section section = (Section) curr;
+					section.setSelfClosed(true);
+					section.setStartTagCloseOffset(scanner.getTokenOffset());
 					curr.setEnd(scanner.getTokenEnd());
 					curr = curr.getParent();
 				}
