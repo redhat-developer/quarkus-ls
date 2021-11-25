@@ -89,10 +89,12 @@ public class TemplateScanner extends AbstractScanner<TokenType, ScannerState> {
 					return finishToken(offset, TokenType.StartParameterDeclaration);
 				} else {
 					int ch = stream.peekChar();
-					if (Character.isDigit(ch) || Character.isAlphabetic(ch) || ch == '_' || ch == '}') {
+					if (isValidIdentifierStart(ch)) {
 						// Expression
 						state = ScannerState.WithinExpression;
 						return finishToken(offset, TokenType.StartExpression);
+					} else {
+						stream.advance(1);
 					}
 				}
 			}
@@ -234,16 +236,16 @@ public class TemplateScanner extends AbstractScanner<TokenType, ScannerState> {
 				return finishToken(offset, TokenType.StartTagClose);
 			}
 
-			stream.advanceUntilChar('}',  '/', '"', '\'', ' ');
+			stream.advanceUntilChar('}', '/', '"', '\'', ' ');
 			int c = stream.peekChar();
 			if (c == '"' || c == '\'') {
 				stream.advance(1);
 				stream.advanceUntilChar(c);
 				if (stream.peekChar() == c) {
-					stream.advance(1);	
+					stream.advance(1);
 				}
 			}
-			
+
 			return finishToken(offset, TokenType.ParameterTag);
 		}
 
@@ -253,6 +255,10 @@ public class TemplateScanner extends AbstractScanner<TokenType, ScannerState> {
 		return
 
 		finishToken(offset, TokenType.Unknown, errorMessage);
+	}
+
+	private static boolean isValidIdentifierStart(int ch) {
+		return Character.isDigit(ch) || Character.isAlphabetic(ch) || ch == '_';
 	}
 
 	private boolean hasNextTagName() {

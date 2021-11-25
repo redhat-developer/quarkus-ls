@@ -30,6 +30,24 @@ import org.junit.jupiter.api.Test;
 public class QuteDiagnosticsInExpressionTest {
 
 	@Test
+	public void invalidIdentifiers() throws Exception {
+
+		Diagnostic d = d(0, 1, 0, 4, QuteErrorCode.UndefinedVariable, "`foo` cannot be resolved to a variable.",
+				DiagnosticSeverity.Warning);
+		d.setData(DiagnosticDataFactory.createUndefinedVariableData("foo", false));		
+		testDiagnosticsFor("{foo}", d);
+
+		d = d(0, 1, 0, 5, QuteErrorCode.UndefinedVariable, "`_foo` cannot be resolved to a variable.",
+				DiagnosticSeverity.Warning);
+		d.setData(DiagnosticDataFactory.createUndefinedVariableData("_foo", false));
+		testDiagnosticsFor("{_foo}", d);
+		
+		testDiagnosticsFor("{ foo}");
+		testDiagnosticsFor("{{foo}}");
+		testDiagnosticsFor("{\"foo\":true}");
+	}
+	
+	@Test
 	public void booleanLiteral() throws Exception {
 		String template = "{true}";
 

@@ -60,6 +60,20 @@ public class TemplateScannerTest {
 		assertOffsetAndToken(8, TokenType.EOS, "");
 	}
 
+	@Test
+	public void noExpressionWithBracket() {
+		scanner = TemplateScanner.createScanner("{{abcd}}");
+		assertOffsetAndToken(0, TokenType.Content, "{{abcd}}");
+		assertOffsetAndToken(8, TokenType.EOS, "");
+	}
+
+	@Test
+	public void noExpressionWithEmpty() {
+		scanner = TemplateScanner.createScanner("{}");
+		assertOffsetAndToken(0, TokenType.Content, "{}");
+		assertOffsetAndToken(2, TokenType.EOS, "");
+	}
+
 	/**
 	 * @see https://quarkus.io/guides/qute-reference#identifiers
 	 */
@@ -70,7 +84,7 @@ public class TemplateScannerTest {
 				"   {_foo.bar}   \r\n" + // expression
 				"   {! comment !}\r\n" + // comment
 				"   {  foo}      \r\n" + // text
-				"   {{foo}}      \r\n" + // text for first { and expression for {foo}
+				"   {{foo}}      \r\n" + // text
 				"   {\"foo\":true} \r\n" + // text
 				"</body>\r\n" + // text
 				"</html>"); // text
@@ -95,11 +109,7 @@ public class TemplateScannerTest {
 				"   ");
 
 		// {{foo}}
-		assertOffsetAndToken(73, TokenType.Content, "{");
-		assertOffsetAndToken(74, TokenType.StartExpression, "{");
-		assertOffsetAndToken(78, TokenType.EndExpression, "}");
-		assertOffsetAndToken(79, TokenType.Content, "}      \r\n" + "   ");
-
+		assertOffsetAndToken(73, TokenType.Content, "{{foo}}      \r\n" + "   ");
 		// {\"foo\":true}
 		assertOffsetAndToken(91, TokenType.Content, "{\"foo\":true} \r\n" + // text
 				"</body>\r\n" + //
@@ -149,7 +159,7 @@ public class TemplateScannerTest {
 		assertOffsetAndToken(17, TokenType.StartTagSelfClose, "/}");
 		assertOffsetAndToken(19, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void letSection() {
 		scanner = TemplateScanner.createScanner("{#let name='value' /}");
