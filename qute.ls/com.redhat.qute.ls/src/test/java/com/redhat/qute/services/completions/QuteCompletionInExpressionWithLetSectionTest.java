@@ -121,4 +121,31 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 		testCompletionFor(template, //
 				c("name : java.lang.String", "name", r(2, 16, 2, 16)));
 	}
+	
+	@Test
+	public void noCompletionInStartTag() throws Exception {
+		String template = "{|#let foo=bar}\r\n" + //
+				"{/let}";
+		testCompletionFor(template, 0);
+	}
+	
+	@Test
+	public void noCompletionInEndTag() throws Exception {
+		String template = "{#let foo=bar}\r\n" + //
+				"{|/let}";
+		testCompletionFor(template, 0);
+		
+		template = "{#let foo=bar}\r\n" + //
+				"{/|let}";
+		testCompletionFor(template, 0);
+		
+		template = "{#let foo=bar}\r\n" + //
+				"{/l|et}";
+		testCompletionFor(template, 0);
+		
+		template = "{#let foo=bar}\r\n" + //
+				"{/|}";
+		testCompletionFor(template, 0);
+		
+	}
 }

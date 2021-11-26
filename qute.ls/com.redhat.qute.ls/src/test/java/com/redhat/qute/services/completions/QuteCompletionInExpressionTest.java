@@ -48,6 +48,39 @@ public class QuteCompletionInExpressionTest {
 	}
 
 	@Test
+	public void completionInExpressionNotClosedForObjectPart() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"Item: {|";
+		testCompletionFor(template, //
+				c("item", "item", r(1, 7, 1, 7)));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"Item: {i|";
+		testCompletionFor(template, //
+				c("item", "item", r(1, 7, 1, 8)));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"Item: {|i";
+		testCompletionFor(template, //
+				c("item", "item", r(1, 7, 1, 7)));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"Item: {i|te";
+		testCompletionFor(template, //
+				c("item", "item", r(1, 7, 1, 10)));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"Item: {item|";
+		testCompletionFor(template, //
+				c("item", "item", r(1, 7, 1, 11)));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"Item: {item. |";
+		testCompletionFor(template, //
+				c("item", "item", r(1, 13, 1, 13)));
+	}
+
+	@Test
 	public void completionInExpressionForPropertyPart() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.|}";
@@ -78,6 +111,45 @@ public class QuteCompletionInExpressionTest {
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.n|a}";
+		testCompletionFor(template, //
+				c("name : java.lang.String", "name", r(1, 12, 1, 14)), //
+				c("price : java.math.BigInteger", "price", r(1, 12, 1, 14)), //
+				c("review : org.acme.Review", "review", r(1, 12, 1, 14)), //
+				c("review2 : org.acme.Review", "review2", r(1, 12, 1, 14)), //
+				c("getReview2() : org.acme.Review", "getReview2", r(1, 12, 1, 14)));
+	}
+
+	@Test
+	public void completionInExpressionNotClosedForPropertyPart() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"Item: {item.|";
+		testCompletionFor(template, //
+				c("name : java.lang.String", "name", r(1, 12, 1, 12)), //
+				c("price : java.math.BigInteger", "price", r(1, 12, 1, 12)), //
+				c("review : org.acme.Review", "review", r(1, 12, 1, 12)), //
+				c("review2 : org.acme.Review", "review2", r(1, 12, 1, 12)), //
+				c("getReview2() : org.acme.Review", "getReview2", r(1, 12, 1, 12)));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"Item: {item.n|";
+		testCompletionFor(template, //
+				c("name : java.lang.String", "name", r(1, 12, 1, 13)), //
+				c("price : java.math.BigInteger", "price", r(1, 12, 1, 13)), //
+				c("review : org.acme.Review", "review", r(1, 12, 1, 13)), //
+				c("review2 : org.acme.Review", "review2", r(1, 12, 1, 13)), //
+				c("getReview2() : org.acme.Review", "getReview2", r(1, 12, 1, 13)));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"Item: {item.|n";
+		testCompletionFor(template, //
+				c("name : java.lang.String", "name", r(1, 12, 1, 13)), //
+				c("price : java.math.BigInteger", "price", r(1, 12, 1, 13)), //
+				c("review : org.acme.Review", "review", r(1, 12, 1, 13)), //
+				c("review2 : org.acme.Review", "review2", r(1, 12, 1, 13)), //
+				c("getReview2() : org.acme.Review", "getReview2", r(1, 12, 1, 13)));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"Item: {item.n|a";
 		testCompletionFor(template, //
 				c("name : java.lang.String", "name", r(1, 12, 1, 14)), //
 				c("price : java.math.BigInteger", "price", r(1, 12, 1, 14)), //
@@ -176,9 +248,23 @@ public class QuteCompletionInExpressionTest {
 	}
 
 	@Test
-	public void completionInsideCData() throws Exception {
+	public void noCompletionInsideCData() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {[{|}]}";
 		testCompletionFor(template, 0);
+	}
+
+	@Test
+	public void noCompletionInsideSeveralBrackets() throws Exception {
+		// two brackets -> no expression
+		String template = "{@org.acme.Item item}\r\n" + //
+				"Item: {{|";
+		testCompletionFor(template, 0);
+
+		// three brackets -> expression
+		template = "{@org.acme.Item item}\r\n" + //
+				"Item: {{{|";
+		testCompletionFor(template, 1, //
+				c("item", "item", r(1, 9, 1, 9)));
 	}
 }

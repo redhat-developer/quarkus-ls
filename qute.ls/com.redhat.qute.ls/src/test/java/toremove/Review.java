@@ -11,5 +11,9 @@ public class Review {
 	public String getName() {
 		return name;
 	}
+	
+	public int getAverage() {
+		return 100;
+	}
 
 }

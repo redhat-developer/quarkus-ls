@@ -8,4 +8,14 @@
 	<h1>{item.name}</h1>
 	<h1>{data:item.name}</h1>
   {/with}
+  {!
+  {#for review in reviews}
+      {#with review}
+          {price}
+      {/with}
+  {/for}
+  !}
+  {#with mainReview}
+	<p>Average: {average}</p>
+  {/with}
 {/with}

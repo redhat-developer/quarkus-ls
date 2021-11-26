@@ -154,6 +154,19 @@ public abstract class Node {
 	}
 
 	/**
+	 * Returns the parent section of the node and null otherwise.
+	 * 
+	 * @return the parent section of the node and null otherwise.
+	 */
+	public Section getParentSection() {
+		Node parent = getParent();
+		if (parent != null && parent.getKind() == NodeKind.Section) {
+			return (Section) parent;
+		}
+		return null;
+	}
+
+	/**
 	 * Returns true if the node included the given offset and false otherwise.
 	 * 
 	 * @param node

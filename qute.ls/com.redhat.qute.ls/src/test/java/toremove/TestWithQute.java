@@ -13,8 +13,12 @@ public class TestWithQute {
 
 	public static void main(String[] args) {
 
+		Item item = new Item(0);
+		Review review = new Review(5);
+		item.addReview(review);
+		
 		Map<String, Object> data = new HashMap<>();
-		data.put("item", new Item(0));
+		data.put("item", item);
 
 		Engine engine = Engine.builder().addDefaults().addValueResolver(new ReflectionValueResolver()).build();
 

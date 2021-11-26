@@ -12,6 +12,11 @@ public class Item {
 		this.name = "Item: " + i;
 	}
 
+	public Review getMainReview() {
+		Review main = new Review(0);
+		return main ;
+	}
+	
 	public void addReview(Review review) {
 		getReviews().add(review);
 	}
