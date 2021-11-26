@@ -34,6 +34,8 @@
    <!-- Quarkus @Scheduled annotation support -->
    
    <extension point="org.eclipse.lsp4mp.jdt.core.javaFeatureParticipants">
+         <!-- Java definition for the Quarkus @Scheduled annotation -->
+      <definition class="com.redhat.microprofile.jdt.internal.quarkus.scheduler.java.QuarkusScheduledDefinitionParticipant" />
        <!-- Java hover for the Quarkus @Scheduled annotation -->
       <hover class="com.redhat.microprofile.jdt.internal.quarkus.scheduler.java.QuarkusScheduledHoverParticipant" />   
    </extension>
