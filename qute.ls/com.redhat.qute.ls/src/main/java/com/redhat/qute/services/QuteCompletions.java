@@ -35,6 +35,7 @@ import com.redhat.qute.parser.scanner.Scanner;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
+import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.scanner.ScannerState;
 import com.redhat.qute.parser.template.scanner.TemplateScanner;
@@ -49,7 +50,7 @@ import com.redhat.qute.utils.QutePositionUtility;
 
 /**
  * The Qute completions
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -76,7 +77,7 @@ public class QuteCompletions {
 
 	/**
 	 * Returns completion list for the given position
-	 * 
+	 *
 	 * @param template           the Qute template
 	 * @param position           the position where completion was triggered
 	 * @param completionSettings the completion settings.
@@ -87,7 +88,6 @@ public class QuteCompletions {
 	public CompletableFuture<CompletionList> doComplete(Template template, Position position,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
 			CancelChecker cancelChecker) {
-		CompletionList list = new CompletionList();
 		CompletionRequest completionRequest = null;
 		try {
 			completionRequest = new CompletionRequest(template, position, completionSettings, formattingSettings);
@@ -117,9 +117,35 @@ public class QuteCompletions {
 			}
 			return completionForExpression.doCompleteExpression(expression, nodeExpression, template, offset,
 					completionSettings, formattingSettings, cancelChecker);
-		} else if (node.getKind() == NodeKind.Text && text.charAt(offset - 1) == '{') {
-			return completionForExpression.doCompleteExpression(null, node, template, offset, completionSettings,
-					formattingSettings, cancelChecker);
+		} else if (node.getKind() == NodeKind.Text) {
+			// The completion is triggered in text node (before node)
+			Section parent = node.getParentSection();
+			if (parent != null && (parent.isInEndTag(offset))) {
+				// The completion is triggered inside end tag
+				return EMPTY_FUTURE_COMPLETION;
+			}
+			// The completion is triggered in text node
+
+			// Check if completion is triggered after a start bracket character and if it's
+			// a valid expression
+			int nbBrackets = 0;
+			int bracketOffset = offset - 1;
+			while (bracketOffset >= 0 && text.charAt(bracketOffset) == '{') {
+				bracketOffset--;
+				nbBrackets++;
+			}
+			if (nbBrackets > 0) {
+				// The completion is triggered after bracket character
+				// {| --> valid expression
+				// {{| --> invalid expression
+				// {{{| --> valid expression
+				if (nbBrackets % 2 != 0) {
+					// The completion is triggered in text node after bracket '{' character
+					return completionForExpression.doCompleteExpression(null, node, template, offset,
+							completionSettings, formattingSettings, cancelChecker);
+				}
+				return EMPTY_FUTURE_COMPLETION;
+			}
 		}
 
 		Scanner<TokenType, ScannerState> scanner = TemplateScanner.createScanner(text, node.getStart());
@@ -150,6 +176,11 @@ public class QuteCompletions {
 			token = scanner.scan();
 		}
 
+		return collectSnippetSuggestions(completionRequest);
+	}
+
+	private CompletableFuture<CompletionList> collectSnippetSuggestions(CompletionRequest completionRequest) {
+		CompletionList list = new CompletionList();
 		completionsForSnippets.collectSnippetSuggestions(completionRequest, list);
 		return CompletableFuture.completedFuture(list);
 	}

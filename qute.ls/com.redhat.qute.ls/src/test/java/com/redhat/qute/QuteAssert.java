@@ -42,6 +42,7 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.DocumentHighlight;
 import org.eclipse.lsp4j.DocumentHighlightKind;
 import org.eclipse.lsp4j.DocumentLink;
+import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverCapabilities;
 import org.eclipse.lsp4j.LinkedEditingRanges;
@@ -54,6 +55,7 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.ReferenceContext;
 import org.eclipse.lsp4j.ResourceOperation;
+import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.TextDocumentEdit;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
@@ -711,4 +713,32 @@ public class QuteAssert {
 		return new LinkedEditingRanges(Arrays.asList(ranges));
 	}
 
+	// ------------------- DocumentSymbol assert
+
+	public static void testDocumentSymbolsFor(String value, DocumentSymbol expected) throws BadLocationException {
+		testDocumentSymbolsFor(value, FILE_URI, PROJECT_URI, TEMPLATE_BASE_DIR, expected);
+	}
+
+	public static void testDocumentSymbolsFor(String value, String fileUri, String projectUri, String templateBaseDir,
+			DocumentSymbol... expected) throws BadLocationException {
+
+		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
+		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+
+		List<DocumentSymbol> actual = languageService.findDocumentSymbols(template, () -> {
+		});
+		assertDocumentSymbols(actual, expected);
+
+	}
+
+	public static DocumentSymbol ds(final String name, final SymbolKind kind, final Range range,
+			final Range selectionRange, final String detail, final List<DocumentSymbol> children) {
+		return new DocumentSymbol(name, kind, range, selectionRange, detail, children);
+	}
+
+	public static void assertDocumentSymbols(List<DocumentSymbol> actual, DocumentSymbol... expected) {
+		assertEquals(expected.length, actual.size());
+		assertArrayEquals(expected, actual.toArray());
+	}
 }

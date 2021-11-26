@@ -94,7 +94,10 @@ public class TemplateScanner extends AbstractScanner<TokenType, ScannerState> {
 						state = ScannerState.WithinExpression;
 						return finishToken(offset, TokenType.StartExpression);
 					} else {
-						stream.advance(1);
+						// Text node, increment position if needed
+						if (!stream.eos()) {
+							stream.advance(1);
+						}
 					}
 				}
 			}

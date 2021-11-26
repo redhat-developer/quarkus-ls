@@ -63,11 +63,7 @@ public abstract class Part extends Node {
 		return parts.getPartIndex(this) == parts.getChildCount() - 1;
 	}
 
-	/**
-	 * Returns the parent section of the object part and null otherwise.
-	 * 
-	 * @return the parent section of the object part and null otherwise.
-	 */
+	@Override
 	public Section getParentSection() {
 		Parts parts = getParent();
 		Expression expression = parts.getParent();

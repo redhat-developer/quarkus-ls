@@ -33,8 +33,8 @@ public class ExpressionParser {
 		}
 		Template template = expression.getOwnerTemplate();
 		String text = template.getText();
-		int start = expression.getStart() + 1;
-		int end = expression.getEnd() - 1;
+		int start = expression.getStartContentOffset();
+		int end = expression.getEndContentOffset();
 		ExpressionScanner scanner = ExpressionScanner.createScanner(text, start, end);
 		TokenType token = scanner.scan();
 		List<Node> expressionContent = new ArrayList<>();

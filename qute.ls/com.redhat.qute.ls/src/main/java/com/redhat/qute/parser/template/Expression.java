@@ -40,6 +40,24 @@ public class Expression extends Node {
 		return "#expression";
 	}
 
+	/**
+	 * Returns the start offset of the expression content (after '{')
+	 * 
+	 * @return the start offset of the expression content (after '{')
+	 */
+	public int getStartContentOffset() {
+		return getStart() + 1;
+	}
+
+	/**
+	 * Returns the end offset of the expression content (before '}')
+	 * 
+	 * @return the end offset of the expression content (before '}')
+	 */
+	public int getEndContentOffset() {
+		return isClosed() ? getEnd() - 1 : getEnd();
+	}
+
 	public Node findNodeExpressionAt(int offset) {
 		Node node = findNodeAt(getExpressionContent(), offset);
 		if (node != null) {
