@@ -145,7 +145,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		if (iterableOf != null) {
 			return true;
 		}
-		boolean iterable = getClassName().equals("java.lang.Iterable");
+		boolean iterable = getSignature().equals("java.lang.Iterable");
 		if (!iterable && extendedTypes != null) {
 			for (String extendedType : extendedTypes) {
 				if ("Iterable".equals(extendedType) || extendedType.equals("java.lang.Iterable")) {
@@ -157,7 +157,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
 		if (iterable) {
 			this.iterableOf = "java.lang.Object";
-			this.iterableType = getClassName();
+			this.iterableType = getSignature();
 		}
 		return iterable;
 	}

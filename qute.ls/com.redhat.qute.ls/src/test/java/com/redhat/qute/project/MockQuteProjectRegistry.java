@@ -1,8 +1,20 @@
+/*******************************************************************************
+* Copyright (c) 2021 Red Hat Inc. and others.
+* All rights reserved. This program and the accompanying materials
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v20.html
+*
+* SPDX-License-Identifier: EPL-2.0
+*
+* Contributors:
+*     Red Hat Inc. - initial API and implementation
+*******************************************************************************/
 package com.redhat.qute.project;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Position;
@@ -42,12 +54,17 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	}
 
 	@Override
-	public CompletableFuture<List<JavaTypeInfo>> getJavaClasses(QuteJavaTypesParams params) {
+	public CompletableFuture<List<JavaTypeInfo>> getJavaTypes(QuteJavaTypesParams params) {
 		MockQuteProject project = (MockQuteProject) getProject(params.getProjectUri());
 		if (project == null) {
 			return CompletableFuture.completedFuture(Collections.emptyList());
 		}
-		return CompletableFuture.completedFuture(project.getJavaClasses());
+		List<JavaTypeInfo> result = project.getJavaTypes() //
+				.stream() //
+				.filter(type -> (type.getName().startsWith(params.getPattern())
+						|| type.getJavaElementSimpleType().startsWith(params.getPattern()))) //
+				.collect(Collectors.toList());
+		return CompletableFuture.completedFuture(result);
 	}
 
 	@Override
@@ -56,7 +73,7 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 		if (project == null) {
 			return CompletableFuture.completedFuture(null);
 		}
-		return CompletableFuture.completedFuture(project.getResolvedJavaClassSync(params.getClassName()));
+		return CompletableFuture.completedFuture(project.getResolvedJavaTypeSync(params.getClassName()));
 	}
 
 	@Override
@@ -66,7 +83,7 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 			return CompletableFuture.completedFuture(null);
 		}
 		String className = params.getSourceType();
-		ResolvedJavaTypeInfo classInfo = project.getResolvedJavaClassSync(className);
+		ResolvedJavaTypeInfo classInfo = project.getResolvedJavaTypeSync(className);
 		if (classInfo != null) {
 			Range definitionRange = null;
 			String fieldName = params.getSourceField();

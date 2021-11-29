@@ -45,6 +45,7 @@ import com.redhat.qute.parser.template.RangeOffset;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.ParameterDeclaration.JavaTypeRangeOffset;
 import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
@@ -194,7 +195,7 @@ class QuteDiagnostics {
 				} else {
 					String projectUri = template.getProjectUri();
 					if (projectUri != null) {
-						List<RangeOffset> classNameRanges = parameter.getClassNameRanges();
+						List<JavaTypeRangeOffset> classNameRanges = parameter.getJavaTypeNameRanges();
 						for (RangeOffset classNameRange : classNameRanges) {
 							String className = template.getText(classNameRange);
 							ResolvedJavaTypeInfo resolvedJavaClass = resolveJavaType(className, projectUri,
@@ -445,7 +446,7 @@ class QuteDiagnostics {
 		// Check if object part is a property coming from #with
 		JavaMemberInfo javaMember = resolutionContext.findMemberWithObject(objectPart.getPartName(), projectUri);
 		if (javaMember != null) {
-			ResolvedJavaTypeInfo resolvedJavaType = resolveJavaType(javaMember.getMemberType(), projectUri,
+			ResolvedJavaTypeInfo resolvedJavaType = resolveJavaType(javaMember.getJavaElementType(), projectUri,
 					resolvingJavaTypeContext);
 			if (isResolvingJavaType(resolvedJavaType)) {
 				return null;
@@ -493,7 +494,7 @@ class QuteDiagnostics {
 								return null;
 							}
 						} else {
-							javaTypeToResolve = alias.getClassName();
+							javaTypeToResolve = alias.getSignature();
 						}
 					}
 				}
@@ -522,7 +523,7 @@ class QuteDiagnostics {
 			}
 			Range range = QutePositionUtility.createRange(part);
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode, property,
-					resolvedJavaClass.getClassName());
+					resolvedJavaClass.getSignature());
 			diagnostics.add(diagnostic);
 			return null;
 		}
@@ -532,7 +533,7 @@ class QuteDiagnostics {
 			// to check if the type is an iterable type (ex : {#for item in
 			// part.to.validate}
 			return validateJavaTypePart(part, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext,
-					javaMember.getMemberType());
+					javaMember.getJavaElementType());
 		}
 		return null;
 	}

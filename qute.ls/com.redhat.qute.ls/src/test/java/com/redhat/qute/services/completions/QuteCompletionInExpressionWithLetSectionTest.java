@@ -131,18 +131,7 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 	
 	@Test
 	public void noCompletionInEndTag() throws Exception {
-		String template = "{#let foo=bar}\r\n" + //
-				"{|/let}";
-		testCompletionFor(template, 0);
-		
-		template = "{#let foo=bar}\r\n" + //
-				"{/|let}";
-		testCompletionFor(template, 0);
-		
-		template = "{#let foo=bar}\r\n" + //
-				"{/l|et}";
-		testCompletionFor(template, 0);
-		
+		String template;
 		template = "{#let foo=bar}\r\n" + //
 				"{/|}";
 		testCompletionFor(template, 0);

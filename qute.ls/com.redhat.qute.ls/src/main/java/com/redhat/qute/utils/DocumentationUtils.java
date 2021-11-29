@@ -15,7 +15,7 @@ import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 
 import com.redhat.qute.commons.JavaMemberInfo;
-import com.redhat.qute.commons.JavaMemberInfo.JavaMemberKind;
+import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 
 /**
@@ -37,7 +37,7 @@ public class DocumentationUtils {
 			documentation.append("```java");
 			documentation.append(System.lineSeparator());
 		}
-		documentation.append(resolvedType.getClassName());
+		documentation.append(resolvedType.getSignature());
 		if (markdown) {
 			documentation.append(System.lineSeparator());
 			documentation.append("```");
@@ -57,15 +57,15 @@ public class DocumentationUtils {
 			documentation.append("```java");
 			documentation.append(System.lineSeparator());
 		}
-		documentation.append(member.getMemberSimpleType());
+		documentation.append(member.getJavaElementSimpleType());
 		documentation.append(" ");
 		if (member.getResolvedType() != null) {
-			documentation.append(member.getResolvedType().getClassName());
+			documentation.append(member.getResolvedType().getSignature());
 			documentation.append(".");
 		}
 		documentation.append(member.getName());
 
-		if (member.getKind() == JavaMemberKind.METHOD) {
+		if (member.getJavaElementKind() == JavaElementKind.METHOD) {
 			documentation.append('(');
 			documentation.append(')');
 		}
@@ -75,9 +75,9 @@ public class DocumentationUtils {
 			documentation.append("```");
 		}
 
-		if (member.getDescription() != null) {
+		if (member.getDocumentation() != null) {
 			documentation.append(System.lineSeparator());
-			documentation.append(member.getDescription());
+			documentation.append(member.getDocumentation());
 		}
 
 		return createMarkupContent(documentation, markdown);

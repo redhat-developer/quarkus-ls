@@ -31,13 +31,15 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 	private static final Logger LOGGER = Logger.getLogger(AbstractTypeResolver.class.getName());
 
 	@Override
-	public String resolveFieldType(IField field) {
+	public String resolveFieldSignature(IField field) {
+		StringBuilder signature = new StringBuilder(field.getElementName());
+		signature.append(" : ");
 		try {
-			return resolveTypeSignature(field.getTypeSignature());
+			signature.append(resolveTypeSignature(field.getTypeSignature()));
 		} catch (JavaModelException e) {
 			LOGGER.log(Level.SEVERE, "Error while resolving field type '" + field.getElementName() + "'", e);
-			return null;
 		}
+		return signature.toString();
 	}
 
 	@Override

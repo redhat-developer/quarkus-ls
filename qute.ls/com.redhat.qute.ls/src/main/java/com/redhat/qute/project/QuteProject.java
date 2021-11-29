@@ -59,7 +59,7 @@ public class QuteProject {
 
 	private final Map<String /* template id */, TemplateProvider> openedDocuments;
 
-	private final Map<String /* Full qualified name of Java class */, CompletableFuture<ResolvedJavaTypeInfo>> classes;
+	private final Map<String /* Full qualified name of Java class */, CompletableFuture<ResolvedJavaTypeInfo>> resolvedJavaTypes;
 
 	private CompletableFuture<ExtendedDataModelProject> dataModelProjectFuture;
 
@@ -71,7 +71,7 @@ public class QuteProject {
 		this.indexer = new QuteIndexer(this);
 		this.openedDocuments = new HashMap<>();
 		this.dataModelProvider = dataModelProvider;
-		this.classes = new HashMap<>();
+		this.resolvedJavaTypes = new HashMap<>();
 	}
 
 	/**
@@ -189,12 +189,12 @@ public class QuteProject {
 		}
 	}
 
-	public CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaClass(String className) {
-		return classes.get(className);
+	public CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaType(String typeName) {
+		return resolvedJavaTypes.get(typeName);
 	}
 
-	void registerResolvedJavaClass(String className, CompletableFuture<ResolvedJavaTypeInfo> future) {
-		classes.put(className, future);
+	void registerResolvedJavaType(String typeName, CompletableFuture<ResolvedJavaTypeInfo> future) {
+		resolvedJavaTypes.put(typeName, future);
 	}
 
 	public CompletableFuture<ExtendedDataModelProject> getDataModelProject() {
@@ -231,6 +231,6 @@ public class QuteProject {
 			dataModelProjectFuture.cancel(true);
 			dataModelProjectFuture = null;
 		}
-		classes.clear();
+		resolvedJavaTypes.clear();
 	}
 }

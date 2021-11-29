@@ -90,7 +90,7 @@ public class QuteHover {
 
 	private CompletableFuture<Hover> doHoverForParameterDeclaration(ParameterDeclaration parameterDeclaration,
 			Template template, HoverRequest hoverRequest, CancelChecker cancelChecker) {
-		RangeOffset classNameRange = parameterDeclaration.getClassNameRange(hoverRequest.getOffset());
+		RangeOffset classNameRange = parameterDeclaration.getJavaTypeNameRange(hoverRequest.getOffset());
 		if (classNameRange != null) {
 			if (classNameRange != null) {
 				String className = template.getText(classNameRange);

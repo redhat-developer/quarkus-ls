@@ -34,6 +34,17 @@ public class QuteDefinitionInParameterDeclarationTest {
 	}
 
 	@Test
+	public void definitionInExistingArrayClass() throws Exception {
+		String template = "{@org.ac|me.Item[] item}\r\n";
+		testDefinitionFor(template, "test.qute", //
+				ll("org/acme/Item.java", r(0, 2, 0, 15), MockQuteProjectRegistry.JAVA_CLASS_RANGE));
+
+		template = "{@org.acme.Item|[] item}\r\n";
+		testDefinitionFor(template, "test.qute", //
+				ll("org/acme/Item.java", r(0, 2, 0, 15), MockQuteProjectRegistry.JAVA_CLASS_RANGE));
+	}
+
+	@Test
 	public void definitionInExistingClassInsideList() throws Exception {
 		String template = "{@java.util.List<org.ac|me.Item> item}\r\n";
 		testDefinitionFor(template, "test.qute", //
@@ -46,6 +57,29 @@ public class QuteDefinitionInParameterDeclarationTest {
 		template = "{@java.util.List<org.acme.Item|> item}\r\n";
 		testDefinitionFor(template, "test.qute", //
 				ll("org/acme/Item.java", r(0, 17, 0, 30), MockQuteProjectRegistry.JAVA_CLASS_RANGE));
+
+		template = "{@java.util.List<org.acme.Ite|m item}\r\n";
+		testDefinitionFor(template, "test.qute", //
+				ll("org/acme/Item.java", r(0, 17, 0, 30), MockQuteProjectRegistry.JAVA_CLASS_RANGE));
+	}
+
+	@Test
+	public void definitionInExistingClassInsideMap() throws Exception {
+		String template = "{@java.util.Map<java.lang.String,org.ac|me.Item> item}\r\n";
+		testDefinitionFor(template, "test.qute", //
+				ll("org/acme/Item.java", r(0, 33, 0, 46), MockQuteProjectRegistry.JAVA_CLASS_RANGE));
+
+		template = "{@java.util.Map<java.lang.String,|org.acme.Item> item}\r\n";
+		testDefinitionFor(template, "test.qute", //
+				ll("org/acme/Item.java", r(0, 33, 0, 46), MockQuteProjectRegistry.JAVA_CLASS_RANGE));
+
+		template = "{@java.util.Map<java.lang.String,org.acme.Item|> item}\r\n";
+		testDefinitionFor(template, "test.qute", //
+				ll("org/acme/Item.java", r(0, 33, 0, 46), MockQuteProjectRegistry.JAVA_CLASS_RANGE));
+
+		template = "{@java.util.Map<java.lang.String,org.acme.Ite|m item}\r\n";
+		testDefinitionFor(template, "test.qute", //
+				ll("org/acme/Item.java", r(0, 33, 0, 46), MockQuteProjectRegistry.JAVA_CLASS_RANGE));
 	}
 
 	@Test

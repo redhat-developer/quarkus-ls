@@ -67,7 +67,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	private static void registerPrimitiveType(String type) {
 		ResolvedJavaTypeInfo classInfo = new ResolvedJavaTypeInfo();
-		classInfo.setClassName(type);
+		classInfo.setSignature(type);
 		javaPrimitiveTypes.put(type, CompletableFuture.completedFuture(classInfo));
 
 	}
@@ -169,22 +169,22 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		}
 	}
 
-	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className, String projectUri) {
-		CompletableFuture<ResolvedJavaTypeInfo> primitiveType = javaPrimitiveTypes.get(className);
+	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String javaTypeName, String projectUri) {
+		CompletableFuture<ResolvedJavaTypeInfo> primitiveType = javaPrimitiveTypes.get(javaTypeName);
 		if (primitiveType != null) {
 			// It's a primitive type like boolean, double, float, etc
 			return primitiveType;
 		}
-		if (StringUtils.isEmpty(className) || StringUtils.isEmpty(projectUri)) {
+		if (StringUtils.isEmpty(javaTypeName) || StringUtils.isEmpty(projectUri)) {
 			return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
 		}
 		QuteProject project = getProject(projectUri);
 		if (project == null) {
 			return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
 		}
-		CompletableFuture<ResolvedJavaTypeInfo> future = project.getResolvedJavaClass(className);
+		CompletableFuture<ResolvedJavaTypeInfo> future = project.getResolvedJavaType(javaTypeName);
 		if (future == null || future.isCancelled() || future.isCompletedExceptionally()) {
-			QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams(className, projectUri);
+			QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams(javaTypeName, projectUri);
 			future = getResolvedJavaClass(params) //
 					.thenCompose(c -> {
 						if (c != null) {
@@ -216,7 +216,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 						}
 						return CompletableFuture.completedFuture(c);
 					});
-			project.registerResolvedJavaClass(className, future);
+			project.registerResolvedJavaType(javaTypeName, future);
 		}
 		return future;
 	}
@@ -271,7 +271,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 				});
 	}
 
-	public CompletableFuture<List<JavaTypeInfo>> getJavaClasses(QuteJavaTypesParams params) {
+	public CompletableFuture<List<JavaTypeInfo>> getJavaTypes(QuteJavaTypesParams params) {
 		return classProvider.getJavaTypes(params);
 	}
 
