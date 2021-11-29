@@ -19,7 +19,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -33,22 +32,13 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
-import org.eclipse.jdt.core.search.IJavaSearchConstants;
-import org.eclipse.jdt.core.search.IJavaSearchScope;
-import org.eclipse.jdt.core.search.SearchEngine;
-import org.eclipse.jdt.core.search.SearchMatch;
-import org.eclipse.jdt.core.search.SearchParticipant;
-import org.eclipse.jdt.core.search.SearchPattern;
-import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaProject;
-import org.eclipse.jdt.internal.core.search.BasicSearchEngine;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.lsp4j.Location;
 
@@ -68,6 +58,7 @@ import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.jdt.internal.resolver.ClassFileTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.CompilationUnitTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
+import com.redhat.qute.jdt.internal.template.JavaTypesSearch;
 import com.redhat.qute.jdt.internal.template.QuarkusIntegrationForQute;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
@@ -94,6 +85,15 @@ public class QuteSupportForTemplate {
 		return INSTANCE;
 	}
 
+	/**
+	 * Returns the project information for the given project Uri.
+	 * 
+	 * @param params  the project information parameters.
+	 * @param utils   the JDT LS utility.
+	 * @param monitor the progress monitor.
+	 * 
+	 * @return the project information for the given project Uri and null otherwise.
+	 */
 	public ProjectInfo getProjectInfo(QuteProjectParams params, IJDTUtils utils, IProgressMonitor monitor) {
 		IJavaProject javaProject = getJavaProjectFromTemplateFile(params.getTemplateFileUri(), utils);
 		if (javaProject == null) {
@@ -112,6 +112,18 @@ public class QuteSupportForTemplate {
 		return QuarkusIntegrationForQute.getDataModelProject(javaProject, monitor);
 	}
 
+	/**
+	 * Returns Java types for the given pattern which belong to the given project
+	 * Uri.
+	 * 
+	 * @param params  the java types parameters.
+	 * @param utils   the JDT LS utility.
+	 * @param monitor the progress monitor.
+	 * 
+	 * @return list of Java types.
+	 * 
+	 * @throws CoreException
+	 */
 	public List<JavaTypeInfo> getJavaTypes(QuteJavaTypesParams params, IJDTUtils utils, IProgressMonitor monitor)
 			throws CoreException {
 		String projectUri = params.getProjectUri();
@@ -119,50 +131,7 @@ public class QuteSupportForTemplate {
 		if (javaProject == null) {
 			return null;
 		}
-
-		int searchScope = IJavaSearchScope.SOURCES;
-		String className = params.getPattern();
-		if (StringUtils.isEmpty(className)) {
-			searchScope = IJavaSearchScope.SOURCES;
-			className = "*";
-		} else {
-			searchScope = IJavaSearchScope.SOURCES | IJavaSearchScope.APPLICATION_LIBRARIES;
-			if (className.indexOf('.') != -1) {
-				className = className + "*";
-			} else {
-				className = "*.*." + className + "*";
-			}
-		}
-
-		List<JavaTypeInfo> classes = new ArrayList<>();
-		SearchPattern pattern = SearchPattern.createPattern(className, IJavaSearchConstants.CLASS, 0,
-				SearchPattern.R_CAMELCASE_MATCH);
-		pattern = SearchPattern.createOrPattern(pattern, SearchPattern.createPattern(className,
-				IJavaSearchConstants.PACKAGE, 0, SearchPattern.R_CAMELCASE_MATCH));
-		SearchEngine engine = new SearchEngine();
-		IJavaSearchScope scope = BasicSearchEngine.createJavaSearchScope(true, new IJavaElement[] { javaProject },
-				searchScope);
-
-		engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
-				new SearchRequestor() {
-
-					@Override
-					public void acceptSearchMatch(SearchMatch match) throws CoreException {
-						if (match.getElement() instanceof IType) {
-							IType type = (IType) match.getElement();
-							JavaTypeInfo classInfo = new JavaTypeInfo();
-							classInfo.setClassName(type.getFullyQualifiedName('.'));
-							classInfo.setUri(utils.toUri(type.getTypeRoot()));
-							classes.add(classInfo);
-						} else if (match.getElement() instanceof IPackageFragment) {
-							IPackageFragment packageFragment = (IPackageFragment) match.getElement();
-							JavaTypeInfo classInfo = new JavaTypeInfo();
-							classInfo.setClassName(packageFragment.getElementName());
-							classes.add(classInfo);
-						}
-					}
-				}, monitor);
-		return classes;
+		return new JavaTypesSearch(params.getPattern(), javaProject).search(monitor);
 	}
 
 	public Location getJavaDefinition(QuteJavaDefinitionParams params, IJDTUtils utils, IProgressMonitor monitor)
@@ -286,8 +255,7 @@ public class QuteSupportForTemplate {
 			if (isValidField(field)) {
 				// Only public fields are available
 				JavaFieldInfo info = new JavaFieldInfo();
-				info.setName(JDTTypeUtils.getSourceField(field));
-				info.setType(typeResolver.resolveFieldType(field));
+				info.setSignature(typeResolver.resolveFieldSignature(field));
 				fieldsInfo.add(info);
 			}
 		}
@@ -331,7 +299,7 @@ public class QuteSupportForTemplate {
 		}
 
 		ResolvedJavaTypeInfo resolvedClass = new ResolvedJavaTypeInfo();
-		resolvedClass.setClassName(className);
+		resolvedClass.setSignature(className);
 		resolvedClass.setFields(fieldsInfo);
 		resolvedClass.setMethods(methodsInfo);
 		resolvedClass.setExtendedTypes(extendedTypes);
@@ -358,7 +326,7 @@ public class QuteSupportForTemplate {
 
 	private ResolvedJavaTypeInfo createIterableType(String className, String iterableClassName, String iterableOf) {
 		ResolvedJavaTypeInfo resolvedClass = new ResolvedJavaTypeInfo();
-		resolvedClass.setClassName(className);
+		resolvedClass.setSignature(className);
 		resolvedClass.setIterableType(iterableClassName);
 		resolvedClass.setIterableOf(iterableOf);
 		return resolvedClass;

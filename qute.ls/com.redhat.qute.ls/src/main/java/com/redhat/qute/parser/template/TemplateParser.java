@@ -271,13 +271,6 @@ public class TemplateParser {
 				break;
 			}
 
-			case ParameterDeclaration: {
-				ParameterDeclaration parameter = (ParameterDeclaration) curr;
-				parameter.setStartContent(scanner.getTokenOffset());
-				parameter.setEndContent(scanner.getTokenEnd());
-				break;
-			}
-
 			case EndParameterDeclaration: {
 				int end = scanner.getTokenEnd();
 				ParameterDeclaration parameter = (ParameterDeclaration) curr;

@@ -26,7 +26,7 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.commons.JavaMemberInfo;
-import com.redhat.qute.commons.JavaMemberInfo.JavaMemberKind;
+import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
@@ -189,8 +189,8 @@ class QuteDefinition {
 	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameterDeclaration(int offset,
 			ParameterDeclaration parameterDeclaration, Template template) {
 		String projectUri = template.getProjectUri();
-		if (projectUri != null && parameterDeclaration.isInClassName(offset)) {
-			RangeOffset range = parameterDeclaration.getClassNameRange(offset);
+		if (projectUri != null && parameterDeclaration.isInJavaTypeName(offset)) {
+			RangeOffset range = parameterDeclaration.getJavaTypeNameRange(offset);
 			if (range != null) {
 				String className = template.getText(range);
 				QuteJavaDefinitionParams params = new QuteJavaDefinitionParams(className, projectUri);
@@ -319,7 +319,7 @@ class QuteDefinition {
 		
 		QuteJavaDefinitionParams params = new QuteJavaDefinitionParams(sourceType,
 				projectUri);
-		if (member != null && member.getKind() == JavaMemberKind.METHOD) {
+		if (member != null && member.getJavaElementKind() == JavaElementKind.METHOD) {
 			// Try to find a method definition
 			params.setSourceMethod(member.getName());
 		} else {

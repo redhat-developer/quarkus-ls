@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
  */
 public class QuteCompletionInParameterDeclarationTest {
 
-	// 
 	@Test
 	public void completionInParameterDeclarationForJavaClass() throws Exception {
 		String template = "{@|}\r\n";
@@ -36,7 +35,9 @@ public class QuteCompletionInParameterDeclarationTest {
 				c("org.acme", "org.acme", r(0, 2, 0, 2)), //
 				// Class completion
 				c("org.acme.Item", "org.acme.Item item", r(0, 2, 0, 2)), //
-				c("org.acme.Review", "org.acme.Review review", r(0, 2, 0, 2)));
+				c("org.acme.Review", "org.acme.Review review", r(0, 2, 0, 2)), //
+				c("java.util.List<E>", "java.util.List<E> list", r(0, 2, 0, 2)), //
+				c("java.util.Map<K,V>", "java.util.Map<K,V> map", r(0, 2, 0, 2)));
 
 		// With snippet support
 		testCompletionFor(template, //
@@ -45,12 +46,14 @@ public class QuteCompletionInParameterDeclarationTest {
 				c("org.acme", "org.acme", r(0, 2, 0, 2)), //
 				// Class completion
 				c("org.acme.Item", "org.acme.Item ${1:item}$0", r(0, 2, 0, 2)), //
-				c("org.acme.Review", "org.acme.Review ${1:review}$0", r(0, 2, 0, 2)));
+				c("org.acme.Review", "org.acme.Review ${1:review}$0", r(0, 2, 0, 2)), //
+				c("java.util.List<E>", "java.util.List<${1:E}> ${2:list}$0", r(0, 2, 0, 2)), //
+				c("java.util.Map<K,V>", "java.util.Map<${1:K},${2:V}> ${3:map}$0", r(0, 2, 0, 2)));
 
 	}
 
 	@Test
-	public void completionInParameterDeclarationForJavaClass2() throws Exception {
+	public void completionInParameterDeclarationForJavaClassNotClosed() throws Exception {
 		String template = "{@|\r\n";
 
 		// Without snippet
@@ -58,8 +61,10 @@ public class QuteCompletionInParameterDeclarationTest {
 				// Package completion
 				c("org.acme", "org.acme", r(0, 2, 0, 2)), //
 				// Class completion
-				c("org.acme.Item", "org.acme.Item item", r(0, 2, 0, 2)), //
-				c("org.acme.Review", "org.acme.Review review", r(0, 2, 0, 2)));
+				c("org.acme.Item", "org.acme.Item item}", r(0, 2, 0, 2)), //
+				c("org.acme.Review", "org.acme.Review review}", r(0, 2, 0, 2)), //
+				c("java.util.List<E>", "java.util.List<E> list}", r(0, 2, 0, 2)), //
+				c("java.util.Map<K,V>", "java.util.Map<K,V> map}", r(0, 2, 0, 2)));
 
 		// With snippet support
 		testCompletionFor(template, //
@@ -67,31 +72,206 @@ public class QuteCompletionInParameterDeclarationTest {
 				// Package completion
 				c("org.acme", "org.acme", r(0, 2, 0, 2)), //
 				// Class completion
-				c("org.acme.Item", "org.acme.Item ${1:item}$0", r(0, 2, 0, 2)), //
-				c("org.acme.Review", "org.acme.Review ${1:review}$0", r(0, 2, 0, 2)));
+				c("org.acme.Item", "org.acme.Item ${1:item}}$0", r(0, 2, 0, 2)), //
+				c("org.acme.Review", "org.acme.Review ${1:review}}$0", r(0, 2, 0, 2)), //
+				c("java.util.List<E>", "java.util.List<${1:E}> ${2:list}}$0", r(0, 2, 0, 2)), //
+				c("java.util.Map<K,V>", "java.util.Map<${1:K},${2:V}> ${3:map}}$0", r(0, 2, 0, 2)));
 
 	}
 
 	@Test
-	public void completionInParameterDeclarationForJavaClass3() throws Exception {
-		String template = "{@I|t\r\n";
+	public void completionInParameterDeclarationForJavaClassNotClosedFollowedByExpression() throws Exception {
+		String template = "{@|\r\n" + //
+				"{abcd}";
 
 		// Without snippet
 		testCompletionFor(template, //
 				// Package completion
-				c("org.acme", "org.acme", r(0, 2, 1, 0)), //
+				c("org.acme", "org.acme", r(0, 2, 0, 2)), //
 				// Class completion
-				c("org.acme.Item", "org.acme.Item item", r(0, 2, 1, 0)), //
-				c("org.acme.Review", "org.acme.Review review", r(0, 2, 1, 0)));
+				c("org.acme.Item", "org.acme.Item item}", r(0, 2, 0, 2)), //
+				c("org.acme.Review", "org.acme.Review review}", r(0, 2, 0, 2)), //
+				c("java.util.List<E>", "java.util.List<E> list}", r(0, 2, 0, 2)), //
+				c("java.util.Map<K,V>", "java.util.Map<K,V> map}", r(0, 2, 0, 2)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
 				// Package completion
-				c("org.acme", "org.acme", r(0, 2, 1, 0)), //
+				c("org.acme", "org.acme", r(0, 2, 0, 2)), //
 				// Class completion
-				c("org.acme.Item", "org.acme.Item ${1:item}$0", r(0, 2, 1, 0)), //
-				c("org.acme.Review", "org.acme.Review ${1:review}$0", r(0, 2, 1, 0)));
+				c("org.acme.Item", "org.acme.Item ${1:item}}$0", r(0, 2, 0, 2)), //
+				c("org.acme.Review", "org.acme.Review ${1:review}}$0", r(0, 2, 0, 2)), //
+				c("java.util.List<E>", "java.util.List<${1:E}> ${2:list}}$0", r(0, 2, 0, 2)), //
+				c("java.util.Map<K,V>", "java.util.Map<${1:K},${2:V}> ${3:map}}$0", r(0, 2, 0, 2)));
+
+		template = "{@I|t\r\n" + //
+				"{abcd}";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, 3,
+				// Class completion
+				c("java.lang.Integer", "java.lang.Integer integer}", r(0, 2, 0, 4)), //
+				c("org.acme.Item", "org.acme.Item item}", r(0, 2, 0, 4)), //
+				c("org.acme.ItemResource", "org.acme.ItemResource itemResource}", r(0, 2, 0, 4)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				3,
+				// Class completion
+				c("java.lang.Integer", "java.lang.Integer ${1:integer}}$0", r(0, 2, 0, 4)), //
+				c("org.acme.Item", "org.acme.Item ${1:item}}$0", r(0, 2, 0, 4)), //
+				c("org.acme.ItemResource", "org.acme.ItemResource ${1:itemResource}}$0", r(0, 2, 0, 4)));
+
+	}
+
+	@Test
+	public void completionInParameterDeclarationForJavaClassNotClosedWithPattern() throws Exception {
+		String template = "{@I|t\r\n";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, 3,
+				// Class completion
+				c("java.lang.Integer", "java.lang.Integer integer}", r(0, 2, 0, 4)), //
+				c("org.acme.Item", "org.acme.Item item}", r(0, 2, 0, 4)), //
+				c("org.acme.ItemResource", "org.acme.ItemResource itemResource}", r(0, 2, 0, 4)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				3,
+				// Class completion
+				c("java.lang.Integer", "java.lang.Integer ${1:integer}}$0", r(0, 2, 0, 4)), //
+				c("org.acme.Item", "org.acme.Item ${1:item}}$0", r(0, 2, 0, 4)), //
+				c("org.acme.ItemResource", "org.acme.ItemResource ${1:itemResource}}$0", r(0, 2, 0, 4)));
+
+		template = "{@It|\r\n";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, 2,
+				// Class completion
+				c("org.acme.Item", "org.acme.Item item}", r(0, 2, 0, 4)), //
+				c("org.acme.ItemResource", "org.acme.ItemResource itemResource}", r(0, 2, 0, 4)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				2,
+				// Class completion
+				c("org.acme.Item", "org.acme.Item ${1:item}}$0", r(0, 2, 0, 4)), //
+				c("org.acme.ItemResource", "org.acme.ItemResource ${1:itemResource}}$0", r(0, 2, 0, 4)));
+
+	}
+
+	@Test
+	public void completionInParameterDeclarationWithAliasForJavaClass() throws Exception {
+		String template = "{@| alias}\r\n";
+
+		// Without snippet
+		testCompletionFor(template, //
+				// Package completion
+				c("org.acme", "org.acme", r(0, 2, 0, 2)), //
+				// Class completion
+				c("org.acme.Item", "org.acme.Item", r(0, 2, 0, 2)), //
+				c("org.acme.Review", "org.acme.Review", r(0, 2, 0, 2)), //
+				c("java.util.List<E>", "java.util.List<E>", r(0, 2, 0, 2)), //
+				c("java.util.Map<K,V>", "java.util.Map<K,V>", r(0, 2, 0, 2)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				// Package completion
+				c("org.acme", "org.acme", r(0, 2, 0, 2)), //
+				// Class completion
+				c("org.acme.Item", "org.acme.Item$0", r(0, 2, 0, 2)), //
+				c("org.acme.Review", "org.acme.Review$0", r(0, 2, 0, 2)), //
+				c("java.util.List<E>", "java.util.List<${1:E}>$0", r(0, 2, 0, 2)), //
+				c("java.util.Map<K,V>", "java.util.Map<${1:K},${2:V}>$0", r(0, 2, 0, 2)));
+
+	}
+
+	@Test
+	public void completionInTypeParameterClosed() throws Exception {
+		String template = "{@java.util.List<|> alias}\r\n";
+
+		// Without snippet
+		testCompletionFor(template, //
+				// Package completion
+				c("org.acme", "org.acme", r(0, 17, 0, 17)), //
+				// Class completion
+				c("org.acme.Item", "org.acme.Item", r(0, 17, 0, 17)), //
+				c("org.acme.Review", "org.acme.Review", r(0, 17, 0, 17)), //
+				c("java.util.List<E>", "java.util.List<E>", r(0, 17, 0, 17)), //
+				c("java.util.Map<K,V>", "java.util.Map<K,V>", r(0, 17, 0, 17)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				// Package completion
+				c("org.acme", "org.acme", r(0, 17, 0, 17)), //
+				// Class completion
+				c("org.acme.Item", "org.acme.Item$0", r(0, 17, 0, 17)), //
+				c("org.acme.Review", "org.acme.Review$0", r(0, 17, 0, 17)), //
+				c("java.util.List<E>", "java.util.List<${1:E}>$0", r(0, 17, 0, 17)), //
+				c("java.util.Map<K,V>", "java.util.Map<${1:K},${2:V}>$0", r(0, 17, 0, 17)));
+
+	}
+
+	@Test
+	public void completionInTypeParameterNotClosed() throws Exception {
+		String template = "{@java.util.List<| alias}\r\n";
+
+		// Without snippet
+		testCompletionFor(template, //
+				// Package completion
+				c("org.acme", "org.acme>", r(0, 17, 0, 17)), //
+				// Class completion
+				c("org.acme.Item", "org.acme.Item>", r(0, 17, 0, 17)), //
+				c("org.acme.Review", "org.acme.Review>", r(0, 17, 0, 17)), //
+				c("java.util.List<E>", "java.util.List<E>", r(0, 17, 0, 17)), //
+				c("java.util.Map<K,V>", "java.util.Map<K,V>", r(0, 17, 0, 17)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				// Package completion
+				c("org.acme", "org.acme>", r(0, 17, 0, 17)), //
+				// Class completion
+				c("org.acme.Item", "org.acme.Item>$0", r(0, 17, 0, 17)), //
+				c("org.acme.Review", "org.acme.Review>$0", r(0, 17, 0, 17)), //
+				c("java.util.List<E>", "java.util.List<${1:E}>$0", r(0, 17, 0, 17)), //
+				c("java.util.Map<K,V>", "java.util.Map<${1:K},${2:V}>$0", r(0, 17, 0, 17)));
+
+	}
+
+	@Test
+	public void completionInSecondTypeParameter() throws Exception {
+		String template = "{@java.util.Map<java.lang.String,| alias}\r\n";
+
+		// Without snippet
+		testCompletionFor(template, //
+				// Package completion
+				c("org.acme", "org.acme>", r(0, 33, 0, 33)), //
+				// Class completion
+				c("org.acme.Item", "org.acme.Item>", r(0, 33, 0, 33)), //
+				c("org.acme.Review", "org.acme.Review>", r(0, 33, 0, 33)), //
+				c("java.util.List<E>", "java.util.List<E>", r(0, 33, 0, 33)), //
+				c("java.util.Map<K,V>", "java.util.Map<K,V>", r(0, 33, 0, 33)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				// Package completion
+				c("org.acme", "org.acme>", r(0, 33, 0, 33)), //
+				// Class completion
+				c("org.acme.Item", "org.acme.Item>$0", r(0, 33, 0, 33)), //
+				c("org.acme.Review", "org.acme.Review>$0", r(0, 33, 0, 33)), //
+				c("java.util.List<E>", "java.util.List<${1:E}>$0", r(0, 33, 0, 33)), //
+				c("java.util.Map<K,V>", "java.util.Map<${1:K},${2:V}>$0", r(0, 33, 0, 33)));
 
 	}
 

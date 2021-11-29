@@ -24,6 +24,7 @@ import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.ParameterDeclaration;
+import com.redhat.qute.parser.template.RangeOffset;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.BaseWhenSection;
@@ -104,7 +105,15 @@ public class QuteSearchUtils {
 		switch (node.getKind()) {
 		case ParameterDeclaration: {
 			ParameterDeclaration parameterDeclaration = (ParameterDeclaration) node;
-			if (parameterDeclaration.isInAlias(offset)) {
+			if (parameterDeclaration.isInJavaTypeName(offset)) {
+				// {@org.acme.It|em item}
+				RangeOffset rangeOffset = parameterDeclaration.getJavaTypeNameRange(offset);
+				if (rangeOffset != null) {
+					Range range = QutePositionUtility.createRange(rangeOffset, node.getOwnerTemplate());
+					collector.accept(parameterDeclaration, range);
+				}
+			} else if (parameterDeclaration.isInAlias(offset)) {
+				// {@org.acme.Item it|em}
 				String alias = parameterDeclaration.getAlias();
 				if (includeNode) {
 					Range range = QutePositionUtility.selectAlias(parameterDeclaration);

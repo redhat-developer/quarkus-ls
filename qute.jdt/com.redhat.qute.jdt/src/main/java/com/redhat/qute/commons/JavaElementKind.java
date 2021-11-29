@@ -12,38 +12,14 @@
 package com.redhat.qute.commons;
 
 /**
- * Java method parameter information.
+ * Java element kind.
  * 
  * @author Angelo ZERR
  *
  */
-public class JavaMethodParameterInfo {
+public enum JavaElementKind {
 
-	private final String name;
-
-	private final String type;
-
-	public JavaMethodParameterInfo(String name, String type) {
-		this.name = name;
-		this.type = type;
-	}
-
-	/**
-	 * Returns the parameter name.
-	 * 
-	 * @return the parameter name.
-	 */
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * Returns the parameter Java type.
-	 * 
-	 * @return the parameter Java type.
-	 */
-	public String getType() {
-		return type;
-	}
-
+	TYPE, //
+	FIELD, //
+	METHOD;
 }

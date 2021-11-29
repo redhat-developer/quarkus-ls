@@ -23,20 +23,32 @@ import org.eclipse.jdt.core.IMethod;
 public interface ITypeResolver {
 
 	/**
-	 * Returns the resolved field type.
+	 * Returns the Java field signature from the given JDT <code>field</code>.
 	 * 
-	 * @param field the field
+	 * Example:
 	 * 
-	 * @return the resolved field type.
+	 * <code>
+	 * name : java.lang.String
+	 * </code>
+	 * 
+	 * @param field the JDT field
+	 * 
+	 * @return the Java field signature.
 	 */
-	String resolveFieldType(IField field);
+	String resolveFieldSignature(IField field);
 
 	/**
-	 * Returns the resolved method signature.
+	 * Returns the Java method signature from the given JDT <code>method</code>.
 	 * 
-	 * @param method the method
+	 * Example:
 	 * 
-	 * @return the resolved method signature.
+	 * <code>
+	 * find(query : java.lang.String, params : java.util.Map<java.lang.String,java.lang.Object>) : io.quarkus.hibernate.orm.panache.PanacheQuery<T>
+	 * </code>
+	 * 
+	 * @param method the JDT method
+	 * 
+	 * @return the Java method signature.
 	 */
 	String resolveMethodSignature(IMethod method);
 

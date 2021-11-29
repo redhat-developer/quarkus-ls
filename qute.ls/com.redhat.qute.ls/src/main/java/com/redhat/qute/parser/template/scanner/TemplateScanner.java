@@ -141,7 +141,11 @@ public class TemplateScanner extends AbstractScanner<TokenType, ScannerState> {
 				state = ScannerState.WithinContent;
 				return finishToken(offset, TokenType.EndParameterDeclaration);
 			}
-			stream.advanceUntilChars('}');
+			stream.advanceUntilChar('}', '{');
+			if (stream.peekChar() == '{') {
+				state = ScannerState.WithinContent;
+				return finishToken(offset, TokenType.ParameterDeclaration);
+			}
 			return finishToken(offset, TokenType.ParameterDeclaration);
 		}
 

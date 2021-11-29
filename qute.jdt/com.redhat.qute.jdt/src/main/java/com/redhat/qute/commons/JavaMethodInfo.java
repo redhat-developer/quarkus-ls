@@ -24,41 +24,80 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
  */
 public class JavaMethodInfo extends JavaMemberInfo {
 
-	private static final String NO_VALUE = "~";
+	private transient String methodName;
 
-	private String signature;
+	private transient String returnType;
 
-	private String returnType;
+	private transient String getterName;
 
-	private String getterName;
-
-	private List<JavaMethodParameterInfo> parameters;
+	private transient List<JavaParameterInfo> parameters;
 
 	/**
 	 * Returns the Java method signature.
 	 * 
-	 * @return
+	 * Example:
+	 * 
+	 * <code>
+	 * find(query : java.lang.String, params : java.util.Map<java.lang.String,java.lang.Object>) : io.quarkus.hibernate.orm.panache.PanacheQuery<T>
+	 * </code>
+	 * 
+	 * @return the Java method signature.
 	 */
 	public String getSignature() {
-		return signature;
+		return super.getSignature();
 	}
 
 	/**
-	 * Set the Java method signature.
+	 * Returns the method name.
 	 * 
-	 * @param signature the Java method signature.
+	 * Example:
+	 * 
+	 * <code>
+	 *  find
+	 *  </code>
+	 * 
+	 * from the given signature:
+	 * 
+	 * <code>
+	 * find(query : java.lang.String, params : java.util.Map<java.lang.String,java.lang.Object>) : io.quarkus.hibernate.orm.panache.PanacheQuery<T>
+	 * </code>
+	 * 
+	 * @return the method name.
 	 */
-	public void setSignature(String signature) {
-		this.signature = signature;
+	@Override
+	public String getName() {
+		if (methodName != null) {
+			return methodName;
+		}
+		// The method name is not computed, compute it from signature
+		String signature = getSignature();
+		int index = signature != null ? signature.indexOf('(') : -1;
+		if (index != -1) {
+			methodName = signature.substring(0, index);
+		}
+		return methodName;
 	}
-
+	
 	/**
 	 * Returns the method return Java type and null otherwise.
+	 * 
+	 * Example:
+	 * 
+	 * <code>
+	 *  io.quarkus.hibernate.orm.panache.PanacheQuery<T>
+	 *  </code>
+	 * 
+	 * from the given signature:
+	 * 
+	 * <code>
+	 * find(query : java.lang.String, params : java.util.Map<java.lang.String,java.lang.Object>) : io.quarkus.hibernate.orm.panache.PanacheQuery<T>
+	 * </code>
 	 * 
 	 * @return the method return Java type and null otherwise.
 	 */
 	public String getReturnType() {
 		if (returnType == null) {
+			// Compute return type from the signature
 			String signature = getSignature();
 			int index = signature.lastIndexOf(':');
 			returnType = index != -1 ? signature.substring(index + 1, signature.length()).trim() : NO_VALUE;
@@ -66,24 +105,10 @@ public class JavaMethodInfo extends JavaMemberInfo {
 		return NO_VALUE.equals(returnType) ? null : returnType;
 	}
 
-	@Override
-	public String getName() {
-		String name = super.getName();
-		if (name != null) {
-			return name;
-		}
-		String signature = getSignature();
-		int index = signature != null ? signature.indexOf('(') : -1;
-		if (index != -1) {
-			super.setName(signature.substring(0, index));
-		}
-		return super.getName();
-	}
-
 	/**
-	 * Returns the getter name.
+	 * Returns the getter name of the method name.
 	 * 
-	 * @return the getter name.
+	 * @return the getter name of the method name.
 	 */
 	public String getGetterName() {
 		if (getterName == null) {
@@ -122,13 +147,14 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	}
 
 	/**
-	 * Returns the Java parameter at the given index and null otherwise.
+	 * Returns the Java method parameter at the given index and null otherwise.
 	 * 
-	 * @param index parameter index
-	 * @return the Java parameter at the given index and null otherwise.
+	 * @param index the method parameter index
+	 * 
+	 * @return the Java method parameter at the given index and null otherwise.
 	 */
-	public JavaMethodParameterInfo getParameterAt(int index) {
-		List<JavaMethodParameterInfo> parameters = getParameters();
+	public JavaParameterInfo getParameterAt(int index) {
+		List<JavaParameterInfo> parameters = getParameters();
 		return parameters.size() > index ? parameters.get(index) : null;
 	}
 
@@ -137,26 +163,25 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	 * 
 	 * @return the method parameters.
 	 */
-	public List<JavaMethodParameterInfo> getParameters() {
+	public List<JavaParameterInfo> getParameters() {
 		if (parameters == null) {
-			parameters = parseParameters(signature);
+			parameters = parseParameters(getSignature());
 		}
 		return parameters;
 	}
 
-	private static List<JavaMethodParameterInfo> parseParameters(String signature) {
-		List<JavaMethodParameterInfo> parameters = new ArrayList<>();
+	private static List<JavaParameterInfo> parseParameters(String signature) {
+		List<JavaParameterInfo> parameters = new ArrayList<>();
 		int start = signature.indexOf('(');
 		int end = signature.indexOf(')', start - 1);
-		String content = signature.substring(start + 1, end);
 		// query : java.lang.String, params :
 		// java.util.Map<java.lang.String,java.lang.Object>
 		boolean paramTypeParsing = false;
 		StringBuilder paramName = new StringBuilder();
 		StringBuilder paramType = new StringBuilder();
 		int daemon = 0;
-		for (int i = 0; i < content.length(); i++) {
-			char c = content.charAt(i);
+		for (int i = start + 1; i < end; i++) {
+			char c = signature.charAt(i);
 			if (!paramTypeParsing) {
 				// ex query :
 				switch (c) {
@@ -185,7 +210,7 @@ public class JavaMethodInfo extends JavaMemberInfo {
 					break;
 				case ',':
 					if (daemon == 0) {
-						parameters.add(new JavaMethodParameterInfo(paramName.toString(), paramType.toString()));
+						parameters.add(new JavaParameterInfo(paramName.toString(), paramType.toString()));
 						paramName.setLength(0);
 						paramType.setLength(0);
 						paramTypeParsing = false;
@@ -200,18 +225,18 @@ public class JavaMethodInfo extends JavaMemberInfo {
 			}
 		}
 		if (paramName.length() > 0) {
-			parameters.add(new JavaMethodParameterInfo(paramName.toString(), paramType.toString()));
+			parameters.add(new JavaParameterInfo(paramName.toString(), paramType.toString()));
 		}
 		return parameters;
 	}
 
 	@Override
-	public JavaMemberKind getKind() {
-		return JavaMemberKind.METHOD;
+	public JavaElementKind getJavaElementKind() {
+		return JavaElementKind.METHOD;
 	}
 
 	@Override
-	public String getMemberType() {
+	public String getJavaElementType() {
 		return getReturnType();
 	}
 
@@ -219,7 +244,8 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("name", this.getName());
-		b.add("signature", this.signature);
+		b.add("returnType", this.getReturnType());
+		b.add("signature", this.getSignature());
 		return b.toString();
 	}
 }

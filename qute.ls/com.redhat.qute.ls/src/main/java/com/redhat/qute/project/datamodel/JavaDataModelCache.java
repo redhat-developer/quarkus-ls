@@ -19,10 +19,10 @@ import java.util.concurrent.CompletionStage;
 
 import org.eclipse.lsp4j.Location;
 
-import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaMemberInfo;
-import com.redhat.qute.commons.QuteJavaTypesParams;
+import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
+import com.redhat.qute.commons.QuteJavaTypesParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.ValueResolver;
 import com.redhat.qute.parser.expression.ObjectPart;
@@ -40,7 +40,7 @@ import com.redhat.qute.utils.StringUtils;
 
 public class JavaDataModelCache implements DataModelTemplateProvider {
 
-	private static final CompletableFuture<ResolvedJavaTypeInfo> RESOLVED_JAVA_CLASSINFO_NULL_FUTURE = CompletableFuture
+	private static final CompletableFuture<ResolvedJavaTypeInfo> RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE = CompletableFuture
 			.completedFuture(null);
 
 	private final ValueResolversRegistry valueResolversRegistry;
@@ -52,8 +52,8 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		this.projectRegistry = projectRegistry;
 	}
 
-	public CompletableFuture<List<JavaTypeInfo>> getJavaClasses(QuteJavaTypesParams params) {
-		return projectRegistry.getJavaClasses(params);
+	public CompletableFuture<List<JavaTypeInfo>> getJavaTypes(QuteJavaTypesParams params) {
+		return projectRegistry.getJavaTypes(params);
 	}
 
 	public CompletableFuture<Location> getJavaDefinition(QuteJavaDefinitionParams params) {
@@ -76,7 +76,7 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 				return resolveJavaType(lastPart, projectUri);
 			}
 		}
-		return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
+		return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 	}
 
 	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Parts parts, int partIndex, String projectUri,
@@ -93,28 +93,28 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 			case Method:
 				if (future != null) {
 					future = future //
-							.thenCompose(resolvedClass -> {
-								if (resolvedClass == null) {
-									return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
+							.thenCompose(resolvedType -> {
+								if (resolvedType == null) {
+									return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 								}
-								return resolveJavaType(current, projectUri, resolvedClass);
+								return resolveJavaType(current, projectUri, resolvedType);
 							});
 				}
 				break;
 			default:
 			}
 		}
-		return future != null ? future : RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
+		return future != null ? future : RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 	}
 
 	private CompletionStage<ResolvedJavaTypeInfo> resolveJavaType(Part current, String projectUri,
-			ResolvedJavaTypeInfo resolvedClass) {
+			ResolvedJavaTypeInfo resolvedType) {
 		String property = current.getPartName();
-		JavaMemberInfo member = findMember(property, resolvedClass, projectUri);
+		JavaMemberInfo member = findMember(property, resolvedType, projectUri);
 		if (member == null) {
-			return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
+			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 		}
-		String memberType = member.getMemberType();
+		String memberType = member.getJavaElementType();
 		return resolveJavaType(memberType, projectUri);
 	}
 
@@ -134,7 +134,7 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		CompletableFuture<ResolvedJavaTypeInfo> future = null;
 		JavaTypeInfoProvider javaTypeInfo = objectPart.resolveJavaType();
 		if (javaTypeInfo == null) {
-			return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
+			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 		}
 		String javaType = javaTypeInfo.getJavaType();
 		if (StringUtils.isEmpty(javaType)) {
@@ -147,7 +147,7 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 
 				Part lastPart = expression.getLastPart();
 				if (lastPart == null) {
-					return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
+					return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 				}
 				future = resolveJavaType(lastPart, projectUri);
 			}
@@ -161,18 +161,18 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		if (section != null) {
 			if (section.isIterable()) {
 				future = future //
-						.thenCompose(resolvedClass -> {
-							if (resolvedClass == null) {
-								return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
+						.thenCompose(resolvedType -> {
+							if (resolvedType == null) {
+								return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 							}
-							if (!resolvedClass.isIterable() && nullIfDontMatchWithIterable) {
+							if (!resolvedType.isIterable() && nullIfDontMatchWithIterable) {
 								// case when iterable section is associated with a Java class which is not
 								// iterable, the class is not valid
 								// Ex:
 								// {@org.acme.Item items}
 								// {#for item in items}
 								// {item.|}
-								return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
+								return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 							}
 							// valid case
 							// Ex:
@@ -181,12 +181,12 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 							// {item.|}
 
 							// Here
-							// - resolvedClass = java.util.List<org.acme.Item>
-							// - iterClassName = org.acme.Item
+							// - resolvedType = java.util.List<org.acme.Item>
+							// - iterTypeName = org.acme.Item
 
 							// Resolve org.acme.Item
-							String iterClassName = resolvedClass.getIterableOf();
-							return resolveJavaType(iterClassName, projectUri);
+							String iterTypeName = resolvedType.getIterableOf();
+							return resolveJavaType(iterTypeName, projectUri);
 						});
 			}
 		}
@@ -209,7 +209,10 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 	}
 
 	public JavaMemberInfo findMember(String property, ResolvedJavaTypeInfo resolvedType, String projectUri) {
-		// Search in he java root type
+		if (resolvedType == null) {
+			return null;
+		}
+		// Search in the java root type
 		JavaMemberInfo memberInfo = resolvedType.findMember(property);
 		if (memberInfo != null) {
 			return memberInfo;

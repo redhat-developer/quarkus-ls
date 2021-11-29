@@ -30,14 +30,51 @@ import com.redhat.qute.ls.commons.BadLocationException;
 public class QuteHighlightingInParameterDeclarationTest {
 
 	@Test
-	public void toExpression() throws BadLocationException {
-		String template = "{@org.acme.Item it|em}\r\n" + //
-				"{item.name}";
+	public void inClassName() throws BadLocationException {
+		String template = "{@org.acme.I|tem";
 		testHighlightsFor(template, //
-				hl(r(0, 16, 0, 20), Write), //
-				hl(r(1, 1, 1, 5), Read));
+				hl(r(0, 2, 0, 15), Write));
+		
+		template = "{@org.acme.I|tem ";
+		testHighlightsFor(template, //
+				hl(r(0, 2, 0, 15), Write));
+		
+		template = "{@org.acme.I|tem item";
+		testHighlightsFor(template, //
+				hl(r(0, 2, 0, 15), Write));
+		
+		template = "{@org.acme.I|tem item}";
+		testHighlightsFor(template, //
+				hl(r(0, 2, 0, 15), Write));
 	}
 
+	@Test
+	public void inGenericClassName() throws BadLocationException {
+		String template = "{@java.util.List<org.acme.I|tem";
+		testHighlightsFor(template, //
+				hl(r(0, 17, 0, 30), Write));
+		
+		template = "{@java.util.List<org.acme.I|tem>";
+		testHighlightsFor(template, //
+				hl(r(0, 17, 0, 30), Write));
+		
+		template = "{@java.util.List<org.acme.I|tem> item";
+		testHighlightsFor(template, //
+				hl(r(0, 17, 0, 30), Write));
+		
+		template = "{@java.util.List<org.acme.I|tem> item}";
+		testHighlightsFor(template, //
+				hl(r(0, 17, 0, 30), Write));
+		
+		template = "{@java.util.List<org.acme.I|tem item";
+		testHighlightsFor(template, //
+				hl(r(0, 17, 0, 30), Write));
+		
+		template = "{@java.util.List<org.acme.I|tem item}";
+		testHighlightsFor(template, //
+				hl(r(0, 17, 0, 30), Write));
+	}
+	
 	@Test
 	public void fromExpression() throws BadLocationException {
 		String template = "{@org.acme.Item item}\r\n" + //
@@ -295,5 +332,14 @@ public class QuteHighlightingInParameterDeclarationTest {
 		testHighlightsFor(template, //
 				hl(r(1, 9, 1, 13), Read), //
 				hl(r(0, 16, 0, 20), Write));
+	}
+	
+	@Test
+	public void toExpression() throws BadLocationException {
+		String template = "{@org.acme.Item it|em}\r\n" + //
+				"{item.name}";
+		testHighlightsFor(template, //
+				hl(r(0, 16, 0, 20), Write), //
+				hl(r(1, 1, 1, 5), Read));
 	}
 }

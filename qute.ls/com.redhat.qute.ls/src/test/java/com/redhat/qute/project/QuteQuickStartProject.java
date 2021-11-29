@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.redhat.qute.commons.JavaTypeInfo;
+import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.ValueResolver;
@@ -37,13 +39,13 @@ public class QuteQuickStartProject extends MockQuteProject {
 	}
 
 	@Override
-	protected List<ResolvedJavaTypeInfo> createResolvedClasses() {
+	protected List<ResolvedJavaTypeInfo> createResolvedTypes() {
 		List<ResolvedJavaTypeInfo> cache = new ArrayList<>();
 
-		createResolvedJavaTypeInfo("org.acme", cache).setUri(null);
+		createResolvedJavaTypeInfo("org.acme", cache).setKind(JavaTypeKind.Package);
 
 		ResolvedJavaTypeInfo string = createResolvedJavaTypeInfo("java.lang.String", cache);
-		registerField("UTF16", "byte", string);
+		registerField("UTF16 : byte", string);
 		createResolvedJavaTypeInfo("java.lang.Boolean", cache);
 		createResolvedJavaTypeInfo("java.lang.Integer", cache);
 		createResolvedJavaTypeInfo("java.lang.Double", cache);
@@ -52,40 +54,41 @@ public class QuteQuickStartProject extends MockQuteProject {
 		createResolvedJavaTypeInfo("java.math.BigInteger", cache);
 
 		ResolvedJavaTypeInfo review = createResolvedJavaTypeInfo("org.acme.Review", cache);
-		registerField("name", "java.lang.String", review);
-		registerField("average", "java.lang.Integer", review);
+		registerField("name : java.lang.String", review);
+		registerField("average : java.lang.Integer", review);
 
 		ResolvedJavaTypeInfo baseItem = createResolvedJavaTypeInfo("org.acme.Basetem", cache);
-		registerField("base", "java.lang.String", baseItem);
-		registerField("name", "java.lang.String", baseItem);
+		registerField("base : java.lang.String", baseItem);
+		registerField("name : java.lang.String", baseItem);
 		registerMethod("getReviews() : java.util.List<org.acme.Review>", baseItem);
-		
+
 		ResolvedJavaTypeInfo item = createResolvedJavaTypeInfo("org.acme.Item", cache, baseItem);
 		// Override BaseItem#name
-		registerField("name", "java.lang.String", item);
-		registerField("price", "java.math.BigInteger", item);
-		registerField("review", "org.acme.Review", item);
+		registerField("name : java.lang.String", item);
+		registerField("price : java.math.BigInteger", item);
+		registerField("review : org.acme.Review", item);
 		registerMethod("isAvailable() : java.lang.Boolean", item);
 		registerMethod("getReview2() : org.acme.Review", item);
 		// Override BaseItem#getReviews()
 		registerMethod("getReviews() : java.util.List<org.acme.Review>", item);
-		createResolvedJavaClassInfo("java.util.List<org.acme.Review>", "java.util.List", "org.acme.Review", cache);
-		registerField("derivedItems", "java.util.List<org.acme.Item>", item);
-		registerField("derivedItemArray", "org.acme.Item[]", item);
+		createResolvedJavaTypeInfo("java.util.List<org.acme.Review>", "java.util.List", "org.acme.Review", cache);
+		registerField("derivedItems : java.util.List<org.acme.Item>", item);
+		registerField("derivedItemArray : org.acme.Item[]", item);
 
-		createResolvedJavaClassInfo("java.util.List<org.acme.Item>", "java.util.List", "org.acme.Item", cache);
-		createResolvedJavaClassInfo("org.acme.Item[]", null, "org.acme.Item", cache);
+		createResolvedJavaTypeInfo("java.util.List<org.acme.Item>", "java.util.List", "org.acme.Item", cache);
+		createResolvedJavaTypeInfo("org.acme.Item[]", null, "org.acme.Item", cache);
 
 		ResolvedJavaTypeInfo list = createResolvedJavaTypeInfo("java.util.List", cache);
 		list.setExtendedTypes(Arrays.asList("java.lang.Iterable"));
 		registerMethod("size() : int", list);
 
+		ResolvedJavaTypeInfo map = createResolvedJavaTypeInfo("java.util.Map", cache);
+		
 		ResolvedJavaTypeInfo itemResource = createResolvedJavaTypeInfo("org.acme.ItemResource", cache);
 		registerMethod("discountedPrice(item : org.acme.Item) : java.math.BigDecimal", itemResource);
 
 		return cache;
 	}
-
 
 	@Override
 	protected List<DataModelTemplate<DataModelParameter>> createTemplates() {
@@ -110,5 +113,13 @@ public class QuteQuickStartProject extends MockQuteProject {
 		resolvers.add(createValueResolver("discountedPrice(item : org.acme.Item) : java.math.BigDecimal",
 				"org.acme.ItemResource"));
 		return resolvers;
+	}
+
+	@Override
+	protected List<JavaTypeInfo> createTypes() {
+		List<JavaTypeInfo> cache = new ArrayList<>();
+		createJavaTypeInfo("java.util.List<E>", JavaTypeKind.Interface, cache);
+		createJavaTypeInfo("java.util.Map<K,V>", JavaTypeKind.Interface, cache);
+		return cache;
 	}
 }

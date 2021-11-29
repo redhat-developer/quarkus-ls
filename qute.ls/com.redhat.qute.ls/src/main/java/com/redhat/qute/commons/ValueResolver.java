@@ -26,12 +26,12 @@ public class ValueResolver extends JavaMethodInfo {
 	private String sourceType;
 
 	public boolean match(ResolvedJavaTypeInfo javaType) {
-		JavaMethodParameterInfo parameter = getParameterAt(0);
+		JavaParameterInfo parameter = getParameterAt(0);
 		if (parameter == null) {
 			return false;
 		}
 		String parameterType = parameter.getType();
-		if (parameterType.equals(javaType.getClassName())) {
+		if (parameterType.equals(javaType.getSignature())) {
 			return true;
 		}
 		if (javaType.getExtendedTypes() != null) {

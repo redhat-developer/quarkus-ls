@@ -15,7 +15,7 @@ public class ValueResolversRegistryTest {
 	public void match() {
 		ValueResolversRegistry registry = new ValueResolversRegistry();
 		ResolvedJavaTypeInfo javaType = new ResolvedJavaTypeInfo();
-		javaType.setClassName("org.acme.Item");
+		javaType.setSignature("org.acme.Item");
 		javaType.setExtendedTypes(Arrays.asList("java.lang.Object"));
 		
 		List<ValueResolver> resolvers = registry.getResolversFor(javaType);

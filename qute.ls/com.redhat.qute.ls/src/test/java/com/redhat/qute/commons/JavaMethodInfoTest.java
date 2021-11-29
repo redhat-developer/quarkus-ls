@@ -34,7 +34,7 @@ public class JavaMethodInfoTest {
 		assertTrue(method.hasParameters());
 		assertEquals(2, method.getParameters().size());
 
-		JavaMethodParameterInfo parameter = method.getParameters().get(0);
+		JavaParameterInfo parameter = method.getParameters().get(0);
 		assertEquals("query", parameter.getName());
 		assertEquals("java.lang.String", parameter.getType());
 

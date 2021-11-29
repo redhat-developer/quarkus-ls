@@ -21,33 +21,90 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
  */
 public class JavaFieldInfo extends JavaMemberInfo {
 
-	private String type;
+	private transient String name;
+
+	private transient String type;
 
 	/**
-	 * Returns the Java type field.
+	 * Returns the Java field signature.
 	 * 
-	 * @return the Java type field.
+	 * Example:
+	 * 
+	 * <code>
+	 * price : java.math.BigInteger
+	 * </code>
+	 * 
+	 * @return the Java field signature.
+	 */
+	public String getSignature() {
+		return super.getSignature();
+	}
+
+	/**
+	 * Returns the field name.
+	 * 
+	 * Example:
+	 * 
+	 * <code>
+	 *  price
+	 *  </code>
+	 * 
+	 * from the given signature:
+	 * 
+	 * <code>
+	 * price : java.math.BigInteger
+	 * </code>
+	 * 
+	 * @return the field name.
+	 */
+	@Override
+	public String getName() {
+		if (name != null) {
+			return name;
+		}
+		// The field name is not computed, compute it from signature
+		String signature = getSignature();
+		int index = signature != null ? signature.indexOf(':') : -1;
+		if (index != -1) {
+			name = signature.substring(0, index).trim();
+		}
+		return name;
+	}
+
+	/**
+	 * Returns the field Java type and null otherwise.
+	 * 
+	 * Example:
+	 * 
+	 * <code>
+	 *  java.math.BigInteger
+	 *  </code>
+	 * 
+	 * from the given signature:
+	 * 
+	 * <code>
+	 * price : java.math.BigInteger
+	 * </code>
+	 * 
+	 * @return the field Java type and null otherwise.
 	 */
 	public String getType() {
-		return type;
-	}
-
-	/**
-	 * Set the Java type field.
-	 * 
-	 * @param type the Java type field.
-	 */
-	public void setType(String type) {
-		this.type = type;
+		if (type == null) {
+			// Compute field type from the signature
+			String signature = getSignature();
+			int index = signature.lastIndexOf(':');
+			type = index != -1 ? signature.substring(index + 1, signature.length()).trim() : NO_VALUE;
+		}
+		return NO_VALUE.equals(type) ? null : type;
 	}
 
 	@Override
-	public JavaMemberKind getKind() {
-		return JavaMemberKind.FIELD;
+	public JavaElementKind getJavaElementKind() {
+		return JavaElementKind.FIELD;
 	}
 
 	@Override
-	public String getMemberType() {
+	public String getJavaElementType() {
 		return getType();
 	}
 
@@ -55,7 +112,8 @@ public class JavaFieldInfo extends JavaMemberInfo {
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("name", this.getName());
-		b.add("type", this.type);
+		b.add("type", this.getType());
+		b.add("signature", this.getSignature());
 		return b.toString();
 	}
 }
