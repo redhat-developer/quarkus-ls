@@ -411,8 +411,8 @@ public class QuteCompletionsForExpression {
 	private void doCompleteExpressionForObjectPartWithParentNodes(Node part, Node node, Range range, String projectUri,
 			Set<String> existingVars, QuteCompletionSettings completionSettings,
 			QuteFormattingSettings formattingSettings, CompletionList list) {
-		Node parent = node != null ? node.getParent() : null;
-		if (parent == null || parent.getKind() == NodeKind.Template) {
+		Section parent = node != null ? node.getParentSection() : null;
+		if (parent == null) {
 			return;
 		}
 		if (parent.getKind() == NodeKind.Section) {

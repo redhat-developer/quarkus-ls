@@ -37,15 +37,15 @@ public class QutePositionUtility {
 
 	public static Range selectStartTagName(Section section) {
 		Template template = section.getOwnerTemplate();
-		int startOffset = section.getStartTagOpenOffset(); // {#
-		int endOffset = section.getAfterStartTagOpenOffset(); // {#each
+		int startOffset = section.getStartTagNameOpenOffset(); // {|#each
+		int endOffset = section.getStartTagNameCloseOffset(); // {#each|
 		return createRange(startOffset, endOffset, template);
 	}
 
 	public static Range selectEndTagName(Section sectionTag) {
 		Template template = sectionTag.getOwnerTemplate();
-		int startOffset = sectionTag.getEndTagOpenOffset() + 2; // {\
-		int endOffset = startOffset + sectionTag.getTag().length();
+		int startOffset = sectionTag.getEndTagNameOpenOffset(); // {|\each
+		int endOffset = sectionTag.getEndTagCloseOffset(); // // {\each|
 		return createRange(startOffset, endOffset, template);
 	}
 

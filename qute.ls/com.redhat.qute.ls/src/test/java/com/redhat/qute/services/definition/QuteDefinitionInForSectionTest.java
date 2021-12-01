@@ -28,32 +28,44 @@ public class QuteDefinitionInForSectionTest {
 
 	@Test
 	public void definitionInStartTagSection() throws Exception {
-		String template = "{#fo|r item in items}\r\n" + //
+		String template = "{|#for item in items}\r\n" + //
 				"		{item.name}\r\n" + //
 				"{/for}";
 		testDefinitionFor(template, "test.qute", //
-				ll("test.qute", r(0, 2, 0, 5), r(2, 2, 2, 5)));
+				ll("test.qute", r(0, 1, 0, 5), r(2, 1, 2, 5)));
+		
+		template = "{#fo|r item in items}\r\n" + //
+				"		{item.name}\r\n" + //
+				"{/for}";
+		testDefinitionFor(template, "test.qute", //
+				ll("test.qute", r(0, 1, 0, 5), r(2, 1, 2, 5)));
 
 		template = "{#for| item in items}\r\n" + //
 				"		{item.name}\r\n" + //
 				"{/for}";
 		testDefinitionFor(template, "test.qute", //
-				ll("test.qute", r(0, 2, 0, 5), r(2, 2, 2, 5)));
+				ll("test.qute", r(0, 1, 0, 5), r(2, 1, 2, 5)));
 	}
 
 	@Test
 	public void definitionInEndTagSection() throws Exception {
 		String template = "{#for item in items}\r\n" + //
 				"		{item.name}\r\n" + //
+				"{|/for}";
+		testDefinitionFor(template, "test.qute", //
+				ll("test.qute", r(2, 1, 2, 5), r(0, 1, 0, 5)));
+
+		template = "{#for item in items}\r\n" + //
+				"		{item.name}\r\n" + //
 				"{/fo|r}";
 		testDefinitionFor(template, "test.qute", //
-				ll("test.qute", r(2, 2, 2, 5), r(0, 2, 0, 5)));
-
+				ll("test.qute", r(2, 1, 2, 5), r(0, 1, 0, 5)));
+		
 		template = "{#for item in items}\r\n" + //
 				"		{item.name}\r\n" + //
 				"{/for|}";
 		testDefinitionFor(template, "test.qute", //
-				ll("test.qute", r(2, 2, 2, 5), r(0, 2, 0, 5)));
+				ll("test.qute", r(2, 1, 2, 5), r(0, 1, 0, 5)));
 	}
 
 	@Test

@@ -80,6 +80,11 @@ public class TemplateScanner extends AbstractScanner<TokenType, ScannerState> {
 					state = ScannerState.AfterOpeningStartTag;
 					return finishToken(offset, TokenType.StartTagOpen);
 				} else if (stream.advanceIfChar('/')) {
+					if (stream.advanceIfChar('}')) {
+						// Section (end) tag with name optional syntax -> {/}
+						state = ScannerState.WithinContent;
+						return finishToken(offset, TokenType.EndTagSelfClose);
+					}
 					// Section (end) tag -> {/if}
 					state = ScannerState.AfterOpeningEndTag;
 					return finishToken(offset, TokenType.EndTagOpen);

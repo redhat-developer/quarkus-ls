@@ -108,7 +108,7 @@ public class QuteCompletions {
 		} else if (node.getKind() == NodeKind.Text) {
 			// The completion is triggered in text node (before node)
 			Section parent = node.getParentSection();
-			if (parent != null && (parent.isInEndTag(offset))) {
+			if (parent != null && (parent.isInEndTagName(offset))) {
 				// The completion is triggered inside end tag
 				return EMPTY_FUTURE_COMPLETION;
 			}

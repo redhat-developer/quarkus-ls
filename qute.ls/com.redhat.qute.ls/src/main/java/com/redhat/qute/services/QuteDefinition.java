@@ -176,7 +176,7 @@ class QuteDefinition {
 			locations.add(new LocationLink(template.getUri(), targetRange, targetRange, originRange));
 
 			return true;
-		} else if (section.isInEndTag(offset)) {
+		} else if (section.isInEndTagName(offset)) {
 			// Jump to start tag section
 			originRange = QutePositionUtility.selectEndTagName(section);
 			targetRange = QutePositionUtility.selectStartTagName(section);

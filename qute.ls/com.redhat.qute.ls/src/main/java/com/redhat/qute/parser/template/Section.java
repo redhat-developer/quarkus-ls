@@ -18,11 +18,17 @@ import java.util.stream.Collectors;
 
 import com.redhat.qute.parser.parameter.ParameterParser;
 
+/**
+ * Base class for Qute section (ex : #for, #if, #custom)
+ * 
+ * @author Angelo ZERR
+ * 
+ * @see https://quarkus.io/guides/qute-reference#sections
+ *
+ */
 public class Section extends Node implements ParametersContainer {
 
 	private final String tag;
-
-	private int startTagOpenOffset;
 
 	private int startTagCloseOffset;
 
@@ -37,6 +43,9 @@ public class Section extends Node implements ParametersContainer {
 	public Section(String tag, int start, int end) {
 		super(start, end);
 		this.tag = tag;
+		this.endTagOpenOffset = NULL_VALUE;
+		this.startTagCloseOffset = NULL_VALUE;
+		this.endTagCloseOffset = NULL_VALUE;
 	}
 
 	@Override
@@ -44,25 +53,65 @@ public class Section extends Node implements ParametersContainer {
 		return NodeKind.Section;
 	}
 
+	// ---------------------------- Start tag methods
+
+	/**
+	 * Returns the offset which opens the section start tag.
+	 * 
+	 * <p>
+	 * |{#let name=value}
+	 * </p>
+	 * 
+	 * 
+	 * @return the offset which opens the section start tag.
+	 */
 	public int getStartTagOpenOffset() {
-		return startTagOpenOffset;
+		return getStart();
 	}
 
-	public int getAfterStartTagOpenOffset() {
-		if (hasTag()) {
-			return getStartTagOpenOffset();
+	/**
+	 * Returns the offset before the start tag name of the section.
+	 * 
+	 * <p>
+	 * {|#let name=value}
+	 * </p>
+	 * 
+	 * 
+	 * @return the offset before the start tag name of the section.
+	 */
+	public int getStartTagNameOpenOffset() {
+		return getStartTagOpenOffset() + 1;
+	}
+
+	/**
+	 * Returns the offset after the start tag name of the section.
+	 * 
+	 * <p>
+	 * {#let| name=value}
+	 * </p>
+	 * 
+	 * 
+	 * @return the offset after the start tag name of the section.
+	 */
+	public int getStartTagNameCloseOffset() {
+		if (!hasTag()) {
+			// {#|
+			return getStartTagNameOpenOffset() + 1;
 		}
-		return getStartTagOpenOffset() + tag.length();
+		// {#let|
+		return getStartTagNameOpenOffset() + 1 + tag.length();
 	}
 
-	private boolean hasTag() {
-		return tag == null;
-	}
-
-	void setStartTagOpenOffset(int startTagOpenOffset) {
-		this.startTagOpenOffset = startTagOpenOffset;
-	}
-
+	/**
+	 * Returns the offset which closes the section start tag and -1 otherwise.
+	 * 
+	 * <p>
+	 * {#let name=value|}
+	 * </p>
+	 * 
+	 * 
+	 * @return the offset which closes the section start tag and -1 otherwise.
+	 */
 	public int getStartTagCloseOffset() {
 		return startTagCloseOffset;
 	}
@@ -71,18 +120,85 @@ public class Section extends Node implements ParametersContainer {
 		this.startTagCloseOffset = startTagCloseOffset;
 	}
 
-	public String getTag() {
-		return tag;
+	/**
+	 * Returns true if the start tag section is closed and false otherwise.
+	 * 
+	 * @return true if the start tag section is closed and false otherwise.
+	 */
+	public boolean isStartTagClosed() {
+		// {#let name=value} -> will returns true
+		// {#let name=value -> will returns false
+		return startTagCloseOffset != NULL_VALUE;
 	}
 
+	/**
+	 * Returns true if the given offset is in the start tag section name (ex : in
+	 * #each) and false otherwise.
+	 * 
+	 * @param offset the offset.
+	 * 
+	 * @return true if the given offset is in the start tag section name (ex : in
+	 *         #each) and false otherwise.
+	 */
+	public boolean isInStartTagName(int offset) {
+		if (!isStartTagClosed()) {
+			// cases
+			// - {#|
+			// - {|#
+			return true;
+		}
+		if (offset > getStart() && offset <= getStartTagNameCloseOffset()) {
+			// cases:
+			// - {#each| }
+			// - {|#each }
+			return true;
+		}
+		return false;
+	}
+
+	// ---------------------------- End tag methods
+
+	/**
+	 * Returns the offset which opens the section end tag and -1 otherwise.
+	 * 
+	 * <p>
+	 * |{\let}
+	 * </p>
+	 * 
+	 * @return the offset which opens the section end tag and -1 otherwise.
+	 */
 	public int getEndTagOpenOffset() {
 		return endTagOpenOffset;
+	}
+
+	/**
+	 * Returns the offset before the end tag name of the section.
+	 * 
+	 * <p>
+	 * {|\let}
+	 * </p>
+	 * 
+	 * 
+	 * @return the offset before the end tag name of the section.
+	 */
+	public int getEndTagNameOpenOffset() {
+		return getEndTagOpenOffset() + 1; // {|/
 	}
 
 	void setEndTagOpenOffset(int endTagOpenOffset) {
 		this.endTagOpenOffset = endTagOpenOffset;
 	}
 
+	/**
+	 * Returns the offset which closes the section end tag and -1 otherwise.
+	 * 
+	 * <p>
+	 * {\let|}
+	 * </p>
+	 * 
+	 * 
+	 * @return the offset which closes the section end tag and -1 otherwise.
+	 */
 	public int getEndTagCloseOffset() {
 		return endTagCloseOffset;
 	}
@@ -91,76 +207,39 @@ public class Section extends Node implements ParametersContainer {
 		this.endTagCloseOffset = endTagCloseOffset;
 	}
 
-	public boolean isSelfClosed() {
-		return selfClosed;
+	/**
+	 * Returns true if the given offset is in the end tag section name (ex : in
+	 * \each) and false otherwise.
+	 * 
+	 * @param offset the offset.
+	 * 
+	 * @return true if the given offset is in the end tag section name (ex : in
+	 *         \each) and false otherwise.
+	 */
+	public boolean isInEndTagName(int offset) {
+		return isInEndTagName(offset, false);
 	}
 
-	void setSelfClosed(boolean selfClosed) {
-		this.selfClosed = selfClosed;
-	}
-
-	@Override
-	public String getNodeName() {
-		return "#" + getTag();
-	}
-
-	public boolean isInStartTagName(int offset) {
-		if (startTagOpenOffset == NULL_VALUE || startTagCloseOffset == NULL_VALUE) {
-			// case {#|
-			return true;
-		}
-		if (offset >= startTagOpenOffset && offset <= getAfterStartTagOpenOffset()) {
-			// case {#each | }
-			return true;
-		}
-		return false;
-	}
-
-	public boolean isInStartTag(int offset) {
-		if (startTagOpenOffset == NULL_VALUE || startTagCloseOffset == NULL_VALUE) {
-			// case <|
-			return true;
-		}
-		if (offset > startTagOpenOffset && offset <= startTagCloseOffset) {
-			// case <bean | >
-			return true;
-		}
-		return false;
-	}
-
-	public boolean isInEndTag(int offset) {
-		return isInEndTag(offset, false);
-	}
-
-	public boolean isInEndTag(int offset, boolean afterBackSlash) {
-		if (endTagOpenOffset == NULL_VALUE) {
-			// case >|
+	private boolean isInEndTagName(int offset, boolean afterBackSlash) {
+		if (!hasEndTag()) {
 			return false;
 		}
-		if (offset > endTagOpenOffset + (afterBackSlash ? 1 : 0) && offset < getEnd()) {
-			// case </bean | >
+		if (offset >= endTagOpenOffset + (afterBackSlash ? 1 : 0) && offset < getEnd()) {
+			// cases:
+			// - {|/each}
+			// - {/|each}
+			// - {/ea|ch}
+			// - {/each|}
+			// - {|/}
+			// - {/|}
 			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * Returns true if has a start tag.
-	 *
-	 * In our source-oriented DOM, a lone end tag will cause a node to be created in
-	 * the tree, unlike well-formed-only DOMs.
-	 *
-	 * @return true if has a start tag.
-	 */
-	public boolean hasStartTag() {
-		return getStartTagOpenOffset() != NULL_VALUE;
 	}
 
 	/**
 	 * Returns true if has an end tag.
 	 *
-	 * In our source-oriented DOM, sometimes Elements are "ended", even without an
-	 * explicit end tag in the source.
 	 *
 	 * @return true if has an end tag.
 	 */
@@ -168,21 +247,13 @@ public class Section extends Node implements ParametersContainer {
 		return getEndTagOpenOffset() != NULL_VALUE;
 	}
 
-	public SectionKind getSectionKind() {
-		return SectionKind.CUSTOM;
-	}
+	// ---------------------------- Parameters methods
 
-	public List<SectionMetadata> getMetadata() {
-		return Collections.emptyList();
-	}
-
-	public JavaTypeInfoProvider getMetadata(String name) {
-		Optional<SectionMetadata> metadata = getMetadata().stream() //
-				.filter(m -> name.equals(m.getName())) //
-				.findFirst();
-		return metadata.isPresent() ? metadata.get() : null;
-	}
-
+	/**
+	 * Returns parameters of the section.
+	 * 
+	 * @return parameters of the section.
+	 */
 	public List<Parameter> getParameters() {
 		if (parameters == null) {
 			this.parameters = parseParameters();
@@ -190,6 +261,13 @@ public class Section extends Node implements ParametersContainer {
 		return this.parameters;
 	}
 
+	/**
+	 * Returns the parameter at the given index and null otherwise.
+	 * 
+	 * @param index the parameter index.
+	 * 
+	 * @return the parameter at the given index and null otherwise.
+	 */
 	public Parameter getParameterAtIndex(int index) {
 		List<Parameter> parameters = getParameters();
 		if (parameters.size() > index) {
@@ -198,6 +276,13 @@ public class Section extends Node implements ParametersContainer {
 		return null;
 	}
 
+	/**
+	 * Returns the parameter at the given offset and null otherwise.
+	 * 
+	 * @param offset the offset.
+	 * 
+	 * @return the parameter at the given offset and null otherwise.
+	 */
 	public Parameter getParameterAtOffset(int offset) {
 		if (!isInParameters(offset)) {
 			return null;
@@ -241,33 +326,115 @@ public class Section extends Node implements ParametersContainer {
 		}
 	}
 
-	public boolean isIterable() {
-		return false;
-	}
-
+	/**
+	 * Returns the start offset of the parameters expression section.
+	 * 
+	 * <p>
+	 * {#let |name1=value1 name2=value2}
+	 * </p>
+	 * 
+	 * 
+	 * @return the start offset of the parameters expression section.
+	 */
 	@Override
 	public int getStartParametersOffset() {
-		return getAfterStartTagOpenOffset();
+		return getStartTagNameCloseOffset() + 1;
 	}
 
+	/**
+	 * Returns the end offset of the parameters expression section.
+	 * 
+	 * <p>
+	 * {#let name1=value1 name2=value2|}
+	 * </p>
+	 * 
+	 * 
+	 * @return the end offset of the parameters expression section.
+	 */
 	@Override
 	public int getEndParametersOffset() {
+		if (!isStartTagClosed()) {
+			return getEnd();
+		}
 		return getStartTagCloseOffset();
 	}
 
+	/**
+	 * Returns true if the given offset is inside parameter expression of the
+	 * section and false otherwise.
+	 * 
+	 * @param offset the offset.
+	 * 
+	 * @return true if the given offset is inside parameter expression of the
+	 *         section and false otherwise.
+	 */
 	public boolean isInParameters(int offset) {
-		return offset > getStartParametersOffset() && offset <= getEndParametersOffset();
+		// cases:
+		// - {#each |}
+		// - {#for it|em in }
+		// - {#for item in |}
+		return offset >= getStartParametersOffset() && offset <= getEndParametersOffset();
 	}
 
 	@Deprecated()
 	public Expression getExpressionParameter() {
 		// Try to remove this method
-		ExpressionParameter expression = new ExpressionParameter(getStartParametersOffset(), getEndParametersOffset());
-		expression.setParent(this);
-		return expression;
+		return new ExpressionParameter(getStartParametersOffset(), getEndParametersOffset(), this);
 	}
 
 	public ParametersInfo getParametersInfo() {
 		return ParametersInfo.EMPTY;
+	}
+
+	// ---------------------------- Other methods
+
+	/**
+	 * Returns the section tag name and null otherwise.
+	 * 
+	 * @return the section tag name and null otherwise.
+	 */
+	public String getTag() {
+		return tag;
+	}
+
+	/**
+	 * Returns true if the section has a tag and null otherwise.
+	 * 
+	 * @return true if the section has a tag and null otherwise.
+	 */
+	public boolean hasTag() {
+		return tag != null;
+	}
+
+	public boolean isSelfClosed() {
+		return selfClosed;
+	}
+
+	void setSelfClosed(boolean selfClosed) {
+		this.selfClosed = selfClosed;
+	}
+
+	@Override
+	public String getNodeName() {
+		return "#" + getTag();
+	}
+
+	public SectionKind getSectionKind() {
+		return SectionKind.CUSTOM;
+	}
+
+	public List<SectionMetadata> getMetadata() {
+		return Collections.emptyList();
+	}
+
+	public JavaTypeInfoProvider getMetadata(String name) {
+		Optional<SectionMetadata> metadata = getMetadata().stream() //
+				.filter(m -> name.equals(m.getName())) //
+				.findFirst();
+		return metadata.isPresent() ? metadata.get() : null;
+	}
+
+	public boolean isIterable() {
+		return false;
 	}
 }

@@ -54,7 +54,7 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 				c("isActive", "isActive", r(3, 14, 3, 14)), //
 				c("age", "age", r(3, 14, 3, 14)));
 	}
-	
+
 	@Test
 	public void badAssignment() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
@@ -64,7 +64,7 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 				"  Age: {age}\r\n" + //
 				"{/let}";
 		testCompletionFor(template, 0);
-		
+
 		template = "{@org.acme.Item item}\r\n" + //
 				"{#let myParent= isActive=false age=10} \r\n" + //
 				"  <h1>{myParent.|}</h1>\r\n" + //
@@ -72,7 +72,7 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 				"  Age: {age}\r\n" + //
 				"{/let}";
 		testCompletionFor(template, 0);
-		
+
 		template = "{@org.acme.Item item}\r\n" + //
 				"{#let myParent isActive=false age=10} \r\n" + //
 				"  <h1>{myParent.|}</h1>\r\n" + //
@@ -81,7 +81,7 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 				"{/let}";
 		testCompletionFor(template, 0);
 	}
-	
+
 	@Test
 	public void propertyPartAssignedWithClass() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
@@ -109,7 +109,7 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 		testCompletionFor(template, //
 				c("UTF16 : byte", "UTF16", r(2, 16, 2, 16)));
 	}
-	
+
 	@Test
 	public void propertyPartAssignedWithClassMethod() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
@@ -121,20 +121,34 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 		testCompletionFor(template, //
 				c("name : java.lang.String", "name", r(2, 16, 2, 16)));
 	}
-	
+
 	@Test
 	public void noCompletionInStartTag() throws Exception {
-		String template = "{|#let foo=bar}\r\n" + //
+		String template = "{#|let foo=bar}\r\n" + //
 				"{/let}";
 		testCompletionFor(template, 0);
 	}
-	
+
+	@Test
+	public void completionInStartTagWhenNotClosed() throws Exception {
+		String template = "{#|let\r\n";
+		testCompletionFor(template, 14 /* see qute-snippets.json #for, #each, etc */);
+	}
+
 	@Test
 	public void noCompletionInEndTag() throws Exception {
 		String template;
 		template = "{#let foo=bar}\r\n" + //
+				"{|/}";
+		testCompletionFor(template, 0);
+
+		template = "{#let foo=bar}\r\n" + //
 				"{/|}";
 		testCompletionFor(template, 0);
-		
+
+		template = "{#let foo=bar}\r\n" + //
+				"{/l|et}";
+		testCompletionFor(template, 0);
+
 	}
 }
