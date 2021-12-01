@@ -70,7 +70,6 @@ public class TemplateParser {
 					tag = scanner.getTokenText();
 				}
 				Section child = sectionFactory.createSection(tag, startSectionOffset, endSectionOffset);
-				child.setStartTagOpenOffset(startSectionOffset + 2);
 				curr.addChild(child);
 				curr = child;
 				startSectionOffset = -1;
@@ -97,8 +96,6 @@ public class TemplateParser {
 			}
 
 			case StartTag: {
-				Section element = (Section) curr;
-				// element.setTag(scanner.getTokenText());
 				curr.setEnd(scanner.getTokenEnd());
 				break;
 			}
@@ -120,7 +117,7 @@ public class TemplateParser {
 
 			case EndTagOpen:
 				endTagOpenOffset = scanner.getTokenOffset();
-				curr.setEnd(scanner.getTokenOffset());
+				curr.setEnd(endTagOpenOffset);
 				break;
 
 			case EndTag:
@@ -164,10 +161,22 @@ public class TemplateParser {
 				}
 				break;
 
+			case EndTagSelfClose:
+				if (curr.getParent() != null) {
+					Section section = (Section) curr;
+					curr.setClosed(true);
+					curr.setEnd(scanner.getTokenEnd());
+					section.setEndTagOpenOffset(scanner.getTokenOffset());
+					section.setEndTagCloseOffset(scanner.getTokenEnd() - 1);
+					curr = curr.getParent();
+				}
+				break;
+
 			case EndTagClose:
 				if (curr.getParent() != null) {
+					Section section = (Section) curr;
 					curr.setEnd(scanner.getTokenEnd());
-					((Section) curr).setEndTagCloseOffset(scanner.getTokenOffset());
+					section.setEndTagCloseOffset(scanner.getTokenOffset());
 					curr = curr.getParent();
 				}
 				break;

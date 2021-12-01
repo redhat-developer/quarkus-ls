@@ -176,4 +176,20 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 				c("name : java.lang.String", "name", r(4, 6, 4, 6)), //
 				c("average : java.lang.Integer", "average", r(4, 6, 4, 6)));
 	}
+
+	@Test
+	public void inIterable() throws Exception {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				" \r\n" + //
+				"{#each |}";
+		testCompletionFor(template, 1, //
+				c("items", "items", r(2, 7, 2, 7)));
+
+		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				" \r\n" + //
+				"{#each |";
+		testCompletionFor(template, 1, //
+				c("items", "items", r(2, 7, 2, 7)));
+	}
+
 }

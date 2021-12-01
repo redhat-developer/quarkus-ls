@@ -98,12 +98,10 @@ class QuteHighlighting {
 	private static void higlightSection(Section section, int offset, Position position,
 			List<DocumentHighlight> highlights, CancelChecker cancelChecker) throws BadLocationException {
 		if ((section.isInStartTagName(offset) && section.hasEndTag())
-				|| (section.isInEndTag(offset) && section.isInEndTag(offset))) {
+				|| (section.isInEndTagName(offset) && section.isInEndTagName(offset))) {
 			Range startTagRange = QutePositionUtility.selectStartTagName(section);
 			Range endTagRange = QutePositionUtility.selectEndTagName(section);
-			if (doesTagCoverPosition(startTagRange, endTagRange, position)) {
-				fillHighlightsList(startTagRange, endTagRange, highlights);
-			}
+			fillHighlightsList(startTagRange, endTagRange, highlights);
 		} else {
 			highlightReferenceObjectPart(section, offset, highlights, cancelChecker);
 		}

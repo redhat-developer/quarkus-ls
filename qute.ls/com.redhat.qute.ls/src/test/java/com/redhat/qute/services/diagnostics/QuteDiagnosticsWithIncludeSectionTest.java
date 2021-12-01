@@ -30,10 +30,11 @@ public class QuteDiagnosticsWithIncludeSectionTest {
 		String template = "{#include /}";
 		testDiagnosticsFor(template, //
 				// error coming from the real Qute parser
-				d(0, 11, 0, 11, null, "Parser error on line 1: mandatory section parameters not declared for {#include /}: [Parameter [name=template, defaultValue=null, optional=false]]",
+				d(0, 11, 0, 11, null,
+						"Parser error on line 1: mandatory section parameters not declared for {#include /}: [Parameter [name=template, defaultValue=null, optional=false]]",
 						DiagnosticSeverity.Error), //
 				// error coming from Qute LS parser
-				d(0, 2, 0, 9, QuteErrorCode.TemplateNotDefined, "Template id must be defined as parameter.",
+				d(0, 1, 0, 9, QuteErrorCode.TemplateNotDefined, "Template id must be defined as parameter.",
 						DiagnosticSeverity.Error));
 	}
 

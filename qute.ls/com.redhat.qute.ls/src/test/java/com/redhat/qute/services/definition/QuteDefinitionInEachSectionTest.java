@@ -28,17 +28,23 @@ public class QuteDefinitionInEachSectionTest {
 
 	@Test
 	public void definitionInStartTagSection() throws Exception {
-		String template = "{#ea|ch items}\r\n" + //
+		String template = "{|#each items}\r\n" + //
 				"		{it.name}\r\n" + //
 				"{/each}";
 		testDefinitionFor(template, "test.qute", //
-				ll("test.qute", r(0, 2, 0, 6), r(2, 2, 2, 6)));
+				ll("test.qute", r(0, 1, 0, 6), r(2, 1, 2, 6)));
 
+		template = "{#ea|ch items}\r\n" + //
+				"		{it.name}\r\n" + //
+				"{/each}";
+		testDefinitionFor(template, "test.qute", //
+				ll("test.qute", r(0, 1, 0, 6), r(2, 1, 2, 6)));
+		
 		template = "{#each| items}\r\n" + //
 				"		{it.name}\r\n" + //
 				"{/each}";
 		testDefinitionFor(template, "test.qute", //
-				ll("test.qute", r(0, 2, 0, 6), r(2, 2, 2, 6)));
+				ll("test.qute", r(0, 1, 0, 6), r(2, 1, 2, 6)));
 
 	}
 
@@ -46,15 +52,32 @@ public class QuteDefinitionInEachSectionTest {
 	public void definitionInEndTagSection() throws Exception {
 		String template = "{#each items}\r\n" + //
 				"		{it.name}\r\n" + //
-				"{/ea|ch}";
+				"{|/each}";
 		testDefinitionFor(template, "test.qute", //
-				ll("test.qute", r(2, 2, 2, 6), r(0, 2, 0, 6)));
+				ll("test.qute", r(2, 1, 2, 6), r(0, 1, 0, 6)));
 
+		template = "{#each items}\r\n" + //
+				"		{it.name}\r\n" + //
+				"{/e|ach}";
+		testDefinitionFor(template, "test.qute", //
+				ll("test.qute", r(2, 1, 2, 6), r(0, 1, 0, 6)));
+		
 		template = "{#each items}\r\n" + //
 				"		{it.name}\r\n" + //
 				"{/each|}";
 		testDefinitionFor(template, "test.qute", //
-				ll("test.qute", r(2, 2, 2, 6), r(0, 2, 0, 6)));
+				ll("test.qute", r(2, 1, 2, 6), r(0, 1, 0, 6)));
+		
+		template = "{#each items}\r\n" + //
+				"		{it.name}\r\n" + //
+				"|{/each}";
+		testDefinitionFor(template);
+		
+		template = "{#each items}\r\n" + //
+				"		{it.name}\r\n" + //
+				"{/each}|";
+		testDefinitionFor(template);
+
 	}
 
 	@Test

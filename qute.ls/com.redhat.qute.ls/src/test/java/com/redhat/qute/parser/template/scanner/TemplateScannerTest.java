@@ -184,6 +184,34 @@ public class TemplateScannerTest {
 		assertOffsetAndToken(23, TokenType.EOS, "");
 	}
 
+	@Test
+	public void letSectionWithStartEndTag() {
+		scanner = TemplateScanner.createScanner("{#let name='value' }{/let}");
+		assertOffsetAndToken(0, TokenType.StartTagOpen, "{#");
+		assertOffsetAndToken(2, TokenType.StartTag, "let");
+		assertOffsetAndToken(5, TokenType.Whitespace, " ");
+		assertOffsetAndToken(6, TokenType.ParameterTag, "name='value'");
+		assertOffsetAndToken(18, TokenType.Whitespace, " ");
+		assertOffsetAndToken(19, TokenType.StartTagClose, "}");
+		assertOffsetAndToken(20, TokenType.EndTagOpen, "{/");
+		assertOffsetAndToken(22, TokenType.EndTag, "let");
+		assertOffsetAndToken(25, TokenType.EndTagClose, "}");
+		assertOffsetAndToken(26, TokenType.EOS, "");
+	}
+
+	@Test
+	public void letSectionWithStartEndTagWithShortSyntax() {
+		scanner = TemplateScanner.createScanner("{#let name='value' }{/}");
+		assertOffsetAndToken(0, TokenType.StartTagOpen, "{#");
+		assertOffsetAndToken(2, TokenType.StartTag, "let");
+		assertOffsetAndToken(5, TokenType.Whitespace, " ");
+		assertOffsetAndToken(6, TokenType.ParameterTag, "name='value'");
+		assertOffsetAndToken(18, TokenType.Whitespace, " ");
+		assertOffsetAndToken(19, TokenType.StartTagClose, "}");
+		assertOffsetAndToken(20, TokenType.EndTagSelfClose, "{/}");
+		assertOffsetAndToken(23, TokenType.EOS, "");
+	}
+
 	public void assertOffsetAndToken(int tokenOffset, TokenType tokenType) {
 		TokenType token = scanner.scan();
 		assertEquals(tokenOffset, scanner.getTokenOffset());

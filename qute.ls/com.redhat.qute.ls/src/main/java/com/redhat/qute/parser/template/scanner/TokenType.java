@@ -43,6 +43,7 @@ public enum TokenType {
 	EndTagOpen, //
 	EndTag, //
 	EndTagClose, //
+	EndTagSelfClose, //
 	ParameterTag, //
 
 	// Parameter declaration
