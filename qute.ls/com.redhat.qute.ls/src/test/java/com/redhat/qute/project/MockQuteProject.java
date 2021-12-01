@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.JavaMemberInfo;
@@ -70,13 +71,13 @@ public abstract class MockQuteProject extends QuteProject {
 		return member;
 	}
 
-	protected static ResolvedJavaTypeInfo createResolvedJavaClassInfo(String className,
-			List<ResolvedJavaTypeInfo> cache) {
-		return createResolvedJavaClassInfo(className, null, null, cache);
+	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String className,
+			List<ResolvedJavaTypeInfo> cache, ResolvedJavaTypeInfo... extended) {
+		return createResolvedJavaClassInfo(className, null, null, cache, extended);
 	}
 
 	protected static ResolvedJavaTypeInfo createResolvedJavaClassInfo(String className, String iterableType,
-			String iterableOf, List<ResolvedJavaTypeInfo> cache) {
+			String iterableOf, List<ResolvedJavaTypeInfo> cache, ResolvedJavaTypeInfo... extended) {
 		ResolvedJavaTypeInfo resolvedClass = new ResolvedJavaTypeInfo();
 		resolvedClass.setUri(className + ".java");
 		resolvedClass.setClassName(className);
@@ -84,6 +85,11 @@ public abstract class MockQuteProject extends QuteProject {
 		resolvedClass.setIterableOf(iterableOf);
 		resolvedClass.setFields(new ArrayList<>());
 		resolvedClass.setMethods(new ArrayList<>());
+		if (extended != null) {
+			List<String> extendedTypes = Stream.of(extended).map(type -> type.getClassName())
+					.collect(Collectors.toList());
+			resolvedClass.setExtendedTypes(extendedTypes);
+		}
 		cache.add(resolvedClass);
 		return resolvedClass;
 	}

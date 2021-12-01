@@ -1,7 +1,7 @@
 package com.redhat.qute.services.commands;
 
 import static com.redhat.qute.QuteAssert.TEMPLATE_BASE_DIR;
-import static com.redhat.qute.project.QuteQuickstartProject.PROJECT_URI;
+import static com.redhat.qute.project.QuteQuickStartProject.PROJECT_URI;
 
 import java.util.ArrayList;
 import java.util.Arrays;

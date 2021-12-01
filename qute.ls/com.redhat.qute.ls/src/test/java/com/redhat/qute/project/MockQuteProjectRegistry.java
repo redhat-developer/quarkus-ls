@@ -35,8 +35,8 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 
 	@Override
 	protected QuteProject createProject(ProjectInfo projectInfo) {
-		if (QuteQuickstartProject.PROJECT_URI.equals(projectInfo.getUri())) {
-			return new QuteQuickstartProject(projectInfo, this);
+		if (QuteQuickStartProject.PROJECT_URI.equals(projectInfo.getUri())) {
+			return new QuteQuickStartProject(projectInfo, this);
 		}
 		return super.createProject(projectInfo);
 	}

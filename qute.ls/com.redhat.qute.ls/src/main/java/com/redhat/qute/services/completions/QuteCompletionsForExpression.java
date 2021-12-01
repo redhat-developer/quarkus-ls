@@ -56,6 +56,12 @@ import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.StringUtils;
 
+/**
+ * Qute completion inside Qute expression.
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public class QuteCompletionsForExpression {
 
 	private final JavaDataModelCache javaCache;
@@ -64,6 +70,23 @@ public class QuteCompletionsForExpression {
 		this.javaCache = javaCache;
 	}
 
+	/**
+	 * Returns the completion result of the given offset inside the given
+	 * expression.
+	 * 
+	 * @param expression         the expression where the completion has been
+	 *                           triggered and null otherwise.
+	 * @param nodeExpression     the node expression where the completion has been
+	 *                           triggered and null otherwise.
+	 * @param template           the owner template.
+	 * @param offset             the offset where the completion has been triggered.
+	 * @param completionSettings the completion settings.
+	 * @param formattingSettings the formatting settings.
+	 * 
+	 * @param cancelChecker      the cancel checker.
+	 * 
+	 * @return the completion result as future.
+	 */
 	public CompletableFuture<CompletionList> doCompleteExpression(Expression expression, Node nodeExpression,
 			Template template, int offset, QuteCompletionSettings completionSettings,
 			QuteFormattingSettings formattingSettings, CancelChecker cancelChecker) {
@@ -121,6 +144,18 @@ public class QuteCompletionsForExpression {
 		return EMPTY_FUTURE_COMPLETION;
 	}
 
+	/**
+	 * Returns the completion result for Java fields, methods of the Java type
+	 * class, interface of the given part <code>part</code>
+	 * 
+	 * @param part               the part.
+	 * @param parts              the owner parts.
+	 * @param template           the owner template.
+	 * @param completionSettings the completion settings.
+	 * @param formattingSettings the formatting settings.
+	 * 
+	 * @return the completion list.
+	 */
 	private CompletableFuture<CompletionList> doCompleteExpressionForMemberPart(Part part, Parts parts,
 			Template template, QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings) {
 		int start = part != null ? part.getStart() : parts.getEnd();
@@ -128,36 +163,48 @@ public class QuteCompletionsForExpression {
 		String projectUri = template.getProjectUri();
 		Part previousPart = parts.getPreviousPart(part);
 		return javaCache.resolveJavaType(previousPart, projectUri) //
-				.thenCompose(resolvedClass -> {
-					if (resolvedClass == null) {
+				.thenCompose(resolvedType -> {
+					if (resolvedType == null) {
 						return EMPTY_FUTURE_COMPLETION;
 					}
-					if (resolvedClass.isIterable()) {
+					if (resolvedType.isIterable()) {
 						// Completion for member of the iterable element of the given Java class
 						// iterable
 						// ex : completion for 'org.acme.Item' iterable element of the
 						// 'java.util.List<org.acme.Item>' Java class iterable
-						return javaCache.resolveJavaType(resolvedClass.getIterableType(), projectUri) //
-								.thenApply(resolvedIterableClass -> {
-									if (resolvedIterableClass == null) {
+						return javaCache.resolveJavaType(resolvedType.getIterableType(), projectUri) //
+								.thenApply(resolvedIterableType -> {
+									if (resolvedIterableType == null) {
 										return EMPTY_COMPLETION;
 									}
-									return doCompleteForJavaClassMembers(start, end, template, resolvedIterableClass,
+									return doCompleteForJavaTypeMembers(resolvedIterableType, start, end, template,
 											completionSettings, formattingSettings);
 								});
 					}
 					// Completion for member of the given Java class
 					// ex : org.acme.Item
-					CompletionList list = doCompleteForJavaClassMembers(start, end, template, resolvedClass,
+					CompletionList list = doCompleteForJavaTypeMembers(resolvedType, start, end, template,
 							completionSettings, formattingSettings);
 					return CompletableFuture.completedFuture(list);
 				});
 
 	}
 
-	private CompletionList doCompleteForJavaClassMembers(int start, int end, Template template,
-			ResolvedJavaTypeInfo resolvedClass, QuteCompletionSettings completionSettings,
-			QuteFormattingSettings formattingSettings) {
+	/**
+	 * Returns the completion result for Java fields, methods of the given Java type
+	 * class, interface <code>resolvedType</code>
+	 * 
+	 * @param resolvedType       the Java class, interface.
+	 * @param start              the part start index to replace.
+	 * @param end                the part end index to replace.
+	 * @param template           the owner Qute template.
+	 * @param completionSettings the completion settings.
+	 * @param formattingSettings the formatting settings.
+	 * 
+	 * @return the completion list.
+	 */
+	private CompletionList doCompleteForJavaTypeMembers(ResolvedJavaTypeInfo resolvedType, int start, int end,
+			Template template, QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings) {
 		CompletionList list = new CompletionList();
 		list.setItems(new ArrayList<>());
 		Range range = QutePositionUtility.createRange(start, end, template);
@@ -165,13 +212,15 @@ public class QuteCompletionsForExpression {
 
 		Set<String> existingProperties = new HashSet<>();
 		// Completion for Java fields
-		fillCompletionFields(range, list, resolvedClass, projectUri, existingProperties);
+		fillCompletionFields(resolvedType, range, projectUri, existingProperties, list);
 
 		// Completion for Java methods
-		fillCompletionMethods(range, list, resolvedClass, projectUri, completionSettings, formattingSettings,
-				existingProperties);
+		Set<String> existingMethodSignatures = new HashSet<>();
+		fillCompletionMethods(resolvedType, range, projectUri, completionSettings, formattingSettings,
+				existingProperties, existingMethodSignatures, list);
 
-		List<ValueResolver> resolvers = javaCache.getResolversFor(resolvedClass);
+		// Completion for virtual methods (from value resolvers)
+		List<ValueResolver> resolvers = javaCache.getResolversFor(resolvedType);
 		for (ValueResolver method : resolvers) {
 			fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
 		}
@@ -179,65 +228,103 @@ public class QuteCompletionsForExpression {
 		return list;
 	}
 
-	private void fillCompletionFields(Range range, CompletionList list, ResolvedJavaTypeInfo resolvedClass,
-			String projectUri, Set<String> existingProperties) {
-		for (JavaFieldInfo field : resolvedClass.getFields()) {
-			String filedName = field.getName();
-			CompletionItem item = new CompletionItem();
-			item.setLabel(filedName);
-			item.setLabel(filedName + " : " + field.getType());
-			item.setFilterText(filedName);
-			item.setKind(CompletionItemKind.Field);
-			TextEdit textEdit = new TextEdit();
-			textEdit.setRange(range);
-			textEdit.setNewText(filedName);
-			item.setTextEdit(Either.forLeft(textEdit));
-			list.getItems().add(item);
-			existingProperties.add(filedName);
+	/**
+	 * Fill completion list <code>list</code> with the methods of the given Java
+	 * type <code>resolvedType</code>.
+	 * 
+	 * @param resolvedType       the Java type class, interface.
+	 * @param range              the range.
+	 * @param projectUri         the project Uri
+	 * @param existingProperties the existing properties and method, field
+	 *                           signature.
+	 * @param list               the completion list.
+	 */
+	private void fillCompletionFields(ResolvedJavaTypeInfo resolvedType, Range range, String projectUri,
+			Set<String> existingProperties, CompletionList list) {
+		// Fill completion with Java type fields.
+		for (JavaFieldInfo field : resolvedType.getFields()) {
+			String fieldName = field.getName();
+			// It is necessary to check if the name of the given field has already been
+			// added in the completion
+			// list to avoid duplication of input fields.
+			// Ex: to avoid duplicate of foo fields in this case
+			// class A extends B {String foo;}
+			// class B {String foo;}
+			if (!existingProperties.contains(fieldName)) {
+				CompletionItem item = new CompletionItem();
+				item.setLabel(fieldName);
+				item.setLabel(fieldName + " : " + field.getType());
+				item.setFilterText(fieldName);
+				item.setKind(CompletionItemKind.Field);
+				TextEdit textEdit = new TextEdit();
+				textEdit.setRange(range);
+				textEdit.setNewText(fieldName);
+				item.setTextEdit(Either.forLeft(textEdit));
+				list.getItems().add(item);
+				existingProperties.add(fieldName);
+			}
 		}
-		List<String> extendedTypes = resolvedClass.getExtendedTypes();
+		// Fill completion with extended Java type fields.
+		List<String> extendedTypes = resolvedType.getExtendedTypes();
 		if (extendedTypes != null) {
 			for (String extendedType : extendedTypes) {
 				ResolvedJavaTypeInfo resolvedExtendedType = javaCache.resolveJavaType(extendedType, projectUri)
 						.getNow(null);
 				if (resolvedExtendedType != null) {
-					fillCompletionFields(range, list, resolvedExtendedType, projectUri, existingProperties);
+					fillCompletionFields(resolvedExtendedType, range, projectUri, existingProperties, list);
 				}
 			}
 		}
 	}
 
-	private void fillCompletionMethods(Range range, CompletionList list, ResolvedJavaTypeInfo resolvedClass,
-			String projectUri, QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
-			Set<String> existingProperties) {
-		for (JavaMethodInfo method : resolvedClass.getMethods()) {
-			String property = method.getGetterName();
-			if (property != null && !existingProperties.contains(property)) {
-				// It's a getter method, create a completion item for simple property (value)
-				// from the method name (getValue)
-				CompletionItem item = new CompletionItem();
-				item.setLabel(property + " : " + method.getReturnType());
-				item.setFilterText(property);
-				item.setKind(CompletionItemKind.Property);
-				TextEdit textEdit = new TextEdit();
-				textEdit.setRange(range);
-				textEdit.setNewText(property);
-				item.setTextEdit(Either.forLeft(textEdit));
-				list.getItems().add(item);
+	/**
+	 * Fill completion list <code>list</code> with the methods of the given Java
+	 * type <code>resolvedType</code>.
+	 * 
+	 * @param resolvedType       the Java type class, interface.
+	 * @param range              the range.
+	 * @param projectUri         the project Uri
+	 * @param completionSettings the completion settings
+	 * @param formattingSettings the formatting settings.
+	 * @param existingProperties the existing properties and method, field
+	 *                           signature.
+	 * @param list               the completion list.
+	 */
+	private void fillCompletionMethods(ResolvedJavaTypeInfo resolvedType, Range range, String projectUri,
+			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
+			Set<String> existingProperties, Set<String> existingMethodSignatures, CompletionList list) {
+		for (JavaMethodInfo method : resolvedType.getMethods()) {
+			String methodSignature = method.getSignature();
+			if (!existingMethodSignatures.contains(methodSignature)) {
+				existingMethodSignatures.add(methodSignature);
+				String property = method.getGetterName();
+				if (property != null && !existingProperties.contains(property)) {
+					// It's a getter method, create a completion item for simple property (value)
+					// from the method name (getValue)
+					CompletionItem item = new CompletionItem();
+					item.setLabel(property + " : " + method.getReturnType());
+					item.setFilterText(property);
+					item.setKind(CompletionItemKind.Property);
+					TextEdit textEdit = new TextEdit();
+					textEdit.setRange(range);
+					textEdit.setNewText(property);
+					item.setTextEdit(Either.forLeft(textEdit));
+					list.getItems().add(item);
+				}
+
+				// Completion for method name (getValue)
+				fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
 			}
 
-			// Completion for method name (getValue)
-			fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
-
 		}
-		List<String> extendedTypes = resolvedClass.getExtendedTypes();
+		List<String> extendedTypes = resolvedType.getExtendedTypes();
 		if (extendedTypes != null) {
 			for (String extendedType : extendedTypes) {
 				ResolvedJavaTypeInfo resolvedExtendedType = javaCache.resolveJavaType(extendedType, projectUri)
 						.getNow(null);
 				if (resolvedExtendedType != null) {
-					fillCompletionMethods(range, list, resolvedExtendedType, projectUri, completionSettings,
-							formattingSettings, existingProperties);
+					fillCompletionMethods(resolvedExtendedType, range, projectUri, completionSettings,
+							formattingSettings, existingProperties, existingMethodSignatures, list);
 				}
 			}
 		}
@@ -315,7 +402,8 @@ public class QuteCompletionsForExpression {
 		for (ValueResolver method : namespaceResolvers) {
 			CompletionItem item = fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
 			item.setKind(CompletionItemKind.Function);
-			// Display namespace resolvers (ex : config:getConfigProperty(...)) after declared variables
+			// Display namespace resolvers (ex : config:getConfigProperty(...)) after
+			// declared variables
 			item.setSortText("Zb" + item.getLabel());
 		}
 	}
@@ -338,7 +426,7 @@ public class QuteCompletionsForExpression {
 					CompletionItem item = new CompletionItem();
 					item.setLabel(name);
 					item.setKind(CompletionItemKind.Keyword);
-					// Display metadata section (ex : count for #each) after declared variables 
+					// Display metadata section (ex : count for #each) after declared variables
 					item.setSortText("Za" + name);
 					TextEdit textEdit = new TextEdit(range, name);
 					item.setTextEdit(Either.forLeft(textEdit));
@@ -386,11 +474,11 @@ public class QuteCompletionsForExpression {
 				// Completion for properties/methods of with object from #with
 				Parameter object = ((WithSection) section).getObjectParameter();
 				if (object != null) {
-					ResolvedJavaTypeInfo withClassInfo = javaCache.resolveJavaType(object, projectUri).getNow(null);
-					if (withClassInfo != null) {
-						fillCompletionFields(range, list, withClassInfo, projectUri, existingVars);
-						fillCompletionMethods(range, list, withClassInfo, projectUri, completionSettings,
-								formattingSettings, existingVars);
+					ResolvedJavaTypeInfo withJavaTypeInfo = javaCache.resolveJavaType(object, projectUri).getNow(null);
+					if (withJavaTypeInfo != null) {
+						fillCompletionFields(withJavaTypeInfo, range, projectUri, existingVars, list);
+						fillCompletionMethods(withJavaTypeInfo, range, projectUri, completionSettings,
+								formattingSettings, existingVars, new HashSet<>(), list);
 					}
 				}
 				break;
@@ -427,7 +515,7 @@ public class QuteCompletionsForExpression {
 		for (ExtendedDataModelParameter parameter : dataModel.getParameters()) {
 			CompletionItem item = new CompletionItem();
 			item.setLabel(parameter.getKey());
-			item.setKind(CompletionItemKind.Reference);			
+			item.setKind(CompletionItemKind.Reference);
 			TextEdit textEdit = new TextEdit(range, parameter.getKey());
 			item.setTextEdit(Either.forLeft(textEdit));
 			list.getItems().add(item);
