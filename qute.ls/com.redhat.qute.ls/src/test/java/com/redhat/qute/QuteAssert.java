@@ -11,7 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute;
 
-import static com.redhat.qute.project.QuteQuickstartProject.PROJECT_URI;
+import static com.redhat.qute.project.QuteQuickStartProject.PROJECT_URI;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;

@@ -85,6 +85,7 @@ public class QuteCompletionInExpressionTest {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.|}";
 		testCompletionFor(template, //
+				c("base : java.lang.String", "base", r(1, 12, 1, 12)), // comes from BaseItem extended by Item
 				c("name : java.lang.String", "name", r(1, 12, 1, 12)), //
 				c("price : java.math.BigInteger", "price", r(1, 12, 1, 12)), //
 				c("review : org.acme.Review", "review", r(1, 12, 1, 12)), //
@@ -94,6 +95,7 @@ public class QuteCompletionInExpressionTest {
 		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.n|}";
 		testCompletionFor(template, //
+				c("base : java.lang.String", "base", r(1, 12, 1, 13)), // comes from BaseItem extended by Item
 				c("name : java.lang.String", "name", r(1, 12, 1, 13)), //
 				c("price : java.math.BigInteger", "price", r(1, 12, 1, 13)), //
 				c("review : org.acme.Review", "review", r(1, 12, 1, 13)), //
@@ -103,6 +105,7 @@ public class QuteCompletionInExpressionTest {
 		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.|n}";
 		testCompletionFor(template, //
+				c("base : java.lang.String", "base", r(1, 12, 1, 13)), // comes from BaseItem extended by Item
 				c("name : java.lang.String", "name", r(1, 12, 1, 13)), //
 				c("price : java.math.BigInteger", "price", r(1, 12, 1, 13)), //
 				c("review : org.acme.Review", "review", r(1, 12, 1, 13)), //
@@ -112,6 +115,7 @@ public class QuteCompletionInExpressionTest {
 		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.n|a}";
 		testCompletionFor(template, //
+				c("base : java.lang.String", "base", r(1, 12, 1, 14)), // comes from BaseItem extended by Item
 				c("name : java.lang.String", "name", r(1, 12, 1, 14)), //
 				c("price : java.math.BigInteger", "price", r(1, 12, 1, 14)), //
 				c("review : org.acme.Review", "review", r(1, 12, 1, 14)), //
