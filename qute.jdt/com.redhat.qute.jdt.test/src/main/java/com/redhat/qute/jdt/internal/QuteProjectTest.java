@@ -58,6 +58,7 @@ public class QuteProjectTest {
 
 		public static String qute_quickstart = "qute-quickstart";
 
+		public static String qute_java17 = "qute-java17";
 	}
 
 	@BeforeClass

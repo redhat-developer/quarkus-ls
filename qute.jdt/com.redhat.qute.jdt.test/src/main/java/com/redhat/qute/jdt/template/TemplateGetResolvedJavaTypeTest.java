@@ -145,9 +145,30 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertNotNull(result);
 		Assert.assertEquals("org.acme.qute.Item", result.getSignature());
 		Assert.assertFalse(result.isIterable());
-		
+
 		Assert.assertNotNull(result.getMethods());
 		Assert.assertEquals(1, result.getMethods().size());
 		Assert.assertEquals("getDerivedItems() : org.acme.qute.Item[]", result.getMethods().get(0).getSignature());
+	}
+
+	@Test
+	public void record() throws Exception {
+
+		loadMavenProject(QuteMavenProjectName.qute_java17);
+
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.RecordItem",
+				QuteMavenProjectName.qute_java17);
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
+				new NullProgressMonitor());
+		Assert.assertEquals("org.acme.qute.RecordItem", result.getSignature());
+		Assert.assertFalse(result.isIterable());
+
+		Assert.assertNotNull(result.getFields());
+		Assert.assertEquals(2, result.getFields().size());
+		Assert.assertEquals("name", result.getFields().get(0).getName());
+		Assert.assertEquals("java.lang.String", result.getFields().get(0).getType());
+		Assert.assertEquals("price", result.getFields().get(1).getName());
+		Assert.assertEquals("java.math.BigDecimal", result.getFields().get(1).getType());
+
 	}
 }
