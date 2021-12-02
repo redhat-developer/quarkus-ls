@@ -62,7 +62,6 @@ import com.redhat.qute.jdt.internal.template.JavaTypesSearch;
 import com.redhat.qute.jdt.internal.template.QuarkusIntegrationForQute;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
-import com.redhat.qute.jdt.utils.JDTTypeUtils;
 
 /**
  * Qute support for Template file.
@@ -269,8 +268,10 @@ public class QuteSupportForTemplate {
 
 		ITypeResolver typeResolver = createTypeResolver(type);
 
-		// Collect fields
+		// 1) Collect fields
 		List<JavaFieldInfo> fieldsInfo = new ArrayList<>();
+
+		// Standard fields
 		IField[] fields = type.getFields();
 		for (IField field : fields) {
 			if (isValidField(field)) {
@@ -281,7 +282,17 @@ public class QuteSupportForTemplate {
 			}
 		}
 
-		// Collect methods
+		// Record fields
+		if (type.isRecord()) {
+			for (IField field : type.getRecordComponents()) {
+				// All record components are valid
+				JavaFieldInfo info = new JavaFieldInfo();
+				info.setSignature(typeResolver.resolveFieldSignature(field));
+				fieldsInfo.add(info);
+			}
+		}
+
+		// 2) Collect methods
 		List<JavaMethodInfo> methodsInfo = new ArrayList<>();
 		IMethod[] methods = type.getMethods();
 		for (IMethod method : methods) {
