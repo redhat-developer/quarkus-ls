@@ -25,6 +25,21 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 /**
  * Template field support.
  * 
+ * <code>
+ *  &#64;Inject
+ *  Template hello;
+ *
+ *  ...
+ *
+ *   &#64;GET
+ *   &#64;Produces(MediaType.TEXT_HTML)
+ *   public TemplateInstance get(@QueryParam("name") String name) {
+ *   	hello.data("age", 12);
+ *   	hello.data("height", 1.50, "weight", 50L);
+ *       return hello.data("name", name);
+ *   }
+ *   </code>
+ * 
  * @author Angelo ZERR
  *
  */
@@ -52,7 +67,7 @@ class TemplateFieldSupport {
 		template.setTemplateUri(templateUri);
 		template.setSourceType(field.getDeclaringType().getFullyQualifiedName());
 		template.setSourceField(fieldName);
-		CheckedTemplateSupport.collectDataForTemplate(field, template, monitor);
+		CheckedTemplateSupport.collectParametersFromDataMethodInvocation(field, false, template, monitor);
 		return template;
 	}
 }

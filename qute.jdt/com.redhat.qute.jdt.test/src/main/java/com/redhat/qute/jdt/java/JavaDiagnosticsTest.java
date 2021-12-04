@@ -65,6 +65,8 @@ public class JavaDiagnosticsTest {
 	public void templateField() throws CoreException, Exception {
 		// public class HelloResource {
 		// Template hello;
+		//
+		// Template goodbye;
 		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
 		QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
@@ -77,7 +79,12 @@ public class JavaDiagnosticsTest {
 
 		// None error
 		List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
-		assertEquals(0, diagnostics.size());
+		assertEquals(1, diagnostics.size());
+		
+		assertDiagnostic(diagnostics, //
+				new Diagnostic(r(19, 13, 19, 20),
+						"No template matching the path goodbye could be found for: org.acme.qute.HelloResource",
+						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
 	}
 
 	@Test
