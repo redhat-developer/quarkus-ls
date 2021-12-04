@@ -102,8 +102,29 @@ public class QuteSupportForTemplate {
 		return JDTQuteProjectUtils.getProjectInfo(javaProject);
 	}
 
+	/**
+	 * Collect data model templates from the given project Uri. A data model
+	 * template can be declared with:
+	 * 
+	 * <ul>
+	 * <li>@CheckedTemplate support: collect parameters for Qute Template by
+	 * searching @CheckedTemplate annotation.</li>
+	 * <li>Template field support: collect parameters for Qute Template by searching
+	 * Template instance declared as field in Java class.</li>
+	 * <li>Template extension support: see
+	 * https://quarkus.io/guides/qute-reference#template_extension_methods</li>
+	 * </ul>
+	 * 
+	 * @param params  the project uri.
+	 * @param utils   JDT LS utilities
+	 * @param monitor the progress monitor
+	 * 
+	 * @return data model templates from the given project Uri.
+	 * 
+	 * @throws CoreException
+	 */
 	public DataModelProject<DataModelTemplate<DataModelParameter>> getDataModelProject(
-			QuteDataModelProjectParams params, IJDTUtils instance, IProgressMonitor monitor) throws CoreException {
+			QuteDataModelProjectParams params, IJDTUtils utils, IProgressMonitor monitor) throws CoreException {
 		String projectUri = params.getProjectUri();
 		IJavaProject javaProject = getJavaProjectFromProjectUri(projectUri);
 		if (javaProject == null) {

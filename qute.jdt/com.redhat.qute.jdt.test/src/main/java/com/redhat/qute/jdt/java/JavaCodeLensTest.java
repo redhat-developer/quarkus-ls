@@ -64,6 +64,8 @@ public class JavaCodeLensTest {
 		// public class HelloResource {
 		// [Open `src/main/resources/templates/hello.qute.html`]
 		// Template hello;
+		// [Create `src/main/resources/templates/hello.qute.html`]
+		// Template goodbye;		
 		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
 		QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
@@ -72,15 +74,20 @@ public class JavaCodeLensTest {
 
 		List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, getJDTUtils(),
 				new NullProgressMonitor());
-		assertEquals(1, lenses.size());
+		assertEquals(2, lenses.size());
 
-		String templateFileUri = javaProject.getProject().getFile("src/main/resources/templates/hello.qute.html")
+		String helloTemplateFileUri = javaProject.getProject().getFile("src/main/resources/templates/hello.qute.html")
+				.getLocationURI().toString();
+		String goodbyeTemplateFileUri = javaProject.getProject().getFile("src/main/resources/templates/goodbye.qute.html")
 				.getLocationURI().toString();
 
 		assertCodeLens(lenses, //
 				cl(r(15, 4, 16, 19), //
 						"Open `src/main/resources/templates/hello.qute.html`", //
-						"qute.command.open.uri", Arrays.asList(templateFileUri)));
+						"qute.command.open.uri", Arrays.asList(helloTemplateFileUri)), //
+				cl(r(18, 4, 19, 21), //
+						"Create `src/main/resources/templates/goodbye.qute.html`", //
+						"qute.command.generate.template.file", Arrays.asList(goodbyeTemplateFileUri)));
 	}
 
 	@Test
@@ -101,7 +108,7 @@ public class JavaCodeLensTest {
 				new NullProgressMonitor());
 		assertEquals(2, lenses.size());
 
-		String hello2FileUri = javaProject.getProject().getFile("src/main/resources/templates/hello2.qute.html")
+		String goodbyeFileUri = javaProject.getProject().getFile("src/main/resources/templates/hello2.qute.html")
 				.getLocationURI().toString();
 		String hello3FileUri1 = javaProject.getProject().getFile("src/main/resources/templates/hello3.qute.html")
 				.getLocationURI().toString();
@@ -109,7 +116,7 @@ public class JavaCodeLensTest {
 		assertCodeLens(lenses, //
 				cl(r(8, 1, 8, 59), //
 						"Open `src/main/resources/templates/hello2.qute.html`", //
-						"qute.command.open.uri", Arrays.asList(hello2FileUri)), //
+						"qute.command.open.uri", Arrays.asList(goodbyeFileUri)), //
 				cl(r(9, 4, 9, 62), //
 						"Create `src/main/resources/templates/hello3.qute.html`", //
 						"qute.command.generate.template.file", Arrays.asList(hello3FileUri1)));

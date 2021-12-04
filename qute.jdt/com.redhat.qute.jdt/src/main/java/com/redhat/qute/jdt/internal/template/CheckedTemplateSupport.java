@@ -29,7 +29,9 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.NodeFinder;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -45,7 +47,27 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.jdt.utils.JDTTypeUtils;
 
 /**
- * CheckedTemplate support for template files.
+ * CheckedTemplate support for template files:
+ * 
+ * <code>
+ * &#64;CheckedTemplate
+ *	static class Templates {
+ *		static native TemplateInstance items(List<Item> items);
+ *	}
+ * 
+ *  ...
+ *  
+ *  &#64;GET
+ *	&#64;Produces(MediaType.TEXT_HTML)
+ *	public TemplateInstance get() {
+ * 		List<Item> items = new ArrayList<>();
+ * 		items.add(new Item(new BigDecimal(10), "Apple"));
+ * 		items.add(new Item(new BigDecimal(16), "Pear"));
+ * 		items.add(new Item(new BigDecimal(30), "Orange"));
+ * 		return Templates.items(items);
+ *	}
+ * </code>
+ * 
  * 
  * @author Angelo ZERR
  *
@@ -54,6 +76,14 @@ class CheckedTemplateSupport {
 
 	private static final Logger LOGGER = Logger.getLogger(CheckedTemplateSupport.class.getName());
 
+	/**
+	 * Collect data model template from @CheckedTemplate.
+	 * 
+	 * @param type      the Jav atype.
+	 * @param templates the data model templates to update with collect of template.
+	 * @param monitor   the progress monitor.
+	 * @throws JavaModelException
+	 */
 	public static void collectDataModelTemplateForCheckedTemplate(IType type,
 			List<DataModelTemplate<DataModelParameter>> templates, IProgressMonitor monitor) throws JavaModelException {
 		boolean innerClass = type.getParent() != null && type.getParent().getElementType() == IJavaElement.TYPE;
@@ -96,17 +126,34 @@ class CheckedTemplateSupport {
 			LOGGER.log(Level.SEVERE,
 					"Error while getting method template parameter of '" + method.getElementName() + "'.", e);
 		}
-		collectDataForTemplate(method, template, monitor);
+		boolean innerClass = type.getParent() != null && type.getParent().getElementType() == IJavaElement.TYPE;
+		collectParametersFromDataMethodInvocation(method, !innerClass, template, monitor);
 		return template;
 	}
 
-	public static void collectDataForTemplate(IMember fieldOrMethod, DataModelTemplate<DataModelParameter> template,
-			IProgressMonitor monitor) {
+	/**
+	 * Search all method invocation of template#data(name, value) to collect data
+	 * model parameters for the given template.
+	 * 
+	 * @param fieldOrMethod       the template field (ex : Template hello;) or
+	 *                            method which returns TemplateInstance.
+	 * @param searchInJavaProject true if the search of method invocation of
+	 *                            template#data(name, value) must be dine in Java
+	 *                            project or inside the compilation unit of the
+	 *                            field/method.
+	 * @param template            the data model template to update with collect of
+	 *                            data model parameters.
+	 * @param monitor             the progress monitor.
+	 */
+	public static void collectParametersFromDataMethodInvocation(IMember fieldOrMethod, boolean searchInJavaProject,
+			DataModelTemplate<DataModelParameter> template, IProgressMonitor monitor) {
 		SearchEngine engine = new SearchEngine();
 		SearchPattern pattern = SearchPattern.createPattern(fieldOrMethod, IJavaSearchConstants.REFERENCES);
 		int searchScope = IJavaSearchScope.SOURCES;
 		IJavaSearchScope scope = BasicSearchEngine.createJavaSearchScope(true,
-				new IJavaElement[] { fieldOrMethod.getJavaProject() }, searchScope);
+				new IJavaElement[] {
+						searchInJavaProject ? fieldOrMethod.getJavaProject() : fieldOrMethod.getCompilationUnit() },
+				searchScope);
 		try {
 			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
 					new SearchRequestor() {
@@ -116,14 +163,21 @@ class CheckedTemplateSupport {
 							Object o = match.getElement();
 							if (o instanceof IMethod) {
 								IMethod method = (IMethod) o;
+								// Get the AST of the method declaration where template field of CheckedTemplate
+								// method is referenced.
 								CompilationUnit cu = getASTRoot(method.getCompilationUnit());
-								cu.accept(new TemplateDataCollector(template, monitor));
+								ASTNode methodDeclarationAST = new NodeFinder(cu, method.getSourceRange().getOffset(),
+										method.getSourceRange().getLength()).getCoveringNode();
+								// Visit the body of the method declaration to collect method invocation of
+								// temlate.data(param-name, param-type);
+								methodDeclarationAST.accept(new TemplateDataCollector(template, monitor));
 							}
 						}
 					}, monitor);
 		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE,
+					"Error while getting collecting template parameters for '" + fieldOrMethod.getElementName() + "'.",
+					e);
 		}
 	}
 

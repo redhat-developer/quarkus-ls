@@ -60,8 +60,9 @@ public class JavaDocumentLinkTest {
 	@Test
 	public void templateField() throws CoreException, Exception {
 		// public class HelloResource {
-		// [Open `src/main/resources/templates/hello.qute.html`]
 		// Template hello;
+		//
+		// Template goodbye;
 		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
 		QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
@@ -70,23 +71,27 @@ public class JavaDocumentLinkTest {
 
 		List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, getJDTUtils(),
 				new NullProgressMonitor());
-		assertEquals(1, links.size());
+		assertEquals(2, links.size());
 
-		String templateFileUri = javaProject.getProject().getFile("src/main/resources/templates/hello.qute.html")
+		String helloTemplateUri = javaProject.getProject().getFile("src/main/resources/templates/hello.qute.html")
+				.getLocationURI().toString();
+		String goodbyeTemplateUri = javaProject.getProject().getFile("src/main/resources/templates/hello2.qute.html")
 				.getLocationURI().toString();
 
 		assertDocumentLink(links, //
 				dl(r(16, 13, 16, 18), //
-						templateFileUri, "Open `src/main/resources/templates/hello.qute.html`"));
+						helloTemplateUri, "Open `src/main/resources/templates/hello.qute.html`"),
+				dl(r(19, 13, 19, 20), //
+						goodbyeTemplateUri, "Open `src/main/resources/templates/goodbye.qute.html`"));
 	}
 
 	@Test
 	public void checkedTemplate() throws CoreException, Exception {
 		// @CheckedTemplate
 		// public class Templates {
-		// [Open `src/main/resources/templates/hello2.qute.html`]
+		// 
 		// public static native TemplateInstance hello2(String name);
-		// [Open `src/main/resources/templates/hello3.qute.html`]
+		// 
 		// public static native TemplateInstance hello3(String name);
 		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
@@ -115,11 +120,11 @@ public class JavaDocumentLinkTest {
 		// public class ItemResource {
 		// @CheckedTemplate
 		// static class Templates {
-		// [Open `src/main/resources/templates/ItemResource/items.qute.html`]
+		// 
 		// static native TemplateInstance items(List<Item> items);
 
 		// static class Templates2 {
-		// [Create `src/main/resources/templates/ItemResource/items2.qute.html`]
+		// 
 		// static native TemplateInstance items2(List<Item> items);
 
 		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);

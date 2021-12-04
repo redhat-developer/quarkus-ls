@@ -16,6 +16,9 @@ public class HelloResource {
     @Inject
     Template hello;
 
+    @Inject
+    Template goodbye;
+
     @GET
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance get(@QueryParam("name") String name) {
@@ -24,4 +27,10 @@ public class HelloResource {
         return hello.data("name", name);
     }
 
+    @GET
+    @Produces(MediaType.TEXT_HTML)
+    public TemplateInstance get2(@QueryParam("name") String name) {
+    	goodbye.data("age2", 12);
+        return goodbye.data("name2", name);
+    }
 }
