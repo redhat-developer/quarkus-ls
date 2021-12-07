@@ -13,7 +13,9 @@ package com.redhat.qute.commons;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
@@ -36,6 +38,8 @@ public class JavaTypeInfo extends JavaElementInfo {
 	private List<JavaParameterInfo> parameters;
 
 	private String name;
+
+	private Map<String /* invalid method name */, InvalidMethodReason> invalidMethods;
 
 	/**
 	 * Returns the fully qualified name of the Java type with type parameters.
@@ -99,6 +103,42 @@ public class JavaTypeInfo extends JavaElementInfo {
 	}
 
 	/**
+	 * Returns the reason of the invalid method of the given method name and null
+	 * otherwise.
+	 * 
+	 * @param methodName the method name to check.
+	 * 
+	 * @return the reason of the invalid method of the given method name and null
+	 *         otherwise.
+	 */
+	public InvalidMethodReason getInvalidMethodReason(String methodName) {
+		return invalidMethods != null ? invalidMethods.get(methodName) : null;
+	}
+
+	/**
+	 * Set the invalid method reason for the given method name.
+	 * 
+	 * @param methodName the method name.
+	 * 
+	 * @param reason     the invalid method reason.
+	 */
+	public void setInvalidMethod(String methodName, InvalidMethodReason reason) {
+		if (this.invalidMethods == null) {
+			setInvalidMethods(new HashMap<>());
+		}
+		this.invalidMethods.put(methodName, reason);
+	}
+
+	/**
+	 * Set the invalid methods map.
+	 * 
+	 * @param invalidMethods the invalid methods map.
+	 */
+	public void setInvalidMethods(Map<String /* method name */, InvalidMethodReason> invalidMethods) {
+		this.invalidMethods = invalidMethods;
+	}
+
+	/**
 	 * Returns the java type parameters.
 	 * 
 	 * Example:
@@ -148,7 +188,7 @@ public class JavaTypeInfo extends JavaElementInfo {
 		}
 		return parameters;
 	}
-	
+
 	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
@@ -156,4 +196,5 @@ public class JavaTypeInfo extends JavaElementInfo {
 		b.add("signature", this.getSignature());
 		return b.toString();
 	}
+
 }

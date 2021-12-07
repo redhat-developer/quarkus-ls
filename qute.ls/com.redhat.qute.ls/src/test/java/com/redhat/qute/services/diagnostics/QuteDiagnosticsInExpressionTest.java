@@ -34,19 +34,19 @@ public class QuteDiagnosticsInExpressionTest {
 
 		Diagnostic d = d(0, 1, 0, 4, QuteErrorCode.UndefinedVariable, "`foo` cannot be resolved to a variable.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("foo", false));		
+		d.setData(DiagnosticDataFactory.createUndefinedVariableData("foo", false));
 		testDiagnosticsFor("{foo}", d);
 
 		d = d(0, 1, 0, 5, QuteErrorCode.UndefinedVariable, "`_foo` cannot be resolved to a variable.",
 				DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("_foo", false));
 		testDiagnosticsFor("{_foo}", d);
-		
+
 		testDiagnosticsFor("{ foo}");
 		testDiagnosticsFor("{{foo}}");
 		testDiagnosticsFor("{\"foo\":true}");
 	}
-	
+
 	@Test
 	public void booleanLiteral() throws Exception {
 		String template = "{true}";
@@ -330,4 +330,29 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, d(1, 11, 1, 12, QuteErrorCode.SyntaxError, //
 				"Syntax error: `Unexpected '.' token.`.", DiagnosticSeverity.Error));
 	}
+
+	@Test
+	public void invalidMethodVoid() {
+		String template = "{@java.lang.String string}\r\n" + //
+				"{string.isEmpty()}\r\n" + //
+				"{string.getChars()}\r\n";
+
+		testDiagnosticsFor(template, //
+				d(2, 8, 2, 16, QuteErrorCode.InvalidMethodVoid,
+						"Invalid `getChars` method of `java.lang.String` : void return is not allowed.",
+						DiagnosticSeverity.Error));
+	}
+	
+	@Test
+	public void invalidMethodStatic() {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{item.name}\r\n" + //
+				"{item.staticMethod(null)}\r\n";
+
+		testDiagnosticsFor(template, //
+				d(2, 6, 2, 18, QuteErrorCode.InvalidMethodStatic,
+						"Invalid `staticMethod` method of `org.acme.Item` : static method is not allowed.",
+						DiagnosticSeverity.Error));
+	}
+
 }
