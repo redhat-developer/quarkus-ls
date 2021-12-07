@@ -28,6 +28,7 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.parser.expression.NamespacePart;
@@ -516,6 +517,20 @@ class QuteDiagnostics {
 				// ex : {@org.acme.Item item}
 				// "{item.getXXXX()}
 				errorCode = QuteErrorCode.UnkwownMethod;
+				InvalidMethodReason reason = javaCache.getInvalidMethodReason(property, resolvedJavaClass, projectUri);
+				if (reason != null) {
+					switch (reason) {
+					case VoidReturn:
+						errorCode = QuteErrorCode.InvalidMethodVoid;
+						break;
+					case Static:
+						errorCode = QuteErrorCode.InvalidMethodStatic;
+						break;
+					case FromObject:
+						errorCode = QuteErrorCode.InvalidMethodFromObject;
+						break;
+					}
+				}
 			} else {
 				// ex : {@org.acme.Item item}
 				// "{item.XXXX}

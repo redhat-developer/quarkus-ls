@@ -13,7 +13,9 @@ package com.redhat.qute.jdt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -42,6 +44,7 @@ import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.lsp4j.Location;
 
+import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
@@ -76,6 +79,8 @@ public class QuteSupportForTemplate {
 	private static final Logger LOGGER = Logger.getLogger(QuteSupportForTemplate.class.getName());
 
 	private static final String JAVA_LANG_ITERABLE = "java.lang.Iterable";
+
+	private static final String JAVA_LANG_OBJECT = "java.lang.Object";
 
 	private static final List<String> COMMONS_ITERABLE_TYPES = Arrays.asList("Iterable", JAVA_LANG_ITERABLE,
 			"java.util.List", "java.util.Set");
@@ -284,11 +289,11 @@ public class QuteSupportForTemplate {
 		if (javaProject == null) {
 			return null;
 		}
-		String className = params.getClassName();
-		int index = className.indexOf('<');
+		String typeName = params.getClassName();
+		int index = typeName.indexOf('<');
 		if (index != -1) {
 			// ex : java.util.List<org.acme.Item>
-			String iterableClassName = className.substring(0, index);
+			String iterableClassName = typeName.substring(0, index);
 			IType iterableType = findType(iterableClassName, javaProject, monitor);
 			if (iterableType == null) {
 				return null;
@@ -299,20 +304,20 @@ public class QuteSupportForTemplate {
 				return null;
 			}
 
-			String iterableOf = className.substring(index + 1, className.length() - 1);
-			return createIterableType(className, iterableClassName, iterableOf);
-		} else if (className.endsWith("[]")) {
+			String iterableOf = typeName.substring(index + 1, typeName.length() - 1);
+			return createIterableType(typeName, iterableClassName, iterableOf);
+		} else if (typeName.endsWith("[]")) {
 			// ex : org.acme.Item[]
-			String iterableOfClassName = className.substring(0, className.length() - 2);
+			String iterableOfClassName = typeName.substring(0, typeName.length() - 2);
 			IType iterableOf = findType(iterableOfClassName, javaProject, monitor);
 			if (iterableOf == null) {
 				return null;
 			}
-			return createIterableType(className, null, iterableOfClassName);
+			return createIterableType(typeName, null, iterableOfClassName);
 		}
 
 		// ex : org.acme.Item
-		IType type = findType(className, javaProject, monitor);
+		IType type = findType(typeName, javaProject, monitor);
 		if (type == null) {
 			return null;
 		}
@@ -345,13 +350,19 @@ public class QuteSupportForTemplate {
 
 		// 2) Collect methods
 		List<JavaMethodInfo> methodsInfo = new ArrayList<>();
+		Map<String, InvalidMethodReason> invalidMethods = new HashMap<>();
 		IMethod[] methods = type.getMethods();
 		for (IMethod method : methods) {
 			if (isValidMethod(method, type.isInterface())) {
 				try {
-					JavaMethodInfo info = new JavaMethodInfo();
-					info.setSignature(typeResolver.resolveMethodSignature(method));
-					methodsInfo.add(info);
+					InvalidMethodReason invalid = getValidMethodForQute(method, typeName);
+					if (invalid != null) {
+						invalidMethods.put(method.getElementName(), invalid);
+					} else {
+						JavaMethodInfo info = new JavaMethodInfo();
+						info.setSignature(typeResolver.resolveMethodSignature(method));
+						methodsInfo.add(info);
+					}
 				} catch (Exception e) {
 					LOGGER.log(Level.SEVERE,
 							"Error while getting method signature of '" + method.getElementName() + "'.", e);
@@ -378,15 +389,16 @@ public class QuteSupportForTemplate {
 		}
 
 		if (extendedTypes != null) {
-			extendedTypes.remove(className);
+			extendedTypes.remove(typeName);
 		}
 
-		ResolvedJavaTypeInfo resolvedClass = new ResolvedJavaTypeInfo();
-		resolvedClass.setSignature(className);
-		resolvedClass.setFields(fieldsInfo);
-		resolvedClass.setMethods(methodsInfo);
-		resolvedClass.setExtendedTypes(extendedTypes);
-		return resolvedClass;
+		ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
+		resolvedType.setSignature(typeName);
+		resolvedType.setFields(fieldsInfo);
+		resolvedType.setMethods(methodsInfo);
+		resolvedType.setInvalidMethods(invalidMethods);
+		resolvedType.setExtendedTypes(extendedTypes);
+		return resolvedType;
 	}
 
 	private IType findType(String className, IJavaProject javaProject, IProgressMonitor monitor)
@@ -446,6 +458,33 @@ public class QuteSupportForTemplate {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Returns the reason
+	 * 
+	 * @param method
+	 * @param type
+	 * 
+	 * @return
+	 * 
+	 * @see https://github.com/quarkusio/quarkus/blob/ce19ff75e9f732ff731bb30c2141b44b42c66050/independent-projects/qute/core/src/main/java/io/quarkus/qute/ReflectionValueResolver.java#L176
+	 */
+	private static InvalidMethodReason getValidMethodForQute(IMethod method, String typeName) {
+		if (JAVA_LANG_OBJECT.equals(typeName)) {
+			return InvalidMethodReason.FromObject;
+		}
+		try {
+			if ("V".equals(method.getReturnType())) {
+				return InvalidMethodReason.VoidReturn;
+			}
+			if (Flags.isStatic(method.getFlags())) {
+				return InvalidMethodReason.Static;
+			}
+		} catch (JavaModelException e) {
+			LOGGER.log(Level.SEVERE, "Error while checking if '" + method.getElementName() + "' is valid.", e);
+		}
+		return null;
 	}
 
 	private static IJavaProject getJavaProjectFromProjectUri(String projectName) {

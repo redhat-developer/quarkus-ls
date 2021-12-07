@@ -4,16 +4,21 @@ import java.math.BigDecimal;
 
 public class Item {
 
-    public final BigDecimal price;
-    public final String name;
+	public final String name;
 
-    public Item(BigDecimal price, String name) {
-        this.price = price;
-        this.name = name;
-    }
+	public final BigDecimal price;
 
-    public Item[] getDerivedItems() {
-        return null;
-    }
+	public Item(BigDecimal price, String name) {
+		this.price = price;
+		this.name = name;
+	}
+
+	public Item[] getDerivedItems() {
+		return null;
+	}
+
+	public static BigDecimal staticMethod(Item item) {
+		return item.price.multiply(new BigDecimal("0.9"));
+	}
 
 }

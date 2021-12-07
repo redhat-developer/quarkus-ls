@@ -12,6 +12,7 @@
 package com.redhat.qute.project;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -108,6 +109,7 @@ public abstract class MockQuteProject extends QuteProject {
 					.collect(Collectors.toList());
 			resolvedType.setExtendedTypes(extendedTypes);
 		}
+		resolvedType.setInvalidMethods(new HashMap<>());
 		cache.add(resolvedType);
 		return resolvedType;
 	}

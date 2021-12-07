@@ -19,6 +19,7 @@ import java.util.concurrent.CompletionStage;
 
 import org.eclipse.lsp4j.Location;
 
+import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
@@ -230,6 +231,32 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 			}
 		}
 		return findValueResolver(property, resolvedType, projectUri);
+	}
+
+	public InvalidMethodReason getInvalidMethodReason(String property, ResolvedJavaTypeInfo resolvedType,
+			String projectUri) {
+		if (resolvedType == null) {
+			return InvalidMethodReason.Unknown;
+		}
+		// Search in the java root type
+		InvalidMethodReason reason = resolvedType.getInvalidMethodReason(property);
+		if (reason != null) {
+			return reason;
+		}
+
+		if (resolvedType.getExtendedTypes() != null) {
+			// Search in extended types
+			for (String extendedType : resolvedType.getExtendedTypes()) {
+				ResolvedJavaTypeInfo resolvedExtendedType = resolveJavaType(extendedType, projectUri).getNow(null);
+				if (resolvedExtendedType != null) {
+					reason = resolvedExtendedType.getInvalidMethodReason(property);
+					if (reason != null) {
+						return reason;
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	public ValueResolver findValueResolver(String property, ResolvedJavaTypeInfo resolvedType, String projectUri) {

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ProjectInfo;
@@ -46,6 +47,10 @@ public class QuteQuickStartProject extends MockQuteProject {
 
 		ResolvedJavaTypeInfo string = createResolvedJavaTypeInfo("java.lang.String", cache);
 		registerField("UTF16 : byte", string);
+		registerMethod("isEmpty() : boolean", string);
+		string.setInvalidMethod("getChars", InvalidMethodReason.VoidReturn); // void getChars(int srcBegin, int srcEnd,
+																				// char dst[], int dstBegin)
+
 		createResolvedJavaTypeInfo("java.lang.Boolean", cache);
 		createResolvedJavaTypeInfo("java.lang.Integer", cache);
 		createResolvedJavaTypeInfo("java.lang.Double", cache);
@@ -74,6 +79,8 @@ public class QuteQuickStartProject extends MockQuteProject {
 		createResolvedJavaTypeInfo("java.util.List<org.acme.Review>", "java.util.List", "org.acme.Review", cache);
 		registerField("derivedItems : java.util.List<org.acme.Item>", item);
 		registerField("derivedItemArray : org.acme.Item[]", item);
+		item.setInvalidMethod("staticMethod", InvalidMethodReason.Static); // public static BigDecimal
+																				// staticMethod(Item item)
 
 		createResolvedJavaTypeInfo("java.util.List<org.acme.Item>", "java.util.List", "org.acme.Item", cache);
 		createResolvedJavaTypeInfo("org.acme.Item[]", null, "org.acme.Item", cache);
@@ -83,7 +90,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerMethod("size() : int", list);
 
 		ResolvedJavaTypeInfo map = createResolvedJavaTypeInfo("java.util.Map", cache);
-		
+
 		ResolvedJavaTypeInfo itemResource = createResolvedJavaTypeInfo("org.acme.ItemResource", cache);
 		registerMethod("discountedPrice(item : org.acme.Item) : java.math.BigDecimal", itemResource);
 
