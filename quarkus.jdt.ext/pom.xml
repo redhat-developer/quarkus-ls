@@ -14,7 +14,7 @@
     <tycho.extras.version>${tycho.version}</tycho.extras.version>
     <tycho.scmUrl>scm:git:https://github.com/redhat-developer/quarkus-ls</tycho.scmUrl>
     <tycho.generateSourceReferences>true</tycho.generateSourceReferences>
-    <jdt.ls.version>1.5.0.20211019160210</jdt.ls.version>
+    <jdt.ls.version>1.7.0-SNAPSHOT</jdt.ls.version>
     <tycho.test.platformArgs />
     <tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
     <lsp4mp.p2.url>https://download.eclipse.org/lsp4mp/snapshots/0.4.0/repository/</lsp4mp.p2.url>
@@ -48,7 +48,7 @@
     <repository>
       <id>jdt.ls.maven</id>
       <!-- Used to resolve the jdt.ls TP -->
-      <url>https://repo.eclipse.org/content/repositories/jdtls-releases/</url>
+      <url>https://repo.eclipse.org/content/repositories/jdtls-snapshots/</url>
     </repository>
   </repositories>
   <build>
