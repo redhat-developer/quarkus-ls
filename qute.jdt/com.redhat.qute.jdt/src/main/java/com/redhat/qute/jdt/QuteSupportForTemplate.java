@@ -58,8 +58,10 @@ import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.jdt.internal.resolver.ClassFileTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.CompilationUnitTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
+import com.redhat.qute.jdt.internal.template.CheckedTemplateSupport;
 import com.redhat.qute.jdt.internal.template.JavaTypesSearch;
 import com.redhat.qute.jdt.internal.template.QuarkusIntegrationForQute;
+import com.redhat.qute.jdt.internal.template.TemplateDataSupport;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
 
@@ -154,6 +156,18 @@ public class QuteSupportForTemplate {
 		return new JavaTypesSearch(params.getPattern(), javaProject).search(monitor);
 	}
 
+	/**
+	 * Returns the Java definition of the given Java type, method, field, method
+	 * parameter, method invocation parameter and null otherwise.
+	 * 
+	 * @param params  the Java element information.
+	 * @param utils   the JDT LS utility.
+	 * @param monitor the progress monitor.
+	 * 
+	 * @return the Java definition of the given Java type, method, field, method
+	 *         parameter, method invocation parameter and null otherwise.
+	 * @throws CoreException
+	 */
 	public Location getJavaDefinition(QuteJavaDefinitionParams params, IJDTUtils utils, IProgressMonitor monitor)
 			throws CoreException {
 		String projectUri = params.getProjectUri();
@@ -161,34 +175,60 @@ public class QuteSupportForTemplate {
 		if (javaProject == null) {
 			return null;
 		}
-		String className = params.getSourceType();
-		IType type = findType(className, javaProject, monitor);
+
+		String sourceType = params.getSourceType();
+		IType type = findType(sourceType, javaProject, monitor);
 		if (type == null) {
 			return null;
 		}
 
+		String parameterName = params.getSourceParameter();
+		boolean dataMethodInvocation = parameterName != null && params.isDataMethodInvocation();
+
 		String fieldName = params.getSourceField();
 		if (fieldName != null) {
 			IField field = type.getField(fieldName);
-			return field != null && field.exists() ? utils.toLocation(field) : null;
+			if (field == null || !field.exists()) {
+				// The field doesn't exist
+				return null;
+			}
+
+			if (dataMethodInvocation) {
+				// returns the location of "data" method invocation with the given parameter
+				// name
+				return TemplateDataSupport.getDataMethodInvocationLocation(field, parameterName, utils, monitor);
+			}
+			// returns field location
+			return utils.toLocation(field);
 		}
 
 		String sourceMethod = params.getSourceMethod();
 		if (sourceMethod != null) {
 			IMethod method = findMethod(type, sourceMethod);
-			String sourceMethodParameter = params.getSourceMethodParameter();
-			if (sourceMethodParameter != null) {
+			if (method == null || !method.exists()) {
+				// The method doesn't exist
+				return null;
+			}
+
+			if (parameterName != null) {
+				if (dataMethodInvocation) {
+					// returns the location of "data" method invocation with the given parameter
+					// name
+					return TemplateDataSupport.getDataMethodInvocationLocation(method, parameterName, utils, monitor);
+				}
 				ILocalVariable[] parameters = method.getParameters();
 				for (ILocalVariable parameter : parameters) {
-					if (sourceMethodParameter.equals(parameter.getElementName())) {
+					if (parameterName.equals(parameter.getElementName())) {
+						// returns the method parameter location
 						return utils.toLocation(parameter);
 					}
 				}
 				return null;
 			}
-			return method != null && method.exists() ? utils.toLocation(method) : null;
+			// returns method location
+			return utils.toLocation(method);
 		}
-
+		// returns Java type location
 		return utils.toLocation(type);
 	}
 
@@ -223,6 +263,17 @@ public class QuteSupportForTemplate {
 		return method;
 	}
 
+	/**
+	 * Returns the resolved type (fields and methods) for the given Java type.
+	 * 
+	 * @param params  the Java type to resolve.
+	 * @param utils   the JDT LS utility.
+	 * @param monitor the progress monitor.
+	 * 
+	 * @return the resolved type (fields and methods) for the given Java type.
+	 * 
+	 * @throws CoreException
+	 */
 	public ResolvedJavaTypeInfo getResolvedJavaType(QuteResolvedJavaTypeParams params, IJDTUtils utils,
 			IProgressMonitor monitor) throws CoreException {
 		if (monitor.isCanceled()) {

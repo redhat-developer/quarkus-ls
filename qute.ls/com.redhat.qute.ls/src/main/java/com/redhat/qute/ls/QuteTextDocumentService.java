@@ -52,6 +52,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
+import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.qute.ls.java.JavaFileTextDocumentService;
 import com.redhat.qute.ls.template.TemplateFileTextDocumentService;
 import com.redhat.qute.settings.QuteValidationSettings;
@@ -80,12 +81,13 @@ public class QuteTextDocumentService implements TextDocumentService {
 	 *
 	 * @param capabilities the client capabilities
 	 */
-	public void updateClientCapabilities(ClientCapabilities capabilities) {
+	public void updateClientCapabilities(ClientCapabilities capabilities,
+			ExtendedClientCapabilities extendedClientCapabilities) {
 		TextDocumentClientCapabilities textDocumentClientCapabilities = capabilities.getTextDocument();
 		if (textDocumentClientCapabilities != null) {
 			sharedSettings.getCompletionSettings().setCapabilities(textDocumentClientCapabilities.getCompletion());
 		}
-		templateFileTextDocumentService.updateClientCapabilities(capabilities);
+		templateFileTextDocumentService.updateClientCapabilities(capabilities, extendedClientCapabilities);
 		javaFileTextDocumentService.updateClientCapabilities(capabilities);
 	}
 

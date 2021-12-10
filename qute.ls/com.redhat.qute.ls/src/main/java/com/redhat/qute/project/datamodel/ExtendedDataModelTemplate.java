@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 
@@ -36,5 +37,16 @@ public class ExtendedDataModelTemplate extends DataModelTemplate<ExtendedDataMod
 		return parameters.stream() //
 				.map(parameter -> new ExtendedDataModelParameter(parameter, template)) //
 				.collect(Collectors.toList());
+	}
+
+	public QuteJavaDefinitionParams toJavaDefinitionParams(String projectUri) {
+		String sourceType = getSourceType();
+		String sourceField = getSourceField();
+		String sourceMethod = getSourceMethod();
+
+		QuteJavaDefinitionParams params = new QuteJavaDefinitionParams(sourceType, projectUri);
+		params.setSourceField(sourceField);
+		params.setSourceMethod(sourceMethod);
+		return params;
 	}
 }

@@ -65,6 +65,9 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.TextDocument;
+import com.redhat.qute.ls.commons.client.CommandCapabilities;
+import com.redhat.qute.ls.commons.client.CommandKind;
+import com.redhat.qute.ls.commons.client.CommandKindCapabilities;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.project.MockQuteProjectRegistry;
@@ -73,7 +76,6 @@ import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.QuteLanguageService;
 import com.redhat.qute.services.diagnostics.IQuteErrorCode;
 import com.redhat.qute.services.diagnostics.ResolvingJavaTypeContext;
-import com.redhat.qute.settings.QuteCodeLensSettings;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.SharedSettings;
@@ -502,8 +504,12 @@ public class QuteAssert {
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
-		QuteCodeLensSettings codeLensSettings = new QuteCodeLensSettings();
-		List<? extends CodeLens> actual = languageService.getCodeLens(template, codeLensSettings, () -> {
+		SharedSettings sharedSettings = new SharedSettings();
+		CommandCapabilities commandCapabilities = new CommandCapabilities();
+		CommandKindCapabilities kinds = new CommandKindCapabilities(Arrays.asList(CommandKind.COMMAND_JAVA_DEFINITION));
+		commandCapabilities.setCommandKind(kinds);
+		sharedSettings.getCommandCapabilities().setCapabilities(commandCapabilities);
+		List<? extends CodeLens> actual = languageService.getCodeLens(template, sharedSettings, () -> {
 		}).get();
 		assertCodeLens(actual, expected);
 	}

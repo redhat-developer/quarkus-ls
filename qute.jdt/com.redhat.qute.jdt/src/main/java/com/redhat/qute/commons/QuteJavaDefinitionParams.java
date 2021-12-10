@@ -11,6 +11,12 @@
 *******************************************************************************/
 package com.redhat.qute.commons;
 
+/**
+ * Qute Java definition parameters.
+ *
+ * @author Angelo ZERR
+ *
+ */
 public class QuteJavaDefinitionParams {
 
 	private String projectUri;
@@ -21,7 +27,9 @@ public class QuteJavaDefinitionParams {
 
 	private String sourceMethod;
 
-	private String sourceMethodParameter;
+	private String sourceParameter;
+
+	private boolean dataMethodInvocation;
 
 	public QuteJavaDefinitionParams() {
 
@@ -100,20 +108,55 @@ public class QuteJavaDefinitionParams {
 	}
 
 	/**
-	 * Returns the Java source method parameter and null otherwise.
+	 * Returns the Java source parameter and null otherwise:
 	 * 
-	 * @return the Java source method parameter and null otherwise.
+	 * <ul>
+	 * <li>method parameter when {@link #isDataMethodInvocation()} return
+	 * false.</li>
+	 * <li>"data" method invocation parameter when {@link #isDataMethodInvocation()}
+	 * return true.</li>
+	 * </ul>
+	 * 
+	 * @return the Java source parameter and null otherwise.
 	 */
-	public String getSourceMethodParameter() {
-		return sourceMethodParameter;
+	public String getSourceParameter() {
+		return sourceParameter;
 	}
 
 	/**
-	 * Set the Java source method parameter and null otherwise.
+	 * Set the Java source parameter:
 	 * 
-	 * @param sourceMethodParameter the Java source method parameter
+	 * <ul>
+	 * <li>method parameter when {@link #isDataMethodInvocation()} return
+	 * false.</li>
+	 * <li>"data" method invocation parameter when {@link #isDataMethodInvocation()}
+	 * return true.</li>
+	 * </ul>
+	 * 
+	 * @param sourceParameter the Java source method parameter
 	 */
-	public void setSourceMethodParameter(String sourceMethodParameter) {
-		this.sourceMethodParameter = sourceMethodParameter;
+	public void setSourceParameter(String sourceParameter) {
+		this.sourceParameter = sourceParameter;
+	}
+
+	/**
+	 * Returns true if {@link #getSourceParameter()} is a data" method invocation
+	 * parameter and method parameter otherwise.
+	 * 
+	 * @return true if {@link #getSourceParameter()} is a data" method invocation
+	 *         parameter and method parameter otherwise.
+	 */
+	public boolean isDataMethodInvocation() {
+		return dataMethodInvocation;
+	}
+
+	/**
+	 * Set true if {@link #getSourceParameter()} is a data" method invocation
+	 * parameter and method parameter otherwise.
+	 * 
+	 * @param dataMethodInvocation
+	 */
+	public void setDataMethodInvocation(boolean dataMethodInvocation) {
+		this.dataMethodInvocation = dataMethodInvocation;
 	}
 }

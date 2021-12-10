@@ -24,7 +24,6 @@ import com.redhat.qute.ls.commons.ModelTextDocuments;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProjectRegistry;
-import com.redhat.qute.project.datamodel.DataModelTemplateProvider;
 
 public class QuteTextDocuments extends ModelTextDocuments<Template> {
 

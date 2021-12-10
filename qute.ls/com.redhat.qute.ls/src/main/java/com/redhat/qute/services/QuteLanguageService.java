@@ -91,7 +91,7 @@ public class QuteLanguageService {
 		return completions.doComplete(template, position, completionSettings, formattingSettings, cancelChecker);
 	}
 
-	public CompletableFuture<List<? extends CodeLens>> getCodeLens(Template template, QuteCodeLensSettings settings,
+	public CompletableFuture<List<? extends CodeLens>> getCodeLens(Template template, SharedSettings settings,
 			CancelChecker cancelChecker) {
 		return codelens.getCodelens(template, settings, cancelChecker);
 	}

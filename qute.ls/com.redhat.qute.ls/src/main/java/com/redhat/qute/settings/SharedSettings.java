@@ -23,6 +23,7 @@ public class SharedSettings {
 	private final QuteFormattingSettings formattingSettings;
 	private final QuteValidationSettings validationSettings;
 	private final QuteHoverSettings hoverSettings;
+	private final QuteCommandCapabilities commandCapabilities;
 
 	public SharedSettings() {
 		this.completionSettings = new QuteCompletionSettings();
@@ -30,6 +31,7 @@ public class SharedSettings {
 		this.formattingSettings = new QuteFormattingSettings();
 		this.validationSettings = new QuteValidationSettings();
 		this.hoverSettings = new QuteHoverSettings();
+		this.commandCapabilities = new QuteCommandCapabilities();
 	}
 
 	/**
@@ -75,5 +77,14 @@ public class SharedSettings {
 	 */
 	public QuteHoverSettings getHoverSettings() {
 		return hoverSettings;
+	}
+
+	/**
+	 * Returns the command capabilities.
+	 *
+	 * @return the command capabilities.
+	 */
+	public QuteCommandCapabilities getCommandCapabilities() {
+		return commandCapabilities;
 	}
 }

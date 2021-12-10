@@ -25,6 +25,8 @@ public class DataModelParameter {
 
 	private String sourceType;
 
+	private Boolean dataMethodInvocation;
+
 	/**
 	 * Returns the parameter key.
 	 * 
@@ -61,11 +63,20 @@ public class DataModelParameter {
 		this.sourceType = sourceType;
 	}
 
+	public boolean isDataMethodInvocation() {
+		return dataMethodInvocation != null && dataMethodInvocation.booleanValue();
+	}
+	
+	public void setDataMethodInvocation(boolean dataMethodInvocation) {
+		this.dataMethodInvocation = dataMethodInvocation;
+	}
+	
 	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("key", this.key);
 		b.add("sourceType", this.sourceType);
+		b.add("dataMethodInvocation", isDataMethodInvocation());
 		return b.toString();
 	}
 }

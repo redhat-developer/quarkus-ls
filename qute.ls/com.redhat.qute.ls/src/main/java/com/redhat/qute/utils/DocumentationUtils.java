@@ -14,8 +14,8 @@ package com.redhat.qute.utils;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 
-import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaElementKind;
+import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 
 /**

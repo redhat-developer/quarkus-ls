@@ -104,7 +104,7 @@ public class QuteLanguageServer
 		capabilityManager.setClientCapabilities(params.getCapabilities(), extendedClientCapabilities);
 		updateSettings(InitializationOptionsSettings.getSettings(params));
 
-		textDocumentService.updateClientCapabilities(params.getCapabilities());
+		textDocumentService.updateClientCapabilities(params.getCapabilities(), extendedClientCapabilities);
 		ServerCapabilities serverCapabilities = ServerCapabilitiesInitializer
 				.getNonDynamicServerCapabilities(capabilityManager.getClientCapabilities());
 

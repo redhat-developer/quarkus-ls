@@ -11,13 +11,14 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.template;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.dom.Expression;
-import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.StringLiteral;
+import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.Range;
 
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import com.redhat.qute.jdt.utils.IJDTUtils;
 
 /**
  * AST visitor used to collect {@link DataModelParameter} parameter for a given
@@ -45,37 +46,41 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
  * @author Angelo ZERR
  *
  */
-public class TemplateDataCollector extends TemplateDataVisitor {
+public class TemplateDataLocation extends TemplateDataVisitor {
 
-	private static final String DATA_METHOD = "data";
+	private final String parameterName;
 
-	private final DataModelTemplate<DataModelParameter> template;
+	private final IJDTUtils utils;
 
-	public TemplateDataCollector(DataModelTemplate<DataModelParameter> template, IProgressMonitor monitor) {
-		this.template = template;
+	private Location location;
+
+	public TemplateDataLocation(String parameterName, IJDTUtils utils) {
+		this.parameterName = parameterName;
+		this.utils = utils;
 	}
 
 	@Override
-	protected boolean visitParameter(Object name, Object type) {
-		String paramName = null;
-		if (name instanceof StringLiteral) {
-			paramName = ((StringLiteral) name).getLiteralValue();
-		}
-		if (paramName != null) {
-			String paramType = "java.lang.Object";
-			if (type instanceof Expression) {
-				ITypeBinding binding = ((Expression) type).resolveTypeBinding();
-				paramType = binding.getQualifiedName();
-			}
-
-			if (paramName != null && template.getParameter(paramName) == null) {
-				DataModelParameter parameter = new DataModelParameter();
-				parameter.setKey(paramName);
-				parameter.setSourceType(paramType);
-				parameter.setDataMethodInvocation(true);
-				template.addParameter(parameter);
+	protected boolean visitParameter(Object paramName, Object paramType) {
+		if (paramName instanceof StringLiteral) {
+			StringLiteral literal = ((StringLiteral) paramName);
+			String paramNameString = literal.getLiteralValue();
+			if (parameterName.equals(paramNameString)) {
+				try {
+					Range range = utils.toRange(getMethod().getOpenable(), literal.getStartPosition(),
+							literal.getLength());
+					String uri = utils.toUri(getMethod().getTypeRoot());
+					this.location = new Location(uri, range);
+				} catch (JavaModelException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return false;
 			}
 		}
 		return true;
+	}
+
+	public Location getLocation() {
+		return location;
 	}
 }

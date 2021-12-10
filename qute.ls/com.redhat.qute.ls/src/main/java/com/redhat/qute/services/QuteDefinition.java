@@ -25,8 +25,8 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
-import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaElementKind;
+import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
@@ -47,7 +47,6 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
-import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.project.indexing.QuteIndex;
 import com.redhat.qute.services.definition.DefinitionRequest;
@@ -154,8 +153,8 @@ class QuteDefinition {
 							Section parentSection = (Section) parent;
 							if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
 								IncludeSection includeSection = (IncludeSection) parentSection;
-								List<QuteIndex> indexes = project
-										.findInsertTagParameter(includeSection.getReferencedTemplateId(), section.getTag());
+								List<QuteIndex> indexes = project.findInsertTagParameter(
+										includeSection.getReferencedTemplateId(), section.getTag());
 								if (indexes != null) {
 									for (QuteIndex index : indexes) {
 										String linkedTemplateUri = index.getTemplatePath().toUri().toString();
@@ -260,16 +259,7 @@ class QuteDefinition {
 		if (projectUri != null) {
 			ExtendedDataModelParameter parameter = template.getParameterDataModel(part.getPartName()).getNow(null);
 			if (parameter != null) {
-				ExtendedDataModelTemplate dataModelTemplate = parameter.getTemplate();
-				String sourceType = dataModelTemplate.getSourceType();
-				String sourceField = dataModelTemplate.getSourceField();
-				String sourceMethod = dataModelTemplate.getSourceMethod();
-				String sourceParameter = parameter.getKey();
-
-				QuteJavaDefinitionParams params = new QuteJavaDefinitionParams(sourceType, projectUri);
-				params.setSourceField(sourceField);
-				params.setSourceMethod(sourceMethod);
-				params.setSourceMethodParameter(sourceParameter);
+				QuteJavaDefinitionParams params = parameter.toJavaDefinitionParams(projectUri);
 				return findJavaDefinition(params, () -> QutePositionUtility.createRange(part));
 			}
 		}
@@ -316,9 +306,8 @@ class QuteDefinition {
 		if (sourceType == null) {
 			return NO_DEFINITION;
 		}
-		
-		QuteJavaDefinitionParams params = new QuteJavaDefinitionParams(sourceType,
-				projectUri);
+
+		QuteJavaDefinitionParams params = new QuteJavaDefinitionParams(sourceType, projectUri);
 		if (member != null && member.getJavaElementKind() == JavaElementKind.METHOD) {
 			// Try to find a method definition
 			params.setSourceMethod(member.getName());

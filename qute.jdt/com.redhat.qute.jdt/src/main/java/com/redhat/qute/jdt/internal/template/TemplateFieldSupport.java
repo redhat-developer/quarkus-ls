@@ -67,7 +67,8 @@ class TemplateFieldSupport {
 		template.setTemplateUri(templateUri);
 		template.setSourceType(field.getDeclaringType().getFullyQualifiedName());
 		template.setSourceField(fieldName);
-		CheckedTemplateSupport.collectParametersFromDataMethodInvocation(field, false, template, monitor);
+		// Collect data parameters for the given template
+		TemplateDataSupport.collectParametersFromDataMethodInvocation(field, template, monitor);
 		return template;
 	}
 }
