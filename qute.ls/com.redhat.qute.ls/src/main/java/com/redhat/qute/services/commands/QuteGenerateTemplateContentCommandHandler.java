@@ -20,9 +20,9 @@ import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.GenerateTemplateInfo;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
-import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.IOUtils;
 

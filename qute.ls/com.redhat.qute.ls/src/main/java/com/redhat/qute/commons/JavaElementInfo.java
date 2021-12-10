@@ -83,27 +83,47 @@ public abstract class JavaElementInfo {
 	public abstract String getJavaElementType();
 
 	/**
-	 * Returns the simple (without packages) member type and null otherwise.
+	 * Returns the simple (without packages) element type and null otherwise.
 	 * 
-	 * @return the simple (without packages) member type and null otherwise.
+	 * @return the simple (without packages) element type and null otherwise.
 	 */
 	public String getJavaElementSimpleType() {
 		String type = getJavaElementType();
-		if (type == null) {
-			return null;
-		}
-
-		int startBracketIndex = type.indexOf('<');
-		if (startBracketIndex != -1) {
-			int endBracketIndex = type.indexOf('>', startBracketIndex);
-			String generic = getSimpleType(type.substring(startBracketIndex + 1, endBracketIndex));
-			String mainType = getSimpleType(type.substring(0, startBracketIndex));
-			return mainType + '<' + generic + '>';
-		}
 		return getSimpleType(type);
 	}
 
-	private static String getSimpleType(String type) {
+	/**
+	 * Returns the simple type of the given type. Example:
+	 * 
+	 * <p>
+	 * java.util.List<org.acme.Item>
+	 * </p>
+	 * 
+	 * becomes
+	 * 
+	 * <p>
+	 * List<Item>
+	 * </p>
+	 * 
+	 * @param type the Java type.
+	 * 
+	 * @return the simple type of the given type.
+	 */
+	public static String getSimpleType(String type) {
+		if (type == null) {
+			return null;
+		}
+		int startBracketIndex = type.indexOf('<');
+		if (startBracketIndex != -1) {
+			int endBracketIndex = type.indexOf('>', startBracketIndex);
+			String generic = getSimpleTypeWithoutGeneric(type.substring(startBracketIndex + 1, endBracketIndex));
+			String mainType = getSimpleTypeWithoutGeneric(type.substring(0, startBracketIndex));
+			return mainType + '<' + generic + '>';
+		}
+		return getSimpleTypeWithoutGeneric(type);
+	}
+
+	private static String getSimpleTypeWithoutGeneric(String type) {
 		int index = type.lastIndexOf('.');
 		return index != -1 ? type.substring(index + 1, type.length()) : type;
 	}

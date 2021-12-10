@@ -36,7 +36,7 @@ public class DataModelTemplate<T extends DataModelParameter> {
 	private String sourceMethod;
 
 	private String sourceField;
-
+	
 	private List<T> parameters;
 
 	private transient Map<String, T> parametersMap;

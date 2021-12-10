@@ -11,7 +11,10 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
+import static com.redhat.qute.ls.commons.client.CommandKind.COMMAND_JAVA_DEFINITION;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -21,7 +24,7 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
-import com.redhat.qute.commons.datamodel.DataModelParameter;
+import com.redhat.qute.commons.JavaElementInfo;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
@@ -31,8 +34,9 @@ import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
+import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
-import com.redhat.qute.settings.QuteCodeLensSettings;
+import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 
 /**
@@ -49,40 +53,64 @@ class QuteCodeLens {
 		this.javaCache = javaCache;
 	}
 
-	public CompletableFuture<List<? extends CodeLens>> getCodelens(Template template, QuteCodeLensSettings settings,
+	public CompletableFuture<List<? extends CodeLens>> getCodelens(Template template, SharedSettings settings,
 			CancelChecker cancelChecker) {
 		return javaCache.getDataModelTemplate(template) //
-				.thenApply(dataModel -> {
+				.thenApply(templateDataModel -> {
 					List<CodeLens> lenses = new ArrayList<>();
 
 					// #insert code lens references
 					QuteProject project = template.getProject();
-					collectCodeLenses(template, template, project, lenses, cancelChecker);
+					collectInsertCodeLenses(template, template, project, lenses, cancelChecker);
 
-					if (dataModel == null || dataModel.getSourceType() == null) {
-						return lenses;
-					}
-					cancelChecker.checkCanceled();
-
-					// Method which is bind with the template
-					String title = createCheckedTemplateTitle(dataModel);
-					Range range = new Range(new Position(0, 0), new Position(0, 0));
-					Command command = new Command(title, "");
-					CodeLens codeLens = new CodeLens(range, command, null);
-					lenses.add(codeLens);
-
-					// Parameters of the template
-					List<ExtendedDataModelParameter> parameters = dataModel.getParameters();
-					if (parameters != null) {
-						for (DataModelParameter parameter : parameters) {
-							String parameterTitle = parameter.getKey() + " : " + parameter.getSourceType();
-							Command parameterCommand = new Command(parameterTitle, "");
-							CodeLens parameterCodeLens = new CodeLens(range, parameterCommand, null);
-							lenses.add(parameterCodeLens);
-						}
-					}
+					// checked template code lenses
+					collectDataModelCodeLenses(templateDataModel, template, settings, lenses, cancelChecker);
 					return lenses;
 				});
+	}
+
+	public void collectDataModelCodeLenses(ExtendedDataModelTemplate templateDataModel, Template template,
+			SharedSettings settings, List<CodeLens> lenses, CancelChecker cancelChecker) {
+		if (templateDataModel == null || templateDataModel.getSourceType() == null) {
+			return;
+		}
+
+		cancelChecker.checkCanceled();
+
+		String projectUri = template.getProjectUri();
+
+		boolean canSupportJavaDefinition = settings.getCommandCapabilities()
+				.isCommandSupported(COMMAND_JAVA_DEFINITION);
+
+		// Method/Field which is bound with the template
+		String title = createCheckedTemplateTitle(templateDataModel);
+		Range range = new Range(new Position(0, 0), new Position(0, 0));
+		Command command = !canSupportJavaDefinition ? new Command(title, "")
+				: new Command(title, COMMAND_JAVA_DEFINITION,
+						Arrays.asList(templateDataModel.toJavaDefinitionParams(projectUri)));
+		CodeLens codeLens = new CodeLens(range, command, null);
+		lenses.add(codeLens);
+
+		// Parameters of the template
+		List<ExtendedDataModelParameter> parameters = templateDataModel.getParameters();
+		if (parameters != null) {
+			for (ExtendedDataModelParameter parameter : parameters) {
+				String parameterTitle = createParameterTitle(parameter);
+				Command parameterCommand = !canSupportJavaDefinition ? new Command(title, "")
+						: new Command(parameterTitle, COMMAND_JAVA_DEFINITION,
+								Arrays.asList(parameter.toJavaDefinitionParams(projectUri)));
+				CodeLens parameterCodeLens = new CodeLens(range, parameterCommand, null);
+				lenses.add(parameterCodeLens);
+			}
+		}
+	}
+
+	private String createParameterTitle(ExtendedDataModelParameter parameter) {
+		StringBuilder title = new StringBuilder();
+		title.append(parameter.getKey());
+		title.append(" : ");
+		title.append(JavaElementInfo.getSimpleType(parameter.getSourceType()));
+		return title.toString();
 	}
 
 	private String createCheckedTemplateTitle(DataModelTemplate<?> dataModel) {
@@ -100,7 +128,7 @@ class QuteCodeLens {
 		return title.toString();
 	}
 
-	private void collectCodeLenses(Node parent, Template template, QuteProject project, List<CodeLens> lenses,
+	private void collectInsertCodeLenses(Node parent, Template template, QuteProject project, List<CodeLens> lenses,
 			CancelChecker cancelChecker) {
 		cancelChecker.checkCanceled();
 		if (parent.getKind() == NodeKind.Section) {
@@ -128,7 +156,7 @@ class QuteCodeLens {
 		}
 		List<Node> children = parent.getChildren();
 		for (Node node : children) {
-			collectCodeLenses(node, template, project, lenses, cancelChecker);
+			collectInsertCodeLenses(node, template, project, lenses, cancelChecker);
 		}
 	}
 

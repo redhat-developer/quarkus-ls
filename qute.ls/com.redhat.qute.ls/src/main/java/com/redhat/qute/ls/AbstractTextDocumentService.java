@@ -45,6 +45,7 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
+import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.qute.settings.SharedSettings;
 
 /**
@@ -77,7 +78,8 @@ public abstract class AbstractTextDocumentService implements TextDocumentService
 	 *
 	 * @param capabilities the client capabilities
 	 */
-	public void updateClientCapabilities(ClientCapabilities capabilities) {
+	public void updateClientCapabilities(ClientCapabilities capabilities,
+			ExtendedClientCapabilities extendedClientCapabilities) {
 		TextDocumentClientCapabilities textDocumentClientCapabilities = capabilities.getTextDocument();
 		if (textDocumentClientCapabilities != null) {
 			sharedSettings.getHoverSettings().setCapabilities(textDocumentClientCapabilities.getHover());
@@ -90,6 +92,9 @@ public abstract class AbstractTextDocumentService implements TextDocumentService
 					&& textDocumentClientCapabilities.getDefinition().getLinkSupport();
 			codeActionLiteralSupport = textDocumentClientCapabilities.getCodeAction() != null
 					&& textDocumentClientCapabilities.getCodeAction().getCodeActionLiteralSupport() != null;
+		}
+		if (extendedClientCapabilities != null) {
+			sharedSettings.getCommandCapabilities().setCapabilities(extendedClientCapabilities.getCommands());
 		}
 	}
 

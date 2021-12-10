@@ -135,8 +135,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		}
 		return computeModelAsync2(getDocument(params.getTextDocument().getUri()).getModel(),
 				(cancelChecker, template) -> {
-					return getQuteLanguageService().getCodeLens(template, sharedSettings.getCodeLensSettings(),
-							cancelChecker);
+					return getQuteLanguageService().getCodeLens(template, sharedSettings, cancelChecker);
 				});
 	}
 

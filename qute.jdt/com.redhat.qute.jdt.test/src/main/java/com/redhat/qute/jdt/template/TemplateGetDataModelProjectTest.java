@@ -66,7 +66,7 @@ public class TemplateGetDataModelProjectTest {
 
 	private static void templateField(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
 		// Template hello;
-		
+
 		DataModelTemplate<DataModelParameter> helloTemplate = project
 				.findDataModelTemplate("src/main/resources/templates/hello");
 		Assert.assertNotNull(helloTemplate);
@@ -82,13 +82,13 @@ public class TemplateGetDataModelProjectTest {
 		// return hello.data("name", name);
 
 		Assert.assertEquals(4, parameters.size());
-		assertParameter("age", "int", parameters, 0);
-		assertParameter("height", "double", parameters, 1);
-		assertParameter("weight", "long", parameters, 2);
-		assertParameter("name", "java.lang.String", parameters, 3);
-		
+		assertParameter("age", "int", true, parameters, 0);
+		assertParameter("height", "double", true, parameters, 1);
+		assertParameter("weight", "long", true, parameters, 2);
+		assertParameter("name", "java.lang.String", true, parameters, 3);
+
 		// Template goodbye;
-		
+
 		DataModelTemplate<DataModelParameter> goodbyeTemplate = project
 				.findDataModelTemplate("src/main/resources/templates/goodbye");
 		Assert.assertNotNull(goodbyeTemplate);
@@ -103,8 +103,8 @@ public class TemplateGetDataModelProjectTest {
 		// return goodbye.data("name2", name);
 
 		Assert.assertEquals(2, parameters2.size());
-		assertParameter("age2", "int", parameters2, 0);
-		assertParameter("name2", "java.lang.String", parameters2, 1);
+		assertParameter("age2", "int", true, parameters2, 0);
+		assertParameter("name2", "java.lang.String", true, parameters2, 1);
 	}
 
 	private static void checkedTemplateInnerClass(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
@@ -121,7 +121,7 @@ public class TemplateGetDataModelProjectTest {
 		// static native TemplateInstance items(List<Item> items);
 
 		Assert.assertEquals(1, parameters.size());
-		assertParameter("items", "java.util.List<org.acme.qute.Item>", parameters, 0);
+		assertParameter("items", "java.util.List<org.acme.qute.Item>", false, parameters, 0);
 	}
 
 	private static void checkedTemplate(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
@@ -139,7 +139,7 @@ public class TemplateGetDataModelProjectTest {
 		// public static native TemplateInstance hello2(String name);
 
 		Assert.assertEquals(1, hello2Parameters.size());
-		assertParameter("name", "java.lang.String", hello2Parameters, 0);
+		assertParameter("name", "java.lang.String", false, hello2Parameters, 0);
 
 		// hello3
 		DataModelTemplate<DataModelParameter> hello3Template = project
@@ -155,7 +155,7 @@ public class TemplateGetDataModelProjectTest {
 		// public static native TemplateInstance hello3(String name);
 
 		Assert.assertEquals(1, hello3Parameters.size());
-		assertParameter("name", "java.lang.String", hello3Parameters, 0);
+		assertParameter("name", "java.lang.String", false, hello3Parameters, 0);
 	}
 
 	private static void testValueResolvers(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
@@ -215,10 +215,12 @@ public class TemplateGetDataModelProjectTest {
 		Assert.assertEquals(sourceType, resolver.getSourceType());
 	}
 
-	private static void assertParameter(String key, String sourceType, List<DataModelParameter> parameters, int index) {
+	private static void assertParameter(String key, String sourceType, boolean dataMethodInvocation,
+			List<DataModelParameter> parameters, int index) {
 		DataModelParameter parameter = parameters.get(index);
 		Assert.assertEquals(key, parameter.getKey());
 		Assert.assertEquals(sourceType, parameter.getSourceType());
+		Assert.assertEquals(dataMethodInvocation, parameter.isDataMethodInvocation());
 	}
 
 }

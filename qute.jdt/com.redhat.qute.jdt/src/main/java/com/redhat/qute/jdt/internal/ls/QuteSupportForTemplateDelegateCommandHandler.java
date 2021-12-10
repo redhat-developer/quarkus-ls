@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.ls;
 
+import static com.redhat.qute.jdt.internal.ls.ArgumentUtils.getBoolean;
 import static com.redhat.qute.jdt.internal.ls.ArgumentUtils.getFirst;
 import static com.redhat.qute.jdt.internal.ls.ArgumentUtils.getString;
 
@@ -24,15 +25,15 @@ import org.eclipse.lsp4j.Location;
 
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
-import com.redhat.qute.commons.QuteJavaTypesParams;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
+import com.redhat.qute.commons.QuteJavaTypesParams;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
-import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.jdt.QuteSupportForTemplate;
 
 /**
@@ -48,10 +49,11 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 	private static final String PATTERN_ATTR = "pattern";
 
 	private static final String SOURCE_TYPE_ATTR = "sourceType";
-	
-	private static final String SOURCE_METHOD_ATTR = "sourceMethod";
-	private static final String SOURCE_METHOD_PARAMETER_ATTR = "sourceMethodParameter";
 
+	private static final String SOURCE_METHOD_ATTR = "sourceMethod";
+	private static final String SOURCE_PARAMETER_ATTR = "sourceParameter";
+
+	private static final String DATA_METHOD_INVOCATION_ATTR = "dataMethodInvocation";
 	private static final String SOURCE_FIELD_ATTR = "sourceField";
 
 	private static final String TEMPLATE_FILE_URI_ATTR = "templateFileUri";
@@ -76,9 +78,9 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 		case QUTE_TEMPLATE_PROJECT_DATA_MODEL_COMMAND_ID:
 			return getProjectDataModel(arguments, commandId, monitor);
 		case QUTE_TEMPLATE_JAVA_TYPES_COMMAND_ID:
-			return getJavaClasses(arguments, commandId, monitor);
+			return getJavaTypes(arguments, commandId, monitor);
 		case QUTE_TEMPLATE_RESOLVED_JAVA_TYPE_COMMAND_ID:
-			return getResolvedJavaClass(arguments, commandId, monitor);
+			return getResolvedJavaType(arguments, commandId, monitor);
 		case QUTE_TEMPLATE_JAVA_DEFINITION_COMMAND_ID:
 			return getJavaDefinition(arguments, commandId, monitor);
 		}
@@ -105,8 +107,8 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 		return new QuteProjectParams(templateFileUri);
 	}
 
-	private static DataModelProject<DataModelTemplate<DataModelParameter>> getProjectDataModel(List<Object> arguments, String commandId,
-			IProgressMonitor monitor) throws CoreException {
+	private static DataModelProject<DataModelTemplate<DataModelParameter>> getProjectDataModel(List<Object> arguments,
+			String commandId, IProgressMonitor monitor) throws CoreException {
 		QuteDataModelProjectParams params = createQuteProjectDataModelParams(arguments, commandId);
 		return QuteSupportForTemplate.getInstance().getDataModelProject(params, JDTUtilsLSImpl.getInstance(), monitor);
 	}
@@ -137,15 +139,15 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 	 * @throws CoreException
 	 * @throws JavaModelException
 	 */
-	private static ResolvedJavaTypeInfo getResolvedJavaClass(List<Object> arguments, String commandId,
+	private static ResolvedJavaTypeInfo getResolvedJavaType(List<Object> arguments, String commandId,
 			IProgressMonitor monitor) throws JavaModelException, CoreException {
 		// Create java file information parameter
-		QuteResolvedJavaTypeParams params = createQuteResolvedJavaClassParams(arguments, commandId);
+		QuteResolvedJavaTypeParams params = createQuteResolvedJavaTyeParams(arguments, commandId);
 		// Return file information from the parameter
 		return QuteSupportForTemplate.getInstance().getResolvedJavaType(params, JDTUtilsLSImpl.getInstance(), monitor);
 	}
 
-	private static QuteResolvedJavaTypeParams createQuteResolvedJavaClassParams(List<Object> arguments,
+	private static QuteResolvedJavaTypeParams createQuteResolvedJavaTyeParams(List<Object> arguments,
 			String commandId) {
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
@@ -166,33 +168,32 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 		return new QuteResolvedJavaTypeParams(className, projectUri);
 	}
 
-	private static List<JavaTypeInfo> getJavaClasses(List<Object> arguments, String commandId,
-			IProgressMonitor monitor) throws JavaModelException, CoreException {
+	private static List<JavaTypeInfo> getJavaTypes(List<Object> arguments, String commandId, IProgressMonitor monitor)
+			throws JavaModelException, CoreException {
 		// Create java file information parameter
-		QuteJavaTypesParams params = createQuteJavaClassParams(arguments, commandId);
+		QuteJavaTypesParams params = createQuteJavaTypesParams(arguments, commandId);
 		// Return file information from the parameter
 		return QuteSupportForTemplate.getInstance().getJavaTypes(params, JDTUtilsLSImpl.getInstance(), monitor);
 	}
 
-	private static QuteJavaTypesParams createQuteJavaClassParams(List<Object> arguments, String commandId) {
+	private static QuteJavaTypesParams createQuteJavaTypesParams(List<Object> arguments, String commandId) {
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
 			throw new UnsupportedOperationException(
-					String.format("Command '%s' must be called with one QuteJavaClassParams argument!", commandId));
+					String.format("Command '%s' must be called with one QuteJavaTypesParams argument!", commandId));
 		}
 		// Get project name from the java file URI
 		String projectUri = getString(obj, PROJECT_URI_ATTR);
 		if (projectUri == null) {
 			throw new UnsupportedOperationException(String
-					.format("Command '%s' must be called with required QuteJavaClassParams.projectUri!", commandId));
+					.format("Command '%s' must be called with required QuteJavaTypesParams.projectUri!", commandId));
 		}
 		String pattern = getString(obj, PATTERN_ATTR);
 		if (pattern == null) {
 			throw new UnsupportedOperationException(
-					String.format("Command '%s' must be called with required QuteJavaClassParams.pattern!", commandId));
+					String.format("Command '%s' must be called with required QuteJavaTypesParams.pattern!", commandId));
 		}
-		QuteJavaTypesParams params = new QuteJavaTypesParams(pattern, projectUri);
-		return params;
+		return new QuteJavaTypesParams(pattern, projectUri);
 	}
 
 	/**
@@ -235,8 +236,10 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 		params.setSourceField(sourceField);
 		String sourceMethod = getString(obj, SOURCE_METHOD_ATTR);
 		params.setSourceMethod(sourceMethod);
-		String methodParameter = getString(obj, SOURCE_METHOD_PARAMETER_ATTR);
-		params.setSourceMethodParameter(methodParameter);
+		String methodParameter = getString(obj, SOURCE_PARAMETER_ATTR);
+		params.setSourceParameter(methodParameter);
+		boolean dataMethodInvocation = getBoolean(obj, DATA_METHOD_INVOCATION_ATTR);
+		params.setDataMethodInvocation(dataMethodInvocation);
 		return params;
 	}
 
