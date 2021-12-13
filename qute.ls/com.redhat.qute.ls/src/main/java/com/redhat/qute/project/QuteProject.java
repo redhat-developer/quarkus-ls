@@ -37,6 +37,7 @@ import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.TemplateConfiguration;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.indexing.QuteIndex;
 import com.redhat.qute.project.indexing.QuteIndexer;
@@ -232,5 +233,15 @@ public class QuteProject {
 			dataModelProjectFuture = null;
 		}
 		resolvedJavaTypes.clear();
+	}
+
+	/**
+	 * Returns the template configuration of the project.
+	 * 
+	 * @return the template configuration of the project.
+	 */
+	public TemplateConfiguration getTemplateConfiguration() {
+		// TODO : load template configuration from JDT side
+		return null;
 	}
 }

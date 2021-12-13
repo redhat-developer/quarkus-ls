@@ -97,14 +97,16 @@ public class QuteHoverInExpressionWithForSectionTest {
 	public void metadata() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{#for item in items}\r\n" + //
-				"		{cou|nt}\r\n" + //
+				"		{item_cou|nt}\r\n" + //
 				"{/for}";
-		assertHover(template, "```java" + //
+		assertHover(template, "`count` - 1-based index" + //
+				System.lineSeparator() + //
+				"```java" + //
 				System.lineSeparator() + //
 				"java.lang.Integer" + //
 				System.lineSeparator() + //
 				"```", //
-				r(2, 3, 2, 8));
+				r(2, 3, 2, 13));
 	}
 
 	/**

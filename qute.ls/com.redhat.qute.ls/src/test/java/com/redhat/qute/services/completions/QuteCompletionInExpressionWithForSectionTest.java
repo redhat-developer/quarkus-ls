@@ -35,7 +35,7 @@ public class QuteCompletionInExpressionWithForSectionTest {
 		testCompletionFor(template, //
 				c("items", "items", r(3, 2, 3, 2)), //
 				c("item", "item", r(3, 2, 3, 2)), //
-				c("count", "count", r(3, 2, 3, 2)));
+				c("item_count", "item_count", r(3, 2, 3, 2)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
@@ -45,7 +45,7 @@ public class QuteCompletionInExpressionWithForSectionTest {
 		testCompletionFor(template, //
 				c("items", "items", r(3, 2, 3, 3)), //
 				c("item", "item", r(3, 2, 3, 3)), //
-				c("count", "count", r(3, 2, 3, 3)));
+				c("item_count", "item_count", r(3, 2, 3, 3)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
@@ -55,7 +55,7 @@ public class QuteCompletionInExpressionWithForSectionTest {
 		testCompletionFor(template, //
 				c("items", "items", r(3, 2, 3, 2)), //
 				c("item", "item", r(3, 2, 3, 2)), //
-				c("count", "count", r(3, 2, 3, 2)));
+				c("item_count", "item_count", r(3, 2, 3, 2)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
@@ -65,7 +65,7 @@ public class QuteCompletionInExpressionWithForSectionTest {
 		testCompletionFor(template, //
 				c("items", "items", r(3, 2, 3, 4)), //
 				c("item", "item", r(3, 2, 3, 4)), //
-				c("count", "count", r(3, 2, 3, 4)));
+				c("item_count", "item_count", r(3, 2, 3, 4)));
 	}
 
 	@Test
@@ -132,7 +132,7 @@ public class QuteCompletionInExpressionWithForSectionTest {
 		testCompletionFor(template, //
 				c("items", "items", r(4, 3, 4, 3)), //
 				c("item", "item", r(4, 3, 4, 3)), //
-				c("count", "count", r(4, 3, 4, 3)));
+				c("item_count", "item_count", r(4, 3, 4, 3)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
@@ -172,7 +172,7 @@ public class QuteCompletionInExpressionWithForSectionTest {
 				c("items", "items", r(4, 3, 4, 3)), //
 				c("item", "item", r(4, 3, 4, 3)), //
 				c("review", "review", r(4, 3, 4, 3)), //
-				c("count", "count", r(4, 3, 4, 3)));
+				c("item_count", "item_count", r(4, 3, 4, 3)));
 	}
 
 	@Test

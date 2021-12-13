@@ -102,7 +102,7 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#each items}\r\n" + //
-				"	{count}    \r\n" + //
+				"	{it_count}    \r\n" + //
 				"{/each}";
 		testDiagnosticsFor(template);
 	}

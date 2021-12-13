@@ -423,15 +423,46 @@ public class Section extends Node implements ParametersContainer {
 		return SectionKind.CUSTOM;
 	}
 
+	/**
+	 * Returns the supported metadata list of the section.
+	 * 
+	 * @return the supported metadata list of the section.
+	 */
 	public List<SectionMetadata> getMetadata() {
 		return Collections.emptyList();
 	}
 
+	/**
+	 * Returns the metadata with the given name and null otherwise.
+	 * 
+	 * @param name the part name.
+	 * 
+	 * @return the metadata with the given name and null otherwise.
+	 */
 	public JavaTypeInfoProvider getMetadata(String name) {
 		Optional<SectionMetadata> metadata = getMetadata().stream() //
 				.filter(m -> name.equals(m.getName())) //
 				.findFirst();
 		return metadata.isPresent() ? metadata.get() : null;
+	}
+
+	/**
+	 * Returns true if the given name is a metadata of the section and false
+	 * otherwise.
+	 * 
+	 * Example:
+	 * 
+	 * <p>
+	 * 'item_count' is the 'count' metadata for '#for' section with 'item' alias.
+	 * </p>
+	 * 
+	 * @param name the part name.
+	 * 
+	 * @return true if the given name is a metadata of the section and false
+	 *         otherwise.
+	 */
+	public boolean isMetadata(String name) {
+		return getMetadata(name) != null;
 	}
 
 	public boolean isIterable() {
