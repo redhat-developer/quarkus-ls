@@ -195,4 +195,18 @@ public class Template extends Node {
 		}
 		return projectRegistry.getDataModelTemplate(this);
 	}
+
+	/**
+	 * Returns the template configuration.
+	 * 
+	 * @return the template configuration.
+	 */
+	public TemplateConfiguration getConfiguration() {
+		TemplateConfiguration configuration = null;
+		QuteProject project = getProject();
+		if (project != null) {
+			configuration = project.getTemplateConfiguration();
+		}
+		return configuration != null ? configuration : TemplateConfiguration.DEFAULT;
+	}
 }

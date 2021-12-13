@@ -29,8 +29,17 @@ public class DocumentationUtils {
 	}
 
 	public static MarkupContent getDocumentation(ResolvedJavaTypeInfo resolvedType, boolean markdown) {
+		return getDocumentation(resolvedType, null, markdown);
+	}
 
+	public static MarkupContent getDocumentation(ResolvedJavaTypeInfo resolvedType, String description,
+			boolean markdown) {
 		StringBuilder documentation = new StringBuilder();
+
+		if (description != null) {
+			documentation.append(description);
+			documentation.append(System.lineSeparator());
+		}
 
 		// Title
 		if (markdown) {
@@ -42,6 +51,7 @@ public class DocumentationUtils {
 			documentation.append(System.lineSeparator());
 			documentation.append("```");
 		}
+
 		return createMarkupContent(documentation, markdown);
 	}
 

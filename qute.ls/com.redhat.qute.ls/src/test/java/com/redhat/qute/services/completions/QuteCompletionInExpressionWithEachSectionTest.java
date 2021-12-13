@@ -24,7 +24,7 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 		testCompletionFor(template, //
 				c("items", "items", r(3, 3, 3, 3)), //
 				c("it", "it", r(3, 3, 3, 3)), //
-				c("count", "count", r(3, 3, 3, 3)));
+				c("it_count", "it_count", r(3, 3, 3, 3)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
@@ -34,7 +34,7 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 		testCompletionFor(template, //
 				c("items", "items", r(3, 3, 3, 4)), //
 				c("it", "it", r(3, 3, 3, 4)), //
-				c("count", "count", r(3, 3, 3, 4)));
+				c("it_count", "it_count", r(3, 3, 3, 4)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
@@ -44,7 +44,7 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 		testCompletionFor(template, //
 				c("items", "items", r(3, 3, 3, 3)), //
 				c("it", "it", r(3, 3, 3, 3)), //
-				c("count", "count", r(3, 3, 3, 3)));
+				c("it_count", "it_count", r(3, 3, 3, 3)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
@@ -54,7 +54,7 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 		testCompletionFor(template, //
 				c("items", "items", r(3, 3, 3, 5)), //
 				c("it", "it", r(3, 3, 3, 5)), //
-				c("count", "count", r(3, 3, 3, 5)));
+				c("it_count", "it_count", r(3, 3, 3, 5)));
 	}
 
 	@Test
@@ -120,7 +120,7 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 		testCompletionFor(template, //
 				c("items", "items", r(4, 3, 4, 3)), //
 				c("it", "it", r(4, 3, 4, 3)), //
-				c("count", "count", r(4, 3, 4, 3)));
+				c("it_count", "it_count", r(4, 3, 4, 3)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
@@ -160,7 +160,7 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 				c("items", "items", r(4, 3, 4, 3)), //
 				c("item", "item", r(4, 3, 4, 3)), //
 				c("it", "it", r(4, 3, 4, 3)), //
-				c("count", "count", r(4, 3, 4, 3)));
+				c("it_count", "it_count", r(4, 3, 4, 3)));
 	}
 
 	@Test

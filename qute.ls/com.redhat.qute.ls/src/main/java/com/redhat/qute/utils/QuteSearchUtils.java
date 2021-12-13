@@ -20,6 +20,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.template.Expression;
+import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
@@ -31,6 +32,17 @@ import com.redhat.qute.parser.template.sections.BaseWhenSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.parser.template.sections.WithSection;
 
+/**
+ * Qute search utilities to search:
+ * 
+ * <ul>
+ * <li>referenced object</li>
+ * <li>declared object</li>
+ * </ul>
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public class QuteSearchUtils {
 
 	private enum PartNameMatcher {
@@ -39,6 +51,17 @@ public class QuteSearchUtils {
 		BOTH
 	}
 
+	// ------------------- Search declared object
+
+	/**
+	 * Search the declared object of the given object part.
+	 * 
+	 * @param part          the object part.
+	 * @param collector     the collector used to collect node and range.
+	 * @param includeNode   true if the origin part must be collected and false
+	 *                      otherwise.
+	 * @param cancelChecker the cancel checker.
+	 */
 	public static void searchDeclaredObject(ObjectPart part, BiConsumer<Node, Range> collector, boolean includeNode,
 			CancelChecker cancelChecker) {
 		if (includeNode) {
@@ -79,7 +102,10 @@ public class QuteSearchUtils {
 				case FOR:
 					LoopSection iterableSection = (LoopSection) section;
 					String alias = iterableSection.getAlias();
-					if (partName.equals(alias)) {
+					if (partName.equals(alias) || section.isMetadata(partName)) {
+						// the part name matches
+						// - the #for alias of the section (ex : item)
+						// - or the metadata of the section (ex : item_count)
 						return iterableSection.getAliasParameter();
 					}
 					break;
@@ -100,6 +126,18 @@ public class QuteSearchUtils {
 		return null;
 	}
 
+	// ------------------- Search referenced objects
+
+	/**
+	 * Search referenced object of the given node.
+	 * 
+	 * @param node          the origin node.
+	 * @param offset        the offset.
+	 * @param collector     the collector to collect node and range.
+	 * @param includeNode   true if the origin node must be collected and false
+	 *                      otherwise.
+	 * @param cancelChecker the cancel checker.
+	 */
 	public static void searchReferencedObjects(Node node, int offset, BiConsumer<Node, Range> collector,
 			boolean includeNode, CancelChecker cancelChecker) {
 		switch (node.getKind()) {
@@ -145,13 +183,13 @@ public class QuteSearchUtils {
 		searchReferencedObjects(partName, matcher, parent, owerNode, collector, cancelChecker);
 	}
 
-	private static void searchReferencedObjects(String partName, PartNameMatcher matcher, Node parent, Node owerNode,
+	private static void searchReferencedObjects(String partName, PartNameMatcher matcher, Node parent, Node ownerNode,
 			BiConsumer<Node, Range> collector, CancelChecker cancelChecker) {
-		if (parent != owerNode) {
+		if (parent != ownerNode) {
 			switch (parent.getKind()) {
 			case Expression:
 				Expression expression = (Expression) parent;
-				tryToCollectObjectPart(partName, matcher, expression, collector);
+				tryToCollectObjectPartOrParameter(partName, matcher, expression, ownerNode, collector);
 				break;
 			case Section:
 				Section section = (Section) parent;
@@ -162,7 +200,7 @@ public class QuteSearchUtils {
 					Parameter iterableParameter = loopSection.getIterableParameter();
 					if (iterableParameter != null) {
 						Expression parameterExpr = iterableParameter.getJavaTypeExpression();
-						tryToCollectObjectPart(partName, matcher, parameterExpr, collector);
+						tryToCollectObjectPartOrParameter(partName, matcher, parameterExpr, ownerNode, collector);
 						Parameter aliasParameter = loopSection.getAliasParameter();
 						if (aliasParameter != null && partName.equals(aliasParameter.getName())) {
 							matcher = PartNameMatcher.ONLY_NAMESPACE;
@@ -177,7 +215,8 @@ public class QuteSearchUtils {
 						for (Parameter parameter : parameters) {
 							if (parameter != null && parameter.hasValueAssigned()) {
 								Expression parameterExpr = parameter.getJavaTypeExpression();
-								tryToCollectObjectPart(partName, matcher, parameterExpr, collector);
+								tryToCollectObjectPartOrParameter(partName, matcher, parameterExpr, ownerNode,
+										collector);
 							}
 						}
 					}
@@ -186,14 +225,14 @@ public class QuteSearchUtils {
 				case WITH: {
 					Parameter parameter = ((WithSection) section).getObjectParameter();
 					Expression parameterExpr = parameter.getJavaTypeExpression();
-					tryToCollectObjectPart(partName, matcher, parameterExpr, collector);
+					tryToCollectObjectPartOrParameter(partName, matcher, parameterExpr, ownerNode, collector);
 					break;
 				}
 				case WHEN:
 				case SWITCH: {
 					Parameter parameter = ((BaseWhenSection) section).getValueParameter();
 					Expression parameterExpr = parameter.getJavaTypeExpression();
-					tryToCollectObjectPart(partName, matcher, parameterExpr, collector);
+					tryToCollectObjectPartOrParameter(partName, matcher, parameterExpr, ownerNode, collector);
 					break;
 				}
 				default:
@@ -206,17 +245,42 @@ public class QuteSearchUtils {
 
 		List<Node> children = parent.getChildren();
 		for (Node node : children) {
-			searchReferencedObjects(partName, matcher, node, owerNode, collector, cancelChecker);
+			searchReferencedObjects(partName, matcher, node, ownerNode, collector, cancelChecker);
 		}
 	}
 
-	private static void tryToCollectObjectPart(String partName, PartNameMatcher matcher, Expression parameterExpr,
+	public static void tryToCollectObjectPartOrParameter(String partName, PartNameMatcher matcher,
+			Expression expression, Node owerNode, BiConsumer<Node, Range> collector) {
+		// Check if the current expression references the given part name
+		if (!tryToCollectObjectPart(partName, matcher, expression, collector)) {
+			if (owerNode.getKind() == NodeKind.Section) {
+				Section onwerSection = (Section) owerNode;
+				// Check the current expression references a metadata of the section
+				ObjectPart objectPart = expression.getObjectPart();
+				if (objectPart != null) {
+					JavaTypeInfoProvider metadata = onwerSection.getMetadata(objectPart.getPartName());
+					if (metadata != null) {
+						// Adjust the object part range with the given part name
+						// Example if expression is like {item_count}
+						// Range should be {|item|_count}
+						Range range = QutePositionUtility.createRange(objectPart.getStart(),
+								objectPart.getStart() + partName.length(), objectPart.getOwnerTemplate());
+						collector.accept(objectPart, range);
+					}
+				}
+			}
+		}
+	}
+
+	private static boolean tryToCollectObjectPart(String partName, PartNameMatcher matcher, Expression parameterExpr,
 			BiConsumer<Node, Range> collector) {
 		ObjectPart objectPart = parameterExpr.getObjectPart();
 		if (isMatch(objectPart, partName, matcher)) {
 			Range range = QutePositionUtility.createRange(objectPart);
 			collector.accept(objectPart, range);
+			return true;
 		}
+		return false;
 	}
 
 	private static boolean isMatch(ObjectPart objectPart, String partName, PartNameMatcher matcher) {

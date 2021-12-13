@@ -44,14 +44,14 @@ public class QuteTextDocuments extends ModelTextDocuments<Template> {
 		doc.setIncremental(isIncremental());
 		return doc;
 	}
-	
+
 	@Override
-	public ModelTextDocument<Template> onDidOpenTextDocument(DidOpenTextDocumentParams params) {		
+	public ModelTextDocument<Template> onDidOpenTextDocument(DidOpenTextDocumentParams params) {
 		QuteTextDocument document = (QuteTextDocument) super.onDidOpenTextDocument(params);
 		projectRegistry.onDidOpenTextDocument(document);
 		return document;
 	}
-	
+
 	@Override
 	public ModelTextDocument<Template> onDidCloseTextDocument(DidCloseTextDocumentParams params) {
 		QuteTextDocument document = (QuteTextDocument) super.onDidCloseTextDocument(params);

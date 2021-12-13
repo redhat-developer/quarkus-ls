@@ -32,7 +32,9 @@ import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.ParameterDeclaration;
 import com.redhat.qute.parser.template.RangeOffset;
+import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
+import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
@@ -142,13 +144,23 @@ public class QuteHover {
 		return javaCache.resolveJavaType(part, projectUri) //
 				.thenApply(resolvedJavaType -> {
 					if (resolvedJavaType != null) {
+						SectionMetadata metadata = getMetadata(part);
 						boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
-						MarkupContent content = DocumentationUtils.getDocumentation(resolvedJavaType, hasMarkdown);
+						MarkupContent content = DocumentationUtils.getDocumentation(resolvedJavaType,
+								metadata != null ? metadata.getDescription() : null, hasMarkdown);
 						Range range = QutePositionUtility.createRange(part);
 						return new Hover(content, range);
 					}
 					return null;
 				});
+	}
+
+	private static SectionMetadata getMetadata(Part part) {
+		Section section = part.getParentSection();
+		if (section == null) {
+			return null;
+		}
+		return (SectionMetadata) section.getMetadata(part.getPartName());
 	}
 
 	private CompletableFuture<Hover> doHoverForPropertyPart(Part part, String projectUri, HoverRequest hoverRequest) {

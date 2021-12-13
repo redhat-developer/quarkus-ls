@@ -430,6 +430,7 @@ public class QuteCompletionsForExpression {
 					item.setSortText("Za" + name);
 					TextEdit textEdit = new TextEdit(range, name);
 					item.setTextEdit(Either.forLeft(textEdit));
+					item.setDetail(metadata.getDescription());
 					list.getItems().add(item);
 				}
 			}

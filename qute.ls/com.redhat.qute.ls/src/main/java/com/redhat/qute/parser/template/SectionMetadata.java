@@ -11,15 +11,20 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template;
 
-public class SectionMetadata implements JavaTypeInfoProvider{
-	
+/**
+ * Metadata for Qute section.
+ * 
+ * @author Angelo ZERR
+ *
+ */
+public class SectionMetadata implements JavaTypeInfoProvider {
 
 	private final String name;
 	private final String type;
 	private final String description;
 
 	public SectionMetadata(String name, String type) {
-		this(name, type, name);
+		this(name, type, null);
 	}
 
 	public SectionMetadata(String name, String type, String description) {
@@ -28,14 +33,41 @@ public class SectionMetadata implements JavaTypeInfoProvider{
 		this.description = description;
 	}
 
+	/**
+	 * Returns the metadata name.
+	 * 
+	 * Example:
+	 * 
+	 * <p>
+	 * item_count
+	 * </p>
+	 * 
+	 * @return the metadata name.
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Returns the Java type of the metadata.
+	 * 
+	 * Example:
+	 * 
+	 * <p>
+	 * java.lang.Integer
+	 * </p>
+	 * 
+	 * @return the Java type of the metadata.
+	 */
 	public String getType() {
 		return type;
 	}
 
+	/**
+	 * Returns the description of the metadata and null otherwise.
+	 * 
+	 * @return the description of the metadata and null otherwise.
+	 */
 	public String getDescription() {
 		return description;
 	}
