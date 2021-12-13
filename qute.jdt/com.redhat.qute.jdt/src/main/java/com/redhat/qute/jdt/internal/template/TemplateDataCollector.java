@@ -47,8 +47,6 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
  */
 public class TemplateDataCollector extends TemplateDataVisitor {
 
-	private static final String DATA_METHOD = "data";
-
 	private final DataModelTemplate<DataModelParameter> template;
 
 	public TemplateDataCollector(DataModelTemplate<DataModelParameter> template, IProgressMonitor monitor) {
@@ -60,6 +58,8 @@ public class TemplateDataCollector extends TemplateDataVisitor {
 		String paramName = null;
 		if (name instanceof StringLiteral) {
 			paramName = ((StringLiteral) name).getLiteralValue();
+		} else if (name instanceof String) {
+			paramName = ((String) name);
 		}
 		if (paramName != null) {
 			String paramType = "java.lang.Object";

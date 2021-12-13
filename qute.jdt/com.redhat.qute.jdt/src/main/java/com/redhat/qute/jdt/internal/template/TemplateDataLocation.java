@@ -11,7 +11,12 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.template;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
@@ -48,6 +53,8 @@ import com.redhat.qute.jdt.utils.IJDTUtils;
  */
 public class TemplateDataLocation extends TemplateDataVisitor {
 
+	private static final Logger LOGGER = Logger.getLogger(TemplateDataLocation.class.getName());
+
 	private final String parameterName;
 
 	private final IJDTUtils utils;
@@ -65,19 +72,26 @@ public class TemplateDataLocation extends TemplateDataVisitor {
 			StringLiteral literal = ((StringLiteral) paramName);
 			String paramNameString = literal.getLiteralValue();
 			if (parameterName.equals(paramNameString)) {
-				try {
-					Range range = utils.toRange(getMethod().getOpenable(), literal.getStartPosition(),
-							literal.getLength());
-					String uri = utils.toUri(getMethod().getTypeRoot());
-					this.location = new Location(uri, range);
-				} catch (JavaModelException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				this.location = createParameterLocation(literal);
 				return false;
 			}
+		} else if (THIS_PARAMETER_NAME.equals(paramName)) {
+			this.location = createParameterLocation((ASTNode) paramType);
 		}
 		return true;
+	}
+
+	public Location createParameterLocation(ASTNode arg0) {
+		try {
+			IMethod method = getMethod();
+			Range range = utils.toRange(method.getOpenable(), arg0.getStartPosition(), arg0.getLength());
+			String uri = utils.toUri(method.getTypeRoot());
+			return new Location(uri, range);
+		} catch (JavaModelException e) {
+			LOGGER.log(Level.SEVERE,
+					"Error while getting location of method template parameter of '" + parameterName + "'.", e);
+			return null;
+		}
 	}
 
 	public Location getLocation() {

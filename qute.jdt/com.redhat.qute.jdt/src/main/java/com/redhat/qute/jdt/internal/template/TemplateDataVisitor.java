@@ -10,6 +10,8 @@ public abstract class TemplateDataVisitor extends ASTVisitor {
 
 	private static final String DATA_METHOD = "data";
 
+	protected static final String THIS_PARAMETER_NAME = "this";
+
 	private IMethod method;
 
 	@Override
@@ -17,8 +19,23 @@ public abstract class TemplateDataVisitor extends ASTVisitor {
 		String methodName = node.getName().getIdentifier();
 		if (DATA_METHOD.equals(methodName)) {
 			// .data("book", book)
-			@SuppressWarnings("rawtypes")
-			List arguments = node.arguments();
+			return visitDataMethodInvocation(node);
+		}
+		return super.visit(node);
+	}
+
+	private boolean visitDataMethodInvocation(MethodInvocation node) {
+		@SuppressWarnings("rawtypes")
+		List arguments = node.arguments();
+		if (arguments.size() == 1) {
+			// One parameter
+			Object paramType = arguments.get(0);
+			boolean result = visitParameter(THIS_PARAMETER_NAME, paramType);
+			if (!result) {
+				return false;
+			}
+		} else {
+			// Several parameters
 			Object paramName = null;
 			for (int i = 0; i < arguments.size(); i++) {
 				if (i % 2 == 0) {
@@ -35,7 +52,7 @@ public abstract class TemplateDataVisitor extends ASTVisitor {
 				}
 			}
 		}
-		return super.visit(node);
+		return true;
 	}
 
 	public void setMethod(IMethod method) {
@@ -45,7 +62,7 @@ public abstract class TemplateDataVisitor extends ASTVisitor {
 	public IMethod getMethod() {
 		return method;
 	}
-	
+
 	protected abstract boolean visitParameter(Object paramName, Object paramType);
 
 }
