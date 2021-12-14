@@ -342,7 +342,7 @@ public class QuteDiagnosticsInExpressionTest {
 						"Invalid `getChars` method of `java.lang.String` : void return is not allowed.",
 						DiagnosticSeverity.Error));
 	}
-	
+
 	@Test
 	public void invalidMethodStatic() {
 		String template = "{@org.acme.Item item}\r\n" + //
@@ -355,4 +355,9 @@ public class QuteDiagnosticsInExpressionTest {
 						DiagnosticSeverity.Error));
 	}
 
+	public void virtualMethod() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"		{item.discountedPrice}";
+		testDiagnosticsFor(template);
+	}
 }
