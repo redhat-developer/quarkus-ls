@@ -271,4 +271,12 @@ public class QuteCompletionInExpressionTest {
 		testCompletionFor(template, 1, //
 				c("item", "item", r(1, 9, 1, 9)));
 	}
+
+	@Test
+	public void virtualMethod() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"Item: {item.|}";
+		testCompletionFor(template, //
+				c("discountedPrice(item : org.acme.Item) : java.math.BigDecimal", "discountedPrice", r(1, 12, 1, 12)));
+	}
 }

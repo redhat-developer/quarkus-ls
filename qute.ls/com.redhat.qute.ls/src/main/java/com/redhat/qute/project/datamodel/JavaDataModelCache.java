@@ -282,16 +282,44 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return projectRegistry.getValueResolvers(projectUri);
 	}
 
+	/**
+	 * Returns namespace resolvers from the given Qute project Uri.
+	 * 
+	 * @param projectUri the Qute project Uri
+	 * 
+	 * @return namespace resolvers from the given Qute project Uri.
+	 */
 	public List<ValueResolver> getNamespaceResolvers(String projectUri) {
-		List<ValueResolver> resolvers = getValueResolvers(projectUri).getNow(null);
-		if (resolvers != null) {
+		List<ValueResolver> allResolvers = getValueResolvers(projectUri).getNow(null);
+		if (allResolvers != null) {
 			List<ValueResolver> namespaceResolvers = new ArrayList<>();
-			for (ValueResolver resolver : resolvers) {
+			for (ValueResolver resolver : allResolvers) {
 				if (resolver.getNamespace() != null) {
 					namespaceResolvers.add(resolver);
 				}
 			}
 			return namespaceResolvers;
+		}
+		return Collections.emptyList();
+	}
+
+	/**
+	 * Returns template extenstion resolvers from the given Qute project Uri.
+	 * 
+	 * @param projectUri the Qute project Uri
+	 * 
+	 * @return template extenstion resolvers from the given Qute project Uri.
+	 */
+	public List<ValueResolver> getTemplateExtensionResolvers(String projectUri) {
+		List<ValueResolver> allResolvers = getValueResolvers(projectUri).getNow(null);
+		if (allResolvers != null) {
+			List<ValueResolver> noNamespaceResolvers = new ArrayList<>();
+			for (ValueResolver resolver : allResolvers) {
+				if (resolver.getNamespace() == null) {
+					noNamespaceResolvers.add(resolver);
+				}
+			}
+			return noNamespaceResolvers;
 		}
 		return Collections.emptyList();
 	}

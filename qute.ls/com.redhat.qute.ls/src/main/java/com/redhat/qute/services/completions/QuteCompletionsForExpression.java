@@ -220,11 +220,18 @@ public class QuteCompletionsForExpression {
 				existingProperties, existingMethodSignatures, list);
 
 		// Completion for virtual methods (from value resolvers)
+
+		// Static value resolvers (orEmpty, etc)
 		List<ValueResolver> resolvers = javaCache.getResolversFor(resolvedType);
 		for (ValueResolver method : resolvers) {
 			fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
 		}
 
+		// Dynamic value resolvers (from @TemplateExtension)
+		resolvers = javaCache.getTemplateExtensionResolvers(projectUri);
+		for (ValueResolver method : resolvers) {
+			fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
+		}
 		return list;
 	}
 
