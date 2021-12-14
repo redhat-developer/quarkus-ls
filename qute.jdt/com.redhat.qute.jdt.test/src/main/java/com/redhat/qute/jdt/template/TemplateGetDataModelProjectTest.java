@@ -77,15 +77,17 @@ public class TemplateGetDataModelProjectTest {
 		List<DataModelParameter> parameters = helloTemplate.getParameters();
 		Assert.assertNotNull(parameters);
 
+		// hello.data(new Item(null, name));
 		// hello.data("age", 12);
 		// hello.data("height", 1.50, "weight", 50.5);
 		// return hello.data("name", name);
 
-		Assert.assertEquals(4, parameters.size());
-		assertParameter("age", "int", true, parameters, 0);
-		assertParameter("height", "double", true, parameters, 1);
-		assertParameter("weight", "long", true, parameters, 2);
-		assertParameter("name", "java.lang.String", true, parameters, 3);
+		Assert.assertEquals(5, parameters.size());
+		assertParameter("this", "org.acme.qute.Item", true, parameters, 0);
+		assertParameter("age", "int", true, parameters, 1);
+		assertParameter("height", "double", true, parameters, 2);
+		assertParameter("weight", "long", true, parameters, 3);
+		assertParameter("name", "java.lang.String", true, parameters, 4);
 
 		// Template goodbye;
 

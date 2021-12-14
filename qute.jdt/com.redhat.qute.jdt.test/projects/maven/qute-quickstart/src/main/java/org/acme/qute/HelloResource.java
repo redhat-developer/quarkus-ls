@@ -22,6 +22,7 @@ public class HelloResource {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance get(@QueryParam("name") String name) {
+    	hello.data(new Item(null, name)); // this parameter
     	hello.data("age", 12);
     	hello.data("height", 1.50, "weight", 50L);
         return hello.data("name", name);
