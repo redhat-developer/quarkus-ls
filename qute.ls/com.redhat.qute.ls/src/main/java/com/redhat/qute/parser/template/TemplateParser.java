@@ -53,6 +53,8 @@ public class TemplateParser {
 			cancelChecker = DEFAULT_CANCEL_CHECKER;
 		}
 		Template template = new Template(textDocument);
+		template.setCancelChecker(cancelChecker);
+		
 		Node curr = template;
 
 		String content = textDocument.getText();

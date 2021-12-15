@@ -134,7 +134,7 @@ class QuteDiagnostics {
 
 	/**
 	 * Validate the given Qute <code>template</code>.
-	 * 
+	 *
 	 * @param template           the Qute template.
 	 * @param validationSettings the validation settings.
 	 * @param cancelChecker      the cancel checker.
@@ -142,6 +142,7 @@ class QuteDiagnostics {
 	 */
 	public List<Diagnostic> doDiagnostics(Template template, QuteValidationSettings validationSettings,
 			ResolvingJavaTypeContext resolvingJavaTypeContext, CancelChecker cancelChecker) {
+		cancelChecker.checkCanceled();
 		if (validationSettings == null) {
 			validationSettings = QuteValidationSettings.DEFAULT;
 		}
@@ -156,6 +157,7 @@ class QuteDiagnostics {
 			validateWithRealQuteParser(template, diagnostics);
 			validateDataModel(template, template, resolvingJavaTypeContext, new ResolutionContext(), diagnostics);
 		}
+		cancelChecker.checkCanceled();
 		return diagnostics;
 	}
 
@@ -271,7 +273,7 @@ class QuteDiagnostics {
 
 	/**
 	 * Validate #include section.
-	 * 
+	 *
 	 * @param includeSection the include section
 	 * @param diagnostics    the diagnostics to fill.
 	 */
@@ -417,7 +419,7 @@ class QuteDiagnostics {
 
 	/**
 	 * Validate namespace part.
-	 * 
+	 *
 	 * @param namespacePart the namespace part to validate.
 	 * @param projectUri    the project Uri.
 	 * @param diagnostics   the diagnostics list to fill.
