@@ -66,6 +66,16 @@ public class QuteHoverInExpressionWithForSectionTest {
 	}
 
 	@Test
+	public void undefinedItemVariableInElseBlock() throws Exception {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				"{#for item in items}\r\n" + //
+				"{#else}" + //
+				"		{ite|m.name}\r\n" + //
+				"{/for}";
+		assertHover(template);
+	}
+
+	@Test
 	public void definedItemProperty() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{#for item in items}\r\n" + //

@@ -19,7 +19,10 @@ import com.redhat.qute.parser.scanner.Scanner;
 import com.redhat.qute.parser.template.scanner.ScannerState;
 import com.redhat.qute.parser.template.scanner.TemplateScanner;
 import com.redhat.qute.parser.template.scanner.TokenType;
+import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.DefaultSectionFactory;
+import com.redhat.qute.parser.template.sections.ElseSection;
+import com.redhat.qute.parser.template.sections.IsSection;
 import com.redhat.qute.parser.template.sections.SectionFactory;
 
 /**
@@ -54,7 +57,7 @@ public class TemplateParser {
 		}
 		Template template = new Template(textDocument);
 		template.setCancelChecker(cancelChecker);
-		
+
 		Node curr = template;
 
 		String content = textDocument.getText();
@@ -310,6 +313,6 @@ public class TemplateParser {
 	}
 
 	private static boolean isEmptyElement(String tag) {
-		return false;
+		return CaseSection.TAG.equals(tag) || ElseSection.TAG.equals(tag) || IsSection.TAG.equals(tag);
 	}
 }

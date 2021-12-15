@@ -40,6 +40,25 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 	}
 
 	@Test
+	public void undefinedVariableInElseBlock() throws Exception {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				" \r\n" + //
+				"{#for item in items}\r\n" + //
+				"{#else}\r\n" + //
+				"	{item.name}    \r\n" + //
+				"{/for}}";
+
+		Diagnostic d = d(4, 2, 4, 6, QuteErrorCode.UndefinedVariable, //
+				"`item` cannot be resolved to a variable.", DiagnosticSeverity.Warning);
+		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
+
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}\r\n")));
+
+	}
+
+	@Test
 	public void undefinedVariable() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
@@ -136,7 +155,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 				"</html>";
 		testDiagnosticsFor(template);
 	}
-	
+
 	/**
 	 * @see https://quarkus.io/guides/qute-reference#expression_resolution
 	 * 
@@ -159,6 +178,5 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 				"</html>";
 		testDiagnosticsFor(template);
 	}
-	
-	
+
 }

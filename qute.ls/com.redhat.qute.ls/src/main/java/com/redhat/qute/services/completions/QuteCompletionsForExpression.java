@@ -44,6 +44,7 @@ import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.ParameterDeclaration;
 import com.redhat.qute.parser.template.Section;
+import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.LoopSection;
@@ -395,7 +396,7 @@ public class QuteCompletionsForExpression {
 		doCompleteExpressionForObjectPartWithCheckedTemplate(template, range, list);
 		// Collect declared model inside section, let, etc
 		Set<String> existingVars = new HashSet<>();
-		doCompleteExpressionForObjectPartWithParentNodes(part, expression != null ? expression : part, range,
+		doCompleteExpressionForObjectPartWithParentNodes(part, expression != null ? expression : part, range, offset,
 				template.getProjectUri(), existingVars, completionSettings, formattingSettings, list);
 		// Namespace parts
 		doCompleteExpressionForNamespacePart(template, completionSettings, formattingSettings, range, list);
@@ -415,85 +416,101 @@ public class QuteCompletionsForExpression {
 		}
 	}
 
-	private void doCompleteExpressionForObjectPartWithParentNodes(Node part, Node node, Range range, String projectUri,
-			Set<String> existingVars, QuteCompletionSettings completionSettings,
+	private void doCompleteExpressionForObjectPartWithParentNodes(Node part, Node node, Range range, int offset,
+			String projectUri, Set<String> existingVars, QuteCompletionSettings completionSettings,
 			QuteFormattingSettings formattingSettings, CompletionList list) {
 		Section parent = node != null ? node.getParentSection() : null;
 		if (parent == null) {
 			return;
 		}
 		if (parent.getKind() == NodeKind.Section) {
-			// Completion for metadata
 			Section section = (Section) parent;
-			List<SectionMetadata> metadatas = section.getMetadata();
-			for (SectionMetadata metadata : metadatas) {
-				String name = metadata.getName();
-				if (!existingVars.contains(name)) {
-					existingVars.add(name);
-					CompletionItem item = new CompletionItem();
-					item.setLabel(name);
-					item.setKind(CompletionItemKind.Keyword);
-					// Display metadata section (ex : count for #each) after declared variables
-					item.setSortText("Za" + name);
-					TextEdit textEdit = new TextEdit(range, name);
-					item.setTextEdit(Either.forLeft(textEdit));
-					item.setDetail(metadata.getDescription());
-					list.getItems().add(item);
+			boolean collect = true;
+			if (section.getSectionKind() == SectionKind.FOR || section.getSectionKind() == SectionKind.EACH) {
+				LoopSection iterableSection = ((LoopSection) section);
+				if (iterableSection.isInElseBlock(offset)) {
+					// Completion is triggered after a #else inside a #for, we don't provide
+					// completion for metadata or aliases
+					collect = false;
 				}
 			}
 
-			switch (section.getSectionKind()) {
-			case EACH:
-			case FOR:
-				// Completion for iterable section like #each, #for
-				String alias = ((LoopSection) section).getAlias();
-				if (!StringUtils.isEmpty(alias)) {
-					if (!existingVars.contains(alias)) {
-						existingVars.add(alias);
+			if (collect) {
+
+				// 1) Completion for metadata section
+				List<SectionMetadata> metadatas = section.getMetadata();
+				for (SectionMetadata metadata : metadatas) {
+					String name = metadata.getName();
+					if (!existingVars.contains(name)) {
+						existingVars.add(name);
 						CompletionItem item = new CompletionItem();
-						item.setLabel(alias);
-						item.setKind(CompletionItemKind.Reference);
-						TextEdit textEdit = new TextEdit(range, alias);
+						item.setLabel(name);
+						item.setKind(CompletionItemKind.Keyword);
+						// Display metadata section (ex : count for #each) after declared variables
+						item.setSortText("Za" + name);
+						TextEdit textEdit = new TextEdit(range, name);
 						item.setTextEdit(Either.forLeft(textEdit));
+						item.setDetail(metadata.getDescription());
 						list.getItems().add(item);
 					}
 				}
-				break;
-			case LET:
-			case SET:
-				// completion for parameters coming from #let, #set
-				List<Parameter> parameters = section.getParameters();
-				if (parameters != null) {
-					for (Parameter parameter : parameters) {
-						String parameterName = parameter.getName();
-						if (!existingVars.contains(parameterName)) {
-							existingVars.add(parameterName);
+
+				// 2) Completion for aliases section
+				switch (section.getSectionKind()) {
+				case EACH:
+				case FOR:
+					LoopSection iterableSection = ((LoopSection) section);
+					// Completion for iterable section like #each, #for
+					String alias = iterableSection.getAlias();
+					if (!StringUtils.isEmpty(alias)) {
+						if (!existingVars.contains(alias)) {
+							existingVars.add(alias);
 							CompletionItem item = new CompletionItem();
-							item.setLabel(parameterName);
+							item.setLabel(alias);
 							item.setKind(CompletionItemKind.Reference);
-							TextEdit textEdit = new TextEdit(range, parameterName);
+							TextEdit textEdit = new TextEdit(range, alias);
 							item.setTextEdit(Either.forLeft(textEdit));
 							list.getItems().add(item);
 						}
 					}
-				}
-				break;
-			case WITH:
-				// Completion for properties/methods of with object from #with
-				Parameter object = ((WithSection) section).getObjectParameter();
-				if (object != null) {
-					ResolvedJavaTypeInfo withJavaTypeInfo = javaCache.resolveJavaType(object, projectUri).getNow(null);
-					if (withJavaTypeInfo != null) {
-						fillCompletionFields(withJavaTypeInfo, range, projectUri, existingVars, list);
-						fillCompletionMethods(withJavaTypeInfo, range, projectUri, completionSettings,
-								formattingSettings, existingVars, new HashSet<>(), list);
+					break;
+				case LET:
+				case SET:
+					// completion for parameters coming from #let, #set
+					List<Parameter> parameters = section.getParameters();
+					if (parameters != null) {
+						for (Parameter parameter : parameters) {
+							String parameterName = parameter.getName();
+							if (!existingVars.contains(parameterName)) {
+								existingVars.add(parameterName);
+								CompletionItem item = new CompletionItem();
+								item.setLabel(parameterName);
+								item.setKind(CompletionItemKind.Reference);
+								TextEdit textEdit = new TextEdit(range, parameterName);
+								item.setTextEdit(Either.forLeft(textEdit));
+								list.getItems().add(item);
+							}
+						}
 					}
+					break;
+				case WITH:
+					// Completion for properties/methods of with object from #with
+					Parameter object = ((WithSection) section).getObjectParameter();
+					if (object != null) {
+						ResolvedJavaTypeInfo withJavaTypeInfo = javaCache.resolveJavaType(object, projectUri)
+								.getNow(null);
+						if (withJavaTypeInfo != null) {
+							fillCompletionFields(withJavaTypeInfo, range, projectUri, existingVars, list);
+							fillCompletionMethods(withJavaTypeInfo, range, projectUri, completionSettings,
+									formattingSettings, existingVars, new HashSet<>(), list);
+						}
+					}
+					break;
+				default:
 				}
-				break;
-			default:
 			}
 		}
-		doCompleteExpressionForObjectPartWithParentNodes(part, parent, range, projectUri, existingVars,
+		doCompleteExpressionForObjectPartWithParentNodes(part, parent, range, offset, projectUri, existingVars,
 				completionSettings, formattingSettings, list);
 	}
 

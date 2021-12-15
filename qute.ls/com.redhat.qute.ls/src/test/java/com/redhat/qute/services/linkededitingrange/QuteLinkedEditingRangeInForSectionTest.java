@@ -43,11 +43,21 @@ public class QuteLinkedEditingRangeInForSectionTest {
 				"{/for}";
 		testLinkedEditingFor(template, null);
 	}
-	
+
 	@Test
 	public void unbalanced() throws BadLocationException {
 		String template = "{#for ite|m in items}\r\n" + //
 				"{/each}";
 		testLinkedEditingFor(template, null);
 	}
+
+	@Test
+	public void fromAliasInElseBlock() throws BadLocationException {
+		String template = "{#for it|em in items}\r\n" + //
+				"{#else}" + //
+				"	{item.name}\r\n" + //
+				"{/for}";
+		testLinkedEditingFor(template, null);
+	}
+
 }

@@ -25,6 +25,7 @@ public class DefaultSectionFactory implements SectionFactory {
 		factoryByTag.put(EachSection.TAG, (tag, start, end) -> new EachSection(start, end));
 		factoryByTag.put(ForSection.TAG, (tag, start, end) -> new ForSection(start, end));
 		factoryByTag.put(IfSection.TAG, (tag, start, end) -> new IfSection(start, end));
+		factoryByTag.put(ElseSection.TAG, (tag, start, end) -> new ElseSection(start, end));
 		factoryByTag.put(IncludeSection.TAG, (tag, start, end) -> new IncludeSection(start, end));
 		factoryByTag.put(InsertSection.TAG, (tag, start, end) -> new InsertSection(start, end));
 		factoryByTag.put(SetSection.TAG, (tag, start, end) -> new SetSection(start, end));
@@ -32,6 +33,8 @@ public class DefaultSectionFactory implements SectionFactory {
 		factoryByTag.put(WithSection.TAG, (tag, start, end) -> new WithSection(start, end));
 		factoryByTag.put(WhenSection.TAG, (tag, start, end) -> new WhenSection(start, end));
 		factoryByTag.put(SwitchSection.TAG, (tag, start, end) -> new SwitchSection(start, end));
+		factoryByTag.put(IsSection.TAG, (tag, start, end) -> new IsSection(start, end));
+		factoryByTag.put(CaseSection.TAG, (tag, start, end) -> new CaseSection(start, end));
 	}
 
 	@Override

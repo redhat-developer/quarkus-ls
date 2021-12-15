@@ -181,4 +181,43 @@ public class QuteHighlightingInSectionTagTest {
 				hl(r(0, 1, 0, 7), Read), //
 				hl(r(0, 23, 0, 24), Read));
 	}
+	
+	@Test
+	public void highlightingWithElseForSection() throws BadLocationException {
+		String template = "{#f|or item in items}\r\n" + //
+				"  {item.name} \r\n" + //
+				"{#else}\r\n" + //
+				"{/for}";
+		testHighlightsFor(template, //
+				hl(r(0, 1, 0, 5), Read), //
+				hl(r(3, 1, 3, 5), Read), //
+				hl(r(2, 1, 2, 6), Read));
+	}
+	
+	@Test
+	public void highlightingWithElseForAndIfSection() throws BadLocationException {
+		String template = "{#f|or item in items}\r\n" + //
+				"  {item.name} \r\n" + //
+				"{#else}\r\n" + //
+				"{#if}\r\n" + //
+				"{#else}\r\n" + //
+				"{/if}\r\n" + //
+				"{/for}";
+		testHighlightsFor(template, //
+				hl(r(0, 1, 0, 5), Read), //
+				hl(r(6, 1, 6, 5), Read), //
+				hl(r(2, 1, 2, 6), Read));
+		
+		template = "{#for item in items}\r\n" + //
+				"  {item.name} \r\n" + //
+				"{#else}\r\n" + //
+				"{#i|f}\r\n" + //
+				"{#else}\r\n" + //
+				"{/if}\r\n" + //
+				"{/for}";
+		testHighlightsFor(template, //
+				hl(r(3, 1, 3, 4), Read), //
+				hl(r(5, 1, 5, 4), Read), //
+				hl(r(4, 1, 4, 6), Read));
+	}
 }

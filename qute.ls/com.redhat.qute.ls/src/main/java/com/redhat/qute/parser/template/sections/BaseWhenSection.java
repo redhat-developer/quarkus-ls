@@ -11,9 +11,12 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template.sections;
 
+import java.util.List;
+
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.ParametersInfo;
 import com.redhat.qute.parser.template.Section;
+import com.redhat.qute.parser.template.SectionKind;
 
 /**
  * Base class for #switch and #when section.
@@ -46,4 +49,8 @@ public abstract class BaseWhenSection extends Section {
 		return PARAMETER_INFOS;
 	}
 
+	@Override
+	public List<SectionKind> getBlockLabels() {
+		return List.of(SectionKind.IS, SectionKind.CASE, SectionKind.ELSE);
+	}
 }

@@ -33,7 +33,7 @@ public class QuteDefinitionInForSectionTest {
 				"{/for}";
 		testDefinitionFor(template, "test.qute", //
 				ll("test.qute", r(0, 1, 0, 5), r(2, 1, 2, 5)));
-		
+
 		template = "{#fo|r item in items}\r\n" + //
 				"		{item.name}\r\n" + //
 				"{/for}";
@@ -60,7 +60,7 @@ public class QuteDefinitionInForSectionTest {
 				"{/fo|r}";
 		testDefinitionFor(template, "test.qute", //
 				ll("test.qute", r(2, 1, 2, 5), r(0, 1, 0, 5)));
-		
+
 		template = "{#for item in items}\r\n" + //
 				"		{item.name}\r\n" + //
 				"{/for|}";
@@ -81,6 +81,21 @@ public class QuteDefinitionInForSectionTest {
 				"{/for}";
 		testDefinitionFor(template, "test.qute", //
 				ll("test.qute", r(1, 3, 1, 7), r(0, 6, 0, 10)));
+	}
+
+	@Test
+	public void noDefinitionInObjectPartInElseBlock() throws Exception {
+		String template = "{#for item in items}\r\n" + //
+				"{#else}" + //
+				"		{it|em.name}\r\n" + //
+				"{/for}";
+		testDefinitionFor(template);
+
+		template = "{#for item in items}\r\n" + //
+				"{#else}" + //
+				"		{item|.name}\r\n" + //
+				"{/for}";
+		testDefinitionFor(template);
 	}
 
 	@Test

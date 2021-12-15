@@ -14,14 +14,17 @@ package com.redhat.qute.parser.template.sections;
 import static com.redhat.qute.parser.template.ParameterInfo.EMPTY;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.redhat.qute.parser.template.Node;
+import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.ParameterInfo;
 import com.redhat.qute.parser.template.ParametersInfo;
 import com.redhat.qute.parser.template.Section;
+import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.SectionMetadata;
 
 /**
@@ -191,5 +194,27 @@ public abstract class LoopSection extends Section {
 		} else {
 			return metadataPrefix;
 		}
+	}
+
+	public ElseSection getElseSection() {
+		for (Node child : getChildren()) {
+			if (child.getKind() == NodeKind.Section && ((Section) child).getSectionKind() == SectionKind.ELSE) {
+				return (ElseSection) child;
+			}
+		}
+		return null;
+	}
+
+	public boolean isInElseBlock(int offset) {
+		ElseSection elseSection = getElseSection();
+		if (elseSection == null) {
+			return false;
+		}
+		return offset > elseSection.getEnd();
+	}
+
+	@Override
+	public List<SectionKind> getBlockLabels() {
+		return Collections.singletonList(SectionKind.ELSE);
 	}
 }
