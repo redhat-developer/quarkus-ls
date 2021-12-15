@@ -189,4 +189,23 @@ public class QuteCompletionInExpressionWithForSectionTest {
 				c("average : java.lang.Integer", "average", r(4, 10, 4, 10)));
 	}
 
+	@Test
+	public void noCompletionInElseBlock() throws Exception {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				" \r\n" + //
+				"{#for item in items}\r\n" + //
+				"{#else}\r\n" + //
+				"	{item.|}    \r\n" + // <-- here item is not available because it is on #else block
+				"{/for}";
+		testCompletionFor(template, 0);
+
+		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				" \r\n" + //
+				"{#for item in items}\r\n" + //
+				"{#else}\r\n" + //
+				"	{|}    \r\n" + // <-- here items is only available because it is on #else block
+				"{/for}";
+		testCompletionFor(template, 1, //
+				c("items", "items", r(4, 2, 4, 2)));
+	}
 }

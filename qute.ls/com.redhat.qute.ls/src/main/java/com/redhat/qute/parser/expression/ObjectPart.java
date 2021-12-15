@@ -46,9 +46,11 @@ public class ObjectPart extends Part {
 					case EACH:
 					case FOR:
 						LoopSection iterableSection = (LoopSection) section;
-						String alias = iterableSection.getAlias();
-						if (partName.equals(alias)) {
-							return iterableSection.getIterableParameter();
+						if (!iterableSection.isInElseBlock(getStart())) {
+							String alias = iterableSection.getAlias();
+							if (partName.equals(alias)) {
+								return iterableSection.getIterableParameter();
+							}
 						}
 						break;
 					case LET:

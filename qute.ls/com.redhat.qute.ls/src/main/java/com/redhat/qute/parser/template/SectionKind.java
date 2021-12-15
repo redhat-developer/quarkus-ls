@@ -24,6 +24,8 @@ public enum SectionKind {
 	LET, //
 	WITH, //
 	SWITCH, //
+	CASE, //
+	IS, //
 	WHEN, //
 	CUSTOM;
 }

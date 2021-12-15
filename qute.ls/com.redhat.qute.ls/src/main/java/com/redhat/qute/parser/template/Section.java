@@ -468,4 +468,14 @@ public class Section extends Node implements ParametersContainer {
 	public boolean isIterable() {
 		return false;
 	}
+
+	/**
+	 * A nested section tag that matches a name of a block will be added as a block
+	 * to the current section.
+	 * 
+	 * @return the list of block labels
+	 */
+	public List<SectionKind> getBlockLabels() {
+		return Collections.emptyList();
+	}
 }

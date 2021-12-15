@@ -27,8 +27,10 @@ import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.ParameterDeclaration;
 import com.redhat.qute.parser.template.RangeOffset;
 import com.redhat.qute.parser.template.Section;
+import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.BaseWhenSection;
+import com.redhat.qute.parser.template.sections.ElseSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.parser.template.sections.WithSection;
 
@@ -101,12 +103,14 @@ public class QuteSearchUtils {
 				case EACH:
 				case FOR:
 					LoopSection iterableSection = (LoopSection) section;
-					String alias = iterableSection.getAlias();
-					if (partName.equals(alias) || section.isMetadata(partName)) {
-						// the part name matches
-						// - the #for alias of the section (ex : item)
-						// - or the metadata of the section (ex : item_count)
-						return iterableSection.getAliasParameter();
+					if (!iterableSection.isInElseBlock(part.getStart())) {
+						String alias = iterableSection.getAlias();
+						if (partName.equals(alias) || section.isMetadata(partName)) {
+							// the part name matches
+							// - the #for alias of the section (ex : item)
+							// - or the metadata of the section (ex : item_count)
+							return iterableSection.getAliasParameter();
+						}
 					}
 					break;
 				case LET:
@@ -196,12 +200,12 @@ public class QuteSearchUtils {
 				switch (section.getSectionKind()) {
 				case EACH:
 				case FOR: {
-					LoopSection loopSection = (LoopSection) parent;
-					Parameter iterableParameter = loopSection.getIterableParameter();
+					LoopSection iterableSection = (LoopSection) parent;
+					Parameter iterableParameter = iterableSection.getIterableParameter();
 					if (iterableParameter != null) {
 						Expression parameterExpr = iterableParameter.getJavaTypeExpression();
 						tryToCollectObjectPartOrParameter(partName, matcher, parameterExpr, ownerNode, collector);
-						Parameter aliasParameter = loopSection.getAliasParameter();
+						Parameter aliasParameter = iterableSection.getAliasParameter();
 						if (aliasParameter != null && partName.equals(aliasParameter.getName())) {
 							matcher = PartNameMatcher.ONLY_NAMESPACE;
 						}
@@ -243,18 +247,29 @@ public class QuteSearchUtils {
 			}
 		}
 
+		Node stopWhenNode = null;
+		if (ownerNode.getKind() == NodeKind.Section) {
+			Section section = (Section) ownerNode;
+			if (section.getSectionKind() == SectionKind.EACH || section.getSectionKind() == SectionKind.FOR) {
+				stopWhenNode = ((LoopSection) section).getElseSection();
+			}
+		}
+		
 		List<Node> children = parent.getChildren();
 		for (Node node : children) {
+			if (node == stopWhenNode) {
+				break;
+			}
 			searchReferencedObjects(partName, matcher, node, ownerNode, collector, cancelChecker);
 		}
 	}
 
 	public static void tryToCollectObjectPartOrParameter(String partName, PartNameMatcher matcher,
-			Expression expression, Node owerNode, BiConsumer<Node, Range> collector) {
+			Expression expression, Node ownerNode, BiConsumer<Node, Range> collector) {
 		// Check if the current expression references the given part name
 		if (!tryToCollectObjectPart(partName, matcher, expression, collector)) {
-			if (owerNode.getKind() == NodeKind.Section) {
-				Section onwerSection = (Section) owerNode;
+			if (ownerNode.getKind() == NodeKind.Section) {
+				Section onwerSection = (Section) ownerNode;
 				// Check the current expression references a metadata of the section
 				ObjectPart objectPart = expression.getObjectPart();
 				if (objectPart != null) {

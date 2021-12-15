@@ -11,27 +11,36 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template.sections;
 
-import java.util.Collections;
-import java.util.List;
-
-import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 
-public class IfSection extends Section {
+/**
+ * Case section AST node.
+ * 
+ * <code>
+ 	{#switch person.name}
+  		{#case 'John'} 
+    		Hey John!
+  		{#case 'Mary'}
+    		Hey Mary!
+	{/switch}
+ * </code>
+ * 
+ * @author Angelo ZERR
+ * 
+ * @see https://quarkus.io/guides/qute-reference#when_section
+ *
+ */
+public class CaseSection extends AssignSection {
 
-	public static final String TAG = "if";
+	public static final String TAG = "case";
 
-	public IfSection(int start, int end) {
+	public CaseSection(int start, int end) {
 		super(TAG, start, end);
 	}
 
 	@Override
 	public SectionKind getSectionKind() {
-		return SectionKind.IF;
+		return SectionKind.CASE;
 	}
 
-	@Override
-	public List<SectionKind> getBlockLabels() {
-		return Collections.singletonList(SectionKind.ELSE);
-	}
 }

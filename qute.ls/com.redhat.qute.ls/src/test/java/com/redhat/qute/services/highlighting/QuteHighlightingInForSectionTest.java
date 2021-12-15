@@ -40,6 +40,16 @@ public class QuteHighlightingInForSectionTest {
 	}
 
 	@Test
+	public void fromAliasInElseBlock() throws BadLocationException {
+		String template = "{#for it|em in items}\r\n" + //
+				"{#else}" + //
+				"	{item.name}\r\n" + //
+				"{/for}";
+		testHighlightsFor(template, //
+				hl(r(0, 6, 0, 10), Write));
+	}
+
+	@Test
 	public void toAlias() throws BadLocationException {
 		String template = "{#for item in items}\r\n" + //
 				"	{it|em.name}\r\n" + //
@@ -47,6 +57,24 @@ public class QuteHighlightingInForSectionTest {
 		testHighlightsFor(template, //
 				hl(r(1, 2, 1, 6), Read), //
 				hl(r(0, 6, 0, 10), Write));
+	}
+
+	@Test
+	public void toAliasInElseBlock() throws BadLocationException {
+		String template = "{#for item in items}\r\n" + //
+				"	{it|em.name}\r\n" + //
+				"{#else}\r\n" + //
+				"{/for}";
+		testHighlightsFor(template, //
+				hl(r(1, 2, 1, 6), Read), //
+				hl(r(0, 6, 0, 10), Write));
+
+		template = "{#for item in items}\r\n" + //
+				"{#else}\r\n" + //
+				"	{it|em.name}\r\n" + //
+				"{/for}";
+		testHighlightsFor(template, //
+				hl(r(2, 2, 2, 6), Read));
 	}
 
 	@Test
@@ -62,6 +90,39 @@ public class QuteHighlightingInForSectionTest {
 				hl(r(2, 2, 2, 6), Read));
 	}
 
+	@Test
+	public void metadataFromAliasInElseBlock() throws BadLocationException {
+		String template = "{#for it|em in items}\r\n" + //
+				"	{item.name}\r\n" + //
+				"	{item_count}\r\n" + //
+				"	{#else}\r\n" + //
+				"	{item_XXXX}\r\n" + //
+				"{/for}";
+		testHighlightsFor(template, //
+				hl(r(0, 6, 0, 10), Write), //
+				hl(r(1, 2, 1, 6), Read), //
+				hl(r(2, 2, 2, 6), Read));
+		
+		template = "{#for it|em in items}\r\n" + //
+				"	{item.name}\r\n" + //
+				"	{#else}\r\n" + //
+				"	{item_count}\r\n" + //
+				"	{item_XXXX}\r\n" + //
+				"{/for}";
+		testHighlightsFor(template, //
+				hl(r(0, 6, 0, 10), Write), //
+				hl(r(1, 2, 1, 6), Read));
+		
+		template = "{#for it|em in items}\r\n" + //
+				"	{#else}\r\n" + //
+				"	{item.name}\r\n" + //
+				"	{item_count}\r\n" + //
+				"	{item_XXXX}\r\n" + //
+				"{/for}";
+		testHighlightsFor(template, //
+				hl(r(0, 6, 0, 10), Write));
+	}
+	
 	@Test
 	public void metadataFromAliasWithLetParameter() throws BadLocationException {
 		String template = "{#for it|em in items}\r\n" + //

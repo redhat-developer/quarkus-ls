@@ -28,6 +28,7 @@ import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.Node;
+import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.utils.QutePositionUtility;
@@ -97,37 +98,40 @@ class QuteHighlighting {
 
 	private static void higlightSection(Section section, int offset, Position position,
 			List<DocumentHighlight> highlights, CancelChecker cancelChecker) throws BadLocationException {
-		if ((section.isInStartTagName(offset) && section.hasEndTag())
-				|| (section.isInEndTagName(offset) && section.isInEndTagName(offset))) {
-			Range startTagRange = QutePositionUtility.selectStartTagName(section);
-			Range endTagRange = QutePositionUtility.selectEndTagName(section);
-			fillHighlightsList(startTagRange, endTagRange, highlights);
+		if (section.isInStartTagName(offset) || section.isInEndTagName(offset)) {
+			highlightSectionTag(section, highlights);
+			if (!section.getBlockLabels().isEmpty()) {
+				// The section can have nested block (ex #for can have #else)
+				for (Node node : section.getChildren()) {
+					if (node.getKind() == NodeKind.Section
+							&& section.getBlockLabels().contains(((Section) node).getSectionKind())) {
+						Section nestedBlock = (Section) node;
+						highlightSectionTag(nestedBlock, highlights);
+					}
+				}
+			} else {
+				// Get parent section
+				Section parentSection = section.getParentSection();
+				if (parentSection != null && parentSection.getBlockLabels().contains(section.getSectionKind())) {
+					highlightSectionTag(parentSection, highlights);
+				}
+			}
 		} else {
 			highlightReferenceObjectPart(section, offset, highlights, cancelChecker);
 		}
 	}
 
-	private static void fillHighlightsList(Range startTagRange, Range endTagRange, List<DocumentHighlight> result) {
-		if (startTagRange != null) {
-			result.add(new DocumentHighlight(startTagRange, DocumentHighlightKind.Read));
+	public static void highlightSectionTag(Section section, List<DocumentHighlight> highlights) {
+		Range startTagRange = QutePositionUtility.selectStartTagName(section);
+		highlight(startTagRange, DocumentHighlightKind.Read, highlights);
+		Range endTagRange = section.hasEndTag() ? QutePositionUtility.selectEndTagName(section) : null;
+		highlight(endTagRange, DocumentHighlightKind.Read, highlights);
+	}
+
+	private static void highlight(Range range, DocumentHighlightKind kind, List<DocumentHighlight> result) {
+		if (range != null) {
+			result.add(new DocumentHighlight(range, kind));
 		}
-		if (endTagRange != null) {
-			result.add(new DocumentHighlight(endTagRange, DocumentHighlightKind.Read));
-		}
-	}
-
-	public static boolean doesTagCoverPosition(Range startTagRange, Range endTagRange, Position position) {
-		return startTagRange != null && covers(startTagRange, position)
-				|| endTagRange != null && covers(endTagRange, position);
-	}
-
-	public static boolean covers(Range range, Position position) {
-		return isBeforeOrEqual(range.getStart(), position) && isBeforeOrEqual(position, range.getEnd());
-	}
-
-	public static boolean isBeforeOrEqual(Position pos1, Position pos2) {
-		return pos1.getLine() < pos2.getLine()
-				|| (pos1.getLine() == pos2.getLine() && pos1.getCharacter() <= pos2.getCharacter());
 	}
 
 }
