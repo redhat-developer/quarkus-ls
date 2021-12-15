@@ -117,7 +117,7 @@ public class QuteLanguageServer
 	 * turn on/off
 	 *
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.lsp4j.services.LanguageServer#initialized(org.eclipse.lsp4j.
 	 * InitializedParams)
 	 */
@@ -159,7 +159,7 @@ public class QuteLanguageServer
 
 	@Override
 	public CompletableFuture<Object> shutdown() {
-		if (capabilityManager.getClientCapabilities().getExtendedCapabilities().shouldLanguageServerExitOnShutdown()) {
+		if (capabilityManager.getClientCapabilities().shouldLanguageServerExitOnShutdown()) {
 			ScheduledExecutorService delayer = Executors.newScheduledThreadPool(1);
 			delayer.schedule(() -> exit(0), 1, TimeUnit.SECONDS);
 		}
@@ -176,10 +176,12 @@ public class QuteLanguageServer
 		System.exit(exitCode);
 	}
 
+	@Override
 	public TextDocumentService getTextDocumentService() {
 		return this.textDocumentService;
 	}
 
+	@Override
 	public QuteWorkspaceService getWorkspaceService() {
 		return this.workspaceService;
 	}

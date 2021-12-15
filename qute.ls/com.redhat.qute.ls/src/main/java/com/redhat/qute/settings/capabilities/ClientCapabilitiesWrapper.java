@@ -40,9 +40,9 @@ public class ClientCapabilitiesWrapper {
 
 	/**
 	 * IMPORTANT
-	 * 
+	 *
 	 * This should be up to date with all Server supported capabilities
-	 * 
+	 *
 	 */
 
 	public boolean isCodeActionDynamicRegistered() {
@@ -84,11 +84,11 @@ public class ClientCapabilitiesWrapper {
 	public boolean isDocumentHighlightDynamicRegistered() {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getDocumentHighlight());
 	}
-	
+
 	public boolean isReferencesDynamicRegistrationSupported() {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getReferences());
 	}
-	
+
 	public boolean isLinkedEditingRangeDynamicRegistered() {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getLinkedEditingRange());
 	}
@@ -96,6 +96,19 @@ public class ClientCapabilitiesWrapper {
 	private boolean isDynamicRegistrationSupported(DynamicRegistrationCapabilities capability) {
 		return capability != null && capability.getDynamicRegistration() != null
 				&& capability.getDynamicRegistration().booleanValue();
+	}
+
+	/**
+	 * Returns true if the client should exit on shutdown() request and avoid
+	 * waiting for an exit() request
+	 *
+	 * @return true if the language server should exit on shutdown() request
+	 */
+	public boolean shouldLanguageServerExitOnShutdown() {
+		if (extendedCapabilities == null) {
+			return false;
+		}
+		return extendedCapabilities.shouldLanguageServerExitOnShutdown();
 	}
 
 	public TextDocumentClientCapabilities getTextDocument() {
