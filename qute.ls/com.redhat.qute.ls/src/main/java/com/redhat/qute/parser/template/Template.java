@@ -95,7 +95,7 @@ public class Template extends Node {
 		return textDocument.lineDelimiter(lineNumber);
 	}
 
-	private void checkCanceled() {
+	public void checkCanceled() {
 		if (cancelChecker != null) {
 			cancelChecker.checkCanceled();
 		}

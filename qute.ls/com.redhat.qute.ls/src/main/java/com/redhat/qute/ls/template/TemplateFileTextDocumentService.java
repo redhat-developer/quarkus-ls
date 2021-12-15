@@ -74,7 +74,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 	public TemplateFileTextDocumentService(QuteLanguageServer quteLanguageServer, SharedSettings sharedSettings) {
 		super(quteLanguageServer, sharedSettings);
 		this.documents = new QuteTextDocuments((document, cancelChecker) -> {
-			return TemplateParser.parse(document.getText(), document.getUri(), () -> cancelChecker.checkCanceled());
+			return TemplateParser.parse(document, () -> cancelChecker.checkCanceled());
 		}, quteLanguageServer, quteLanguageServer.getProjectRegistry());
 	}
 
@@ -242,25 +242,39 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 	}
 
 	private void triggerValidationFor(QuteTextDocument document) {
-		getTemplate(document, (cancelChecker, template) -> {
-			ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template);
-			List<Diagnostic> diagnostics = getQuteLanguageService().doDiagnostics(template,
-					getSharedSettings().getValidationSettings(), resolvingJavaTypeContext, cancelChecker);
-			quteLanguageServer.getLanguageClient()
-					.publishDiagnostics(new PublishDiagnosticsParams(template.getUri(), diagnostics));
+		document.getModel() //
+				.thenApply((template) -> {
 
-			if (!resolvingJavaTypeContext.isEmpty()) {
-				// Some Java types was not loaded, wait for that all Java types are resolved to
-				// retrigger the validation.
-				CompletableFuture<Void> allFutures = CompletableFuture.allOf(
-						resolvingJavaTypeContext.toArray(new CompletableFuture[resolvingJavaTypeContext.size()]));
-				allFutures.thenAccept(Void -> {
-					triggerValidationFor(document);
+					// The template is parsed, check if the document has changed since the
+					// parsing
+					template.checkCanceled();
+
+					// Collect diagnostics
+					ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template);
+					List<Diagnostic> diagnostics = getQuteLanguageService().doDiagnostics(template,
+							getSharedSettings().getValidationSettings(), resolvingJavaTypeContext,
+							() -> template.checkCanceled());
+
+					// Diagnostics has been collected, before diagnostics publishing, check if the
+					// document has changed since diagnostics collect.
+					template.checkCanceled();
+
+					// Publish diagnostics
+					quteLanguageServer.getLanguageClient()
+							.publishDiagnostics(new PublishDiagnosticsParams(template.getUri(), diagnostics));
+
+					if (!resolvingJavaTypeContext.isEmpty()) {
+						// Some Java types was not loaded, wait for that all Java types are resolved to
+						// retrigger the validation.
+						CompletableFuture<Void> allFutures = CompletableFuture.allOf(resolvingJavaTypeContext
+								.toArray(new CompletableFuture[resolvingJavaTypeContext.size()]));
+						allFutures.thenAccept(Void -> {
+							triggerValidationFor(document);
+						});
+					}
+
+					return null;
 				});
-			}
-
-			return null;
-		});
 	}
 
 	/**
