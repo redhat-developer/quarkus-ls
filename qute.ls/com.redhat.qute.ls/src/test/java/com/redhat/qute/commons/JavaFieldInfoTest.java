@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test for {@link JavaFieldInfo}.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -30,5 +30,6 @@ public class JavaFieldInfoTest {
 		field.setSignature(signature);
 		assertEquals("price", field.getName());
 		assertEquals("java.math.BigInteger", field.getType());
+		assertEquals("price : BigInteger", field.getSimpleSignature());
 	}
 }

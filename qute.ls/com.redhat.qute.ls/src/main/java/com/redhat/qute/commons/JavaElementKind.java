@@ -13,7 +13,7 @@ package com.redhat.qute.commons;
 
 /**
  * Java element kind.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -21,5 +21,6 @@ public enum JavaElementKind {
 
 	TYPE, //
 	FIELD, //
-	METHOD;
+	METHOD, //
+	PARAMETER;
 }

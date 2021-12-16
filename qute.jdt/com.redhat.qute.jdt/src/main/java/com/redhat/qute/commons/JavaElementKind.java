@@ -21,5 +21,6 @@ public enum JavaElementKind {
 
 	TYPE, //
 	FIELD, //
-	METHOD;
+	METHOD, //
+	PARAMETER;
 }

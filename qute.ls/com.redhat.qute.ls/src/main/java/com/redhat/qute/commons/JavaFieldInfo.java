@@ -15,7 +15,7 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
 /**
  * Java field information.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -27,34 +27,50 @@ public class JavaFieldInfo extends JavaMemberInfo {
 
 	/**
 	 * Returns the Java field signature.
-	 * 
+	 *
 	 * Example:
-	 * 
+	 *
 	 * <code>
 	 * price : java.math.BigInteger
 	 * </code>
-	 * 
+	 *
 	 * @return the Java field signature.
 	 */
+	@Override
 	public String getSignature() {
 		return super.getSignature();
 	}
 
 	/**
-	 * Returns the field name.
-	 * 
+	 * Returns the simple Java field signature.
+	 *
 	 * Example:
-	 * 
+	 *
+	 * <code>
+	 * price : BigInteger
+	 * </code>
+	 *
+	 * @return the simple Java field signature.
+	 */
+	public String getSimpleSignature() {
+		return name + " : " + getJavaElementSimpleType();
+	}
+
+	/**
+	 * Returns the field name.
+	 *
+	 * Example:
+	 *
 	 * <code>
 	 *  price
 	 *  </code>
-	 * 
+	 *
 	 * from the given signature:
-	 * 
+	 *
 	 * <code>
 	 * price : java.math.BigInteger
 	 * </code>
-	 * 
+	 *
 	 * @return the field name.
 	 */
 	@Override
@@ -73,19 +89,19 @@ public class JavaFieldInfo extends JavaMemberInfo {
 
 	/**
 	 * Returns the field Java type and null otherwise.
-	 * 
+	 *
 	 * Example:
-	 * 
+	 *
 	 * <code>
 	 *  java.math.BigInteger
 	 *  </code>
-	 * 
+	 *
 	 * from the given signature:
-	 * 
+	 *
 	 * <code>
 	 * price : java.math.BigInteger
 	 * </code>
-	 * 
+	 *
 	 * @return the field Java type and null otherwise.
 	 */
 	public String getType() {

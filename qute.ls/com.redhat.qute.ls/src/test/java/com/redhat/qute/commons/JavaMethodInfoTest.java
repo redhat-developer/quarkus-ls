@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test for {@link JavaMethodInfo}.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -43,5 +43,7 @@ public class JavaMethodInfoTest {
 		assertEquals("java.util.Map<java.lang.String,java.lang.Object>", parameter.getType());
 
 		assertEquals("io.quarkus.hibernate.orm.panache.PanacheQuery<T>", method.getReturnType());
+		assertEquals("find(query : String, params : Map<String,Object>) : PanacheQuery<T>",
+				method.getSimpleSignature());
 	}
 }

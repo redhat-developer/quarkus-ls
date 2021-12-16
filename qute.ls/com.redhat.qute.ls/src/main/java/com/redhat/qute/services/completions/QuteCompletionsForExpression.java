@@ -59,7 +59,7 @@ import com.redhat.qute.utils.StringUtils;
 
 /**
  * Qute completion inside Qute expression.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -74,7 +74,7 @@ public class QuteCompletionsForExpression {
 	/**
 	 * Returns the completion result of the given offset inside the given
 	 * expression.
-	 * 
+	 *
 	 * @param expression         the expression where the completion has been
 	 *                           triggered and null otherwise.
 	 * @param nodeExpression     the node expression where the completion has been
@@ -83,9 +83,9 @@ public class QuteCompletionsForExpression {
 	 * @param offset             the offset where the completion has been triggered.
 	 * @param completionSettings the completion settings.
 	 * @param formattingSettings the formatting settings.
-	 * 
+	 *
 	 * @param cancelChecker      the cancel checker.
-	 * 
+	 *
 	 * @return the completion result as future.
 	 */
 	public CompletableFuture<CompletionList> doCompleteExpression(Expression expression, Node nodeExpression,
@@ -148,13 +148,13 @@ public class QuteCompletionsForExpression {
 	/**
 	 * Returns the completion result for Java fields, methods of the Java type
 	 * class, interface of the given part <code>part</code>
-	 * 
+	 *
 	 * @param part               the part.
 	 * @param parts              the owner parts.
 	 * @param template           the owner template.
 	 * @param completionSettings the completion settings.
 	 * @param formattingSettings the formatting settings.
-	 * 
+	 *
 	 * @return the completion list.
 	 */
 	private CompletableFuture<CompletionList> doCompleteExpressionForMemberPart(Part part, Parts parts,
@@ -194,14 +194,14 @@ public class QuteCompletionsForExpression {
 	/**
 	 * Returns the completion result for Java fields, methods of the given Java type
 	 * class, interface <code>resolvedType</code>
-	 * 
+	 *
 	 * @param resolvedType       the Java class, interface.
 	 * @param start              the part start index to replace.
 	 * @param end                the part end index to replace.
 	 * @param template           the owner Qute template.
 	 * @param completionSettings the completion settings.
 	 * @param formattingSettings the formatting settings.
-	 * 
+	 *
 	 * @return the completion list.
 	 */
 	private CompletionList doCompleteForJavaTypeMembers(ResolvedJavaTypeInfo resolvedType, int start, int end,
@@ -239,7 +239,7 @@ public class QuteCompletionsForExpression {
 	/**
 	 * Fill completion list <code>list</code> with the methods of the given Java
 	 * type <code>resolvedType</code>.
-	 * 
+	 *
 	 * @param resolvedType       the Java type class, interface.
 	 * @param range              the range.
 	 * @param projectUri         the project Uri
@@ -260,8 +260,7 @@ public class QuteCompletionsForExpression {
 			// class B {String foo;}
 			if (!existingProperties.contains(fieldName)) {
 				CompletionItem item = new CompletionItem();
-				item.setLabel(fieldName);
-				item.setLabel(fieldName + " : " + field.getType());
+				item.setLabel(field.getSimpleSignature());
 				item.setFilterText(fieldName);
 				item.setKind(CompletionItemKind.Field);
 				TextEdit textEdit = new TextEdit();
@@ -288,7 +287,7 @@ public class QuteCompletionsForExpression {
 	/**
 	 * Fill completion list <code>list</code> with the methods of the given Java
 	 * type <code>resolvedType</code>.
-	 * 
+	 *
 	 * @param resolvedType       the Java type class, interface.
 	 * @param range              the range.
 	 * @param projectUri         the project Uri
@@ -310,7 +309,7 @@ public class QuteCompletionsForExpression {
 					// It's a getter method, create a completion item for simple property (value)
 					// from the method name (getValue)
 					CompletionItem item = new CompletionItem();
-					item.setLabel(property + " : " + method.getReturnType());
+					item.setLabel(property + " : " + method.getJavaElementSimpleType());
 					item.setFilterText(property);
 					item.setKind(CompletionItemKind.Property);
 					TextEdit textEdit = new TextEdit();
@@ -340,7 +339,7 @@ public class QuteCompletionsForExpression {
 
 	private static CompletionItem fillCompletionMethod(JavaMethodInfo method, Range range,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings, CompletionList list) {
-		String methodSignature = method.getSignature();
+		String methodSignature = method.getSimpleSignature();
 		CompletionItem item = new CompletionItem();
 		item.setLabel(methodSignature);
 		item.setFilterText(method.getName());
@@ -419,12 +418,11 @@ public class QuteCompletionsForExpression {
 	private void doCompleteExpressionForObjectPartWithParentNodes(Node part, Node node, Range range, int offset,
 			String projectUri, Set<String> existingVars, QuteCompletionSettings completionSettings,
 			QuteFormattingSettings formattingSettings, CompletionList list) {
-		Section parent = node != null ? node.getParentSection() : null;
-		if (parent == null) {
+		Section section = node != null ? node.getParentSection() : null;
+		if (section == null) {
 			return;
 		}
-		if (parent.getKind() == NodeKind.Section) {
-			Section section = (Section) parent;
+		if (section.getKind() == NodeKind.Section) {
 			boolean collect = true;
 			if (section.getSectionKind() == SectionKind.FOR || section.getSectionKind() == SectionKind.EACH) {
 				LoopSection iterableSection = ((LoopSection) section);
@@ -510,7 +508,7 @@ public class QuteCompletionsForExpression {
 				}
 			}
 		}
-		doCompleteExpressionForObjectPartWithParentNodes(part, parent, range, offset, projectUri, existingVars,
+		doCompleteExpressionForObjectPartWithParentNodes(part, section, range, offset, projectUri, existingVars,
 				completionSettings, formattingSettings, list);
 	}
 

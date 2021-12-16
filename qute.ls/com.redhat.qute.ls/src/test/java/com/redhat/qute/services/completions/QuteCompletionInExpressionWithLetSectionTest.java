@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests for Qute completion in expression for #set/#let section.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -91,11 +91,11 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 				"  Age: {age}\r\n" + //
 				"{/let}";
 		testCompletionFor(template, //
-				c("name : java.lang.String", "name", r(2, 16, 2, 16)), //
-				c("price : java.math.BigInteger", "price", r(2, 16, 2, 16)), //
-				c("review : org.acme.Review", "review", r(2, 16, 2, 16)), //
-				c("review2 : org.acme.Review", "review2", r(2, 16, 2, 16)), //
-				c("getReview2() : org.acme.Review", "getReview2", r(2, 16, 2, 16)));
+				c("name : String", "name", r(2, 16, 2, 16)), //
+				c("price : BigInteger", "price", r(2, 16, 2, 16)), //
+				c("review : Review", "review", r(2, 16, 2, 16)), //
+				c("review2 : Review", "review2", r(2, 16, 2, 16)), //
+				c("getReview2() : Review", "getReview2", r(2, 16, 2, 16)));
 	}
 
 	@Test
@@ -119,7 +119,7 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 				"  Age: {age}\r\n" + //
 				"{/let}";
 		testCompletionFor(template, //
-				c("name : java.lang.String", "name", r(2, 16, 2, 16)));
+				c("name : String", "name", r(2, 16, 2, 16)));
 	}
 
 	@Test
