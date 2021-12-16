@@ -13,12 +13,13 @@ package com.redhat.qute.commons;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
 /**
  * Java method information.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -34,34 +35,61 @@ public class JavaMethodInfo extends JavaMemberInfo {
 
 	/**
 	 * Returns the Java method signature.
-	 * 
+	 *
 	 * Example:
-	 * 
+	 *
 	 * <code>
 	 * find(query : java.lang.String, params : java.util.Map<java.lang.String,java.lang.Object>) : io.quarkus.hibernate.orm.panache.PanacheQuery<T>
 	 * </code>
-	 * 
+	 *
 	 * @return the Java method signature.
 	 */
+	@Override
 	public String getSignature() {
 		return super.getSignature();
 	}
 
 	/**
-	 * Returns the method name.
-	 * 
+	 * Returns the Java method signature with simple names.
+	 *
 	 * Example:
-	 * 
+	 *
+	 * <code>
+	 * find(query : String, params : Map<String,Object>) : PanacheQuery<T>
+	 * </code>
+	 *
+	 * @return the Java method signature.
+	 */
+	public String getSimpleSignature() {
+		StringBuilder simpleSignatureBuilder = new StringBuilder();
+		simpleSignatureBuilder.append(getName());
+		simpleSignatureBuilder.append("(");
+		List<JavaParameterInfo> parameters = getParameters();
+		StringJoiner commaJoiner = new StringJoiner(", ");
+		for (JavaParameterInfo parameter : parameters) {
+			commaJoiner.add(parameter.getSimpleParameter());
+		}
+		simpleSignatureBuilder.append(commaJoiner.toString());
+		simpleSignatureBuilder.append(") : ");
+		simpleSignatureBuilder.append(super.getSimpleType(getReturnType()));
+		return simpleSignatureBuilder.toString();
+	}
+
+	/**
+	 * Returns the method name.
+	 *
+	 * Example:
+	 *
 	 * <code>
 	 *  find
 	 *  </code>
-	 * 
+	 *
 	 * from the given signature:
-	 * 
+	 *
 	 * <code>
 	 * find(query : java.lang.String, params : java.util.Map<java.lang.String,java.lang.Object>) : io.quarkus.hibernate.orm.panache.PanacheQuery<T>
 	 * </code>
-	 * 
+	 *
 	 * @return the method name.
 	 */
 	@Override
@@ -77,22 +105,22 @@ public class JavaMethodInfo extends JavaMemberInfo {
 		}
 		return methodName;
 	}
-	
+
 	/**
 	 * Returns the method return Java type and null otherwise.
-	 * 
+	 *
 	 * Example:
-	 * 
+	 *
 	 * <code>
 	 *  io.quarkus.hibernate.orm.panache.PanacheQuery<T>
 	 *  </code>
-	 * 
+	 *
 	 * from the given signature:
-	 * 
+	 *
 	 * <code>
 	 * find(query : java.lang.String, params : java.util.Map<java.lang.String,java.lang.Object>) : io.quarkus.hibernate.orm.panache.PanacheQuery<T>
 	 * </code>
-	 * 
+	 *
 	 * @return the method return Java type and null otherwise.
 	 */
 	public String getReturnType() {
@@ -107,7 +135,7 @@ public class JavaMethodInfo extends JavaMemberInfo {
 
 	/**
 	 * Returns the getter name of the method name.
-	 * 
+	 *
 	 * @return the getter name of the method name.
 	 */
 	public String getGetterName() {
@@ -136,7 +164,7 @@ public class JavaMethodInfo extends JavaMemberInfo {
 
 	/**
 	 * Returns true if the method have parameters and false otherwise.
-	 * 
+	 *
 	 * @return true if the method have parameters and false otherwise.
 	 */
 	public boolean hasParameters() {
@@ -148,9 +176,9 @@ public class JavaMethodInfo extends JavaMemberInfo {
 
 	/**
 	 * Returns the Java method parameter at the given index and null otherwise.
-	 * 
+	 *
 	 * @param index the method parameter index
-	 * 
+	 *
 	 * @return the Java method parameter at the given index and null otherwise.
 	 */
 	public JavaParameterInfo getParameterAt(int index) {
@@ -160,7 +188,7 @@ public class JavaMethodInfo extends JavaMemberInfo {
 
 	/**
 	 * Returns the method parameters.
-	 * 
+	 *
 	 * @return the method parameters.
 	 */
 	public List<JavaParameterInfo> getParameters() {
@@ -249,3 +277,4 @@ public class JavaMethodInfo extends JavaMemberInfo {
 		return b.toString();
 	}
 }
+

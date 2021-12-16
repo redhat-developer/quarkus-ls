@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests for Qute completion in expression for #with section.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -33,10 +33,10 @@ public class QuteCompletionInExpressionWithWithSectionTest {
 				"{/with}";
 		testCompletionFor(template, //
 				c("item", "item", r(2, 7, 2, 7)), //
-				c("name : java.lang.String", "name", r(2, 7, 2, 7)), //
-				c("price : java.math.BigInteger", "price", r(2, 7, 2, 7)), //
-				c("review : org.acme.Review", "review", r(2, 7, 2, 7)), //
-				c("review2 : org.acme.Review", "review2", r(2, 7, 2, 7)), //
-				c("getReview2() : org.acme.Review", "getReview2", r(2, 7, 2, 7)));
+				c("name : String", "name", r(2, 7, 2, 7)), //
+				c("price : BigInteger", "price", r(2, 7, 2, 7)), //
+				c("review : Review", "review", r(2, 7, 2, 7)), //
+				c("review2 : Review", "review2", r(2, 7, 2, 7)), //
+				c("getReview2() : Review", "getReview2", r(2, 7, 2, 7)));
 	}
 }

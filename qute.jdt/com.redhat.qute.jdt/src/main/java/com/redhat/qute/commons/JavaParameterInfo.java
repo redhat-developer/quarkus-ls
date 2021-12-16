@@ -13,11 +13,11 @@ package com.redhat.qute.commons;
 
 /**
  * Java method parameter or type parameter (generic) information.
- * 
+ *
  * @author Angelo ZERR
  *
  */
-public class JavaParameterInfo {
+public class JavaParameterInfo extends JavaElementInfo {
 
 	private final String name;
 
@@ -30,20 +30,50 @@ public class JavaParameterInfo {
 
 	/**
 	 * Returns the parameter name.
-	 * 
+	 *
 	 * @return the parameter name.
 	 */
+	@Override
 	public String getName() {
 		return name;
 	}
 
 	/**
 	 * Returns the parameter Java type.
-	 * 
+	 *
 	 * @return the parameter Java type.
 	 */
 	public String getType() {
 		return type;
+	}
+
+	/**
+	 * Returns the Java parameter signature with a simple type.
+	 *
+	 * Example:
+	 *
+	 * <code>
+	 * query : String
+	 * </code>
+	 *
+	 * @return the Java method signature with simple type.
+	 */
+	public String getSimpleParameter() {
+		StringBuilder paramBuilder = new StringBuilder();
+		paramBuilder.append(name);
+		paramBuilder.append(" : ");
+		paramBuilder.append(getSimpleType(type));
+		return paramBuilder.toString();
+	}
+
+	@Override
+	public JavaElementKind getJavaElementKind() {
+		return JavaElementKind.PARAMETER;
+	}
+
+	@Override
+	public String getJavaElementType() {
+		return getType();
 	}
 
 }
