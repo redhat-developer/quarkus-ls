@@ -43,7 +43,7 @@ public class TemplateGetResolvedJavaTypeTest {
 				QuteMavenProjectName.qute_quickstart);
 		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new NullProgressMonitor());
-		Assert.assertEquals("java.lang.Iterable", result.getSignature());
+		Assert.assertEquals("java.lang.Iterable<T>", result.getSignature());
 		Assert.assertTrue(result.isIterable());
 		Assert.assertEquals("java.lang.Iterable", result.getIterableType());
 		Assert.assertEquals("java.lang.Object", result.getIterableOf());
@@ -51,25 +51,25 @@ public class TemplateGetResolvedJavaTypeTest {
 		params = new QuteResolvedJavaTypeParams("Iterable", QuteMavenProjectName.qute_quickstart);
 		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new NullProgressMonitor());
-		Assert.assertEquals("Iterable", result.getSignature());
+		Assert.assertEquals("java.lang.Iterable<T>", result.getSignature());
 		Assert.assertTrue(result.isIterable());
-		Assert.assertEquals("Iterable", result.getIterableType());
+		Assert.assertEquals("java.lang.Iterable", result.getIterableType());
 		Assert.assertEquals("java.lang.Object", result.getIterableOf());
 
 		params = new QuteResolvedJavaTypeParams("Iterable<String>", QuteMavenProjectName.qute_quickstart);
 		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new NullProgressMonitor());
-		Assert.assertEquals("Iterable<String>", result.getSignature());
+		Assert.assertEquals("java.lang.Iterable<java.lang.String>", result.getSignature());
 		Assert.assertTrue(result.isIterable());
-		Assert.assertEquals("Iterable", result.getIterableType());
-		Assert.assertEquals("String", result.getIterableOf());
+		Assert.assertEquals("java.lang.Iterable", result.getIterableType());
+		Assert.assertEquals("java.lang.String", result.getIterableOf());
 
 		params = new QuteResolvedJavaTypeParams("Iterable<java.lang.String>", QuteMavenProjectName.qute_quickstart);
 		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new NullProgressMonitor());
-		Assert.assertEquals("Iterable<java.lang.String>", result.getSignature());
+		Assert.assertEquals("java.lang.Iterable<java.lang.String>", result.getSignature());
 		Assert.assertTrue(result.isIterable());
-		Assert.assertEquals("Iterable", result.getIterableType());
+		Assert.assertEquals("java.lang.Iterable", result.getIterableType());
 		Assert.assertEquals("java.lang.String", result.getIterableOf());
 
 		params = new QuteResolvedJavaTypeParams("java.lang.Iterable<java.lang.String>",
@@ -91,7 +91,7 @@ public class TemplateGetResolvedJavaTypeTest {
 				QuteMavenProjectName.qute_quickstart);
 		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new NullProgressMonitor());
-		Assert.assertEquals("java.util.List", result.getSignature());
+		Assert.assertEquals("java.util.List<E>", result.getSignature());
 		Assert.assertTrue(result.isIterable());
 		Assert.assertEquals("java.util.List", result.getIterableType());
 		Assert.assertEquals("java.lang.Object", result.getIterableOf());
@@ -162,18 +162,51 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertEquals("java.lang.String", result.getFields().get(0).getType());
 		Assert.assertEquals("price", result.getFields().get(1).getName());
 		Assert.assertEquals("java.math.BigDecimal", result.getFields().get(1).getType());
-		
+
 		// Methods
 		Assert.assertNotNull(result.getMethods());
 		Assert.assertEquals(1, result.getMethods().size());
 		Assert.assertEquals("getDerivedItems() : org.acme.qute.Item[]", result.getMethods().get(0).getSignature());
-		
+
 		// Invalid methods(static method)
 		JavaMethodInfo discountedPriceMethod = result.findMethod("staticMethod");
 		Assert.assertNull(discountedPriceMethod);
 		InvalidMethodReason reason = result.getInvalidMethodReason("staticMethod");
 		Assert.assertEquals(InvalidMethodReason.Static, reason);
 
+	}
+
+	@Test
+	public void itemArray() throws Exception {
+
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.Item[]",
+				QuteMavenProjectName.qute_quickstart);
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
+				new NullProgressMonitor());
+		Assert.assertNotNull(result);
+		Assert.assertEquals("org.acme.qute.Item[]", result.getSignature());
+		Assert.assertTrue(result.isIterable());
+		Assert.assertNull(result.getIterableType());
+		Assert.assertEquals("org.acme.qute.Item", result.getIterableOf());
+
+	}
+
+	@Test
+	public void stringArray() throws Exception {
+
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("String[]",
+				QuteMavenProjectName.qute_quickstart);
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
+				new NullProgressMonitor());
+		Assert.assertNotNull(result);
+		Assert.assertEquals("java.lang.String[]", result.getSignature());
+		Assert.assertTrue(result.isIterable());
+		Assert.assertNull(result.getIterableType());
+		Assert.assertEquals("java.lang.String", result.getIterableOf());
 	}
 
 	@Test

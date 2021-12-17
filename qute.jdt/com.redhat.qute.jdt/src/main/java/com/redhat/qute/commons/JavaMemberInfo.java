@@ -50,4 +50,17 @@ public abstract class JavaMemberInfo extends JavaElementInfo {
 		return resolvedType != null ? resolvedType.getSignature() : null;
 	}
 
+	/**
+	 * Resolve the element type which could use generic by using the given argument
+	 * java type.
+	 * 
+	 * @param argType the argument Java type.
+	 * 
+	 * @return the element type which could use generic by using the given argument
+	 *         java type.
+	 */
+	public String resolveJavaElementType(ResolvedJavaTypeInfo argType) {
+		return getJavaElementType();
+	}
+
 }

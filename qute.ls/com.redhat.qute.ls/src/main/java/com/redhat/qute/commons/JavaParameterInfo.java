@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.commons;
 
+import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+
 /**
  * Java method parameter or type parameter (generic) information.
  *
@@ -22,6 +24,8 @@ public class JavaParameterInfo extends JavaElementInfo {
 	private final String name;
 
 	private final String type;
+
+	private transient JavaTypeInfo javaType;
 
 	public JavaParameterInfo(String name, String type) {
 		this.name = name;
@@ -39,12 +43,25 @@ public class JavaParameterInfo extends JavaElementInfo {
 	}
 
 	/**
-	 * Returns the parameter Java type.
+	 * Returns the Java type parameter as String.
 	 *
-	 * @return the parameter Java type.
+	 * @return the Java type parameter as String.
 	 */
 	public String getType() {
 		return type;
+	}
+
+	/**
+	 * Returns the Java type parameter.
+	 *
+	 * @return the Java type parameter.
+	 */
+	public JavaTypeInfo getJavaType() {
+		if (javaType == null) {
+			javaType = new JavaTypeInfo();
+			javaType.setSignature(getType());
+		}
+		return javaType;
 	}
 
 	/**
@@ -74,6 +91,15 @@ public class JavaParameterInfo extends JavaElementInfo {
 	@Override
 	public String getJavaElementType() {
 		return getType();
+	}
+
+	@Override
+	public String toString() {
+		ToStringBuilder b = new ToStringBuilder(this);
+		b.add("name", this.getName());
+		b.add("type", this.getType());
+		b.add("signature", this.getSignature());
+		return b.toString();
 	}
 
 }

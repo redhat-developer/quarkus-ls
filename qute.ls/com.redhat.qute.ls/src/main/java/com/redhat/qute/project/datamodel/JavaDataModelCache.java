@@ -21,6 +21,7 @@ import org.eclipse.lsp4j.Location;
 
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaMemberInfo;
+import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
@@ -61,8 +62,72 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return projectRegistry.getJavaDefinition(params);
 	}
 
-	public List<ValueResolver> getResolversFor(ResolvedJavaTypeInfo javaType) {
-		return valueResolversRegistry.getResolversFor(javaType);
+	public List<ValueResolver> getResolversFor(ResolvedJavaTypeInfo javaType, String projectUri) {
+		List<ValueResolver> matches = new ArrayList<>();
+		for (ValueResolver resolver : valueResolversRegistry.getResolvers()) {
+			if (matchResolver(javaType, resolver, projectUri)) {
+				matches.add(resolver);
+			}
+		}
+
+		List<ValueResolver> allResolvers = getValueResolvers(projectUri).getNow(null);
+		if (allResolvers != null) {
+			for (ValueResolver resolver : allResolvers) {
+				if (resolver.getNamespace() == null && matchResolver(javaType, resolver, projectUri)) {
+					matches.add(resolver);
+				}
+			}
+		}
+		return matches;
+	}
+
+	/**
+	 * Returns true if the given java type match the value resolver (if the type
+	 * matches the first parameter of the value resolver method) and false
+	 * otherwise.
+	 * 
+	 * @param javaType   the java type.
+	 * @param resolver   the value resolver.
+	 * @param projectUri the project Uri.
+	 * 
+	 * @return true if the given java type match the value resolver (if the type
+	 *         matches the first parameter of the value resolver method) and false
+	 *         otherwise.
+	 */
+	private boolean matchResolver(ResolvedJavaTypeInfo javaType, ValueResolver resolver, String projectUri) {
+		// Example with following signature:
+		// "orEmpty(arg : java.util.List<T>) : java.lang.Iterable<T>"
+		JavaParameterInfo parameter = resolver.getParameterAt(0); // arg : java.util.List<T>
+		if (parameter == null) {
+			return false;
+		}
+		if (parameter.getJavaType().isSingleGenericType()) {
+			// <T>
+			return true;
+		}
+		String parameterType = parameter.getJavaType().getName();
+		String resolvedTypeName = javaType.getName();
+		if (parameterType.equals(resolvedTypeName)) {
+			return true;
+		}
+		if (javaType.getExtendedTypes() != null) {
+			for (String extendedType : javaType.getExtendedTypes()) {
+				if (parameterType.equals(extendedType)) {
+					return true;
+				}
+			}
+		}
+		if (!javaType.getTypeParameters().isEmpty()) {
+			ResolvedJavaTypeInfo result = resolveJavaType(resolvedTypeName, projectUri).getNow(null);
+			if (result != null && result.getExtendedTypes() != null) {
+				for (String extendedType : result.getExtendedTypes()) {
+					if (parameterType.equals(extendedType)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className, String projectUri) {
@@ -115,7 +180,7 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		if (member == null) {
 			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 		}
-		String memberType = member.getJavaElementType();
+		String memberType = member.resolveJavaElementType(resolvedType);
 		return resolveJavaType(memberType, projectUri);
 	}
 
@@ -230,6 +295,7 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 				}
 			}
 		}
+		// Search in value resolver
 		return findValueResolver(property, resolvedType, projectUri);
 	}
 
@@ -260,13 +326,14 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 	}
 
 	public ValueResolver findValueResolver(String property, ResolvedJavaTypeInfo resolvedType, String projectUri) {
-		// Search in value resolvers (ex : orEmpty, take, etc)
-		List<ValueResolver> resolvers = valueResolversRegistry.getResolversFor(resolvedType);
+		// Search in static value resolvers (ex : orEmpty, take, etc)
+		List<ValueResolver> resolvers = getResolversFor(resolvedType, projectUri);
 		for (ValueResolver resolver : resolvers) {
 			if (resolver.match(property)) {
 				return resolver;
 			}
 		}
+		// Search in template extension value resolvers retrieved by @TemplateExtension
 		resolvers = getValueResolvers(projectUri).getNow(null);
 		if (resolvers != null) {
 			for (ValueResolver resolver : resolvers) {
@@ -299,27 +366,6 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 				}
 			}
 			return namespaceResolvers;
-		}
-		return Collections.emptyList();
-	}
-
-	/**
-	 * Returns template extenstion resolvers from the given Qute project Uri.
-	 * 
-	 * @param projectUri the Qute project Uri
-	 * 
-	 * @return template extenstion resolvers from the given Qute project Uri.
-	 */
-	public List<ValueResolver> getTemplateExtensionResolvers(String projectUri) {
-		List<ValueResolver> allResolvers = getValueResolvers(projectUri).getNow(null);
-		if (allResolvers != null) {
-			List<ValueResolver> noNamespaceResolvers = new ArrayList<>();
-			for (ValueResolver resolver : allResolvers) {
-				if (resolver.getNamespace() == null) {
-					noNamespaceResolvers.add(resolver);
-				}
-			}
-			return noNamespaceResolvers;
 		}
 		return Collections.emptyList();
 	}

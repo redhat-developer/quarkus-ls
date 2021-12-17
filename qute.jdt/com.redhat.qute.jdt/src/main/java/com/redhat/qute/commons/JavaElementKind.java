@@ -13,7 +13,7 @@ package com.redhat.qute.commons;
 
 /**
  * Java element kind.
- * 
+ *
  * @author Angelo ZERR
  *
  */

@@ -25,7 +25,6 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
@@ -37,6 +36,7 @@ import org.eclipse.jdt.internal.core.search.BasicSearchEngine;
 
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
+import com.redhat.qute.jdt.internal.resolver.AbstractTypeResolver;
 
 /**
  * Java types search for a given pattern and project Uri.
@@ -81,7 +81,8 @@ public class JavaTypesSearch {
 					}
 				} catch (JavaModelException e) {
 					LOGGER.log(Level.SEVERE, "Error while getting inner class for '" + packageName + "'.", e);
-				}			}
+				}
+			}
 		}
 
 		typeName += "*";
@@ -152,25 +153,14 @@ public class JavaTypesSearch {
 					@Override
 					public void acceptTypeNameMatch(TypeNameMatch match) {
 						IType type = (IType) match.getType();
-						StringBuilder typeName = new StringBuilder(type.getFullyQualifiedName('.'));
+						String typeSignature = AbstractTypeResolver.resolveJavaTypeSignature(type);
+
+						JavaTypeInfo classInfo = new JavaTypeInfo();
+						classInfo.setSignature(typeSignature);
+						javaTypes.add(classInfo);
 
 						try {
-							ITypeParameter[] parameters = type.getTypeParameters();
-							if (parameters.length > 0) {
-								typeName.append("<");
-								for (int i = 0; i < parameters.length; i++) {
-									if (i > 0) {
-										typeName.append(",");
-									}
-									typeName.append(parameters[i].getElementName());
-								}
-								typeName.append(">");
-							}
-
-							JavaTypeInfo classInfo = new JavaTypeInfo();
 							classInfo.setKind(type.isInterface() ? JavaTypeKind.Interface : JavaTypeKind.Class);
-							classInfo.setSignature(typeName.toString());
-							javaTypes.add(classInfo);
 						} catch (JavaModelException e) {
 							LOGGER.log(Level.SEVERE, "Error while collecting Java Types for '" + packageName
 									+ " package and Java type '" + typeName + "'.", e);

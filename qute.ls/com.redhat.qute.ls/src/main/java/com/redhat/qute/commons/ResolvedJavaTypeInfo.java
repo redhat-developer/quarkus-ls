@@ -14,6 +14,8 @@ package com.redhat.qute.commons;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+
 /**
  * Resolved Java type information.
  * 
@@ -21,6 +23,10 @@ import java.util.List;
  *
  */
 public class ResolvedJavaTypeInfo extends JavaTypeInfo {
+
+	private static final String ITERABLE_TYPE = "Iterable";
+
+	private static final String JAVA_LANG_ITERABLE_TYPE = "java.lang.Iterable";
 
 	private List<String> extendedTypes;
 
@@ -145,10 +151,10 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		if (iterableOf != null) {
 			return true;
 		}
-		boolean iterable = getSignature().equals("java.lang.Iterable");
+		boolean iterable = getName().equals(JAVA_LANG_ITERABLE_TYPE);
 		if (!iterable && extendedTypes != null) {
 			for (String extendedType : extendedTypes) {
-				if ("Iterable".equals(extendedType) || extendedType.equals("java.lang.Iterable")) {
+				if (ITERABLE_TYPE.equals(extendedType) || extendedType.equals(JAVA_LANG_ITERABLE_TYPE)) {
 					iterable = true;
 					break;
 				}
@@ -157,7 +163,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
 		if (iterable) {
 			this.iterableOf = "java.lang.Object";
-			this.iterableType = getSignature();
+			this.iterableType = getName();
 		}
 		return iterable;
 	}
@@ -245,6 +251,16 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
 	private static boolean isEmpty(String value) {
 		return value == null || value.isEmpty();
+	}
+
+	@Override
+	public String toString() {
+		ToStringBuilder b = new ToStringBuilder(this);
+		b.add("name", this.getName());
+		b.add("signature", this.getSignature());
+		b.add("iterableOf", this.getIterableOf());
+		b.add("iterableType", this.getIterableType());
+		return b.toString();
 	}
 
 }

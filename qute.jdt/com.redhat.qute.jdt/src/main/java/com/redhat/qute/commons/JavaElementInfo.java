@@ -11,9 +11,11 @@
 *******************************************************************************/
 package com.redhat.qute.commons;
 
+import java.util.StringJoiner;
+
 /**
- * Base class for Java element (Java types, methods, fields)
- * 
+ * Base class for Java element (Java types, methods, fields, parameters)
+ *
  * @author Angelo ZERR
  *
  */
@@ -27,7 +29,7 @@ public abstract class JavaElementInfo {
 
 	/**
 	 * Returns the Java element signature.
-	 * 
+	 *
 	 * @return the Java element signature.
 	 */
 	public String getSignature() {
@@ -36,7 +38,7 @@ public abstract class JavaElementInfo {
 
 	/**
 	 * Set the Java element signature.
-	 * 
+	 *
 	 * @param signature the Java element signature.
 	 */
 	public void setSignature(String signature) {
@@ -45,7 +47,7 @@ public abstract class JavaElementInfo {
 
 	/**
 	 * Returns the Java element documentation and null otherwise.
-	 * 
+	 *
 	 * @return the Java element documentation and null otherwise.
 	 */
 	public String getDocumentation() {
@@ -54,7 +56,7 @@ public abstract class JavaElementInfo {
 
 	/**
 	 * Set the Java element documentation.
-	 * 
+	 *
 	 * @param documentation the Java element documentation.
 	 */
 	public void setDocumentation(String documentation) {
@@ -63,28 +65,28 @@ public abstract class JavaElementInfo {
 
 	/**
 	 * Returns the Java element name.
-	 * 
+	 *
 	 * @return the Java element name.
 	 */
 	public abstract String getName();
 
 	/**
 	 * Returns the Java element kind (type, method, field).
-	 * 
+	 *
 	 * @return the Java element kind (type, method, field).
 	 */
 	public abstract JavaElementKind getJavaElementKind();
 
 	/**
 	 * Returns the Java element type.
-	 * 
+	 *
 	 * @return the Java element type.
 	 */
 	public abstract String getJavaElementType();
 
 	/**
 	 * Returns the simple (without packages) element type and null otherwise.
-	 * 
+	 *
 	 * @return the simple (without packages) element type and null otherwise.
 	 */
 	public String getJavaElementSimpleType() {
@@ -94,19 +96,19 @@ public abstract class JavaElementInfo {
 
 	/**
 	 * Returns the simple type of the given type. Example:
-	 * 
+	 *
 	 * <p>
 	 * java.util.List<org.acme.Item>
 	 * </p>
-	 * 
+	 *
 	 * becomes
-	 * 
+	 *
 	 * <p>
 	 * List<Item>
 	 * </p>
-	 * 
+	 *
 	 * @param type the Java type.
-	 * 
+	 *
 	 * @return the simple type of the given type.
 	 */
 	public static String getSimpleType(String type) {
@@ -116,9 +118,20 @@ public abstract class JavaElementInfo {
 		int startBracketIndex = type.indexOf('<');
 		if (startBracketIndex != -1) {
 			int endBracketIndex = type.indexOf('>', startBracketIndex);
-			String generic = getSimpleTypeWithoutGeneric(type.substring(startBracketIndex + 1, endBracketIndex));
-			String mainType = getSimpleTypeWithoutGeneric(type.substring(0, startBracketIndex));
-			return mainType + '<' + generic + '>';
+			// Main type
+			StringBuilder simpleType = new StringBuilder(
+					getSimpleTypeWithoutGeneric(type.substring(0, startBracketIndex)));
+			// Generic type
+			simpleType.append('<');
+			String[] generics = type.substring(startBracketIndex + 1, endBracketIndex).split(",");
+			StringJoiner commaJoiner = new StringJoiner(",");
+			for (String generic : generics) {
+				commaJoiner.add(getSimpleTypeWithoutGeneric(generic));
+			}
+			simpleType.append(commaJoiner.toString());
+			simpleType.append('>');
+
+			return simpleType.toString();
 		}
 		return getSimpleTypeWithoutGeneric(type);
 	}
@@ -127,4 +140,5 @@ public abstract class JavaElementInfo {
 		int index = type.lastIndexOf('.');
 		return index != -1 ? type.substring(index + 1, type.length()) : type;
 	}
+
 }

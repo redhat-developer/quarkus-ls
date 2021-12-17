@@ -58,10 +58,10 @@ import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
+import com.redhat.qute.jdt.internal.resolver.AbstractTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.ClassFileTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.CompilationUnitTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
-import com.redhat.qute.jdt.internal.template.CheckedTemplateSupport;
 import com.redhat.qute.jdt.internal.template.JavaTypesSearch;
 import com.redhat.qute.jdt.internal.template.QuarkusIntegrationForQute;
 import com.redhat.qute.jdt.internal.template.TemplateDataSupport;
@@ -305,18 +305,23 @@ public class QuteSupportForTemplate {
 			}
 
 			String iterableOf = typeName.substring(index + 1, typeName.length() - 1);
+			iterableOf = getFullQualifiedName(monitor, javaProject, iterableOf);
+			iterableClassName = iterableType.getFullyQualifiedName('.');
+			typeName = iterableClassName + "<" + iterableOf + ">";
 			return createIterableType(typeName, iterableClassName, iterableOf);
 		} else if (typeName.endsWith("[]")) {
 			// ex : org.acme.Item[]
-			String iterableOfClassName = typeName.substring(0, typeName.length() - 2);
-			IType iterableOf = findType(iterableOfClassName, javaProject, monitor);
-			if (iterableOf == null) {
+			String iterableOf = typeName.substring(0, typeName.length() - 2);
+			IType iterableOfType = findType(iterableOf, javaProject, monitor);
+			if (iterableOfType == null) {
 				return null;
 			}
-			return createIterableType(typeName, null, iterableOfClassName);
+			iterableOf = getFullQualifiedName(monitor, javaProject, iterableOf);
+			typeName = iterableOf + "[]";
+			return createIterableType(typeName, null, iterableOf);
 		}
 
-		// ex : org.acme.Item
+		// ex : org.acme.Item, java.util.List, ...
 		IType type = findType(typeName, javaProject, monitor);
 		if (type == null) {
 			return null;
@@ -393,12 +398,25 @@ public class QuteSupportForTemplate {
 		}
 
 		ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
-		resolvedType.setSignature(typeName);
+		String typeSignature = AbstractTypeResolver.resolveJavaTypeSignature(type);
+		resolvedType.setSignature(typeSignature);
 		resolvedType.setFields(fieldsInfo);
 		resolvedType.setMethods(methodsInfo);
 		resolvedType.setInvalidMethods(invalidMethods);
 		resolvedType.setExtendedTypes(extendedTypes);
 		return resolvedType;
+	}
+
+	private String getFullQualifiedName(IProgressMonitor monitor, IJavaProject javaProject, String name)
+			throws JavaModelException {
+		if (name.indexOf('.') != -1) {
+			return name;
+		}
+		IType nameType = findType(name, javaProject, monitor);
+		if (nameType != null && nameType.exists()) {
+			return AbstractTypeResolver.resolveJavaTypeSignature(nameType);
+		}
+		return name;
 	}
 
 	private IType findType(String className, IJavaProject javaProject, IProgressMonitor monitor)

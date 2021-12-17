@@ -74,20 +74,20 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	private final Map<String /* project uri */, QuteProject> projects;
 
-	private final QuteResolvedJavaTypeProvider resolvedClassProvider;
+	private final QuteResolvedJavaTypeProvider resolvedTypeProvider;
 
 	private final QuteDataModelProjectProvider dataModelProvider;
 
-	private final QuteJavaTypesProvider classProvider;
+	private final QuteJavaTypesProvider javaTypeProvider;
 
 	private final QuteJavaDefinitionProvider definitionProvider;
 
 	public QuteProjectRegistry(QuteJavaTypesProvider classProvider, QuteJavaDefinitionProvider definitionProvider,
 			QuteResolvedJavaTypeProvider resolvedClassProvider, QuteDataModelProjectProvider dataModelProvider) {
-		this.classProvider = classProvider;
+		this.javaTypeProvider = classProvider;
 		this.definitionProvider = definitionProvider;
 		this.projects = new HashMap<>();
-		this.resolvedClassProvider = resolvedClassProvider;
+		this.resolvedTypeProvider = resolvedClassProvider;
 		this.dataModelProvider = dataModelProvider;
 	}
 
@@ -185,7 +185,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		CompletableFuture<ResolvedJavaTypeInfo> future = project.getResolvedJavaType(javaTypeName);
 		if (future == null || future.isCancelled() || future.isCompletedExceptionally()) {
 			QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams(javaTypeName, projectUri);
-			future = getResolvedJavaClass(params) //
+			future = getResolvedJavaType(params) //
 					.thenCompose(c -> {
 						if (c != null) {
 							// Update members with the resolved class
@@ -221,8 +221,8 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		return future;
 	}
 
-	protected CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaClass(QuteResolvedJavaTypeParams params) {
-		return resolvedClassProvider.getResolvedJavaType(params);
+	protected CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaType(QuteResolvedJavaTypeParams params) {
+		return resolvedTypeProvider.getResolvedJavaType(params);
 	}
 
 	public void dataModelChanged(JavaDataModelChangeEvent event) {
@@ -272,7 +272,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	}
 
 	public CompletableFuture<List<JavaTypeInfo>> getJavaTypes(QuteJavaTypesParams params) {
-		return classProvider.getJavaTypes(params);
+		return javaTypeProvider.getJavaTypes(params);
 	}
 
 	public CompletableFuture<Location> getJavaDefinition(QuteJavaDefinitionParams params) {
