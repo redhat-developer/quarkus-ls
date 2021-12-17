@@ -68,7 +68,7 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	}
 
 	@Override
-	protected CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaClass(QuteResolvedJavaTypeParams params) {
+	protected CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaType(QuteResolvedJavaTypeParams params) {
 		MockQuteProject project = (MockQuteProject) getProject(params.getProjectUri());
 		if (project == null) {
 			return CompletableFuture.completedFuture(null);
@@ -108,6 +108,13 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 			}
 
 			if (definitionRange != null) {
+				int index = className.indexOf('<');
+				if (index != -1) {
+					// ex : java.util.List<E>
+					// Remove generic
+					className = className.substring(0, index);
+				}
+				// ex : java/util/List.java
 				String javeFileUri = className.replaceAll("[.]", "/") + ".java";
 				Location location = new Location(javeFileUri, definitionRange);
 				return CompletableFuture.completedFuture(location);

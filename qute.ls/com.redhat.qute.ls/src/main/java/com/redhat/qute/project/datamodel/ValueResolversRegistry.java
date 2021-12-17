@@ -12,11 +12,9 @@
 package com.redhat.qute.project.datamodel;
 
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.Gson;
-import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.ValueResolver;
 
 public class ValueResolversRegistry {
@@ -30,14 +28,8 @@ public class ValueResolversRegistry {
 		this.resolvers = loader.getResolvers();
 	}
 
-	public List<ValueResolver> getResolversFor(ResolvedJavaTypeInfo javaType) {
-		List<ValueResolver> matches = new ArrayList<>();
-		for (ValueResolver resolver : resolvers) {
-			if (resolver.match(javaType)) {
-				matches.add(resolver);
-			}
-		}
-		return matches;
+	public List<ValueResolver> getResolvers() {
+		return resolvers;
 	}
 
 	private class ValueResolverLoader {

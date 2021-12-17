@@ -17,6 +17,8 @@ import java.util.logging.Logger;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 
@@ -29,6 +31,27 @@ import org.eclipse.jdt.core.Signature;
 public abstract class AbstractTypeResolver implements ITypeResolver {
 
 	private static final Logger LOGGER = Logger.getLogger(AbstractTypeResolver.class.getName());
+
+	public static String resolveJavaTypeSignature(IType type) {
+		StringBuilder typeName = new StringBuilder(type.getFullyQualifiedName('.'));
+		try {
+			ITypeParameter[] parameters = type.getTypeParameters();
+			if (parameters.length > 0) {
+				typeName.append("<");
+				for (int i = 0; i < parameters.length; i++) {
+					if (i > 0) {
+						typeName.append(",");
+					}
+					typeName.append(parameters[i].getElementName());
+				}
+				typeName.append(">");
+			}
+			return typeName.toString();
+		} catch (JavaModelException e) {
+			LOGGER.log(Level.SEVERE, "Error while collecting Java Types for Java type '" + typeName + "'.", e);
+		}
+		return typeName.toString();
+	}
 
 	@Override
 	public String resolveFieldSignature(IField field) {

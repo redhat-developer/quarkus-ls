@@ -1,7 +1,7 @@
 {
 	"resolvers": [
 		{
-			"signature": "orEmpty(arg : java.lang.Object) : java.util.List",
+			"signature": "orEmpty(arg : java.lang.Iterable<T>) : java.util.List<T>",
 			"description": "Outputs an empty list if the previous part cannot be resolved or resolves to null.",
 			"sample": [
 				"{#for pet in pets.orEmpty}{pet.name}",
@@ -10,7 +10,16 @@
 			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
 		},
 		{
-			"signature": "take(arg : java.lang.Iterable,n : java.lang.Integer)",
+			"signature": "orEmpty(arg : T) : java.util.List<T>",
+			"description": "Outputs an empty list if the previous part cannot be resolved or resolves to null.",
+			"sample": [
+				"{#for pet in pets.orEmpty}{pet.name}",
+				"{/for}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		{
+			"signature": "take(arg : java.util.List<T>, n : int) : java.util.List<T>",
 			"description": "Returns the first n elements from the given list; throws an IndexOutOfBoundsException if n is out of range",
 			"sample": [
 				"{#for r in recordsList.take(3)}"

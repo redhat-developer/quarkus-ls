@@ -176,7 +176,7 @@ public class JavaTypeInfo extends JavaElementInfo {
 			// ex query :
 			switch (c) {
 			case ',':
-				parameters.add(new JavaParameterInfo(paramName.toString(), ""));
+				parameters.add(new JavaParameterInfo(null, paramName.toString()));
 				paramName.setLength(0);
 				break;
 			default:
@@ -184,9 +184,54 @@ public class JavaTypeInfo extends JavaElementInfo {
 			}
 		}
 		if (paramName.length() > 0) {
-			parameters.add(new JavaParameterInfo(paramName.toString(), ""));
+			parameters.add(new JavaParameterInfo(null, paramName.toString()));
 		}
 		return parameters;
+	}
+
+	/**
+	 * Returns true if the java type is a generic type and false otherwise.
+	 * 
+	 * Returns true for :
+	 * 
+	 * <ul>
+	 * <li>T</li>
+	 * <li>java.util.List<T></li>
+	 * </ul>
+	 * 
+	 * @return true if the java type is a generic type and false otherwise.
+	 */
+	public boolean isGenericType() {
+		if (isSingleGenericType()) {
+			return true;
+		}
+
+		// ex : java.util.List<org.acme.Item>
+		// ex : java.util.List<T>
+		for (JavaParameterInfo parameter : getTypeParameters()) {
+			if (isTypeParameterName(parameter.getType())) {
+				// ex : T
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isSingleGenericType() {
+		if (getTypeParameters().isEmpty()) {
+			// ex : java.lang.String
+			// ex : T
+			if (isTypeParameterName(getName())) {
+				// ex : T
+				return true;
+			}			
+		}
+		return false;
+	}
+
+	private static boolean isTypeParameterName(String type) {
+		return type.indexOf('.') == -1 && !"boolean".equals(type) && !"byte".equals(type) && !"double".equals(type)
+				&& !"float".equals(type) && !"int".equals(type) && !"long".equals(type);
 	}
 
 	@Override
@@ -194,6 +239,7 @@ public class JavaTypeInfo extends JavaElementInfo {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("name", this.getName());
 		b.add("signature", this.getSignature());
+		b.add("genericType", this.isGenericType());
 		return b.toString();
 	}
 

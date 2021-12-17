@@ -179,28 +179,29 @@ public class QuteHover {
 							CompletableFuture<ResolvedJavaTypeInfo> iterableResolvedTypeFuture = javaCache
 									.resolveJavaType(iterableType, projectUri);
 							return iterableResolvedTypeFuture.thenApply((iterableResolvedType) -> {
-								return doHoverForPropertyPart(part, projectUri, iterableResolvedType, hoverRequest);
+								return doHoverForPropertyPart(part, projectUri, iterableResolvedType, resolvedJavaType,
+										hoverRequest);
 							});
 						}
 
-						Hover hover = doHoverForPropertyPart(part, projectUri, resolvedJavaType, hoverRequest);
+						Hover hover = doHoverForPropertyPart(part, projectUri, resolvedJavaType, null, hoverRequest);
 						return CompletableFuture.completedFuture(hover);
 					}
 					return NO_HOVER;
 				});
 	}
 
-	private Hover doHoverForPropertyPart(Part part, String projectUri, ResolvedJavaTypeInfo previousResolvedType,
-			HoverRequest hoverRequest) {
+	private Hover doHoverForPropertyPart(Part part, String projectUri, ResolvedJavaTypeInfo resolvedType,
+			ResolvedJavaTypeInfo iterableOfResolvedType, HoverRequest hoverRequest) {
 		// The Java class type from the previous part had been resolved, resolve the
 		// property
 		String property = part.getPartName();
-		JavaMemberInfo member = javaCache.findMember(property, previousResolvedType, projectUri);
+		JavaMemberInfo member = javaCache.findMember(property, resolvedType, projectUri);
 		if (member == null) {
 			return null;
 		}
 		boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
-		MarkupContent content = DocumentationUtils.getDocumentation(member, hasMarkdown);
+		MarkupContent content = DocumentationUtils.getDocumentation(member, iterableOfResolvedType, hasMarkdown);
 		Range range = QutePositionUtility.createRange(part);
 		return new Hover(content, range);
 	}

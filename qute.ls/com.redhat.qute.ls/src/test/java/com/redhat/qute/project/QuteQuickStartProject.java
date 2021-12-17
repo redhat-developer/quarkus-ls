@@ -80,14 +80,19 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerField("derivedItems : java.util.List<org.acme.Item>", item);
 		registerField("derivedItemArray : org.acme.Item[]", item);
 		item.setInvalidMethod("staticMethod", InvalidMethodReason.Static); // public static BigDecimal
-																				// staticMethod(Item item)
+																			// staticMethod(Item item)
 
 		createResolvedJavaTypeInfo("java.util.List<org.acme.Item>", "java.util.List", "org.acme.Item", cache);
+		createResolvedJavaTypeInfo("java.lang.Iterable<org.acme.Item>", "java.lang.Iterable", "org.acme.Item", cache);
 		createResolvedJavaTypeInfo("org.acme.Item[]", null, "org.acme.Item", cache);
 
-		ResolvedJavaTypeInfo list = createResolvedJavaTypeInfo("java.util.List", cache);
+		ResolvedJavaTypeInfo iterable = createResolvedJavaTypeInfo("java.lang.Iterable<T>", "java.lang.Iterable", "T",
+				cache);
+
+		ResolvedJavaTypeInfo list = createResolvedJavaTypeInfo("java.util.List<E>", "java.util.List", "E", cache);
 		list.setExtendedTypes(Arrays.asList("java.lang.Iterable"));
 		registerMethod("size() : int", list);
+		registerMethod("get(index : int) : E", list);
 
 		ResolvedJavaTypeInfo map = createResolvedJavaTypeInfo("java.util.Map", cache);
 
@@ -119,6 +124,8 @@ public class QuteQuickStartProject extends MockQuteProject {
 		List<ValueResolver> resolvers = new ArrayList<>();
 		resolvers.add(createValueResolver("discountedPrice(item : org.acme.Item) : java.math.BigDecimal",
 				"org.acme.ItemResource"));
+		resolvers.add(createValueResolver("get(list : java.util.List<T>, index : int) : T",
+				"io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions"));
 		return resolvers;
 	}
 

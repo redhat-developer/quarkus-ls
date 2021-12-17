@@ -222,14 +222,9 @@ public class QuteCompletionsForExpression {
 
 		// Completion for virtual methods (from value resolvers)
 
-		// Static value resolvers (orEmpty, etc)
-		List<ValueResolver> resolvers = javaCache.getResolversFor(resolvedType);
-		for (ValueResolver method : resolvers) {
-			fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
-		}
-
-		// Dynamic value resolvers (from @TemplateExtension)
-		resolvers = javaCache.getTemplateExtensionResolvers(projectUri);
+		// - Static value resolvers (orEmpty, etc)
+		// - Dynamic value resolvers (from @TemplateExtension)
+		List<ValueResolver> resolvers = javaCache.getResolversFor(resolvedType, projectUri);
 		for (ValueResolver method : resolvers) {
 			fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
 		}
@@ -360,14 +355,18 @@ public class QuteCompletionsForExpression {
 		String methodName = method.getName();
 		StringBuilder snippet = new StringBuilder(methodName);
 		if (method.hasParameters()) {
+			int start = 0;
+			if (method instanceof ValueResolver && ((ValueResolver) method).getNamespace() == null) {
+				start++;
+			}
 			snippet.append("(");
-			for (int i = 0; i < method.getParameters().size(); i++) {
-				if (i > 0) {
+			for (int i = start; i < method.getParameters().size(); i++) {
+				if (i > start) {
 					snippet.append(", ");
 				}
 				JavaParameterInfo parameter = method.getParameterAt(i);
 				if (snippetsSupported) {
-					SnippetsBuilder.placeholders(i + 1, parameter.getName(), snippet);
+					SnippetsBuilder.placeholders(i - start + 1, parameter.getName(), snippet);
 				} else {
 					snippet.append(parameter.getName());
 				}

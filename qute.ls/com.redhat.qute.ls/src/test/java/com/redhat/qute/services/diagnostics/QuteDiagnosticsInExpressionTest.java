@@ -266,14 +266,14 @@ public class QuteDiagnosticsInExpressionTest {
 				"{items.sizeXXX}";
 		testDiagnosticsFor(template, //
 				d(1, 7, 1, 14, QuteErrorCode.UnkwownProperty,
-						"`sizeXXX` cannot be resolved or is not a field of `java.util.List` Java type.",
+						"`sizeXXX` cannot be resolved or is not a field of `java.util.List<E>` Java type.",
 						DiagnosticSeverity.Error));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{items.sizeXXX()}";
 		testDiagnosticsFor(template, //
 				d(1, 7, 1, 14, QuteErrorCode.UnkwownMethod,
-						"`sizeXXX` cannot be resolved or is not a method of `java.util.List` Java type.",
+						"`sizeXXX` cannot be resolved or is not a method of `java.util.List<E>` Java type.",
 						DiagnosticSeverity.Error));
 	}
 
@@ -358,6 +358,13 @@ public class QuteDiagnosticsInExpressionTest {
 	public void virtualMethod() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"		{item.discountedPrice}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void listGeneric() throws Exception {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				"{items.get(0).name}";
 		testDiagnosticsFor(template);
 	}
 }

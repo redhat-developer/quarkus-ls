@@ -124,6 +124,18 @@ public class QuteCompletionInExpressionTest {
 	}
 
 	@Test
+	public void listGeneric() throws Exception {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				"{items.get(0).|}";
+		testCompletionFor(template, c("base : String", "base", r(1, 14, 1, 14)), // comes from BaseItem extended by Item
+				c("name : String", "name", r(1, 14, 1, 14)), //
+				c("price : BigInteger", "price", r(1, 14, 1, 14)), //
+				c("review : Review", "review", r(1, 14, 1, 14)), //
+				c("review2 : Review", "review2", r(1, 14, 1, 14)), //
+				c("getReview2() : Review", "getReview2", r(1, 14, 1, 14)));
+	}
+	
+	@Test
 	public void completionInExpressionNotClosedForPropertyPart() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.|";

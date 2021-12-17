@@ -54,6 +54,9 @@ public abstract class MockQuteProject extends QuteProject {
 		for (ResolvedJavaTypeInfo resolvedJavaType : resolvedTypesCache) {
 			if (typeName.equals(resolvedJavaType.getSignature())) {
 				return resolvedJavaType;
+			} else if (typeName.equals(resolvedJavaType.getIterableType()) && resolvedJavaType.getIterableOf().indexOf('.') == -1) {
+				// ex : java.util.List<T>
+				return resolvedJavaType;
 			}
 		}
 		return null;
@@ -95,11 +98,11 @@ public abstract class MockQuteProject extends QuteProject {
 		return createResolvedJavaTypeInfo(typeName, null, null, cache, extended);
 	}
 
-	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String typeName, String iterableType,
+	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String signature, String iterableType,
 			String iterableOf, List<ResolvedJavaTypeInfo> cache, ResolvedJavaTypeInfo... extended) {
 		ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
 		resolvedType.setKind(JavaTypeKind.Class);
-		resolvedType.setSignature(typeName);
+		resolvedType.setSignature(signature);
 		resolvedType.setIterableType(iterableType);
 		resolvedType.setIterableOf(iterableOf);
 		resolvedType.setFields(new ArrayList<>());

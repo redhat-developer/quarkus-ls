@@ -31,6 +31,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.ValueResolver;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
@@ -201,16 +202,16 @@ class QuteDiagnostics {
 						List<JavaTypeRangeOffset> classNameRanges = parameter.getJavaTypeNameRanges();
 						for (RangeOffset classNameRange : classNameRanges) {
 							String className = template.getText(classNameRange);
-							ResolvedJavaTypeInfo resolvedJavaClass = resolveJavaType(className, projectUri,
+							ResolvedJavaTypeInfo resolvedJavaType = resolveJavaType(className, projectUri,
 									resolvingJavaTypeContext);
-							if (resolvedJavaClass == null) {
+							if (resolvedJavaType == null) {
 								// Java type doesn't exist
 								Range range = QutePositionUtility.createRange(classNameRange, template);
 								Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
 										QuteErrorCode.UnkwownType, className);
 								diagnostics.add(diagnostic);
-							} else if (!isResolvingJavaType(resolvedJavaClass)) {
-								currentContext.put(javaTypeToResolve, resolvedJavaClass);
+							} else if (!isResolvingJavaType(resolvedJavaType)) {
+								currentContext.put(javaTypeToResolve, resolvedJavaType);
 							}
 						}
 					}
@@ -328,7 +329,7 @@ class QuteDiagnostics {
 	private ResolvedJavaTypeInfo validateExpressionParts(Parts parts, Section ownerSection, String projectUri,
 			ResolutionContext resolutionContext, ResolvingJavaTypeContext resolvingJavaTypeContext,
 			List<Diagnostic> diagnostics) {
-		ResolvedJavaTypeInfo resolvedJavaClass = null;
+		ResolvedJavaTypeInfo resolvedJavaType = null;
 		String namespace = null;
 		for (int i = 0; i < parts.getChildCount(); i++) {
 			Part current = ((Part) parts.getChild(i));
@@ -360,9 +361,9 @@ class QuteDiagnostics {
 
 			case Object: {
 				ObjectPart objectPart = (ObjectPart) current;
-				resolvedJavaClass = validateObjectPart(objectPart, ownerSection, projectUri, resolutionContext,
+				resolvedJavaType = validateObjectPart(objectPart, ownerSection, projectUri, resolutionContext,
 						diagnostics, resolvingJavaTypeContext);
-				if (resolvedJavaClass == null) {
+				if (resolvedJavaType == null) {
 					// The Java type of the object part cannot be resolved, stop the validation of
 					// property, method.
 					return null;
@@ -372,23 +373,25 @@ class QuteDiagnostics {
 
 			case Method:
 			case Property: {
-				if (resolvedJavaClass.isIterable()) {
+				// java.util.List<org.acme.Item>
+				ResolvedJavaTypeInfo iter = resolvedJavaType;
+				if (resolvedJavaType.isIterable()) {
 					// Expression uses iterable type
 					// {@java.util.List<org.acme.Item items>
 					// {items.size()}
 					// Property, method to validate must be done for iterable type (ex :
 					// java.util.List
-					String iterableType = resolvedJavaClass.getIterableType();
-					resolvedJavaClass = resolveJavaType(iterableType, projectUri, resolvingJavaTypeContext);
-					if (resolvedJavaClass == null || isResolvingJavaType(resolvedJavaClass)) {
+					String iterableType = resolvedJavaType.getIterableType();
+					resolvedJavaType = resolveJavaType(iterableType, projectUri, resolvingJavaTypeContext);
+					if (resolvedJavaType == null || isResolvingJavaType(resolvedJavaType)) {
 						// The java type doesn't exists or it is resolving, stop the validation
 						return null;
 					}
 				}
 
-				resolvedJavaClass = validatePropertyPart(current, ownerSection, projectUri, resolvedJavaClass,
+				resolvedJavaType = validatePropertyPart(current, ownerSection, projectUri, resolvedJavaType, iter,
 						diagnostics, resolvingJavaTypeContext);
-				if (resolvedJavaClass == null) {
+				if (resolvedJavaType == null) {
 					// The Java type of the previous part cannot be resolved, stop the validation of
 					// followings property, method.
 					return null;
@@ -397,7 +400,7 @@ class QuteDiagnostics {
 			}
 			}
 		}
-		return resolvedJavaClass;
+		return resolvedJavaType;
 	}
 
 	private ResolvedJavaTypeInfo resolveJavaType(String javaType, String projectUri,
@@ -508,10 +511,10 @@ class QuteDiagnostics {
 	}
 
 	private ResolvedJavaTypeInfo validatePropertyPart(Part part, Section ownerSection, String projectUri,
-			ResolvedJavaTypeInfo resolvedJavaClass, List<Diagnostic> diagnostics,
+			ResolvedJavaTypeInfo resolvedJavaType, ResolvedJavaTypeInfo iter, List<Diagnostic> diagnostics,
 			ResolvingJavaTypeContext resolvingJavaTypeContext) {
 		String property = part.getPartName();
-		JavaMemberInfo javaMember = javaCache.findMember(property, resolvedJavaClass, projectUri);
+		JavaMemberInfo javaMember = javaCache.findMember(property, resolvedJavaType, projectUri);
 		if (javaMember == null) {
 			IQuteErrorCode errorCode = null;
 			boolean isMethod = part.getPartKind() == PartKind.Method;
@@ -519,7 +522,7 @@ class QuteDiagnostics {
 				// ex : {@org.acme.Item item}
 				// "{item.getXXXX()}
 				errorCode = QuteErrorCode.UnkwownMethod;
-				InvalidMethodReason reason = javaCache.getInvalidMethodReason(property, resolvedJavaClass, projectUri);
+				InvalidMethodReason reason = javaCache.getInvalidMethodReason(property, resolvedJavaType, projectUri);
 				if (reason != null) {
 					switch (reason) {
 					case VoidReturn:
@@ -540,7 +543,7 @@ class QuteDiagnostics {
 			}
 			Range range = QutePositionUtility.createRange(part);
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode, property,
-					resolvedJavaClass.getSignature());
+					resolvedJavaType.getSignature());
 			diagnostics.add(diagnostic);
 			return null;
 		}
@@ -549,8 +552,10 @@ class QuteDiagnostics {
 			// is inside a loop section
 			// to check if the type is an iterable type (ex : {#for item in
 			// part.to.validate}
+
+			String memberType = javaMember.resolveJavaElementType(iter);
 			return validateJavaTypePart(part, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext,
-					javaMember.getJavaElementType());
+					memberType);
 		}
 		return null;
 	}
@@ -581,15 +586,15 @@ class QuteDiagnostics {
 			// Other part kind (property, method), resolve the given java type to resolve
 			resolvingJavaTypeFuture = javaCache.resolveJavaType(javaTypeToResolve, projectUri);
 		}
-		ResolvedJavaTypeInfo resolvedJavaClass = resolvingJavaTypeFuture.getNow(RESOLVING_JAVA_TYPE);
-		if (isResolvingJavaType(resolvedJavaClass)) {
+		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture.getNow(RESOLVING_JAVA_TYPE);
+		if (isResolvingJavaType(resolvedJavaType)) {
 			// Java type must be loaded.
 			LOGGER.log(Level.INFO, QuteErrorCode.ResolvingJavaType.getMessage(javaTypeToResolve));
 			resolvingJavaTypeContext.add(resolvingJavaTypeFuture);
 			return null;
 		}
 
-		if (resolvedJavaClass == null) {
+		if (resolvedJavaType == null) {
 			// Java type doesn't exist
 			Range range = QutePositionUtility.createRange(part);
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnkwownType,
@@ -598,7 +603,7 @@ class QuteDiagnostics {
 			return null;
 		}
 
-		return validateIterable(part, ownerSection, resolvedJavaClass, javaTypeToResolve, diagnostics);
+		return validateIterable(part, ownerSection, resolvedJavaType, javaTypeToResolve, diagnostics);
 	}
 
 	private ResolvedJavaTypeInfo validateIterable(Part part, Section ownerSection,

@@ -46,4 +46,21 @@ public class JavaMethodInfoTest {
 		assertEquals("find(query : String, params : Map<String,Object>) : PanacheQuery<T>",
 				method.getSimpleSignature());
 	}
+
+	@Test
+	public void list() {
+		ResolvedJavaTypeInfo list = new ResolvedJavaTypeInfo();
+		list.setSignature("java.util.List<E>");
+
+		String signature = "get(index : int) : E";
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature(signature);
+		method.setResolvedType(list);
+
+		ResolvedJavaTypeInfo listOfItem = new ResolvedJavaTypeInfo();
+		listOfItem.setSignature("java.util.List<org.acme.Item>");
+
+		String resolved = method.resolveJavaElementType(listOfItem);
+		assertEquals("org.acme.Item", resolved);
+	}
 }

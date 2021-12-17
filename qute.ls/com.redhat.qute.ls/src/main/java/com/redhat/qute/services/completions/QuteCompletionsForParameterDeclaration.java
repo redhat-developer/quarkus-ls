@@ -111,11 +111,11 @@ public class QuteCompletionsForParameterDeclaration {
 									if (i > 0) {
 										insertText.append(',');
 									}
-									String parameterName = parameters.get(i).getName();
+									String parameterType = parameters.get(i).getType();
 									if (completionSettings.isCompletionSnippetsSupported()) {
-										SnippetsBuilder.placeholders(snippetIndex++, parameterName, insertText);
+										SnippetsBuilder.placeholders(snippetIndex++, parameterType, insertText);
 									} else {
-										insertText.append(parameterName);
+										insertText.append(parameterType);
 									}
 								}
 								insertText.append('>');

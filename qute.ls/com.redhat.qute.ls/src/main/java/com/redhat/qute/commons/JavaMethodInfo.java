@@ -12,7 +12,9 @@
 package com.redhat.qute.commons;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.StringJoiner;
 
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
@@ -32,6 +34,8 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	private transient String getterName;
 
 	private transient List<JavaParameterInfo> parameters;
+
+	private transient JavaTypeInfo javaReturnType;
 
 	/**
 	 * Returns the Java method signature.
@@ -131,6 +135,19 @@ public class JavaMethodInfo extends JavaMemberInfo {
 			returnType = index != -1 ? signature.substring(index + 1, signature.length()).trim() : NO_VALUE;
 		}
 		return NO_VALUE.equals(returnType) ? null : returnType;
+	}
+
+	/**
+	 * Returns the Java return type.
+	 *
+	 * @return the Java type parameter.
+	 */
+	public JavaTypeInfo getJavaReturnType() {
+		if (javaReturnType == null) {
+			javaReturnType = new JavaTypeInfo();
+			javaReturnType.setSignature(getReturnType());
+		}
+		return javaReturnType;
 	}
 
 	/**
@@ -266,6 +283,79 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	@Override
 	public String getJavaElementType() {
 		return getReturnType();
+	}
+
+	/**
+	 * Returns the resolved type if return type has generic (ex : T,
+	 * java.util.List<T>) by using the given java type argument.
+	 * 
+	 * @param argType argument Java type.
+	 * 
+	 * @return the resolved type if return type has generic (ex : T,
+	 *         java.util.List<T>) by using the given java type argument.
+	 */
+	@Override
+	public String resolveJavaElementType(ResolvedJavaTypeInfo argType) {
+		return resolveReturnType(argType, getResolvedType());
+	}
+
+	protected String resolveReturnType(ResolvedJavaTypeInfo argType, JavaTypeInfo parameterType) {
+		if (getReturnType() == null) {
+			// void method
+			return null;
+		}
+
+		JavaTypeInfo returnType = getJavaReturnType();
+		if (!returnType.isGenericType()) {
+			// return type has no generic:
+			// - java.util.List<java.lang.String>
+			// - java.lang.String
+			return returnType.getSignature();
+		}
+
+		// return type has generic which must be resolved:
+		// - java.util.List<T>
+		// - T
+
+		// Resolve each generic name
+		// T = java.lang.String
+		Map<String, String> resolvedGenericNames = new HashMap<>();
+		List<JavaParameterInfo> genericsParameterType = parameterType.getTypeParameters();
+		if (genericsParameterType.isEmpty()) {
+			// ex : T
+			resolvedGenericNames.put(parameterType.getName(), argType.getSignature());
+		} else {
+			// ex : java.util .List<T>
+			for (int i = 0; i < genericsParameterType.size(); i++) {
+				JavaParameterInfo argParameter = genericsParameterType.get(i);
+				JavaParameterInfo javaParameter = argType.getTypeParameters().get(i);
+				resolvedGenericNames.put(argParameter.getType(), javaParameter.getType());
+			}
+		}
+
+		// resolve return type
+		// java.lang.Iterable<T> -> java.lang.Iterable<org.acme.Item>
+		List<JavaParameterInfo> returnTypeParameters = returnType.getTypeParameters();
+		if (returnTypeParameters.isEmpty()) {
+			// ex : T for the method get(index : int) T
+			// returns the resolved type of T (ex : java.lang.String)
+			return resolvedGenericNames.get(returnType.getName());
+		}
+
+		// ex : java.util.List<T> for the method take(index : int) java.util.List<T>
+		// returns the resolved type of T (ex : java.util.List<java.lang.String>)
+		StringBuilder resolved = new StringBuilder(returnType.getName());
+		resolved.append('<');
+		for (int j = 0; j < returnTypeParameters.size(); j++) {
+			JavaParameterInfo p = returnTypeParameters.get(j);
+			if (j > 0) {
+				resolved.append(',');
+			}
+			resolved.append(resolvedGenericNames.get(p.getType()));
+		}
+		resolved.append('>');
+
+		return resolved.toString();
 	}
 
 	@Override
