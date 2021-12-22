@@ -1,4 +1,4 @@
-{@java.util.List<toremoves.Item> items}
+{@java.util.List<sandboxs.Item> items}
 
 {#each i in items}
 	{i}

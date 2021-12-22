@@ -105,4 +105,8 @@ public class Parts extends Node {
 		return part != null ? super.getChildren().indexOf(part) - 1 : super.getChildCount() - 1;
 	}
 
+	@Override
+	public void setEnd(int end) {
+		super.setEnd(end);
+	}
 }

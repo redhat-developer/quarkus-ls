@@ -13,15 +13,25 @@ package com.redhat.qute.parser.expression;
 
 import com.redhat.qute.parser.expression.Parts.PartKind;
 
+/**
+ * Namespace part.
+ * 
+ * <p>
+ * {data:item}
+ * </p>
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public class NamespacePart extends Part {
-	
+
 	public static final String DATA_NAMESPACE = "data";
-	
 
 	public NamespacePart(int start, int end) {
 		super(start, end);
 	}
-	
+
+	@Override
 	public PartKind getPartKind() {
 		return PartKind.Namespace;
 	}

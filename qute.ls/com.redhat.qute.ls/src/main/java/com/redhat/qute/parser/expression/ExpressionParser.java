@@ -22,11 +22,25 @@ import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Template;
 
+/**
+ * Qute expression content parser.
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public class ExpressionParser {
 
 	private static CancelChecker DEFAULT_CANCEL_CHECKER = () -> {
 	};
 
+	/**
+	 * Returns the parsing result of the given expression content.
+	 * 
+	 * @param expression    the content to parse.
+	 * @param cancelChecker the cancel checker.
+	 * 
+	 * @return the parsing result of the given expression content.
+	 */
 	public static List<Node> parse(Expression expression, CancelChecker cancelChecker) {
 		if (cancelChecker == null) {
 			cancelChecker = DEFAULT_CANCEL_CHECKER;
@@ -61,16 +75,22 @@ public class ExpressionParser {
 					currentParts.setExpressionParent(expression);
 					expressionContent.add(currentParts);
 				}
-				ObjectPart objectPart = new ObjectPart(tokenOffset, tokenEnd);
-				currentParts.addPart(objectPart);
+				if (currentParts != null) {
+					ObjectPart objectPart = new ObjectPart(tokenOffset, tokenEnd);
+					currentParts.addPart(objectPart);
+				}
 				break;
 			case PropertyPart:
-				PropertyPart propertyPart = new PropertyPart(tokenOffset, tokenEnd);
-				currentParts.addPart(propertyPart);
+				if (currentParts != null) {
+					PropertyPart propertyPart = new PropertyPart(tokenOffset, tokenEnd);
+					currentParts.addPart(propertyPart);
+				}
 				break;
 			case MethodPart:
-				MethodPart methodPart = new MethodPart(tokenOffset, tokenEnd);
-				currentParts.addPart(methodPart);
+				if (currentParts != null) {
+					MethodPart methodPart = new MethodPart(tokenOffset, tokenEnd);
+					currentParts.addPart(methodPart);
+				}
 				break;
 			case Dot:
 				if (currentParts != null) {
@@ -98,11 +118,28 @@ public class ExpressionParser {
 					}
 				}
 				break;
+			case StartString:
+			case String:
+			case EndString:
+				// ignore string tokens
+				break;
 			default:
 				currentParts = null;
 				break;
 			}
 			token = scanner.scan();
+		}
+		// adjust end offset for the current parts
+		if (currentParts != null) {
+			currentParts.setEnd(end);
+			Node last = currentParts.getLastChild();
+			if (last instanceof MethodPart) {
+				if (!last.isClosed()) {
+					// the current method is not closed with ')', adjust end method with the end
+					// offset.
+					((MethodPart) last).setEnd(end);
+				}
+			}
 		}
 		return expressionContent;
 	}

@@ -17,16 +17,39 @@ import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Section;
 
+/**
+ * Base class for part (object, property, method part).
+ * 
+ * @author Anngelo ZERR
+ *
+ */
 public abstract class Part extends Node {
 
-	private String textContent;
+	private String partName;
 
 	public Part(int start, int end) {
 		super(start, end);
 	}
 
+	/**
+	 * Returns the part name.
+	 * 
+	 * @return the part name.
+	 */
 	public String getPartName() {
-		return getTextContent();
+		if (partName != null) {
+			return partName;
+		}
+		return partName = getOwnerTemplate().getText(getStart(), getEndName());
+	}
+
+	/**
+	 * Returns the offset of the part name end.
+	 * 
+	 * @return the offset of the part name end.
+	 */
+	public int getEndName() {
+		return getEnd();
 	}
 
 	@Override
@@ -45,13 +68,6 @@ public abstract class Part extends Node {
 	}
 
 	public abstract PartKind getPartKind();
-
-	public String getTextContent() {
-		if (textContent != null) {
-			return textContent;
-		}
-		return textContent = getOwnerTemplate().getText(getStart(), getEnd());
-	}
 
 	@Override
 	public String toString() {
@@ -75,8 +91,14 @@ public abstract class Part extends Node {
 			Node ownerSection = parent.getParent();
 			parent = ownerSection.getParent();
 		}
-		if (parent.getKind() == NodeKind.Section) {
-			return (Section) parent;
+		// the expression part can have an expression part as parent (method part called
+		// on in an another method parameter)
+		// loop for parent node to retrieve the parent section.
+		while (parent != null) {
+			if (parent.getKind() == NodeKind.Section) {
+				return (Section) parent;
+			}
+			parent = parent.getParent();
 		}
 		return null;
 	}

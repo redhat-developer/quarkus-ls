@@ -30,6 +30,7 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	InvalidMethodVoid("Invalid `{0}` method of `{1}` : void return is not allowed."), //
 	InvalidMethodFromObject("Invalid `{0}` method of `{1}` : method from `java.lang.Object` is not allowed."), //
 	InvalidMethodStatic("Invalid `{0}` method of `{1}` : static method is not allowed."), //
+	InvalidMethodParameter("The method `{0}` in the type `{1}` is not applicable for the arguments `{2}`."), //
 	
 	UnkwownProperty("`{0}` cannot be resolved or is not a field of `{1}` Java type."), //
 

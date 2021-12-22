@@ -151,4 +151,12 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 		testCompletionFor(template, 0);
 
 	}
+	
+	@Test
+	public void completionInMethodParameter() throws Exception {
+		String template = "{#let name=1}\r\n" + //
+				"	{foo.method(n|}\r\n" + //
+				"{/let}";
+		testCompletionFor(template, 0);
+	}
 }

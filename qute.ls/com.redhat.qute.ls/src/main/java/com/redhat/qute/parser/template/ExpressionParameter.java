@@ -51,6 +51,9 @@ public class ExpressionParameter extends Expression {
 	 */
 	@Override
 	public Section getParentSection() {
-		return ownerSection.getParentSection();
+		if (ownerSection != null) {
+			return ownerSection.getParentSection();
+		}
+		return super.getParentSection();
 	}
 }

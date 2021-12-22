@@ -14,6 +14,8 @@ package com.redhat.qute.jdt.template;
 import static com.redhat.qute.jdt.internal.QuteProjectTest.getJDTUtils;
 import static com.redhat.qute.jdt.internal.QuteProjectTest.loadMavenProject;
 
+import java.util.Optional;
+
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.junit.Assert;
 import org.junit.Test;
@@ -97,7 +99,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertEquals("java.lang.Object", result.getIterableOf());
 
 		// Invalid method void clear();
-		JavaMethodInfo clearMethod = result.findMethod("clear");
+		JavaMethodInfo clearMethod = findMethod(result, "clear");
 		Assert.assertNull(clearMethod);
 		InvalidMethodReason reason = result.getInvalidMethodReason("clear");
 		Assert.assertEquals(InvalidMethodReason.VoidReturn, reason);
@@ -169,7 +171,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertEquals("getDerivedItems() : org.acme.qute.Item[]", result.getMethods().get(0).getSignature());
 
 		// Invalid methods(static method)
-		JavaMethodInfo discountedPriceMethod = result.findMethod("staticMethod");
+		JavaMethodInfo discountedPriceMethod = findMethod(result, "staticMethod");
 		Assert.assertNull(discountedPriceMethod);
 		InvalidMethodReason reason = result.getInvalidMethodReason("staticMethod");
 		Assert.assertEquals(InvalidMethodReason.Static, reason);
@@ -248,7 +250,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertTrue(result.getMethods().isEmpty());
 
 		// Invalid method codePointAt(int index)
-		JavaMethodInfo waitMethod = result.findMethod("wait");
+		JavaMethodInfo waitMethod = findMethod(result, "wait");
 		Assert.assertNull(waitMethod);
 		InvalidMethodReason reason = result.getInvalidMethodReason("wait");
 		Assert.assertEquals(InvalidMethodReason.FromObject, reason);
@@ -270,15 +272,22 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertNotNull(result.getMethods());
 
 		// Valid method isEmpty()
-		JavaMethodInfo isEmptyMethod = result.findMethod("isEmpty");
+		JavaMethodInfo isEmptyMethod = findMethod(result, "isEmpty");
 		Assert.assertNotNull(isEmptyMethod);
 
 		// Invalid method void getChars(int srcBegin, int srcEnd, char dst[], int
 		// dstBegin) {
-		JavaMethodInfo getCharsMethod = result.findMethod("getChars");
+		JavaMethodInfo getCharsMethod = findMethod(result, "getChars");
 		Assert.assertNull(getCharsMethod);
 		InvalidMethodReason reason = result.getInvalidMethodReason("getChars");
 		Assert.assertEquals(InvalidMethodReason.VoidReturn, reason);
+	}
+
+	private static JavaMethodInfo findMethod(ResolvedJavaTypeInfo javaType, String methodName) {
+		Optional<JavaMethodInfo> result = javaType.getMethods().stream() //
+				.filter(m -> methodName.equals(m.getName())) //
+				.findFirst();
+		return result.isPresent() ? result.get() : null;
 	}
 
 }

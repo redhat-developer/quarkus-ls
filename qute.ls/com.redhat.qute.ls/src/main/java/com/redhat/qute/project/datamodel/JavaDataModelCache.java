@@ -11,8 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.project.datamodel;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -21,7 +19,6 @@ import org.eclipse.lsp4j.Location;
 
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaMemberInfo;
-import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
@@ -45,12 +42,9 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 	private static final CompletableFuture<ResolvedJavaTypeInfo> RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE = CompletableFuture
 			.completedFuture(null);
 
-	private final ValueResolversRegistry valueResolversRegistry;
-
 	private final QuteProjectRegistry projectRegistry;
 
 	public JavaDataModelCache(QuteProjectRegistry projectRegistry) {
-		this.valueResolversRegistry = new ValueResolversRegistry();
 		this.projectRegistry = projectRegistry;
 	}
 
@@ -63,79 +57,15 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 	}
 
 	public List<ValueResolver> getResolversFor(ResolvedJavaTypeInfo javaType, String projectUri) {
-		List<ValueResolver> matches = new ArrayList<>();
-		for (ValueResolver resolver : valueResolversRegistry.getResolvers()) {
-			if (matchResolver(javaType, resolver, projectUri)) {
-				matches.add(resolver);
-			}
-		}
-
-		List<ValueResolver> allResolvers = getValueResolvers(projectUri).getNow(null);
-		if (allResolvers != null) {
-			for (ValueResolver resolver : allResolvers) {
-				if (resolver.getNamespace() == null && matchResolver(javaType, resolver, projectUri)) {
-					matches.add(resolver);
-				}
-			}
-		}
-		return matches;
-	}
-
-	/**
-	 * Returns true if the given java type match the value resolver (if the type
-	 * matches the first parameter of the value resolver method) and false
-	 * otherwise.
-	 * 
-	 * @param javaType   the java type.
-	 * @param resolver   the value resolver.
-	 * @param projectUri the project Uri.
-	 * 
-	 * @return true if the given java type match the value resolver (if the type
-	 *         matches the first parameter of the value resolver method) and false
-	 *         otherwise.
-	 */
-	private boolean matchResolver(ResolvedJavaTypeInfo javaType, ValueResolver resolver, String projectUri) {
-		// Example with following signature:
-		// "orEmpty(arg : java.util.List<T>) : java.lang.Iterable<T>"
-		JavaParameterInfo parameter = resolver.getParameterAt(0); // arg : java.util.List<T>
-		if (parameter == null) {
-			return false;
-		}
-		if (parameter.getJavaType().isSingleGenericType()) {
-			// <T>
-			return true;
-		}
-		String parameterType = parameter.getJavaType().getName();
-		String resolvedTypeName = javaType.getName();
-		if (parameterType.equals(resolvedTypeName)) {
-			return true;
-		}
-		if (javaType.getExtendedTypes() != null) {
-			for (String extendedType : javaType.getExtendedTypes()) {
-				if (parameterType.equals(extendedType)) {
-					return true;
-				}
-			}
-		}
-		if (!javaType.getTypeParameters().isEmpty()) {
-			ResolvedJavaTypeInfo result = resolveJavaType(resolvedTypeName, projectUri).getNow(null);
-			if (result != null && result.getExtendedTypes() != null) {
-				for (String extendedType : result.getExtendedTypes()) {
-					if (parameterType.equals(extendedType)) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
+		return projectRegistry.getResolversFor(javaType, projectUri);
 	}
 
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className, String projectUri) {
 		return projectRegistry.resolveJavaType(className, projectUri);
 	}
 
-	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Parameter object, String projectUri) {
-		Expression expression = object.getJavaTypeExpression();
+	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Parameter parameter, String projectUri) {
+		Expression expression = parameter.getJavaTypeExpression();
 		if (expression != null) {
 			Part lastPart = expression.getLastPart();
 			if (lastPart != null) {
@@ -173,10 +103,9 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return future != null ? future : RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 	}
 
-	private CompletionStage<ResolvedJavaTypeInfo> resolveJavaType(Part current, String projectUri,
+	private CompletionStage<ResolvedJavaTypeInfo> resolveJavaType(Part part, String projectUri,
 			ResolvedJavaTypeInfo resolvedType) {
-		String property = current.getPartName();
-		JavaMemberInfo member = findMember(property, resolvedType, projectUri);
+		JavaMemberInfo member = projectRegistry.findMember(part, resolvedType, projectUri);
 		if (member == null) {
 			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 		}
@@ -274,31 +203,6 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return projectRegistry.getDataModelTemplate(template);
 	}
 
-	public JavaMemberInfo findMember(String property, ResolvedJavaTypeInfo resolvedType, String projectUri) {
-		if (resolvedType == null) {
-			return null;
-		}
-		// Search in the java root type
-		JavaMemberInfo memberInfo = resolvedType.findMember(property);
-		if (memberInfo != null) {
-			return memberInfo;
-		}
-		if (resolvedType.getExtendedTypes() != null) {
-			// Search in extended types
-			for (String extendedType : resolvedType.getExtendedTypes()) {
-				ResolvedJavaTypeInfo resolvedExtendedType = resolveJavaType(extendedType, projectUri).getNow(null);
-				if (resolvedExtendedType != null) {
-					memberInfo = resolvedExtendedType.findMember(property);
-					if (memberInfo != null) {
-						return memberInfo;
-					}
-				}
-			}
-		}
-		// Search in value resolver
-		return findValueResolver(property, resolvedType, projectUri);
-	}
-
 	public InvalidMethodReason getInvalidMethodReason(String property, ResolvedJavaTypeInfo resolvedType,
 			String projectUri) {
 		if (resolvedType == null) {
@@ -325,61 +229,20 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return null;
 	}
 
-	public ValueResolver findValueResolver(String property, ResolvedJavaTypeInfo resolvedType, String projectUri) {
-		// Search in static value resolvers (ex : orEmpty, take, etc)
-		List<ValueResolver> resolvers = getResolversFor(resolvedType, projectUri);
-		for (ValueResolver resolver : resolvers) {
-			if (resolver.match(property)) {
-				return resolver;
-			}
-		}
-		// Search in template extension value resolvers retrieved by @TemplateExtension
-		resolvers = getValueResolvers(projectUri).getNow(null);
-		if (resolvers != null) {
-			for (ValueResolver resolver : resolvers) {
-				if (resolver.match(property)) {
-					return resolver;
-				}
-			}
-		}
-		return null;
+	public JavaMemberInfo findMember(Part part, ResolvedJavaTypeInfo previousResolvedType, String projectUri) {
+		return projectRegistry.findMember(part, previousResolvedType, projectUri);
 	}
 
-	private CompletableFuture<List<ValueResolver>> getValueResolvers(String projectUri) {
-		return projectRegistry.getValueResolvers(projectUri);
-	}
-
-	/**
-	 * Returns namespace resolvers from the given Qute project Uri.
-	 * 
-	 * @param projectUri the Qute project Uri
-	 * 
-	 * @return namespace resolvers from the given Qute project Uri.
-	 */
-	public List<ValueResolver> getNamespaceResolvers(String projectUri) {
-		List<ValueResolver> allResolvers = getValueResolvers(projectUri).getNow(null);
-		if (allResolvers != null) {
-			List<ValueResolver> namespaceResolvers = new ArrayList<>();
-			for (ValueResolver resolver : allResolvers) {
-				if (resolver.getNamespace() != null) {
-					namespaceResolvers.add(resolver);
-				}
-			}
-			return namespaceResolvers;
-		}
-		return Collections.emptyList();
+	public JavaMemberInfo findMember(ResolvedJavaTypeInfo resolvedIterableType, String property) {
+		return projectRegistry.findMember(resolvedIterableType, property);
 	}
 
 	public boolean hasNamespace(String namespace, String projectUri) {
-		List<ValueResolver> resolvers = getValueResolvers(projectUri).getNow(null);
-		if (resolvers != null) {
-			for (ValueResolver resolver : resolvers) {
-				if (namespace.equals(resolver.getNamespace())) {
-					return true;
-				}
-			}
-		}
-		return false;
+		return projectRegistry.hasNamespace(namespace, projectUri);
+	}
+
+	public List<ValueResolver> getNamespaceResolvers(String projectUri) {
+		return projectRegistry.getNamespaceResolvers(projectUri);
 	}
 
 }

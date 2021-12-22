@@ -26,7 +26,8 @@ public class ParameterParser {
 	private static CancelChecker DEFAULT_CANCEL_CHECKER = () -> {
 	};
 
-	public static List<Parameter> parse(ParametersContainer expression, CancelChecker cancelChecker) {
+	public static List<Parameter> parse(ParametersContainer expression, boolean methodParameters,
+			CancelChecker cancelChecker) {
 		if (cancelChecker == null) {
 			cancelChecker = DEFAULT_CANCEL_CHECKER;
 		}
@@ -34,7 +35,7 @@ public class ParameterParser {
 		String text = template.getText();
 		int start = expression.getStartParametersOffset();
 		int end = expression.getEndParametersOffset();
-		ParameterScanner scanner = ParameterScanner.createScanner(text, start, end);
+		ParameterScanner scanner = ParameterScanner.createScanner(text, start, end, methodParameters);
 		TokenType token = scanner.scan();
 		List<Parameter> parameters = new ArrayList<>();
 		Parameter currentParameter = null;

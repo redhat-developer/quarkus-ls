@@ -291,4 +291,17 @@ public class QuteCompletionInExpressionTest {
 		testCompletionFor(template, //
 				c("discountedPrice(item : Item) : BigDecimal", "discountedPrice", r(1, 12, 1, 12)));
 	}
+	
+	@Test
+	public void completionInsideMethodParameter() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"Item: {item.name.codePointCount(item.|}";
+		testCompletionFor(template, //
+				c("name : String", "name", r(1, 37, 1, 37)));
+		
+		template = "{@org.acme.Item item}\r\n" + //
+				"Item: {item.name.codePointCount(|}";
+		testCompletionFor(template, //
+				c("item", "item", r(1, 32, 1, 32)));
+	}
 }

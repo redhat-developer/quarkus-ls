@@ -119,17 +119,6 @@ public class ValueResolver extends JavaMethodInfo {
 		this.url = url;
 	}
 
-	/**
-	 * Returns true if the given property matches the resolver and false otherwise.
-	 *
-	 * @param property the property to match
-	 *
-	 * @return true if the given property matches the resolver and false otherwise.
-	 */
-	public boolean match(String property) {
-		return ResolvedJavaTypeInfo.isMatchMethod(this, property);
-	}
-
 	@Override
 	public boolean hasParameters() {
 		if (namespace != null) {

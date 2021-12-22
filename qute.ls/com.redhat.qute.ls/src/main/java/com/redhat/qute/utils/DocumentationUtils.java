@@ -13,11 +13,15 @@ package com.redhat.qute.utils;
 
 import static com.redhat.qute.commons.JavaElementInfo.getSimpleType;
 
+import java.util.List;
+
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 
 import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.JavaMemberInfo;
+import com.redhat.qute.commons.JavaMethodInfo;
+import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.ValueResolver;
 
@@ -141,6 +145,21 @@ public class DocumentationUtils {
 
 		if (member.getJavaElementKind() == JavaElementKind.METHOD) {
 			documentation.append('(');
+			JavaMethodInfo methodInfo = (JavaMethodInfo) member;
+			boolean virtualMethod = methodInfo instanceof ValueResolver;
+			List<JavaParameterInfo> parameters = methodInfo.getParameters();
+			int start = virtualMethod ? 1 : 0;
+			for (int i = start; i < parameters.size(); i++) {
+				JavaParameterInfo parameter = parameters.get(i);
+				String type = parameter.getJavaElementSimpleType();
+				String name = parameter.getName();
+				if (i > start) {
+					documentation.append(", ");
+				}
+				documentation.append(type);
+				documentation.append(' ');
+				documentation.append(name);
+			}
 			documentation.append(')');
 		}
 

@@ -34,6 +34,9 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 		return new ExpressionScanner(input, initialOffset, endOffset, initialState);
 	}
 
+	private boolean inMethod;
+	private int bracket;
+
 	ExpressionScanner(String input, int initialOffset, int endOffset, ScannerState initialState) {
 		super(input, initialOffset, endOffset, initialState, TokenType.Unknown, TokenType.EOS);
 	}
@@ -83,21 +86,33 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 				state = ScannerState.WithinExpression;
 				return finishToken(offset, TokenType.Whitespace);
 			}
-			// return internalScan();
+			return finishToken(offset, TokenType.Unknown);
 		}
 
-		case WithingMethod: {
+		case WithinMethod: {
 			if (stream.advanceIfChar('(')) {
+				bracket++;
 				return finishToken(offset, TokenType.OpenBracket);
 			}
-			stream.advanceUntilChar(')', '"', '\'');
+			stream.advanceUntilChar('(', ')', '"', '\'');
+			if (stream.peekChar() == '(') {
+				stream.advance(1);
+				bracket++;
+				return internalScan();
+			}
 			if (stream.peekChar() == '"' || stream.peekChar() == '\'') {
 				stream.advance(1);
 				state = ScannerState.WithinString;
+				inMethod = true;
 				return finishToken(stream.pos() - 1, TokenType.StartString);
 			} else if (stream.peekChar() == ')') {
 				stream.advance(1);
+				bracket--;
+				if (bracket > 0) {					
+					return internalScan();
+				}
 				state = ScannerState.WithinParts;
+				inMethod = false;
 				return finishToken(stream.pos() - 1, TokenType.CloseBracket);
 			}
 			return internalScan();
@@ -105,7 +120,11 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 
 		case WithinString: {
 			if (stream.advanceIfAnyOfChars('"', '\'')) {
-				state = ScannerState.WithinExpression;
+				if (inMethod) {
+					state = ScannerState.WithinMethod;
+				} else {
+					state = ScannerState.WithinExpression;
+				}
 				return finishToken(offset, TokenType.EndString);
 			}
 			stream.advanceUntilChar('"', '\'');
@@ -113,6 +132,7 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 		}
 
 		default:
+			inMethod = false;
 		}
 		stream.advance(1);
 		return finishToken(offset, TokenType.Unknown, errorMessage);
@@ -126,7 +146,7 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 		}
 		if (state == ScannerState.WithinParts || state == ScannerState.AfterNamespace) {
 			if (next == '(') {
-				state = ScannerState.WithingMethod;
+				state = ScannerState.WithinMethod;
 				return finishToken(offset, TokenType.MethodPart);
 			}
 			if (state == ScannerState.AfterNamespace) {

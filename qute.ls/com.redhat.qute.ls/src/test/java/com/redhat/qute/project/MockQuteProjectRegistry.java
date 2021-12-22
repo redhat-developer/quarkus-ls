@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.project;
 
+import static com.redhat.qute.project.QuteProjectRegistry.findMethod;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -89,7 +91,7 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 			String fieldName = params.getSourceField();
 			if (fieldName != null) {
 				// Definition for field
-				JavaFieldInfo fieldInfo = classInfo.findField(fieldName);
+				JavaFieldInfo fieldInfo = findField(classInfo, fieldName);
 				if (fieldInfo != null) {
 					definitionRange = JAVA_FIELD_RANGE;
 				}
@@ -97,7 +99,7 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 				// Definition for method
 				String methodName = params.getSourceMethod();
 				if (methodName != null) {
-					JavaMethodInfo methodInfo = classInfo.findMethod(methodName);
+					JavaMethodInfo methodInfo = findMethod(classInfo, methodName);
 					if (methodInfo != null) {
 						definitionRange = JAVA_METHOD_RANGE;
 					}

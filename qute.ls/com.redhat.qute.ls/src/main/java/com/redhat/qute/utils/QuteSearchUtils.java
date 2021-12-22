@@ -17,8 +17,12 @@ import java.util.function.BiConsumer;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
+import com.redhat.qute.parser.expression.Part;
+import com.redhat.qute.parser.expression.Parts;
+import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Node;
@@ -30,7 +34,6 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.BaseWhenSection;
-import com.redhat.qute.parser.template.sections.ElseSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.parser.template.sections.WithSection;
 
@@ -254,7 +257,7 @@ public class QuteSearchUtils {
 				stopWhenNode = ((LoopSection) section).getElseSection();
 			}
 		}
-		
+
 		List<Node> children = parent.getChildren();
 		for (Node node : children) {
 			if (node == stopWhenNode) {
@@ -266,8 +269,9 @@ public class QuteSearchUtils {
 
 	public static void tryToCollectObjectPartOrParameter(String partName, PartNameMatcher matcher,
 			Expression expression, Node ownerNode, BiConsumer<Node, Range> collector) {
-		// Check if the current expression references the given part name
-		if (!tryToCollectObjectPart(partName, matcher, expression, collector)) {
+		// Check if the current expression references the given part name (with an
+		// object part)
+		if (!tryToCollectObjectParts(partName, matcher, expression, collector)) {
 			if (ownerNode.getKind() == NodeKind.Section) {
 				Section onwerSection = (Section) ownerNode;
 				// Check the current expression references a metadata of the section
@@ -287,13 +291,84 @@ public class QuteSearchUtils {
 		}
 	}
 
-	private static boolean tryToCollectObjectPart(String partName, PartNameMatcher matcher, Expression parameterExpr,
+	/**
+	 * Try to collect all object parts from the given expression
+	 * <code>nodeExpr</code> which matches the given part name
+	 * <code>partName</code>.
+	 * 
+	 * @param partName  the part name.
+	 * @param matcher   the matcher strategy.
+	 * @param nodeExpr  the Qute node expression
+	 * @param collector the node collector.
+	 * 
+	 * @return true if the given nodeExpr reference the part name as object part and
+	 *         false otherwise.
+	 */
+	private static boolean tryToCollectObjectParts(String partName, PartNameMatcher matcher, Node nodeExpr,
 			BiConsumer<Node, Range> collector) {
-		ObjectPart objectPart = parameterExpr.getObjectPart();
-		if (isMatch(objectPart, partName, matcher)) {
-			Range range = QutePositionUtility.createRange(objectPart);
-			collector.accept(objectPart, range);
-			return true;
+		switch (nodeExpr.getKind()) {
+		case Expression: {
+			Expression expression = (Expression) nodeExpr;
+			boolean result = false;
+			List<Node> nodes = expression.getExpressionContent();
+			for (Node node : nodes) {
+				// ex : partName=item
+
+				// node expression can be
+
+				// 1) a simple expression:
+				// --> {item_count} --> [ObjectPart=item_count]
+				// --> {item.name} --> [ObjectPart=item, PropertyPart=name)
+				// --> {item.getName()} --> [ObjectPart=item, MethodPart=getName())
+
+				// In those cases, one object part will be collected =>{|item|_count},
+				// {|item|.name}, {|item|.getName()}
+
+				// 2) an expression with method part which can host another expressions when
+				// method have parameters
+				// --> {item.getName(item.name)} --> [ObjectPart=item,
+				// MethodPart=getName(item.name))
+
+				// In this case, two object parts will be collected =>
+				// {|item|.getName(|item|.name)}
+
+				result |= tryToCollectObjectParts(partName, matcher, node, collector);
+			}
+			return result;
+		}
+		case ExpressionParts: {
+			Parts parts = (Parts) nodeExpr;
+			boolean result = false;
+			for (Node partNode : parts.getChildren()) {
+				result |= tryToCollectObjectParts(partName, matcher, partNode, collector);
+			}
+			return result;
+		}
+		case ExpressionPart: {
+			Part part = (Part) nodeExpr;
+			if (part.getPartKind() == PartKind.Object) {
+				ObjectPart objectPart = (ObjectPart) part;
+				if (isMatch(objectPart, partName, matcher)) {
+					Range range = QutePositionUtility.createRange(objectPart);
+					collector.accept(objectPart, range);
+					return true;
+				}
+			} else if (part.getPartKind() == PartKind.Method) {
+				MethodPart methodPart = (MethodPart) part;
+				List<Parameter> parameters = methodPart.getParameters();
+				boolean result = false;
+				for (Parameter parameter : parameters) {
+					Expression paramExpr = parameter.getJavaTypeExpression();
+					if (paramExpr != null) {
+						result |= tryToCollectObjectParts(partName, matcher, paramExpr, collector);
+					}
+				}
+				return result;
+			}
+		}
+			break;
+		default:
+			break;
 		}
 		return false;
 	}

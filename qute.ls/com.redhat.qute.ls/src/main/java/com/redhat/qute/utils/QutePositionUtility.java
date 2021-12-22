@@ -19,6 +19,8 @@ import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.Range;
 
 import com.redhat.qute.ls.commons.BadLocationException;
+import com.redhat.qute.parser.expression.MethodPart;
+import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Parameter;
@@ -70,6 +72,11 @@ public class QutePositionUtility {
 		return createRange(startOffset, endOffset, template);
 	}
 
+	public static Range createRange(Part part) {
+		Template template = part.getOwnerTemplate();
+		return createRange(part.getStart(), part.getEndName(), template);
+	}
+
 	public static Range createRange(Node node) {
 		Template template = node.getOwnerTemplate();
 		return createRange(node.getStart(), node.getEnd(), template);
@@ -88,6 +95,14 @@ public class QutePositionUtility {
 		return createRange(range.getStart(), range.getEnd(), template);
 	}
 
+	/**
+	 * Find the best node from the given node at the given offset.
+	 * 
+	 * @param node   the node.
+	 * @param offset the offset.
+	 * 
+	 * @return the best node from the given node at the given offset.
+	 */
 	public static Node findBestNode(int offset, Node node) {
 		switch (node.getKind()) {
 		case Section: {
@@ -123,16 +138,39 @@ public class QutePositionUtility {
 			break;
 		case Expression: {
 			Expression expression = (Expression) node;
-			Node expressionNode = expression.findNodeExpressionAt(offset);
-			if (expressionNode != null) {
-				return expressionNode;
-			}
+			return findBestNode(expression, offset);
 		}
-			break;
 		default:
 			return node;
 		}
 		return node;
+	}
+
+	/**
+	 * Find the best node from the given expression at the given offset.
+	 * 
+	 * @param expression the expression node.
+	 * @param offset     the offset.
+	 * 
+	 * @return the best node from the given expression at the given offset.
+	 */
+	private static Node findBestNode(Expression expression, int offset) {
+		Node expressionNode = expression.findNodeExpressionAt(offset);
+		if (expressionNode != null) {
+			if (expressionNode instanceof MethodPart) {
+				MethodPart method = (MethodPart) expressionNode;
+				Parameter parameter = method.getParameterAtOffset(offset);
+				if (parameter != null) {
+					Expression parameterExpression = parameter.getJavaTypeExpression();
+					if (parameterExpression != null) {
+						return findBestNode(parameterExpression, offset);
+					}
+					return parameter;
+				}
+			}
+			return expressionNode;
+		}
+		return expression;
 	}
 
 	/**

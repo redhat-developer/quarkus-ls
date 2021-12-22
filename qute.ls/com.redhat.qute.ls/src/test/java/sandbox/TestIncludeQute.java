@@ -1,4 +1,4 @@
-package toremove;
+package sandbox;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +40,7 @@ public class TestIncludeQute {
 
 	private static String[] suffixes = { "html", "qute.html" };
 
-	private static String basePath = "toremove/";
+	private static String basePath = "sandbox/";
 
 	/**
 	 * @param path

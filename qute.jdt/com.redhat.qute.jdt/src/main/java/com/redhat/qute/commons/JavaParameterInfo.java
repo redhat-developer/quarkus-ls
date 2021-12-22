@@ -79,7 +79,7 @@ public class JavaParameterInfo extends JavaElementInfo {
 		StringBuilder paramBuilder = new StringBuilder();
 		paramBuilder.append(name);
 		paramBuilder.append(" : ");
-		paramBuilder.append(getSimpleType(type));
+		paramBuilder.append(getJavaElementSimpleType());
 		return paramBuilder.toString();
 	}
 

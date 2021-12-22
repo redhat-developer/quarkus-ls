@@ -1,0 +1,5 @@
+{@sandbox.Item item}
+{#let a=1 b=2 c='abcd'}
+	{item.compute(a,b)}
+	{c.codePointCount(1,2)}
+{/let}

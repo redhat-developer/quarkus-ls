@@ -1,4 +1,4 @@
-package toremove;
+package sandbox;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,9 +14,9 @@ public class Item {
 
 	public Review getMainReview() {
 		Review main = new Review(0);
-		return main ;
+		return main;
 	}
-	
+
 	public void addReview(Review review) {
 		getReviews().add(review);
 	}
@@ -27,5 +27,9 @@ public class Item {
 
 	public String getName() {
 		return name;
+	}
+
+	public int compute(int a, int b) {
+		return a + b;
 	}
 }
