@@ -195,8 +195,7 @@ public class QuteHover {
 			ResolvedJavaTypeInfo iterableOfResolvedType, HoverRequest hoverRequest) {
 		// The Java class type from the previous part had been resolved, resolve the
 		// property
-		String property = part.getPartName();
-		JavaMemberInfo member = javaCache.findMember(property, resolvedType, projectUri);
+		JavaMemberInfo member = javaCache.findMember(part, resolvedType, projectUri);
 		if (member == null) {
 			return null;
 		}
@@ -210,8 +209,10 @@ public class QuteHover {
 			HoverRequest hoverRequest) {
 		int offset = hoverRequest.getOffset();
 		if (parameter.isInName(offset)) {
-			if (parameter.getOwnerSection() != null
-					&& parameter.getOwnerSection().getSectionKind() == SectionKind.FOR) {
+			// A parameter name is hovered
+			if (parameter.getOwnerSection() != null && (parameter.getOwnerSection().getSectionKind() == SectionKind.FOR
+					|| parameter.getOwnerSection().getSectionKind() == SectionKind.EACH)) {
+				// a parameter from #for section is hovered
 				LoopSection iterableSection = (LoopSection) parameter.getOwnerSection();
 				if (iterableSection.isInAlias(offset)) {
 					Parameter iterableParameter = iterableSection.getIterableParameter();
@@ -233,6 +234,39 @@ public class QuteHover {
 									return NO_HOVER;
 								});
 					}
+				}
+			} else {
+				// Other parameter
+
+				// Check if part is a literal (ex: true, null, 123, 'abc', etc)
+				Expression expression = parameter.getJavaTypeExpression();
+				if (expression != null) {
+					String projectUri = template.getProjectUri();
+					String literalJavaType = expression.getLiteralJavaType();
+					if (literalJavaType != null) {
+						return javaCache.resolveJavaType(literalJavaType, projectUri) //
+								.thenApply(resolvedJavaType -> {
+									if (resolvedJavaType != null) {
+										boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+										MarkupContent content = DocumentationUtils.getDocumentation(resolvedJavaType,
+												hasMarkdown);
+										Range range = QutePositionUtility.createRange(parameter);
+										return new Hover(content, range);
+									}
+									return null;
+								});
+					}
+					return javaCache.resolveJavaType(parameter, projectUri) //
+							.thenApply(resolvedJavaType -> {
+								if (resolvedJavaType != null) {
+									boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+									MarkupContent content = DocumentationUtils.getDocumentation(resolvedJavaType,
+											hasMarkdown);
+									Range range = QutePositionUtility.createRange(parameter);
+									return new Hover(content, range);
+								}
+								return null;
+							});
 				}
 			}
 		}

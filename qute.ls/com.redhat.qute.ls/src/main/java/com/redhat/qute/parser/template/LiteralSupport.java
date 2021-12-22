@@ -36,13 +36,13 @@ public class LiteralSupport {
 			char firstChar = literal.charAt(0);
 			if (Character.isDigit(firstChar) || firstChar == '-' || firstChar == '+') {
 				if (INTEGER_LITERAL_PATTERN.matcher(literal).matches()) {
-					return "java.lang.Integer";
+					return "int";
 				} else if (LONG_LITERAL_PATTERN.matcher(literal).matches()) {
-					return "java.lang.Long";
+					return "long";
 				} else if (DOUBLE_LITERAL_PATTERN.matcher(literal).matches()) {
-					return "java.lang.Double";
+					return "double";
 				} else if (FLOAT_LITERAL_PATTERN.matcher(literal).matches()) {
-					return "java.lang.Float";
+					return "float";
 				}
 			}
 		}

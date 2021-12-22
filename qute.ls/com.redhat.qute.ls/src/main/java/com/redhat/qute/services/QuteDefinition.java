@@ -300,8 +300,7 @@ class QuteDefinition {
 			ResolvedJavaTypeInfo previousResolvedType) {
 		// The Java class type from the previous part has been resolved, resolve the
 		// property
-		String property = part.getPartName();
-		JavaMemberInfo member = javaCache.findMember(property, previousResolvedType, projectUri);
+		JavaMemberInfo member = javaCache.findMember(part, previousResolvedType, projectUri);
 		String sourceType = member != null ? member.getSourceType() : null;
 		if (sourceType == null) {
 			return NO_DEFINITION;
@@ -313,6 +312,7 @@ class QuteDefinition {
 			params.setSourceMethod(member.getName());
 		} else {
 			// Try to find a field definition
+			String property = part.getPartName();
 			params.setSourceField(property);
 		}
 		return findJavaDefinition(params, () -> QutePositionUtility.createRange(part));

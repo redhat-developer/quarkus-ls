@@ -289,20 +289,25 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	 * Returns the resolved type if return type has generic (ex : T,
 	 * java.util.List<T>) by using the given java type argument.
 	 * 
-	 * @param argType argument Java type.
+	 * @param baseType Java type of the base object.
 	 * 
 	 * @return the resolved type if return type has generic (ex : T,
 	 *         java.util.List<T>) by using the given java type argument.
 	 */
 	@Override
-	public String resolveJavaElementType(ResolvedJavaTypeInfo argType) {
-		return resolveReturnType(argType, getResolvedType());
+	public String resolveJavaElementType(ResolvedJavaTypeInfo baseType) {
+		return resolveReturnType(baseType, getResolvedType());
 	}
 
-	protected String resolveReturnType(ResolvedJavaTypeInfo argType, JavaTypeInfo parameterType) {
+	protected String resolveReturnType(ResolvedJavaTypeInfo baseType, JavaTypeInfo baseDeclType) {
 		if (getReturnType() == null) {
 			// void method
 			return null;
+		}
+
+		if (baseType == null || baseDeclType == null) {
+			// prevent from NPE
+			return getReturnType();
 		}
 
 		JavaTypeInfo returnType = getJavaReturnType();
@@ -320,15 +325,15 @@ public class JavaMethodInfo extends JavaMemberInfo {
 		// Resolve each generic name
 		// T = java.lang.String
 		Map<String, String> resolvedGenericNames = new HashMap<>();
-		List<JavaParameterInfo> genericsParameterType = parameterType.getTypeParameters();
+		List<JavaParameterInfo> genericsParameterType = baseDeclType.getTypeParameters();
 		if (genericsParameterType.isEmpty()) {
 			// ex : T
-			resolvedGenericNames.put(parameterType.getName(), argType.getSignature());
+			resolvedGenericNames.put(baseDeclType.getName(), baseType.getSignature());
 		} else {
 			// ex : java.util .List<T>
 			for (int i = 0; i < genericsParameterType.size(); i++) {
 				JavaParameterInfo argParameter = genericsParameterType.get(i);
-				JavaParameterInfo javaParameter = argType.getTypeParameters().get(i);
+				JavaParameterInfo javaParameter = baseType.getTypeParameters().get(i);
 				resolvedGenericNames.put(argParameter.getType(), javaParameter.getType());
 			}
 		}

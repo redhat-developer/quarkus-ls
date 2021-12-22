@@ -35,7 +35,6 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.diagnostics.ResolvingJavaTypeContext;
-import com.redhat.qute.settings.QuteCodeLensSettings;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.QuteValidationSettings;

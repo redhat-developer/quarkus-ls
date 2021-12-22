@@ -66,7 +66,7 @@ public class ParameterScannerTest {
 		assertOffsetAndToken(18, TokenType.ParameterValue, "order.price");
 		assertOffsetAndToken(29, TokenType.EOS, "");
 	}
-	
+
 	public void assertOffsetAndToken(int tokenOffset, TokenType tokenType) {
 		TokenType token = scanner.scan();
 		assertEquals(tokenOffset, scanner.getTokenOffset());

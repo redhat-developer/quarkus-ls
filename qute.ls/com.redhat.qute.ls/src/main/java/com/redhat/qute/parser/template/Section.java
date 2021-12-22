@@ -288,6 +288,11 @@ public class Section extends Node implements ParametersContainer {
 			return null;
 		}
 		List<Parameter> parameters = getParameters();
+		for (Parameter parameter : parameters) {
+			if (parameter.isInName(offset) || parameter.isInValue(offset)) {
+				return parameter;
+			}
+		}
 		return (Parameter) Node.findNodeAt(parameters.stream().map(param -> (Node) param).collect(Collectors.toList()),
 				offset);
 	}
@@ -296,7 +301,15 @@ public class Section extends Node implements ParametersContainer {
 		if (parameters != null) {
 			return parameters;
 		}
-		List<Parameter> parameters = ParameterParser.parse(this, getOwnerTemplate().getCancelChecker());
+		int start = getStartParametersOffset();
+		int end = getEndParametersOffset();
+		if (start > end) {
+			// cases:
+			// {#else|}
+			return Collections.emptyList();
+		}
+
+		List<Parameter> parameters = ParameterParser.parse(this, false, getOwnerTemplate().getCancelChecker());
 		initializeParameters(parameters);
 		return parameters;
 	}

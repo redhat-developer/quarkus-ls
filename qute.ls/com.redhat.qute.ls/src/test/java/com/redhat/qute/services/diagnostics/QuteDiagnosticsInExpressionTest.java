@@ -367,4 +367,115 @@ public class QuteDiagnosticsInExpressionTest {
 				"{items.get(0).name}";
 		testDiagnosticsFor(template);
 	}
+
+	@Test
+	public void returnPrimitiveTypeArray() throws Exception {
+		String template = "{@java.lang.String foo}\r\n" + //
+				"{foo.getBytes('abcd')}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void quoteNoteClosed() throws Exception {
+		String template = "{@java.lang.String foo}\r\n" + //
+				"{foo.getBytes('abcd)}";
+		testDiagnosticsFor(template, //
+				d(1, 22, 1, 22, QuteErrorCode.SyntaxError,
+						"Parser error on line 2: unexpected non-text buffer at the end of the template - unterminated string literal: foo.getBytes('abcd)}",
+						DiagnosticSeverity.Error));
+
+	}
+
+	@Test
+	public void invalidMethodParameters() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{item.name.codePointCount()}";
+		testDiagnosticsFor(template, //
+				d(1, 11, 1, 25, QuteErrorCode.InvalidMethodParameter,
+						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `()`.",
+						DiagnosticSeverity.Error));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"{item.name.codePointCount(1)}";
+		testDiagnosticsFor(template, //
+				d(1, 11, 1, 25, QuteErrorCode.InvalidMethodParameter,
+						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(int)`.",
+						DiagnosticSeverity.Error));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"{item.name.codePointCount(1, 2)}";
+		testDiagnosticsFor(template);
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"{item.name.codePointCount(1, 2, 3)}";
+		testDiagnosticsFor(template, //
+				d(1, 11, 1, 25, QuteErrorCode.InvalidMethodParameter,
+						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(int, int, int)`.",
+						DiagnosticSeverity.Error));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"{item.name.codePointCount('1',2)}";
+		testDiagnosticsFor(template, //
+				d(1, 11, 1, 25, QuteErrorCode.InvalidMethodParameter,
+						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(String, int)`.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void invalidMethodParametersWithLet() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{#let a=1 b=2}\r\n" + //
+				"	{item.name.codePointCount(a, b)}\r\n" + //
+				"{/let}";
+		testDiagnosticsFor(template);
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"{#let a='1' b=2}\r\n" + //
+				"	{item.name.codePointCount(a, b)}\r\n" + //
+				"{/let}";
+		testDiagnosticsFor(template, //
+				d(2, 12, 2, 26, QuteErrorCode.InvalidMethodParameter,
+						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(String, int)`.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void nestedMethodParameters() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{item.name.codePointCount(item.name.codePointCount(1,2), 3)}";
+		testDiagnosticsFor(template);
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"{item.name.codePointCount(item.name.codePointCount(1,2), '3')}";
+		testDiagnosticsFor(template, //
+				d(1, 11, 1, 25, QuteErrorCode.InvalidMethodParameter,
+						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(int, String)`.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void inNestedMethodParameters() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{item.name.codePointCount(item.name.codePointCount(1,2,3), 4)}";
+		testDiagnosticsFor(template, //
+				d(1, 36, 1, 50, QuteErrorCode.InvalidMethodParameter,
+						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(int, int, int)`.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void inNestedMethodParametersWithLet() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{#let a=1 b=2}\r\n" + //
+				"	{item.name.codePointCount(item.name.codePointCount(a,b), 4)}" + //
+				"{/let}";
+		testDiagnosticsFor(template);
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"{#let a=1 b=2 c=3}\r\n" + //
+				"	{item.name.codePointCount(item.name.codePointCount(a,item.name.codePointCount(a,c)), 4)}" + //
+				"{/let}";
+		testDiagnosticsFor(template);
+	}
+
 }

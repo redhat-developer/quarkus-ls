@@ -13,12 +13,24 @@ package com.redhat.qute.parser.expression;
 
 import com.redhat.qute.parser.expression.Parts.PartKind;
 
+/**
+ * Property part.
+ * 
+ * <p>
+ * 	{item.name}
+ * </p>
+ * 
+ * @author Angelo ZERR
+ *
+ */
+
 public class PropertyPart extends MemberPart {
 
 	public PropertyPart(int start, int end) {
 		super(start, end);
 	}
 
+	@Override
 	public PartKind getPartKind() {
 		return PartKind.Property;
 	}

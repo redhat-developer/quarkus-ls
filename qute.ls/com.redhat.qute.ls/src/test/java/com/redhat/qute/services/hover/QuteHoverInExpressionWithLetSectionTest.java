@@ -21,10 +21,21 @@ public class QuteHoverInExpressionWithLetSectionTest {
 				"";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.lang.Double" + //
+				"double" + //
 				System.lineSeparator() + //
 				"```", //
 				r(3, 3, 3, 12));
 	}
 
+	@Test
+	public void assignedString() throws Exception {
+		String template = "{#let a=1 |b='abcd'}\r\n" + //
+				"{/let}\r\n";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"java.lang.String" + //
+				System.lineSeparator() + //
+				"```", //
+				r(0, 10, 0, 18));
+	}
 }

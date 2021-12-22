@@ -1,0 +1,4 @@
+{@sandbox.Item item}
+
+{item.name.ifTruthy(item)}
+{item.name.or('abcd')}

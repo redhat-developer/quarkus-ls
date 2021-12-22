@@ -16,8 +16,10 @@ import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.QUTE_S
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,9 +31,14 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.commons.InvalidMethodReason;
+import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.JavaMemberInfo;
+import com.redhat.qute.commons.JavaMethodInfo;
+import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.ValueResolver;
+import com.redhat.qute.parser.expression.MemberPart;
+import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
@@ -103,13 +110,13 @@ class QuteDiagnostics {
 					ResolvedJavaTypeInfo resolvedIterableType = javaCache.resolveJavaType(iterableType, projectUri)
 							.getNow(null);
 					if (resolvedIterableType != null) {
-						JavaMemberInfo member = resolvedIterableType.findMember(property);
+						JavaMemberInfo member = javaCache.findMember(resolvedIterableType, property);
 						if (member != null) {
 							return member;
 						}
 					}
 				} else {
-					JavaMemberInfo member = withObject.findMember(property);
+					JavaMemberInfo member = javaCache.findMember(withObject, property);
 					if (member != null) {
 						return member;
 					}
@@ -155,8 +162,14 @@ class QuteDiagnostics {
 		}
 		List<Diagnostic> diagnostics = new ArrayList<Diagnostic>();
 		if (validationSettings.isEnabled()) {
-			validateWithRealQuteParser(template, diagnostics);
-			validateDataModel(template, template, resolvingJavaTypeContext, new ResolutionContext(), diagnostics);
+			try {
+				validateWithRealQuteParser(template, diagnostics);
+				validateDataModel(template, template, resolvingJavaTypeContext, new ResolutionContext(), diagnostics);
+			} catch (CancellationException e) {
+				throw e;
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE, "Error while validating '" + template.getUri() + "'.", e);
+			}
 		}
 		cancelChecker.checkCanceled();
 		return diagnostics;
@@ -173,13 +186,14 @@ class QuteDiagnostics {
 			Position start = new Position(line, e.getOrigin().getLineCharacterStart() - 1);
 			Position end = new Position(line, e.getOrigin().getLineCharacterEnd() - 1);
 			Range range = new Range(start, end);
-			Diagnostic diagnostic = createDiagnostic(range, message);
+			Diagnostic diagnostic = createDiagnostic(range, message, QuteErrorCode.SyntaxError);
 			diagnostics.add(diagnostic);
 		}
 	}
 
-	private Diagnostic createDiagnostic(Range range, String message) {
-		return new Diagnostic(range, message, DiagnosticSeverity.Error, QUTE_SOURCE, null);
+	private Diagnostic createDiagnostic(Range range, String message, QuteErrorCode errorCode) {
+		return new Diagnostic(range, message, DiagnosticSeverity.Error, QUTE_SOURCE,
+				errorCode != null ? errorCode.getCode() : null);
 	}
 
 	private void validateDataModel(Node parent, Template template, ResolvingJavaTypeContext resolvingJavaTypeContext,
@@ -194,7 +208,7 @@ class QuteDiagnostics {
 				if (StringUtils.isEmpty(javaTypeToResolve)) {
 					Range range = QutePositionUtility.createRange(parameter);
 					String message = "Class must be defined";
-					Diagnostic diagnostic = createDiagnostic(range, message);
+					Diagnostic diagnostic = createDiagnostic(range, message, null);
 					diagnostics.add(diagnostic);
 				} else {
 					String projectUri = template.getProjectUri();
@@ -303,31 +317,37 @@ class QuteDiagnostics {
 	private ResolvedJavaTypeInfo validateExpression(Expression expression, Section ownerSection, Template template,
 			ResolutionContext resolutionContext, ResolvingJavaTypeContext resolvingJavaTypeContext,
 			List<Diagnostic> diagnostics) {
-		String literalJavaType = expression.getLiteralJavaType();
-		if (literalJavaType != null) {
-			// The expression is a literal:
-			// - {'abcd'} : string literal
-			// - {true} : boolean literal
-			// - {null} : null literal
-			// - {123} : integer literal
-			return javaCache.resolveJavaType(literalJavaType, literalJavaType).getNow(null);
-		}
-		// The expression reference Java data model (ex : {item})
-		ResolvedJavaTypeInfo resolvedJavaClass = null;
-		String projectUri = template.getProjectUri();
-		List<Node> expressionChildren = expression.getExpressionContent();
-		for (Node expressionChild : expressionChildren) {
-			if (expressionChild.getKind() == NodeKind.ExpressionParts) {
-				Parts parts = (Parts) expressionChild;
-				resolvedJavaClass = validateExpressionParts(parts, ownerSection, projectUri, resolutionContext,
-						resolvingJavaTypeContext, diagnostics);
+		try {
+			String projectUri = template.getProjectUri();
+			String literalJavaType = expression.getLiteralJavaType();
+			if (literalJavaType != null) {
+				// The expression is a literal:
+				// - {'abcd'} : string literal
+				// - {true} : boolean literal
+				// - {null} : null literal
+				// - {123} : integer literal
+				return javaCache.resolveJavaType(literalJavaType, projectUri).getNow(null);
 			}
+			// The expression reference Java data model (ex : {item})
+			ResolvedJavaTypeInfo resolvedJavaType = null;
+			List<Node> expressionChildren = expression.getExpressionContent();
+			for (Node expressionChild : expressionChildren) {
+				if (expressionChild.getKind() == NodeKind.ExpressionParts) {
+					Parts parts = (Parts) expressionChild;
+					resolvedJavaType = validateExpressionParts(parts, ownerSection, template, projectUri,
+							resolutionContext, resolvingJavaTypeContext, diagnostics);
+				}
+			}
+			return resolvedJavaType;
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while validating expression '" + expression.getContent() + "' in '"
+					+ template.getUri() + "'.", e);
+			return null;
 		}
-		return resolvedJavaClass;
 	}
 
-	private ResolvedJavaTypeInfo validateExpressionParts(Parts parts, Section ownerSection, String projectUri,
-			ResolutionContext resolutionContext, ResolvingJavaTypeContext resolvingJavaTypeContext,
+	private ResolvedJavaTypeInfo validateExpressionParts(Parts parts, Section ownerSection, Template template,
+			String projectUri, ResolutionContext resolutionContext, ResolvingJavaTypeContext resolvingJavaTypeContext,
 			List<Diagnostic> diagnostics) {
 		ResolvedJavaTypeInfo resolvedJavaType = null;
 		String namespace = null;
@@ -337,13 +357,15 @@ class QuteDiagnostics {
 			if (current.isLast()) {
 				// It's the last part, check if it is not ended with '.'
 				int end = current.getEnd();
-				Template template = parts.getOwnerTemplate();
-				char c = template.getText().charAt(end);
-				if (c == '.') {
-					Range range = QutePositionUtility.createRange(end, end + 1, template);
-					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.SyntaxError,
-							"Unexpected '.' token.");
-					diagnostics.add(diagnostic);
+				String text = template.getText();
+				if (end < text.length()) {
+					char c = text.charAt(end);
+					if (c == '.') {
+						Range range = QutePositionUtility.createRange(end, end + 1, template);
+						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+								QuteErrorCode.SyntaxError, "Unexpected '.' token.");
+						diagnostics.add(diagnostic);
+					}
 				}
 			}
 
@@ -389,8 +411,8 @@ class QuteDiagnostics {
 					}
 				}
 
-				resolvedJavaType = validatePropertyPart(current, ownerSection, projectUri, resolvedJavaType, iter,
-						diagnostics, resolvingJavaTypeContext);
+				resolvedJavaType = validatePropertyPart(current, ownerSection, template, projectUri, resolutionContext,
+						resolvedJavaType, iter, diagnostics, resolvingJavaTypeContext);
 				if (resolvedJavaType == null) {
 					// The Java type of the previous part cannot be resolved, stop the validation of
 					// followings property, method.
@@ -510,14 +532,15 @@ class QuteDiagnostics {
 				javaTypeToResolve);
 	}
 
-	private ResolvedJavaTypeInfo validatePropertyPart(Part part, Section ownerSection, String projectUri,
-			ResolvedJavaTypeInfo resolvedJavaType, ResolvedJavaTypeInfo iter, List<Diagnostic> diagnostics,
+	private ResolvedJavaTypeInfo validatePropertyPart(Part part, Section ownerSection, Template template,
+			String projectUri, ResolutionContext resolutionContext, ResolvedJavaTypeInfo resolvedJavaType,
+			ResolvedJavaTypeInfo iter, List<Diagnostic> diagnostics,
 			ResolvingJavaTypeContext resolvingJavaTypeContext) {
-		String property = part.getPartName();
-		JavaMemberInfo javaMember = javaCache.findMember(property, resolvedJavaType, projectUri);
+		JavaMemberInfo javaMember = javaCache.findMember(part, resolvedJavaType, projectUri);
+		boolean isMethod = part.getPartKind() == PartKind.Method;
 		if (javaMember == null) {
+			String property = part.getPartName();
 			IQuteErrorCode errorCode = null;
-			boolean isMethod = part.getPartKind() == PartKind.Method;
 			if (isMethod) {
 				// ex : {@org.acme.Item item}
 				// "{item.getXXXX()}
@@ -534,6 +557,7 @@ class QuteDiagnostics {
 					case FromObject:
 						errorCode = QuteErrorCode.InvalidMethodFromObject;
 						break;
+					default:
 					}
 				}
 			} else {
@@ -547,17 +571,96 @@ class QuteDiagnostics {
 			diagnostics.add(diagnostic);
 			return null;
 		}
-		if (!part.isLast() || ownerSection != null && ownerSection.isIterable()) {
-			// Last part doesn't require to validate the type except if the part expression
-			// is inside a loop section
-			// to check if the type is an iterable type (ex : {#for item in
-			// part.to.validate}
+		if (javaMember.getJavaElementKind() == JavaElementKind.METHOD && !(javaMember instanceof ValueResolver)) {
+			MemberPart methodPart = (MemberPart) part;
+			JavaMethodInfo methodInfo = (JavaMethodInfo) javaMember;
+			List<ResolvedJavaTypeInfo> parameterTypes = new ArrayList<>();
+			boolean virtualMethod = javaMember instanceof ValueResolver;
+			if (!validateMethodParameters(methodPart, methodInfo, ownerSection, template, projectUri, resolutionContext,
+					resolvedJavaType, parameterTypes, virtualMethod, diagnostics, resolvingJavaTypeContext)) {
+				// The method codePointAt(int) in the type String is not applicable for the
+				// arguments ()
+				StringBuilder expectedSignature = new StringBuilder("(");
+				boolean ignoreParameter = virtualMethod;
+				for (JavaParameterInfo parameter : methodInfo.getParameters()) {
+					if (!ignoreParameter) {
+						if (expectedSignature.length() > 1) {
+							expectedSignature.append(", ");
+						}
+						expectedSignature.append(parameter.getJavaElementSimpleType());
+					}
+					ignoreParameter = false;
+				}
+				expectedSignature.append(")");
+				expectedSignature.insert(0, methodInfo.getName());
 
-			String memberType = javaMember.resolveJavaElementType(iter);
-			return validateJavaTypePart(part, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext,
-					memberType);
+				StringBuilder actualSignature = new StringBuilder("(");
+				for (ResolvedJavaTypeInfo parameterType : parameterTypes) {
+					if (actualSignature.length() > 1) {
+						actualSignature.append(", ");
+					}
+					actualSignature
+							.append(parameterType != null ? parameterType.getJavaElementSimpleType() : parameterType);
+				}
+				actualSignature.append(")");
+
+				Range range = QutePositionUtility.createRange(part);
+				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+						QuteErrorCode.InvalidMethodParameter, //
+						expectedSignature.toString() /* codePointAt(int) */,
+						methodInfo.getResolvedType().getJavaElementSimpleType() /* String */,
+						actualSignature.toString() /* "()" */);
+				diagnostics.add(diagnostic);
+			}
 		}
-		return null;
+		String memberType = javaMember.resolveJavaElementType(iter);
+		return validateJavaTypePart(part, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext, memberType);
+	}
+
+	private boolean validateMethodParameters(MemberPart methodPart, JavaMethodInfo methodInfo, Section ownerSection,
+			Template template, String projectUri, ResolutionContext resolutionContext,
+			ResolvedJavaTypeInfo resolvedJavaType, List<ResolvedJavaTypeInfo> parameterTypes, boolean virtualMethod,
+			List<Diagnostic> diagnostics, ResolvingJavaTypeContext resolvingJavaTypeContext) {
+		List<Parameter> methodPartParameters = (methodPart instanceof MethodPart)
+				? ((MethodPart) methodPart).getParameters()
+				: Collections.emptyList();
+		List<JavaParameterInfo> parameters = methodInfo.getParameters();
+
+		// Loop for method parameters to validate type for each parameter and collect
+		// it.
+		boolean undefinedType = false;
+		for (Parameter parameter : methodPartParameters) {
+			ResolvedJavaTypeInfo result = null;
+			Expression expression = parameter.getJavaTypeExpression();
+			if (expression != null) {
+				result = validateExpression(expression, ownerSection, template, resolutionContext,
+						resolvingJavaTypeContext, diagnostics);
+			}
+			if (result == null) {
+				undefinedType = true;
+			}
+			parameterTypes.add(result);
+		}
+
+		if (undefinedType) {
+			return true;
+		}
+
+		if (methodPartParameters.size() != (parameters.size() - (virtualMethod ? 1 : 0))) {
+			return false;
+		}
+
+		for (int i = 0; i < parameterTypes.size(); i++) {
+			JavaParameterInfo parameterInfo = parameters.get(i + (virtualMethod ? 1 : 0));
+			ResolvedJavaTypeInfo result = parameterTypes.get(i);
+
+			String parameterType = parameterInfo.getType();
+			if (!parameterType.equals(result.getSignature())) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private ResolvedJavaTypeInfo validateJavaTypePart(Part part, Section ownerSection, String projectUri,

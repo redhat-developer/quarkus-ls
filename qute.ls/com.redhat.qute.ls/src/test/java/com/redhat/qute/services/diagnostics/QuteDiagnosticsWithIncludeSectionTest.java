@@ -30,7 +30,7 @@ public class QuteDiagnosticsWithIncludeSectionTest {
 		String template = "{#include /}";
 		testDiagnosticsFor(template, //
 				// error coming from the real Qute parser
-				d(0, 11, 0, 11, null,
+				d(0, 11, 0, 11, QuteErrorCode.SyntaxError,
 						"Parser error on line 1: mandatory section parameters not declared for {#include /}: [Parameter [name=template, defaultValue=null, optional=false]]",
 						DiagnosticSeverity.Error), //
 				// error coming from Qute LS parser

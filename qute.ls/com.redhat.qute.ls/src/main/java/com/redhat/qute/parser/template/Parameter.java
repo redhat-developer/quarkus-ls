@@ -126,6 +126,7 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 		}
 		expression = new ExpressionParameter(startExpression - 1, endExpression + 1, getOwnerSection());
 		expression.setParent(this);
+		expression.setClosed(true);
 		return expression;
 	}
 

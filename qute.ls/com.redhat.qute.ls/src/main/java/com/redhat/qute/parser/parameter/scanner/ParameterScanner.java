@@ -15,27 +15,44 @@ import java.util.function.Predicate;
 
 import com.redhat.qute.parser.scanner.AbstractScanner;
 
+/**
+ * Parameter scanner.
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 
 	private static final Predicate<Integer> PARAMETER_NAME_OR_VALUE_PREDICATE = ch -> {
 		return ch != ' ' && ch != '=';
 	};
-	
+
 	public static ParameterScanner createScanner(String input) {
-		return createScanner(input, 0, input.length());
+		return createScanner(input, false);
 	}
 
-	public static ParameterScanner createScanner(String input, int initialOffset, int endOffset) {
-		return createScanner(input, initialOffset, endOffset, ScannerState.WithinParameter);
+	public static ParameterScanner createScanner(String input, boolean methodParameters) {
+		return createScanner(input, 0, input.length(), methodParameters);
 	}
 
 	public static ParameterScanner createScanner(String input, int initialOffset, int endOffset,
-			ScannerState initialState) {
-		return new ParameterScanner(input, initialOffset, endOffset, initialState);
+			boolean methodParameters) {
+		return createScanner(input, initialOffset, endOffset, methodParameters, ScannerState.WithinParameter);
 	}
 
-	ParameterScanner(String input, int initialOffset, int endOffset, ScannerState initialState) {
+	public static ParameterScanner createScanner(String input, int initialOffset, int endOffset,
+			boolean methodParameters, ScannerState initialState) {
+		return new ParameterScanner(input, initialOffset, endOffset, methodParameters, initialState);
+	}
+
+	private final boolean methodParameters;
+
+	private int bracket;
+
+	ParameterScanner(String input, int initialOffset, int endOffset, boolean methodParameters,
+			ScannerState initialState) {
 		super(input, initialOffset, endOffset, initialState, TokenType.Unknown, TokenType.EOS);
+		this.methodParameters = methodParameters;
 	}
 
 	@Override
@@ -52,26 +69,34 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 			if (stream.skipWhitespace()) {
 				return finishToken(offset, TokenType.Whitespace);
 			}
-			if (hasNextParameterNameOrValue()) {
-				state = ScannerState.WithinParameter;
-				return finishToken(offset, TokenType.ParameterName);
+			if (methodParameters) {
+				return parseParameterName(offset);
+			} else {
+				if (hasNextParameterNameOrValue()) {
+					state = ScannerState.WithinParameter;
+					return finishToken(offset, TokenType.ParameterName);
+				}
 			}
 			return finishToken(offset, TokenType.Unknown);
 		}
 
-		case WithinParameter: {			
-			if (stream.advanceIfChar('=')) {
-				if(!stream.eos() && (stream.peekChar() == ' ' || stream.peekChar() == '=')) {
-					state = ScannerState.WithinParameters;		
-				} else {
-					state = ScannerState.AfterAssign;
+		case WithinParameter: {
+			if (methodParameters) {
+
+			} else {
+				if (stream.advanceIfChar('=')) {
+					if (!stream.eos() && (stream.peekChar() == ' ' || stream.peekChar() == '=')) {
+						state = ScannerState.WithinParameters;
+					} else {
+						state = ScannerState.AfterAssign;
+					}
+					return finishToken(offset, TokenType.Assign);
 				}
-				return finishToken(offset, TokenType.Assign);
 			}
 			state = ScannerState.WithinParameters;
 			return internalScan();
 		}
-		
+
 		case AfterAssign: {
 			if (hasNextParameterNameOrValue()) {
 				state = ScannerState.WithinParameters;
@@ -87,5 +112,34 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 
 	private boolean hasNextParameterNameOrValue() {
 		return stream.advanceWhileChar(PARAMETER_NAME_OR_VALUE_PREDICATE) > 0;
+	}
+
+	private TokenType parseParameterName(int offset) {
+		if (methodParameters) {
+			stream.advanceUntilChar('(', ')', ',');
+			if (stream.peekChar() == '(') {
+				stream.advance(1);
+				bracket++;
+				return parseParameterName(offset);
+			} else if (stream.peekChar() == ')') {
+				stream.advance(1);
+				if (bracket > 0) {
+					bracket--;
+				}
+				return parseParameterName(offset);
+			}
+			if (stream.peekChar() == ',') {
+				if (bracket > 0) {
+					stream.advance(1);
+					return parseParameterName(offset);
+				}
+				if (offset == stream.pos()) {
+					stream.advance(1);
+					return internalScan();
+				}
+			}
+		}
+		state = ScannerState.WithinParameters;
+		return finishToken(offset, TokenType.ParameterName);
 	}
 }

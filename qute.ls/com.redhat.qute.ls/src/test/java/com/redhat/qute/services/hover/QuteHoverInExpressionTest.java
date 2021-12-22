@@ -49,11 +49,11 @@ public class QuteHoverInExpressionTest {
 	}
 
 	@Test
-	public void integerLiteral() throws Exception {
+	public void intLiteral() throws Exception {
 		String template = "{1|23}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.lang.Integer" + //
+				"int" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(0, 1, 0, 4));
@@ -67,7 +67,7 @@ public class QuteHoverInExpressionTest {
 		String template = "{1|23L}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.lang.Long" + //
+				"long" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(0, 1, 0, 5));
@@ -189,6 +189,19 @@ public class QuteHoverInExpressionTest {
 				System.lineSeparator() + //
 				"```", //
 				r(1, 7, 1, 11));
+
+	}
+	
+	@Test
+	public void methodHoverForString() throws Exception {
+		String template = "{@java.lang.String foo}\r\n" + //
+				"{foo.getByte|s('abcd')}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"byte[] java.lang.String.getBytes(String charsetName)" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 5, 1, 13));
 
 	}
 }

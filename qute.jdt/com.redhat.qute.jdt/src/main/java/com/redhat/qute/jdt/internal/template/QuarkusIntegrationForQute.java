@@ -20,7 +20,6 @@ import static com.redhat.qute.jdt.internal.template.TemplateExtensionSupport.col
 import static com.redhat.qute.jdt.internal.template.TemplateFieldSupport.collectDataModelTemplateForTemplateField;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,6 +42,7 @@ import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchRequestor;
 
+import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ValueResolver;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
@@ -72,9 +72,6 @@ import com.redhat.qute.jdt.utils.AnnotationUtils;
 public class QuarkusIntegrationForQute {
 
 	private static final Logger LOGGER = Logger.getLogger(QuarkusIntegrationForQute.class.getName());
-
-	private static final List<String> javaPrimitiveTypes = Arrays.asList("boolean", "byte", "double", "float", "int",
-			"long");
 
 	public static DataModelProject<DataModelTemplate<DataModelParameter>> getDataModelProject(IJavaProject javaProject,
 			IProgressMonitor monitor) throws CoreException {
@@ -200,7 +197,7 @@ public class QuarkusIntegrationForQute {
 
 	private static String resolveSignature2(String signature, IType type) {
 		String resolvedSignatureWithoutPackage = Signature.toString(signature);
-		if (javaPrimitiveTypes.contains(resolvedSignatureWithoutPackage)) {
+		if (JavaTypeInfo.PRIMITIVE_TYPES.contains(resolvedSignatureWithoutPackage)) {
 			return resolvedSignatureWithoutPackage;
 		}
 

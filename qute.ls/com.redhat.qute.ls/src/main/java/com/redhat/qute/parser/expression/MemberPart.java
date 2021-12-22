@@ -11,6 +11,12 @@
 *******************************************************************************/
 package com.redhat.qute.parser.expression;
 
+/**
+ * Base class for property and method part.
+ * 
+ * @author Angelo ZERR.
+ *
+ */
 public abstract class MemberPart extends Part {
 
 	public MemberPart(int start, int end) {

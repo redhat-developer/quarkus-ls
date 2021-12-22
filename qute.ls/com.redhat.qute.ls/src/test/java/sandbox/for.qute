@@ -1,4 +1,4 @@
-{@java.util.List<toremove.Item> items}
+{@java.util.List<sandbox.Item> items}
 
 {#each i in items}
 	{i.getName()}

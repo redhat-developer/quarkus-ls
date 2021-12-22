@@ -36,6 +36,7 @@ import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.ValueResolver;
 import com.redhat.qute.ls.commons.SnippetsBuilder;
+import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.template.Expression;
@@ -108,13 +109,25 @@ public class QuteCompletionsForExpression {
 				// ex : { ite|m }
 				return doCompleteExpressionForObjectPart(expression, part, offset, template, completionSettings,
 						formattingSettings);
-			case Property:
-			case Method:
+			case Property: {
 				// ex : { item.n| }
 				// ex : { item.n|ame }
+				Parts parts = part.getParent();
+				return doCompleteExpressionForMemberPart(part, parts, template, completionSettings, formattingSettings);
+			}
+			case Method: {
+				// ex : { item.getN|ame() }
+				// ex : { item.getName(|) }
+				MethodPart methodPart = (MethodPart) part;
+				if (methodPart.isInParameters(offset)) {
+					// ex : { item.getName(|) }
+					return doCompleteExpressionForObjectPart(expression, null, offset, template, completionSettings,
+							formattingSettings);
+				}
 				// ex : { item.getN|ame() }
 				Parts parts = part.getParent();
 				return doCompleteExpressionForMemberPart(part, parts, template, completionSettings, formattingSettings);
+			}
 			default:
 				break;
 			}

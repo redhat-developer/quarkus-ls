@@ -1,4 +1,4 @@
-package toremove;
+package sandbox;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -9,7 +9,7 @@ import io.quarkus.qute.Engine;
 import io.quarkus.qute.ReflectionValueResolver;
 import io.quarkus.qute.Template;
 
-public class TestLetQute {
+public class TestMethodQute {
 
 	public static void main(String[] args) {
 
@@ -18,7 +18,7 @@ public class TestLetQute {
 
 		Engine engine = Engine.builder().addDefaults().addValueResolver(new ReflectionValueResolver()).build();
 
-		Template template = engine.parse(convertStreamToString(TestLetQute.class.getResourceAsStream("let.qute")));
+		Template template = engine.parse(convertStreamToString(TestMethodQute.class.getResourceAsStream("method.qute")));
 		String s = template.data(data).render();
 
 		System.err.println(s);

@@ -38,6 +38,20 @@ public class ExpressionScannerTest {
 	}
 
 	@Test
+	public void testObjectAndMethodPartWithParameters() {
+		scanner = ExpressionScanner.createScanner("item.name(1, base, 'abcd')");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "item");
+		assertOffsetAndToken(4, TokenType.Dot, ".");
+		assertOffsetAndToken(5, TokenType.MethodPart, "name");
+		assertOffsetAndToken(9, TokenType.OpenBracket, "(");
+		assertOffsetAndToken(19, TokenType.StartString, "'");
+		assertOffsetAndToken(20, TokenType.String, "abcd");
+		assertOffsetAndToken(24, TokenType.EndString, "'");
+		assertOffsetAndToken(25, TokenType.CloseBracket, ")");
+		assertOffsetAndToken(26, TokenType.EOS, "");
+	}
+
+	@Test
 	public void testTwoParts() {
 		scanner = ExpressionScanner.createScanner("a b");
 		assertOffsetAndToken(0, TokenType.ObjectPart, "a");

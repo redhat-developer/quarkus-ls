@@ -83,8 +83,8 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("name", false));
 
 		testDiagnosticsFor(template, //
-				d(2, 6, 2, 6, null, "Parser error on line 3: no section start tag found for {/let}",
-						DiagnosticSeverity.Error), //
+				d(2, 6, 2, 6, QuteErrorCode.SyntaxError,
+						"Parser error on line 3: no section start tag found for {/let}", DiagnosticSeverity.Error), //
 				d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String name}\r\n")));

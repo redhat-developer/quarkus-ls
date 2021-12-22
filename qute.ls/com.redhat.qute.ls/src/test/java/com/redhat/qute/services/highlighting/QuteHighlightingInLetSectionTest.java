@@ -63,4 +63,28 @@ public class QuteHighlightingInLetSectionTest {
 				hl(r(0, 12, 0, 15), Read));
 
 	}
+	
+	@Test
+	public void fromParamWithMethodParam() throws BadLocationException {
+		String template = "{#let va|lue=123}\r\n" + //
+				"	{foo.method(value)}\r\n" + //
+				"	{value}\r\n" + //
+				"{/let}";
+		testHighlightsFor(template, //
+				hl(r(0, 6, 0, 11), Write), //
+				hl(r(1, 13, 1, 18), Read),
+				hl(r(2, 2, 2, 7), Read));
+
+	}
+	
+	@Test
+	public void toMethodParam() throws BadLocationException {
+		String template = "{#let value=123}\r\n" + //
+				"	{foo.method(va|lue)}\r\n" + //
+				"	{value}\r\n" + //
+				"{/let}";
+		testHighlightsFor(template, //
+				hl(r(1, 13, 1, 18), Read), //
+				hl(r(0, 6, 0, 11), Write));
+	}
 }

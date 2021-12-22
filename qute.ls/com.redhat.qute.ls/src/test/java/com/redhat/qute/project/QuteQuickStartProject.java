@@ -48,8 +48,10 @@ public class QuteQuickStartProject extends MockQuteProject {
 		ResolvedJavaTypeInfo string = createResolvedJavaTypeInfo("java.lang.String", cache);
 		registerField("UTF16 : byte", string);
 		registerMethod("isEmpty() : boolean", string);
+		registerMethod("codePointCount(beginIndex : int,endIndex : int) : int", string);
 		string.setInvalidMethod("getChars", InvalidMethodReason.VoidReturn); // void getChars(int srcBegin, int srcEnd,
 																				// char dst[], int dstBegin)
+		registerMethod("getBytes(charsetName : java.lang.String) : byte[]", string);
 
 		createResolvedJavaTypeInfo("java.lang.Boolean", cache);
 		createResolvedJavaTypeInfo("java.lang.Integer", cache);
