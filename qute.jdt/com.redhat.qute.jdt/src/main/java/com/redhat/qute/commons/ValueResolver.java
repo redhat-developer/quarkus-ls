@@ -33,6 +33,11 @@ public class ValueResolver extends JavaMethodInfo {
 
 	private String url;
 
+	@Override
+	public boolean isVirtual() {
+		return true;
+	}
+
 	/**
 	 * Returns the namespace of the resolver and null otherwise.
 	 *

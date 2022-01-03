@@ -478,4 +478,27 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template);
 	}
 
+	@Test
+	public void virtualMethodNotApplicable() {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{item.get(0)}";
+		testDiagnosticsFor(template, //
+				d(1, 6, 1, 9, QuteErrorCode.UnkwownMethod,
+						"`get` cannot be resolved or is not a method of `org.acme.Item` Java type.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void invalidMethodParametersWithVirtualMethod() throws Exception {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				"{items.get(0)}";
+		testDiagnosticsFor(template);
+
+		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				"{items.get('0')}";
+		testDiagnosticsFor(template, //
+				d(1, 7, 1, 10, QuteErrorCode.InvalidMethodParameter,
+						"The method `get(int)` in the type `List<E>` is not applicable for the arguments `(String)`.",
+						DiagnosticSeverity.Error));
+	}
 }

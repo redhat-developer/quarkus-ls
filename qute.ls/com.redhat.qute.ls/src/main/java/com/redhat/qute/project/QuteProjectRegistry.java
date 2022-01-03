@@ -411,20 +411,10 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	}
 
 	public ValueResolver findValueResolver(String property, ResolvedJavaTypeInfo resolvedType, String projectUri) {
-		// Search in static value resolvers (ex : orEmpty, take, etc)
 		List<ValueResolver> resolvers = getResolversFor(resolvedType, projectUri);
 		for (ValueResolver resolver : resolvers) {
 			if (isMatchMethod(resolver, property)) {
 				return resolver;
-			}
-		}
-		// Search in template extension value resolvers retrieved by @TemplateExtension
-		resolvers = getValueResolvers(projectUri).getNow(null);
-		if (resolvers != null) {
-			for (ValueResolver resolver : resolvers) {
-				if (isMatchMethod(resolver, property)) {
-					return resolver;
-				}
 			}
 		}
 		return null;
@@ -464,13 +454,14 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	}
 
 	public List<ValueResolver> getResolversFor(ResolvedJavaTypeInfo javaType, String projectUri) {
+		// Search in static value resolvers (ex : orEmpty, take, etc)
 		List<ValueResolver> matches = new ArrayList<>();
 		for (ValueResolver resolver : valueResolversRegistry.getResolvers()) {
 			if (matchResolver(javaType, resolver, projectUri)) {
 				matches.add(resolver);
 			}
 		}
-
+		// Search in template extension value resolvers retrieved by @TemplateExtension
 		List<ValueResolver> allResolvers = getValueResolvers(projectUri).getNow(null);
 		if (allResolvers != null) {
 			for (ValueResolver resolver : allResolvers) {
