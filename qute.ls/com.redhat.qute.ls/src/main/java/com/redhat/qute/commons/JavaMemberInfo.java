@@ -49,6 +49,15 @@ public abstract class JavaMemberInfo extends JavaElementInfo {
 	public String getSourceType() {
 		return resolvedType != null ? resolvedType.getSignature() : null;
 	}
+	
+	/**
+	 * Returns the java source simple type and null otherwise.
+	 * 
+	 * @return the java source simple type and null otherwise.
+	 */
+	public String getSimpleSourceType() {
+		return getSimpleType(getSourceType());
+	}
 
 	/**
 	 * Resolve the element type which could use generic by using the given argument

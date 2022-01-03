@@ -146,7 +146,7 @@ public class DocumentationUtils {
 		if (member.getJavaElementKind() == JavaElementKind.METHOD) {
 			documentation.append('(');
 			JavaMethodInfo methodInfo = (JavaMethodInfo) member;
-			boolean virtualMethod = methodInfo instanceof ValueResolver;
+			boolean virtualMethod = methodInfo.isVirtual();
 			List<JavaParameterInfo> parameters = methodInfo.getParameters();
 			int start = virtualMethod ? 1 : 0;
 			for (int i = start; i < parameters.size(); i++) {

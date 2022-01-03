@@ -571,11 +571,11 @@ class QuteDiagnostics {
 			diagnostics.add(diagnostic);
 			return null;
 		}
-		if (javaMember.getJavaElementKind() == JavaElementKind.METHOD && !(javaMember instanceof ValueResolver)) {
+		if (javaMember.getJavaElementKind() == JavaElementKind.METHOD) {
 			MemberPart methodPart = (MemberPart) part;
 			JavaMethodInfo methodInfo = (JavaMethodInfo) javaMember;
 			List<ResolvedJavaTypeInfo> parameterTypes = new ArrayList<>();
-			boolean virtualMethod = javaMember instanceof ValueResolver;
+			boolean virtualMethod = methodInfo.isVirtual();
 			if (!validateMethodParameters(methodPart, methodInfo, ownerSection, template, projectUri, resolutionContext,
 					resolvedJavaType, parameterTypes, virtualMethod, diagnostics, resolvingJavaTypeContext)) {
 				// The method codePointAt(int) in the type String is not applicable for the
@@ -608,7 +608,7 @@ class QuteDiagnostics {
 				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
 						QuteErrorCode.InvalidMethodParameter, //
 						expectedSignature.toString() /* codePointAt(int) */,
-						methodInfo.getResolvedType().getJavaElementSimpleType() /* String */,
+						methodInfo.getSimpleSourceType() /* String */,
 						actualSignature.toString() /* "()" */);
 				diagnostics.add(diagnostic);
 			}

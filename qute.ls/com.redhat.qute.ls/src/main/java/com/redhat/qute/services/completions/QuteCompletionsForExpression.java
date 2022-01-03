@@ -351,7 +351,7 @@ public class QuteCompletionsForExpression {
 		CompletionItem item = new CompletionItem();
 		item.setLabel(methodSignature);
 		item.setFilterText(method.getName());
-		item.setKind(CompletionItemKind.Method);
+		item.setKind(method.isVirtual() ? CompletionItemKind.Function : CompletionItemKind.Method);
 		item.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported() ? InsertTextFormat.Snippet
 				: InsertTextFormat.PlainText);
 		TextEdit textEdit = new TextEdit();
@@ -369,7 +369,7 @@ public class QuteCompletionsForExpression {
 		StringBuilder snippet = new StringBuilder(methodName);
 		if (method.hasParameters()) {
 			int start = 0;
-			if (method instanceof ValueResolver && ((ValueResolver) method).getNamespace() == null) {
+			if (method.isVirtual() && ((ValueResolver) method).getNamespace() == null) {
 				start++;
 			}
 			snippet.append("(");
