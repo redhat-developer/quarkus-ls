@@ -21,24 +21,24 @@ public abstract class JavaMemberInfo extends JavaElementInfo {
 
 	protected static final String NO_VALUE = "~";
 
-	private transient ResolvedJavaTypeInfo resolvedType;
+	private transient JavaTypeInfo javaType;
 
 	/**
-	 * Returns the resolved type and null otherwise.
+	 * Returns the owner Java type and null otherwise.
 	 * 
-	 * @return the resolved type and null otherwise.
+	 * @return the owner Java type and null otherwise.
 	 */
-	public ResolvedJavaTypeInfo getResolvedType() {
-		return resolvedType;
+	public JavaTypeInfo getJavaType() {
+		return javaType;
 	}
 
 	/**
-	 * Set the resolved type.
+	 * Set the owner Java type.
 	 * 
-	 * @param resolvedType the resolved type
+	 * @param javaType the owner Java type.
 	 */
-	public void setResolvedType(ResolvedJavaTypeInfo resolvedType) {
-		this.resolvedType = resolvedType;
+	public void setJavaType(JavaTypeInfo javaType) {
+		this.javaType = javaType;
 	}
 
 	/**
@@ -47,9 +47,10 @@ public abstract class JavaMemberInfo extends JavaElementInfo {
 	 * @return the java source type and null otherwise.
 	 */
 	public String getSourceType() {
-		return resolvedType != null ? resolvedType.getSignature() : null;
+		JavaTypeInfo javaType = getJavaType();
+		return javaType != null ? javaType.getName() : null;
 	}
-	
+
 	/**
 	 * Returns the java source simple type and null otherwise.
 	 * 

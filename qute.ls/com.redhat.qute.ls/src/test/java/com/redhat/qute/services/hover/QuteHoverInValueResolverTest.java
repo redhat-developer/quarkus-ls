@@ -30,7 +30,16 @@ public class QuteHoverInValueResolverTest {
 				"		{item.discountedPr|ice}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"BigDecimal discountedPrice()" + //
+				"BigDecimal org.acme.ItemResource.discountedPrice()" + //
+				System.lineSeparator() + //
+				"```", // ,
+				r(1, 8, 1, 23));
+		
+		template = "{@org.acme.Item item}\r\n" + //
+				"		{item.discountedPr|ice()}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"BigDecimal org.acme.ItemResource.discountedPrice()" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(1, 8, 1, 23));

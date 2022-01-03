@@ -55,7 +55,7 @@ public class JavaMethodInfoTest {
 		String signature = "get(index : int) : E";
 		JavaMethodInfo method = new JavaMethodInfo();
 		method.setSignature(signature);
-		method.setResolvedType(list);
+		method.setJavaType(list);
 
 		ResolvedJavaTypeInfo listOfItem = new ResolvedJavaTypeInfo();
 		listOfItem.setSignature("java.util.List<org.acme.Item>");

@@ -34,6 +34,7 @@ import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.utils.StringUtils;
 
@@ -243,6 +244,11 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 
 	public List<ValueResolver> getNamespaceResolvers(String projectUri) {
 		return projectRegistry.getNamespaceResolvers(projectUri);
+	}
+
+	public JavaMemberResult findMethod(ResolvedJavaTypeInfo baseType, String methodName,
+			List<ResolvedJavaTypeInfo> parameterTypes, String projectUri) {
+		return projectRegistry.findMethod(baseType, methodName, parameterTypes, projectUri);
 	}
 
 }

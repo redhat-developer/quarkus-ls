@@ -52,6 +52,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		string.setInvalidMethod("getChars", InvalidMethodReason.VoidReturn); // void getChars(int srcBegin, int srcEnd,
 																				// char dst[], int dstBegin)
 		registerMethod("getBytes(charsetName : java.lang.String) : byte[]", string);
+		registerMethod("getBytes() : byte[]", string);
 
 		createResolvedJavaTypeInfo("java.lang.Boolean", cache);
 		createResolvedJavaTypeInfo("java.lang.Integer", cache);
@@ -126,7 +127,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		List<ValueResolver> resolvers = new ArrayList<>();
 		resolvers.add(createValueResolver("discountedPrice(item : org.acme.Item) : java.math.BigDecimal",
 				"org.acme.ItemResource"));
-		resolvers.add(createValueResolver("get(list : java.util.List<T>, index : int) : T",
+		resolvers.add(createValueResolver("getByIndex(list : java.util.List<T>, index : int) : T",
 				"io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions"));
 		return resolvers;
 	}

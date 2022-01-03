@@ -347,7 +347,7 @@ public class QuteDiagnosticsInExpressionTest {
 	public void invalidMethodStatic() {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{item.name}\r\n" + //
-				"{item.staticMethod(null)}\r\n";
+				"{item.staticMethod(1)}\r\n";
 
 		testDiagnosticsFor(template, //
 				d(2, 6, 2, 18, QuteErrorCode.InvalidMethodStatic,
@@ -479,12 +479,30 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void virtualMethodNotApplicable() {
-		String template = "{@org.acme.Item item}\r\n" + //
-				"{item.get(0)}";
+	public void staticVirtualMethodNotApplicable() {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				"{items.take(0)}";
+		testDiagnosticsFor(template);
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"{item.take(0)}";
 		testDiagnosticsFor(template, //
-				d(1, 6, 1, 9, QuteErrorCode.UnkwownMethod,
-						"`get` cannot be resolved or is not a method of `org.acme.Item` Java type.",
+				d(1, 6, 1, 10, QuteErrorCode.InvalidVirtualMethod,
+						"The virtual method `take` in the type `null` is not applicable for the base object `Item` type.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void dynamicVirtualMethodNotApplicable() {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				"{items.getByIndex(0)}";
+		testDiagnosticsFor(template);
+		
+		template = "{@org.acme.Item item}\r\n" + //
+				"{item.getByIndex(0)}";
+		testDiagnosticsFor(template, //
+				d(1, 6, 1, 16, QuteErrorCode.InvalidVirtualMethod,
+						"The virtual method `getByIndex` in the type `CollectionTemplateExtensions` is not applicable for the base object `Item` type.",
 						DiagnosticSeverity.Error));
 	}
 
@@ -498,7 +516,19 @@ public class QuteDiagnosticsInExpressionTest {
 				"{items.get('0')}";
 		testDiagnosticsFor(template, //
 				d(1, 7, 1, 10, QuteErrorCode.InvalidMethodParameter,
-						"The method `get(int)` in the type `List<E>` is not applicable for the arguments `(String)`.",
+						"The method `get(int)` in the type `List` is not applicable for the arguments `(String)`.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void sameMethodNameWithDifferentSignature() {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{item.name.getBytes()}\r\n" + //
+				"{item.name.getBytes('abcd')}\r\n" + //
+				"{item.name.getBytes(1)}";
+		testDiagnosticsFor(template, //
+				d(3, 11, 3, 19, QuteErrorCode.InvalidMethodParameter,
+						"The method `getBytes(String)` in the type `String` is not applicable for the arguments `(int)`.",
 						DiagnosticSeverity.Error));
 	}
 }
