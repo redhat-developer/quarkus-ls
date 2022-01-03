@@ -16,7 +16,6 @@ import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.QUTE_S
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -31,19 +30,17 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.commons.InvalidMethodReason;
-import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
-import com.redhat.qute.parser.expression.MemberPart;
 import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.expression.Parts.PartKind;
+import com.redhat.qute.parser.expression.PropertyPart;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Node;
@@ -57,6 +54,7 @@ import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
+import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.diagnostics.DiagnosticDataFactory;
 import com.redhat.qute.services.diagnostics.IQuteErrorCode;
@@ -411,7 +409,7 @@ class QuteDiagnostics {
 					}
 				}
 
-				resolvedJavaType = validatePropertyPart(current, ownerSection, template, projectUri, resolutionContext,
+				resolvedJavaType = validateMemberPart(current, ownerSection, template, projectUri, resolutionContext,
 						resolvedJavaType, iter, diagnostics, resolvingJavaTypeContext);
 				if (resolvedJavaType == null) {
 					// The Java type of the previous part cannot be resolved, stop the validation of
@@ -532,104 +530,94 @@ class QuteDiagnostics {
 				javaTypeToResolve);
 	}
 
-	private ResolvedJavaTypeInfo validatePropertyPart(Part part, Section ownerSection, Template template,
+	/**
+	 * Validate the given property, method part.
+	 * 
+	 * @param part                     the property, method part to validate.
+	 * @param ownerSection             the owner section and null otherwise.
+	 * @param template                 the template.
+	 * @param projectUri               the project Uri.
+	 * @param resolutionContext        the resolution context.
+	 * @param baseType                 the base object type.
+	 * @param iterableOfType           the iterable of type.
+	 * @param diagnostics              the diagnostic list to fill.
+	 * @param resolvingJavaTypeContext the resolving Java type context.
+	 * 
+	 * @return the Java type returned by the member part and null otherwise.
+	 */
+	private ResolvedJavaTypeInfo validateMemberPart(Part part, Section ownerSection, Template template,
+			String projectUri, ResolutionContext resolutionContext, ResolvedJavaTypeInfo baseType,
+			ResolvedJavaTypeInfo iterableOfType, List<Diagnostic> diagnostics,
+			ResolvingJavaTypeContext resolvingJavaTypeContext) {
+		if (part.getPartKind() == PartKind.Method) {
+			// Validate method part
+			// ex : {foo.method(1, 2)}
+			return validateMethodPart((MethodPart) part, ownerSection, template, projectUri, resolutionContext,
+					baseType, iterableOfType, diagnostics, resolvingJavaTypeContext);
+		}
+		// Validate property part
+		// ex : {foo.property}
+		return validatePropertyPart((PropertyPart) part, ownerSection, template, projectUri, resolutionContext,
+				baseType, iterableOfType, diagnostics, resolvingJavaTypeContext);
+	}
+
+	/**
+	 * Validate the given property part.
+	 * 
+	 * @param part                     the property part to validate.
+	 * @param ownerSection             the owner section and null otherwise.
+	 * @param template                 the template.
+	 * @param projectUri               the project Uri.
+	 * @param resolutionContext        the resolution context.
+	 * @param baseType                 the base object type.
+	 * @param iterableOfType           the iterable of type.
+	 * @param diagnostics              the diagnostic list to fill.
+	 * @param resolvingJavaTypeContext the resolving Java type context.
+	 * 
+	 * @return the Java type returned by the member part and null otherwise.
+	 */
+	private ResolvedJavaTypeInfo validatePropertyPart(PropertyPart part, Section ownerSection, Template template,
 			String projectUri, ResolutionContext resolutionContext, ResolvedJavaTypeInfo resolvedJavaType,
-			ResolvedJavaTypeInfo iter, List<Diagnostic> diagnostics,
+			ResolvedJavaTypeInfo iterableOfType, List<Diagnostic> diagnostics,
 			ResolvingJavaTypeContext resolvingJavaTypeContext) {
 		JavaMemberInfo javaMember = javaCache.findMember(part, resolvedJavaType, projectUri);
-		boolean isMethod = part.getPartKind() == PartKind.Method;
 		if (javaMember == null) {
-			String property = part.getPartName();
-			IQuteErrorCode errorCode = null;
-			if (isMethod) {
-				// ex : {@org.acme.Item item}
-				// "{item.getXXXX()}
-				errorCode = QuteErrorCode.UnkwownMethod;
-				InvalidMethodReason reason = javaCache.getInvalidMethodReason(property, resolvedJavaType, projectUri);
-				if (reason != null) {
-					switch (reason) {
-					case VoidReturn:
-						errorCode = QuteErrorCode.InvalidMethodVoid;
-						break;
-					case Static:
-						errorCode = QuteErrorCode.InvalidMethodStatic;
-						break;
-					case FromObject:
-						errorCode = QuteErrorCode.InvalidMethodFromObject;
-						break;
-					default:
-					}
-				}
-			} else {
-				// ex : {@org.acme.Item item}
-				// "{item.XXXX}
-				errorCode = QuteErrorCode.UnkwownProperty;
-			}
+			// ex : {@org.acme.Item item}
+			// "{item.XXXX}
 			Range range = QutePositionUtility.createRange(part);
-			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode, property,
-					resolvedJavaType.getSignature());
+			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnkwownProperty,
+					part.getPartName(), resolvedJavaType.getSignature());
 			diagnostics.add(diagnostic);
 			return null;
 		}
-		if (javaMember.getJavaElementKind() == JavaElementKind.METHOD) {
-			MemberPart methodPart = (MemberPart) part;
-			JavaMethodInfo methodInfo = (JavaMethodInfo) javaMember;
-			List<ResolvedJavaTypeInfo> parameterTypes = new ArrayList<>();
-			boolean virtualMethod = methodInfo.isVirtual();
-			if (!validateMethodParameters(methodPart, methodInfo, ownerSection, template, projectUri, resolutionContext,
-					resolvedJavaType, parameterTypes, virtualMethod, diagnostics, resolvingJavaTypeContext)) {
-				// The method codePointAt(int) in the type String is not applicable for the
-				// arguments ()
-				StringBuilder expectedSignature = new StringBuilder("(");
-				boolean ignoreParameter = virtualMethod;
-				for (JavaParameterInfo parameter : methodInfo.getParameters()) {
-					if (!ignoreParameter) {
-						if (expectedSignature.length() > 1) {
-							expectedSignature.append(", ");
-						}
-						expectedSignature.append(parameter.getJavaElementSimpleType());
-					}
-					ignoreParameter = false;
-				}
-				expectedSignature.append(")");
-				expectedSignature.insert(0, methodInfo.getName());
-
-				StringBuilder actualSignature = new StringBuilder("(");
-				for (ResolvedJavaTypeInfo parameterType : parameterTypes) {
-					if (actualSignature.length() > 1) {
-						actualSignature.append(", ");
-					}
-					actualSignature
-							.append(parameterType != null ? parameterType.getJavaElementSimpleType() : parameterType);
-				}
-				actualSignature.append(")");
-
-				Range range = QutePositionUtility.createRange(part);
-				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-						QuteErrorCode.InvalidMethodParameter, //
-						expectedSignature.toString() /* codePointAt(int) */,
-						methodInfo.getSimpleSourceType() /* String */,
-						actualSignature.toString() /* "()" */);
-				diagnostics.add(diagnostic);
-			}
-		}
-		String memberType = javaMember.resolveJavaElementType(iter);
+		String memberType = javaMember.resolveJavaElementType(iterableOfType);
 		return validateJavaTypePart(part, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext, memberType);
 	}
 
-	private boolean validateMethodParameters(MemberPart methodPart, JavaMethodInfo methodInfo, Section ownerSection,
-			Template template, String projectUri, ResolutionContext resolutionContext,
-			ResolvedJavaTypeInfo resolvedJavaType, List<ResolvedJavaTypeInfo> parameterTypes, boolean virtualMethod,
-			List<Diagnostic> diagnostics, ResolvingJavaTypeContext resolvingJavaTypeContext) {
-		List<Parameter> methodPartParameters = (methodPart instanceof MethodPart)
-				? ((MethodPart) methodPart).getParameters()
-				: Collections.emptyList();
-		List<JavaParameterInfo> parameters = methodInfo.getParameters();
+	/**
+	 * Validate the given method part.
+	 * 
+	 * @param part                     the method part to validate.
+	 * @param ownerSection             the owner section and null otherwise.
+	 * @param template                 the template.
+	 * @param projectUri               the project Uri.
+	 * @param resolutionContext        the resolution context.
+	 * @param baseType                 the base object type.
+	 * @param iterableOfType           the iterable of type.
+	 * @param diagnostics              the diagnostic list to fill.
+	 * @param resolvingJavaTypeContext the resolving Java type context.
+	 * 
+	 * @return the Java type returned by the member part and null otherwise.
+	 */
+	private ResolvedJavaTypeInfo validateMethodPart(MethodPart methodPart, Section ownerSection, Template template,
+			String projectUri, ResolutionContext resolutionContext, ResolvedJavaTypeInfo resolvedJavaType,
+			ResolvedJavaTypeInfo iter, List<Diagnostic> diagnostics,
+			ResolvingJavaTypeContext resolvingJavaTypeContext) {
 
-		// Loop for method parameters to validate type for each parameter and collect
-		// it.
+		// Validate parameters of the method part
 		boolean undefinedType = false;
-		for (Parameter parameter : methodPartParameters) {
+		List<ResolvedJavaTypeInfo> parameterTypes = new ArrayList<>();
+		for (Parameter parameter : methodPart.getParameters()) {
 			ResolvedJavaTypeInfo result = null;
 			Expression expression = parameter.getJavaTypeExpression();
 			if (expression != null) {
@@ -641,26 +629,97 @@ class QuteDiagnostics {
 			}
 			parameterTypes.add(result);
 		}
-
 		if (undefinedType) {
-			return true;
+			// One of parameter cannot be resolved as type, teh validation is stopped
+			return null;
 		}
 
-		if (methodPartParameters.size() != (parameters.size() - (virtualMethod ? 1 : 0))) {
-			return false;
-		}
+		// All parameters are resolved, validate the existing of method name according
+		// to the computed parameter types
 
-		for (int i = 0; i < parameterTypes.size(); i++) {
-			JavaParameterInfo parameterInfo = parameters.get(i + (virtualMethod ? 1 : 0));
-			ResolvedJavaTypeInfo result = parameterTypes.get(i);
-
-			String parameterType = parameterInfo.getType();
-			if (!parameterType.equals(result.getSignature())) {
-				return false;
+		String methodName = methodPart.getPartName();
+		JavaMemberResult result = javaCache.findMethod(resolvedJavaType, methodName, parameterTypes, projectUri);
+		JavaMethodInfo method = (JavaMethodInfo) result.getMember();
+		if (method == null) {
+			// ex : {@org.acme.Item item}
+			// "{item.getXXXX()}
+			QuteErrorCode errorCode = QuteErrorCode.UnkwownMethod;
+			InvalidMethodReason reason = javaCache.getInvalidMethodReason(methodName, resolvedJavaType, projectUri);
+			if (reason != null) {
+				switch (reason) {
+				case VoidReturn:
+					errorCode = QuteErrorCode.InvalidMethodVoid;
+					break;
+				case Static:
+					errorCode = QuteErrorCode.InvalidMethodStatic;
+					break;
+				case FromObject:
+					errorCode = QuteErrorCode.InvalidMethodFromObject;
+					break;
+				default:
+				}
 			}
+			Range range = QutePositionUtility.createRange(methodPart);
+			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode, methodName,
+					resolvedJavaType.getSignature());
+			diagnostics.add(diagnostic);
+			return null;
 		}
 
-		return true;
+		boolean matchVirtualMethod = result.isMatchVirtualMethod();
+		if (!matchVirtualMethod) {
+
+			Range range = QutePositionUtility.createRange(methodPart);
+			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+					QuteErrorCode.InvalidVirtualMethod, //
+					method.getName(), method.getSimpleSourceType(), //
+					resolvedJavaType.getJavaElementSimpleType());
+			diagnostics.add(diagnostic);
+			return null;
+		}
+
+		boolean matchParameters = result.isMatchParameters();
+		if (!matchParameters) {
+
+			// The method codePointAt(int) in the type String is not applicable for the
+			// arguments ()
+			StringBuilder expectedSignature = new StringBuilder("(");
+			boolean ignoreParameter = method.isVirtual();
+			for (JavaParameterInfo parameter : method.getParameters()) {
+				if (!ignoreParameter) {
+					if (expectedSignature.length() > 1) {
+						expectedSignature.append(", ");
+					}
+					expectedSignature.append(parameter.getJavaElementSimpleType());
+				}
+				ignoreParameter = false;
+			}
+			expectedSignature.append(")");
+			expectedSignature.insert(0, method.getName());
+
+			StringBuilder actualSignature = new StringBuilder("(");
+			for (ResolvedJavaTypeInfo parameterType : parameterTypes) {
+				if (actualSignature.length() > 1) {
+					actualSignature.append(", ");
+				}
+				actualSignature
+						.append(parameterType != null ? parameterType.getJavaElementSimpleType() : parameterType);
+			}
+			actualSignature.append(")");
+
+			Range range = QutePositionUtility.createRange(methodPart);
+			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+					QuteErrorCode.InvalidMethodParameter, //
+					expectedSignature.toString() /* codePointAt(int) */, //
+					method.getSimpleSourceType() /* String */, //
+					actualSignature.toString() /* "()" */);
+			diagnostics.add(diagnostic);
+			return null;
+		}
+
+		String memberType = method.resolveJavaElementType(iter);
+		return validateJavaTypePart(methodPart, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext,
+				memberType);
 	}
 
 	private ResolvedJavaTypeInfo validateJavaTypePart(Part part, Section ownerSection, String projectUri,

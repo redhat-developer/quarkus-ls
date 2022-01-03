@@ -57,8 +57,14 @@ public class ValueResolver extends JavaMethodInfo {
 	}
 
 	@Override
-	public String getSourceType() {
-		return sourceType;
+	public JavaTypeInfo getJavaType() {
+		JavaTypeInfo javaType = super.getJavaType();
+		if (javaType == null && sourceType != null) {
+			javaType = new JavaTypeInfo();
+			javaType.setSignature(sourceType);
+			super.setJavaType(javaType);
+		}
+		return javaType;
 	}
 
 	/**

@@ -137,8 +137,9 @@ public class DocumentationUtils {
 		}
 		documentation.append(getSimpleType(member.resolveJavaElementType(iterableOfResolvedType)));
 		documentation.append(" ");
-		if (member.getResolvedType() != null) {
-			documentation.append(member.getResolvedType().getName());
+		String sourceType = member.getSourceType();
+		if (sourceType != null) {
+			documentation.append(sourceType);
 			documentation.append(".");
 		}
 		documentation.append(member.getName());

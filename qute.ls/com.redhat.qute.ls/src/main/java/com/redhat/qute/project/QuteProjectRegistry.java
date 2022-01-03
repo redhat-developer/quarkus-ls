@@ -202,10 +202,10 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 						if (c != null) {
 							// Update members with the resolved class
 							c.getFields().forEach(f -> {
-								f.setResolvedType(c);
+								f.setJavaType(c);
 							});
 							c.getMethods().forEach(m -> {
-								m.setResolvedType(c);
+								m.setJavaType(c);
 							});
 							// Load extended Java types
 							if (c.getExtendedTypes() != null) {
@@ -325,7 +325,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	/**
 	 * Returns the member retrieved by the given property and null otherwise.
-	 * 
+	 *
 	 * @param property the property
 	 * @return the member retrieved by the given property and null otherwise.
 	 */
@@ -339,9 +339,9 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	/**
 	 * Returns the member field retrieved by the given name and null otherwise.
-	 * 
+	 *
 	 * @param fieldName the field name
-	 * 
+	 *
 	 * @return the member field retrieved by the given property and null otherwise.
 	 */
 	protected static JavaFieldInfo findField(ResolvedJavaTypeInfo resolvedType, String fieldName) {
@@ -360,9 +360,9 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	/**
 	 * Returns the member method retrieved by the given property or method name and
 	 * null otherwise.
-	 * 
+	 *
 	 * @param propertyOrMethodName property or method name
-	 * 
+	 *
 	 * @return the member field retrieved by the given property or method name and
 	 *         null otherwise.
 	 */
@@ -379,6 +379,128 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Returns the Java method from the given Java type <code>baseType</code> which
+	 * matches the given method name <code>methodName</code> with the given
+	 * parameter types <code>parameterTypes</code>.
+	 *
+	 * @param baseType       the Java base object type.
+	 * @param methodName     the method name to search.
+	 * @param parameterTypes the parameter types of the method to search.
+	 * @param projectUri     the project Uri.
+	 *
+	 * @return the Java method from the given Java type <code>baseType</code> which
+	 *         matches the given method name <code>methodName</code> with the given
+	 *         parameter types <code>parameterTypes</code>.
+	 */
+	public JavaMemberResult findMethod(ResolvedJavaTypeInfo baseType, String methodName,
+			List<ResolvedJavaTypeInfo> parameterTypes, String projectUri) {
+		// Search in the java root type
+		JavaMemberResult result = new JavaMemberResult();
+		if (findMethod(baseType, methodName, parameterTypes, result)) {
+			return result;
+		}
+		if (baseType.getExtendedTypes() != null) {
+			// Search in extended types
+			for (String extendedType : baseType.getExtendedTypes()) {
+				ResolvedJavaTypeInfo resolvedExtendedType = resolveJavaType(extendedType, projectUri).getNow(null);
+				if (resolvedExtendedType != null) {
+					if (findMethod(resolvedExtendedType, methodName, parameterTypes, result)) {
+						return result;
+					}
+				}
+			}
+		}
+
+		// Search in value resolvers
+		// Search in static value resolvers (ex : orEmpty, take, etc)
+		List<ValueResolver> staticResolvers = valueResolversRegistry.getResolvers();
+		if (findResolver(baseType, methodName, parameterTypes, staticResolvers, result)) {
+			return result;
+		}
+		// Search in template extension value resolvers retrieved by @TemplateExtension
+		List<ValueResolver> dynamicResolvers = getValueResolvers(projectUri).getNow(null);
+		if (findResolver(baseType, methodName, parameterTypes, dynamicResolvers, result)) {
+			return result;
+		}
+		return result;
+	}
+
+	private boolean findMethod(ResolvedJavaTypeInfo baseType, String methodName,
+			List<ResolvedJavaTypeInfo> parameterTypes, JavaMemberResult result) {
+		List<JavaMethodInfo> methods = baseType.getMethods();
+		if (methods == null || methods.isEmpty() || isEmpty(methodName)) {
+			return false;
+		}
+		for (JavaMethodInfo method : methods) {
+			if (isMatchMethod(method, methodName, methodName, methodName)) {
+				// The current method matches the method name.
+
+				// Check if the current method matches the parameters.
+				boolean matchParameters = isMatchParameters(method, baseType, parameterTypes);
+				if (result.getMember() == null || matchParameters) {
+					result.setMember(method);
+					result.setMatchParameters(matchParameters);
+					result.setMatchVirtualMethod(true);
+				}
+				if (matchParameters) {
+					// The current method matches the method name and and parameters types,stop the
+					// search
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean findResolver(ResolvedJavaTypeInfo baseType, String methodName,
+			List<ResolvedJavaTypeInfo> parameterTypes, List<ValueResolver> allResolvers, JavaMemberResult result) {
+		for (ValueResolver resolver : allResolvers) {
+			if (isMatchMethod(resolver, methodName, methodName, methodName)) {
+				// The current resolver matches the method name.
+
+				// Check if the baseType matches the type of the first parameter of the current
+				// resolver.
+				boolean matchVirtualMethod = matchResolver(baseType, resolver, methodName);
+				boolean matchParameters = false;
+				if (matchVirtualMethod) {
+					// Check if the current resolver matches the parameters.
+					matchParameters = isMatchParameters(resolver, baseType, parameterTypes);
+				}
+				if (result.getMember() == null || (matchParameters && matchVirtualMethod)) {
+					result.setMember(resolver);
+					result.setMatchParameters(matchParameters);
+					result.setMatchVirtualMethod(matchVirtualMethod);
+				}
+				if (matchParameters && matchVirtualMethod) {
+					// The current resolver matches the method name, the parameters types and the
+					// virtual method,stop the search
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean isMatchParameters(JavaMethodInfo method, ResolvedJavaTypeInfo baseType,
+			List<ResolvedJavaTypeInfo> parameterTypes) {
+		boolean virtualMethod = method.isVirtual();
+		if (parameterTypes.size() != (method.getParameters().size() - (virtualMethod ? 1 : 0))) {
+			return false;
+		}
+
+		for (int i = 0; i < parameterTypes.size(); i++) {
+			JavaParameterInfo parameterInfo = method.getParameters().get(i + (virtualMethod ? 1 : 0));
+			ResolvedJavaTypeInfo result = parameterTypes.get(i);
+
+			String parameterType = parameterInfo.getType();
+			if (!parameterType.equals(result.getSignature())) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private static String computeGetterName(String propertyOrMethodName) {
@@ -422,9 +544,9 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	/**
 	 * Returns namespace resolvers from the given Qute project Uri.
-	 * 
+	 *
 	 * @param projectUri the Qute project Uri
-	 * 
+	 *
 	 * @return namespace resolvers from the given Qute project Uri.
 	 */
 	public List<ValueResolver> getNamespaceResolvers(String projectUri) {
@@ -477,11 +599,11 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 * Returns true if the given java type match the value resolver (if the type
 	 * matches the first parameter of the value resolver method) and false
 	 * otherwise.
-	 * 
+	 *
 	 * @param javaType   the java type.
 	 * @param resolver   the value resolver.
 	 * @param projectUri the project Uri.
-	 * 
+	 *
 	 * @return true if the given java type match the value resolver (if the type
 	 *         matches the first parameter of the value resolver method) and false
 	 *         otherwise.
@@ -521,4 +643,5 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		}
 		return false;
 	}
+
 }
