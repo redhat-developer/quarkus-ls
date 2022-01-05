@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
  * Tests for 'orEmpty' value resolver.
  *
  * @author Angelo ZERR
- * 
+ *
  * @see https://quarkus.io/guides/qute-reference#built-in-resolvers
  *
  */
@@ -50,13 +50,9 @@ public class OrEmptyValueResolverTest {
 	@Test
 	public void completionWithNoIterable() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
-				"Item: {item.|}";
-		//testCompletionFor(template, //
-		//		c("orEmpty(arg : T) : List<T>", "orEmpty", r(1, 12, 1, 12)));
-		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.orEmpty.|}";
 		testCompletionFor(template, //
-				c("orEmpty(arg : T) : List<T>", "orEmpty", r(1, 20, 1, 20)));
+				c("orEmpty(base : T) : List<T>", "orEmpty", r(1, 20, 1, 20)));
 	}
 
 	@Test
@@ -67,7 +63,7 @@ public class OrEmptyValueResolverTest {
 				"	{item.|}    \r\n" + //
 				"{/for}";
 		testCompletionFor(template, //
-				c("orEmpty(arg : Iterable<T>) : List<T>", "orEmpty", r(2, 20, 2, 20)));
+				c("orEmpty(base : Iterable<T>) : List<T>", "orEmpty", r(2, 20, 2, 20)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //

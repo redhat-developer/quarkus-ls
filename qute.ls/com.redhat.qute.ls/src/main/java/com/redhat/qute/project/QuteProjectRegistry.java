@@ -649,6 +649,9 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	private boolean isMatchType(ResolvedJavaTypeInfo javaType, String parameterType, String projectUri) {
 		String resolvedTypeName = javaType.getName();
+		if ("java.lang.Object".equals(parameterType) && !JavaTypeInfo.PRIMITIVE_TYPES.contains(resolvedTypeName)) {
+			return true;
+		}
 		if (isSameType(parameterType, resolvedTypeName)) {
 			return true;
 		}
@@ -674,10 +677,10 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	/**
 	 * Returns true if the given type1 and type2 are the same and false otherwise.
-	 * 
+	 *
 	 * @param type1 the first Java type to compare.
 	 * @param type2 the second Java type to compare.
-	 * 
+	 *
 	 * @return true if the given type1 and type2 are the same and false otherwise.
 	 */
 	private boolean isSameType(String type1, String type2) {

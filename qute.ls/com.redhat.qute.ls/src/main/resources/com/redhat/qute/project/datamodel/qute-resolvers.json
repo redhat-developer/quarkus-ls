@@ -1,7 +1,7 @@
 {
 	"resolvers": [
 		{
-			"signature": "orEmpty(arg : java.lang.Iterable<T>) : java.util.List<T>",
+			"signature": "orEmpty(base : java.lang.Iterable<T>) : java.util.List<T>",
 			"description": "Outputs an empty list if the previous part cannot be resolved or resolves to null.",
 			"sample": [
 				"{#for pet in pets.orEmpty}{pet.name}",
@@ -10,7 +10,7 @@
 			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
 		},
 		{
-			"signature": "orEmpty(arg : T) : java.util.List<T>",
+			"signature": "orEmpty(base : T) : java.util.List<T>",
 			"description": "Outputs an empty list if the previous part cannot be resolved or resolves to null.",
 			"sample": [
 				"{#for pet in pets.orEmpty}{pet.name}",
@@ -25,6 +25,24 @@
 				"{#for r in recordsList.take(3)}"
 			],
 			"url": "https://quarkus.io/guides/qute-reference#collections"
+		},
+		{
+			"signature": "or(base : T, arg : java.lang.Object) : T",
+			"description": "Outputs the default value if the previous part cannot be resolved or resolves to null.",
+			"sample": [
+				"{person.name ?: 'John'}",
+				"{person.name or 'John'}",
+				"{person.name.or('John')}"
+				],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		{
+			"signature": "ifTruthy(base : T, arg : java.lang.Object) : T",
+			"description": "Outputs the default value if the base object cannot be resolved or the base Object otherwise.",
+			"sample": [
+				"{item.isActive.ifTruthy(item.name)}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
 		}
 	]
 }
