@@ -220,11 +220,21 @@ public class QuteSearchUtils {
 					List<Parameter> parameters = section.getParameters();
 					if (parameters != null) {
 						for (Parameter parameter : parameters) {
-							if (parameter != null && parameter.hasValueAssigned()) {
+							if (parameter.hasValueAssigned()) {
 								Expression parameterExpr = parameter.getJavaTypeExpression();
 								tryToCollectObjectPartOrParameter(partName, matcher, parameterExpr, ownerNode,
 										collector);
 							}
+						}
+					}
+					break;
+				}
+				case IF: {
+					List<Parameter> parameters = section.getParameters();
+					if (parameters != null) {
+						for (Parameter parameter : parameters) {
+							Expression parameterExpr = parameter.getJavaTypeExpression();
+							tryToCollectObjectPartOrParameter(partName, matcher, parameterExpr, ownerNode, collector);
 						}
 					}
 					break;

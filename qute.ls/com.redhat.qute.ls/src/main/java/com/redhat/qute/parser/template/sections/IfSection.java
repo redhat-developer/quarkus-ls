@@ -14,6 +14,7 @@ package com.redhat.qute.parser.template.sections;
 import java.util.Collections;
 import java.util.List;
 
+import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 
@@ -33,5 +34,13 @@ public class IfSection extends Section {
 	@Override
 	public List<SectionKind> getBlockLabels() {
 		return Collections.singletonList(SectionKind.ELSE);
+	}
+	
+	@Override
+	protected void initializeParameters(List<Parameter> parameters) {
+		// All parameters can have expression (ex : {#if age=10}
+		parameters.forEach(parameter -> {
+			parameter.setCanHaveExpression(true);
+		});
 	}
 }

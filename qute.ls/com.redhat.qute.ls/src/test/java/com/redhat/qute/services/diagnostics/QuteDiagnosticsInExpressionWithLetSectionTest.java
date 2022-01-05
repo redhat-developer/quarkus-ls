@@ -22,8 +22,9 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Test with #let section
  * 
- * @author azerr
+ * @author Angelo ZERR
  *
  */
 public class QuteDiagnosticsInExpressionWithLetSectionTest {

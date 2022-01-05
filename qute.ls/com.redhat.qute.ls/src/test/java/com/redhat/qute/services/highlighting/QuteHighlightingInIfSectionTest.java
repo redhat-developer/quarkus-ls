@@ -22,69 +22,36 @@ import org.junit.jupiter.api.Test;
 import com.redhat.qute.ls.commons.BadLocationException;
 
 /**
- * Tests for Qute highlighting with #let section.
+ * Tests for Qute highlighting with #if section.
  * 
  * @author Angelo ZERR
  *
  */
-public class QuteHighlightingInLetSectionTest {
+public class QuteHighlightingInIfSectionTest {
 
 	@Test
 	public void fromParam() throws BadLocationException {
 		String template = "{#let val|ue=123}\r\n" + //
-				"	{value}\r\n" + //
-				"	{value}\r\n" + //
+				"	{#if value}\r\n" + //
+				"		{value}\r\n" + //
+				"	{/if}\r\n" + //
 				"{/let}";
 		testHighlightsFor(template, //
 				hl(r(0, 6, 0, 11), Write), //
-				hl(r(1, 2, 1, 7), Read),
-				hl(r(2, 2, 2, 7), Read));
+				hl(r(1, 6, 1, 11), Read), //
+				hl(r(2, 3, 2, 8), Read));
 
 	}
 
 	@Test
 	public void toParam() throws BadLocationException {
 		String template = "{#let value=123}\r\n" + //
-				"	{va|lue}\r\n" + //
-				"	{value}\r\n" + //
+				"	{#if val|ue}\r\n" + //
+				"		{value}\r\n" + //
+				"	{/if}\r\n" + //
 				"{/let}";
 		testHighlightsFor(template, //
-				hl(r(1, 2, 1, 7), Read), //
-				hl(r(0, 6, 0, 11), Write));
-	}
-	
-	@Test
-	public void noParamReferences() throws BadLocationException {
-		String template = "{#let value=1|23}\r\n" + //
-				"	{value}\r\n" + //
-				"	{value}\r\n" + //
-				"{/let}";
-		testHighlightsFor(template, //
-				hl(r(0, 12, 0, 15), Read));
-
-	}
-	
-	@Test
-	public void fromParamWithMethodParam() throws BadLocationException {
-		String template = "{#let va|lue=123}\r\n" + //
-				"	{foo.method(value)}\r\n" + //
-				"	{value}\r\n" + //
-				"{/let}";
-		testHighlightsFor(template, //
-				hl(r(0, 6, 0, 11), Write), //
-				hl(r(1, 13, 1, 18), Read),
-				hl(r(2, 2, 2, 7), Read));
-
-	}
-	
-	@Test
-	public void toMethodParam() throws BadLocationException {
-		String template = "{#let value=123}\r\n" + //
-				"	{foo.method(va|lue)}\r\n" + //
-				"	{value}\r\n" + //
-				"{/let}";
-		testHighlightsFor(template, //
-				hl(r(1, 13, 1, 18), Read), //
+				hl(r(1, 6, 1, 11), Read), //
 				hl(r(0, 6, 0, 11), Write));
 	}
 }

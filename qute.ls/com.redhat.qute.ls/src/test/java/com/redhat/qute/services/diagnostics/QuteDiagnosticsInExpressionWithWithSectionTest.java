@@ -22,6 +22,7 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Test with #with section
  * 
  * @author Angelo ZERR
  *
