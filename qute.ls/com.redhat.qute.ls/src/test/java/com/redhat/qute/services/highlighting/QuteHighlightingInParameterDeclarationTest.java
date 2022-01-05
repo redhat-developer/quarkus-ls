@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import com.redhat.qute.ls.commons.BadLocationException;
 
 /**
- * Tests for Qute highlighting.
+ * Tests for Qute highlighting with parameter declaration.
  * 
  * @author Angelo ZERR
  *

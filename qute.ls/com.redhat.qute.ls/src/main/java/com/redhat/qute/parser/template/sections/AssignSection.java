@@ -30,6 +30,7 @@ public abstract class AssignSection extends Section {
 		super(tag, start, end);
 	}
 
+	@Override
 	protected void initializeParameters(List<Parameter> parameters) {
 		// All parameters can have expression (ex : {#set myParent=order.item.parent
 		// isActive=false age=10}

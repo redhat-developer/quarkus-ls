@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import com.redhat.qute.ls.commons.BadLocationException;
 
 /**
- * Tests for Qute highlighting.
+ * Tests for Qute highlighting with #for section.
  * 
  * @author Angelo ZERR
  *
@@ -102,7 +102,7 @@ public class QuteHighlightingInForSectionTest {
 				hl(r(0, 6, 0, 10), Write), //
 				hl(r(1, 2, 1, 6), Read), //
 				hl(r(2, 2, 2, 6), Read));
-		
+
 		template = "{#for it|em in items}\r\n" + //
 				"	{item.name}\r\n" + //
 				"	{#else}\r\n" + //
@@ -112,7 +112,7 @@ public class QuteHighlightingInForSectionTest {
 		testHighlightsFor(template, //
 				hl(r(0, 6, 0, 10), Write), //
 				hl(r(1, 2, 1, 6), Read));
-		
+
 		template = "{#for it|em in items}\r\n" + //
 				"	{#else}\r\n" + //
 				"	{item.name}\r\n" + //
@@ -122,7 +122,7 @@ public class QuteHighlightingInForSectionTest {
 		testHighlightsFor(template, //
 				hl(r(0, 6, 0, 10), Write));
 	}
-	
+
 	@Test
 	public void metadataFromAliasWithLetParameter() throws BadLocationException {
 		String template = "{#for it|em in items}\r\n" + //
