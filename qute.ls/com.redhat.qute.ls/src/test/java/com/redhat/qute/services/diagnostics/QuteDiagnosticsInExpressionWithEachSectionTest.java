@@ -63,8 +63,9 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 				"	{it.name}    \r\n" + //
 				"{/each}";
 		testDiagnosticsFor(template, //
-				d(2, 7, 2, 12, QuteErrorCode.NotInstanceOfIterable,
-						"`org.acme.Item` is not an instance of `java.lang.Iterable`.", DiagnosticSeverity.Error),
+				d(2, 7, 2, 12, QuteErrorCode.IterationError,
+						"Iteration error: {items} resolved to [org.acme.Item] which is not iterable.",
+						DiagnosticSeverity.Error),
 				d(3, 2, 3, 4, QuteErrorCode.UnkwownType, "`org.acme.Item` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}
@@ -91,8 +92,9 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 				"	{/each}\r\n" + //
 				"{/for}";
 		testDiagnosticsFor(template, //
-				d(3, 13, 3, 17, QuteErrorCode.NotInstanceOfIterable,
-						"`java.lang.String` is not an instance of `java.lang.Iterable`.", DiagnosticSeverity.Error),
+				d(3, 13, 3, 17, QuteErrorCode.IterationError,
+						"Iteration error: {item.name} resolved to [java.lang.String] which is not iterable.",
+						DiagnosticSeverity.Error),
 				d(4, 3, 4, 5, QuteErrorCode.UnkwownType, "`java.lang.String` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}

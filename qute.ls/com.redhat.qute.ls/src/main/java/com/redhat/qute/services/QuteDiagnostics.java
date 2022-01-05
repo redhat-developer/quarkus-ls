@@ -34,6 +34,7 @@ import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.parser.expression.MemberPart;
 import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
@@ -324,7 +325,13 @@ class QuteDiagnostics {
 				// - {true} : boolean literal
 				// - {null} : null literal
 				// - {123} : integer literal
-				return javaCache.resolveJavaType(literalJavaType, projectUri).getNow(null);
+				ResolvedJavaTypeInfo resolvedLiteralType = javaCache.resolveJavaType(literalJavaType, projectUri)
+						.getNow(null);
+				if (resolvedLiteralType == null) {
+					return null;
+				}
+				return validateIterable(expression.getLastPart(), ownerSection, resolvedLiteralType,
+						resolvedLiteralType.getName(), diagnostics);
 			}
 			// The expression reference Java data model (ex : {item})
 			ResolvedJavaTypeInfo resolvedJavaType = null;
@@ -591,8 +598,7 @@ class QuteDiagnostics {
 			return null;
 		}
 		String memberType = javaMember.resolveJavaElementType(iterableOfType);
-		return validateJavaTypePart(part, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext, memberType);
-	}
+		return validateJavaTypePart(part, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext, memberType);	}
 
 	/**
 	 * Validate the given method part.
@@ -769,20 +775,24 @@ class QuteDiagnostics {
 	}
 
 	private ResolvedJavaTypeInfo validateIterable(Part part, Section ownerSection,
-			ResolvedJavaTypeInfo resolvedJavaClass, String javaTypeToResolve, List<Diagnostic> diagnostics) {
-		if (part.isLast() && ownerSection != null && ownerSection.isIterable()) {
+			ResolvedJavaTypeInfo resolvedJavaType, String javaTypeToResolve, List<Diagnostic> diagnostics) {
+		if (part != null && part.isLast() && ownerSection != null && ownerSection.isIterable()) {
 			// The expression is declared inside an iterable section like #for, #each.
 			// Ex: {#for item in items}
-			if (!resolvedJavaClass.isIterable()) {
-				// The Java class is not an iterable class like java.util.List
+			if (!resolvedJavaType.isIterable() && !resolvedJavaType.isInteger()) {
+				// The Java class is not an iterable class like
+				// - java.util.List
+				// - object array
+				// - integer
+				String expression = part.getParent().getContent();
 				Range range = QutePositionUtility.createRange(part);
-				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-						QuteErrorCode.NotInstanceOfIterable, javaTypeToResolve);
+				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.IterationError,
+						expression, javaTypeToResolve);
 				diagnostics.add(diagnostic);
 				return null;
 			}
 		}
-		return resolvedJavaClass;
+		return resolvedJavaType;
 	}
 
 	private static Diagnostic createDiagnostic(Range range, DiagnosticSeverity severity, IQuteErrorCode errorCode,

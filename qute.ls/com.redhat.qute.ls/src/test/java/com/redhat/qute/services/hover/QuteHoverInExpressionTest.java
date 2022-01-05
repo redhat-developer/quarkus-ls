@@ -77,6 +77,34 @@ public class QuteHoverInExpressionTest {
 	}
 
 	@Test
+	public void doubleLiteral() throws Exception {
+		String template = "{1|23d}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"double" + //
+				System.lineSeparator() + //
+				"```", // ,
+				r(0, 1, 0, 5));
+
+		template = "{1|23dX}";
+		assertHover(template);
+	}
+
+	@Test
+	public void floatLiteral() throws Exception {
+		String template = "{1|23f}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"float" + //
+				System.lineSeparator() + //
+				"```", // ,
+				r(0, 1, 0, 5));
+
+		template = "{1|23fX}";
+		assertHover(template);
+	}
+
+	@Test
 	public void undefinedVariable() throws Exception {
 		String template = "{i|tem}";
 		assertHover(template);
@@ -86,6 +114,15 @@ public class QuteHoverInExpressionTest {
 	public void definedVariable() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{i|tem}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"org.acme.Item" + //
+				System.lineSeparator() + //
+				"```", // ,
+				r(1, 1, 1, 5));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"{|item}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
 				"org.acme.Item" + //
@@ -116,7 +153,7 @@ public class QuteHoverInExpressionTest {
 				"{items.nam|eXXX}";
 		assertHover(template);
 	}
-	
+
 	@Test
 	public void definedProperty() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
@@ -191,7 +228,7 @@ public class QuteHoverInExpressionTest {
 				r(1, 7, 1, 11));
 
 	}
-	
+
 	@Test
 	public void methodHoverForString() throws Exception {
 		String template = "{@java.lang.String foo}\r\n" + //

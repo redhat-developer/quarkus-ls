@@ -144,6 +144,16 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		return isIterable.booleanValue();
 	}
 
+	/**
+	 * Returns true if the Java type is an integer and false otherwise.
+	 * 
+	 * @return true if the Java type is an integer and false otherwise.
+	 */
+	public boolean isInteger() {
+		String name = getName();
+		return "int".equals(name) || "java.lang.Integer".equals(name);
+	}
+
 	private synchronized boolean computeIsIterable() {
 		if (isIterable != null) {
 			return isIterable.booleanValue();

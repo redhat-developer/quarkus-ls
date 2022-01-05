@@ -301,6 +301,19 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		if (resolvedType == null) {
 			return null;
 		}
+		if (resolvedType.isIterable()) {
+			// Expression uses iterable type
+			// {@java.util.List<org.acme.Item items>
+			// {items.size()}
+			// Property, method to validate must be done for iterable type (ex :
+			// java.util.List
+			String iterableType = resolvedType.getIterableType();
+			resolvedType = resolveJavaType(iterableType, projectUri).getNow(null);
+			if (resolvedType == null) {
+				// The java type doesn't exists or it is resolving, stop the validation
+				return null;
+			}
+		}
 		String property = part.getPartName();
 		// Search in the java root type
 		JavaMemberInfo memberInfo = findMember(resolvedType, property);

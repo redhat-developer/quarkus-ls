@@ -152,4 +152,45 @@ public class QuteHoverInExpressionWithForSectionTest {
 				"```", //
 				r(4, 8, 4, 12));
 	}
+
+	@Test
+	public void integers() throws Exception {
+		// total = integer
+		String template = "{#let total=3}\r\n" + //
+				"	{#for i in total}\r\n" + //
+				"		{i|}:\r\n" + //
+				"	{/for}	\r\n" + //
+				"{/let}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"int" + //
+				System.lineSeparator() + //
+				"```", //
+				r(2, 3, 2, 4));
+
+		// total = double
+		template = "{#let total=3d}\r\n" + //
+				"	{#for i in total}\r\n" + //
+				"		{i|}:\r\n" + //
+				"	{/for}	\r\n" + //
+				"{/let}";
+		assertHover(template);
+
+		// total = integer
+		template = "{#for i in 3}\r\n" + //
+				"	{i|}:\r\n" + //
+				"{/for}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"int" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 2, 1, 3));
+
+		// total = double
+		template = "{#for i in 3d}\r\n" + //
+				"	{i|}:\r\n" + //
+				"{/for}";
+		assertHover(template);
+	}
 }
