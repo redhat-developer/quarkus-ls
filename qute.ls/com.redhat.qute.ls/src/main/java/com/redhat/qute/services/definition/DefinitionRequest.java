@@ -18,6 +18,12 @@ import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.services.AbstractPositionRequest;
 
+/**
+ * Definition request.
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public class DefinitionRequest extends AbstractPositionRequest {
 
 	public DefinitionRequest(Template template, Position position) throws BadLocationException {
@@ -27,5 +33,10 @@ public class DefinitionRequest extends AbstractPositionRequest {
 	@Override
 	protected Node doFindNodeAt(Template template, int offset) {
 		return template.findNodeAt(offset);
+	}
+	
+	@Override
+	protected boolean isIncludeAfterStartExpression() {
+		return true;
 	}
 }

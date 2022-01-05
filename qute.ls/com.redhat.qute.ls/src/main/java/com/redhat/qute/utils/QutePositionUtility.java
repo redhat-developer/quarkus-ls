@@ -104,6 +104,20 @@ public class QutePositionUtility {
 	 * @return the best node from the given node at the given offset.
 	 */
 	public static Node findBestNode(int offset, Node node) {
+		return findBestNode(offset, node, false);
+	}
+
+	/**
+	 * Find the best node from the given node at the given offset.
+	 * 
+	 * @param node                        the node.
+	 * @param offset                      the offset.
+	 * @param includeAfterStartExpression true if the node after a start expression
+	 *                                    must be included and false otherwise.
+	 * 
+	 * @return the best node from the given node at the given offset.
+	 */
+	public static Node findBestNode(int offset, Node node, boolean includeAfterStartExpression) {
 		switch (node.getKind()) {
 		case Section: {
 			Section section = (Section) node;
@@ -138,7 +152,10 @@ public class QutePositionUtility {
 			break;
 		case Expression: {
 			Expression expression = (Expression) node;
-			return findBestNode(expression, offset);
+			boolean adjust = includeAfterStartExpression && expression.getStartContentOffset() == offset;
+			// When offset is before start content (ex : {|item}), we adjust the offset to
+			// select the first part.
+			return findBestNode(expression, offset + (adjust ? 1 : 0));
 		}
 		default:
 			return node;

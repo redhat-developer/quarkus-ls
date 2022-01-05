@@ -18,6 +18,11 @@ import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.utils.QutePositionUtility;
 
+/**
+ * Abstract class for position request.
+ *
+ * @author Angelo ZERR
+ */
 public abstract class AbstractPositionRequest {
 
 	private final Template template;
@@ -38,7 +43,18 @@ public abstract class AbstractPositionRequest {
 		if (node == null) {
 			return null;
 		}
-		return QutePositionUtility.findBestNode(offset, node);
+		return QutePositionUtility.findBestNode(offset, node, isIncludeAfterStartExpression());
+	}
+
+	/**
+	 * Returns true if the node after a start expression must be included and false
+	 * otherwise.
+	 * 
+	 * @return true if the node after a start expression must be included and false
+	 *         otherwise.
+	 */
+	protected boolean isIncludeAfterStartExpression() {
+		return false;
 	}
 
 	protected abstract Node doFindNodeAt(Template template, int offset);

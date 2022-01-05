@@ -36,7 +36,7 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	UnkwownProperty("`{0}` cannot be resolved or is not a field of `{1}` Java type."), //
 
 	// Error code for #for / #each section
-	NotInstanceOfIterable("`{0}` is not an instance of `java.lang.Iterable`."),
+	IterationError("Iteration error: '{'{0}'}' resolved to [{1}] which is not iterable."),
 
 	// Error code for #include section
 	TemplateNotFound("Template not found: `{0}`."), //

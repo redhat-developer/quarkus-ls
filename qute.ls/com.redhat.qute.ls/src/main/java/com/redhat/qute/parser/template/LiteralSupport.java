@@ -13,7 +13,26 @@ package com.redhat.qute.parser.template;
 
 import java.util.regex.Pattern;
 
+/**
+ * Qute literal support.
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public class LiteralSupport {
+
+	// Java types
+	private static final String STRING_TYPE = "java.lang.String";
+	private static final String BOOLEAN_TYPE = "java.lang.Boolean";
+	private static final String TRUE = "true";
+	private static final String FALSE = "false";
+	private static final String FLOAT_TYPE = "float";
+	private static final String DOUBLE_TYPE = "double";
+	private static final String LONG_TYPE = "long";
+	private static final String INTEGER_TYPE = "int";
+	private static final String NULL_TYPE = "null";
+
+	// Numeric pattern
 
 	private static final Pattern INTEGER_LITERAL_PATTERN = Pattern.compile("[-+]?\\d{1,10}");
 	private static final Pattern LONG_LITERAL_PATTERN = Pattern.compile("[-+]?\\d{1,19}(L|l)");
@@ -25,24 +44,24 @@ public class LiteralSupport {
 			return null;
 		}
 		if (isStringLiteralSeparator(literal.charAt(0))) {
-			return "java.lang.String";
-		} else if (literal.equals("true")) {
-			return "java.lang.Boolean";
-		} else if (literal.equals("false")) {
-			return "java.lang.Boolean";
-		} else if (literal.equals("null")) {
-			return "null";
+			return STRING_TYPE;
+		} else if (literal.equals(TRUE)) {
+			return BOOLEAN_TYPE;
+		} else if (literal.equals(FALSE)) {
+			return BOOLEAN_TYPE;
+		} else if (literal.equals(NULL_TYPE)) {
+			return NULL_TYPE;
 		} else {
 			char firstChar = literal.charAt(0);
 			if (Character.isDigit(firstChar) || firstChar == '-' || firstChar == '+') {
 				if (INTEGER_LITERAL_PATTERN.matcher(literal).matches()) {
-					return "int";
+					return INTEGER_TYPE;
 				} else if (LONG_LITERAL_PATTERN.matcher(literal).matches()) {
-					return "long";
+					return LONG_TYPE;
 				} else if (DOUBLE_LITERAL_PATTERN.matcher(literal).matches()) {
-					return "double";
+					return DOUBLE_TYPE;
 				} else if (FLOAT_LITERAL_PATTERN.matcher(literal).matches()) {
-					return "float";
+					return FLOAT_TYPE;
 				}
 			}
 		}

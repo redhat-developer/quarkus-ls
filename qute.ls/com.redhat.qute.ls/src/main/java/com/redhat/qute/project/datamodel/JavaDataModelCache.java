@@ -93,7 +93,7 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 							.thenCompose(resolvedType -> {
 								if (resolvedType == null) {
 									return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
-								}
+								}								
 								return resolveJavaType(current, projectUri, resolvedType);
 							});
 				}
@@ -138,14 +138,14 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 			if (expression != null) {
 				String literalJavaType = expression.getLiteralJavaType();
 				if (literalJavaType != null) {
-					return resolveJavaType(literalJavaType, projectUri);
+					future = resolveJavaType(literalJavaType, projectUri);
+				} else {
+					Part lastPart = expression.getLastPart();
+					if (lastPart == null) {
+						return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+					}
+					future = resolveJavaType(lastPart, projectUri);
 				}
-
-				Part lastPart = expression.getLastPart();
-				if (lastPart == null) {
-					return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
-				}
-				future = resolveJavaType(lastPart, projectUri);
 			}
 		}
 
@@ -161,14 +161,30 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 							if (resolvedType == null) {
 								return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 							}
-							if (!resolvedType.isIterable() && nullIfDontMatchWithIterable) {
+							if (!resolvedType.isIterable()) {
 								// case when iterable section is associated with a Java class which is not
-								// iterable, the class is not valid
-								// Ex:
-								// {@org.acme.Item items}
-								// {#for item in items}
-								// {item.|}
-								return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+								// iterable.
+
+								if (resolvedType.isInteger()) {
+									// Special case with int, Integer
+
+									// The for statement also works with integers, starting from 1. In the example
+									// below, considering that total = 3:
+
+									// {#for i in total}
+									// {i}:
+									// {/for}
+									return resolveJavaType(resolvedType.getName(), projectUri);
+								}
+
+								if (nullIfDontMatchWithIterable) {
+									// -> the class is not valid
+									// Ex:
+									// {@org.acme.Item items}
+									// {#for item in items}
+									// {item.|}
+									return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+								}
 							}
 							// valid case
 							// Ex:

@@ -99,8 +99,9 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 				"	{item.name}    \r\n" + //
 				"{/for}}";
 		testDiagnosticsFor(template, //
-				d(2, 14, 2, 19, QuteErrorCode.NotInstanceOfIterable,
-						"`org.acme.Item` is not an instance of `java.lang.Iterable`.", DiagnosticSeverity.Error),
+				d(2, 14, 2, 19, QuteErrorCode.IterationError,
+						"Iteration error: {items} resolved to [org.acme.Item] which is not iterable.",
+						DiagnosticSeverity.Error),
 				d(3, 2, 3, 6, QuteErrorCode.UnkwownType, "`org.acme.Item` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}
@@ -127,8 +128,9 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 				"	{/for}\r\n" + //
 				"{/for}";
 		testDiagnosticsFor(template, //
-				d(3, 22, 3, 26, QuteErrorCode.NotInstanceOfIterable,
-						"`java.lang.String` is not an instance of `java.lang.Iterable`.", DiagnosticSeverity.Error),
+				d(3, 22, 3, 26, QuteErrorCode.IterationError,
+						"Iteration error: {item.name} resolved to [java.lang.String] which is not iterable.",
+						DiagnosticSeverity.Error),
 				d(4, 3, 4, 9, QuteErrorCode.UnkwownType, "`java.lang.String` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}
@@ -176,6 +178,58 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 				"{/for}\r\n" + //
 				"</ul>\r\n" + //
 				"</html>";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void integers() throws Exception {
+		// integer
+		String template = "{#for i in 3}\r\n" + //
+				"	{i}:\r\n" + //
+				"{/for}";
+		testDiagnosticsFor(template);
+
+		// double
+		template = "{#for i in 3d}\r\n" + //
+				"	{i}:\r\n" + //
+				"{/for}";
+		testDiagnosticsFor(template, //
+				d(0, 11, 0, 13, QuteErrorCode.IterationError,
+						"Iteration error: {3d} resolved to [double] which is not iterable.", DiagnosticSeverity.Error),
+				d(1, 2, 1, 3, QuteErrorCode.UnkwownType, "`double` cannot be resolved to a type.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void integersWithLet() throws Exception {
+		// total = integer
+		String template = "{#let total=3}\r\n" + //
+				"	{#for i in total}\r\n" + //
+				"		{i}:\r\n" + //
+				"	{/for}	\r\n" + //
+				"{/let}";
+		testDiagnosticsFor(template);
+
+		// total = double
+		template = "{#let total=3d}\r\n" + //
+				"	{#for i in total}\r\n" + //
+				"		{i}:\r\n" + //
+				"	{/for}	\r\n" + //
+				"{/let}";
+		testDiagnosticsFor(template, //
+				d(1, 12, 1, 17, QuteErrorCode.IterationError,
+						"Iteration error: {total} resolved to [double] which is not iterable.",
+						DiagnosticSeverity.Error),
+				d(2, 3, 2, 4, QuteErrorCode.UnkwownType, "`double` cannot be resolved to a type.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void integersWithMethodPart() throws Exception {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				"	{#for i in items.size}\r\n" + //
+				"		{i}\r\n" + //
+				"	{/for}";
 		testDiagnosticsFor(template);
 	}
 

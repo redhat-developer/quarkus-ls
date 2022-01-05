@@ -109,4 +109,8 @@ public class Parts extends Node {
 	public void setEnd(int end) {
 		super.setEnd(end);
 	}
+
+	public String getContent() {
+		return getOwnerTemplate().getText(getStart(), getEnd());
+	}
 }

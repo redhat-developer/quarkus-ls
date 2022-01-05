@@ -20,6 +20,12 @@ import com.redhat.qute.services.AbstractPositionRequest;
 import com.redhat.qute.settings.QuteHoverSettings;
 import com.redhat.qute.settings.SharedSettings;
 
+/**
+ * Hover request.
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public class HoverRequest extends AbstractPositionRequest {
 
 	private final SharedSettings settings;
@@ -32,6 +38,11 @@ public class HoverRequest extends AbstractPositionRequest {
 	@Override
 	protected Node doFindNodeAt(Template template, int offset) {
 		return template.findNodeAt(offset);
+	}
+	
+	@Override
+	protected boolean isIncludeAfterStartExpression() {
+		return true;
 	}
 
 	public boolean canSupportMarkupKind(String kind) {
