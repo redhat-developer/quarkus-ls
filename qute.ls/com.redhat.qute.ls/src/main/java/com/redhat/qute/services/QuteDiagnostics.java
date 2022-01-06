@@ -34,7 +34,6 @@ import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.parser.expression.MemberPart;
 import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
@@ -344,6 +343,8 @@ class QuteDiagnostics {
 				}
 			}
 			return resolvedJavaType;
+		} catch (CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Error while validating expression '" + expression.getContent() + "' in '"
 					+ template.getUri() + "'.", e);
@@ -598,7 +599,8 @@ class QuteDiagnostics {
 			return null;
 		}
 		String memberType = javaMember.resolveJavaElementType(iterableOfType);
-		return validateJavaTypePart(part, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext, memberType);	}
+		return validateJavaTypePart(part, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext, memberType);
+	}
 
 	/**
 	 * Validate the given method part.

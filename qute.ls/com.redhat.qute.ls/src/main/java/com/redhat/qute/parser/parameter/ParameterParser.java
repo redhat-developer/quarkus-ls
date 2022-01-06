@@ -53,8 +53,12 @@ public class ParameterParser {
 				parameters.add(currentParameter);
 				break;
 			case ParameterValue:
-				currentParameter.setStartValue(tokenOffset);
-				currentParameter.setEndValue(tokenEnd);
+				if (currentParameter != null) {
+					// current parameter can be null when parameter name is not defined
+					// ex : {#let =123} (instead of {#let name=123})
+					currentParameter.setStartValue(tokenOffset);
+					currentParameter.setEndValue(tokenEnd);
+				}
 				break;
 			default:
 			}

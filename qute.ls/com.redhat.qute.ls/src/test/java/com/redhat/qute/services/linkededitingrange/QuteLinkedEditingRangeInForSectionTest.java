@@ -60,4 +60,10 @@ public class QuteLinkedEditingRangeInForSectionTest {
 		testLinkedEditingFor(template, null);
 	}
 
+	@Test
+	public void emptyParameterName() throws BadLocationException {
+		String template = "{#let |=3}\r\n" + //
+				"{/let}";
+		testLinkedEditingFor(template, null);
+	}
 }
