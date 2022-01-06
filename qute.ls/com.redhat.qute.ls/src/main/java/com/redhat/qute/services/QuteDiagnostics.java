@@ -203,12 +203,7 @@ class QuteDiagnostics {
 			case ParameterDeclaration: {
 				ParameterDeclaration parameter = (ParameterDeclaration) node;
 				String javaTypeToResolve = parameter.getJavaType();
-				if (StringUtils.isEmpty(javaTypeToResolve)) {
-					Range range = QutePositionUtility.createRange(parameter);
-					String message = "Class must be defined";
-					Diagnostic diagnostic = createDiagnostic(range, message, null);
-					diagnostics.add(diagnostic);
-				} else {
+				if (!StringUtils.isEmpty(javaTypeToResolve)) {
 					String projectUri = template.getProjectUri();
 					if (projectUri != null) {
 						List<JavaTypeRangeOffset> classNameRanges = parameter.getJavaTypeNameRanges();

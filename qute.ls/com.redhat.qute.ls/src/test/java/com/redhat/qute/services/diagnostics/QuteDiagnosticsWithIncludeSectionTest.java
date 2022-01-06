@@ -31,7 +31,7 @@ public class QuteDiagnosticsWithIncludeSectionTest {
 		testDiagnosticsFor(template, //
 				// error coming from the real Qute parser
 				d(0, 11, 0, 11, QuteErrorCode.SyntaxError,
-						"Parser error on line 1: mandatory section parameters not declared for {#include /}: [Parameter [name=template, defaultValue=null, optional=false]]",
+						"Parser error on line 1: mandatory section parameters not declared for {#include /}: [template]",
 						DiagnosticSeverity.Error), //
 				// error coming from Qute LS parser
 				d(0, 1, 0, 9, QuteErrorCode.TemplateNotDefined, "Template id must be defined as parameter.",
