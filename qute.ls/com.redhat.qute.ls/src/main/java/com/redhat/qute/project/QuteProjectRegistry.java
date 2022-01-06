@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.project;
 
+import static com.redhat.qute.parser.template.LiteralSupport.getPrimitiveObjectType;
 import static com.redhat.qute.services.QuteCompletableFutures.EXTENDED_TEMPLATE_DATAMODEL_NULL_FUTURE;
 import static com.redhat.qute.services.QuteCompletableFutures.RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
 import static com.redhat.qute.services.QuteCompletableFutures.VALUE_RESOLVERS_NULL_FUTURE;
@@ -62,10 +63,13 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	private final ValueResolversRegistry valueResolversRegistry;
 
+	private static final Map<String, String> autoboxing;
+
 	private static final Map<String, CompletableFuture<ResolvedJavaTypeInfo>> javaPrimitiveTypes;
 
 	static {
 		javaPrimitiveTypes = new HashMap<>();
+		autoboxing = new HashMap<>();
 		JavaTypeInfo.PRIMITIVE_TYPES.forEach(type -> registerPrimitiveType(type));
 	}
 
@@ -81,6 +85,12 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		primitiveTypeArray.setIterableOf(type);
 		javaPrimitiveTypes.put(primitiveTypeArray.getSignature(),
 				CompletableFuture.completedFuture(primitiveTypeArray));
+
+		String objectType = getPrimitiveObjectType(type);
+		if (objectType != null) {
+			autoboxing.put(type, type);
+			autoboxing.put(objectType, type);
+		}
 	}
 
 	private final Map<String /* project uri */, QuteProject> projects;
@@ -412,7 +422,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			List<ResolvedJavaTypeInfo> parameterTypes, String projectUri) {
 		// Search in the java root type
 		JavaMemberResult result = new JavaMemberResult();
-		if (findMethod(baseType, methodName, parameterTypes, result)) {
+		if (findMethod(baseType, methodName, parameterTypes, result, projectUri)) {
 			return result;
 		}
 		if (baseType.getExtendedTypes() != null) {
@@ -420,7 +430,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			for (String extendedType : baseType.getExtendedTypes()) {
 				ResolvedJavaTypeInfo resolvedExtendedType = resolveJavaType(extendedType, projectUri).getNow(null);
 				if (resolvedExtendedType != null) {
-					if (findMethod(resolvedExtendedType, methodName, parameterTypes, result)) {
+					if (findMethod(resolvedExtendedType, methodName, parameterTypes, result, projectUri)) {
 						return result;
 					}
 				}
@@ -430,19 +440,19 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		// Search in value resolvers
 		// Search in static value resolvers (ex : orEmpty, take, etc)
 		List<ValueResolver> staticResolvers = valueResolversRegistry.getResolvers();
-		if (findResolver(baseType, methodName, parameterTypes, staticResolvers, result)) {
+		if (findResolver(baseType, methodName, parameterTypes, staticResolvers, result, projectUri)) {
 			return result;
 		}
 		// Search in template extension value resolvers retrieved by @TemplateExtension
 		List<ValueResolver> dynamicResolvers = getValueResolvers(projectUri).getNow(null);
-		if (findResolver(baseType, methodName, parameterTypes, dynamicResolvers, result)) {
+		if (findResolver(baseType, methodName, parameterTypes, dynamicResolvers, result, projectUri)) {
 			return result;
 		}
 		return result;
 	}
 
 	private boolean findMethod(ResolvedJavaTypeInfo baseType, String methodName,
-			List<ResolvedJavaTypeInfo> parameterTypes, JavaMemberResult result) {
+			List<ResolvedJavaTypeInfo> parameterTypes, JavaMemberResult result, String projectUri) {
 		List<JavaMethodInfo> methods = baseType.getMethods();
 		if (methods == null || methods.isEmpty() || isEmpty(methodName)) {
 			return false;
@@ -452,7 +462,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 				// The current method matches the method name.
 
 				// Check if the current method matches the parameters.
-				boolean matchParameters = isMatchParameters(method, baseType, parameterTypes);
+				boolean matchParameters = isMatchParameters(method, baseType, parameterTypes, projectUri);
 				if (result.getMember() == null || matchParameters) {
 					result.setMember(method);
 					result.setMatchParameters(matchParameters);
@@ -469,7 +479,8 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	}
 
 	private boolean findResolver(ResolvedJavaTypeInfo baseType, String methodName,
-			List<ResolvedJavaTypeInfo> parameterTypes, List<ValueResolver> allResolvers, JavaMemberResult result) {
+			List<ResolvedJavaTypeInfo> parameterTypes, List<ValueResolver> allResolvers, JavaMemberResult result,
+			String projectUri) {
 		for (ValueResolver resolver : allResolvers) {
 			if (isMatchMethod(resolver, methodName, methodName, methodName)) {
 				// The current resolver matches the method name.
@@ -480,7 +491,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 				boolean matchParameters = false;
 				if (matchVirtualMethod) {
 					// Check if the current resolver matches the parameters.
-					matchParameters = isMatchParameters(resolver, baseType, parameterTypes);
+					matchParameters = isMatchParameters(resolver, baseType, parameterTypes, projectUri);
 				}
 				if (result.getMember() == null || (matchParameters && matchVirtualMethod)) {
 					result.setMember(resolver);
@@ -498,7 +509,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	}
 
 	private boolean isMatchParameters(JavaMethodInfo method, ResolvedJavaTypeInfo baseType,
-			List<ResolvedJavaTypeInfo> parameterTypes) {
+			List<ResolvedJavaTypeInfo> parameterTypes, String projectUri) {
 		boolean virtualMethod = method.isVirtual();
 		if (parameterTypes.size() != (method.getParameters().size() - (virtualMethod ? 1 : 0))) {
 			return false;
@@ -509,7 +520,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			ResolvedJavaTypeInfo result = parameterTypes.get(i);
 
 			String parameterType = parameterInfo.getType();
-			if (!parameterType.equals(result.getSignature())) {
+			if (!isMatchType(result, parameterType, projectUri)) {
 				return false;
 			}
 		}
@@ -633,13 +644,17 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			return true;
 		}
 		String parameterType = parameter.getJavaType().getName();
+		return isMatchType(javaType, parameterType, projectUri);
+	}
+
+	private boolean isMatchType(ResolvedJavaTypeInfo javaType, String parameterType, String projectUri) {
 		String resolvedTypeName = javaType.getName();
-		if (parameterType.equals(resolvedTypeName)) {
+		if (isSameType(parameterType, resolvedTypeName)) {
 			return true;
 		}
 		if (javaType.getExtendedTypes() != null) {
 			for (String extendedType : javaType.getExtendedTypes()) {
-				if (parameterType.equals(extendedType)) {
+				if (isSameType(parameterType, extendedType)) {
 					return true;
 				}
 			}
@@ -648,11 +663,31 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			ResolvedJavaTypeInfo result = resolveJavaType(resolvedTypeName, projectUri).getNow(null);
 			if (result != null && result.getExtendedTypes() != null) {
 				for (String extendedType : result.getExtendedTypes()) {
-					if (parameterType.equals(extendedType)) {
+					if (isSameType(parameterType, extendedType)) {
 						return true;
 					}
 				}
 			}
+		}
+		return false;
+	}
+
+	/**
+	 * Returns true if the given type1 and type2 are the same and false otherwise.
+	 * 
+	 * @param type1 the first Java type to compare.
+	 * @param type2 the second Java type to compare.
+	 * 
+	 * @return true if the given type1 and type2 are the same and false otherwise.
+	 */
+	private boolean isSameType(String type1, String type2) {
+		if (type1.equals(type2)) {
+			return true;
+		}
+		String primitiveType = autoboxing.get(type1);
+		if (primitiveType != null) {
+			// It's a Java primitive type
+			return primitiveType.equals(autoboxing.get(type2));
 		}
 		return false;
 	}

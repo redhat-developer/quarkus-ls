@@ -70,7 +70,7 @@ public class QuteHoverInExpressionTest {
 		String template = "{1|23}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"int" + //
+				"java.lang.Integer" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(0, 1, 0, 4));
@@ -84,7 +84,7 @@ public class QuteHoverInExpressionTest {
 		String template = "{1|23L}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"long" + //
+				"java.lang.Long" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(0, 1, 0, 5));
@@ -98,7 +98,7 @@ public class QuteHoverInExpressionTest {
 		String template = "{1|23d}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"double" + //
+				"java.lang.Double" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(0, 1, 0, 5));
@@ -112,7 +112,7 @@ public class QuteHoverInExpressionTest {
 		String template = "{1|23f}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"float" + //
+				"java.lang.Float" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(0, 1, 0, 5));

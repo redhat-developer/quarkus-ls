@@ -180,7 +180,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 				"{/let}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"int" + //
+				"java.lang.Integer" + //
 				System.lineSeparator() + //
 				"```", //
 				r(2, 3, 2, 4));
@@ -199,7 +199,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 				"{/for}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"int" + //
+				"java.lang.Integer" + //
 				System.lineSeparator() + //
 				"```", //
 				r(1, 2, 1, 3));
