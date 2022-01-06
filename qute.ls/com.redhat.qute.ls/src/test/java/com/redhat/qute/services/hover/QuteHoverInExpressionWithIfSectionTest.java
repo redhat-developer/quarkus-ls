@@ -30,7 +30,7 @@ public class QuteHoverInExpressionWithIfSectionTest {
 				"  {#if val|ue}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"int" + //
+				"java.lang.Integer" + //
 				System.lineSeparator() + //
 				"```", //
 				r(1, 7, 1, 12));

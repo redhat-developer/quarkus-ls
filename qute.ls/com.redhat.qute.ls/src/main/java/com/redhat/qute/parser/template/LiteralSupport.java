@@ -21,16 +21,27 @@ import java.util.regex.Pattern;
  */
 public class LiteralSupport {
 
-	// Java types
+	// Java primitive types
+	private static final String BOOLEAN_PRIMITIVE_TYPE = "boolean";
+	private static final String BYTE_PRIMITIVE_TYPE = "byte";
+	private static final String CHAR_PRIMITIVE_TYPE = "char";
+	private static final String DOUBLE_PRIMITIVE_TYPE = "double";
+	private static final String FLOAT_PRIMITIVE_TYPE = "float";
+	private static final String INT_PRIMITIVE_TYPE = "int";
+	private static final String LONG_PRIMITIVE_TYPE = "long";
+
+	// Java Object types
+	private static final String NULL_TYPE = "null";
 	private static final String STRING_TYPE = "java.lang.String";
 	private static final String BOOLEAN_TYPE = "java.lang.Boolean";
 	private static final String TRUE = "true";
 	private static final String FALSE = "false";
-	private static final String FLOAT_TYPE = "float";
-	private static final String DOUBLE_TYPE = "double";
-	private static final String LONG_TYPE = "long";
-	private static final String INTEGER_TYPE = "int";
-	private static final String NULL_TYPE = "null";
+	private static final String BYTE_TYPE = "java.lang.Byte";
+	private static final String CHARACTER_TYPE = "java.lang.Character";
+	private static final String DOUBLE_TYPE = "java.lang.Double";
+	private static final String FLOAT_TYPE = "java.lang.Float";
+	private static final String INTEGER_TYPE = "java.lang.Integer";
+	private static final String LONG_TYPE = "java.lang.Long";
 
 	// Numeric pattern
 
@@ -79,4 +90,34 @@ public class LiteralSupport {
 	private static boolean isStringLiteralSeparator(char character) {
 		return character == '"' || character == '\'';
 	}
+
+	/**
+	 * Returns the Java object primitive type of the given primitive type and null
+	 * otherwise.
+	 * 
+	 * @param primitiveType the primitive type
+	 * 
+	 * @return the Java object primitive type of the given primitive type and null
+	 *         otherwise.
+	 */
+	public static String getPrimitiveObjectType(String primitiveType) {
+		switch (primitiveType) {
+		case BOOLEAN_PRIMITIVE_TYPE:
+			return BOOLEAN_TYPE;
+		case BYTE_PRIMITIVE_TYPE:
+			return BYTE_TYPE;
+		case CHAR_PRIMITIVE_TYPE:
+			return CHARACTER_TYPE;
+		case DOUBLE_PRIMITIVE_TYPE:
+			return DOUBLE_TYPE;
+		case FLOAT_PRIMITIVE_TYPE:
+			return FLOAT_TYPE;
+		case INT_PRIMITIVE_TYPE:
+			return INTEGER_TYPE;
+		case LONG_PRIMITIVE_TYPE:
+			return LONG_TYPE;
+		}
+		return null;
+	}
+
 }

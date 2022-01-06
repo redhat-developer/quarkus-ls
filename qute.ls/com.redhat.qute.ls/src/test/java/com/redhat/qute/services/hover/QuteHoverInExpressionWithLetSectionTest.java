@@ -38,7 +38,7 @@ public class QuteHoverInExpressionWithLetSectionTest {
 				"";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"double" + //
+				"java.lang.Double" + //
 				System.lineSeparator() + //
 				"```", //
 				r(3, 3, 3, 12));

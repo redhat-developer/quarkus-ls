@@ -399,7 +399,7 @@ public class QuteDiagnosticsInExpressionTest {
 				"{item.name.codePointCount(1)}";
 		testDiagnosticsFor(template, //
 				d(1, 11, 1, 25, QuteErrorCode.InvalidMethodParameter,
-						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(int)`.",
+						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(Integer)`.",
 						DiagnosticSeverity.Error));
 
 		template = "{@org.acme.Item item}\r\n" + //
@@ -410,14 +410,14 @@ public class QuteDiagnosticsInExpressionTest {
 				"{item.name.codePointCount(1, 2, 3)}";
 		testDiagnosticsFor(template, //
 				d(1, 11, 1, 25, QuteErrorCode.InvalidMethodParameter,
-						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(int, int, int)`.",
+						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(Integer, Integer, Integer)`.",
 						DiagnosticSeverity.Error));
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.name.codePointCount('1',2)}";
 		testDiagnosticsFor(template, //
 				d(1, 11, 1, 25, QuteErrorCode.InvalidMethodParameter,
-						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(String, int)`.",
+						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(String, Integer)`.",
 						DiagnosticSeverity.Error));
 	}
 
@@ -435,7 +435,7 @@ public class QuteDiagnosticsInExpressionTest {
 				"{/let}";
 		testDiagnosticsFor(template, //
 				d(2, 12, 2, 26, QuteErrorCode.InvalidMethodParameter,
-						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(String, int)`.",
+						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(String, Integer)`.",
 						DiagnosticSeverity.Error));
 	}
 
@@ -459,7 +459,7 @@ public class QuteDiagnosticsInExpressionTest {
 				"{item.name.codePointCount(item.name.codePointCount(1,2,3), 4)}";
 		testDiagnosticsFor(template, //
 				d(1, 36, 1, 50, QuteErrorCode.InvalidMethodParameter,
-						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(int, int, int)`.",
+						"The method `codePointCount(int, int)` in the type `String` is not applicable for the arguments `(Integer, Integer, Integer)`.",
 						DiagnosticSeverity.Error));
 	}
 
@@ -528,7 +528,7 @@ public class QuteDiagnosticsInExpressionTest {
 				"{item.name.getBytes(1)}";
 		testDiagnosticsFor(template, //
 				d(3, 11, 3, 19, QuteErrorCode.InvalidMethodParameter,
-						"The method `getBytes(String)` in the type `String` is not applicable for the arguments `(int)`.",
+						"The method `getBytes(String)` in the type `String` is not applicable for the arguments `(Integer)`.",
 						DiagnosticSeverity.Error));
 	}
 }
