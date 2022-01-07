@@ -181,7 +181,7 @@ public class QuteCompletionsForExpression {
 					if (resolvedType == null) {
 						return EMPTY_FUTURE_COMPLETION;
 					}
-					if (resolvedType.isIterable()) {
+					if (resolvedType.isIterable() && !resolvedType.isArray()) {
 						// Completion for member of the iterable element of the given Java class
 						// iterable
 						// ex : completion for 'org.acme.Item' iterable element of the

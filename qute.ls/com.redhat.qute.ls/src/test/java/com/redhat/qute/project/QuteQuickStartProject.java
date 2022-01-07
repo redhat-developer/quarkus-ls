@@ -87,8 +87,9 @@ public class QuteQuickStartProject extends MockQuteProject {
 
 		createResolvedJavaTypeInfo("java.util.List<org.acme.Item>", "java.util.List", "org.acme.Item", cache);
 		createResolvedJavaTypeInfo("java.lang.Iterable<org.acme.Item>", "java.lang.Iterable", "org.acme.Item", cache);
-		createResolvedJavaTypeInfo("org.acme.Item[]", null, "org.acme.Item", cache);
-
+		ResolvedJavaTypeInfo array = createResolvedJavaTypeInfo("org.acme.Item[]", null, "org.acme.Item", cache);
+		registerField("length : int", array);
+		
 		ResolvedJavaTypeInfo iterable = createResolvedJavaTypeInfo("java.lang.Iterable<T>", "java.lang.Iterable", "T",
 				cache);
 

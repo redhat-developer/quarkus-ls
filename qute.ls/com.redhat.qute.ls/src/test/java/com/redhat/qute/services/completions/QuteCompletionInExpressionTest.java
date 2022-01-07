@@ -315,4 +315,12 @@ public class QuteCompletionInExpressionTest {
 		testCompletionFor(template, //
 				c("item", "item", r(1, 32, 1, 32)));
 	}
+	
+	@Test
+	public void array() throws Exception {
+		String template = "{@org.acme.Item[] items}\r\n" + //
+				"{items.|}";
+		testCompletionFor(template, //
+				c("length : int", "length", r(1, 7, 1, 7)));
+	}
 }

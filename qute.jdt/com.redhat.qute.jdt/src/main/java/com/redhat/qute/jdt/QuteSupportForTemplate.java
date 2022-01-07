@@ -13,6 +13,7 @@ package com.redhat.qute.jdt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -318,7 +319,13 @@ public class QuteSupportForTemplate {
 			}
 			iterableOf = getFullQualifiedName(monitor, javaProject, iterableOf);
 			typeName = iterableOf + "[]";
-			return createIterableType(typeName, null, iterableOf);
+			ResolvedJavaTypeInfo array = createIterableType(typeName, null, iterableOf);
+		
+			// Add Object[].length field
+			JavaFieldInfo lengthField = new JavaFieldInfo();
+			lengthField.setSignature("length : int");
+			array.setFields(Collections.singletonList(lengthField));
+			return array;
 		}
 
 		// ex : org.acme.Item, java.util.List, ...

@@ -311,7 +311,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		if (resolvedType == null) {
 			return null;
 		}
-		if (resolvedType.isIterable()) {
+		if (resolvedType.isIterable() && !resolvedType.isArray()) {
 			// Expression uses iterable type
 			// {@java.util.List<org.acme.Item items>
 			// {items.size()}

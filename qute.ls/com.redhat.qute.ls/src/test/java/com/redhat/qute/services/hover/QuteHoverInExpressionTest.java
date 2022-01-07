@@ -230,7 +230,6 @@ public class QuteHoverInExpressionTest {
 				System.lineSeparator() + //
 				"```", //
 				r(1, 1, 1, 6));
-
 	}
 
 	@Test
@@ -243,7 +242,6 @@ public class QuteHoverInExpressionTest {
 				System.lineSeparator() + //
 				"```", //
 				r(1, 7, 1, 11));
-
 	}
 
 	@Test
@@ -256,6 +254,17 @@ public class QuteHoverInExpressionTest {
 				System.lineSeparator() + //
 				"```", //
 				r(1, 5, 1, 13));
+	}
 
+	@Test
+	public void array() throws Exception {
+		String template = "{@org.acme.Item[] items}\r\n" + //
+				"{items.le|ngth}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"int org.acme.Item[].length" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 7, 1, 13));
 	}
 }

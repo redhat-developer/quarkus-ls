@@ -191,8 +191,14 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertEquals("org.acme.qute.Item[]", result.getSignature());
 		Assert.assertTrue(result.isIterable());
 		Assert.assertNull(result.getIterableType());
+		Assert.assertTrue(result.isArray());
 		Assert.assertEquals("org.acme.qute.Item", result.getIterableOf());
 
+		// Fields
+		Assert.assertNotNull(result.getFields());
+		Assert.assertEquals(1, result.getFields().size());
+		Assert.assertEquals("length", result.getFields().get(0).getName());
+		Assert.assertEquals("int", result.getFields().get(0).getType());
 	}
 
 	@Test
@@ -208,7 +214,14 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertEquals("java.lang.String[]", result.getSignature());
 		Assert.assertTrue(result.isIterable());
 		Assert.assertNull(result.getIterableType());
+		Assert.assertTrue(result.isArray());
 		Assert.assertEquals("java.lang.String", result.getIterableOf());
+		
+		// Fields
+		Assert.assertNotNull(result.getFields());
+		Assert.assertEquals(1, result.getFields().size());
+		Assert.assertEquals("length", result.getFields().get(0).getName());
+		Assert.assertEquals("int", result.getFields().get(0).getType());
 	}
 
 	@Test

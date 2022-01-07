@@ -169,7 +169,7 @@ public class QuteHover {
 		return javaCache.resolveJavaType(previousPart, projectUri) //
 				.thenCompose(resolvedJavaType -> {
 					if (resolvedJavaType != null) {
-						if (resolvedJavaType.isIterable()) {
+						if (resolvedJavaType.isIterable() && !resolvedJavaType.isArray()) {
 							// Expression uses iterable type
 							// {@java.util.List<org.acme.Item items>
 							// {items.si|ze()}

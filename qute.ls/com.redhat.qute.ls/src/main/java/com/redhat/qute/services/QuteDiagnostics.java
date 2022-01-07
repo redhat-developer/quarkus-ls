@@ -398,7 +398,7 @@ class QuteDiagnostics {
 			case Property: {
 				// java.util.List<org.acme.Item>
 				ResolvedJavaTypeInfo iter = resolvedJavaType;
-				if (resolvedJavaType.isIterable()) {
+				if (resolvedJavaType.isIterable() && !resolvedJavaType.isArray()) {
 					// Expression uses iterable type
 					// {@java.util.List<org.acme.Item items>
 					// {items.size()}
