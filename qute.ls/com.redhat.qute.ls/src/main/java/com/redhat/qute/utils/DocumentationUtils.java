@@ -53,7 +53,7 @@ public class DocumentationUtils {
 			documentation.append("```java");
 			documentation.append(System.lineSeparator());
 		}
-		documentation.append(resolvedType.getSignature());
+		documentation.append(resolvedType.getJavaElementSimpleType());
 		if (markdown) {
 			documentation.append(System.lineSeparator());
 			documentation.append("```");

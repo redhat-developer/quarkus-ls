@@ -41,7 +41,7 @@ public class QuteHoverInParameterDeclarationTest {
 		String template = "{@org.acme.It|em item}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"org.acme.Item" + //
+				"Item" + //
 				System.lineSeparator() + //
 				"```", //
 				r(0, 2, 0, 15));
@@ -49,7 +49,7 @@ public class QuteHoverInParameterDeclarationTest {
 		template = "{@org.acme.Item| item}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"org.acme.Item" + //
+				"Item" + //
 				System.lineSeparator() + //
 				"```", //
 				r(0, 2, 0, 15));
@@ -66,7 +66,7 @@ public class QuteHoverInParameterDeclarationTest {
 		String template = "{@java.util.L|ist<org.acme.Item> item}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.util.List<E>" + //
+				"List<E>" + //
 				System.lineSeparator() + //
 				"```", //
 				r(0, 2, 0, 16));
@@ -74,7 +74,7 @@ public class QuteHoverInParameterDeclarationTest {
 		template = "{@java.util.List|<org.acme.Item> item}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.util.List<E>" + //
+				"List<E>" + //
 				System.lineSeparator() + //
 				"```", //
 				r(0, 2, 0, 16));
@@ -82,7 +82,7 @@ public class QuteHoverInParameterDeclarationTest {
 		template = "{@|java.util.List<org.acme.Item> item}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.util.List<E>" + //
+				"List<E>" + //
 				System.lineSeparator() + //
 				"```", //
 				r(0, 2, 0, 16));
@@ -90,7 +90,7 @@ public class QuteHoverInParameterDeclarationTest {
 		template = "{@java.util.List<org.acme.Item|> item}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"org.acme.Item" + //
+				"Item" + //
 				System.lineSeparator() + //
 				"```", //
 				r(0, 17, 0, 30));
@@ -107,7 +107,7 @@ public class QuteHoverInParameterDeclarationTest {
 		String template = "{@java.util.List<org.acme.It|em> item}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"org.acme.Item" + //
+				"Item" + //
 				System.lineSeparator() + //
 				"```", //
 				r(0, 17, 0, 30));
@@ -115,7 +115,7 @@ public class QuteHoverInParameterDeclarationTest {
 		template = "{@java.util.List<|org.acme.Item> item}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"org.acme.Item" + //
+				"Item" + //
 				System.lineSeparator() + //
 				"```", //
 				r(0, 17, 0, 30));
@@ -123,7 +123,7 @@ public class QuteHoverInParameterDeclarationTest {
 		template = "{@java.util.List<org.acme.Item|> item}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"org.acme.Item" + //
+				"Item" + //
 				System.lineSeparator() + //
 				"```", //
 				r(0, 17, 0, 30));
