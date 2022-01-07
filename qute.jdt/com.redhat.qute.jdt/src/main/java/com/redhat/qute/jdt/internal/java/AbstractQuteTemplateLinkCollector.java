@@ -12,6 +12,7 @@
 package com.redhat.qute.jdt.internal.java;
 
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.LOCATION_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
 
 import java.util.List;
@@ -127,7 +128,9 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 			for (Object modifier : modifiers) {
 				if (modifier instanceof SingleMemberAnnotation) {
 					SingleMemberAnnotation annotation = (SingleMemberAnnotation) modifier;
-					if ("Location".equals(annotation.getTypeName().getFullyQualifiedName())) {
+					if (AnnotationUtils.isMatchAnnotation(annotation, LOCATION_ANNOTATION)) {
+						// @Location("/items/my.items.qute.html")
+						// Template items;
 						Expression expression = annotation.getValue();
 						if (expression != null && expression instanceof StringLiteral) {
 							String location = ((StringLiteral) expression).getLiteralValue();

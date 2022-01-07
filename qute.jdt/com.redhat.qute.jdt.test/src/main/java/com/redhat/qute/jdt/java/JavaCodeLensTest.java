@@ -62,10 +62,17 @@ public class JavaCodeLensTest {
 	@Test
 	public void templateField() throws CoreException, Exception {
 		// public class HelloResource {
+		
 		// [Open `src/main/resources/templates/hello.qute.html`]
 		// Template hello;
-		// [Create `src/main/resources/templates/hello.qute.html`]
-		// Template goodbye;		
+		
+		// [Create `src/main/resources/templates/goodbye.qute.html`]
+		// Template goodbye;
+		
+		// [Create `src/main/resources/templates/detail/items2_v1.html`]
+		// @Location("detail/items2_v1.html")
+		// Template hallo;
+
 		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
 		QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
@@ -74,20 +81,25 @@ public class JavaCodeLensTest {
 
 		List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, getJDTUtils(),
 				new NullProgressMonitor());
-		assertEquals(2, lenses.size());
+		assertEquals(3, lenses.size());
 
 		String helloTemplateFileUri = javaProject.getProject().getFile("src/main/resources/templates/hello.qute.html")
 				.getLocationURI().toString();
 		String goodbyeTemplateFileUri = javaProject.getProject().getFile("src/main/resources/templates/goodbye.qute.html")
 				.getLocationURI().toString();
-
+		String halloTemplateFileUri = javaProject.getProject().getFile("src/main/resources/templates/detail/items2_v1.html")
+				.getLocationURI().toString();
+		
 		assertCodeLens(lenses, //
-				cl(r(15, 4, 16, 19), //
+				cl(r(16, 1, 17, 16), //
 						"Open `src/main/resources/templates/hello.qute.html`", //
 						"qute.command.open.uri", Arrays.asList(helloTemplateFileUri)), //
-				cl(r(18, 4, 19, 21), //
+				cl(r(19, 1, 20, 18), //
 						"Create `src/main/resources/templates/goodbye.qute.html`", //
-						"qute.command.generate.template.file", Arrays.asList(goodbyeTemplateFileUri)));
+						"qute.command.generate.template.file", Arrays.asList(goodbyeTemplateFileUri)), //
+				cl(r(22, 1, 24, 16), //
+						"Create `src/main/resources/templates/detail/items2_v1.html`", //
+						"qute.command.generate.template.file", Arrays.asList(halloTemplateFileUri)));
 	}
 
 	@Test

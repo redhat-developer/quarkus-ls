@@ -41,7 +41,7 @@ import com.redhat.qute.jdt.internal.java.QuteErrorCode;
 
 /**
  * Tests for Qute @CheckedTemplate support validation inside Java files.
- *  
+ * 
  * @author Angelo ZERR
  *
  */
@@ -67,6 +67,10 @@ public class JavaDiagnosticsTest {
 		// Template hello;
 		//
 		// Template goodbye;
+		//
+		// @Location("detail/items2_v1.html")
+		// Template hallo;
+
 		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
 		QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
@@ -77,13 +81,15 @@ public class JavaDiagnosticsTest {
 				getJDTUtils(), new NullProgressMonitor());
 		assertEquals(1, publishDiagnostics.size());
 
-		// None error
 		List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
-		assertEquals(1, diagnostics.size());
-		
+		assertEquals(2, diagnostics.size());
+
 		assertDiagnostic(diagnostics, //
-				new Diagnostic(r(19, 13, 19, 20),
+				new Diagnostic(r(20, 10, 20, 17),
 						"No template matching the path goodbye could be found for: org.acme.qute.HelloResource",
+						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
+				new Diagnostic(r(24, 10, 24, 15),
+						"No template matching the path detail/items2_v1.html could be found for: org.acme.qute.HelloResource",
 						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
 	}
 
