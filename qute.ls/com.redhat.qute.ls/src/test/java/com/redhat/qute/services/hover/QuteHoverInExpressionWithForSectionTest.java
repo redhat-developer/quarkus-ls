@@ -40,7 +40,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 				"{/for}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.util.List<org.acme.Item>" + //
+				"List<Item>" + //
 				System.lineSeparator() + //
 				"```", //
 				r(1, 14, 1, 19));
@@ -62,7 +62,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 				"{/for}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"org.acme.Item" + //
+				"Item" + //
 				System.lineSeparator() + //
 				"```", //
 				r(1, 6, 1, 10));
@@ -76,7 +76,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 				"{/for}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"org.acme.Item" + //
+				"Item" + //
 				System.lineSeparator() + //
 				"```", //
 				r(2, 3, 2, 7));
@@ -130,7 +130,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 				System.lineSeparator() + //
 				"```java" + //
 				System.lineSeparator() + //
-				"java.lang.Integer" + //
+				"Integer" + //
 				System.lineSeparator() + //
 				"```", //
 				r(2, 3, 2, 13));
@@ -138,7 +138,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 
 	/**
 	 * @see https://quarkus.io/guides/qute-reference#expression_resolution
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -151,7 +151,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 				"{/for}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"org.acme.Review" + //
+				"Review" + //
 				System.lineSeparator() + //
 				"```", //
 				r(3, 3, 3, 7));
@@ -164,7 +164,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 				"{/for}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"org.acme.Item" + //
+				"Item" + //
 				System.lineSeparator() + //
 				"```", //
 				r(4, 8, 4, 12));
@@ -180,7 +180,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 				"{/let}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.lang.Integer" + //
+				"Integer" + //
 				System.lineSeparator() + //
 				"```", //
 				r(2, 3, 2, 4));
@@ -199,7 +199,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 				"{/for}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.lang.Integer" + //
+				"Integer" + //
 				System.lineSeparator() + //
 				"```", //
 				r(1, 2, 1, 3));

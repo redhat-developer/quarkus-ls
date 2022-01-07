@@ -29,7 +29,7 @@ public class QuteHoverInExpressionTest {
 		String template = "{tr|ue}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.lang.Boolean" + //
+				"Boolean" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(0, 1, 0, 5));
@@ -40,7 +40,7 @@ public class QuteHoverInExpressionTest {
 		template = "{fal|se}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.lang.Boolean" + //
+				"Boolean" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(0, 1, 0, 6));
@@ -70,7 +70,7 @@ public class QuteHoverInExpressionTest {
 		String template = "{1|23}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.lang.Integer" + //
+				"Integer" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(0, 1, 0, 4));
@@ -84,7 +84,7 @@ public class QuteHoverInExpressionTest {
 		String template = "{1|23L}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.lang.Long" + //
+				"Long" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(0, 1, 0, 5));
@@ -98,7 +98,7 @@ public class QuteHoverInExpressionTest {
 		String template = "{1|23d}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.lang.Double" + //
+				"Double" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(0, 1, 0, 5));
@@ -112,7 +112,7 @@ public class QuteHoverInExpressionTest {
 		String template = "{1|23f}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.lang.Float" + //
+				"Float" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(0, 1, 0, 5));
@@ -133,7 +133,7 @@ public class QuteHoverInExpressionTest {
 				"{i|tem}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"org.acme.Item" + //
+				"Item" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(1, 1, 1, 5));
@@ -142,7 +142,7 @@ public class QuteHoverInExpressionTest {
 				"{|item}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"org.acme.Item" + //
+				"Item" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(1, 1, 1, 5));
@@ -151,7 +151,7 @@ public class QuteHoverInExpressionTest {
 				"{item|}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"org.acme.Item" + //
+				"Item" + //
 				System.lineSeparator() + //
 				"```", // ,
 				r(1, 1, 1, 5));
@@ -226,7 +226,7 @@ public class QuteHoverInExpressionTest {
 				"{ite|ms.size}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"java.util.List<org.acme.Item>" + //
+				"List<Item>" + //
 				System.lineSeparator() + //
 				"```", //
 				r(1, 1, 1, 6));
