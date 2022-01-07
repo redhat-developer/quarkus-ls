@@ -105,6 +105,26 @@ public class TemplateGetDataModelProjectTest {
 		Assert.assertEquals(2, parameters2.size());
 		assertParameter("age2", "int", true, parameters2, 0);
 		assertParameter("name2", "java.lang.String", true, parameters2, 1);
+		
+		// Template hallo;
+
+		DataModelTemplate<DataModelParameter> halloTemplate = project
+				.findDataModelTemplate("src/main/resources/templates/detail/items2_v1.html");
+		Assert.assertNotNull(halloTemplate);
+		Assert.assertEquals("src/main/resources/templates/detail/items2_v1.html", halloTemplate.getTemplateUri());
+		Assert.assertEquals("org.acme.qute.HelloResource", halloTemplate.getSourceType());
+		Assert.assertEquals("hallo", halloTemplate.getSourceField());
+
+		List<DataModelParameter> parameters3 = halloTemplate.getParameters();
+		Assert.assertNotNull(parameters3);
+
+		// hallo.data("age3", 12);
+		// return hallo.data("name3", name);
+
+		Assert.assertEquals(2, parameters3.size());
+		assertParameter("age3", "int", true, parameters3, 0);
+		assertParameter("name3", "java.lang.String", true, parameters3, 1);
+
 	}
 
 	private static void checkedTemplateInnerClass(DataModelProject<DataModelTemplate<DataModelParameter>> project) {

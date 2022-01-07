@@ -91,6 +91,26 @@ public class DataModelProject<T extends DataModelTemplate<?>> {
 		if (templates == null || templates.isEmpty()) {
 			return null;
 		}
+
+		// Try to find template by the given uri (with extension)
+
+		// @Location("detail/items2_v1.html")
+		// Template items2;
+		T template = findDataModelTemplate(templateUri, templates);
+		if (template != null) {
+			return template;
+		}
+
+		// Try to find template by the given uri (without extension)
+
+		// @Location("detail/items2_v1.html")
+		// Template items2;
+
+		String templateUriWithoutExtension = getUriWithoutExtension(templateUri);
+		return findDataModelTemplate(templateUriWithoutExtension, templates);
+	}
+
+	public String getUriWithoutExtension(String templateUri) {
 		int dotIndex = templateUri.lastIndexOf('.');
 		if (dotIndex != -1) {
 			templateUri = templateUri.substring(0, dotIndex);
@@ -98,11 +118,17 @@ public class DataModelProject<T extends DataModelTemplate<?>> {
 		if (templateUri.endsWith(QUTE_FILE_EXTENSION)) {
 			templateUri = templateUri.substring(0, templateUri.length() - QUTE_FILE_EXTENSION.length());
 		}
-		final String uri = templateUri;
+		return templateUri;
+	}
+
+	private T findDataModelTemplate(String templateUri, List<T> templates) {
 		Optional<T> dataModelForTemplate = templates.stream() //
-				.filter(t -> uri.endsWith(t.getTemplateUri())) //
+				.filter(t -> templateUri.endsWith(t.getTemplateUri())) //
 				.findFirst();
-		return dataModelForTemplate.isPresent() ? dataModelForTemplate.get() : null;
+		if (dataModelForTemplate.isPresent()) {
+			return dataModelForTemplate.get();
+		}
+		return null;
 	}
 
 	@Override
