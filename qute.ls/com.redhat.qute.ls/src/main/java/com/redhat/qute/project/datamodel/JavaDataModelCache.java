@@ -23,7 +23,8 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
+import com.redhat.qute.commons.resolvers.MethodValueResolver;
+import com.redhat.qute.commons.resolvers.ValueResolver;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
@@ -258,7 +259,7 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return projectRegistry.hasNamespace(namespace, projectUri);
 	}
 
-	public List<ValueResolver> getNamespaceResolvers(String projectUri) {
+	public List<MethodValueResolver> getNamespaceResolvers(String projectUri) {
 		return projectRegistry.getNamespaceResolvers(projectUri);
 	}
 

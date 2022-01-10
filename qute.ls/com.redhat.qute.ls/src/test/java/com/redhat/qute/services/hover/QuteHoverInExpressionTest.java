@@ -62,7 +62,6 @@ public class QuteHoverInExpressionTest {
 
 		template = "{'ab|cd'}";
 		assertHover(template);
-
 	}
 
 	@Test
@@ -230,7 +229,6 @@ public class QuteHoverInExpressionTest {
 				System.lineSeparator() + //
 				"```", //
 				r(1, 1, 1, 6));
-
 	}
 
 	@Test
@@ -243,7 +241,6 @@ public class QuteHoverInExpressionTest {
 				System.lineSeparator() + //
 				"```", //
 				r(1, 7, 1, 11));
-
 	}
 
 	@Test
@@ -256,6 +253,38 @@ public class QuteHoverInExpressionTest {
 				System.lineSeparator() + //
 				"```", //
 				r(1, 5, 1, 13));
+	}
 
+	@Test
+	public void arrayLength() throws Exception {
+		String template = "{@org.acme.Item[] items}\r\n" + //
+				"{items.le|ngth}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"int length" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 7, 1, 13));
+	}
+
+	@Test
+	public void arrayInt() throws Exception {
+		String template = "{@org.acme.Item[] items}\r\n" + //
+				"{items.0|}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"Item org.acme.Item[].0" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 7, 1, 8));
+
+		template = "{@org.acme.Item[] items}\r\n" + //
+				"{items.0.na|me}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"String org.acme.Item.name" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 9, 1, 13));
 	}
 }

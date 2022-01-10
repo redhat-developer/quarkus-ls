@@ -20,9 +20,9 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import com.redhat.qute.commons.resolvers.MethodValueResolver;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 
 /**
@@ -123,8 +123,8 @@ public class QuteQuickStartProject extends MockQuteProject {
 	}
 
 	@Override
-	protected List<ValueResolver> createValueResolvers() {
-		List<ValueResolver> resolvers = new ArrayList<>();
+	protected List<MethodValueResolver> createValueResolvers() {
+		List<MethodValueResolver> resolvers = new ArrayList<>();
 		resolvers.add(createValueResolver("discountedPrice(item : org.acme.Item) : java.math.BigDecimal",
 				"org.acme.ItemResource"));
 		resolvers.add(createValueResolver("getByIndex(list : java.util.List<T>, index : int) : T",

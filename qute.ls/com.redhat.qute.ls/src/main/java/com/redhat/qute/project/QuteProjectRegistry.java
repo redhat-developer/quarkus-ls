@@ -36,18 +36,20 @@ import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
+import com.redhat.qute.commons.resolvers.MethodValueResolver;
+import com.redhat.qute.commons.resolvers.ValueResolver;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteJavaDefinitionProvider;
 import com.redhat.qute.ls.api.QuteJavaTypesProvider;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
 import com.redhat.qute.parser.expression.Part;
+import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.ValueResolversRegistry;
@@ -209,7 +211,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams(javaTypeName, projectUri);
 			future = getResolvedJavaType(params) //
 					.thenCompose(c -> {
-						if (c != null) {
+						if (c != null) {							
 							// Update members with the resolved class
 							c.getFields().forEach(f -> {
 								f.setJavaType(c);
@@ -257,7 +259,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		}
 	}
 
-	public CompletableFuture<List<ValueResolver>> getValueResolvers(String projectUri) {
+	public CompletableFuture<List<MethodValueResolver>> getValueResolvers(String projectUri) {
 		if (StringUtils.isEmpty(projectUri)) {
 			return VALUE_RESOLVERS_NULL_FUTURE;
 		}
@@ -311,7 +313,20 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		if (resolvedType == null) {
 			return null;
 		}
-		if (resolvedType.isIterable()) {
+
+		String property = part.getPartName();
+		if (resolvedType.isArray()) {
+			if (LiteralSupport.isInteger(property)) {
+				String iterableOf = resolvedType.getIterableOf();
+				JavaFieldInfo itemField = new JavaFieldInfo();
+				itemField.setSignature(property + " : " + iterableOf);
+				itemField.setJavaType(resolvedType);
+				return itemField;
+			}
+			//return null;
+		}
+
+		if (resolvedType.isIterable() && !resolvedType.isArray()) {
 			// Expression uses iterable type
 			// {@java.util.List<org.acme.Item items>
 			// {items.size()}
@@ -324,7 +339,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 				return null;
 			}
 		}
-		String property = part.getPartName();
+
 		// Search in the java root type
 		JavaMemberInfo memberInfo = findMember(resolvedType, property);
 		if (memberInfo != null) {
@@ -397,7 +412,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		String getterMethodName = computeGetterName(propertyOrMethodName);
 		String booleanGetterName = computeBooleanGetterName(propertyOrMethodName);
 		for (JavaMethodInfo method : methods) {
-			if (isMatchMethod(method, propertyOrMethodName, getterMethodName, booleanGetterName)) {
+			if (isMatchMember(method.getName(), propertyOrMethodName, getterMethodName, booleanGetterName)) {
 				return method;
 			}
 		}
@@ -444,8 +459,8 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			return result;
 		}
 		// Search in template extension value resolvers retrieved by @TemplateExtension
-		List<ValueResolver> dynamicResolvers = getValueResolvers(projectUri).getNow(null);
-		if (findResolver(baseType, methodName, parameterTypes, dynamicResolvers, result, projectUri)) {
+		List<MethodValueResolver> dynamicResolvers = getValueResolvers(projectUri).getNow(null);
+		if (findMethodResolver(baseType, methodName, parameterTypes, dynamicResolvers, result, projectUri)) {
 			return result;
 		}
 		return result;
@@ -458,7 +473,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			return false;
 		}
 		for (JavaMethodInfo method : methods) {
-			if (isMatchMethod(method, methodName, methodName, methodName)) {
+			if (isMatchMember(method.getName(), methodName, null, null)) {
 				// The current method matches the method name.
 
 				// Check if the current method matches the parameters.
@@ -482,27 +497,52 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			List<ResolvedJavaTypeInfo> parameterTypes, List<ValueResolver> allResolvers, JavaMemberResult result,
 			String projectUri) {
 		for (ValueResolver resolver : allResolvers) {
-			if (isMatchMethod(resolver, methodName, methodName, methodName)) {
-				// The current resolver matches the method name.
+			if (isMatchResolver(baseType, methodName, parameterTypes, result, projectUri, resolver)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-				// Check if the baseType matches the type of the first parameter of the current
-				// resolver.
-				boolean matchVirtualMethod = matchResolver(baseType, resolver, methodName);
-				boolean matchParameters = false;
-				if (matchVirtualMethod) {
+	private boolean findMethodResolver(ResolvedJavaTypeInfo baseType, String methodName,
+			List<ResolvedJavaTypeInfo> parameterTypes, List<MethodValueResolver> allResolvers, JavaMemberResult result,
+			String projectUri) {
+		for (MethodValueResolver resolver : allResolvers) {
+			if (isMatchResolver(baseType, methodName, parameterTypes, result, projectUri, resolver)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isMatchResolver(ResolvedJavaTypeInfo baseType, String methodName,
+			List<ResolvedJavaTypeInfo> parameterTypes, JavaMemberResult result, String projectUri,
+			ValueResolver resolver) {
+		if (isMatchMember(resolver.getName(), methodName, methodName, methodName)) {
+			// The current resolver matches the method/property name.
+
+			// Check if the baseType matches the type of the first parameter of the current
+			// resolver.
+			boolean matchVirtualMethod = matchResolver(baseType, resolver, methodName);
+			boolean matchParameters = false;
+			if (matchVirtualMethod) {
+				if (resolver.isMethod()) {
 					// Check if the current resolver matches the parameters.
-					matchParameters = isMatchParameters(resolver, baseType, parameterTypes, projectUri);
+					matchParameters = isMatchParameters((JavaMethodInfo) resolver, baseType, parameterTypes,
+							projectUri);
+				} else {
+					matchParameters = true;
 				}
-				if (result.getMember() == null || (matchParameters && matchVirtualMethod)) {
-					result.setMember(resolver);
-					result.setMatchParameters(matchParameters);
-					result.setMatchVirtualMethod(matchVirtualMethod);
-				}
-				if (matchParameters && matchVirtualMethod) {
-					// The current resolver matches the method name, the parameters types and the
-					// virtual method,stop the search
-					return true;
-				}
+			}
+			if (result.getMember() == null || (matchParameters && matchVirtualMethod)) {
+				result.setMember((JavaMemberInfo) resolver);
+				result.setMatchParameters(matchParameters);
+				result.setMatchVirtualMethod(matchVirtualMethod);
+			}
+			if (matchParameters && matchVirtualMethod) {
+				// The current resolver matches the method name, the parameters types and the
+				// virtual method,stop the search
+				return true;
 			}
 		}
 		return false;
@@ -540,13 +580,13 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	private static boolean isMatchMethod(JavaMethodInfo method, String propertyOrMethodName) {
 		String getterMethodName = computeGetterName(propertyOrMethodName);
 		String booleanGetterName = computeBooleanGetterName(propertyOrMethodName);
-		return isMatchMethod(method, propertyOrMethodName, getterMethodName, booleanGetterName);
+		return isMatchMember(method.getName(), propertyOrMethodName, getterMethodName, booleanGetterName);
 	}
 
-	private static boolean isMatchMethod(JavaMethodInfo method, String propertyOrMethodName, String getterMethodName,
+	private static boolean isMatchMember(String memberName, String propertyOrMethodName, String getterMethodName,
 			String booleanGetterName) {
-		if (propertyOrMethodName.equals(method.getName()) || getterMethodName.equals(method.getName())
-				|| booleanGetterName.equals(method.getName())) {
+		if (propertyOrMethodName.equals(memberName) || (getterMethodName != null && getterMethodName.equals(memberName))
+				|| (booleanGetterName != null && booleanGetterName.equals(memberName))) {
 			return true;
 		}
 		return false;
@@ -556,11 +596,17 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		return value == null || value.isEmpty();
 	}
 
-	public ValueResolver findValueResolver(String property, ResolvedJavaTypeInfo resolvedType, String projectUri) {
+	public JavaMemberInfo findValueResolver(String property, ResolvedJavaTypeInfo resolvedType, String projectUri) {
 		List<ValueResolver> resolvers = getResolversFor(resolvedType, projectUri);
 		for (ValueResolver resolver : resolvers) {
-			if (isMatchMethod(resolver, property)) {
-				return resolver;
+			if (resolver.isMethod()) {
+				if (isMatchMethod((JavaMethodInfo) resolver, property)) {
+					return (JavaMemberInfo) resolver;
+				}
+			} else {
+				if (isMatchMember(resolver.getName(), property, null, null)) {
+					return (JavaMemberInfo) resolver;
+				}
 			}
 		}
 		return null;
@@ -573,11 +619,11 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 *
 	 * @return namespace resolvers from the given Qute project Uri.
 	 */
-	public List<ValueResolver> getNamespaceResolvers(String projectUri) {
-		List<ValueResolver> allResolvers = getValueResolvers(projectUri).getNow(null);
+	public List<MethodValueResolver> getNamespaceResolvers(String projectUri) {
+		List<MethodValueResolver> allResolvers = getValueResolvers(projectUri).getNow(null);
 		if (allResolvers != null) {
-			List<ValueResolver> namespaceResolvers = new ArrayList<>();
-			for (ValueResolver resolver : allResolvers) {
+			List<MethodValueResolver> namespaceResolvers = new ArrayList<>();
+			for (MethodValueResolver resolver : allResolvers) {
 				if (resolver.getNamespace() != null) {
 					namespaceResolvers.add(resolver);
 				}
@@ -588,9 +634,9 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	}
 
 	public boolean hasNamespace(String namespace, String projectUri) {
-		List<ValueResolver> resolvers = getValueResolvers(projectUri).getNow(null);
+		List<MethodValueResolver> resolvers = getValueResolvers(projectUri).getNow(null);
 		if (resolvers != null) {
-			for (ValueResolver resolver : resolvers) {
+			for (MethodValueResolver resolver : resolvers) {
 				if (namespace.equals(resolver.getNamespace())) {
 					return true;
 				}
@@ -608,9 +654,9 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			}
 		}
 		// Search in template extension value resolvers retrieved by @TemplateExtension
-		List<ValueResolver> allResolvers = getValueResolvers(projectUri).getNow(null);
+		List<MethodValueResolver> allResolvers = getValueResolvers(projectUri).getNow(null);
 		if (allResolvers != null) {
-			for (ValueResolver resolver : allResolvers) {
+			for (MethodValueResolver resolver : allResolvers) {
 				if (resolver.getNamespace() == null && matchResolver(javaType, resolver, projectUri)) {
 					matches.add(resolver);
 				}
@@ -635,13 +681,14 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	private boolean matchResolver(ResolvedJavaTypeInfo javaType, ValueResolver resolver, String projectUri) {
 		// Example with following signature:
 		// "orEmpty(arg : java.util.List<T>) : java.lang.Iterable<T>"
-		JavaParameterInfo parameter = resolver.getParameterAt(0); // arg : java.util.List<T>
+		JavaParameterInfo parameter = resolver.getMatchParameter(); // arg : java.util.List<T>
 		if (parameter == null) {
 			return false;
 		}
 		if (parameter.getJavaType().isSingleGenericType()) {
-			// <T>
-			return true;
+			// - <T>
+			// - <T[]>
+			return javaType.isArray() == parameter.getJavaType().isArray();
 		}
 		String parameterType = parameter.getJavaType().getName();
 		return isMatchType(javaType, parameterType, projectUri);

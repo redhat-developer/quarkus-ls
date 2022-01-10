@@ -54,15 +54,6 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	}
 
 	/**
-	 * Returns true if it's a virtual method and false otherwise.
-	 * 
-	 * @return true if it's a virtual method and false otherwise.
-	 */
-	public boolean isVirtual() {
-		return false;
-	}
-
-	/**
 	 * Returns the Java method signature with simple names.
 	 *
 	 * Example:

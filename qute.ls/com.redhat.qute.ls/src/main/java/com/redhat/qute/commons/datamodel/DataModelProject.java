@@ -16,7 +16,7 @@ import java.util.Optional;
 
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
-import com.redhat.qute.commons.ValueResolver;
+import com.redhat.qute.commons.resolvers.MethodValueResolver;
 
 /**
  * Data model project hosts for a given Qute project:
@@ -37,7 +37,7 @@ public class DataModelProject<T extends DataModelTemplate<?>> {
 
 	private List<T> templates;
 
-	private List<ValueResolver> valueResolvers;
+	private List<MethodValueResolver> valueResolvers;
 
 	/**
 	 * Returns the list of data model templates which belong to this project.
@@ -63,7 +63,7 @@ public class DataModelProject<T extends DataModelTemplate<?>> {
 	 * 
 	 * @return the list of value resolvers which belong to this project.
 	 */
-	public List<ValueResolver> getValueResolvers() {
+	public List<MethodValueResolver> getValueResolvers() {
 		return valueResolvers;
 	}
 
@@ -73,7 +73,7 @@ public class DataModelProject<T extends DataModelTemplate<?>> {
 	 * @param valueResolvers the list of value resolvers which belong to this
 	 *                       project.
 	 */
-	public void setValueResolvers(List<ValueResolver> valueResolvers) {
+	public void setValueResolvers(List<MethodValueResolver> valueResolvers) {
 		this.valueResolvers = valueResolvers;
 	}
 

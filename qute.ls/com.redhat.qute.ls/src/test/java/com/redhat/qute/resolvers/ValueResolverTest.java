@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
+import com.redhat.qute.commons.resolvers.MethodValueResolver;
 
 /**
  * Tests for value resolver.
@@ -31,7 +31,7 @@ public class ValueResolverTest {
 		ResolvedJavaTypeInfo list = new ResolvedJavaTypeInfo();
 		list.setSignature("java.util.List<org.acme.Item>");
 
-		ValueResolver resolver = new ValueResolver();
+		MethodValueResolver resolver = new MethodValueResolver();
 		resolver.setSignature("orEmpty(arg : java.util.List<T>) : java.lang.Iterable<T>");
 
 		String returnType = resolver.resolveJavaElementType(list);
@@ -44,7 +44,7 @@ public class ValueResolverTest {
 		ResolvedJavaTypeInfo list = new ResolvedJavaTypeInfo();
 		list.setSignature("org.acme.Item");
 
-		ValueResolver resolver = new ValueResolver();
+		MethodValueResolver resolver = new MethodValueResolver();
 		resolver.setSignature("orEmpty(arg : T) : java.util.List<T>");
 
 		String returnType = resolver.resolveJavaElementType(list);

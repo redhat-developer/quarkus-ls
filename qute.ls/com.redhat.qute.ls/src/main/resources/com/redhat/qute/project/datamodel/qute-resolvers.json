@@ -1,5 +1,5 @@
 {
-	"resolvers": [
+	"methods": [
 		{
 			"signature": "orEmpty(base : java.lang.Iterable<T>) : java.util.List<T>",
 			"description": "Outputs an empty list if the previous part cannot be resolved or resolves to null.",
@@ -43,6 +43,71 @@
 				"{item.isActive.ifTruthy(item.name)}"
 			],
 			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		{
+			"signature": "take(arg : T[], n : int) : T[]",
+			"description": "Returns the first n elements from the given array; throws an IndexOutOfBoundsException if n is out of range",
+			"sample": [
+				"{#for r in recordsList.take(3)}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#collections",
+			"sourceType": "io.quarkus.qute.ValueResolvers",
+			"sourceMethod": "arrayResolver"
+		},
+		{
+			"signature": "takeLast(arg : T[], n : int) : T[]",
+			"description": "Returns the first n elements from the given array; throws an IndexOutOfBoundsException if n is out of range",
+			"sample": [
+				"{#for r in recordsList.take(3)}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#collections",
+			"sourceType": "io.quarkus.qute.ValueResolvers",
+			"sourceMethod": "arrayResolver"
+		},
+		{
+			"signature": "get(arg : T[], n : int) : T",
+			"description": "Returns the first n elements from the given array; throws an IndexOutOfBoundsException if n is out of range",
+			"sample": [
+				"{#for r in recordsList.take(3)}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#collections",
+			"sourceType": "io.quarkus.qute.ValueResolvers",
+			"sourceMethod": "arrayResolver"
 		}
+	],
+	"fields": [
+		{
+			"applyFor": "T[]",
+			"signature": "length : int",
+			"description": "Object array length",
+			"sample": [
+				"{myArray.length}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#arrays",
+			"sourceType": "io.quarkus.qute.ValueResolvers",
+			"sourceMethod": "arrayResolver"
+		},
+		{
+			"applyFor": "T[]",
+			"signature": "size : int",
+			"description": "Object array length",
+			"sample": [
+				"{myArray.length}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#arrays",
+			"sourceType": "io.quarkus.qute.ValueResolvers",
+			"sourceMethod": "arrayResolver"
+		},		
+		{
+			"applyFor": "T[]",
+			"signature": "$java.lang.Integer : T",			
+			"description": "Object array",
+			"sample": [
+				"{myArray.0}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#arrays",
+			"sourceType": "io.quarkus.qute.ValueResolvers",
+			"sourceMethod": "arrayResolver"
+		}	
 	]
 }

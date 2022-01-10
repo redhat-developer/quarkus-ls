@@ -50,6 +50,10 @@ public class LiteralSupport {
 	private static final Pattern DOUBLE_LITERAL_PATTERN = Pattern.compile("[-+]?[0-9]*\\.?[0-9]+(d|D)");
 	private static final Pattern FLOAT_LITERAL_PATTERN = Pattern.compile("[-+]?[0-9]*\\.?[0-9]+(f|F)");
 
+	public static boolean isInteger(String value) {
+		return INTEGER_TYPE.equals(getLiteralJavaType(value));
+	}
+
 	public static String getLiteralJavaType(String literal) {
 		if (literal == null || literal.isEmpty()) {
 			return null;

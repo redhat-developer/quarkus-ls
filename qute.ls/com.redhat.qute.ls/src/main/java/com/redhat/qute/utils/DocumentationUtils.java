@@ -23,7 +23,7 @@ import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
+import com.redhat.qute.commons.resolvers.MethodValueResolver;
 
 /**
  * Utility for documentation.
@@ -66,7 +66,7 @@ public class DocumentationUtils {
 		return new MarkupContent(markdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT, documentation.toString());
 	}
 
-	public static MarkupContent getDocumentation(ValueResolver resolver, ResolvedJavaTypeInfo iterableOfResolvedType,
+	public static MarkupContent getDocumentation(MethodValueResolver resolver, ResolvedJavaTypeInfo iterableOfResolvedType,
 			boolean markdown) {
 		StringBuilder documentation = createDocumentation(resolver, iterableOfResolvedType, markdown);
 		if (resolver.getDescription() != null) {
@@ -119,8 +119,8 @@ public class DocumentationUtils {
 
 	public static MarkupContent getDocumentation(JavaMemberInfo member, ResolvedJavaTypeInfo iterableOfResolvedType,
 			boolean markdown) {
-		if (member instanceof ValueResolver) {
-			return getDocumentation((ValueResolver) member, iterableOfResolvedType, markdown);
+		if (member instanceof MethodValueResolver) {
+			return getDocumentation((MethodValueResolver) member, iterableOfResolvedType, markdown);
 		}
 		StringBuilder documentation = createDocumentation(member, iterableOfResolvedType, markdown);
 		return createMarkupContent(documentation, markdown);

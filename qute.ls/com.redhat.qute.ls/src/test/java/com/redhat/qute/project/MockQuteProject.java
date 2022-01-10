@@ -25,10 +25,10 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import com.redhat.qute.commons.resolvers.MethodValueResolver;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 
@@ -40,7 +40,7 @@ public abstract class MockQuteProject extends QuteProject {
 
 	private List<DataModelTemplate<DataModelParameter>> templates;
 
-	private final List<ValueResolver> resolvers;
+	private final List<MethodValueResolver> resolvers;
 
 	public MockQuteProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider) {
 		super(projectInfo, dataModelProvider);
@@ -125,8 +125,8 @@ public abstract class MockQuteProject extends QuteProject {
 		return CompletableFuture.completedFuture(new ExtendedDataModelProject(project));
 	}
 
-	protected static ValueResolver createValueResolver(String signature, String sourceType) {
-		ValueResolver resolver = new ValueResolver();
+	protected static MethodValueResolver createValueResolver(String signature, String sourceType) {
+		MethodValueResolver resolver = new MethodValueResolver();
 		resolver.setSignature(signature);
 		resolver.setSourceType(sourceType);
 		return resolver;
@@ -138,6 +138,6 @@ public abstract class MockQuteProject extends QuteProject {
 
 	protected abstract List<DataModelTemplate<DataModelParameter>> createTemplates();
 
-	protected abstract List<ValueResolver> createValueResolvers();
+	protected abstract List<MethodValueResolver> createValueResolvers();
 
 }

@@ -73,4 +73,12 @@ public abstract class JavaMemberInfo extends JavaElementInfo {
 		return getJavaElementType();
 	}
 
+	/**
+	 * Returns true if it's a virtual method/field and false otherwise.
+	 * 
+	 * @return true if it's a virtual method/field and false otherwise.
+	 */
+	public boolean isVirtual() {
+		return false;
+	}
 }

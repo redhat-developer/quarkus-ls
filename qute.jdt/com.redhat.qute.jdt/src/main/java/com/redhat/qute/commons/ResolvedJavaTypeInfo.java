@@ -95,6 +95,17 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	}
 
 	/**
+	 * Returns true if the Java type is an array (ex : java.lang.String[]) and false
+	 * otherwise.
+	 * 
+	 * @return true if the Java type is an array (ex : java.lang.String[]) and false
+	 *         otherwise.
+	 */
+	public boolean isArray() {
+		return getName().endsWith("[]");
+	}
+
+	/**
 	 * Returns iterable type and null otherwise.
 	 * 
 	 * @return iterable type and null otherwise.

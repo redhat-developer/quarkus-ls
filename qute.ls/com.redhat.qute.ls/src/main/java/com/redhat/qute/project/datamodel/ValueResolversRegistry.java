@@ -12,10 +12,13 @@
 package com.redhat.qute.project.datamodel;
 
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.Gson;
-import com.redhat.qute.commons.ValueResolver;
+import com.redhat.qute.commons.resolvers.FieldValueResolver;
+import com.redhat.qute.commons.resolvers.MethodValueResolver;
+import com.redhat.qute.commons.resolvers.ValueResolver;
 
 public class ValueResolversRegistry {
 
@@ -33,9 +36,14 @@ public class ValueResolversRegistry {
 	}
 
 	private class ValueResolverLoader {
-		private List<ValueResolver> resolvers;
+		private List<FieldValueResolver> fields;
+
+		private List<MethodValueResolver> methods;
 
 		public List<ValueResolver> getResolvers() {
+			List<ValueResolver> resolvers = new ArrayList<>();
+			resolvers.addAll(fields);
+			resolvers.addAll(methods);
 			return resolvers;
 		}
 	}

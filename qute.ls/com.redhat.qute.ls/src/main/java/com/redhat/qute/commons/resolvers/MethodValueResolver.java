@@ -9,11 +9,16 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.commons;
+package com.redhat.qute.commons.resolvers;
 
 import java.util.List;
 
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+
+import com.redhat.qute.commons.JavaMethodInfo;
+import com.redhat.qute.commons.JavaParameterInfo;
+import com.redhat.qute.commons.JavaTypeInfo;
+import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 
 /**
  * Qute value resolver.
@@ -21,7 +26,7 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
  * @author Angelo ZERR
  *
  */
-public class ValueResolver extends JavaMethodInfo {
+public class MethodValueResolver extends JavaMethodInfo implements ValueResolver {
 
 	private String namespace;
 
@@ -174,5 +179,15 @@ public class ValueResolver extends JavaMethodInfo {
 		b.add("sample", this.getSample());
 		b.add("url", this.getUrl());
 		return b.toString();
+	}
+
+	@Override
+	public JavaParameterInfo getMatchParameter() {
+		return getParameterAt(0);
+	}
+
+	@Override
+	public boolean isMethod() {
+		return true;
 	}
 }

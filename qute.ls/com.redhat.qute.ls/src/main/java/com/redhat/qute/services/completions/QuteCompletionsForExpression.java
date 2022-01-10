@@ -34,7 +34,8 @@ import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
+import com.redhat.qute.commons.resolvers.MethodValueResolver;
+import com.redhat.qute.commons.resolvers.ValueResolver;
 import com.redhat.qute.ls.commons.SnippetsBuilder;
 import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.Part;
@@ -181,7 +182,7 @@ public class QuteCompletionsForExpression {
 					if (resolvedType == null) {
 						return EMPTY_FUTURE_COMPLETION;
 					}
-					if (resolvedType.isIterable()) {
+					if (resolvedType.isIterable() && !resolvedType.isArray()) {
 						// Completion for member of the iterable element of the given Java class
 						// iterable
 						// ex : completion for 'org.acme.Item' iterable element of the
@@ -238,8 +239,12 @@ public class QuteCompletionsForExpression {
 		// - Static value resolvers (orEmpty, etc)
 		// - Dynamic value resolvers (from @TemplateExtension)
 		List<ValueResolver> resolvers = javaCache.getResolversFor(resolvedType, projectUri);
-		for (ValueResolver method : resolvers) {
-			fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
+		for (ValueResolver resolver : resolvers) {
+			if (resolver.isMethod()) {
+				fillCompletionMethod((JavaMethodInfo) resolver, range, completionSettings, formattingSettings, list);
+			} else {
+				fillCompletionField((JavaFieldInfo) resolver, range, existingProperties, list);
+			}
 		}
 		return list;
 	}
@@ -259,25 +264,7 @@ public class QuteCompletionsForExpression {
 			Set<String> existingProperties, CompletionList list) {
 		// Fill completion with Java type fields.
 		for (JavaFieldInfo field : resolvedType.getFields()) {
-			String fieldName = field.getName();
-			// It is necessary to check if the name of the given field has already been
-			// added in the completion
-			// list to avoid duplication of input fields.
-			// Ex: to avoid duplicate of foo fields in this case
-			// class A extends B {String foo;}
-			// class B {String foo;}
-			if (!existingProperties.contains(fieldName)) {
-				CompletionItem item = new CompletionItem();
-				item.setLabel(field.getSimpleSignature());
-				item.setFilterText(fieldName);
-				item.setKind(CompletionItemKind.Field);
-				TextEdit textEdit = new TextEdit();
-				textEdit.setRange(range);
-				textEdit.setNewText(fieldName);
-				item.setTextEdit(Either.forLeft(textEdit));
-				list.getItems().add(item);
-				existingProperties.add(fieldName);
-			}
+			fillCompletionField(field, range, existingProperties, list);
 		}
 		// Fill completion with extended Java type fields.
 		List<String> extendedTypes = resolvedType.getExtendedTypes();
@@ -289,6 +276,29 @@ public class QuteCompletionsForExpression {
 					fillCompletionFields(resolvedExtendedType, range, projectUri, existingProperties, list);
 				}
 			}
+		}
+	}
+
+	public void fillCompletionField(JavaFieldInfo field, Range range, Set<String> existingProperties,
+			CompletionList list) {
+		String fieldName = field.getName();
+		// It is necessary to check if the name of the given field has already been
+		// added in the completion
+		// list to avoid duplication of input fields.
+		// Ex: to avoid duplicate of foo fields in this case
+		// class A extends B {String foo;}
+		// class B {String foo;}
+		if (!existingProperties.contains(fieldName)) {
+			CompletionItem item = new CompletionItem();
+			item.setLabel(field.getSimpleSignature());
+			item.setFilterText(fieldName);
+			item.setKind(CompletionItemKind.Field);
+			TextEdit textEdit = new TextEdit();
+			textEdit.setRange(range);
+			textEdit.setNewText(fieldName);
+			item.setTextEdit(Either.forLeft(textEdit));
+			list.getItems().add(item);
+			existingProperties.add(fieldName);
 		}
 	}
 
@@ -369,7 +379,7 @@ public class QuteCompletionsForExpression {
 		StringBuilder snippet = new StringBuilder(methodName);
 		if (method.hasParameters()) {
 			int start = 0;
-			if (method.isVirtual() && ((ValueResolver) method).getNamespace() == null) {
+			if (method.isVirtual() && ((MethodValueResolver) method).getNamespace() == null) {
 				start++;
 			}
 			snippet.append("(");
@@ -417,8 +427,8 @@ public class QuteCompletionsForExpression {
 
 	private void doCompleteExpressionForNamespacePart(Template template, QuteCompletionSettings completionSettings,
 			QuteFormattingSettings formattingSettings, Range range, CompletionList list) {
-		List<ValueResolver> namespaceResolvers = javaCache.getNamespaceResolvers(template.getProjectUri());
-		for (ValueResolver method : namespaceResolvers) {
+		List<MethodValueResolver> namespaceResolvers = javaCache.getNamespaceResolvers(template.getProjectUri());
+		for (MethodValueResolver method : namespaceResolvers) {
 			CompletionItem item = fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
 			item.setKind(CompletionItemKind.Function);
 			// Display namespace resolvers (ex : config:getConfigProperty(...)) after

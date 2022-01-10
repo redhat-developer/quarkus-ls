@@ -497,7 +497,7 @@ public class QuteDiagnosticsInExpressionTest {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{items.getByIndex(0)}";
 		testDiagnosticsFor(template);
-		
+
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.getByIndex(0)}";
 		testDiagnosticsFor(template, //
@@ -529,6 +529,36 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(3, 11, 3, 19, QuteErrorCode.InvalidMethodParameter,
 						"The method `getBytes(String)` in the type `String` is not applicable for the arguments `(Integer)`.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void arrayLength() throws Exception {
+		String template = "{@org.acme.Item[] items}\r\n" + //
+				"{items.XXX}\r\n" + //
+				"{items.length}";
+		testDiagnosticsFor(template, //
+				d(1, 7, 1, 10, QuteErrorCode.UnkwownProperty,
+						"`XXX` cannot be resolved or is not a field of `org.acme.Item[]` Java type.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void arrayInt() throws Exception {
+		String template = "{@org.acme.Item[] items}\r\n" + //
+				"{items.XXX}\r\n" + //
+				"{items.0}";
+		testDiagnosticsFor(template, //
+				d(1, 7, 1, 10, QuteErrorCode.UnkwownProperty,
+						"`XXX` cannot be resolved or is not a field of `org.acme.Item[]` Java type.",
+						DiagnosticSeverity.Error));
+
+		template = "{@org.acme.Item[] items}\r\n" + //
+				"{items.0.XXX}\r\n" + //
+				"{items.0.name}";
+		testDiagnosticsFor(template, //
+				d(1, 9, 1, 12, QuteErrorCode.UnkwownProperty,
+						"`XXX` cannot be resolved or is not a field of `org.acme.Item` Java type.",
 						DiagnosticSeverity.Error));
 	}
 }

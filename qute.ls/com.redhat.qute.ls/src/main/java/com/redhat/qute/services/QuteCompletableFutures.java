@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
+import com.redhat.qute.commons.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 
 public class QuteCompletableFutures {
@@ -26,6 +26,6 @@ public class QuteCompletableFutures {
 	public static final CompletableFuture<ExtendedDataModelTemplate> EXTENDED_TEMPLATE_DATAMODEL_NULL_FUTURE = CompletableFuture
 			.completedFuture(null);
 
-	public static final CompletableFuture<List<ValueResolver>> VALUE_RESOLVERS_NULL_FUTURE = CompletableFuture
+	public static final CompletableFuture<List<MethodValueResolver>> VALUE_RESOLVERS_NULL_FUTURE = CompletableFuture
 			.completedFuture(null);
 }

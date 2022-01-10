@@ -145,7 +145,7 @@ public class QuteCompletionInExpressionTest {
 				c("review2 : Review", "review2", r(1, 21, 1, 21)), //
 				c("getReview2() : Review", "getReview2", r(1, 21, 1, 21)));
 	}
-	
+
 	@Test
 	public void completionInExpressionNotClosedForPropertyPart() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
@@ -302,17 +302,25 @@ public class QuteCompletionInExpressionTest {
 		testCompletionFor(template, //
 				c("discountedPrice(item : Item) : BigDecimal", "discountedPrice", r(1, 12, 1, 12)));
 	}
-	
+
 	@Test
 	public void completionInsideMethodParameter() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.name.codePointCount(item.|}";
 		testCompletionFor(template, //
 				c("name : String", "name", r(1, 37, 1, 37)));
-		
+
 		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.name.codePointCount(|}";
 		testCompletionFor(template, //
 				c("item", "item", r(1, 32, 1, 32)));
+	}
+
+	@Test
+	public void array() throws Exception {
+		String template = "{@org.acme.Item[] items}\r\n" + //
+				"{items.|}";
+		testCompletionFor(template, //
+				c("length : int", "length", r(1, 7, 1, 7)));
 	}
 }
