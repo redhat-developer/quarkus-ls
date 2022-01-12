@@ -11,11 +11,13 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
+import static com.redhat.qute.ls.commons.CodeActionFactory.createCommand;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_ITERABLE;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_NAME;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -29,11 +31,14 @@ import com.google.gson.JsonObject;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.CodeActionFactory;
 import com.redhat.qute.ls.commons.TextDocument;
+import com.redhat.qute.ls.commons.client.ConfigurationItemEdit;
+import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
@@ -46,15 +51,37 @@ import com.redhat.qute.utils.QutePositionUtility;
  */
 class QuteCodeActions {
 
-	private static final String DECLARE_UNDEFINED_VARIABLE_MESSAGE = "Declare `{0}` with parameter declaration.";
+	private static final String DECLARE_UNDEFINED_VARIABLE_TITLE = "Declare `{0}` with parameter declaration.";
+
+	// Enable/Disable Qute validation
+
+	private static final String QUTE_VALIDATION_ENABLED_SECTION = "quarkus.tools.qute.validation.enabled";
+
+	private static final String DISABLE_VALIDATION_TITLE = "Disable Qute validation.";
 
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
 			SharedSettings sharedSettings) {
 		List<CodeAction> codeActions = new ArrayList<>();
-		if (context.getDiagnostics() != null) {
-			for (Diagnostic diagnostic : context.getDiagnostics()) {
+		List<Diagnostic> diagnostics = context.getDiagnostics();
+		if (diagnostics != null && !diagnostics.isEmpty()) {
+			boolean canUpdateConfiguration = sharedSettings.getCommandCapabilities()
+					.isCommandSupported(QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE);
+			if (canUpdateConfiguration) {
+				// For each error, we provide the following quick fix:
+				//
+				// "Disable Qute validation."
+				//
+				// which will update the setting on client side to disable the Qute validation.
+				doCodeActionToDisableValidation(diagnostics, codeActions);
+			}
+			for (Diagnostic diagnostic : diagnostics) {
 				if (QuteErrorCode.UndefinedVariable.isQuteErrorCode(diagnostic.getCode())) {
-					// Manage code action for undefined variable
+					// The following Qute template:
+					// {undefinedVariable}
+					//
+					// will provide a quickfix like:
+					//
+					// Declare `undefinedVariable` with parameter declaration."
 					doCodeActionsForUndefinedVariable(template, diagnostic, codeActions);
 				}
 			}
@@ -88,7 +115,7 @@ class QuteCodeActions {
 				TextDocument document = template.getTextDocument();
 				String lineDelimiter = document.lineDelimiter(0);
 
-				String title = MessageFormat.format(DECLARE_UNDEFINED_VARIABLE_MESSAGE, varName);
+				String title = MessageFormat.format(DECLARE_UNDEFINED_VARIABLE_TITLE, varName);
 
 				Position position = new Position(0, 0);
 
@@ -103,15 +130,37 @@ class QuteCodeActions {
 				insertText.append("}");
 				insertText.append(lineDelimiter);
 
-				CodeAction insertParameterDeclaration = CodeActionFactory.insert(title, position, insertText.toString(),
-						document, diagnostic);
-				codeActions.add(insertParameterDeclaration);
+				CodeAction insertParameterDeclarationQuickFix = CodeActionFactory.insert(title, position,
+						insertText.toString(), document, diagnostic);
+				codeActions.add(insertParameterDeclarationQuickFix);
 			}
 
 		} catch (BadLocationException e) {
 
 		}
-
 	}
 
+	public void doCodeActionToDisableValidation(List<Diagnostic> diagnostics, List<CodeAction> codeActions) {
+		CodeAction disableValidationQuickFix = createConfigurationUpdateCodeAction(DISABLE_VALIDATION_TITLE,
+				QUTE_VALIDATION_ENABLED_SECTION, false, ConfigurationItemEditType.update, diagnostics);
+		codeActions.add(disableValidationQuickFix);
+	}
+
+	/**
+	 * Create the configuration update (done on client side) quick fix.
+	 * 
+	 * @param title       the displayed name of the QuickFix.
+	 * @param sectionName the section name of the settings to update.
+	 * @param item        the section value of the settings to update.
+	 * @param editType    the configuration edit type.
+	 * @param diagnostic  the diagnostic list that this CodeAction will fix.
+	 * 
+	 * @return the configuration update (done on client side) quick fix.
+	 */
+	private static CodeAction createConfigurationUpdateCodeAction(String title, String sectionName, Object sectionValue,
+			ConfigurationItemEditType editType, List<Diagnostic> diagnostics) {
+		ConfigurationItemEdit configItemEdit = new ConfigurationItemEdit(sectionName, editType, sectionValue);
+		return createCommand(title, QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE,
+				Collections.singletonList(configItemEdit), diagnostics);
+	}
 }

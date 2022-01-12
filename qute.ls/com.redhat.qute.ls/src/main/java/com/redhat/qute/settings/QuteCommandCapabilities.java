@@ -33,7 +33,7 @@ public class QuteCommandCapabilities {
 	 * Returns <code>true</code> if the client supports the <code>commandKind</code>
 	 * command. Otherwise, returns <code>false</code>.
 	 *
-	 * See {@link com.redhat.qute.ls.commons.client.CommandKind}
+	 * See {@link com.redhat.qute.services.commands.QuteClientCommandConstants}
 	 *
 	 * @param commandKind the command kind to check for
 	 * @return <code>true</code> if the client supports the <code>commandKind</code>
