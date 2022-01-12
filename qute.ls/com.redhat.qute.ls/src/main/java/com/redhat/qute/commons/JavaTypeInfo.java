@@ -254,6 +254,17 @@ public class JavaTypeInfo extends JavaElementInfo {
 		return false;
 	}
 
+	/**
+	 * Returns true if the Java type is an array (ex : java.lang.String[]) and false
+	 * otherwise.
+	 * 
+	 * @return true if the Java type is an array (ex : java.lang.String[]) and false
+	 *         otherwise.
+	 */
+	public boolean isArray() {
+		return getName().endsWith("[]");
+	}
+
 	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);

@@ -23,7 +23,7 @@ public class ValueResolversRegistry {
 
 	public ValueResolversRegistry() {
 		ValueResolverLoader loader = new Gson().fromJson(
-				new InputStreamReader(ValueResolversRegistry.class.getResourceAsStream("qute-resolvers.json")),
+				new InputStreamReader(ValueResolversRegistry.class.getResourceAsStream("qute-resolvers.jsonc")),
 				ValueResolverLoader.class);
 		this.resolvers = loader.getResolvers();
 	}

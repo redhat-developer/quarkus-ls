@@ -338,6 +338,10 @@ public class JavaMethodInfo extends JavaMemberInfo {
 		if (genericsParameterType.isEmpty()) {
 			// ex : T
 			resolvedGenericNames.put(baseDeclType.getName(), baseType.getSignature());
+			if (baseType.isArray()) {
+				// ex : T[]
+				resolvedGenericNames.put(baseDeclType.getName().replace("[]", ""), baseType.getIterableOf());
+			}
 		} else {
 			// ex : java.util .List<T>
 			for (int i = 0; i < genericsParameterType.size(); i++) {

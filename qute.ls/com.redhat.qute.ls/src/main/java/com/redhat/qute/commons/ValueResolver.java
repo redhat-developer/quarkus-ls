@@ -164,6 +164,19 @@ public class ValueResolver extends JavaMethodInfo {
 		return resolveReturnType(argType, parameter.getJavaType());
 	}
 
+	/**
+	 * Returns true if the virual method has a valid name and false otherwise.
+	 * 
+	 * A valid name is a name which doesn't start with '@' (ex
+	 * : @java.lang.Integer(base : int) is not a valid name).
+	 * 
+	 * @return true if the virual method has a valid name and false otherwise.
+	 */
+	public boolean isValidName() {
+		String name = getName();
+		return name.length() > 0 && name.charAt(0) != '@';
+	}
+
 	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);

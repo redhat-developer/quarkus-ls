@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.resolvers;
+package com.redhat.qute.resolvers.builtin;
 
 import static com.redhat.qute.QuteAssert.assertHover;
 import static com.redhat.qute.QuteAssert.c;
@@ -20,28 +20,27 @@ import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for 'or' value resolver.
+ * Tests for 'ifTruthy' value resolver.
  *
  * @see https://quarkus.io/guides/qute-reference#built-in-resolvers
  *
  */
-public class OrValueResolverTest {
+public class IfTruthyValueResolverTest {
 
 	@Test
-	public void diagnostics() {
+	public void diagnostics() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
-				"{item.or}";
-//		testDiagnosticsFor(template);
-
-		template = "{@org.acme.Item item}\r\n" + //
-				" \r\n" + //
-				"{item.name ?: 'John'}";
+				"{item.ifTruthy}";
 		testDiagnosticsFor(template);
 
 		template = "{@org.acme.Item item}\r\n" + //
-				" \r\n" + //
-				"{item.name.or('John')}";
-		testDiagnosticsFor(template);
+				"{item.ifTruthy('abcd').|}";
+		testCompletionFor(template, //
+				c("name : String", "name", r(1, 23, 1, 23)), //
+				c("price : BigInteger", "price", r(1, 23, 1, 23)), //
+				c("review : Review", "review", r(1, 23, 1, 23)), //
+				c("review2 : Review", "review2", r(1, 23, 1, 23)), //
+				c("getReview2() : Review", "getReview2", r(1, 23, 1, 23)));
 	}
 
 	@Test
@@ -49,8 +48,9 @@ public class OrValueResolverTest {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{item.name.|}";
 		testCompletionFor(template, //
-				c("or(base : T, arg : Object) : T", "or(arg)", r(1, 11, 1, 11)));
-
+				c("ifTruthy(base : T, arg : Object) : T", "ifTruthy(arg)", r(1, 11, 1, 11)));
+		template = "{@org.acme.Item item}\r\n" + //
+				"{item.name.ifTruthy('abcd').|}";
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.or('abcd').|}";
 		testCompletionFor(template, //
@@ -65,29 +65,25 @@ public class OrValueResolverTest {
 	public void hover() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				" \r\n" + //
-				"{item.name.o|r('John')}";
+				"{item.name.i|fTruthy(item)}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"T or(Object arg)" + //
+				"T ifTruthy(Object arg)" + //
 				System.lineSeparator() + //
 				"```" + //
 				System.lineSeparator() + //
-				"Outputs the default value if the previous part cannot be resolved or resolves to null." + //
+				"Outputs the default value if the base object cannot be resolved or the base Object otherwise." + //
 				System.lineSeparator() + //
 				System.lineSeparator() + //
 				"`Sample`:" + //
 				System.lineSeparator() + //
 				"```qute-html" + //
 				System.lineSeparator() + //
-				"{person.name ?: 'John'}" + //
-				System.lineSeparator() + //
-				"{person.name or 'John'}" + //
-				System.lineSeparator() + //
-				"{person.name.or('John')}" + //
+				"{item.isActive.ifTruthy(item.name)}" + //
 				System.lineSeparator() + //
 				"```" + //
 				System.lineSeparator() + //
 				"See [here](https://quarkus.io/guides/qute-reference#built-in-resolvers) for more informations.", //
-				r(2, 11, 2, 13));
+				r(2, 11, 2, 19));
 	}
 }

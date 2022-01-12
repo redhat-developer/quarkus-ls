@@ -1,0 +1,14 @@
+<h1>Array of length: {myArray.length}</h1>
+ 
+<h1>Array of length(): {myArray.length()}</h1>
+<ul>
+  <li>First: {myArray.0}</li> 
+  <li>Second: {myArray[1]}</li> 
+  <li>Third: {myArray.get(2)}</li> 
+</ul>
+<ol>
+ {#for element in myArray}
+ <li>{element}</li>
+ {/for}
+</ol>
+First two elements: {#each myArray.take(2)}{it}{/each} 

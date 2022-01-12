@@ -181,7 +181,7 @@ public class QuteCompletionsForExpression {
 					if (resolvedType == null) {
 						return EMPTY_FUTURE_COMPLETION;
 					}
-					if (resolvedType.isIterable()) {
+					if (resolvedType.isIterable() && !resolvedType.isArray()) {
 						// Completion for member of the iterable element of the given Java class
 						// iterable
 						// ex : completion for 'org.acme.Item' iterable element of the
@@ -239,7 +239,9 @@ public class QuteCompletionsForExpression {
 		// - Dynamic value resolvers (from @TemplateExtension)
 		List<ValueResolver> resolvers = javaCache.getResolversFor(resolvedType, projectUri);
 		for (ValueResolver method : resolvers) {
-			fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
+			if (method.isValidName()) {
+				fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
+			}
 		}
 		return list;
 	}
