@@ -7,24 +7,33 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.ls.commons.client;
+package com.redhat.qute.services.commands;
 
 /**
- * Commonly used client commands
+ * Qute command IDs available on LSP client side.
  * 
  * @author Angelo ZERR
  *
  */
-public class CommandKind {
+public class QuteClientCommandConstants {
 
-	private CommandKind() {
+	private QuteClientCommandConstants() {
 	}
 
 	/**
-	 * Client command to open URI
+	 * Client command to open Qute template by file Uri.
 	 */
 	public static final String COMMAND_OPEN_URI = "qute.command.open.uri";
 
+	/**
+	 * Client command to go to the definition of Java data model (field, method,
+	 * method invocation of "data" method).
+	 */
 	public static final String COMMAND_JAVA_DEFINITION = "qute.command.java.definition";
+
+	/**
+	 * Client command to update client configuration settings.
+	 */
+	public static final String COMMAND_CONFIGURATION_UPDATE = "qute.command.configuration.update";
 
 }

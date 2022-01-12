@@ -66,7 +66,6 @@ import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.ls.commons.client.CommandCapabilities;
-import com.redhat.qute.ls.commons.client.CommandKind;
 import com.redhat.qute.ls.commons.client.CommandKindCapabilities;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
@@ -74,6 +73,7 @@ import com.redhat.qute.project.MockQuteProjectRegistry;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.QuteLanguageService;
+import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.IQuteErrorCode;
 import com.redhat.qute.services.diagnostics.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.QuteCompletionSettings;
@@ -506,7 +506,8 @@ public class QuteAssert {
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
 		SharedSettings sharedSettings = new SharedSettings();
 		CommandCapabilities commandCapabilities = new CommandCapabilities();
-		CommandKindCapabilities kinds = new CommandKindCapabilities(Arrays.asList(CommandKind.COMMAND_JAVA_DEFINITION));
+		CommandKindCapabilities kinds = new CommandKindCapabilities(
+				Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION));
 		commandCapabilities.setCommandKind(kinds);
 		sharedSettings.getCommandCapabilities().setCapabilities(commandCapabilities);
 		List<? extends CodeLens> actual = languageService.getCodeLens(template, sharedSettings, () -> {
@@ -545,11 +546,16 @@ public class QuteAssert {
 
 	public static void testCodeActionsFor(String value, Diagnostic diagnostic, CodeAction... expected)
 			throws Exception {
-		testCodeActionsFor(value, diagnostic, FILE_URI, PROJECT_URI, TEMPLATE_BASE_DIR, expected);
+		testCodeActionsFor(value, diagnostic, new SharedSettings(), expected);
 	}
 
-	public static void testCodeActionsFor(String value, Diagnostic diagnostic, String fileUri, String projectUri,
-			String templateBaseDir, CodeAction... expected) throws Exception {
+	public static void testCodeActionsFor(String value, Diagnostic diagnostic, SharedSettings settings,
+			CodeAction... expected) throws Exception {
+		testCodeActionsFor(value, diagnostic, FILE_URI, PROJECT_URI, TEMPLATE_BASE_DIR, settings, expected);
+	}
+
+	private static void testCodeActionsFor(String value, Diagnostic diagnostic, String fileUri, String projectUri,
+			String templateBaseDir, SharedSettings settings, CodeAction... expected) throws Exception {
 		int offset = value.indexOf('|');
 		Range range = null;
 
@@ -572,7 +578,7 @@ public class QuteAssert {
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
 
-		List<CodeAction> actual = languageService.doCodeActions(template, context, range, new SharedSettings()).get();
+		List<CodeAction> actual = languageService.doCodeActions(template, context, range, settings).get();
 		assertCodeActions(actual, expected);
 	}
 

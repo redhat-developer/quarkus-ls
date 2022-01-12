@@ -11,7 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
-import static com.redhat.qute.ls.commons.client.CommandKind.COMMAND_JAVA_DEFINITION;
+import static com.redhat.qute.services.commands.QuteClientCommandConstants.COMMAND_JAVA_DEFINITION;
 
 import java.util.ArrayList;
 import java.util.Arrays;

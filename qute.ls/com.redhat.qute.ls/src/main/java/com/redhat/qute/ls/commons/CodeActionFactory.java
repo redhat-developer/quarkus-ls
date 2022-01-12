@@ -182,12 +182,25 @@ public class CodeActionFactory {
 	 */
 	public static CodeAction createCommand(String title, String commandId, List<Object> commandParams,
 			Diagnostic diagnostic) {
+		return createCommand(title, commandId, commandParams, Collections.singletonList(diagnostic));
+	}
+
+	/**
+	 * Makes a CodeAction to call a command from the available server commands.
+	 *
+	 * @param title         The displayed name of the CodeAction
+	 * @param commandId     The id of the given command to add as CodeAction
+	 * @param commandParams The document URI of the document the command is called
+	 *                      on
+	 * @param diagnostics   The diagnostic list that this CodeAction will fix
+	 */
+	public static CodeAction createCommand(String title, String commandId, List<Object> commandParams,
+			List<Diagnostic> diagnostics) {
 		CodeAction codeAction = new CodeAction(title);
 		Command command = new Command(title, commandId, commandParams);
 		codeAction.setCommand(command);
-		codeAction.setDiagnostics(Collections.singletonList(diagnostic));
+		codeAction.setDiagnostics(diagnostics);
 		codeAction.setKind(CodeActionKind.QuickFix);
-
 		return codeAction;
 	}
 

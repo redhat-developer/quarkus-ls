@@ -184,14 +184,10 @@ class QuteDiagnostics {
 			Position start = new Position(line, e.getOrigin().getLineCharacterStart() - 1);
 			Position end = new Position(line, e.getOrigin().getLineCharacterEnd() - 1);
 			Range range = new Range(start, end);
-			Diagnostic diagnostic = createDiagnostic(range, message, QuteErrorCode.SyntaxError);
+			Diagnostic diagnostic = createDiagnostic(range, message, DiagnosticSeverity.Error,
+					QuteErrorCode.SyntaxError);
 			diagnostics.add(diagnostic);
 		}
-	}
-
-	private Diagnostic createDiagnostic(Range range, String message, QuteErrorCode errorCode) {
-		return new Diagnostic(range, message, DiagnosticSeverity.Error, QUTE_SOURCE,
-				errorCode != null ? errorCode.getCode() : null);
 	}
 
 	private void validateDataModel(Node parent, Template template, ResolvingJavaTypeContext resolvingJavaTypeContext,
@@ -795,7 +791,13 @@ class QuteDiagnostics {
 	private static Diagnostic createDiagnostic(Range range, DiagnosticSeverity severity, IQuteErrorCode errorCode,
 			Object... arguments) {
 		String message = errorCode.getMessage(arguments);
-		return new Diagnostic(range, message, severity, QUTE_SOURCE, errorCode.getCode());
+		return createDiagnostic(range, message, severity, errorCode);
 	}
 
+	private static Diagnostic createDiagnostic(Range range, String message, DiagnosticSeverity severity,
+			IQuteErrorCode errorCode) {
+		Diagnostic diagnostic = new Diagnostic(range, message, severity, QUTE_SOURCE,
+				errorCode != null ? errorCode.getCode() : null);
+		return diagnostic;
+	}
 }
