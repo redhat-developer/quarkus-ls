@@ -48,6 +48,7 @@ import com.redhat.qute.ls.api.QuteJavaTypesProvider;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
 import com.redhat.qute.parser.expression.Part;
+import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.ValueResolversRegistry;
@@ -311,7 +312,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		if (resolvedType == null) {
 			return null;
 		}
-		if (resolvedType.isIterable()) {
+		if (resolvedType.isIterable() && !resolvedType.isArray()) {
 			// Expression uses iterable type
 			// {@java.util.List<org.acme.Item items>
 			// {items.size()}
@@ -343,6 +344,11 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			}
 		}
 		// Search in value resolver
+		String literalType = LiteralSupport.getLiteralJavaType(property);
+		if (literalType != null) {
+			// ex : @java.lang.Integer(base : T[]) : T (see qute-resolvers.jsonc)
+			property = "@" + literalType;
+		}
 		return findValueResolver(property, resolvedType, projectUri);
 	}
 
@@ -458,7 +464,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			return false;
 		}
 		for (JavaMethodInfo method : methods) {
-			if (isMatchMethod(method, methodName, methodName, methodName)) {
+			if (isMatchMethod(method, methodName, null, null)) {
 				// The current method matches the method name.
 
 				// Check if the current method matches the parameters.
@@ -482,7 +488,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			List<ResolvedJavaTypeInfo> parameterTypes, List<ValueResolver> allResolvers, JavaMemberResult result,
 			String projectUri) {
 		for (ValueResolver resolver : allResolvers) {
-			if (isMatchMethod(resolver, methodName, methodName, methodName)) {
+			if (isMatchMethod(resolver, methodName, null, null)) {
 				// The current resolver matches the method name.
 
 				// Check if the baseType matches the type of the first parameter of the current
@@ -545,8 +551,9 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	private static boolean isMatchMethod(JavaMethodInfo method, String propertyOrMethodName, String getterMethodName,
 			String booleanGetterName) {
-		if (propertyOrMethodName.equals(method.getName()) || getterMethodName.equals(method.getName())
-				|| booleanGetterName.equals(method.getName())) {
+		if (propertyOrMethodName.equals(method.getName())
+				|| (getterMethodName != null && getterMethodName.equals(method.getName()))
+				|| (booleanGetterName != null && booleanGetterName.equals(method.getName()))) {
 			return true;
 		}
 		return false;
@@ -640,8 +647,9 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			return false;
 		}
 		if (parameter.getJavaType().isSingleGenericType()) {
-			// <T>
-			return true;
+			// - <T>
+			// - <T[]>
+			return javaType.isArray() == parameter.getJavaType().isArray();
 		}
 		String parameterType = parameter.getJavaType().getName();
 		return isMatchType(javaType, parameterType, projectUri);

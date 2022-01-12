@@ -1,0 +1,102 @@
+{
+	"resolvers": [
+		// ------------- Built-in Resolvers --------------
+		// See https://quarkus.io/guides/qute-reference#built-in-resolvers
+		{
+			"signature": "orEmpty(base : java.lang.Iterable<T>) : java.util.List<T>",
+			"description": "Outputs an empty list if the previous part cannot be resolved or resolves to `null`.",
+			"sample": [
+				"{#for pet in pets.orEmpty}{pet.name}",
+				"{/for}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		{
+			"signature": "orEmpty(base : T) : java.util.List<T>",
+			"description": "Outputs an empty list if the previous part cannot be resolved or resolves to `null`.",
+			"sample": [
+				"{#for pet in pets.orEmpty}{pet.name}",
+				"{/for}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		{
+			"signature": "ifTruthy(base : T, arg : java.lang.Object) : T",
+			"description": "Outputs the default value if the base object cannot be resolved or the base Object otherwise.",
+			"sample": [
+				"{item.isActive.ifTruthy(item.name)}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		{
+			"signature": "or(base : T, arg : java.lang.Object) : T",
+			"description": "Outputs the default value if the previous part cannot be resolved or resolves to `null`.",
+			"sample": [
+				"{person.name ?: 'John'}",
+				"{person.name or 'John'}",
+				"{person.name.or('John')}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		// ------------- Arrays Resolvers --------------
+		// See https://quarkus.io/guides/qute-reference#arrays
+		{
+			"signature": "length(base : T[]) : int",
+			"description": "The length of the array.",
+			"sample": [
+				"{myArray.length}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#arrays"
+		},
+		{
+			"signature": "size(base : T[]) : int",
+			"description": "The size of the array.",
+			"sample": [
+				"{myArray.size}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#arrays"
+		},
+		{
+			"signature": "get(base : T[], index : int) : T",
+			"description": "Returns the element at the specified `index` from the given array.",
+			"sample": [
+				"{myArray.get(0)}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#arrays"
+		},
+		{
+			"signature": "take(base : T[], n : int) : T[]",
+			"description": "Returns the first `n` elements from the given array; throws an `IndexOutOfBoundsException` if `n` is out of range.",
+			"sample": [
+				"{#for r in myArray.take(3)}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#arrays"
+		},
+		{
+			"signature": "takeLast(base : T[], n : int) : T[]",
+			"description": "Returns the last `n` elements from the given list; throws an `IndexOutOfBoundsException` if `n` is out of range.",
+			"sample": [
+				"{#for r in myArray.takeLast(3)}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#arrays"
+		},
+		{
+			"signature": "@java.lang.Integer(base : T[]) : T",
+			"description": "Returns the element at the specified `index` from the given array.",
+			"sample": [
+				"{myArray.0}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#arrays"
+		},
+		// ------------- Collections Resolvers --------------
+		// See https://quarkus.io/guides/qute-reference#collections
+		{
+			"signature": "take(base : java.util.List<T>, n : int) : java.util.List<T>",
+			"description": "Returns the first n elements from the given list; throws an IndexOutOfBoundsException if n is out of range",
+			"sample": [
+				"{#for r in recordsList.take(3)}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#collections"
+		}
+	]
+}

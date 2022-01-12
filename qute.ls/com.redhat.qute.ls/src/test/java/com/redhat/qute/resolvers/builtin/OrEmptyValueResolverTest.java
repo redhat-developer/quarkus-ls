@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.resolvers;
+package com.redhat.qute.resolvers.builtin;
 
 import static com.redhat.qute.QuteAssert.assertHover;
 import static com.redhat.qute.QuteAssert.c;
@@ -91,7 +91,7 @@ public class OrEmptyValueResolverTest {
 				System.lineSeparator() + //
 				"```" + //
 				System.lineSeparator() + //
-				"Outputs an empty list if the previous part cannot be resolved or resolves to null." + //
+				"Outputs an empty list if the previous part cannot be resolved or resolves to `null`." + //
 				System.lineSeparator() + //
 				System.lineSeparator() + //
 				"`Sample`:" + //
