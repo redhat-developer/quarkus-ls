@@ -159,7 +159,7 @@ class QuteDiagnostics {
 					+ template.getUri() + "'.");
 		}
 		List<Diagnostic> diagnostics = new ArrayList<Diagnostic>();
-		if (validationSettings.isEnabled()) {
+		if (canValidate(template, validationSettings)) {
 			try {
 				validateWithRealQuteParser(template, diagnostics);
 				validateDataModel(template, template, resolvingJavaTypeContext, new ResolutionContext(), diagnostics);
@@ -171,6 +171,16 @@ class QuteDiagnostics {
 		}
 		cancelChecker.checkCanceled();
 		return diagnostics;
+	}
+
+	public boolean canValidate(Template template, QuteValidationSettings validationSettings) {
+		if (!validationSettings.isEnabled()) {
+			return false;
+		}
+		if (validationSettings.isExcluded(template.getUri())) {
+			return false;
+		}
+		return true;
 	}
 
 	private void validateWithRealQuteParser(Template template, List<Diagnostic> diagnostics) {
@@ -394,7 +404,7 @@ class QuteDiagnostics {
 			case Property: {
 				// java.util.List<org.acme.Item>
 				ResolvedJavaTypeInfo iter = resolvedJavaType;
-				if (resolvedJavaType.isIterable() &&!resolvedJavaType.isArray()) {
+				if (resolvedJavaType.isIterable() && !resolvedJavaType.isArray()) {
 					// Expression uses iterable type
 					// {@java.util.List<org.acme.Item items>
 					// {items.size()}

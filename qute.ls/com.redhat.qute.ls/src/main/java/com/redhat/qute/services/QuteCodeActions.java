@@ -59,6 +59,10 @@ class QuteCodeActions {
 
 	private static final String DISABLE_VALIDATION_TITLE = "Disable Qute validation.";
 
+	private static final String QUTE_VALIDATION_EXCLUDED_SECTION = "quarkus.tools.qute.validation.excluded";
+
+	private static final String EXCLUDED_VALIDATION_TITLE = "Exclude this file for validation.";
+	
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
 			SharedSettings sharedSettings) {
 		List<CodeAction> codeActions = new ArrayList<>();
@@ -72,7 +76,7 @@ class QuteCodeActions {
 				// "Disable Qute validation."
 				//
 				// which will update the setting on client side to disable the Qute validation.
-				doCodeActionToDisableValidation(diagnostics, codeActions);
+				doCodeActionToDisableValidation(template, diagnostics, codeActions);
 			}
 			for (Diagnostic diagnostic : diagnostics) {
 				if (QuteErrorCode.UndefinedVariable.isQuteErrorCode(diagnostic.getCode())) {
@@ -140,10 +144,18 @@ class QuteCodeActions {
 		}
 	}
 
-	public void doCodeActionToDisableValidation(List<Diagnostic> diagnostics, List<CodeAction> codeActions) {
+	public void doCodeActionToDisableValidation(Template template, List<Diagnostic> diagnostics, List<CodeAction> codeActions) {
+		// Disable Qute validation
 		CodeAction disableValidationQuickFix = createConfigurationUpdateCodeAction(DISABLE_VALIDATION_TITLE,
 				QUTE_VALIDATION_ENABLED_SECTION, false, ConfigurationItemEditType.update, diagnostics);
 		codeActions.add(disableValidationQuickFix);
+
+		// Disable Qute validation for the given template
+		String pattern = template.getUri();
+		CodeAction disableValidationForTemplateQuickFix = createConfigurationUpdateCodeAction(EXCLUDED_VALIDATION_TITLE,
+				QUTE_VALIDATION_EXCLUDED_SECTION, pattern, ConfigurationItemEditType.add, diagnostics);
+		codeActions.add(disableValidationForTemplateQuickFix);
+		
 	}
 
 	/**

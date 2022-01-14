@@ -78,6 +78,11 @@ public class QuteCodeActionWithSettingsTest {
 						"quarkus.tools.qute.validation.enabled", //
 						ConfigurationItemEditType.update, false, //
 						d)), //
+				ca(d, c("Exclude this file for validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"quarkus.tools.qute.validation.excluded", //
+						ConfigurationItemEditType.add, "X", //
+						d)), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
 						System.lineSeparator())));
 	}

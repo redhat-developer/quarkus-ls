@@ -11,6 +11,11 @@
 *******************************************************************************/
 package com.redhat.qute.settings;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.redhat.qute.utils.AntPathMatcher;
+
 /**
  * Qute validation settings.
  * 
@@ -29,6 +34,10 @@ public class QuteValidationSettings {
 	private transient boolean updated;
 
 	private boolean enabled;
+
+	private List<String> excluded;
+
+	private transient List<ExcludedProperty> excludedProperties;
 
 	public QuteValidationSettings() {
 		setEnabled(true);
@@ -53,6 +62,24 @@ public class QuteValidationSettings {
 	}
 
 	/**
+	 * Returns the array of properties to ignore for this validation type.
+	 *
+	 * @return the array of properties to ignore for this validation type.
+	 */
+	public List<String> getExcluded() {
+		return excluded;
+	}
+
+	/**
+	 * Set the array of properties to ignore for this validation type.
+	 *
+	 * @param excluded the array of properties to ignore for this validation type.
+	 */
+	public void setExcluded(List<String> excluded) {
+		this.excluded = excluded;
+	}
+
+	/**
 	 * Update each kind of validation settings with default value if not defined.
 	 */
 	private void updateDefault() {
@@ -69,6 +96,56 @@ public class QuteValidationSettings {
 	 */
 	public void update(QuteValidationSettings newValidation) {
 		this.setEnabled(newValidation.isEnabled());
+		this.setExcluded(newValidation.getExcluded());
+	}
+
+	/**
+	 * Returns true if the given property name must be excluded and false otherwise.
+	 *
+	 * @param propertyName the property name
+	 * @return true if the given property name must be excluded and false otherwise.
+	 */
+	public boolean isExcluded(String propertyName) {
+		if (excluded == null) {
+			return false;
+		}
+		// Get compiled excluded properties
+		List<ExcludedProperty> excludedProperties = getExcludedProperties();
+		for (ExcludedProperty excluded : excludedProperties) {
+			// the property name matches an excluded pattern
+			if (excluded.match(propertyName)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Returns the compiled excluded properties.
+	 *
+	 * @return the compiled excluded properties.
+	 */
+	private List<ExcludedProperty> getExcludedProperties() {
+		if (excludedProperties != null) {
+			return excludedProperties;
+		}
+		return createExcludedProperties();
+	}
+
+	/**
+	 * Create the compiled excluded properties.
+	 *
+	 * @return the compiled excluded properties.
+	 */
+	private synchronized List<ExcludedProperty> createExcludedProperties() {
+		if (excludedProperties != null) {
+			return excludedProperties;
+		}
+		AntPathMatcher matcher = new AntPathMatcher();
+		matcher.setCachePatterns(true);
+		return excluded.stream() //
+				.map(p -> new ExcludedProperty(p, matcher)) //
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -76,6 +153,7 @@ public class QuteValidationSettings {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + (enabled ? 1231 : 1237);
+		result = prime * result + ((excluded == null) ? 0 : excluded.hashCode());
 		return result;
 	}
 
@@ -89,6 +167,11 @@ public class QuteValidationSettings {
 			return false;
 		QuteValidationSettings other = (QuteValidationSettings) obj;
 		if (enabled != other.enabled)
+			return false;
+		if (excluded == null) {
+			if (other.excluded != null)
+				return false;
+		} else if (!excluded.equals(other.excluded))
 			return false;
 		return true;
 	}
