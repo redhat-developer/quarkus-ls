@@ -75,7 +75,7 @@ public class QuteCodeActionWithSettingsTest {
 				settings, //
 				ca(d, c("Disable Qute validation.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"quarkus.tools.qute.validation.enabled", //
+						"qute.validation.enabled", //
 						ConfigurationItemEditType.update, false, //
 						d)), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
