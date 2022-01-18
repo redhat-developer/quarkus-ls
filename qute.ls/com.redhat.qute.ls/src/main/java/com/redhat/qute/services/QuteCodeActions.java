@@ -55,7 +55,7 @@ class QuteCodeActions {
 
 	// Enable/Disable Qute validation
 
-	private static final String QUTE_VALIDATION_ENABLED_SECTION = "quarkus.tools.qute.validation.enabled";
+	private static final String QUTE_VALIDATION_ENABLED_SECTION = "qute.validation.enabled";
 
 	private static final String DISABLE_VALIDATION_TITLE = "Disable Qute validation.";
 

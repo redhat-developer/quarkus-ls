@@ -17,66 +17,32 @@ import com.google.gson.annotations.JsonAdapter;
 import com.redhat.qute.utils.JSONUtility;
 
 /**
- * Represents all settings under the 'quarkus' key
+ * Represents all settings under the 'qute' key
  * 
- * { 'quarkus': {'tools' : {'qute'} :  {...}} }
+ * { {'qute'} : {...}} }
  */
 public class AllQuteSettings {
 
-	private static class ToolsSettings {
-
-		@JsonAdapter(JsonElementTypeAdapter.Factory.class)
-		private Object tools;
-
-		public Object getTools() {
-			return tools;
-		}
-
-	}
-
-	private static class QuteSettings {
-
-		@JsonAdapter(JsonElementTypeAdapter.Factory.class)
-		private Object qute;
-
-		public Object getQute() {
-			return qute;
-		}
-
-	}
-	
 	@JsonAdapter(JsonElementTypeAdapter.Factory.class)
-	private Object quarkus;
+	private Object qute;
 
 	/**
-	 * @return the quarkus
+	 * @return the qute
 	 */
-	public Object getQuarkus() {
-		return quarkus;
+	public Object getQute() {
+		return qute;
 	}
 
 	/**
-	 * @param quarkus the quarkus to set
+	 * @param qute the qute to set
 	 */
-	public void setQuarkus(Object quarkus) {
-		this.quarkus = quarkus;
+	public void setQute(Object qute) {
+
+		this.qute = qute;
 	}
 
 	public static Object getQuteSettings(Object initializationOptionsSettings) {
-		Object toolsSettings = getQuarkusToolsSettings(initializationOptionsSettings);
-		if (toolsSettings == null) {
-			return null;
-		}
-		QuteSettings quteSettings = JSONUtility.toModel(toolsSettings, QuteSettings.class);
-		return quteSettings != null ? quteSettings.getQute() : null;
-	}
-	
-	private static Object getQuarkusToolsSettings(Object initializationOptionsSettings) {
-		AllQuteSettings rootSettings = JSONUtility.toModel(initializationOptionsSettings, AllQuteSettings.class);
-		if (rootSettings == null) {
-			return null;
-		}
-		ToolsSettings quarkusSettings = JSONUtility.toModel(rootSettings.getQuarkus(), ToolsSettings.class);
-		return quarkusSettings != null ? quarkusSettings.getTools() : null;
+		AllQuteSettings settings = JSONUtility.toModel(initializationOptionsSettings, AllQuteSettings.class);
+		return settings != null ? settings.getQute() : null;
 	}
 }

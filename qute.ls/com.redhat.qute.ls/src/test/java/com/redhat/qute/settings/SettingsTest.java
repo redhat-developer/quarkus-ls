@@ -27,13 +27,9 @@ public class SettingsTest {
 
 	private final String json = "{\r\n" + //
 			"    \"settings\": {\r\n" + //
-			"        \"quarkus\": {\r\n" + //
-			"            \"tools\": {\r\n" + //
-			"                \"qute\": {\r\n" + //
-			"                    \"validation\": {\r\n" + //
-			"                        \"enabled\": \"true\"\r\n" + //
-			"                    }\r\n" + //
-			"                }\r\n" + //
+			"        \"qute\": {\r\n" + //
+			"            \"validation\": {\r\n" + //
+			"                \"enabled\": \"true\"\r\n" + //
 			"            }\r\n" + //
 			"        }\r\n" + //
 			"    }\r\n" + //
