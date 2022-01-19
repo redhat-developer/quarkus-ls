@@ -58,7 +58,7 @@ import com.redhat.qute.services.QuteLanguageService;
 import com.redhat.qute.settings.AllQuteSettings;
 import com.redhat.qute.settings.InitializationOptionsSettings;
 import com.redhat.qute.settings.QuteGeneralClientSettings;
-import com.redhat.qute.settings.QuteValidationSettings;
+import com.redhat.qute.settings.QuteGeneralClientSettings.SettingsUpdateState;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.settings.capabilities.QuteCapabilityManager;
 import com.redhat.qute.settings.capabilities.ServerCapabilitiesInitializer;
@@ -75,6 +75,8 @@ public class QuteLanguageServer
 
 	private final JavaDataModelCache dataModelCache;
 
+	private final SharedSettings sharedSettings;
+
 	private final QuteProjectRegistry projectRegistry;
 
 	private final QuteLanguageService quteLanguageService;
@@ -86,10 +88,11 @@ public class QuteLanguageServer
 	private QuteCapabilityManager capabilityManager;
 
 	public QuteLanguageServer() {
+		this.sharedSettings = new SharedSettings();
 		this.projectRegistry = new QuteProjectRegistry(this, this, this, this);
 		this.dataModelCache = new JavaDataModelCache(projectRegistry);
 		this.quteLanguageService = new QuteLanguageService(dataModelCache);
-		this.textDocumentService = new QuteTextDocumentService(this, new SharedSettings());
+		this.textDocumentService = new QuteTextDocumentService(this);
 		this.workspaceService = new QuteWorkspaceService(this);
 	}
 
@@ -142,18 +145,12 @@ public class QuteLanguageServer
 				.getGeneralQuteSettings(initializationOptionsSettings);
 		if (clientSettings != null) {
 
-			QuteValidationSettings newValidation = clientSettings.getValidation();
-			if (newValidation != null) {
-				textDocumentService.updateValidationSettings(newValidation);
+			// Update shared settings from the new client settings
+			SettingsUpdateState result = QuteGeneralClientSettings.update(getSharedSettings(), clientSettings);
+			if (result.isValidationSettingsChanged()) {
+				// Some validation settings changed
+				textDocumentService.validationSettingsChanged();
 			}
-//			QuteFormattingSettings newFormatting = clientSettings.getFormatting();
-//			if (newFormatting != null) {
-//				textDocumentService.updateFormattingSettings(newFormatting);
-//			}
-//			QuteCodeLensSettings newCodeLens = clientSettings.getCodeLens();
-//			if (newCodeLens != null) {
-//				textDocumentService.updateCodeLensSettings(newCodeLens);
-//			}
 		}
 	}
 
@@ -209,7 +206,7 @@ public class QuteLanguageServer
 	}
 
 	public SharedSettings getSharedSettings() {
-		return textDocumentService.getSharedSettings();
+		return sharedSettings;
 	}
 
 	@Override

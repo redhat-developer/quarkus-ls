@@ -59,7 +59,6 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.services.QuteLanguageService;
 import com.redhat.qute.services.diagnostics.ResolvingJavaTypeContext;
-import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 
@@ -252,8 +251,8 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 					// Collect diagnostics
 					ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template);
 					List<Diagnostic> diagnostics = getQuteLanguageService().doDiagnostics(template,
-							getSharedSettings().getValidationSettings(), resolvingJavaTypeContext,
-							() -> template.checkCanceled());
+							getSharedSettings().getValidationSettings(template.getUri()),
+							resolvingJavaTypeContext, () -> template.checkCanceled());
 
 					// Diagnostics has been collected, before diagnostics publishing, check if the
 					// document has changed since diagnostics collect.
@@ -348,16 +347,11 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		return result;
 	}
 
-	public void updateValidationSettings(QuteValidationSettings newValidation) {
-		// Update validation settings
-		QuteValidationSettings validation = sharedSettings.getValidationSettings();
-		if (!validation.equals(newValidation)) {
-			validation.update(newValidation);
-			// trigger validation for all opened Qute template files
-			documents.all().stream().forEach(document -> {
-				triggerValidationFor((QuteTextDocument) document);
-			});
-		}
+	public void validationSettingsChanged() {
+		// trigger validation for all opened Qute template files
+		documents.all().stream().forEach(document -> {
+			triggerValidationFor((QuteTextDocument) document);
+		});
 	}
 
 	public void dataModelChanged(JavaDataModelChangeEvent event) {

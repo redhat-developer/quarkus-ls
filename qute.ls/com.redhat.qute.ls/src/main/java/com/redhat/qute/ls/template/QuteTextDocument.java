@@ -107,4 +107,5 @@ public class QuteTextDocument extends ModelTextDocument<Template> implements Tem
 		getProjectInfoFuture().getNow(null);
 		return null;
 	}
+
 }

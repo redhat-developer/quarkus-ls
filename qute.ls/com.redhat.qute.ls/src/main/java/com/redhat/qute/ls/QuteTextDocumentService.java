@@ -55,7 +55,6 @@ import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.qute.ls.java.JavaFileTextDocumentService;
 import com.redhat.qute.ls.template.TemplateFileTextDocumentService;
-import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.settings.SharedSettings;
 
 /**
@@ -70,8 +69,8 @@ public class QuteTextDocumentService implements TextDocumentService {
 
 	private final TemplateFileTextDocumentService templateFileTextDocumentService;
 
-	public QuteTextDocumentService(QuteLanguageServer quteLanguageServer, SharedSettings sharedSettings) {
-		this.sharedSettings = sharedSettings;
+	public QuteTextDocumentService(QuteLanguageServer quteLanguageServer) {
+		this.sharedSettings = quteLanguageServer.getSharedSettings();
 		this.javaFileTextDocumentService = new JavaFileTextDocumentService(quteLanguageServer, sharedSettings);
 		this.templateFileTextDocumentService = new TemplateFileTextDocumentService(quteLanguageServer, sharedSettings);
 	}
@@ -266,11 +265,7 @@ public class QuteTextDocumentService implements TextDocumentService {
 		templateFileTextDocumentService.dataModelChanged(event);
 	}
 
-	public SharedSettings getSharedSettings() {
-		return sharedSettings;
-	}
-
-	public void updateValidationSettings(QuteValidationSettings newValidation) {
-		templateFileTextDocumentService.updateValidationSettings(newValidation);
+	public void validationSettingsChanged() {
+		templateFileTextDocumentService.validationSettingsChanged();
 	}
 }
