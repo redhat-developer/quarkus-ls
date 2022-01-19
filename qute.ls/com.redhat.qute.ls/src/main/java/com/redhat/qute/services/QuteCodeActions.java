@@ -57,7 +57,7 @@ class QuteCodeActions {
 
 	private static final String QUTE_VALIDATION_ENABLED_SECTION = "qute.validation.enabled";
 
-	private static final String DISABLE_VALIDATION_TITLE = "Disable Qute validation.";
+	private static final String DISABLE_VALIDATION_ON_PROJECT_LEVEL_TITLE = "Disable Qute validation for the `{0}` project.";
 
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
 			SharedSettings sharedSettings) {
@@ -69,10 +69,10 @@ class QuteCodeActions {
 			if (canUpdateConfiguration) {
 				// For each error, we provide the following quick fix:
 				//
-				// "Disable Qute validation."
+				// "Disable Qute validation for the `qute-quickstart` project."
 				//
 				// which will update the setting on client side to disable the Qute validation.
-				doCodeActionToDisableValidation(diagnostics, codeActions);
+				doCodeActionToDisableValidation(template, diagnostics, codeActions);
 			}
 			for (Diagnostic diagnostic : diagnostics) {
 				if (QuteErrorCode.UndefinedVariable.isQuteErrorCode(diagnostic.getCode())) {
@@ -140,8 +140,11 @@ class QuteCodeActions {
 		}
 	}
 
-	public void doCodeActionToDisableValidation(List<Diagnostic> diagnostics, List<CodeAction> codeActions) {
-		CodeAction disableValidationQuickFix = createConfigurationUpdateCodeAction(DISABLE_VALIDATION_TITLE,
+	public void doCodeActionToDisableValidation(Template template, List<Diagnostic> diagnostics,
+			List<CodeAction> codeActions) {
+		String projectUri = template.getProjectUri();
+		String title = MessageFormat.format(DISABLE_VALIDATION_ON_PROJECT_LEVEL_TITLE, projectUri);
+		CodeAction disableValidationQuickFix = createConfigurationUpdateCodeAction(title, template.getUri(),
 				QUTE_VALIDATION_ENABLED_SECTION, false, ConfigurationItemEditType.update, diagnostics);
 		codeActions.add(disableValidationQuickFix);
 	}
@@ -157,9 +160,10 @@ class QuteCodeActions {
 	 * 
 	 * @return the configuration update (done on client side) quick fix.
 	 */
-	private static CodeAction createConfigurationUpdateCodeAction(String title, String sectionName, Object sectionValue,
-			ConfigurationItemEditType editType, List<Diagnostic> diagnostics) {
+	private static CodeAction createConfigurationUpdateCodeAction(String title, String scopeUri, String sectionName,
+			Object sectionValue, ConfigurationItemEditType editType, List<Diagnostic> diagnostics) {
 		ConfigurationItemEdit configItemEdit = new ConfigurationItemEdit(sectionName, editType, sectionValue);
+		configItemEdit.setScopeUri(scopeUri);
 		return createCommand(title, QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE,
 				Collections.singletonList(configItemEdit), diagnostics);
 	}

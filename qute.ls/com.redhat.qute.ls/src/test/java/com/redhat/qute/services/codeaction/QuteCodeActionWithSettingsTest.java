@@ -73,21 +73,23 @@ public class QuteCodeActionWithSettingsTest {
 		SharedSettings settings = createSharedSettings(QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE);
 		testCodeActionsFor(template, d, //
 				settings, //
-				ca(d, c("Disable Qute validation.", //
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.enabled", //
+						"test.qute", //						
 						ConfigurationItemEditType.update, false, //
 						d)), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
 						System.lineSeparator())));
 	}
 
-	private static Command c(String title, String commandId, String section, ConfigurationItemEditType edit,
-			Object value, Diagnostic d) {
+	private static Command c(String title, String commandId, String section, String scopeUri,
+			ConfigurationItemEditType edit, Object value, Diagnostic d) {
 		Command command = new Command();
 		command.setTitle(title);
 		command.setCommand(commandId);
 		ConfigurationItemEdit itemEdit = new ConfigurationItemEdit(section, edit, value);
+		itemEdit.setScopeUri(scopeUri);
 		command.setArguments(Collections.singletonList(itemEdit));
 		return command;
 	}

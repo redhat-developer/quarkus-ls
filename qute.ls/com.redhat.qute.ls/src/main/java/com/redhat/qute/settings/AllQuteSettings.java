@@ -37,7 +37,6 @@ public class AllQuteSettings {
 	 * @param qute the qute to set
 	 */
 	public void setQute(Object qute) {
-
 		this.qute = qute;
 	}
 
