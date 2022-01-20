@@ -27,7 +27,7 @@ import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 
 /**
  * Qute quick start project.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -101,6 +101,11 @@ public class QuteQuickStartProject extends MockQuteProject {
 
 		ResolvedJavaTypeInfo itemResource = createResolvedJavaTypeInfo("org.acme.ItemResource", cache);
 		registerMethod("discountedPrice(item : org.acme.Item) : java.math.BigDecimal", itemResource);
+
+		// RRawString for raw and safe resolver tests
+		ResolvedJavaTypeInfo rawString = createResolvedJavaTypeInfo("io.quarkus.qute.RawString", cache);
+		registerMethod("getValue() : java.lang.String", rawString);
+		registerMethod("toString() : java.lang.String", rawString);
 
 		return cache;
 	}

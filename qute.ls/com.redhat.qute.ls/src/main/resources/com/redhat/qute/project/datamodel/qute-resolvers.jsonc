@@ -88,6 +88,24 @@
 			],
 			"url": "https://quarkus.io/guides/qute-reference#arrays"
 		},
+		// ------------- Character Escapes Resolvers --------------
+		// See https://quarkus.io/guides/qute-reference#character-escapes
+		{
+			"signature": "raw(base : java.lang.Object) : io.quarkus.qute.RawString",
+			"description": "Marks the object so that character escape is not needed and can be rendered as is.",
+			"sample": [
+				"{paragraph.raw}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#character-escapes"
+		},
+		{
+			"signature": "safe(base : java.lang.Object) : io.quarkus.qute.RawString",
+			"description": "Marks the object so that character escape is not needed and can be rendered as is.",
+			"sample": [
+				"{paragraph.safe}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#character-escapes"
+		},
 		// ------------- Collections Resolvers --------------
 		// See https://quarkus.io/guides/qute-reference#collections
 		{
