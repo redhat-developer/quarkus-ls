@@ -59,6 +59,10 @@ class QuteCodeActions {
 
 	private static final String DISABLE_VALIDATION_ON_PROJECT_LEVEL_TITLE = "Disable Qute validation for the `{0}` project.";
 
+	private static final String QUTE_VALIDATION_EXCLUDED_SECTION = "qute.validation.excluded";
+
+	private static final String EXCLUDED_VALIDATION_TITLE = "Exclude this file from validation.";
+
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
 			SharedSettings sharedSettings) {
 		List<CodeAction> codeActions = new ArrayList<>();
@@ -142,11 +146,20 @@ class QuteCodeActions {
 
 	public void doCodeActionToDisableValidation(Template template, List<Diagnostic> diagnostics,
 			List<CodeAction> codeActions) {
+		String templateUri = template.getUri();
+		// Disable Qute validation for the project
 		String projectUri = template.getProjectUri();
 		String title = MessageFormat.format(DISABLE_VALIDATION_ON_PROJECT_LEVEL_TITLE, projectUri);
-		CodeAction disableValidationQuickFix = createConfigurationUpdateCodeAction(title, template.getUri(),
+		CodeAction disableValidationQuickFix = createConfigurationUpdateCodeAction(title, templateUri,
 				QUTE_VALIDATION_ENABLED_SECTION, false, ConfigurationItemEditType.update, diagnostics);
 		codeActions.add(disableValidationQuickFix);
+
+		// Disable Qute validation for the template file
+		title = MessageFormat.format(EXCLUDED_VALIDATION_TITLE, template.getTemplateId());
+		CodeAction disableValidationForTemplateQuickFix = createConfigurationUpdateCodeAction(title, templateUri,
+				QUTE_VALIDATION_EXCLUDED_SECTION, templateUri, ConfigurationItemEditType.add, diagnostics);
+		codeActions.add(disableValidationForTemplateQuickFix);
+
 	}
 
 	/**

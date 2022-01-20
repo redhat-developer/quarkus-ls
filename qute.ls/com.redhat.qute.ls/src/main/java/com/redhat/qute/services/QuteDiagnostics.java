@@ -16,6 +16,7 @@ import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.QUTE_S
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -152,6 +153,11 @@ class QuteDiagnostics {
 		if (validationSettings == null) {
 			validationSettings = QuteValidationSettings.DEFAULT;
 		}
+		if (!validationSettings.canValidate(template.getUri())) {
+			// the validation is disabled for this template
+			return Collections.emptyList();
+		}
+
 		if (!resolvingJavaTypeContext.isProjectResolved()) {
 			LOGGER.log(Level.INFO, "Resolving project for the template '" + template.getUri() + "'.");
 		} else if (!resolvingJavaTypeContext.isDataModelTemplateResolved()) {
@@ -159,15 +165,13 @@ class QuteDiagnostics {
 					+ template.getUri() + "'.");
 		}
 		List<Diagnostic> diagnostics = new ArrayList<Diagnostic>();
-		if (validationSettings.isEnabled()) {
-			try {
-				validateWithRealQuteParser(template, diagnostics);
-				validateDataModel(template, template, resolvingJavaTypeContext, new ResolutionContext(), diagnostics);
-			} catch (CancellationException e) {
-				throw e;
-			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Error while validating '" + template.getUri() + "'.", e);
-			}
+		try {
+			validateWithRealQuteParser(template, diagnostics);
+			validateDataModel(template, template, resolvingJavaTypeContext, new ResolutionContext(), diagnostics);
+		} catch (CancellationException e) {
+			throw e;
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while validating '" + template.getUri() + "'.", e);
 		}
 		cancelChecker.checkCanceled();
 		return diagnostics;
@@ -394,7 +398,7 @@ class QuteDiagnostics {
 			case Property: {
 				// java.util.List<org.acme.Item>
 				ResolvedJavaTypeInfo iter = resolvedJavaType;
-				if (resolvedJavaType.isIterable() &&!resolvedJavaType.isArray()) {
+				if (resolvedJavaType.isIterable() && !resolvedJavaType.isArray()) {
 					// Expression uses iterable type
 					// {@java.util.List<org.acme.Item items>
 					// {items.size()}

@@ -32,6 +32,7 @@ import org.eclipse.lsp4j.services.WorkspaceService;
 import com.redhat.qute.services.commands.IDelegateCommandHandler;
 import com.redhat.qute.services.commands.QuteGenerateCommandHandler;
 import com.redhat.qute.services.commands.QuteGenerateTemplateContentCommandHandler;
+import com.redhat.qute.services.commands.validation.QuteTemplateValidationStatusCommandHandler;
 
 /**
  * Qute workspace service.
@@ -84,6 +85,8 @@ public class QuteWorkspaceService implements WorkspaceService {
 
 	private Map<String, IDelegateCommandHandler> registerCommands() {
 		Map<String, IDelegateCommandHandler> commands = new HashMap<>();
+		commands.put(QuteTemplateValidationStatusCommandHandler.COMMAND_ID,
+				new QuteTemplateValidationStatusCommandHandler());
 		commands.put(QuteGenerateCommandHandler.COMMAND_ID, new QuteGenerateCommandHandler());
 		commands.put(QuteGenerateTemplateContentCommandHandler.COMMAND_ID,
 				new QuteGenerateTemplateContentCommandHandler(quteLanguageServer.getDataModelCache()));
