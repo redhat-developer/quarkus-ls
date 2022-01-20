@@ -76,8 +76,14 @@ public class QuteCodeActionWithSettingsTest {
 				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.enabled", //
-						"test.qute", //						
+						"test.qute", //
 						ConfigurationItemEditType.update, false, //
+						d)), //
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
 						d)), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
 						System.lineSeparator())));

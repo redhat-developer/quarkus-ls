@@ -33,6 +33,7 @@ public class SharedSettings extends BaseSettings {
 	private Map<String /* workspace folder Uri */, BaseSettings> workspaceFolders;
 
 	public SharedSettings() {
+		super();
 		this.completionSettings = new QuteCompletionSettings();
 		this.codeLensSettings = new QuteCodeLensSettings();
 		this.formattingSettings = new QuteFormattingSettings();
@@ -170,4 +171,5 @@ public class SharedSettings extends BaseSettings {
 		}
 		return workspaceFolders.keySet();
 	}
+
 }

@@ -10,7 +10,8 @@
 package com.redhat.qute.ls.commons.client;
 
 import org.eclipse.lsp4j.ConfigurationItem;
-
+import org.eclipse.xtext.xbase.lib.Pure;
+import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
 /**
  * Class representing a change to a client's config.
@@ -29,6 +30,25 @@ public class ConfigurationItemEdit extends ConfigurationItem {
 		super.setSection(section);
 		this.editType = editType;
 		this.value = value;
+	}
+
+	@Override
+	@Pure
+	public String toString() {
+		ToStringBuilder b = new ToStringBuilder(this);
+		b.add("scopeUri", this.getScopeUri());
+		b.add("section", this.getSection());
+		b.add("editType", this.getEditType());
+		b.add("value", this.getValue());
+		return b.toString();
+	}
+
+	public ConfigurationItemEditType getEditType() {
+		return editType;
+	}
+
+	public Object getValue() {
+		return value;
 	}
 
 	@Override
@@ -52,7 +72,7 @@ public class ConfigurationItemEdit extends ConfigurationItem {
 			return false;
 		return true;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
