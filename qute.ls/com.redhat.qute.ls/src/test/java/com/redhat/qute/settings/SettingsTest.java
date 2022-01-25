@@ -163,7 +163,7 @@ public class SettingsTest {
 		// Client settings load 2
 		clientSettings = createWorkspaceFoldersSettings();
 		result = QuteGeneralClientSettings.update(sharedSettings, clientSettings);
-		assertFalse(result.isValidationSettingsChanged());
+		assertTrue(result.isValidationSettingsChanged());
 
 		// Client settings load 3
 		clientSettings = createWorkspaceFoldersSettings();
@@ -237,5 +237,4 @@ public class SettingsTest {
 		initializeParams.setInitializationOptions(initializationOptions);
 		return initializeParams;
 	}
-
 }

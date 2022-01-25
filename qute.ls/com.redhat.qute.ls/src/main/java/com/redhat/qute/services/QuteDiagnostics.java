@@ -162,7 +162,8 @@ class QuteDiagnostics {
 		if (validationSettings.isEnabled()) {
 			try {
 				validateWithRealQuteParser(template, diagnostics);
-				validateDataModel(template, template, resolvingJavaTypeContext, new ResolutionContext(), diagnostics);
+				validateDataModel(template, template, validationSettings, resolvingJavaTypeContext,
+						new ResolutionContext(), diagnostics);
 			} catch (CancellationException e) {
 				throw e;
 			} catch (Exception e) {
@@ -190,8 +191,9 @@ class QuteDiagnostics {
 		}
 	}
 
-	private void validateDataModel(Node parent, Template template, ResolvingJavaTypeContext resolvingJavaTypeContext,
-			ResolutionContext currentContext, List<Diagnostic> diagnostics) {
+	private void validateDataModel(Node parent, Template template, QuteValidationSettings validationSettings,
+			ResolvingJavaTypeContext resolvingJavaTypeContext, ResolutionContext currentContext,
+			List<Diagnostic> diagnostics) {
 		ResolutionContext previousContext = currentContext;
 		List<Node> children = parent.getChildren();
 		for (Node node : children) {
@@ -211,7 +213,7 @@ class QuteDiagnostics {
 								// Java type doesn't exist
 								Range range = QutePositionUtility.createRange(classNameRange, template);
 								Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-										QuteErrorCode.UnkwownType, className);
+										QuteErrorCode.UnknownType, className);
 								diagnostics.add(diagnostic);
 							} else if (!isResolvingJavaType(resolvedJavaType)) {
 								currentContext.put(javaTypeToResolve, resolvedJavaType);
@@ -232,7 +234,7 @@ class QuteDiagnostics {
 					Expression expression = parameter.getJavaTypeExpression();
 					if (expression != null) {
 						ResolvedJavaTypeInfo result = validateExpression(expression, section, template, previousContext,
-								resolvingJavaTypeContext, diagnostics);
+								validationSettings, resolvingJavaTypeContext, diagnostics);
 						switch (section.getSectionKind()) {
 						case FOR:
 						case EACH:
@@ -259,13 +261,14 @@ class QuteDiagnostics {
 				break;
 			}
 			case Expression: {
-				validateExpression((Expression) node, null, template, previousContext, resolvingJavaTypeContext,
-						diagnostics);
+				validateExpression((Expression) node, null, template, previousContext, validationSettings,
+						resolvingJavaTypeContext, diagnostics);
 				break;
 			}
 			default:
 			}
-			validateDataModel(node, template, resolvingJavaTypeContext, currentContext, diagnostics);
+			validateDataModel(node, template, validationSettings, resolvingJavaTypeContext, currentContext,
+					diagnostics);
 		}
 	}
 
@@ -304,8 +307,8 @@ class QuteDiagnostics {
 	}
 
 	private ResolvedJavaTypeInfo validateExpression(Expression expression, Section ownerSection, Template template,
-			ResolutionContext resolutionContext, ResolvingJavaTypeContext resolvingJavaTypeContext,
-			List<Diagnostic> diagnostics) {
+			ResolutionContext resolutionContext, QuteValidationSettings validationSettings,
+			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
 		try {
 			String projectUri = template.getProjectUri();
 			String literalJavaType = expression.getLiteralJavaType();
@@ -330,7 +333,7 @@ class QuteDiagnostics {
 				if (expressionChild.getKind() == NodeKind.ExpressionParts) {
 					Parts parts = (Parts) expressionChild;
 					resolvedJavaType = validateExpressionParts(parts, ownerSection, template, projectUri,
-							resolutionContext, resolvingJavaTypeContext, diagnostics);
+							resolutionContext, validationSettings, resolvingJavaTypeContext, diagnostics);
 				}
 			}
 			return resolvedJavaType;
@@ -344,12 +347,12 @@ class QuteDiagnostics {
 	}
 
 	private ResolvedJavaTypeInfo validateExpressionParts(Parts parts, Section ownerSection, Template template,
-			String projectUri, ResolutionContext resolutionContext, ResolvingJavaTypeContext resolvingJavaTypeContext,
-			List<Diagnostic> diagnostics) {
+			String projectUri, ResolutionContext resolutionContext, QuteValidationSettings validationSettings,
+			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
 		ResolvedJavaTypeInfo resolvedJavaType = null;
 		String namespace = null;
 		for (int i = 0; i < parts.getChildCount(); i++) {
-			Part current = ((Part) parts.getChild(i));
+			Part current = (parts.getChild(i));
 
 			if (current.isLast()) {
 				// It's the last part, check if it is not ended with '.'
@@ -381,7 +384,7 @@ class QuteDiagnostics {
 			case Object: {
 				ObjectPart objectPart = (ObjectPart) current;
 				resolvedJavaType = validateObjectPart(objectPart, ownerSection, projectUri, resolutionContext,
-						diagnostics, resolvingJavaTypeContext);
+						validationSettings, resolvingJavaTypeContext, diagnostics);
 				if (resolvedJavaType == null) {
 					// The Java type of the object part cannot be resolved, stop the validation of
 					// property, method.
@@ -394,7 +397,7 @@ class QuteDiagnostics {
 			case Property: {
 				// java.util.List<org.acme.Item>
 				ResolvedJavaTypeInfo iter = resolvedJavaType;
-				if (resolvedJavaType.isIterable() &&!resolvedJavaType.isArray()) {
+				if (resolvedJavaType.isIterable() && !resolvedJavaType.isArray()) {
 					// Expression uses iterable type
 					// {@java.util.List<org.acme.Item items>
 					// {items.size()}
@@ -409,7 +412,7 @@ class QuteDiagnostics {
 				}
 
 				resolvedJavaType = validateMemberPart(current, ownerSection, template, projectUri, resolutionContext,
-						resolvedJavaType, iter, diagnostics, resolvingJavaTypeContext);
+						resolvedJavaType, iter, validationSettings, resolvingJavaTypeContext, diagnostics);
 				if (resolvedJavaType == null) {
 					// The Java type of the previous part cannot be resolved, stop the validation of
 					// followings property, method.
@@ -466,8 +469,8 @@ class QuteDiagnostics {
 	}
 
 	private ResolvedJavaTypeInfo validateObjectPart(ObjectPart objectPart, Section ownerSection, String projectUri,
-			ResolutionContext resolutionContext, List<Diagnostic> diagnostics,
-			ResolvingJavaTypeContext resolvingJavaTypeContext) {
+			ResolutionContext resolutionContext, QuteValidationSettings validationSettings,
+			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
 		// Check if object part is a property coming from #with
 		JavaMemberInfo javaMember = resolutionContext.findMemberWithObject(objectPart.getPartName(), projectUri);
 		if (javaMember != null) {
@@ -485,15 +488,17 @@ class QuteDiagnostics {
 				// The data model is not loaded, ignore the error of undefined variable
 				return null;
 			}
-			// ex : {item} --> undefined variable
-			Range range = QutePositionUtility.createRange(objectPart);
-			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning, QuteErrorCode.UndefinedVariable,
-					objectPart.getPartName());
-			// Create data information helpful for code action
-			diagnostic.setData(DiagnosticDataFactory.createUndefinedVariableData(objectPart.getPartName(),
-					ownerSection != null && ownerSection.isIterable()));
-			diagnostics.add(diagnostic);
-			return null;
+			DiagnosticSeverity severity = validationSettings.getUndefinedVariable().getDiagnosticSeverity();
+			if (severity != null) {
+				// ex : {item} --> undefined variable
+				Range range = QutePositionUtility.createRange(objectPart);
+				Diagnostic diagnostic = createDiagnostic(range, severity, QuteErrorCode.UndefinedVariable,
+						objectPart.getPartName());
+				// Create data information helpful for code action
+				diagnostic.setData(DiagnosticDataFactory.createUndefinedVariableData(objectPart.getPartName(),
+						ownerSection != null && ownerSection.isIterable()));
+				diagnostics.add(diagnostic);
+			}
 		}
 
 		String javaTypeToResolve = javaTypeInfo.getJavaType();
@@ -525,13 +530,13 @@ class QuteDiagnostics {
 				}
 			}
 		}
-		return validateJavaTypePart(objectPart, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext,
-				javaTypeToResolve);
+		return validateJavaTypePart(objectPart, javaTypeToResolve, ownerSection, projectUri, resolvingJavaTypeContext,
+				diagnostics);
 	}
 
 	/**
 	 * Validate the given property, method part.
-	 * 
+	 *
 	 * @param part                     the property, method part to validate.
 	 * @param ownerSection             the owner section and null otherwise.
 	 * @param template                 the template.
@@ -539,30 +544,31 @@ class QuteDiagnostics {
 	 * @param resolutionContext        the resolution context.
 	 * @param baseType                 the base object type.
 	 * @param iterableOfType           the iterable of type.
-	 * @param diagnostics              the diagnostic list to fill.
+	 * @param validationSettings       the Qute validation settings.
 	 * @param resolvingJavaTypeContext the resolving Java type context.
-	 * 
+	 * @param diagnostics              the diagnostic list to fill.
+	 *
 	 * @return the Java type returned by the member part and null otherwise.
 	 */
 	private ResolvedJavaTypeInfo validateMemberPart(Part part, Section ownerSection, Template template,
 			String projectUri, ResolutionContext resolutionContext, ResolvedJavaTypeInfo baseType,
-			ResolvedJavaTypeInfo iterableOfType, List<Diagnostic> diagnostics,
-			ResolvingJavaTypeContext resolvingJavaTypeContext) {
+			ResolvedJavaTypeInfo iterableOfType, QuteValidationSettings validationSettings,
+			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
 		if (part.getPartKind() == PartKind.Method) {
 			// Validate method part
 			// ex : {foo.method(1, 2)}
 			return validateMethodPart((MethodPart) part, ownerSection, template, projectUri, resolutionContext,
-					baseType, iterableOfType, diagnostics, resolvingJavaTypeContext);
+					baseType, iterableOfType, validationSettings, resolvingJavaTypeContext, diagnostics);
 		}
 		// Validate property part
 		// ex : {foo.property}
 		return validatePropertyPart((PropertyPart) part, ownerSection, template, projectUri, resolutionContext,
-				baseType, iterableOfType, diagnostics, resolvingJavaTypeContext);
+				baseType, iterableOfType, resolvingJavaTypeContext, diagnostics);
 	}
 
 	/**
 	 * Validate the given property part.
-	 * 
+	 *
 	 * @param part                     the property part to validate.
 	 * @param ownerSection             the owner section and null otherwise.
 	 * @param template                 the template.
@@ -570,32 +576,32 @@ class QuteDiagnostics {
 	 * @param resolutionContext        the resolution context.
 	 * @param baseType                 the base object type.
 	 * @param iterableOfType           the iterable of type.
-	 * @param diagnostics              the diagnostic list to fill.
 	 * @param resolvingJavaTypeContext the resolving Java type context.
-	 * 
+	 * @param diagnostics              the diagnostic list to fill.
+	 *
 	 * @return the Java type returned by the member part and null otherwise.
 	 */
 	private ResolvedJavaTypeInfo validatePropertyPart(PropertyPart part, Section ownerSection, Template template,
 			String projectUri, ResolutionContext resolutionContext, ResolvedJavaTypeInfo resolvedJavaType,
-			ResolvedJavaTypeInfo iterableOfType, List<Diagnostic> diagnostics,
-			ResolvingJavaTypeContext resolvingJavaTypeContext) {
+			ResolvedJavaTypeInfo iterableOfType, ResolvingJavaTypeContext resolvingJavaTypeContext,
+			List<Diagnostic> diagnostics) {
 		JavaMemberInfo javaMember = javaCache.findMember(part, resolvedJavaType, projectUri);
 		if (javaMember == null) {
 			// ex : {@org.acme.Item item}
 			// "{item.XXXX}
 			Range range = QutePositionUtility.createRange(part);
-			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnkwownProperty,
+			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnknownProperty,
 					part.getPartName(), resolvedJavaType.getSignature());
 			diagnostics.add(diagnostic);
 			return null;
 		}
 		String memberType = javaMember.resolveJavaElementType(iterableOfType);
-		return validateJavaTypePart(part, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext, memberType);
+		return validateJavaTypePart(part, memberType, ownerSection, projectUri, resolvingJavaTypeContext, diagnostics);
 	}
 
 	/**
 	 * Validate the given method part.
-	 * 
+	 *
 	 * @param part                     the method part to validate.
 	 * @param ownerSection             the owner section and null otherwise.
 	 * @param template                 the template.
@@ -603,15 +609,16 @@ class QuteDiagnostics {
 	 * @param resolutionContext        the resolution context.
 	 * @param baseType                 the base object type.
 	 * @param iterableOfType           the iterable of type.
-	 * @param diagnostics              the diagnostic list to fill.
+	 * @param validationSettings       the Qute validation settings.
 	 * @param resolvingJavaTypeContext the resolving Java type context.
-	 * 
+	 * @param diagnostics              the diagnostic list to fill.
+	 *
 	 * @return the Java type returned by the member part and null otherwise.
 	 */
 	private ResolvedJavaTypeInfo validateMethodPart(MethodPart methodPart, Section ownerSection, Template template,
 			String projectUri, ResolutionContext resolutionContext, ResolvedJavaTypeInfo resolvedJavaType,
-			ResolvedJavaTypeInfo iter, List<Diagnostic> diagnostics,
-			ResolvingJavaTypeContext resolvingJavaTypeContext) {
+			ResolvedJavaTypeInfo iter, QuteValidationSettings validationSettings,
+			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
 
 		// Validate parameters of the method part
 		boolean undefinedType = false;
@@ -620,7 +627,7 @@ class QuteDiagnostics {
 			ResolvedJavaTypeInfo result = null;
 			Expression expression = parameter.getJavaTypeExpression();
 			if (expression != null) {
-				result = validateExpression(expression, ownerSection, template, resolutionContext,
+				result = validateExpression(expression, ownerSection, template, resolutionContext, validationSettings,
 						resolvingJavaTypeContext, diagnostics);
 			}
 			if (result == null) {
@@ -642,7 +649,7 @@ class QuteDiagnostics {
 		if (method == null) {
 			// ex : {@org.acme.Item item}
 			// "{item.getXXXX()}
-			QuteErrorCode errorCode = QuteErrorCode.UnkwownMethod;
+			QuteErrorCode errorCode = QuteErrorCode.UnknownMethod;
 			InvalidMethodReason reason = javaCache.getInvalidMethodReason(methodName, resolvedJavaType, projectUri);
 			if (reason != null) {
 				switch (reason) {
@@ -717,15 +724,15 @@ class QuteDiagnostics {
 		}
 
 		String memberType = method.resolveJavaElementType(iter);
-		return validateJavaTypePart(methodPart, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext,
-				memberType);
+		return validateJavaTypePart(methodPart, memberType, ownerSection, projectUri, resolvingJavaTypeContext,
+				diagnostics);
 	}
 
-	private ResolvedJavaTypeInfo validateJavaTypePart(Part part, Section ownerSection, String projectUri,
-			List<Diagnostic> diagnostics, ResolvingJavaTypeContext resolvingJavaTypeContext, String javaTypeToResolve) {
+	private ResolvedJavaTypeInfo validateJavaTypePart(Part part, String javaTypeToResolve, Section ownerSection,
+			String projectUri, ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
 		if (StringUtils.isEmpty(javaTypeToResolve)) {
 			Range range = QutePositionUtility.createRange(part);
-			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnkwownType,
+			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnknownType,
 					part.getPartName());
 			diagnostics.add(diagnostic);
 			return null;
@@ -758,7 +765,7 @@ class QuteDiagnostics {
 		if (resolvedJavaType == null) {
 			// Java type doesn't exist
 			Range range = QutePositionUtility.createRange(part);
-			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnkwownType,
+			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnknownType,
 					javaTypeToResolve);
 			diagnostics.add(diagnostic);
 			return null;

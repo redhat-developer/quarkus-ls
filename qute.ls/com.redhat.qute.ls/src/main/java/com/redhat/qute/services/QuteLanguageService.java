@@ -42,7 +42,7 @@ import com.redhat.qute.settings.SharedSettings;
 
 /**
  * The Qute language service.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -76,7 +76,7 @@ public class QuteLanguageService {
 
 	/**
 	 * Returns completion list for the given position
-	 * 
+	 *
 	 * @param template           the Qute template
 	 * @param position           the position where completion was triggered
 	 * @param completionSettings the completion settings.
@@ -129,7 +129,7 @@ public class QuteLanguageService {
 
 	/**
 	 * Validate the given Qute <code>template</code>.
-	 * 
+	 *
 	 * @param template           the Qute template.
 	 * @param validationSettings the validation settings.
 	 * @param cancelChecker      the cancel checker.

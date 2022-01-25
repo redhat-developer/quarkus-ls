@@ -38,15 +38,15 @@ public class ArrayTakeValueResolverTest {
 		String template = "{@org.acme.Item[] items}\r\n" + //
 				"{items.take(0)}";
 		testDiagnosticsFor(template);
-		
+
 		template = "{@org.acme.Item[] items}\r\n" + //
 				"{items.take(0).length}";
 		testDiagnosticsFor(template);
-		
+
 		template = "{@org.acme.Item[] items}\r\n" + //
 				"{items.take(0).lengthXXX}";
 		testDiagnosticsFor(template, //
-				d(1, 15, 1, 24, QuteErrorCode.UnkwownProperty,
+				d(1, 15, 1, 24, QuteErrorCode.UnknownProperty,
 						"`lengthXXX` cannot be resolved or is not a field of `org.acme.Item[]` Java type.",
 						DiagnosticSeverity.Error));
 	}
