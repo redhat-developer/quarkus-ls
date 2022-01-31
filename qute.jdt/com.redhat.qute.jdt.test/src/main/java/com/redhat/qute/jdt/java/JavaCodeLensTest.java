@@ -95,7 +95,7 @@ public class JavaCodeLensTest {
 						"Open `src/main/resources/templates/hello.qute.html`", //
 						"qute.command.open.uri", Arrays.asList(helloTemplateFileUri)), //
 				cl(r(19, 1, 20, 18), //
-						"Create `src/main/resources/templates/goodbye.qute.html`", //
+						"Create `src/main/resources/templates/goodbye.html`", //
 						"qute.command.generate.template.file", Arrays.asList(goodbyeTemplateFileUri)), //
 				cl(r(22, 1, 24, 16), //
 						"Create `src/main/resources/templates/detail/items2_v1.html`", //
@@ -130,7 +130,7 @@ public class JavaCodeLensTest {
 						"Open `src/main/resources/templates/hello2.qute.html`", //
 						"qute.command.open.uri", Arrays.asList(goodbyeFileUri)), //
 				cl(r(9, 4, 9, 62), //
-						"Create `src/main/resources/templates/hello3.qute.html`", //
+						"Create `src/main/resources/templates/hello3.html`", //
 						"qute.command.generate.template.file", Arrays.asList(hello3FileUri1)));
 	}
 
@@ -164,7 +164,7 @@ public class JavaCodeLensTest {
 						"Open `src/main/resources/templates/ItemResource/items.qute.html`", //
 						"qute.command.open.uri", Arrays.asList(templateFileUri)), //
 				cl(r(25, 2, 25, 58), //
-						"Create `src/main/resources/templates/ItemResource/items2.qute.html`", //
+						"Create `src/main/resources/templates/ItemResource/items2.html`", //
 						"qute.command.generate.template.file", Arrays.asList(templateFileUri)));
 	}
 
