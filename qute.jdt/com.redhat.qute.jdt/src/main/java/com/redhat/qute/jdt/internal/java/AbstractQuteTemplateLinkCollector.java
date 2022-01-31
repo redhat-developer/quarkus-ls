@@ -65,7 +65,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 	private static String[] suffixes = { ".qute.html", ".qute.json", ".qute.txt", ".qute.yaml", ".html", ".json",
 			".txt", ".yaml" };
 
-	private static final String PREFERRED_SUFFIX = ".qute.html";
+	private static final String PREFERRED_SUFFIX = ".html"; //TODO make it configurable
 
 	protected final ITypeRoot typeRoot;
 	protected final IJDTUtils utils;
