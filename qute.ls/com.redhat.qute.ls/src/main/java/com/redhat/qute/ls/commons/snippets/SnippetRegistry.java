@@ -235,11 +235,16 @@ public class SnippetRegistry {
 	 * @param canSupportMarkdown true if markdown is supported to generate
 	 *                           documentation and false otherwise.
 	 * @param contextFilter      the context filter.
+	 * @param suffixToFind       suffix to find, that will be removed when
+	 *                           completion snippet is applied.
+	 * @param suffixProvider     the suffix position provider.
+	 * @param prefixFilter       the prefix filter.
+	 * 
 	 * @return the snippet completion items according to the context filter.
 	 */
 	public List<CompletionItem> getCompletionItems(Range replaceRange, String lineDelimiter, boolean canSupportMarkdown,
 			boolean snippetsSupported, BiPredicate<ISnippetContext<?>, Map<String, String>> contextFilter,
-			ISuffixPositionProvider suffixProvider) {
+			ISuffixPositionProvider suffixProvider, String suffixToFind, String prefixFilter) {
 		if (replaceRange == null) {
 			return Collections.emptyList();
 		}
@@ -254,11 +259,15 @@ public class SnippetRegistry {
 			item.setDocumentation(
 					Either.forRight(createDocumentation(snippet, model, canSupportMarkdown, lineDelimiter)));
 			String prefix = snippet.getPrefixes().get(0);
-			item.setFilterText(prefix);
+			item.setFilterText(prefixFilter + prefix);
 			item.setDetail(snippet.getDescription());
 			Range range = replaceRange;
-			if (!StringUtils.isEmpty(snippet.getSuffix()) && suffixProvider != null) {
-				Position end = suffixProvider.findSuffixPosition(snippet.getSuffix());
+			String suffix = suffixToFind;
+			if (suffix == null) {
+				suffix = snippet.getSuffix();
+			}
+			if (!StringUtils.isEmpty(suffix) && suffixProvider != null) {
+				Position end = suffixProvider.findSuffixPosition(suffix);
 				if (end != null) {
 					range = new Range(replaceRange.getStart(), end);
 				}

@@ -30,7 +30,7 @@ public abstract class QuteSnippetContext implements IQuteSnippetContext {
 			}
 			if (node.getKind() == NodeKind.Section) {
 				Section section = (Section) node;
-				return !section.isStartTagClosed() && section.isInStartTagName(request.getOffset());
+				return section.isInStartTagName(request.getOffset());
 			}
 			return false;
 		}

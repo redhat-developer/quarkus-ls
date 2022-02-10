@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.QuteAssert.SECTION_SNIPPET_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
 import static com.redhat.qute.QuteAssert.testCompletionFor;
@@ -126,13 +127,13 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 	public void noCompletionInStartTag() throws Exception {
 		String template = "{#|let foo=bar}\r\n" + //
 				"{/let}";
-		testCompletionFor(template, 0);
+		testCompletionFor(template, 0 + SECTION_SNIPPET_SIZE /* section snippets */);
 	}
 
 	@Test
 	public void completionInStartTagWhenNotClosed() throws Exception {
 		String template = "{#|let\r\n";
-		testCompletionFor(template, 14 /* see qute-snippets.json #for, #each, etc */);
+		testCompletionFor(template, SECTION_SNIPPET_SIZE /* see qute-snippets.json #for, #each, etc */);
 	}
 
 	@Test
@@ -151,7 +152,7 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 		testCompletionFor(template, 0);
 
 	}
-	
+
 	@Test
 	public void completionInMethodParameter() throws Exception {
 		String template = "{#let name=1}\r\n" + //

@@ -30,6 +30,7 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.completions.CompletionRequest;
+import com.redhat.qute.services.completions.QuteCompletionForTagSection;
 import com.redhat.qute.services.completions.QuteCompletionsForExpression;
 import com.redhat.qute.services.completions.QuteCompletionsForParameterDeclaration;
 import com.redhat.qute.services.completions.QuteCompletionsForSnippets;
@@ -57,10 +58,13 @@ public class QuteCompletions {
 
 	private final QuteCompletionsForSnippets completionsForSnippets;
 
+	private final QuteCompletionForTagSection completionForTagSection;
+
 	public QuteCompletions(JavaDataModelCache javaCache) {
 		this.completionsForParameterDeclaration = new QuteCompletionsForParameterDeclaration(javaCache);
-		this.completionForExpression = new QuteCompletionsForExpression(javaCache);
 		this.completionsForSnippets = new QuteCompletionsForSnippets();
+		this.completionForTagSection = new QuteCompletionForTagSection(completionsForSnippets);
+		this.completionForExpression = new QuteCompletionsForExpression(completionForTagSection, javaCache);
 	}
 
 	/**
@@ -103,8 +107,8 @@ public class QuteCompletions {
 				nodeExpression = node;
 				expression = ((Part) node).getParent().getParent();
 			}
-			return completionForExpression.doCompleteExpression(expression, nodeExpression, template, offset,
-					completionSettings, formattingSettings, cancelChecker);
+			return completionForExpression.doCompleteExpression(completionRequest, expression, nodeExpression, template,
+					offset, completionSettings, formattingSettings, cancelChecker);
 		} else if (node.getKind() == NodeKind.Text) {
 			// The completion is triggered in text node (before node)
 			Section parent = node.getParentSection();
@@ -118,6 +122,11 @@ public class QuteCompletions {
 			// a valid expression
 			int nbBrackets = 0;
 			int bracketOffset = offset - 1;
+			char previousChar = text.charAt(bracketOffset);
+			if (previousChar == '#') {
+				// {#
+				bracketOffset--;
+			}
 			while (bracketOffset >= 0 && text.charAt(bracketOffset) == '{') {
 				bracketOffset--;
 				nbBrackets++;
@@ -127,9 +136,15 @@ public class QuteCompletions {
 				// {| --> valid expression
 				// {{| --> invalid expression
 				// {{{| --> valid expression
+
+				// or after an hash
+				// {#| --> valid section
+				// {{#| --> invalid section
+				// {{{#| --> valid section
+
 				if (nbBrackets % 2 != 0) {
 					// The completion is triggered in text node after bracket '{' character
-					return completionForExpression.doCompleteExpression(null, node, template, offset,
+					return completionForExpression.doCompleteExpression(completionRequest, null, node, template, offset,
 							completionSettings, formattingSettings, cancelChecker);
 				}
 				return EMPTY_FUTURE_COMPLETION;
@@ -137,6 +152,10 @@ public class QuteCompletions {
 		} else if (node.getKind() == NodeKind.ParameterDeclaration) {
 			return completionsForParameterDeclaration.doCollectJavaClassesSuggestions((ParameterDeclaration) node,
 					template, offset, completionSettings);
+		} else if (node.getKind() == NodeKind.Section) {
+			// {#|}
+			return completionForTagSection.doCompleteTagSection(completionRequest, completionSettings,
+					formattingSettings, cancelChecker);
 		}
 
 		return collectSnippetSuggestions(completionRequest);
@@ -144,7 +163,7 @@ public class QuteCompletions {
 
 	private CompletableFuture<CompletionList> collectSnippetSuggestions(CompletionRequest completionRequest) {
 		CompletionList list = new CompletionList();
-		completionsForSnippets.collectSnippetSuggestions(completionRequest, list);
+		completionsForSnippets.collectSnippetSuggestions(completionRequest, "", null, list);
 		return CompletableFuture.completedFuture(list);
 	}
 

@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.QuteAssert.SECTION_SNIPPET_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
 import static com.redhat.qute.QuteAssert.testCompletionFor;
@@ -216,7 +217,7 @@ public class QuteCompletionInExpressionWithForSectionTest {
 				"{#else}\r\n" + //
 				"	{|}    \r\n" + // <-- here items is only available because it is on #else block
 				"{/for}";
-		testCompletionFor(template, 1, //
+		testCompletionFor(template, 1 + SECTION_SNIPPET_SIZE /* section snippets */, //
 				c("items", "items", r(4, 2, 4, 2)));
 	}
 }

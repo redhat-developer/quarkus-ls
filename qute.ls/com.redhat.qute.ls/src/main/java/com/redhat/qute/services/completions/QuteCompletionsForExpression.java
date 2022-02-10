@@ -66,9 +66,13 @@ import com.redhat.qute.utils.StringUtils;
  */
 public class QuteCompletionsForExpression {
 
+	private final QuteCompletionForTagSection completionForTagSection;
+
 	private final JavaDataModelCache javaCache;
 
-	public QuteCompletionsForExpression(JavaDataModelCache javaCache) {
+	public QuteCompletionsForExpression(QuteCompletionForTagSection completionForTagSection,
+			JavaDataModelCache javaCache) {
+		this.completionForTagSection = completionForTagSection;
 		this.javaCache = javaCache;
 	}
 
@@ -89,17 +93,18 @@ public class QuteCompletionsForExpression {
 	 *
 	 * @return the completion result as future.
 	 */
-	public CompletableFuture<CompletionList> doCompleteExpression(Expression expression, Node nodeExpression,
-			Template template, int offset, QuteCompletionSettings completionSettings,
-			QuteFormattingSettings formattingSettings, CancelChecker cancelChecker) {
+	public CompletableFuture<CompletionList> doCompleteExpression(CompletionRequest completionRequest,
+			Expression expression, Node nodeExpression, Template template, int offset,
+			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
+			CancelChecker cancelChecker) {
 		if (nodeExpression == null) {
 			// ex : { | }
-			return doCompleteExpressionForObjectPart(expression, null, offset, template, completionSettings,
-					formattingSettings);
+			return doCompleteExpressionForObjectPart(completionRequest, expression, null, offset, template,
+					completionSettings, formattingSettings, cancelChecker);
 		} else if (expression == null) {
 			// ex : {|
-			return doCompleteExpressionForObjectPart(null, nodeExpression, offset, template, completionSettings,
-					formattingSettings);
+			return doCompleteExpressionForObjectPart(completionRequest, null, nodeExpression, offset, template,
+					completionSettings, formattingSettings, cancelChecker);
 		}
 
 		if (nodeExpression.getKind() == NodeKind.ExpressionPart) {
@@ -107,8 +112,8 @@ public class QuteCompletionsForExpression {
 			switch (part.getPartKind()) {
 			case Object:
 				// ex : { ite|m }
-				return doCompleteExpressionForObjectPart(expression, part, offset, template, completionSettings,
-						formattingSettings);
+				return doCompleteExpressionForObjectPart(null, expression, part, offset, template, completionSettings,
+						formattingSettings, cancelChecker);
 			case Property: {
 				// ex : { item.n| }
 				// ex : { item.n|ame }
@@ -121,8 +126,8 @@ public class QuteCompletionsForExpression {
 				MethodPart methodPart = (MethodPart) part;
 				if (methodPart.isInParameters(offset)) {
 					// ex : { item.getName(|) }
-					return doCompleteExpressionForObjectPart(expression, null, offset, template, completionSettings,
-							formattingSettings);
+					return doCompleteExpressionForObjectPart(null, expression, null, offset, template,
+							completionSettings, formattingSettings, cancelChecker);
 				}
 				// ex : { item.getN|ame() }
 				Parts parts = part.getParent();
@@ -142,8 +147,8 @@ public class QuteCompletionsForExpression {
 				// ex : { data:|name }
 				Parts parts = (Parts) nodeExpression;
 				Part part = parts.getPartAt(offset + 1);
-				return doCompleteExpressionForObjectPart(expression, part, offset, template, completionSettings,
-						formattingSettings);
+				return doCompleteExpressionForObjectPart(null, expression, part, offset, template, completionSettings,
+						formattingSettings, cancelChecker);
 			}
 			case '.': {
 				// ex : { item.| }
@@ -394,9 +399,9 @@ public class QuteCompletionsForExpression {
 		return snippet.toString();
 	}
 
-	private CompletableFuture<CompletionList> doCompleteExpressionForObjectPart(Expression expression, Node part,
-			int offset, Template template, QuteCompletionSettings completionSettings,
-			QuteFormattingSettings formattingSettings) {
+	private CompletableFuture<CompletionList> doCompleteExpressionForObjectPart(CompletionRequest completionRequest,
+			Expression expression, Node part, int offset, Template template, QuteCompletionSettings completionSettings,
+			QuteFormattingSettings formattingSettings, CancelChecker cancelChecker) {
 		// Completion for root object
 		int partStart = part != null && part.getKind() != NodeKind.Text ? part.getStart() : offset;
 		int partEnd = part != null && part.getKind() != NodeKind.Text ? part.getEnd() : offset;
@@ -414,6 +419,12 @@ public class QuteCompletionsForExpression {
 		// Namespace parts
 		doCompleteExpressionForNamespacePart(template, completionSettings, formattingSettings, range, list);
 
+		// Section tag
+		if (completionRequest != null) {
+			char previous = template.getText().charAt(offset - 1);
+			completionForTagSection.doCompleteTagSection(completionRequest, previous == '#' ? "#" : "{",
+					completionSettings, formattingSettings, cancelChecker, list);
+		}
 		return CompletableFuture.completedFuture(list);
 	}
 
