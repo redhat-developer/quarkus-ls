@@ -95,6 +95,8 @@ public class QuteAssert {
 
 	private static final String FILE_URI = "test.qute";
 
+	public static final int SECTION_SNIPPET_SIZE = 14;
+	
 	// ------------------- Completion assert
 
 	public static void testCompletionFor(String value, CompletionItem... expectedItems) throws Exception {

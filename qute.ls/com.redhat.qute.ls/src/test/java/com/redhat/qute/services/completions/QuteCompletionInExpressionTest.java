@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.QuteAssert.SECTION_SNIPPET_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
 import static com.redhat.qute.QuteAssert.testCompletionFor;
@@ -145,7 +146,7 @@ public class QuteCompletionInExpressionTest {
 				c("review2 : Review", "review2", r(1, 21, 1, 21)), //
 				c("getReview2() : Review", "getReview2", r(1, 21, 1, 21)));
 	}
-	
+
 	@Test
 	public void completionInExpressionNotClosedForPropertyPart() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
@@ -270,7 +271,7 @@ public class QuteCompletionInExpressionTest {
 	public void completionInExpressionWithOnlyStartBracket() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {|";
-		testCompletionFor(template, 1, //
+		testCompletionFor(template, 1 + SECTION_SNIPPET_SIZE /* section snippets */, //
 				c("item", "item", r(1, 7, 1, 7)));
 	}
 
@@ -291,7 +292,7 @@ public class QuteCompletionInExpressionTest {
 		// three brackets -> expression
 		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {{{|";
-		testCompletionFor(template, 1, //
+		testCompletionFor(template, 1 + SECTION_SNIPPET_SIZE /* section snippets */, //
 				c("item", "item", r(1, 9, 1, 9)));
 	}
 
@@ -302,14 +303,14 @@ public class QuteCompletionInExpressionTest {
 		testCompletionFor(template, //
 				c("discountedPrice(item : Item) : BigDecimal", "discountedPrice", r(1, 12, 1, 12)));
 	}
-	
+
 	@Test
 	public void completionInsideMethodParameter() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.name.codePointCount(item.|}";
 		testCompletionFor(template, //
 				c("name : String", "name", r(1, 37, 1, 37)));
-		
+
 		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.name.codePointCount(|}";
 		testCompletionFor(template, //

@@ -56,12 +56,17 @@ public class QuteDefinitionInEachSectionTest {
 				"{/each}";
 		testDefinitionFor(template, "test.qute", //
 				ll("test.qute", r(0, 1, 0, 6), r(2, 1, 2, 6)));
-		
+
 		template = "{#each| items}\r\n" + //
 				"		{it.name}\r\n" + //
 				"{/each}";
 		testDefinitionFor(template, "test.qute", //
 				ll("test.qute", r(0, 1, 0, 6), r(2, 1, 2, 6)));
+
+		template = "{#each |items}\r\n" + //
+				"		{it.name}\r\n" + //
+				"{/each}";
+		testDefinitionFor(template);
 
 	}
 
@@ -78,18 +83,18 @@ public class QuteDefinitionInEachSectionTest {
 				"{/e|ach}";
 		testDefinitionFor(template, "test.qute", //
 				ll("test.qute", r(2, 1, 2, 6), r(0, 1, 0, 6)));
-		
+
 		template = "{#each items}\r\n" + //
 				"		{it.name}\r\n" + //
 				"{/each|}";
 		testDefinitionFor(template, "test.qute", //
 				ll("test.qute", r(2, 1, 2, 6), r(0, 1, 0, 6)));
-		
+
 		template = "{#each items}\r\n" + //
 				"		{it.name}\r\n" + //
 				"|{/each}";
 		testDefinitionFor(template);
-		
+
 		template = "{#each items}\r\n" + //
 				"		{it.name}\r\n" + //
 				"{/each}|";

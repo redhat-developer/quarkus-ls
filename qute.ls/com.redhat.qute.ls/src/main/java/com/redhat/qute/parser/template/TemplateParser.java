@@ -69,17 +69,9 @@ public class TemplateParser {
 		while (token != TokenType.EOS) {
 			cancelChecker.checkCanceled();
 
-			if (startSectionOffset != -1) {
-				String tag = null;
-				if (token == TokenType.StartTag) {
-					tag = scanner.getTokenText();
-				}
-				Section child = sectionFactory.createSection(tag, startSectionOffset, endSectionOffset);
-				curr.addChild(child);
-				curr = child;
-				startSectionOffset = -1;
-				endSectionOffset = -1;
-			}
+			curr = createSectionIfNeeded(startSectionOffset, endSectionOffset, curr, scanner, token, sectionFactory);
+			startSectionOffset = -1;
+			endSectionOffset = -1;
 
 			switch (token) {
 
@@ -305,6 +297,9 @@ public class TemplateParser {
 			}
 			token = scanner.scan();
 		}
+
+		curr = createSectionIfNeeded(startSectionOffset, endSectionOffset, curr, scanner, token, sectionFactory);
+
 		while (curr.getParent() != null) {
 			curr.setEnd(content.length());
 			curr = curr.getParent();
@@ -329,6 +324,20 @@ public class TemplateParser {
 			return false;
 		}
 		return node.isClosed();
+	}
+
+	private static Node createSectionIfNeeded(int startSectionOffset, int endSectionOffset, Node curr,
+			Scanner<TokenType, ScannerState> scanner, TokenType token, SectionFactory sectionFactory) {
+		if (startSectionOffset != -1) {
+			String tag = null;
+			if (token == TokenType.StartTag) {
+				tag = scanner.getTokenText();
+			}
+			Section child = sectionFactory.createSection(tag, startSectionOffset, endSectionOffset);
+			curr.addChild(child);
+			curr = child;
+		}
+		return curr;
 	}
 
 	private static boolean isEmptyElement(String tag) {

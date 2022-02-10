@@ -36,10 +36,14 @@ public class QuteCompletionsForSnippets {
 	/**
 	 * Collect snippets suggestions.
 	 *
-	 * @param completionRequest  completion request.
-	 * @param completionResponse completion response.
+	 * @param completionRequest completion request.
+	 * @param prefixFilter      prefix filter.
+	 * @param suffixToFind     suffix to found to eat it when completion snippet is
+	 *                          applied.
+	 * @param list              completion list to update.
 	 */
-	public void collectSnippetSuggestions(CompletionRequest completionRequest, CompletionList list) {
+	public void collectSnippetSuggestions(CompletionRequest completionRequest, String prefixFilter,
+			String suffixToFind, CompletionList list) {
 		Node node = completionRequest.getNode();
 		int offset = completionRequest.getOffset();
 		Template template = node.getOwnerTemplate();
@@ -80,7 +84,7 @@ public class QuteCompletionsForSnippets {
 							}
 						}
 						return null;
-					});
+					}, suffixToFind, prefixFilter);
 			for (CompletionItem completionItem : snippets) {
 				list.getItems().add(completionItem);
 			}
