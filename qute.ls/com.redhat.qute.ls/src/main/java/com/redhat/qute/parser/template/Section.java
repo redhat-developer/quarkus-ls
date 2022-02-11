@@ -30,6 +30,8 @@ public class Section extends Node implements ParametersContainer {
 
 	private final String tag;
 
+	private int startTagOpenOffset;
+
 	private int startTagCloseOffset;
 
 	private int endTagOpenOffset;
@@ -43,8 +45,9 @@ public class Section extends Node implements ParametersContainer {
 	public Section(String tag, int start, int end) {
 		super(start, end);
 		this.tag = tag;
-		this.endTagOpenOffset = NULL_VALUE;
+		this.startTagOpenOffset = NULL_VALUE;
 		this.startTagCloseOffset = NULL_VALUE;
+		this.endTagOpenOffset = NULL_VALUE;
 		this.endTagCloseOffset = NULL_VALUE;
 	}
 
@@ -66,7 +69,7 @@ public class Section extends Node implements ParametersContainer {
 	 * @return the offset which opens the section start tag.
 	 */
 	public int getStartTagOpenOffset() {
-		return getStart();
+		return startTagOpenOffset;
 	}
 
 	/**
@@ -81,6 +84,10 @@ public class Section extends Node implements ParametersContainer {
 	 */
 	public int getStartTagNameOpenOffset() {
 		return getStartTagOpenOffset() + 1;
+	}
+
+	void setStartTagOpenOffset(int startTagOpenOffset) {
+		this.startTagOpenOffset = startTagOpenOffset;
 	}
 
 	/**
@@ -141,19 +148,32 @@ public class Section extends Node implements ParametersContainer {
 	 *         #each) and false otherwise.
 	 */
 	public boolean isInStartTagName(int offset) {
+		if (!hasStartTag()) {
+			return false;
+		}
 		if (!isStartTagClosed()) {
 			// cases
 			// - {#|
 			// - {|#
 			return true;
 		}
-		if (offset > getStart() && offset <= getStartTagNameCloseOffset()) {
+		if (offset > getStartTagOpenOffset() && offset <= getStartTagNameCloseOffset()) {
 			// cases:
 			// - {#each| }
 			// - {|#each }
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Returns true if has a start tag.
+	 *
+	 *
+	 * @return true if has a start tag.
+	 */
+	public boolean hasStartTag() {
+		return getStartTagOpenOffset() != NULL_VALUE;
 	}
 
 	// ---------------------------- End tag methods
@@ -224,7 +244,7 @@ public class Section extends Node implements ParametersContainer {
 		if (!hasEndTag()) {
 			return false;
 		}
-		if (offset >= endTagOpenOffset + (afterBackSlash ? 1 : 0) && offset < getEnd()) {
+		if (offset > getEndTagOpenOffset() + (afterBackSlash ? 1 : 0) && offset < getEnd()) {
 			// cases:
 			// - {|/each}
 			// - {/|each}

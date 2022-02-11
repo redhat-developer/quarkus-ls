@@ -333,9 +333,10 @@ public class TemplateParser {
 			if (token == TokenType.StartTag) {
 				tag = scanner.getTokenText();
 			}
-			Section child = sectionFactory.createSection(tag, startSectionOffset, endSectionOffset);
-			curr.addChild(child);
-			curr = child;
+			Section section = sectionFactory.createSection(tag, startSectionOffset, endSectionOffset);
+			section.setStartTagOpenOffset(startSectionOffset);
+			curr.addChild(section);
+			curr = section;
 		}
 		return curr;
 	}

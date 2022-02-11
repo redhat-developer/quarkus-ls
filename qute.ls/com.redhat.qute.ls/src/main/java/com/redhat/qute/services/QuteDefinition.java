@@ -137,16 +137,14 @@ class QuteDefinition {
 
 	private static boolean findDefinitionFromStartEndTagSection(int offset, Section section, Template template,
 			List<LocationLink> locations) {
-		Range originRange = null;
-		Range targetRange = null;
 		if (section.isInStartTagName(offset)) {
-			originRange = QutePositionUtility.selectStartTagName(section);
 
 			// 1. Jump to custom tag declared in the the {#insert custom-tag of the included
 			// Qute template (by using {#include base).
 			if (section.getSectionKind() == SectionKind.CUSTOM) {
 				QuteProject project = template.getProject();
 				if (project != null) {
+					Range originRange = null;
 					Node parent = section.getParent();
 					while (parent != null) {
 						if (parent.getKind() == NodeKind.Section) {
@@ -159,6 +157,9 @@ class QuteDefinition {
 									for (QuteIndex index : indexes) {
 										String linkedTemplateUri = index.getTemplatePath().toUri().toString();
 										Range linkedTargetRange = index.getRange();
+										if (originRange == null) {
+											originRange = QutePositionUtility.selectStartTagName(section);
+										}
 										locations.add(new LocationLink(linkedTemplateUri, linkedTargetRange,
 												linkedTargetRange, originRange));
 									}
@@ -170,16 +171,21 @@ class QuteDefinition {
 				}
 			}
 
-			// 2. Jump to end tag section
-			targetRange = QutePositionUtility.selectEndTagName(section);
-			locations.add(new LocationLink(template.getUri(), targetRange, targetRange, originRange));
+			if (section.hasEndTag()) {
+				// 2. Jump to end tag section
+				Range originRange = QutePositionUtility.selectStartTagName(section);
+				Range targetRange = QutePositionUtility.selectEndTagName(section);
+				locations.add(new LocationLink(template.getUri(), targetRange, targetRange, originRange));
+			}
 
 			return true;
 		} else if (section.isInEndTagName(offset)) {
-			// Jump to start tag section
-			originRange = QutePositionUtility.selectEndTagName(section);
-			targetRange = QutePositionUtility.selectStartTagName(section);
-			locations.add(new LocationLink(template.getUri(), targetRange, targetRange, originRange));
+			if (section.hasStartTag()) {
+				// Jump to start tag section
+				Range originRange = QutePositionUtility.selectEndTagName(section);
+				Range targetRange = QutePositionUtility.selectStartTagName(section);
+				locations.add(new LocationLink(template.getUri(), targetRange, targetRange, originRange));
+			}
 			return true;
 		}
 		return false;
