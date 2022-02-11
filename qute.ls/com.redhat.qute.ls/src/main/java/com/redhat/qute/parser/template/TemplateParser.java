@@ -90,7 +90,7 @@ public class TemplateParser {
 					// to a newer end position.
 					curr.setEnd(scanner.getTokenOffset());
 				}
-				if (curr.isClosed() && curr.getKind() != NodeKind.Template) {
+				if (canSwithToParentNode(curr)) {
 					// The next node being considered is a child of 'curr'
 					// and if 'curr' is already closed then 'curr' was not updated properly.
 					curr = curr.getParent();
@@ -310,6 +310,25 @@ public class TemplateParser {
 			curr = curr.getParent();
 		}
 		return template;
+	}
+
+	/**
+	 * Returns true if the given node can switch to the parent node and false
+	 * otherwise.
+	 * 
+	 * @param node the AST node.
+	 * 
+	 * @return true if the given node can switch to the parent node and false
+	 *         otherwise.
+	 */
+	private static boolean canSwithToParentNode(Node node) {
+		if (node.getKind() == NodeKind.ParameterDeclaration) {
+			return true;
+		}
+		if (node.getKind() == NodeKind.Template) {
+			return false;
+		}
+		return node.isClosed();
 	}
 
 	private static boolean isEmptyElement(String tag) {
