@@ -12,6 +12,7 @@
 package com.redhat.qute.parser.template;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -70,9 +71,11 @@ public class TemplateParserTest {
 		String content = "{#let name=value}{/}";
 		Template template = TemplateParser.parse(content, "test.qute");
 		assertEquals(1, template.getChildCount());
-		Node first = template.getChild(0);
-		assertEquals(NodeKind.Section, first.getKind());
-		Section section = (Section) first;
+
+		// {#let name=value}{/}
+		Node letSection = template.getChild(0);
+		assertEquals(NodeKind.Section, letSection.getKind());
+		Section section = (Section) letSection;
 		assertEquals(SectionKind.LET, section.getSectionKind());
 		assertTrue(section.isClosed());
 
@@ -82,5 +85,34 @@ public class TemplateParserTest {
 		assertEquals(16, section.getStartTagCloseOffset()); // {#let name=value|}
 		assertEquals(17, section.getEndTagOpenOffset()); // |{/}
 		assertEquals(19, section.getEndTagCloseOffset()); // {/|}
+	}
+
+	@Test
+	public void parameterNotClosed() {
+		String content = "{@\r\n" + //
+				"{#for todo in todos}\r\n" + //
+				"{/}";
+		Template template = TemplateParser.parse(content, "test.qute");
+		assertEquals(2, template.getChildCount());
+
+		// {@
+		Node parameterDeclaration = template.getChild(0);
+		assertEquals(NodeKind.ParameterDeclaration, parameterDeclaration.getKind());
+		assertFalse(parameterDeclaration.isClosed());
+
+		// {#for todo in todos}
+		// {/}
+		Node forSection = template.getChild(1);
+		assertEquals(NodeKind.Section, forSection.getKind());
+		Section section = (Section) forSection;
+		assertEquals(SectionKind.FOR, section.getSectionKind());
+		assertTrue(section.isClosed());
+
+		assertEquals(4, section.getStartTagOpenOffset()); // |{#for
+		assertEquals(5, section.getStartTagNameOpenOffset()); // {|#for
+		assertEquals(9, section.getStartTagNameCloseOffset()); // {#for| todo in todos}
+		assertEquals(23, section.getStartTagCloseOffset()); // {#for| todo in todos|}
+		assertEquals(26, section.getEndTagOpenOffset()); // |{/}
+		assertEquals(28, section.getEndTagCloseOffset()); // {/|}
 	}
 }
