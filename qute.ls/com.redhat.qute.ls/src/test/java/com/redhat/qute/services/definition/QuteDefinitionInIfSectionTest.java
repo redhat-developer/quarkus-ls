@@ -32,4 +32,11 @@ public class QuteDefinitionInIfSectionTest {
 		testDefinitionFor(template, "test.qute", //
 				ll("test.qute", r(1, 7, 1, 12), r(0, 6, 0, 11)));
 	}
+
+	@Test
+	public void undefinedVariable() throws Exception {
+		String template = "{#if val|ue}";
+		testDefinitionFor(template);
+	}
+
 }
