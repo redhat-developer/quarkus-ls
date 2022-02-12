@@ -49,7 +49,8 @@ public class QuteIndexerTest {
 
 	private static QuteProject createProject() {
 		ProjectInfo projectInfo = new ProjectInfo("test-qute", "src/test/resources/templates");
-		return new QuteProject(projectInfo, new MockQuteProjectRegistry());
+		MockQuteProjectRegistry registry = new MockQuteProjectRegistry();
+		return new QuteProject(projectInfo, registry, registry);
 	}
 
 	@Test

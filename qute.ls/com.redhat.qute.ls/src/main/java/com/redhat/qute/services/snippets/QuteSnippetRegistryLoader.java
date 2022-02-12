@@ -12,16 +12,17 @@
 package com.redhat.qute.services.snippets;
 
 import com.redhat.qute.ls.commons.snippets.ISnippetRegistryLoader;
+import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
 
 /**
  * Load default Qute snippets.
  *
  */
-public class QuteSnippetRegistryLoader implements ISnippetRegistryLoader {
+public class QuteSnippetRegistryLoader implements ISnippetRegistryLoader<Snippet> {
 
 	@Override
-	public void load(SnippetRegistry registry) throws Exception {
+	public void load(SnippetRegistry<Snippet> registry) throws Exception {
 		registry.registerSnippets(QuteSnippetRegistryLoader.class.getResourceAsStream("qute-snippets.json"),
 				QuteSnippetContext.IN_TEXT);
 	}

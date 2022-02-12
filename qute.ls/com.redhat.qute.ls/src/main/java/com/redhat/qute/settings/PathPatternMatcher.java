@@ -53,6 +53,12 @@ public class PathPatternMatcher {
 		if (pattern == null || pattern.length() < 1) {
 			return false;
 		}
+		if ("jdt".equals(templateUri.getScheme())) {
+			// When we open an HTML file from a JAR, template uri looks like this
+			// jdt://jarentry/templates/tags/error.html?%3Drenarde-todo%2FC%3A%5C%2FUsers%5C%2Fazerr%5C%2F.m2%5C%2Frepository%5C%2Fquarkus-renarde-mock%5C%2Fquarkus-renarde-mock%5C%2F0.0.1-SNAPSHOT%5C%2Fquarkus-renarde-mock-0.0.1-SNAPSHOT.jar%3D%2Fmaven.pomderived%3D%2Ftrue%3D%2F%3D%2Fmaven.pomderived%3D%2Ftrue%3D%2F%3D%2Fmaven.groupId%3D%2Fquarkus-renarde-mock%3D%2F%3D%2Fmaven.artifactId%3D%2Fquarkus-renarde-mock%3D%2F%3D%2Fmaven.version%3D%2F0.0.1-SNAPSHOT%3D%2F%3D%2Fmaven.scope%3D%2Fcompile%3D%2F
+			// we ignore the matches
+			return false;
+		}
 		try {
 			return getPathMatcher().matches(Paths.get(templateUri));
 		} catch (Exception e) {

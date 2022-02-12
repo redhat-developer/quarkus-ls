@@ -1,38 +1,29 @@
 /*******************************************************************************
-* Copyright (c) 2020 Red Hat Inc. and others.
+* Copyright (c) 2021 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
 *
 * SPDX-License-Identifier: EPL-2.0
-* 
+*
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
 package com.redhat.qute.ls.commons.snippets;
 
 /**
- * Loader used to load snippets in a given registry for a language id.
+ * Snippet registry provider.
  * 
  * @author Angelo ZERR
  *
+ * @param <T>
  */
-public interface ISnippetRegistryLoader<T extends Snippet> {
+public interface SnippetRegistryProvider<T extends Snippet> {
 
 	/**
-	 * Register snippets in the given snippet registry.
+	 * Returns the snippet registry.
 	 * 
-	 * @param registry
-	 * @throws Exception
+	 * @return the snippet registry.
 	 */
-	void load(SnippetRegistry<T> registry) throws Exception;
-
-	/**
-	 * Returns the language id and null otherwise.
-	 * 
-	 * @return the language id and null otherwise.
-	 */
-	default String getLanguageId() {
-		return null;
-	}
+	SnippetRegistry<T> getSnippetRegistry();
 }

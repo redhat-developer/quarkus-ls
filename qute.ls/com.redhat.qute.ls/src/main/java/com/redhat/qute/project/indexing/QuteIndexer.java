@@ -80,6 +80,9 @@ public class QuteIndexer {
 
 	public void scan() {
 		this.indexes.clear();
+		if (!Files.exists(project.getTemplateBaseDir())) {
+			return;
+		}
 		try {
 			Files.walk(project.getTemplateBaseDir()).forEach(path -> {
 				if (!Files.isDirectory(path)) {

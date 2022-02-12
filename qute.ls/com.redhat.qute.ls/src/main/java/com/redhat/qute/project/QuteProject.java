@@ -15,12 +15,14 @@ import java.io.File;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Position;
 
 import com.redhat.qute.commons.ProjectInfo;
@@ -30,6 +32,7 @@ import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
+import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
@@ -42,11 +45,14 @@ import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.indexing.QuteIndex;
 import com.redhat.qute.project.indexing.QuteIndexer;
 import com.redhat.qute.project.indexing.QuteTemplateIndex;
+import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.tags.UserTagRegistry;
+import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.utils.StringUtils;
 
 /**
  * A Qute project.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -66,20 +72,24 @@ public class QuteProject {
 
 	private final QuteDataModelProjectProvider dataModelProvider;
 
-	public QuteProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider) {
+	private final UserTagRegistry tagRegistry;
+
+	public QuteProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider,
+			QuteUserTagProvider userTagProvider) {
 		this.uri = projectInfo.getUri();
 		this.templateBaseDir = createPath(projectInfo.getTemplateBaseDir());
 		this.indexer = new QuteIndexer(this);
 		this.openedDocuments = new HashMap<>();
 		this.dataModelProvider = dataModelProvider;
 		this.resolvedJavaTypes = new HashMap<>();
+		this.tagRegistry = new UserTagRegistry(uri, templateBaseDir, userTagProvider);
 	}
 
 	/**
 	 * Returns the path for the given file uri.
-	 * 
+	 *
 	 * @param fileUri the file Uri.
-	 * 
+	 *
 	 * @return the path for the given file uri.
 	 */
 	public static Path createPath(String fileUri) {
@@ -97,7 +107,7 @@ public class QuteProject {
 	/**
 	 * Returns the templates base dir folder of the project (ex :
 	 * src/main/resources/templates).
-	 * 
+	 *
 	 * @return the templates base dir folder of the project (ex :
 	 *         src/main/resources/templates).
 	 */
@@ -115,7 +125,7 @@ public class QuteProject {
 
 	/**
 	 * Returns the project Uri.
-	 * 
+	 *
 	 * @return the project Uri.
 	 */
 	public String getUri() {
@@ -145,7 +155,7 @@ public class QuteProject {
 
 	/**
 	 * Open a Qute template.
-	 * 
+	 *
 	 * @param document the Qute template.
 	 */
 	public void onDidOpenTextDocument(TemplateProvider document) {
@@ -154,7 +164,7 @@ public class QuteProject {
 
 	/**
 	 * Close a Qute template.
-	 * 
+	 *
 	 * @param document the Qute template.
 	 */
 	public void onDidCloseTextDocument(TemplateProvider document) {
@@ -237,11 +247,68 @@ public class QuteProject {
 
 	/**
 	 * Returns the template configuration of the project.
-	 * 
+	 *
 	 * @return the template configuration of the project.
 	 */
 	public TemplateConfiguration getTemplateConfiguration() {
 		// TODO : load template configuration from JDT side
 		return null;
+	}
+
+	/**
+	 * Returns list of source ('src/main/resources/templates/tags') user tags.
+	 * 
+	 * @return list of source ('src/main/resources/templates/tags') user tags.
+	 */
+	public Collection<UserTag> getSourceUserTags() {
+		return tagRegistry.getSourceUserTags();
+	}
+
+	/**
+	 * Returns list of binary ('templates.tags') user tags.
+	 * 
+	 * @return list of binary ('templates.tags') user tags.
+	 */
+	public CompletableFuture<List<UserTag>> getBinaryUserTags() {
+		return tagRegistry.getBinaryUserTags();
+	}
+
+	/**
+	 * Find user tag by the given tagName and null otherwise.
+	 * 
+	 * @param tagName the tag name.
+	 * 
+	 * @return user tag by the given tagName and null otherwise.
+	 */
+	public UserTag findUserTag(String tagName) {
+		// Source tags
+		Collection<UserTag> tags = getSourceUserTags();
+		for (UserTag userTag : tags) {
+			if (tagName.equals(userTag.getName())) {
+				return userTag;
+			}
+		}
+		// Binary tags
+		tags = getBinaryUserTags().getNow(Collections.emptyList());
+		for (UserTag userTag : tags) {
+			if (tagName.equals(userTag.getName())) {
+				return userTag;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Collect user tags suggestions.
+	 *
+	 * @param completionRequest completion request.
+	 * @param prefixFilter      prefix filter.
+	 * @param suffixToFind      suffix to found to eat it when completion snippet is
+	 *                          applied.
+	 * @param list              completion list to update.
+	 */
+	public void collectUserTagSuggestions(CompletionRequest completionRequest, String prefixFilter, String suffixToFind,
+			CompletionList list) {
+		tagRegistry.collectUserTagSuggestions(completionRequest, prefixFilter, suffixToFind, list);
 	}
 }

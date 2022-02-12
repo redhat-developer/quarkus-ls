@@ -42,6 +42,8 @@ import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
+import com.redhat.qute.commons.usertags.QuteUserTagParams;
+import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteJavaDefinitionProvider;
 import com.redhat.qute.ls.api.QuteJavaTypesProvider;
@@ -49,6 +51,7 @@ import com.redhat.qute.ls.api.QuteLanguageClientAPI;
 import com.redhat.qute.ls.api.QuteLanguageServerAPI;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
+import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.ls.commons.ParentProcessWatcher.ProcessLanguageServer;
 import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.qute.ls.commons.client.InitializationOptionsExtendedClientCapabilities;
@@ -67,9 +70,9 @@ import com.redhat.qute.settings.capabilities.ServerCapabilitiesInitializer;
  * Qute language server.
  *
  */
-public class QuteLanguageServer
-		implements LanguageServer, ProcessLanguageServer, QuteLanguageServerAPI, QuteProjectInfoProvider,
-		QuteJavaTypesProvider, QuteResolvedJavaTypeProvider, QuteJavaDefinitionProvider, QuteDataModelProjectProvider {
+public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer, QuteLanguageServerAPI,
+		QuteProjectInfoProvider, QuteJavaTypesProvider, QuteResolvedJavaTypeProvider, QuteJavaDefinitionProvider,
+		QuteDataModelProjectProvider, QuteUserTagProvider {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteLanguageServer.class.getName());
 
@@ -89,7 +92,7 @@ public class QuteLanguageServer
 
 	public QuteLanguageServer() {
 		this.sharedSettings = new SharedSettings();
-		this.projectRegistry = new QuteProjectRegistry(this, this, this, this);
+		this.projectRegistry = new QuteProjectRegistry(this, this, this, this,this);
 		this.dataModelCache = new JavaDataModelCache(projectRegistry);
 		this.quteLanguageService = new QuteLanguageService(dataModelCache);
 		this.textDocumentService = new QuteTextDocumentService(this);
@@ -247,5 +250,10 @@ public class QuteLanguageServer
 	public CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
 			QuteDataModelProjectParams params) {
 		return getLanguageClient().getDataModelProject(params);
+	}
+
+	@Override
+	public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
+		return getLanguageClient().getUserTags(params);
 	}
 }

@@ -20,6 +20,8 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.ls.commons.BadLocationException;
+import com.redhat.qute.ls.commons.snippets.Snippet;
+import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.template.Expression;
@@ -28,6 +30,7 @@ import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.ParameterDeclaration;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.completions.QuteCompletionForTagSection;
@@ -56,13 +59,13 @@ public class QuteCompletions {
 
 	private final QuteCompletionsForExpression completionForExpression;
 
-	private final QuteCompletionsForSnippets completionsForSnippets;
+	private final QuteCompletionsForSnippets<Snippet> completionsForSnippets;
 
 	private final QuteCompletionForTagSection completionForTagSection;
 
-	public QuteCompletions(JavaDataModelCache javaCache) {
+	public QuteCompletions(JavaDataModelCache javaCache, SnippetRegistryProvider<Snippet> snippetRegistryProvider) {
 		this.completionsForParameterDeclaration = new QuteCompletionsForParameterDeclaration(javaCache);
-		this.completionsForSnippets = new QuteCompletionsForSnippets();
+		this.completionsForSnippets = new QuteCompletionsForSnippets<Snippet>(snippetRegistryProvider);
 		this.completionForTagSection = new QuteCompletionForTagSection(completionsForSnippets);
 		this.completionForExpression = new QuteCompletionsForExpression(completionForTagSection, javaCache);
 	}
@@ -163,6 +166,11 @@ public class QuteCompletions {
 
 	private CompletableFuture<CompletionList> collectSnippetSuggestions(CompletionRequest completionRequest) {
 		CompletionList list = new CompletionList();
+		Template template = completionRequest.getTemplate();
+		QuteProject project = template.getProject();
+		if (project != null) {
+			project.collectUserTagSuggestions(completionRequest, "", null, list);
+		}
 		completionsForSnippets.collectSnippetSuggestions(completionRequest, "", null, list);
 		return CompletableFuture.completedFuture(list);
 	}

@@ -94,7 +94,7 @@ public class QuteCompletionInSectionTagTest {
 						"{/for}", //
 						r(0, 0, 0, 5)));
 	}
-	
+
 	@Test
 	public void openBracketAndHash() throws Exception {
 		String template = "{#|";
@@ -117,7 +117,7 @@ public class QuteCompletionInSectionTagTest {
 						"{/for}", //
 						r(0, 0, 0, 2)));
 	}
-	
+
 	@Test
 	public void openAndCloseBracketAndHash() throws Exception {
 		String template = "{#|}";
@@ -163,7 +163,7 @@ public class QuteCompletionInSectionTagTest {
 						"{/for}", //
 						r(0, 0, 0, 6)));
 	}
-	
+
 	@Test
 	public void openBracketAndTag() throws Exception {
 		String template = "{#f|or";
@@ -186,7 +186,7 @@ public class QuteCompletionInSectionTagTest {
 						"{/for}", //
 						r(0, 0, 0, 3)));
 	}
-	
+
 	@Test
 	public void openAndCloseBracketAndTag() throws Exception {
 		String template = "{#f|or}";
@@ -230,6 +230,44 @@ public class QuteCompletionInSectionTagTest {
 				c("for", "{#for ${1:item} in ${2:items}}" + System.lineSeparator() + //
 						"	{${1:item}.${3:name}}$0" + System.lineSeparator() + //
 						"{/for}", //
+						r(0, 0, 0, 3)));
+	}
+
+	@Test
+	public void userTag() throws Exception {
+		String template = "{|";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("formElement", "{#formElement /}", //
+						r(0, 0, 0, 1)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("formElement", "{#formElement /}$0", //
+						r(0, 0, 0, 1)));
+	}
+
+	@Test
+	public void userTagAndCloseBracket() throws Exception {
+		String template = "{#f|or   }";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("formElement", "{#formElement /}", //
+						r(0, 0, 0, 3)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("formElement", "{#formElement /}$0", //
 						r(0, 0, 0, 3)));
 	}
 }

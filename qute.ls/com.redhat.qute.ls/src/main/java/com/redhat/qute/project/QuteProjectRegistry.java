@@ -42,11 +42,14 @@ import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
+import com.redhat.qute.commons.usertags.QuteUserTagParams;
+import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteJavaDefinitionProvider;
 import com.redhat.qute.ls.api.QuteJavaTypesProvider;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
+import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Template;
@@ -60,7 +63,7 @@ import com.redhat.qute.utils.StringUtils;
  * @author Angelo ZERR
  *
  */
-public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataModelProjectProvider {
+public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataModelProjectProvider, QuteUserTagProvider {
 
 	private final ValueResolversRegistry valueResolversRegistry;
 
@@ -100,17 +103,21 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	private final QuteDataModelProjectProvider dataModelProvider;
 
+	private final QuteUserTagProvider userTagProvider;
+	
 	private final QuteJavaTypesProvider javaTypeProvider;
 
 	private final QuteJavaDefinitionProvider definitionProvider;
 
 	public QuteProjectRegistry(QuteJavaTypesProvider classProvider, QuteJavaDefinitionProvider definitionProvider,
-			QuteResolvedJavaTypeProvider resolvedClassProvider, QuteDataModelProjectProvider dataModelProvider) {
+			QuteResolvedJavaTypeProvider resolvedClassProvider, QuteDataModelProjectProvider dataModelProvider,
+			QuteUserTagProvider userTagsProvider) {
 		this.javaTypeProvider = classProvider;
 		this.definitionProvider = definitionProvider;
 		this.projects = new HashMap<>();
 		this.resolvedTypeProvider = resolvedClassProvider;
 		this.dataModelProvider = dataModelProvider;
+		this.userTagProvider = userTagsProvider;
 		this.valueResolversRegistry = new ValueResolversRegistry();
 	}
 
@@ -155,7 +162,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	}
 
 	protected QuteProject createProject(ProjectInfo projectInfo) {
-		return new QuteProject(projectInfo, this);
+		return new QuteProject(projectInfo, this, this);
 	}
 
 	protected void registerProject(QuteProject project) {
@@ -306,6 +313,11 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	public CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
 			QuteDataModelProjectParams params) {
 		return dataModelProvider.getDataModelProject(params);
+	}
+	
+	@Override
+	public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
+		return userTagProvider.getUserTags(params);
 	}
 
 	public JavaMemberInfo findMember(Part part, ResolvedJavaTypeInfo resolvedType, String projectUri) {
