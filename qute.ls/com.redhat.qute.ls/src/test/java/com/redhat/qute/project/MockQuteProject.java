@@ -30,6 +30,7 @@ import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
+import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 
 public abstract class MockQuteProject extends QuteProject {
@@ -42,8 +43,9 @@ public abstract class MockQuteProject extends QuteProject {
 
 	private final List<ValueResolver> resolvers;
 
-	public MockQuteProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider) {
-		super(projectInfo, dataModelProvider);
+	public MockQuteProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider,
+			QuteUserTagProvider tagProvider) {
+		super(projectInfo, dataModelProvider, tagProvider);
 		this.typesCache = createTypes();
 		this.resolvedTypesCache = createResolvedTypes();
 		this.templates = createTemplates();
@@ -54,7 +56,8 @@ public abstract class MockQuteProject extends QuteProject {
 		for (ResolvedJavaTypeInfo resolvedJavaType : resolvedTypesCache) {
 			if (typeName.equals(resolvedJavaType.getSignature())) {
 				return resolvedJavaType;
-			} else if (typeName.equals(resolvedJavaType.getIterableType()) && resolvedJavaType.getIterableOf().indexOf('.') == -1) {
+			} else if (typeName.equals(resolvedJavaType.getIterableType())
+					&& resolvedJavaType.getIterableOf().indexOf('.') == -1) {
 				// ex : java.util.List<T>
 				return resolvedJavaType;
 			}

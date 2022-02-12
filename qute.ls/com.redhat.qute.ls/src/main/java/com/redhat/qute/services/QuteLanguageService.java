@@ -32,6 +32,9 @@ import org.eclipse.lsp4j.ReferenceContext;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.qute.ls.commons.snippets.Snippet;
+import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
+import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.diagnostics.ResolvingJavaTypeContext;
@@ -46,7 +49,7 @@ import com.redhat.qute.settings.SharedSettings;
  * @author Angelo ZERR
  *
  */
-public class QuteLanguageService {
+public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 
 	private final QuteCodeLens codelens;
 	private final QuteCodeActions codeActions;
@@ -60,11 +63,13 @@ public class QuteLanguageService {
 	private final QuteLinkedEditing linkedEditing;
 	private final QuteReference reference;
 
+	private SnippetRegistry<Snippet> coreTagSnippetRegistry;
+
 	public QuteLanguageService(JavaDataModelCache javaCache) {
-		this.completions = new QuteCompletions(javaCache);
+		this.completions = new QuteCompletions(javaCache, this);
 		this.codelens = new QuteCodeLens(javaCache);
 		this.codeActions = new QuteCodeActions();
-		this.hover = new QuteHover(javaCache);
+		this.hover = new QuteHover(javaCache, this);
 		this.highlighting = new QuteHighlighting();
 		this.definition = new QuteDefinition(javaCache);
 		this.documentLink = new QuteDocumentLink();
@@ -150,4 +155,23 @@ public class QuteLanguageService {
 		return linkedEditing.findLinkedEditingRanges(template, position, cancelChecker);
 	}
 
+	/**
+	 * Returns the core tag (ex : #for, #if, etc) snippet registry.
+	 * 
+	 * @return the core tag (ex : #for, #if, etc) snippet registry.
+	 */
+	@Override
+	public SnippetRegistry<Snippet> getSnippetRegistry() {
+		if (coreTagSnippetRegistry == null) {
+			loadCoreTagSnippetRegistry();
+		}
+		return coreTagSnippetRegistry;
+	}
+
+	private synchronized void loadCoreTagSnippetRegistry() {
+		if (coreTagSnippetRegistry != null) {
+			return;
+		}
+		coreTagSnippetRegistry = new SnippetRegistry<Snippet>();
+	}
 }

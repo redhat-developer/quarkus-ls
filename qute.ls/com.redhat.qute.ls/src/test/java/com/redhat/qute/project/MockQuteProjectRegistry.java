@@ -11,8 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.project;
 
-import static com.redhat.qute.project.QuteProjectRegistry.findMethod;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -34,6 +32,8 @@ import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
+import com.redhat.qute.commons.usertags.QuteUserTagParams;
+import com.redhat.qute.commons.usertags.UserTagInfo;
 
 public class MockQuteProjectRegistry extends QuteProjectRegistry {
 
@@ -44,13 +44,13 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	public static final Range JAVA_METHOD_RANGE = new Range(new Position(2, 2), new Position(2, 2));
 
 	public MockQuteProjectRegistry() {
-		super(null, null, null, null);
+		super(null, null, null, null, null);
 	}
 
 	@Override
 	protected QuteProject createProject(ProjectInfo projectInfo) {
 		if (QuteQuickStartProject.PROJECT_URI.equals(projectInfo.getUri())) {
-			return new QuteQuickStartProject(projectInfo, this);
+			return new QuteQuickStartProject(projectInfo, this, this);
 		}
 		return super.createProject(projectInfo);
 	}
@@ -129,6 +129,11 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	public CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
 			QuteDataModelProjectParams params) {
 		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
+		return CompletableFuture.completedFuture(Collections.emptyList());
 	}
 
 }

@@ -13,6 +13,11 @@ package com.redhat.qute.services.diagnostics;
 
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_ITERABLE;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_NAME;
+import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.QUTE_SOURCE;
+
+import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.DiagnosticSeverity;
+import org.eclipse.lsp4j.Range;
 
 import com.google.gson.JsonObject;
 
@@ -23,5 +28,18 @@ public class DiagnosticDataFactory {
 		data.addProperty(DIAGNOSTIC_DATA_NAME, partName);
 		data.addProperty(DIAGNOSTIC_DATA_ITERABLE, iterable);
 		return data;
+	}
+
+	public static Diagnostic createDiagnostic(Range range, DiagnosticSeverity severity, IQuteErrorCode errorCode,
+			Object... arguments) {
+		String message = errorCode.getMessage(arguments);
+		return createDiagnostic(range, message, severity, errorCode);
+	}
+
+	public static Diagnostic createDiagnostic(Range range, String message, DiagnosticSeverity severity,
+			IQuteErrorCode errorCode) {
+		Diagnostic diagnostic = new Diagnostic(range, message, severity, QUTE_SOURCE,
+				errorCode != null ? errorCode.getCode() : null);
+		return diagnostic;
 	}
 }

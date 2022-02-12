@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,6 +26,8 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
+import com.redhat.qute.ls.commons.snippets.Snippet;
+import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.template.Expression;
@@ -37,7 +40,9 @@ import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.LoopSection;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.services.hover.HoverRequest;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.DocumentationUtils;
@@ -57,8 +62,11 @@ public class QuteHover {
 
 	private final JavaDataModelCache javaCache;
 
-	public QuteHover(JavaDataModelCache javaCache) {
+	private final SnippetRegistryProvider<Snippet> snippetRegistryProvider;
+
+	public QuteHover(JavaDataModelCache javaCache, SnippetRegistryProvider<Snippet> snippetRegistryProvider) {
 		this.javaCache = javaCache;
+		this.snippetRegistryProvider = snippetRegistryProvider;
 	}
 
 	public CompletableFuture<Hover> doHover(Template template, Position position, SharedSettings settings,
@@ -76,6 +84,10 @@ public class QuteHover {
 			return NO_HOVER;
 		}
 		switch (node.getKind()) {
+		case Section:
+			// - Start end tag definition
+			Section section = (Section) node;
+			return doHoverForSection(section, template, hoverRequest, cancelChecker);
 		case ParameterDeclaration:
 			ParameterDeclaration parameterDeclaration = (ParameterDeclaration) node;
 			return doHoverForParameterDeclaration(parameterDeclaration, template, hoverRequest, cancelChecker);
@@ -88,6 +100,59 @@ public class QuteHover {
 		default:
 			return NO_HOVER;
 		}
+	}
+
+	private CompletableFuture<Hover> doHoverForSection(Section section, Template template, HoverRequest hoverRequest,
+			CancelChecker cancelChecker) {
+		if (section.hasTag()) {
+			// the section defines a tag (e : {#for
+			String tagName = section.getTag();
+			if (section.getSectionKind() == SectionKind.CUSTOM) {
+				// custom tag: search information about user tag
+				QuteProject project = template.getProject();
+				if (project != null) {
+					UserTag userTag = project.findUserTag(tagName);
+					if (userTag != null) {
+						Range range = createSectionTagRange(section, hoverRequest);
+						if (range != null) {
+							boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+							MarkupContent content = DocumentationUtils.getDocumentation(userTag, hasMarkdown);
+							Hover hover = new Hover(content, range);
+							return CompletableFuture.completedFuture(hover);
+						}
+					}
+				}
+			} else {
+				// core tag like #for, #if, etc: display document hover for the section
+				Optional<Snippet> snippetSection = snippetRegistryProvider.getSnippetRegistry() //
+						.getSnippets() //
+						.stream()//
+						.filter(snippet -> tagName.equals(snippet.getLabel())) //
+						.findFirst();
+				if (snippetSection.isPresent()) {
+					Snippet snippet = snippetSection.get();
+					Range range = createSectionTagRange(section, hoverRequest);
+					if (range != null) {
+						boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+						MarkupContent content = DocumentationUtils.getDocumentation(snippet, hasMarkdown);
+						Hover hover = new Hover(content, range);
+						return CompletableFuture.completedFuture(hover);
+					}
+				}
+			}
+		}
+		return NO_HOVER;
+	}
+
+	private static Range createSectionTagRange(Section section, HoverRequest hoverRequest) {
+		int offset = hoverRequest.getOffset();
+		Range range = null;
+		if (section.isInStartTagName(offset)) {
+			range = QutePositionUtility.selectStartTagName(section);
+		} else if (section.isInEndTagName(offset)) {
+			range = QutePositionUtility.selectEndTagName(section);
+		}
+		return range;
 	}
 
 	private CompletableFuture<Hover> doHoverForParameterDeclaration(ParameterDeclaration parameterDeclaration,

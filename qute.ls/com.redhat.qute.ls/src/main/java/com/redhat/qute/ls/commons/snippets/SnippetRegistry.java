@@ -51,11 +51,11 @@ import com.redhat.qute.utils.StringUtils;
  * @author Angelo ZERR
  *
  */
-public class SnippetRegistry {
+public class SnippetRegistry<T extends Snippet> {
 
 	private static final Logger LOGGER = Logger.getLogger(SnippetRegistry.class.getName());
 
-	private final List<Snippet> snippets;
+	private final List<T> snippets;
 
 	public SnippetRegistry() {
 		this(null, true);
@@ -91,7 +91,7 @@ public class SnippetRegistry {
 	 * 
 	 * @param snippet the snippet to register.
 	 */
-	public void registerSnippet(Snippet snippet) {
+	public void registerSnippet(T snippet) {
 		snippets.add(snippet);
 	}
 
@@ -199,7 +199,7 @@ public class SnippetRegistry {
 		reader.beginObject();
 		while (reader.hasNext()) {
 			String name = reader.nextName();
-			Snippet snippet = createSnippet(reader, contextDeserializer);
+			T snippet = createSnippet(reader, contextDeserializer);
 			if (snippet.getDescription() == null) {
 				snippet.setDescription(name);
 			}
@@ -211,8 +211,8 @@ public class SnippetRegistry {
 		reader.endObject();
 	}
 
-	private static Snippet createSnippet(JsonReader reader,
-			TypeAdapter<? extends ISnippetContext<?>> contextDeserializer) throws JsonIOException, JsonSyntaxException {
+	private static <T> T createSnippet(JsonReader reader, TypeAdapter<? extends ISnippetContext<?>> contextDeserializer)
+			throws JsonIOException, JsonSyntaxException {
 		GsonBuilder builder = new GsonBuilder();
 		builder.registerTypeAdapter(Snippet.class, new SnippetDeserializer(contextDeserializer));
 		return builder.create().fromJson(reader, Snippet.class);
@@ -223,7 +223,7 @@ public class SnippetRegistry {
 	 * 
 	 * @return all snippets.
 	 */
-	public List<Snippet> getSnippets() {
+	public List<T> getSnippets() {
 		return snippets;
 	}
 

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.project.QuteProject;
 
 /**
  * Resolving java type context host completable future of Java type to resolved.
@@ -30,6 +31,8 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 
 	private boolean dataModelTemplateResolved;
 
+	private boolean binaryUserTagResolved;
+
 	public ResolvingJavaTypeContext(Template template) {
 		projectResolved = template.getProjectUri() != null;
 		if (projectResolved) {
@@ -44,6 +47,15 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 			dataModelTemplateResolved = f.isDone();
 			if (!dataModelTemplateResolved) {
 				super.add(f);
+			}
+			binaryUserTagResolved = false;
+			QuteProject project = template.getProject();
+			if (project != null) {
+				CompletableFuture<?> tags = project.getBinaryUserTags();
+				binaryUserTagResolved = tags.isDone();
+				if (!binaryUserTagResolved) {
+					super.add(tags);
+				}
 			}
 		}
 	}
@@ -65,7 +77,16 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 	public boolean isDataModelTemplateResolved() {
 		return dataModelTemplateResolved;
 	}
-	
+
+	/**
+	 * Returns true if the binary user tag is resolved and false otherwise.
+	 * 
+	 * @return true if the binary user tag is resolved and false otherwise.
+	 */
+	public boolean isBinaryUserTagResolved() {
+		return binaryUserTagResolved;
+	}
+
 	@Override
 	public boolean add(CompletableFuture<?> e) {
 		if (super.contains(e)) {

@@ -34,6 +34,8 @@ import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
+import com.redhat.qute.commons.usertags.QuteUserTagParams;
+import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.jdt.QuteSupportForTemplate;
 
 /**
@@ -64,6 +66,8 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 
 	private static final String QUTE_TEMPLATE_PROJECT_DATA_MODEL_COMMAND_ID = "qute/template/projectDataModel";
 
+	private static final String QUTE_TEMPLATE_USER_TAGS_COMMAND_ID = "qute/template/userTags";
+
 	private static final String QUTE_TEMPLATE_JAVA_TYPES_COMMAND_ID = "qute/template/javaTypes";
 
 	private static final String QUTE_TEMPLATE_JAVA_DEFINITION_COMMAND_ID = "qute/template/javaDefinition";
@@ -77,6 +81,8 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 			return getProjectInfo(arguments, commandId, monitor);
 		case QUTE_TEMPLATE_PROJECT_DATA_MODEL_COMMAND_ID:
 			return getProjectDataModel(arguments, commandId, monitor);
+		case QUTE_TEMPLATE_USER_TAGS_COMMAND_ID:
+			return getUserTags(arguments, commandId, monitor);
 		case QUTE_TEMPLATE_JAVA_TYPES_COMMAND_ID:
 			return getJavaTypes(arguments, commandId, monitor);
 		case QUTE_TEMPLATE_RESOLVED_JAVA_TYPE_COMMAND_ID:
@@ -127,6 +133,38 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 					"Command '%s' must be called with required QuteProjectDataModelParams.projectUri!", commandId));
 		}
 		return new QuteDataModelProjectParams(projectUri);
+	}
+
+	/**
+	 * Collect user tags from a given project Uri.
+	 * 
+	 * @param arguments
+	 * @param commandId
+	 * @param monitor
+	 * 
+	 * @return user tags from a given project Uri.
+	 * 
+	 * @throws CoreException
+	 */
+	private static List<UserTagInfo> getUserTags(List<Object> arguments, String commandId, IProgressMonitor monitor)
+			throws CoreException {
+		QuteUserTagParams params = createQuteUserTagParams(arguments, commandId);
+		return QuteSupportForTemplate.getInstance().getUserTags(params, JDTUtilsLSImpl.getInstance(), monitor);
+	}
+
+	private static QuteUserTagParams createQuteUserTagParams(List<Object> arguments, String commandId) {
+		Map<String, Object> obj = getFirst(arguments);
+		if (obj == null) {
+			throw new UnsupportedOperationException(
+					String.format("Command '%s' must be called with one QuteUserTagParams argument!", commandId));
+		}
+		// Get project name from the java file URI
+		String projectUri = getString(obj, PROJECT_URI_ATTR);
+		if (projectUri == null) {
+			throw new UnsupportedOperationException(String
+					.format("Command '%s' must be called with required QuteUserTagParams.projectUri!", commandId));
+		}
+		return new QuteUserTagParams(projectUri);
 	}
 
 	/**

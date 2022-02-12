@@ -24,6 +24,7 @@ import com.redhat.qute.commons.ValueResolver;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
+import com.redhat.qute.ls.api.QuteUserTagProvider;
 
 /**
  * Qute quick start project.
@@ -35,8 +36,9 @@ public class QuteQuickStartProject extends MockQuteProject {
 
 	public final static String PROJECT_URI = "qute-quickstart";
 
-	public QuteQuickStartProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider) {
-		super(projectInfo, dataModelProvider);
+	public QuteQuickStartProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider,
+			QuteUserTagProvider tagProvider) {
+		super(projectInfo, dataModelProvider, tagProvider);
 	}
 
 	@Override

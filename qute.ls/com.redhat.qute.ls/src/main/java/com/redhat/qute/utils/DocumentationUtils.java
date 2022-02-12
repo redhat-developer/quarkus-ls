@@ -13,6 +13,7 @@ package com.redhat.qute.utils;
 
 import static com.redhat.qute.commons.JavaElementInfo.getSimpleType;
 
+import java.net.URI;
 import java.util.List;
 
 import org.eclipse.lsp4j.MarkupContent;
@@ -24,6 +25,8 @@ import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.ValueResolver;
+import com.redhat.qute.ls.commons.snippets.Snippet;
+import com.redhat.qute.project.tags.UserTag;
 
 /**
  * Utility for documentation.
@@ -174,5 +177,56 @@ public class DocumentationUtils {
 			documentation.append(member.getDocumentation());
 		}
 		return documentation;
+	}
+
+	public static MarkupContent getDocumentation(UserTag userTag, boolean markdown) {
+		StringBuilder documentation = new StringBuilder();
+
+		if (markdown) {
+			documentation.append("**");
+		}
+		documentation.append("#" + userTag.getName());
+		if (markdown) {
+			documentation.append("**");
+		}
+		documentation.append(" user tag ");
+
+		documentation.append(System.lineSeparator());
+		documentation.append(System.lineSeparator());
+
+		URI uri = URI.create(userTag.getUri());
+		documentation.append("Defined in ");
+		if (markdown) {
+			documentation.append("[");
+			documentation.append(userTag.getFileName());
+			documentation.append("](");
+			documentation.append(userTag.getUri());
+			documentation.append(")");
+		} else {
+			documentation.append(uri.getPath());
+		}
+
+		return createMarkupContent(documentation, markdown);
+	}
+
+	public static MarkupContent getDocumentation(Snippet snippet, boolean markdown) {
+		StringBuilder documentation = new StringBuilder();
+		
+		if (markdown) {
+			documentation.append("**");
+		}
+		documentation.append("#" + snippet.getLabel());
+		if (markdown) {
+			documentation.append("**");
+		}
+		documentation.append(" section tag ");
+		
+		if (snippet.getDescription() != null) {
+			documentation.append(System.lineSeparator());
+			documentation.append(System.lineSeparator());
+			documentation.append(snippet.getDescription());
+		}
+		
+		return createMarkupContent(documentation, markdown);
 	}
 }
