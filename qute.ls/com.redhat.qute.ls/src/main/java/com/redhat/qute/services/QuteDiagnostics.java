@@ -419,7 +419,7 @@ class QuteDiagnostics {
 
 			case Object: {
 				ObjectPart objectPart = (ObjectPart) current;
-				resolvedJavaType = validateObjectPart(objectPart, ownerSection, projectUri, resolutionContext,
+				resolvedJavaType = validateObjectPart(objectPart, ownerSection, template, projectUri, resolutionContext,
 						diagnostics, resolvingJavaTypeContext);
 				if (resolvedJavaType == null) {
 					// The Java type of the object part cannot be resolved, stop the validation of
@@ -481,14 +481,15 @@ class QuteDiagnostics {
 	/**
 	 * Validate namespace part.
 	 *
-	 * @param namespacePart the namespace part to validate.
-	 * @param projectUri    the project Uri.
-	 * @param resolvingJavaTypeContext 
-	 * @param diagnostics   the diagnostics list to fill.
+	 * @param namespacePart            the namespace part to validate.
+	 * @param projectUri               the project Uri.
+	 * @param resolvingJavaTypeContext
+	 * @param diagnostics              the diagnostics list to fill.
 	 * @return the namespace of the part if it is an defined namespace and null
 	 *         otherwise.
 	 */
-	private String validateNamespace(NamespacePart namespacePart, String projectUri, ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
+	private String validateNamespace(NamespacePart namespacePart, String projectUri,
+			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
 		String namespace = namespacePart.getPartName();
 		if (NamespacePart.DATA_NAMESPACE.equals(namespace)) {
 			return namespace;
@@ -497,7 +498,7 @@ class QuteDiagnostics {
 			// The data model is not loaded, ignore the error of undefined namespace
 			return null;
 		}
-		
+
 		if (projectUri != null) {
 			if (!javaCache.hasNamespace(namespace, projectUri)) {
 				Range range = QutePositionUtility.createRange(namespacePart);
@@ -510,8 +511,8 @@ class QuteDiagnostics {
 		return namespace;
 	}
 
-	private ResolvedJavaTypeInfo validateObjectPart(ObjectPart objectPart, Section ownerSection, String projectUri,
-			ResolutionContext resolutionContext, List<Diagnostic> diagnostics,
+	private ResolvedJavaTypeInfo validateObjectPart(ObjectPart objectPart, Section ownerSection, Template template,
+			String projectUri, ResolutionContext resolutionContext, List<Diagnostic> diagnostics,
 			ResolvingJavaTypeContext resolvingJavaTypeContext) {
 		// Check if object part is a property coming from #with
 		JavaMemberInfo javaMember = resolutionContext.findMemberWithObject(objectPart.getPartName(), projectUri);
@@ -530,6 +531,12 @@ class QuteDiagnostics {
 				// The data model is not loaded, ignore the error of undefined variable
 				return null;
 			}
+			QuteProject project = template.getProject();
+			if (project != null && project.isUserTag(template)) {
+				// Ignore undefined variable diagnostic for user tag
+				return null;
+			}
+
 			// ex : {item} --> undefined variable
 			Range range = QutePositionUtility.createRange(objectPart);
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning, QuteErrorCode.UndefinedVariable,

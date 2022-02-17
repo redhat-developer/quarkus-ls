@@ -311,4 +311,9 @@ public class QuteProject {
 			CompletionList list) {
 		tagRegistry.collectUserTagSuggestions(completionRequest, prefixFilter, suffixToFind, list);
 	}
+
+	public boolean isUserTag(Template template) {
+		String templateId = template.getTemplateId();
+		return templateId != null && templateId.startsWith("tags");
+	}
 }
