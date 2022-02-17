@@ -14,22 +14,35 @@ package com.redhat.qute.services.diagnostics;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 
+import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
 /**
- * Syntax error from the real Qute parser.
+ * User tag diagnostics.
  * 
  * @author Angelo ZERR
  *
  */
-public class QuteDiagnosticsSyntaxError {
+public class QuteDiagnosticsUserTagTest {
 
 	@Test
-	public void emptyParameterDeclaration() {
-		String template = "{@}";
+	public void undefinedVariableInTemplate() {
+		String template = "{name}";
+		Diagnostic d = d(0, 1, 0, 5, QuteErrorCode.UndefinedVariable, "`name` cannot be resolved to a variable.",
+				DiagnosticSeverity.Warning);
+		d.setData(DiagnosticDataFactory.createUndefinedVariableData("name", false));
 		testDiagnosticsFor(template, //
-				d(0, 2, 0, 2, QuteErrorCode.SyntaxError, "Parser error on line 1: invalid parameter declaration {@}",
-						DiagnosticSeverity.Error));
+				"src/main/resources/templates/user.html", //
+				"user", //
+				d);
+	}
+
+	@Test
+	public void undefinedVariableInUserTagTemplate() {
+		String template = "{name}";
+		testDiagnosticsFor(template, //
+				"src/main/resources/templates/tags/user.html", //
+				"tags/user");
 	}
 }

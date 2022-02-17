@@ -256,14 +256,19 @@ public class QuteAssert {
 	}
 
 	public static void testDiagnosticsFor(String value, String fileUri, Diagnostic... expected) {
-		testDiagnosticsFor(value, fileUri, PROJECT_URI, TEMPLATE_BASE_DIR, false, expected);
+		testDiagnosticsFor(value, fileUri, null, expected);
 	}
 
-	public static void testDiagnosticsFor(String value, String fileUri, String projectUri, String templateBaseDir,
-			boolean filter, Diagnostic... expected) {
+	public static void testDiagnosticsFor(String value, String fileUri, String templateId, Diagnostic... expected) {
+		testDiagnosticsFor(value, fileUri, templateId, PROJECT_URI, TEMPLATE_BASE_DIR, false, expected);
+	}
+
+	public static void testDiagnosticsFor(String value, String fileUri, String templateId, String projectUri,
+			String templateBaseDir, boolean filter, Diagnostic... expected) {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
-
+		template.setTemplateId(templateId);
+		
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
 		List<Diagnostic> actual = languageService.doDiagnostics(template, null, new ResolvingJavaTypeContext(template),
 				() -> {
