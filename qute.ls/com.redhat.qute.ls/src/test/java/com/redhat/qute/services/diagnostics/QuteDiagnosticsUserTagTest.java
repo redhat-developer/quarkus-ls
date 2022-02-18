@@ -45,4 +45,13 @@ public class QuteDiagnosticsUserTagTest {
 				"src/main/resources/templates/tags/user.html", //
 				"tags/user");
 	}
+
+	@Test
+	public void undefinedVariableInUserTagCall() {
+		String template = "{#user name=name /}";
+		Diagnostic d = d(0, 12, 0, 16, QuteErrorCode.UndefinedVariable, "`name` cannot be resolved to a variable.",
+				DiagnosticSeverity.Warning);
+		d.setData(DiagnosticDataFactory.createUndefinedVariableData("name", false));
+		testDiagnosticsFor(template, d);
+	}
 }

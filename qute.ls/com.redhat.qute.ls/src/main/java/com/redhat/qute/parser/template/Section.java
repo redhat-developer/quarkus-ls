@@ -26,7 +26,7 @@ import com.redhat.qute.parser.parameter.ParameterParser;
  * @see https://quarkus.io/guides/qute-reference#sections
  *
  */
-public class Section extends Node implements ParametersContainer {
+public abstract class Section extends Node implements ParametersContainer {
 
 	private final String tag;
 
@@ -452,9 +452,7 @@ public class Section extends Node implements ParametersContainer {
 		return "#" + getTag();
 	}
 
-	public SectionKind getSectionKind() {
-		return SectionKind.CUSTOM;
-	}
+	public abstract SectionKind getSectionKind();
 
 	/**
 	 * Returns the supported metadata list of the section.
