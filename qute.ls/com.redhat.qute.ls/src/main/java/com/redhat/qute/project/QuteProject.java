@@ -11,8 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.project;
 
-import java.io.File;
-import java.net.URI;
+import static com.redhat.qute.utils.FileUtils.createPath;
+
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,7 +48,6 @@ import com.redhat.qute.project.indexing.QuteTemplateIndex;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagRegistry;
 import com.redhat.qute.services.completions.CompletionRequest;
-import com.redhat.qute.utils.StringUtils;
 
 /**
  * A Qute project.
@@ -86,25 +85,6 @@ public class QuteProject {
 	}
 
 	/**
-	 * Returns the path for the given file uri.
-	 *
-	 * @param fileUri the file Uri.
-	 *
-	 * @return the path for the given file uri.
-	 */
-	public static Path createPath(String fileUri) {
-		if (StringUtils.isEmpty(fileUri)) {
-			return null;
-		}
-		if (fileUri.startsWith("file:/")) {
-			String convertedUri = fileUri.replace("file:///", "file:/"); //$NON-NLS-1$//$NON-NLS-2$
-			convertedUri = convertedUri.replace("file://", "file:/"); //$NON-NLS-1$//$NON-NLS-2$
-			return new File(URI.create(convertedUri)).toPath();
-		}
-		return new File(fileUri).toPath();
-	}
-
-	/**
 	 * Returns the templates base dir folder of the project (ex :
 	 * src/main/resources/templates).
 	 *
@@ -116,6 +96,9 @@ public class QuteProject {
 	}
 
 	public String getTemplateId(Path templatePath) {
+		if (templatePath == null || templateBaseDir == null) {
+			return null;
+		}
 		try {
 			return templateBaseDir.relativize(templatePath).toString().replace('\\', '/');
 		} catch (Exception e) {
@@ -181,7 +164,7 @@ public class QuteProject {
 					try {
 						if (insertParamater == null || insertParamater.equals(parameter.getValue())) {
 							Position position = template.positionAt(parameter.getStart());
-							Path path = QuteProject.createPath(template.getUri());
+							Path path = createPath(template.getUri());
 							QuteTemplateIndex templateIndex = new QuteTemplateIndex(path, template.getTemplateId());
 							QuteIndex index = new QuteIndex("insert", parameter.getValue(), position,
 									SectionKind.INSERT, templateIndex);
@@ -257,7 +240,7 @@ public class QuteProject {
 
 	/**
 	 * Returns list of source ('src/main/resources/templates/tags') user tags.
-	 * 
+	 *
 	 * @return list of source ('src/main/resources/templates/tags') user tags.
 	 */
 	public Collection<UserTag> getSourceUserTags() {
@@ -266,7 +249,7 @@ public class QuteProject {
 
 	/**
 	 * Returns list of binary ('templates.tags') user tags.
-	 * 
+	 *
 	 * @return list of binary ('templates.tags') user tags.
 	 */
 	public CompletableFuture<List<UserTag>> getBinaryUserTags() {
@@ -275,9 +258,9 @@ public class QuteProject {
 
 	/**
 	 * Find user tag by the given tagName and null otherwise.
-	 * 
+	 *
 	 * @param tagName the tag name.
-	 * 
+	 *
 	 * @return user tag by the given tagName and null otherwise.
 	 */
 	public UserTag findUserTag(String tagName) {
