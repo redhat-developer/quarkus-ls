@@ -146,6 +146,22 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
+	public void undefinedUnderscoreVariable() throws Exception {
+		String template = "{nested-content}";
+
+		Diagnostic d = d(0, 1, 0, 15, //
+				QuteErrorCode.UndefinedVariable, //
+				"`nested-content` cannot be resolved to a variable.", //
+				DiagnosticSeverity.Warning);
+		d.setData(DiagnosticDataFactory.createUndefinedVariableData("nested-content", false));
+
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String nested-content}" + //
+						System.lineSeparator())));
+	}
+
+	@Test
 	public void definedVariableWithParameterDeclaration() {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{item}";
@@ -497,7 +513,7 @@ public class QuteDiagnosticsInExpressionTest {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{items.getByIndex(0)}";
 		testDiagnosticsFor(template);
-		
+
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.getByIndex(0)}";
 		testDiagnosticsFor(template, //

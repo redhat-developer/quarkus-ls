@@ -17,8 +17,12 @@ import com.redhat.qute.parser.scanner.AbstractScanner;
 
 public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> {
 
-	private static final Predicate<Integer> JAVA_IDENTIFIER_PART_PREDICATE = ch -> {
+	private static final Predicate<Integer> PART_PREDICATE = ch -> {
 		return Character.isJavaIdentifierPart(ch);
+	};
+
+	private static final Predicate<Integer> OBJECT_PART_PREDICATE = ch -> {
+		return Character.isJavaIdentifierPart(ch) || ch == '-';
 	};
 
 	public static ExpressionScanner createScanner(String input) {
@@ -108,7 +112,7 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 			} else if (stream.peekChar() == ')') {
 				stream.advance(1);
 				bracket--;
-				if (bracket > 0) {					
+				if (bracket > 0) {
 					return internalScan();
 				}
 				state = ScannerState.WithinParts;
@@ -160,7 +164,13 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 	}
 
 	private boolean hasNextJavaIdentifierPart() {
-		return stream.advanceWhileChar(JAVA_IDENTIFIER_PART_PREDICATE) > 0;
+		TokenType lastTokenType = getTokenType();
+		if (lastTokenType == TokenType.Dot) {
+			// A method, property part is scanning
+			return stream.advanceWhileChar(PART_PREDICATE) > 0;
+		}
+		// An object part is scanning, the '-' is accepted (ex : nested-content)
+		return stream.advanceWhileChar(OBJECT_PART_PREDICATE) > 0;
 	}
 
 }

@@ -66,6 +66,7 @@ import com.redhat.qute.services.diagnostics.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.StringUtils;
+import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * Qute diagnostics support.
@@ -531,8 +532,8 @@ class QuteDiagnostics {
 				// The data model is not loaded, ignore the error of undefined variable
 				return null;
 			}
-			QuteProject project = template.getProject();
-			if (project != null && project.isUserTag(template)) {
+
+			if (UserTagUtils.isUserTag(template)) {
 				// Ignore undefined variable diagnostic for user tag
 				return null;
 			}

@@ -38,6 +38,7 @@ import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
+import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * Qute code lens support.
@@ -47,6 +48,7 @@ import com.redhat.qute.utils.QutePositionUtility;
  */
 class QuteCodeLens {
 
+	private static final Range LEFT_TOP_RANGE = new Range(new Position(0, 0), new Position(0, 0));
 	private final JavaDataModelCache javaCache;
 
 	public QuteCodeLens(JavaDataModelCache javaCache) {
@@ -65,11 +67,16 @@ class QuteCodeLens {
 
 					// checked template code lenses
 					collectDataModelCodeLenses(templateDataModel, template, settings, lenses, cancelChecker);
+
+					if (UserTagUtils.isUserTag(template)) {
+						// Template is an user tag
+						collectUserTagCodeLenses(template, cancelChecker, lenses);
+					}
 					return lenses;
 				});
 	}
 
-	public void collectDataModelCodeLenses(ExtendedDataModelTemplate templateDataModel, Template template,
+	private static void collectDataModelCodeLenses(ExtendedDataModelTemplate templateDataModel, Template template,
 			SharedSettings settings, List<CodeLens> lenses, CancelChecker cancelChecker) {
 		if (templateDataModel == null || templateDataModel.getSourceType() == null) {
 			return;
@@ -84,7 +91,7 @@ class QuteCodeLens {
 
 		// Method/Field which is bound with the template
 		String title = createCheckedTemplateTitle(templateDataModel);
-		Range range = new Range(new Position(0, 0), new Position(0, 0));
+		Range range = LEFT_TOP_RANGE;
 		Command command = !canSupportJavaDefinition ? new Command(title, "")
 				: new Command(title, COMMAND_JAVA_DEFINITION,
 						Arrays.asList(templateDataModel.toJavaDefinitionParams(projectUri)));
@@ -105,7 +112,7 @@ class QuteCodeLens {
 		}
 	}
 
-	private String createParameterTitle(ExtendedDataModelParameter parameter) {
+	private static String createParameterTitle(ExtendedDataModelParameter parameter) {
 		StringBuilder title = new StringBuilder();
 		title.append(parameter.getKey());
 		title.append(" : ");
@@ -113,7 +120,7 @@ class QuteCodeLens {
 		return title.toString();
 	}
 
-	private String createCheckedTemplateTitle(DataModelTemplate<?> dataModel) {
+	private static String createCheckedTemplateTitle(DataModelTemplate<?> dataModel) {
 		String className = dataModel.getSourceType();
 		int index = className.lastIndexOf('.');
 		className = className.substring(index + 1, className.length());
@@ -128,8 +135,8 @@ class QuteCodeLens {
 		return title.toString();
 	}
 
-	private void collectInsertCodeLenses(Node parent, Template template, QuteProject project, List<CodeLens> lenses,
-			CancelChecker cancelChecker) {
+	private static void collectInsertCodeLenses(Node parent, Template template, QuteProject project,
+			List<CodeLens> lenses, CancelChecker cancelChecker) {
 		cancelChecker.checkCanceled();
 		if (parent.getKind() == NodeKind.Section) {
 			Section section = (Section) parent;
@@ -160,4 +167,22 @@ class QuteCodeLens {
 		}
 	}
 
+	private static void collectUserTagCodeLenses(Template template, CancelChecker cancelChecker,
+			List<CodeLens> lenses) {
+		// 1) display the user tag name as codelens
+		String userTagTitle = "User tag #" + UserTagUtils.getUserTagName(template.getUri());
+		Command userTagCommand = new Command(userTagTitle, "");
+		CodeLens userTagCodeLens = new CodeLens(LEFT_TOP_RANGE, userTagCommand, null);
+		lenses.add(userTagCodeLens);
+
+		// 2) display a codelens for each expression object part
+		UserTagUtils.collectUserTagParameters(template, //
+				objectPart -> {
+					String title = objectPart.getPartName();
+					Range range = LEFT_TOP_RANGE;
+					Command command = new Command(title, "");
+					CodeLens codeLens = new CodeLens(range, command, null);
+					lenses.add(codeLens);
+				}, cancelChecker);
+	}
 }
