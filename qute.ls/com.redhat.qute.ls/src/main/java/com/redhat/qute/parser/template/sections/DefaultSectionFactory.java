@@ -40,6 +40,6 @@ public class DefaultSectionFactory implements SectionFactory {
 	@Override
 	public Section createSection(String tag, int start, int end) {
 		SectionFactory factory = factoryByTag.get(tag);
-		return factory != null ? factory.createSection(tag, start, end) : new Section(tag, start, end);
+		return factory != null ? factory.createSection(tag, start, end) : new CustomSection(tag, start, end);
 	}
 }
