@@ -15,6 +15,7 @@ import java.util.Arrays;
 
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.services.snippets.QuteSnippetContext;
+import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * Abstract class for User tag section.
@@ -27,14 +28,16 @@ import com.redhat.qute.services.snippets.QuteSnippetContext;
 public abstract class UserTag extends Snippet {
 
 	private final String fileName;
+	private final String templateId;
 
 	public UserTag(String fileName) {
-		String name = fileName.contains(".") ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+		String name = UserTagUtils.getUserTagName(fileName);
 		super.setLabel(name);
 		super.setPrefixes(Arrays.asList(name));
 		super.setBody(Arrays.asList("{#" + name + " /}$0"));
 		super.setContext(QuteSnippetContext.IN_TEXT);
 		this.fileName = fileName;
+		this.templateId = UserTagUtils.getTemplateId(name);
 	}
 
 	/**
@@ -61,7 +64,7 @@ public abstract class UserTag extends Snippet {
 	 * @return the template id.
 	 */
 	public String getTemplateId() {
-		return "tags/" + getName();
+		return templateId;
 	}
 
 	/**
@@ -70,5 +73,4 @@ public abstract class UserTag extends Snippet {
 	 * @return the Qute template file Uri.
 	 */
 	public abstract String getUri();
-
 }

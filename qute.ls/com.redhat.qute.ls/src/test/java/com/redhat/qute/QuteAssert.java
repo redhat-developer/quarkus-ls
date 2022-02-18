@@ -268,7 +268,7 @@ public class QuteAssert {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 		template.setTemplateId(templateId);
-		
+
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
 		List<Diagnostic> actual = languageService.doDiagnostics(template, null, new ResolvingJavaTypeContext(template),
 				() -> {
@@ -502,13 +502,19 @@ public class QuteAssert {
 	// ------------------- CodeLens assert
 
 	public static void testCodeLensFor(String value, String fileUri, CodeLens... expected) throws Exception {
-		testCodeLensFor(value, fileUri, PROJECT_URI, TEMPLATE_BASE_DIR, expected);
+		testCodeLensFor(value, fileUri, null, expected);
 	}
 
-	public static void testCodeLensFor(String value, String fileUri, String projectUri, String templateBaseDir,
-			CodeLens... expected) throws Exception {
+	public static void testCodeLensFor(String value, String fileUri, String templateId, CodeLens... expected)
+			throws Exception {
+		testCodeLensFor(value, fileUri, templateId, PROJECT_URI, TEMPLATE_BASE_DIR, expected);
+	}
+
+	private static void testCodeLensFor(String value, String fileUri, String templateId, String projectUri,
+			String templateBaseDir, CodeLens... expected) throws Exception {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		template.setTemplateId(templateId);
 
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
 		SharedSettings sharedSettings = new SharedSettings();

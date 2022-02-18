@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.services;
+package com.redhat.qute.services.codelens;
 
 import static com.redhat.qute.QuteAssert.cl;
 import static com.redhat.qute.QuteAssert.r;
@@ -20,12 +20,12 @@ import org.junit.jupiter.api.Test;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 
 /**
- * Tests for Qute code lens.
+ * Tests for Qute code lens and data model.
  * 
  * @author Angelo ZERR
  *
  */
-public class QuteCodeLensTest {
+public class QuteCodeLensForDataModelTest {
 
 	@Test
 	public void noCheckedTemplateMatching() throws Exception {

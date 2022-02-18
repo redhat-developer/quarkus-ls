@@ -1,3 +1,14 @@
+/*******************************************************************************
+* Copyright (c) 2021 Red Hat Inc. and others.
+* All rights reserved. This program and the accompanying materials
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v20.html
+*
+* SPDX-License-Identifier: EPL-2.0
+*
+* Contributors:
+*     Red Hat Inc. - initial API and implementation
+*******************************************************************************/
 package com.redhat.qute.parser.expression.scanner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -6,6 +17,12 @@ import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.parser.scanner.Scanner;
 
+/**
+ * Expression scanner tests.
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public class ExpressionScannerTest {
 
 	private Scanner<TokenType, ScannerState> scanner;
@@ -137,13 +154,18 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(21, TokenType.EOS, "");
 	}
 
-	public void assertOffsetAndToken(int tokenOffset, TokenType tokenType) {
-		TokenType token = scanner.scan();
-		assertEquals(tokenOffset, scanner.getTokenOffset());
-		assertEquals(tokenType, token);
+	@Test
+	public void underscore() {
+		scanner = ExpressionScanner.createScanner("nested-content.toString()");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "nested-content");
+		assertOffsetAndToken(14, TokenType.Dot, ".");
+		assertOffsetAndToken(15, TokenType.MethodPart, "toString");
+		assertOffsetAndToken(23, TokenType.OpenBracket, "(");
+		assertOffsetAndToken(24, TokenType.CloseBracket, ")");
+		assertOffsetAndToken(25, TokenType.EOS, "");
 	}
 
-	public void assertOffsetAndToken(int tokenOffset, TokenType tokenType, String tokenText) {
+	private void assertOffsetAndToken(int tokenOffset, TokenType tokenType, String tokenText) {
 		TokenType token = scanner.scan();
 		assertEquals(tokenOffset, scanner.getTokenOffset());
 		assertEquals(tokenType, token);

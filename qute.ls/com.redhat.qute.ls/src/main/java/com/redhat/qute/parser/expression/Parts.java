@@ -38,6 +38,11 @@ public class Parts extends Node {
 		return NodeKind.ExpressionParts;
 	}
 
+	/**
+	 * Returns the object part of the parts and null otherwise.
+	 * 
+	 * @return the object part of the parts and null otherwise.
+	 */
 	public ObjectPart getObjectPart() {
 		if (super.getChildCount() == 0) {
 			return null;
@@ -55,6 +60,22 @@ public class Parts extends Node {
 		default:
 			return null;
 		}
+	}
+
+	/**
+	 * Returns the namespace part of the parts and null otherwise.
+	 * 
+	 * @return the namespace part of the parts and null otherwise.
+	 */
+	public NamespacePart getNamespacePart() {
+		if (super.getChildCount() == 0) {
+			return null;
+		}
+		Part firstPart = getChild(0);
+		if (firstPart.getPartKind() == PartKind.Namespace) {
+			return (NamespacePart) firstPart;
+		}
+		return null;
 	}
 
 	@Override
@@ -113,4 +134,5 @@ public class Parts extends Node {
 	public String getContent() {
 		return getOwnerTemplate().getText(getStart(), getEnd());
 	}
+
 }
