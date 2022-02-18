@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.ls.template;
 
+import static com.redhat.qute.utils.FileUtils.createPath;
+
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
@@ -47,7 +49,7 @@ public class QuteTextDocument extends ModelTextDocument<Template> implements Tem
 		super(document, parse);
 		this.projectInfoProvider = projectInfoProvider;
 		this.projectRegistry = projectRegistry;
-		this.templatePath = QuteProject.createPath(document.getUri());
+		this.templatePath = createPath(document.getUri());
 	}
 
 	@Override
@@ -96,7 +98,7 @@ public class QuteTextDocument extends ModelTextDocument<Template> implements Tem
 			return templateId;
 		}
 		getProjectInfoFuture().getNow(null);
-		return null;
+		return templateId;
 	}
 
 	@Override

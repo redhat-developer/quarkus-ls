@@ -11,11 +11,12 @@
 *******************************************************************************/
 package com.redhat.qute.settings;
 
+import static com.redhat.qute.utils.FileUtils.isFileURI;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -25,8 +26,6 @@ import java.util.stream.Collectors;
  *
  */
 public class QuteValidationSettings {
-
-	private static final Logger LOGGER = Logger.getLogger(QuteValidationSettings.class.getName());
 
 	public static final QuteValidationSettings DEFAULT;
 
@@ -125,6 +124,14 @@ public class QuteValidationSettings {
 			return false;
 		}
 		URI uri = URI.create(templateUri);
+		if (!isFileURI(uri)) {
+			// - ignore jdt://jarentry : when we open an HTML file from a JAR, template uri
+			// looks like this
+			// jdt://jarentry/templates/tags/error.html?%3Drenarde-todo%2FC%3A%5C%2FUsers%5C%2Fazerr%5C%2F.m2%5C%2Frepository%5C%2Fquarkus-renarde-mock%5C%2Fquarkus-renarde-mock%5C%2F0.0.1-SNAPSHOT%5C%2Fquarkus-renarde-mock-0.0.1-SNAPSHOT.jar%3D%2Fmaven.pomderived%3D%2Ftrue%3D%2F%3D%2Fmaven.pomderived%3D%2Ftrue%3D%2F%3D%2Fmaven.groupId%3D%2Fquarkus-renarde-mock%3D%2F%3D%2Fmaven.artifactId%3D%2Fquarkus-renarde-mock%3D%2F%3D%2Fmaven.version%3D%2F0.0.1-SNAPSHOT%3D%2F%3D%2Fmaven.scope%3D%2Fcompile%3D%2F
+			// we ignore the matches
+			// - ignore untitled:// URI kind
+			return false;
+		}
 		for (PathPatternMatcher matcher : getExcludedPatterns()) {
 			if (matcher.matches(uri)) {
 				return true;
@@ -145,6 +152,9 @@ public class QuteValidationSettings {
 			return Collections.emptyList();
 		}
 		URI uri = URI.create(templateUri);
+		if (!isFileURI(uri)) {
+			return Collections.emptyList();
+		}
 		List<String> matching = new ArrayList<>();
 		for (PathPatternMatcher matcher : getExcludedPatterns()) {
 			if (matcher.matches(uri)) {
