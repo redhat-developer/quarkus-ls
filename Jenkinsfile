@@ -43,7 +43,7 @@ pipeline {
           pom=${WORKSPACE_SAV}/qute.jdt/pom.xml
 
           pomVersion=$(grep "<version>" ${pom} | head -1 | sed -e "s#.*<version>\\(.\\+\\)</version>.*#\\1#")
-          WORKSPACE=${WORKSPACE_SAV}/qute.jdt/com.redhat.qute.jdt.quarkus.site/target/releng-scripts
+          WORKSPACE=${WORKSPACE_SAV}/qute.jdt/com.redhat.qute.jdt.site/target/releng-scripts
           if [[ ${pomVersion} == *"-SNAPSHOT" ]]; then
             ${MVN} -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/snapshots/builds/qute-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=1800 -Dmaven.test.failure.ignore=true
           else
