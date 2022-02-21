@@ -15,6 +15,7 @@ import static com.redhat.qute.services.QuteCompletions.EMPTY_COMPLETION;
 import static com.redhat.qute.services.QuteCompletions.EMPTY_FUTURE_COMPLETION;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -57,6 +58,7 @@ import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.StringUtils;
+import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * Qute completion inside Qute expression.
@@ -424,6 +426,26 @@ public class QuteCompletionsForExpression {
 			char previous = template.getText().charAt(offset - 1);
 			completionForTagSection.doCompleteTagSection(completionRequest, previous == '#' ? "#" : "{",
 					completionSettings, formattingSettings, cancelChecker, list);
+		}
+
+		if (UserTagUtils.isUserTag(template)) {
+			// provide completion for 'it' and 'nested-content'
+			Collection<SectionMetadata> metadatas = UserTagUtils.getSpecialKeys();
+			for (SectionMetadata metadata : metadatas) {
+				String name = metadata.getName();
+				if (!existingVars.contains(name)) {
+					existingVars.add(name);
+					CompletionItem item = new CompletionItem();
+					item.setLabel(name);
+					item.setKind(CompletionItemKind.Keyword);
+					// Display metadata section (ex : count for #each) after declared variables
+					item.setSortText("Za" + name);
+					TextEdit textEdit = new TextEdit(range, name);
+					item.setTextEdit(Either.forLeft(textEdit));
+					item.setDetail(metadata.getDescription());
+					list.getItems().add(item);
+				}
+			}
 		}
 		return CompletableFuture.completedFuture(list);
 	}

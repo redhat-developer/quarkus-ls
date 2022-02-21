@@ -26,6 +26,7 @@ import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.ValueResolver;
 import com.redhat.qute.ls.commons.snippets.Snippet;
+import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.project.tags.UserTag;
 
 /**
@@ -211,7 +212,7 @@ public class DocumentationUtils {
 
 	public static MarkupContent getDocumentation(Snippet snippet, boolean markdown) {
 		StringBuilder documentation = new StringBuilder();
-		
+
 		if (markdown) {
 			documentation.append("**");
 		}
@@ -220,13 +221,36 @@ public class DocumentationUtils {
 			documentation.append("**");
 		}
 		documentation.append(" section tag ");
-		
+
 		if (snippet.getDescription() != null) {
 			documentation.append(System.lineSeparator());
 			documentation.append(System.lineSeparator());
 			documentation.append(snippet.getDescription());
 		}
-		
+
+		return createMarkupContent(documentation, markdown);
+	}
+
+	public static MarkupContent getDocumentation(SectionMetadata metadata, boolean markdown) {
+		StringBuilder documentation = new StringBuilder();
+
+		// Title
+		if (markdown) {
+			documentation.append("```java");
+			documentation.append(System.lineSeparator());
+		}
+		documentation.append(metadata.getSimpleType());
+		if (markdown) {
+			documentation.append(System.lineSeparator());
+			documentation.append("```");
+		}
+
+		String description = metadata.getDescription();
+		if (description != null) {
+			documentation.append(System.lineSeparator());
+			documentation.append(description);
+		}
+
 		return createMarkupContent(documentation, markdown);
 	}
 }

@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template;
 
+import com.redhat.qute.commons.JavaElementInfo;
+
 /**
  * Metadata for Qute section.
  * 
@@ -80,6 +82,11 @@ public class SectionMetadata implements JavaTypeInfoProvider {
 	@Override
 	public Node getJavaTypeOwnerNode() {
 		return null;
+	}
+
+	public String getSimpleType() {
+		String type = getType();
+		return JavaElementInfo.getSimpleType(type);
 	}
 
 }

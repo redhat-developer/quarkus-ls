@@ -127,13 +127,27 @@ public class QuteAssert {
 				expectedItems);
 	}
 
+	public static void testCompletionFor(String value, String fileUri, String templateId, Integer expectedCount,
+			CompletionItem... expectedItems) throws Exception {
+		testCompletionFor(value, false, fileUri, templateId, PROJECT_URI, TEMPLATE_BASE_DIR, expectedCount,
+				expectedItems);
+	}
+
 	public static void testCompletionFor(String value, boolean snippetSupport, String fileUri, String projectUri,
 			String templateBaseDir, Integer expectedCount, CompletionItem... expectedItems) throws Exception {
+		testCompletionFor(value, snippetSupport, fileUri, null, projectUri, templateBaseDir, expectedCount,
+				expectedItems);
+	}
+
+	public static void testCompletionFor(String value, boolean snippetSupport, String fileUri, String templateId,
+			String projectUri, String templateBaseDir, Integer expectedCount, CompletionItem... expectedItems)
+			throws Exception {
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		template.setTemplateId(templateId);
 
 		Position position = template.positionAt(offset);
 
@@ -357,20 +371,27 @@ public class QuteAssert {
 
 	public static void assertHover(String value, String fileURI, String expectedHoverLabel, Range expectedHoverRange)
 			throws Exception {
+		assertHover(value, fileURI, null, expectedHoverLabel, expectedHoverRange);
+	}
+
+	public static void assertHover(String value, String fileURI, String templateId, String expectedHoverLabel,
+			Range expectedHoverRange) throws Exception {
 		SharedSettings sharedSettings = new SharedSettings();
 		HoverCapabilities capabilities = new HoverCapabilities(Arrays.asList(MarkupKind.MARKDOWN), false);
 		sharedSettings.getHoverSettings().setCapabilities(capabilities);
-		assertHover(value, fileURI, PROJECT_URI, TEMPLATE_BASE_DIR, expectedHoverLabel, expectedHoverRange,
+		assertHover(value, fileURI, templateId, PROJECT_URI, TEMPLATE_BASE_DIR, expectedHoverLabel, expectedHoverRange,
 				sharedSettings);
 	}
 
-	public static void assertHover(String value, String fileUri, String projectUri, String templateBaseDir,
-			String expectedHoverLabel, Range expectedHoverRange, SharedSettings sharedSettings) throws Exception {
+	private static void assertHover(String value, String fileUri, String templateId, String projectUri,
+			String templateBaseDir, String expectedHoverLabel, Range expectedHoverRange, SharedSettings sharedSettings)
+			throws Exception {
 		int offset = value.indexOf("|");
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		template.setTemplateId(templateId);
 
 		Position position = template.positionAt(offset);
 

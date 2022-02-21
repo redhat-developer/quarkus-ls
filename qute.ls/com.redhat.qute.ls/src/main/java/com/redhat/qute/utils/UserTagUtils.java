@@ -11,8 +11,11 @@
 *******************************************************************************/
 package com.redhat.qute.utils;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -24,15 +27,32 @@ import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
+import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.parser.template.Template;
 
 /**
  * User tag utilities.
  * 
  * @author Angelo ZERR
+ * 
+ * @see https://quarkus.io/guides/qute-reference#user_tags
  *
  */
 public class UserTagUtils {
+
+	private static final Map<String, SectionMetadata> SPECIAL_KEYS;
+
+	static {
+		SPECIAL_KEYS = new HashMap<String, SectionMetadata>();
+		register(new SectionMetadata("it", Object.class.getName(),
+				"`it` is a special key that is replaced with the first unnamed parameter of the tag."));
+		register(new SectionMetadata("nested-content", Object.class.getName(),
+				"`nested-content` is a special key that will be replaced by the content of the tag"));
+	}
+
+	private static void register(SectionMetadata metadata) {
+		SPECIAL_KEYS.put(metadata.getName(), metadata);
+	}
 
 	public static final String TAGS_DIR = "tags";
 
@@ -112,5 +132,25 @@ public class UserTagUtils {
 				collector.accept(objectPart);
 			}
 		}
+	}
+
+	/**
+	 * Returns the special keys ('it' and 'nested-content') allowed in an user tag.
+	 * 
+	 * @return the special keys ('it' and 'nested-content') allowed in an user tag.
+	 */
+	public static Collection<SectionMetadata> getSpecialKeys() {
+		return SPECIAL_KEYS.values();
+	}
+
+	/**
+	 * Return the special key from the given object part name and null otherwise.
+	 * 
+	 * @param objectName the object part name.
+	 * 
+	 * @return the special key from the given object part name and null otherwise.
+	 */
+	public static SectionMetadata getSpecialKey(String objectName) {
+		return SPECIAL_KEYS.get(objectName);
 	}
 }

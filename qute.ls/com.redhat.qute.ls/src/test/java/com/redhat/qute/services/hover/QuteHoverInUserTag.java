@@ -48,4 +48,45 @@ public class QuteHoverInUserTag {
 				r(1, 17, 1, 21));
 	}
 
+	@Test
+	public void it() throws Exception {
+		String template = "{i|t}";
+
+		// In a qute template
+		assertHover(template);
+
+		// In a user tag
+		assertHover(template, //
+				"src/main/resources/templates/tags/form.html", //
+				"tags/form", //
+				"```java" + //
+						System.lineSeparator() + //
+						"Object" + //
+						System.lineSeparator() + //
+						"```" + //
+						System.lineSeparator() + //
+						"`it` is a special key that is replaced with the first unnamed parameter of the tag.", //
+				r(0, 1, 0, 3));
+	}
+
+	@Test
+	public void nestedContent() throws Exception {
+		String template = "{nested-con|tent}";
+
+		// In a qute template
+		assertHover(template);
+
+		// In a user tag
+		assertHover(template, //
+				"src/main/resources/templates/tags/form.html", //
+				"tags/form", //
+				"```java" + //
+						System.lineSeparator() + //
+						"Object" + //
+						System.lineSeparator() + //
+						"```" + //
+						System.lineSeparator() + //
+						"`nested-content` is a special key that will be replaced by the content of the tag", //
+				r(0, 1, 0, 15));
+	}
 }

@@ -81,4 +81,25 @@ public class QuteCompletionInUserTagTest {
 				c("review2 : Review", "review2", r(1, 17, 1, 17)), //
 				c("getReview2() : Review", "getReview2", r(1, 17, 1, 17)));
 	}
+
+	@Test
+	public void specialKeys() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{|}";
+
+		// In qute template
+		testCompletionFor(template, //
+				SECTION_SNIPPET_SIZE + 1, //
+				c("item", "item", r(1, 1, 1, 1)));
+
+		// In user tag
+		testCompletionFor(template, //				
+				"src/main/resources/templates/tags/form.html", //
+				"tags/form", //
+				SECTION_SNIPPET_SIZE + 1 /* item */ + 2 /* it, nested-content */, //
+				c("item", "item", r(1, 1, 1, 1)), //
+				c("it", "it", r(1, 1, 1, 1)), //
+				c("nested-content", "nested-content", r(1, 1, 1, 1)));
+
+	}
 }
