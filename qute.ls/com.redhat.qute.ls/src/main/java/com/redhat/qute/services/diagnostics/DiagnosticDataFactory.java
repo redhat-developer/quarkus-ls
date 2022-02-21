@@ -13,6 +13,7 @@ package com.redhat.qute.services.diagnostics;
 
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_ITERABLE;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_NAME;
+import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_TAG;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.QUTE_SOURCE;
 
 import org.eclipse.lsp4j.Diagnostic;
@@ -21,12 +22,24 @@ import org.eclipse.lsp4j.Range;
 
 import com.google.gson.JsonObject;
 
+/**
+ * Diagnostic factory.
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public class DiagnosticDataFactory {
 
 	public static JsonObject createUndefinedVariableData(String partName, boolean iterable) {
 		JsonObject data = new JsonObject();
 		data.addProperty(DIAGNOSTIC_DATA_NAME, partName);
 		data.addProperty(DIAGNOSTIC_DATA_ITERABLE, iterable);
+		return data;
+	}
+
+	public static JsonObject createUndefinedSectionTagData(String tagName) {
+		JsonObject data = new JsonObject();
+		data.addProperty(DIAGNOSTIC_DATA_TAG, tagName);
 		return data;
 	}
 

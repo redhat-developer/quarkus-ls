@@ -14,12 +14,15 @@ package com.redhat.qute.services;
 import static com.redhat.qute.ls.commons.CodeActionFactory.createCommand;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_ITERABLE;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_NAME;
+import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_TAG;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
@@ -37,7 +40,9 @@ import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
+import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.settings.SharedSettings;
@@ -51,7 +56,11 @@ import com.redhat.qute.utils.QutePositionUtility;
  */
 class QuteCodeActions {
 
-	private static final String DECLARE_UNDEFINED_VARIABLE_TITLE = "Declare `{0}` with parameter declaration.";
+	private static final Logger LOGGER = Logger.getLogger(QuteCodeActions.class.getName());
+
+	private static final String UNDEFINED_VARIABLE_CODEACTION_TITLE = "Declare `{0}` with parameter declaration.";
+
+	private static final String UNDEFINED_SECTION_TAG_CODEACTION_TITLE = "Create the user tag file `{0}`.";
 
 	// Enable/Disable Qute validation
 
@@ -79,21 +88,37 @@ class QuteCodeActions {
 				doCodeActionToDisableValidation(template, diagnostics, codeActions);
 			}
 			for (Diagnostic diagnostic : diagnostics) {
-				if (QuteErrorCode.UndefinedVariable.isQuteErrorCode(diagnostic.getCode())) {
-					// The following Qute template:
-					// {undefinedVariable}
-					//
-					// will provide a quickfix like:
-					//
-					// Declare `undefinedVariable` with parameter declaration."
-					doCodeActionsForUndefinedVariable(template, diagnostic, codeActions);
+				QuteErrorCode errorCode = QuteErrorCode.getErrorCode(diagnostic.getCode());
+				if (errorCode != null) {
+					switch (errorCode) {
+					case UndefinedVariable:
+						// The following Qute template:
+						// {undefinedVariable}
+						//
+						// will provide a quickfix like:
+						//
+						// Declare `undefinedVariable` with parameter declaration."
+						doCodeActionsForUndefinedVariable(template, diagnostic, codeActions);
+						break;
+					case UndefinedSectionTag:
+						// The following Qute template:
+						// {#undefinedTag }
+						//
+						// will provide a quickfix like:
+						//
+						// Create `undefinedTag`"
+						doCodeActionsForUndefinedSectionTag(template, diagnostic, codeActions);
+						break;
+					default:
+						break;
+					}
 				}
 			}
 		}
 		return CompletableFuture.completedFuture(codeActions);
 	}
 
-	private void doCodeActionsForUndefinedVariable(Template template, Diagnostic diagnostic,
+	private static void doCodeActionsForUndefinedVariable(Template template, Diagnostic diagnostic,
 			List<CodeAction> codeActions) {
 		try {
 			String varName = null;
@@ -119,7 +144,7 @@ class QuteCodeActions {
 				TextDocument document = template.getTextDocument();
 				String lineDelimiter = document.lineDelimiter(0);
 
-				String title = MessageFormat.format(DECLARE_UNDEFINED_VARIABLE_TITLE, varName);
+				String title = MessageFormat.format(UNDEFINED_VARIABLE_CODEACTION_TITLE, varName);
 
 				Position position = new Position(0, 0);
 
@@ -144,7 +169,7 @@ class QuteCodeActions {
 		}
 	}
 
-	public void doCodeActionToDisableValidation(Template template, List<Diagnostic> diagnostics,
+	private static void doCodeActionToDisableValidation(Template template, List<Diagnostic> diagnostics,
 			List<CodeAction> codeActions) {
 		String templateUri = template.getUri();
 		// Disable Qute validation for the project
@@ -159,7 +184,6 @@ class QuteCodeActions {
 		CodeAction disableValidationForTemplateQuickFix = createConfigurationUpdateCodeAction(title, templateUri,
 				QUTE_VALIDATION_EXCLUDED_SECTION, templateUri, ConfigurationItemEditType.add, diagnostics);
 		codeActions.add(disableValidationForTemplateQuickFix);
-
 	}
 
 	/**
@@ -179,5 +203,40 @@ class QuteCodeActions {
 		configItemEdit.setScopeUri(scopeUri);
 		return createCommand(title, QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE,
 				Collections.singletonList(configItemEdit), diagnostics);
+	}
+
+	private static void doCodeActionsForUndefinedSectionTag(Template template, Diagnostic diagnostic,
+			List<CodeAction> codeActions) {
+		QuteProject project = template.getProject();
+		if (project == null) {
+			return;
+		}
+		try {
+			String tagName = null;
+			JsonObject data = (JsonObject) diagnostic.getData();
+			if (data != null) {
+				tagName = data.get(DIAGNOSTIC_DATA_TAG).getAsString();
+			} else {
+				int offset = template.offsetAt(diagnostic.getRange().getStart());
+				Node node = template.findNodeAt(offset);
+				node = QutePositionUtility.findBestNode(offset, node);
+				if (node.getKind() == NodeKind.Section) {
+					Section section = (Section) node;
+					tagName = section.getTag();
+				}
+			}
+			if (tagName == null) {
+				return;
+			}
+
+			// TODO : use a settings to know the preferred file extension
+			String preferedFileExtension = ".html";
+			String tagFileUri = project.getTagsDir().resolve(tagName + preferedFileExtension).toUri().toString();
+			String title = MessageFormat.format(UNDEFINED_SECTION_TAG_CODEACTION_TITLE, tagName);
+			CodeAction createUserTagFile = CodeActionFactory.createFile(title, tagFileUri, "", diagnostic);
+			codeActions.add(createUserTagFile);
+		} catch (BadLocationException e) {
+			LOGGER.log(Level.SEVERE, "Creation of undefined user tag code action failed", e);
+		}
 	}
 }

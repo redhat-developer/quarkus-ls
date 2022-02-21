@@ -21,6 +21,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
@@ -255,5 +256,9 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	@Override
 	public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
 		return getLanguageClient().getUserTags(params);
+	}
+
+	public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
+		textDocumentService.didChangeWatchedFiles(params);
 	}
 }

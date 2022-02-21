@@ -43,6 +43,8 @@ public class ServerCapabilitiesConstants {
 	public static final String TEXT_DOCUMENT_LINKED_EDITING_RANGE = "textDocument/linkedEditingRange";
 	public static final String WORKSPACE_EXECUTE_COMMAND = "workspace/executeCommand";
 
+	public static final String WORKSPACE_WATCHED_FILES = "workspace/didChangeWatchedFiles";
+
 	public static final String DOCUMENT_HIGHLIGHT_ID = UUID.randomUUID().toString();
 	public static final String COMPLETION_ID = UUID.randomUUID().toString();
 	public static final String HOVER_ID = UUID.randomUUID().toString();
@@ -57,6 +59,7 @@ public class ServerCapabilitiesConstants {
 
 	public static final String WORKSPACE_EXECUTE_COMMAND_ID = UUID.randomUUID().toString();
 	public static final String REFERENCES_ID = UUID.randomUUID().toString();
+	public static final String WORKSPACE_WATCHED_FILES_ID = UUID.randomUUID().toString();
 	public static final String LINKED_EDITING_RANGE_ID = UUID.randomUUID().toString();
 	public static final CompletionOptions DEFAULT_COMPLETION_OPTIONS = new CompletionOptions(false,
 			Arrays.asList("{", "@", "#", "."));

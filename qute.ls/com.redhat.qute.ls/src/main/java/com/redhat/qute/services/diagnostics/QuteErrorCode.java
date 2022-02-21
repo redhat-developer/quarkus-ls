@@ -71,4 +71,16 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	public boolean isQuteErrorCode(Either<String, Integer> code) {
 		return CodeActionFactory.isDiagnosticCode(code, name());
 	}
+
+	public static QuteErrorCode getErrorCode(Either<String, Integer> diagnosticCode) {
+		if (diagnosticCode == null || diagnosticCode.isRight()) {
+			return null;
+		}
+		String code = diagnosticCode.getLeft();
+		try {
+			return valueOf(code);
+		} catch (Exception e) {
+			return null;
+		}
+	}
 }

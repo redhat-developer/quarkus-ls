@@ -11,7 +11,12 @@
 *******************************************************************************/
 package com.redhat.qute.services.diagnostics;
 
+import static com.redhat.qute.QuteAssert.ca;
+import static com.redhat.qute.QuteAssert.createFile;
 import static com.redhat.qute.QuteAssert.d;
+import static com.redhat.qute.QuteAssert.getFileUri;
+import static com.redhat.qute.QuteAssert.teOp;
+import static com.redhat.qute.QuteAssert.testCodeActionsFor;
 import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 
 import org.eclipse.lsp4j.Diagnostic;
@@ -54,4 +59,23 @@ public class QuteDiagnosticsUserTagTest {
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("name", false));
 		testDiagnosticsFor(template, d);
 	}
+
+	@Test
+	public void undefinedSectionTag() throws Exception {
+		String template = "{#undefined /}";
+
+		Diagnostic d = d(0, 1, 0, 11, QuteErrorCode.UndefinedSectionTag, "No section helper found for `undefined`.",
+				DiagnosticSeverity.Error);
+		d.setData(DiagnosticDataFactory.createUndefinedSectionTagData("undefined"));
+		testDiagnosticsFor(template, //
+				d);
+
+		String userTagUri = getFileUri("/tags/undefined.html");
+		testCodeActionsFor(template, d, //
+				ca(d, //
+						createFile(userTagUri, false), //
+						teOp(userTagUri, 0, 0, 0, 0, //
+								"")));
+	}
+
 }

@@ -294,4 +294,13 @@ public class QuteProject {
 			CompletionList list) {
 		tagRegistry.collectUserTagSuggestions(completionRequest, prefixFilter, suffixToFind, list);
 	}
+
+	/**
+	 * Returns the src/main/resources/templates/tags directory.
+	 * 
+	 * @return the src/main/resources/templates/tags directory.
+	 */
+	public Path getTagsDir() {
+		return tagRegistry.getTagsDir();
+	}
 }

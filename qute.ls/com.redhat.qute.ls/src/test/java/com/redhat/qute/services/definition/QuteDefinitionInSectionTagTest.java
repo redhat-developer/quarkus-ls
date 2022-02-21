@@ -11,11 +11,10 @@
 *******************************************************************************/
 package com.redhat.qute.services.definition;
 
+import static com.redhat.qute.QuteAssert.getFileUri;
 import static com.redhat.qute.QuteAssert.ll;
 import static com.redhat.qute.QuteAssert.r;
 import static com.redhat.qute.QuteAssert.testDefinitionFor;
-
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
 
@@ -100,7 +99,7 @@ public class QuteDefinitionInSectionTagTest {
 
 	@Test
 	public void userTag() throws Exception {
-		String userTagUri = Paths.get("src/test/resources/templates/tags/formElement.html").toUri().toString();
+		String userTagUri = getFileUri("/tags/formElement.html");
 		String template = "{|#formElement /}";
 		testDefinitionFor(template, "test.qute", //
 				ll(userTagUri, r(0, 1, 0, 13), r(0, 0, 0, 0)));

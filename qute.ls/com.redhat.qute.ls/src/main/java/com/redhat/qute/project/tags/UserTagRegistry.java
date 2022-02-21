@@ -23,6 +23,7 @@ import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.services.completions.CompletionRequest;
+import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * User tag (from source and binary) registry.
@@ -33,8 +34,6 @@ import com.redhat.qute.services.completions.CompletionRequest;
  *
  */
 public class UserTagRegistry {
-
-	private static final String TAGS_DIR_NAME = "tags";
 
 	private final String projectUri;
 
@@ -49,7 +48,7 @@ public class UserTagRegistry {
 
 	public UserTagRegistry(String projectUri, Path templateBaseDir, QuteUserTagProvider userTagProvider) {
 		this.projectUri = projectUri;
-		this.tagsDir = templateBaseDir.resolve(TAGS_DIR_NAME);
+		this.tagsDir = templateBaseDir.resolve(UserTagUtils.TAGS_DIR);
 		this.userTagProvider = userTagProvider;
 		this.completionsSourceUserTag = new QuteCompletionsForSourceUserTagSection();
 		this.completionsBinaryUserTag = new QuteCompletionsForBinaryUserTagSection();
@@ -70,7 +69,7 @@ public class UserTagRegistry {
 	 */
 	private void refresh() {
 		// Loop for files from src/main/resources/tags to update list of user tags.
-		completionsSourceUserTag.refresh(tagsDir);
+		completionsSourceUserTag.refresh(getTagsDir());
 		// Update from the 'templates.tags' entries of JARs of the classpath
 		completionsBinaryUserTag.refresh(getBinaryUserTags());
 	}
@@ -128,4 +127,12 @@ public class UserTagRegistry {
 		return userTagProvider.getUserTags(params);
 	}
 
+	/**
+	 * Returns the src/main/resources/templates/tags directory.
+	 * 
+	 * @return the src/main/resources/templates/tags directory.
+	 */
+	public Path getTagsDir() {
+		return tagsDir;
+	}
 }
