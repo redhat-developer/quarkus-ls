@@ -56,7 +56,7 @@ public class QuteWorkspaceService implements WorkspaceService {
 
 	@Override
 	public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
-
+		quteLanguageServer.didChangeWatchedFiles(params);
 	}
 
 	@Override

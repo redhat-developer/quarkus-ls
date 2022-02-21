@@ -23,4 +23,5 @@ public class QuteDiagnosticContants {
 
 	public static final String DIAGNOSTIC_DATA_ITERABLE = "iterable";
 
+	public static final String DIAGNOSTIC_DATA_TAG = "tag";
 }

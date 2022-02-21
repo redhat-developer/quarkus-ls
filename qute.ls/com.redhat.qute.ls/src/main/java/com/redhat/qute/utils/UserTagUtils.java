@@ -34,7 +34,7 @@ import com.redhat.qute.parser.template.Template;
  */
 public class UserTagUtils {
 
-	private static final String TAGS_DIR = "tags";
+	public static final String TAGS_DIR = "tags";
 
 	public static boolean isUserTag(Template template) {
 		String templateId = template.getTemplateId();

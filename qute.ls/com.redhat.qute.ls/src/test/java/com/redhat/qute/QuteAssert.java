@@ -97,6 +97,9 @@ public class QuteAssert {
 
 	public static final int SECTION_SNIPPET_SIZE = 14 /* #each, #for */ + 3 /* #user, #formElement */;
 
+	public static String getFileUri(String templateFile) {
+		return Paths.get(TEMPLATE_BASE_DIR + templateFile).toUri().toString();
+	}
 	// ------------------- Completion assert
 
 	public static void testCompletionFor(String value, CompletionItem... expectedItems) throws Exception {

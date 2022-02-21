@@ -36,14 +36,19 @@ import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_REFERENCES;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.WORKSPACE_EXECUTE_COMMAND;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.WORKSPACE_EXECUTE_COMMAND_ID;
+import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.WORKSPACE_WATCHED_FILES;
+import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.WORKSPACE_WATCHED_FILES_ID;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.eclipse.lsp4j.ClientCapabilities;
+import org.eclipse.lsp4j.DidChangeWatchedFilesRegistrationOptions;
 import org.eclipse.lsp4j.ExecuteCommandOptions;
+import org.eclipse.lsp4j.FileSystemWatcher;
 import org.eclipse.lsp4j.Registration;
 import org.eclipse.lsp4j.RegistrationParams;
 import org.eclipse.lsp4j.services.LanguageClient;
@@ -102,6 +107,17 @@ public class QuteCapabilityManager {
 		if (this.getClientCapabilities().isLinkedEditingRangeDynamicRegistered()) {
 			registerCapability(LINKED_EDITING_RANGE_ID, TEXT_DOCUMENT_LINKED_EDITING_RANGE);
 		}
+		if (this.getClientCapabilities().isDidChangeWatchedFilesRegistered()) {
+			registerWatchedFiles();
+		}
+	}
+
+	private void registerWatchedFiles() {
+		List<FileSystemWatcher> watchers = new ArrayList<>(2);
+		watchers.add(new FileSystemWatcher("**/*.html"));
+		watchers.add(new FileSystemWatcher("**/*.qute.html"));
+		DidChangeWatchedFilesRegistrationOptions options = new DidChangeWatchedFilesRegistrationOptions(watchers);
+		registerCapability(WORKSPACE_WATCHED_FILES_ID, WORKSPACE_WATCHED_FILES, options);
 	}
 
 	public void setClientCapabilities(ClientCapabilities clientCapabilities,

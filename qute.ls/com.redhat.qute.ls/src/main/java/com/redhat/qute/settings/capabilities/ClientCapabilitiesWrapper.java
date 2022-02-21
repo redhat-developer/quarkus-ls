@@ -89,6 +89,10 @@ public class ClientCapabilitiesWrapper {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getReferences());
 	}
 
+	public boolean isDidChangeWatchedFilesRegistered() {
+		return v3Supported && isDynamicRegistrationSupported(capabilities.getWorkspace().getDidChangeWatchedFiles());
+	}
+
 	public boolean isLinkedEditingRangeDynamicRegistered() {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getLinkedEditingRange());
 	}

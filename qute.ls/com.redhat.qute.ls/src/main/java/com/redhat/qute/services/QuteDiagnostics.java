@@ -304,6 +304,8 @@ class QuteDiagnostics {
 				Range range = QutePositionUtility.selectStartTagName(section);
 				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
 						QuteErrorCode.UndefinedSectionTag, tagName);
+				// Create data information helpful for code action
+				diagnostic.setData(DiagnosticDataFactory.createUndefinedSectionTagData(tagName));
 				diagnostics.add(diagnostic);
 			}
 		}

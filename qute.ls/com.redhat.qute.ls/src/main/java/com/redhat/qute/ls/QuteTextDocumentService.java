@@ -25,6 +25,7 @@ import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
+import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
@@ -267,5 +268,9 @@ public class QuteTextDocumentService implements TextDocumentService {
 
 	public void validationSettingsChanged() {
 		templateFileTextDocumentService.validationSettingsChanged();
+	}
+
+	public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
+		templateFileTextDocumentService.didChangeWatchedFiles(params);
 	}
 }
