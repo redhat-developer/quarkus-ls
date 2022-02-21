@@ -47,6 +47,7 @@ import com.redhat.qute.services.hover.HoverRequest;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.DocumentationUtils;
 import com.redhat.qute.utils.QutePositionUtility;
+import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * Qute hover support.
@@ -191,6 +192,20 @@ public class QuteHover {
 	}
 
 	private CompletableFuture<Hover> doHoverForObjectPart(Part part, String projectUri, HoverRequest hoverRequest) {
+		if (UserTagUtils.isUserTag(hoverRequest.getTemplate())) {
+			// It's an user tag
+			SectionMetadata specialKey = UserTagUtils.getSpecialKey(part.getPartName());
+			if (specialKey != null) {
+				// its a special key for user tag ({it} or {nested-content), display the special
+				// key documentation.
+				boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+				MarkupContent content = DocumentationUtils.getDocumentation(specialKey, hasMarkdown);
+				Range range = QutePositionUtility.createRange(part);
+				Hover hover = new Hover(content, range);
+				return CompletableFuture.completedFuture(hover);
+			}
+		}
+
 		// Check if part is a literal (ex: true, null, 123, 'abc', etc)
 		Expression expression = part.getParent().getParent();
 		String literalJavaType = expression.getLiteralJavaType();
