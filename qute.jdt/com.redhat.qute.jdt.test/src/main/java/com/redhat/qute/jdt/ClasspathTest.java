@@ -11,7 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.jdt;
 
-import static com.redhat.qute.jdt.internal.QuteProjectTest.loadMavenProject;
+import static com.redhat.qute.jdt.QuteProjectTest.loadMavenProject;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
@@ -19,7 +19,7 @@ import org.eclipse.jdt.core.IType;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.redhat.qute.jdt.internal.QuteProjectTest.QuteMavenProjectName;
+import com.redhat.qute.jdt.QuteProjectTest.QuteMavenProjectName;
 
 /**
  * Test classpath.

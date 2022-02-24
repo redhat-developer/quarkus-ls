@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.jdt.internal;
+package com.redhat.qute.jdt;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -38,6 +38,8 @@ import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
+import com.redhat.qute.jdt.internal.JavaUtils;
+import com.redhat.qute.jdt.internal.JobHelpers;
 import com.redhat.qute.jdt.internal.ls.JDTUtilsLSImpl;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 
