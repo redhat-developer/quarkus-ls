@@ -11,8 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.java;
 
-import static com.redhat.qute.jdt.internal.QuteProjectTest.getJDTUtils;
-import static com.redhat.qute.jdt.internal.QuteProjectTest.loadMavenProject;
+import static com.redhat.qute.jdt.QuteProjectTest.getJDTUtils;
+import static com.redhat.qute.jdt.QuteProjectTest.loadMavenProject;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
@@ -36,7 +36,7 @@ import org.junit.Test;
 
 import com.redhat.qute.commons.QuteJavaDiagnosticsParams;
 import com.redhat.qute.jdt.QuteSupportForJava;
-import com.redhat.qute.jdt.internal.QuteProjectTest.QuteMavenProjectName;
+import com.redhat.qute.jdt.QuteProjectTest.QuteMavenProjectName;
 import com.redhat.qute.jdt.internal.java.QuteErrorCode;
 
 /**

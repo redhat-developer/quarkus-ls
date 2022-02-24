@@ -11,8 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.template;
 
-import static com.redhat.qute.jdt.internal.QuteProjectTest.getJDTUtils;
-import static com.redhat.qute.jdt.internal.QuteProjectTest.loadMavenProject;
+import static com.redhat.qute.jdt.QuteProjectTest.getJDTUtils;
+import static com.redhat.qute.jdt.QuteProjectTest.loadMavenProject;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,7 +25,7 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.QuteJavaTypesParams;
 import com.redhat.qute.jdt.QuteSupportForTemplate;
-import com.redhat.qute.jdt.internal.QuteProjectTest.QuteMavenProjectName;
+import com.redhat.qute.jdt.QuteProjectTest.QuteMavenProjectName;
 
 /**
  * Tests for
