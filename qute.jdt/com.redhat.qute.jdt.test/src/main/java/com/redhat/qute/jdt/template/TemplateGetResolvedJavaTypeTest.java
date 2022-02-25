@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 
 import com.redhat.qute.commons.InvalidMethodReason;
@@ -214,6 +215,7 @@ public class TemplateGetResolvedJavaTypeTest {
 	@Test
 	public void record() throws Exception {
 
+		Assume.assumeTrue(Integer.parseInt(System.getProperty("java.specification.version")) >= 17);
 		loadMavenProject(QuteMavenProjectName.qute_java17);
 
 		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.RecordItem",
