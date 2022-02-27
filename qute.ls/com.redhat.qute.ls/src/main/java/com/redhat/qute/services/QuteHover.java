@@ -24,10 +24,12 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.commons.JavaMemberInfo;
+import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
+import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.template.Expression;
@@ -180,7 +182,14 @@ public class QuteHover {
 	private CompletableFuture<Hover> doHoverForExpressionPart(Part part, Template template, HoverRequest hoverRequest,
 			CancelChecker cancelChecker) {
 		String projectUri = template.getProjectUri();
+		String namespace = part.getNamespace();
+		if (namespace != null) {
+			// {inject:bea|n}
+			return doHoverForExpressionPartWithNamespace(namespace, part, template, projectUri, hoverRequest);
+		}
 		switch (part.getPartKind()) {
+		case Namespace:
+			return doHoverForNamespacePart(part, projectUri, hoverRequest);
 		case Object:
 			return doHoverForObjectPart(part, projectUri, hoverRequest);
 		case Method:
@@ -189,6 +198,64 @@ public class QuteHover {
 		default:
 			return NO_HOVER;
 		}
+	}
+
+	public CompletableFuture<Hover> doHoverForExpressionPartWithNamespace(String namespace, Part part,
+			Template template, String projectUri, HoverRequest hoverRequest) {
+		if (NamespacePart.DATA_NAMESPACE.equals(namespace)) {
+			// {data:it|em}
+			// check if it is defined in parameter declaration
+			ParameterDeclaration parameterDeclaration = template.findInParameterDeclarationByAlias(part.getPartName());
+			if (parameterDeclaration != null) {
+				return doHoverForJavaType(part, parameterDeclaration.getJavaType(), projectUri, hoverRequest);
+			}
+			// check if it is defined with @CheckedTemplate
+			if (projectUri != null) {
+				return template.getParameterDataModel(part.getPartName()) //
+						.thenCompose(parameter -> {
+							if (parameter != null) {
+								return doHoverForJavaType(part, parameter.getJavaType(), projectUri, hoverRequest);
+							}
+							return NO_HOVER;
+						});
+			}
+			return NO_HOVER;
+		}
+		if (projectUri != null) {
+			// {inject:be|an}
+			return javaCache.findJavaElementWithNamespace(namespace, part.getPartName(), projectUri) //
+					.thenApply(javaElement -> {
+						if (javaElement == null) {
+							return null;
+						}
+						if (javaElement instanceof JavaTypeInfo) {
+							return doHoverForJavaType(part, (JavaTypeInfo) javaElement, hoverRequest);
+						}
+						JavaMemberInfo member = (JavaMemberInfo) javaElement;
+						boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+						MarkupContent content = DocumentationUtils.getDocumentation(member, null, hasMarkdown);
+						Range range = QutePositionUtility.createRange(part);
+						return new Hover(content, range);
+
+					});
+		}
+		return NO_HOVER;
+	}
+
+	private CompletableFuture<Hover> doHoverForNamespacePart(Part part, String projectUri, HoverRequest hoverRequest) {
+		String namespace = part.getPartName();
+		return javaCache.getNamespaceResolverInfo(namespace, projectUri) //
+				.thenCompose(namespaceInfo -> {
+					if (namespaceInfo != null) {
+						boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+						MarkupContent content = DocumentationUtils.getDocumentation(namespace, namespaceInfo,
+								hasMarkdown);
+						Range range = QutePositionUtility.createRange(part);
+						Hover hover = new Hover(content, range);
+						return CompletableFuture.completedFuture(hover);
+					}
+					return NO_HOVER;
+				});
 	}
 
 	private CompletableFuture<Hover> doHoverForObjectPart(Part part, String projectUri, HoverRequest hoverRequest) {
@@ -210,16 +277,7 @@ public class QuteHover {
 		Expression expression = part.getParent().getParent();
 		String literalJavaType = expression.getLiteralJavaType();
 		if (literalJavaType != null) {
-			return javaCache.resolveJavaType(literalJavaType, projectUri) //
-					.thenApply(resolvedJavaType -> {
-						if (resolvedJavaType != null) {
-							boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
-							MarkupContent content = DocumentationUtils.getDocumentation(resolvedJavaType, hasMarkdown);
-							Range range = QutePositionUtility.createRange(part);
-							return new Hover(content, range);
-						}
-						return null;
-					});
+			return doHoverForJavaType(part, literalJavaType, projectUri, hoverRequest);
 		}
 		return javaCache.resolveJavaType(part, projectUri) //
 				.thenApply(resolvedJavaType -> {
@@ -233,6 +291,24 @@ public class QuteHover {
 					}
 					return null;
 				});
+	}
+
+	public CompletableFuture<Hover> doHoverForJavaType(Part part, String javaType, String projectUri,
+			HoverRequest hoverRequest) {
+		return javaCache.resolveJavaType(javaType, projectUri) //
+				.thenApply(resolvedJavaType -> {
+					return doHoverForJavaType(part, resolvedJavaType, hoverRequest);
+				});
+	}
+
+	private static Hover doHoverForJavaType(Part part, JavaTypeInfo javaType, HoverRequest hoverRequest) {
+		if (javaType != null) {
+			boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+			MarkupContent content = DocumentationUtils.getDocumentation(javaType, hasMarkdown);
+			Range range = QutePositionUtility.createRange(part);
+			return new Hover(content, range);
+		}
+		return null;
 	}
 
 	private static SectionMetadata getMetadata(Part part) {

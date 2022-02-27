@@ -71,7 +71,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("itemsXXX", true));
 
 		testDiagnosticsFor(template, d, //
-				d(3, 2, 3, 6, QuteErrorCode.UnkwownType, //
+				d(3, 2, 3, 6, QuteErrorCode.UnknownType, //
 						"`item` cannot be resolved to a type.", //
 						DiagnosticSeverity.Error));
 		testCodeActionsFor(template, d, //
@@ -86,7 +86,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 				"	{item.nameXXX}    \r\n" + //
 				"{/for}}";
 		testDiagnosticsFor(template, //
-				d(3, 7, 3, 14, QuteErrorCode.UnkwownProperty,
+				d(3, 7, 3, 14, QuteErrorCode.UnknownProperty,
 						"`nameXXX` cannot be resolved or is not a field of `org.acme.Item` Java type.",
 						DiagnosticSeverity.Error));
 	}
@@ -102,7 +102,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 				d(2, 14, 2, 19, QuteErrorCode.IterationError,
 						"Iteration error: {items} resolved to [org.acme.Item] which is not iterable.",
 						DiagnosticSeverity.Error),
-				d(3, 2, 3, 6, QuteErrorCode.UnkwownType, "`org.acme.Item` cannot be resolved to a type.",
+				d(3, 2, 3, 6, QuteErrorCode.UnknownType, "`org.acme.Item` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}
 
@@ -131,7 +131,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 				d(3, 22, 3, 26, QuteErrorCode.IterationError,
 						"Iteration error: {item.name} resolved to [java.lang.String] which is not iterable.",
 						DiagnosticSeverity.Error),
-				d(4, 3, 4, 9, QuteErrorCode.UnkwownType, "`java.lang.String` cannot be resolved to a type.",
+				d(4, 3, 4, 9, QuteErrorCode.UnknownType, "`java.lang.String` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}
 
@@ -196,7 +196,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 		testDiagnosticsFor(template, //
 				d(0, 11, 0, 13, QuteErrorCode.IterationError,
 						"Iteration error: {3d} resolved to [java.lang.Double] which is not iterable.", DiagnosticSeverity.Error),
-				d(1, 2, 1, 3, QuteErrorCode.UnkwownType, "`java.lang.Double` cannot be resolved to a type.",
+				d(1, 2, 1, 3, QuteErrorCode.UnknownType, "`java.lang.Double` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}
 
@@ -220,7 +220,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 				d(1, 12, 1, 17, QuteErrorCode.IterationError,
 						"Iteration error: {total} resolved to [java.lang.Double] which is not iterable.",
 						DiagnosticSeverity.Error),
-				d(2, 3, 2, 4, QuteErrorCode.UnkwownType, "`java.lang.Double` cannot be resolved to a type.",
+				d(2, 3, 2, 4, QuteErrorCode.UnknownType, "`java.lang.Double` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}
 

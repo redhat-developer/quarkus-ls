@@ -193,14 +193,22 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#each |}";
-		testCompletionFor(template, 1, //
-				c("items", "items", r(2, 7, 2, 7)));
+		testCompletionFor(template, 4, //
+				c("items", "items", r(2, 7, 2, 7)), //
+				c("inject:bean", "inject:bean", r(2, 7, 2, 7)), //
+				c("inject:plexux", "inject:plexux", r(2, 7, 2, 7)), //
+				c("config:getConfigProperty(propertyName : String) : Object",
+						"config:getConfigProperty(${1:propertyName})$0", r(2, 7, 2, 7)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#each |";
-		testCompletionFor(template, 1, //
-				c("items", "items", r(2, 7, 2, 7)));
+		testCompletionFor(template, 4, //
+				c("items", "items", r(2, 7, 2, 7)), //
+				c("inject:bean", "inject:bean", r(2, 7, 2, 7)), //
+				c("inject:plexux", "inject:plexux", r(2, 7, 2, 7)), //
+				c("config:getConfigProperty(propertyName : String) : Object",
+						"config:getConfigProperty(${1:propertyName})$0", r(2, 7, 2, 7)));
 	}
 
 }

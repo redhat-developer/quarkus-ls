@@ -9,17 +9,16 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.project.datamodel;
+package com.redhat.qute.project.datamodel.resolvers;
 
 import java.io.InputStreamReader;
 import java.util.List;
 
 import com.google.gson.Gson;
-import com.redhat.qute.commons.ValueResolver;
 
 public class ValueResolversRegistry {
 
-	private List<ValueResolver> resolvers;
+	private List<MethodValueResolver> resolvers;
 
 	public ValueResolversRegistry() {
 		ValueResolverLoader loader = new Gson().fromJson(
@@ -28,14 +27,14 @@ public class ValueResolversRegistry {
 		this.resolvers = loader.getResolvers();
 	}
 
-	public List<ValueResolver> getResolvers() {
+	public List<MethodValueResolver> getResolvers() {
 		return resolvers;
 	}
 
 	private class ValueResolverLoader {
-		private List<ValueResolver> resolvers;
+		private List<MethodValueResolver> resolvers;
 
-		public List<ValueResolver> getResolvers() {
+		public List<MethodValueResolver> getResolvers() {
 			return resolvers;
 		}
 	}

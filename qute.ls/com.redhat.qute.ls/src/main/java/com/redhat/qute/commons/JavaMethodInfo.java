@@ -305,7 +305,7 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	 */
 	@Override
 	public String resolveJavaElementType(ResolvedJavaTypeInfo baseType) {
-		return resolveReturnType(baseType, getJavaType());
+		return resolveReturnType(baseType, getJavaTypeInfo());
 	}
 
 	protected String resolveReturnType(ResolvedJavaTypeInfo baseType, JavaTypeInfo baseDeclType) {

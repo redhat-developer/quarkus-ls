@@ -28,7 +28,7 @@ public abstract class JavaMemberInfo extends JavaElementInfo {
 	 * 
 	 * @return the owner Java type and null otherwise.
 	 */
-	public JavaTypeInfo getJavaType() {
+	public JavaTypeInfo getJavaTypeInfo() {
 		return javaType;
 	}
 
@@ -47,7 +47,7 @@ public abstract class JavaMemberInfo extends JavaElementInfo {
 	 * @return the java source type and null otherwise.
 	 */
 	public String getSourceType() {
-		JavaTypeInfo javaType = getJavaType();
+		JavaTypeInfo javaType = getJavaTypeInfo();
 		return javaType != null ? javaType.getName() : null;
 	}
 

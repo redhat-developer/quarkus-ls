@@ -15,6 +15,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 import com.redhat.qute.jdt.internal.JavaDataModelListenerManager;
+import com.redhat.qute.jdt.internal.template.datamodel.DataModelProviderRegistry;
 
 /**
  * The activator class controls the Qute JDT LS Extension plug-in life cycle
@@ -30,10 +31,12 @@ public class QutePlugin implements BundleActivator {
 	public void start(BundleContext context) throws Exception {
 		plugin = this;
 		JavaDataModelListenerManager.getInstance().initialize();
+		DataModelProviderRegistry.getInstance().initialize();
 	}
 
 	public void stop(BundleContext context) throws Exception {
 		JavaDataModelListenerManager.getInstance().destroy();
+		DataModelProviderRegistry.getInstance().destroy();
 		plugin = null;
 	}
 

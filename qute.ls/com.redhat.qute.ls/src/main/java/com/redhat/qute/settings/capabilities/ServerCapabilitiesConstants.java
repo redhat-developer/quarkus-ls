@@ -62,7 +62,7 @@ public class ServerCapabilitiesConstants {
 	public static final String WORKSPACE_WATCHED_FILES_ID = UUID.randomUUID().toString();
 	public static final String LINKED_EDITING_RANGE_ID = UUID.randomUUID().toString();
 	public static final CompletionOptions DEFAULT_COMPLETION_OPTIONS = new CompletionOptions(false,
-			Arrays.asList("{", "@", "#", "."));
+			Arrays.asList("{", "@", "#", ".", ":"));
 
 	public static final DocumentLinkOptions DEFAULT_DOCUMENT_LINK_OPTIONS = new DocumentLinkOptions(true);
 

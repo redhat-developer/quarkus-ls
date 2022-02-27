@@ -53,7 +53,7 @@ public class JavaFieldInfo extends JavaMemberInfo {
 	 * @return the simple Java field signature.
 	 */
 	public String getSimpleSignature() {
-		return name + " : " + getJavaElementSimpleType();
+		return getName() + " : " + getJavaElementSimpleType();
 	}
 
 	/**

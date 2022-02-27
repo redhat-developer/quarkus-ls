@@ -35,7 +35,7 @@ public class QuteDiagnosticsInParameterDeclarationTest {
 	public void unkwownJavaClass() throws Exception {
 		String template = "{@org.acme.ItemXXX item}";
 		testDiagnosticsFor(template, //
-				d(0, 2, 0, 18, QuteErrorCode.UnkwownType, "`org.acme.ItemXXX` cannot be resolved to a type.",
+				d(0, 2, 0, 18, QuteErrorCode.UnknownType, "`org.acme.ItemXXX` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}
 
@@ -49,7 +49,7 @@ public class QuteDiagnosticsInParameterDeclarationTest {
 	public void unkwownJavaClassInTypeParameter() throws Exception {
 		String template = "{@java.util.List<org.acme.ItemXXX> item}";
 		testDiagnosticsFor(template, //
-				d(0, 17, 0, 33, QuteErrorCode.UnkwownType, "`org.acme.ItemXXX` cannot be resolved to a type.",
+				d(0, 17, 0, 33, QuteErrorCode.UnknownType, "`org.acme.ItemXXX` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}
 	
@@ -63,7 +63,7 @@ public class QuteDiagnosticsInParameterDeclarationTest {
 	public void unkwownJavaClassInSecondTypeParameter() throws Exception {
 		String template = "{@java.util.Map<java.lang.String,org.acme.ItemXXX> item}";
 		testDiagnosticsFor(template, //
-				d(0, 33, 0, 49, QuteErrorCode.UnkwownType, "`org.acme.ItemXXX` cannot be resolved to a type.",
+				d(0, 33, 0, 49, QuteErrorCode.UnknownType, "`org.acme.ItemXXX` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}
 }

@@ -28,21 +28,21 @@ public class QuteCompletionInUserTagTest {
 
 	@Test
 	public void userTag() throws Exception {
-		String template = "{|";
+		String template = "{#|";
 
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
 				SECTION_SNIPPET_SIZE, //
 				c("formElement", "{#formElement /}", //
-						r(0, 0, 0, 1)));
+						r(0, 0, 0, 2)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
 				SECTION_SNIPPET_SIZE, //
 				c("formElement", "{#formElement /}$0", //
-						r(0, 0, 0, 1)));
+						r(0, 0, 0, 2)));
 	}
 
 	@Test
@@ -89,15 +89,23 @@ public class QuteCompletionInUserTagTest {
 
 		// In qute template
 		testCompletionFor(template, //
-				SECTION_SNIPPET_SIZE + 1, //
-				c("item", "item", r(1, 1, 1, 1)));
+				4, //
+				c("item", "item", r(1, 1, 1, 1)), //
+				c("inject:bean", "inject:bean", r(1, 1, 1, 1)), //
+				c("inject:plexux", "inject:plexux", r(1, 1, 1, 1)), //
+				c("config:getConfigProperty(propertyName : String) : Object",
+						"config:getConfigProperty(${1:propertyName})$0", r(1, 1, 1, 1)));
 
 		// In user tag
-		testCompletionFor(template, //				
+		testCompletionFor(template, //
 				"src/main/resources/templates/tags/form.html", //
 				"tags/form", //
-				SECTION_SNIPPET_SIZE + 1 /* item */ + 2 /* it, nested-content */, //
+				4 /* item, inject:bean, config:getConfigProperty */ + 2 /* it, nested-content */, //
 				c("item", "item", r(1, 1, 1, 1)), //
+				c("inject:bean", "inject:bean", r(1, 1, 1, 1)), //
+				c("inject:plexux", "inject:plexux", r(1, 1, 1, 1)), //
+				c("config:getConfigProperty(propertyName : String) : Object", "config:getConfigProperty(propertyName)",
+						r(1, 1, 1, 1)), //
 				c("it", "it", r(1, 1, 1, 1)), //
 				c("nested-content", "nested-content", r(1, 1, 1, 1)));
 

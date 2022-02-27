@@ -173,21 +173,21 @@ public class QuteDiagnosticsInExpressionTest {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{item.XXXX}";
 		testDiagnosticsFor(template, //
-				d(1, 6, 1, 10, QuteErrorCode.UnkwownProperty,
+				d(1, 6, 1, 10, QuteErrorCode.UnknownProperty,
 						"`XXXX` cannot be resolved or is not a field of `org.acme.Item` Java type.",
 						DiagnosticSeverity.Error));
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.XXXX.YYYY}";
 		testDiagnosticsFor(template, //
-				d(1, 6, 1, 10, QuteErrorCode.UnkwownProperty,
+				d(1, 6, 1, 10, QuteErrorCode.UnknownProperty,
 						"`XXXX` cannot be resolved or is not a field of `org.acme.Item` Java type.",
 						DiagnosticSeverity.Error));
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.name.YYYY}";
 		testDiagnosticsFor(template, //
-				d(1, 11, 1, 15, QuteErrorCode.UnkwownProperty,
+				d(1, 11, 1, 15, QuteErrorCode.UnknownProperty,
 						"`YYYY` cannot be resolved or is not a field of `java.lang.String` Java type.",
 						DiagnosticSeverity.Error));
 	}
@@ -208,21 +208,21 @@ public class QuteDiagnosticsInExpressionTest {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{item.XXXX()}";
 		testDiagnosticsFor(template, //
-				d(1, 6, 1, 10, QuteErrorCode.UnkwownMethod,
+				d(1, 6, 1, 10, QuteErrorCode.UnknownMethod,
 						"`XXXX` cannot be resolved or is not a method of `org.acme.Item` Java type.",
 						DiagnosticSeverity.Error));
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.XXXX().YYYY}";
 		testDiagnosticsFor(template, //
-				d(1, 6, 1, 10, QuteErrorCode.UnkwownMethod,
+				d(1, 6, 1, 10, QuteErrorCode.UnknownMethod,
 						"`XXXX` cannot be resolved or is not a method of `org.acme.Item` Java type.",
 						DiagnosticSeverity.Error));
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.name.YYYY()}";
 		testDiagnosticsFor(template, //
-				d(1, 11, 1, 15, QuteErrorCode.UnkwownMethod,
+				d(1, 11, 1, 15, QuteErrorCode.UnknownMethod,
 						"`YYYY` cannot be resolved or is not a method of `java.lang.String` Java type.",
 						DiagnosticSeverity.Error));
 	}
@@ -281,14 +281,14 @@ public class QuteDiagnosticsInExpressionTest {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{items.sizeXXX}";
 		testDiagnosticsFor(template, //
-				d(1, 7, 1, 14, QuteErrorCode.UnkwownProperty,
+				d(1, 7, 1, 14, QuteErrorCode.UnknownProperty,
 						"`sizeXXX` cannot be resolved or is not a field of `java.util.List<E>` Java type.",
 						DiagnosticSeverity.Error));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{items.sizeXXX()}";
 		testDiagnosticsFor(template, //
-				d(1, 7, 1, 14, QuteErrorCode.UnkwownMethod,
+				d(1, 7, 1, 14, QuteErrorCode.UnknownMethod,
 						"`sizeXXX` cannot be resolved or is not a method of `java.util.List<E>` Java type.",
 						DiagnosticSeverity.Error));
 	}
@@ -297,7 +297,7 @@ public class QuteDiagnosticsInExpressionTest {
 	public void unkwownMethodForPrimitive() {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{items.size.XXX}";
-		testDiagnosticsFor(template, d(1, 12, 1, 15, QuteErrorCode.UnkwownProperty,
+		testDiagnosticsFor(template, d(1, 12, 1, 15, QuteErrorCode.UnknownProperty,
 				"`XXX` cannot be resolved or is not a field of `int` Java type.", DiagnosticSeverity.Error));
 	}
 

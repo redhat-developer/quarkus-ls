@@ -24,7 +24,7 @@ import com.redhat.qute.parser.template.sections.LoopSection;
  * Object part.
  * 
  * <p>
- * 	{item}
+ * {item}
  * </p>
  * 
  * @author Angelo ZERR
@@ -45,44 +45,51 @@ public class ObjectPart extends Part {
 	public JavaTypeInfoProvider resolveJavaType() {
 		Template template = super.getOwnerTemplate();
 		String partName = getPartName();
-		if (!NamespacePart.DATA_NAMESPACE.equals(getNamespace())) {
-			// Loop for parent section to discover the class name
-			Section section = super.getParentSection();
-			while (section != null) {
-				switch (section.getSectionKind()) {
-				case EACH:
-				case FOR:
-					LoopSection iterableSection = (LoopSection) section;
-					if (!iterableSection.isInElseBlock(getStart())) {
-						String alias = iterableSection.getAlias();
-						if (partName.equals(alias)) {
-							return iterableSection.getIterableParameter();
-						}
+		boolean hasNamespace = getNamespace() != null;
+		if (hasNamespace) {
+			// ex : {data:item}
+			return template.findWithNamespace(this);
+		}
+		
+		// ex : {item}
+		
+		// Loop for parent section to discover the class name
+		Section section = super.getParentSection();
+		while (section != null) {
+			switch (section.getSectionKind()) {
+			case EACH:
+			case FOR:
+				LoopSection iterableSection = (LoopSection) section;
+				if (!iterableSection.isInElseBlock(getStart())) {
+					String alias = iterableSection.getAlias();
+					if (partName.equals(alias)) {
+						return iterableSection.getIterableParameter();
 					}
-					break;
-				case LET:
-				case SET:
-					List<Parameter> parameters = section.getParameters();
-					for (Parameter parameter : parameters) {
-						if (partName.equals(parameter.getName())) {
-							return parameter;
-						}
+				}
+				break;
+			case LET:
+			case SET:
+				List<Parameter> parameters = section.getParameters();
+				for (Parameter parameter : parameters) {
+					if (partName.equals(parameter.getName())) {
+						return parameter;
 					}
-					break;
-				default:
 				}
-				// ex : count for #each
-				JavaTypeInfoProvider metadata = section.getMetadata(partName);
-				if (metadata != null) {
-					return metadata;
-				}
-				section = section.getParentSection();
+				break;
+			default:
 			}
+			// ex : count for #each
+			JavaTypeInfoProvider metadata = section.getMetadata(partName);
+			if (metadata != null) {
+				return metadata;
+			}
+			section = section.getParentSection();
 		}
 		// Try to find the class name
 		// - from parameter declaration
 		// - from @CheckedTemplate
 		return template.findInInitialDataModel(this);
+
 	}
 
 }

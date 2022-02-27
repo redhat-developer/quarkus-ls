@@ -17,10 +17,13 @@ Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ActivationPolicy: lazy
 Export-Package: com.redhat.qute.commons,
  com.redhat.qute.commons.datamodel,
+ com.redhat.qute.commons.datamodel.resolvers,
+ com.redhat.qute.commons.usertags,
  com.redhat.qute.jdt,
  com.redhat.qute.jdt.internal.java;x-friends:="com.redhat.qute.jdt.test",
  com.redhat.qute.jdt.internal.ls;x-friends:="com.redhat.qute.jdt.test",
  com.redhat.qute.jdt.internal.template;x-friends:="com.redhat.qute.jdt.test",
+ com.redhat.qute.jdt.template.datamodel,
  com.redhat.qute.jdt.utils
 Bundle-Activator: com.redhat.qute.jdt.QutePlugin
 

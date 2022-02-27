@@ -18,12 +18,13 @@ import java.util.concurrent.CompletionStage;
 import org.eclipse.lsp4j.Location;
 
 import com.redhat.qute.commons.InvalidMethodReason;
+import com.redhat.qute.commons.JavaElementInfo;
 import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
+import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
@@ -36,6 +37,8 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.QuteProjectRegistry;
+import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.utils.StringUtils;
 
 public class JavaDataModelCache implements DataModelTemplateProvider {
@@ -57,7 +60,7 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return projectRegistry.getJavaDefinition(params);
 	}
 
-	public List<ValueResolver> getResolversFor(ResolvedJavaTypeInfo javaType, String projectUri) {
+	public List<MethodValueResolver> getResolversFor(ResolvedJavaTypeInfo javaType, String projectUri) {
 		return projectRegistry.getResolversFor(javaType, projectUri);
 	}
 
@@ -93,7 +96,7 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 							.thenCompose(resolvedType -> {
 								if (resolvedType == null) {
 									return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
-								}								
+								}
 								return resolveJavaType(current, projectUri, resolvedType);
 							});
 				}
@@ -250,21 +253,30 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return projectRegistry.findMember(part, previousResolvedType, projectUri);
 	}
 
-	public JavaMemberInfo findMember(ResolvedJavaTypeInfo resolvedIterableType, String property) {
-		return projectRegistry.findMember(resolvedIterableType, property);
+	public JavaMemberInfo findMember(ResolvedJavaTypeInfo resolvedType, String property) {
+		return projectRegistry.findMember(resolvedType, property);
 	}
 
 	public boolean hasNamespace(String namespace, String projectUri) {
 		return projectRegistry.hasNamespace(namespace, projectUri);
 	}
 
-	public List<ValueResolver> getNamespaceResolvers(String projectUri) {
-		return projectRegistry.getNamespaceResolvers(projectUri);
+	public CompletableFuture<JavaElementInfo> findJavaElementWithNamespace(String namespace, String partName,
+			String projectUri) {
+		return projectRegistry.findJavaElementWithNamespace(namespace, partName, projectUri);
 	}
 
-	public JavaMemberResult findMethod(ResolvedJavaTypeInfo baseType, String methodName,
+	public List<ValueResolver> getNamespaceResolvers(String namespace, String projectUri) {
+		return projectRegistry.getNamespaceResolvers(namespace, projectUri);
+	}
+
+	public CompletableFuture<NamespaceResolverInfo> getNamespaceResolverInfo(String namespace, String projectUri) {
+		return projectRegistry.getNamespaceResolverInfo(namespace, projectUri);
+	}
+
+	public JavaMemberResult findMethod(ResolvedJavaTypeInfo baseType, String namespace, String methodName,
 			List<ResolvedJavaTypeInfo> parameterTypes, String projectUri) {
-		return projectRegistry.findMethod(baseType, methodName, parameterTypes, projectUri);
+		return projectRegistry.findMethod(baseType, namespace, methodName, parameterTypes, projectUri);
 	}
 
 }

@@ -105,6 +105,10 @@ public abstract class Part extends Node {
 
 	public String getNamespace() {
 		Parts parts = getParent();
+		int index = parts.getPartIndex(this);
+		if (index != 1) {
+			return null;
+		}
 		Part part = parts.getChild(0);
 		if (this == part) {
 			return null;

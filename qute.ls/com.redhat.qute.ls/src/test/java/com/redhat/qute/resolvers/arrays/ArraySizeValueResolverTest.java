@@ -42,7 +42,7 @@ public class ArraySizeValueResolverTest {
 		template = "{@org.acme.Item[] items}\r\n" + //
 				"{items.sizeXXX}";
 		testDiagnosticsFor(template, //
-				d(1, 7, 1, 14, QuteErrorCode.UnkwownProperty,
+				d(1, 7, 1, 14, QuteErrorCode.UnknownProperty,
 						"`sizeXXX` cannot be resolved or is not a field of `org.acme.Item[]` Java type.",
 						DiagnosticSeverity.Error));
 

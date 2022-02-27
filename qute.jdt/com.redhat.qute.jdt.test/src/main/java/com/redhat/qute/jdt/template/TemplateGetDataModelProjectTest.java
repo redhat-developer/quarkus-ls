@@ -21,13 +21,13 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.redhat.qute.commons.ValueResolver;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
-import com.redhat.qute.jdt.QuteSupportForTemplate;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.jdt.QuteProjectTest.QuteMavenProjectName;
+import com.redhat.qute.jdt.QuteSupportForTemplate;
 
 /**
  * Tests for
@@ -51,7 +51,13 @@ public class TemplateGetDataModelProjectTest {
 		// Test templates
 		testTemplates(project);
 		// Test value resolvers
-		testValueResolvers(project);
+
+		List<ValueResolverInfo> resolvers = project.getValueResolvers();
+		Assert.assertNotNull(resolvers);
+		Assert.assertFalse(resolvers.isEmpty());
+
+		testValueResolversFomTemplateExtension(resolvers);
+		testValueResolversFomInject(resolvers);
 	}
 
 	private static void testTemplates(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
@@ -105,7 +111,7 @@ public class TemplateGetDataModelProjectTest {
 		Assert.assertEquals(2, parameters2.size());
 		assertParameter("age2", "int", true, parameters2, 0);
 		assertParameter("name2", "java.lang.String", true, parameters2, 1);
-		
+
 		// Template hallo;
 
 		DataModelTemplate<DataModelParameter> halloTemplate = project
@@ -178,10 +184,7 @@ public class TemplateGetDataModelProjectTest {
 		assertParameter("name", "java.lang.String", false, hello3Parameters, 0);
 	}
 
-	private static void testValueResolvers(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
-		List<ValueResolver> resolvers = project.getValueResolvers();
-		Assert.assertNotNull(resolvers);
-		Assert.assertFalse(resolvers.isEmpty());
+	private static void testValueResolversFomTemplateExtension(List<ValueResolverInfo> resolvers) {
 
 		// Resolver from Java sources
 		assertValueResolver(null, "discountedPrice(item : org.acme.qute.Item) : java.math.BigDecimal",
@@ -194,7 +197,7 @@ public class TemplateGetDataModelProjectTest {
 				"io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions", resolvers);
 
 		// from io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions
-		assertValueResolver("config", "config:getConfigProperty(propertyName : java.lang.String) : java.lang.Object",
+		assertValueResolver("config", "getConfigProperty(propertyName : java.lang.String) : java.lang.Object",
 				"io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions", resolvers);
 
 		// from io.quarkus.qute.runtime.extensions.MapTemplateExtensions
@@ -212,7 +215,7 @@ public class TemplateGetDataModelProjectTest {
 				"fmtInstance(format : java.lang.String, ignoredPropertyName : java.lang.String, args : java.lang.Object[]) : java.lang.String",
 				"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", resolvers);
 		assertValueResolver("str",
-				"str:fmt(ignoredPropertyName : java.lang.String, format : java.lang.String, args : java.lang.Object[]) : java.lang.String",
+				"fmt(ignoredPropertyName : java.lang.String, format : java.lang.String, args : java.lang.Object[]) : java.lang.String",
 				"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", resolvers);
 
 		// from io.quarkus.qute.runtime.extensions.TimeTemplateExtensions
@@ -220,16 +223,61 @@ public class TemplateGetDataModelProjectTest {
 				"format(temporal : java.time.temporal.TemporalAccessor, pattern : java.lang.String) : java.lang.String",
 				"io.quarkus.qute.runtime.extensions.TimeTemplateExtensions", resolvers);
 		assertValueResolver("time",
-				"time:format(dateTimeObject : java.lang.Object, pattern : java.lang.String) : java.lang.String",
+				"format(dateTimeObject : java.lang.Object, pattern : java.lang.String) : java.lang.String",
 				"io.quarkus.qute.runtime.extensions.TimeTemplateExtensions", resolvers);
 
 	}
 
+	private void testValueResolversFomInject(List<ValueResolverInfo> resolvers) {
+		Assert.assertNotNull(resolvers);
+		Assert.assertFalse(resolvers.isEmpty());
+
+		// from org.acme.qute.InjectedData source
+
+		// @Named
+		// public class InjectedData;
+		assertValueResolver("inject", "org.acme.qute.InjectedData", "org.acme.qute.InjectedData", //
+				"injectedData", resolvers);
+
+		// @Named
+		// private String foo;
+		assertValueResolver("inject", "foo : java.lang.String", "org.acme.qute.InjectedData", //
+				"foo", resolvers);
+
+		// @Named("bar")
+		// private String aBar;
+		assertValueResolver("inject", "aBar : java.lang.String", "org.acme.qute.InjectedData", //
+				"bar", resolvers);
+
+		// @Named("user")
+		// private String getUser() {...
+		assertValueResolver("inject", "getUser() : java.lang.String", "org.acme.qute.InjectedData", //
+				"user", resolvers);
+
+		// @Named
+		// private String getSystemUser() {...
+		assertValueResolver("inject", "getSystemUser() : java.lang.String", "org.acme.qute.InjectedData", //
+				"systemUser", resolvers);
+
+		// from io.quarkus.vertx.http.runtime.CurrentRequestProducer
+		assertValueResolver("inject",
+				"getCurrentRequest(rc : io.vertx.ext.web.RoutingContext) : io.vertx.core.http.HttpServerRequest",
+				"io.quarkus.vertx.http.runtime.CurrentRequestProducer", //
+				"vertxRequest", resolvers);
+
+	}
+
 	private static void assertValueResolver(String namespace, String signature, String sourceType,
-			List<ValueResolver> resolvers) {
-		Optional<ValueResolver> result = resolvers.stream().filter(r -> signature.equals(r.getSignature())).findFirst();
+			List<ValueResolverInfo> resolvers) {
+		assertValueResolver(namespace, signature, sourceType, null, resolvers);
+	}
+
+	private static void assertValueResolver(String namespace, String signature, String sourceType, String named,
+			List<ValueResolverInfo> resolvers) {
+		Optional<ValueResolverInfo> result = resolvers.stream().filter(r -> signature.equals(r.getSignature()))
+				.findFirst();
 		Assert.assertFalse("Find '" + signature + "' value resolver.", result.isEmpty());
-		ValueResolver resolver = result.get();
+		ValueResolverInfo resolver = result.get();
 		Assert.assertEquals(namespace, resolver.getNamespace());
 		Assert.assertEquals(signature, resolver.getSignature());
 		Assert.assertEquals(sourceType, resolver.getSourceType());

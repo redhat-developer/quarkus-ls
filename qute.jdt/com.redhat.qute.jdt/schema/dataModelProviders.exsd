@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="com.redhat.qute.jdt" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appinfo>
+         <meta.schema plugin="com.redhat.qute.jdt" id="dataModelProviders" name="Data Model Providers"/>
+      </appinfo>
+      <documentation>
+         This extension point allows adding a data model provider to provide capability to collect data model, virtual methods (from @TemplateExtension, @Named for inject, etc) from Java libraries and sources.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <element ref="provider"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appinfo>
+                  <meta.attribute translatable="true"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="provider">
+      <annotation>
+         <documentation>
+            The data model provider
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="namespaces" type="string">
+            <annotation>
+               <documentation>
+                  List of namespaces (separated with comma) supported by the data model provider (ex : inject,cdi).
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="description" type="string">
+            <annotation>
+               <documentation>
+                  The description of the data model provider.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="url" type="string">
+            <annotation>
+               <documentation>
+                  The url of the documentation about the data model provider.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Name of a class that implements IDataModelProvider.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":com.redhat.qute.jdt.template.datamodel.IDataModelProvider"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+
+   <annotation>
+      <appinfo>
+         <meta.section type="examples"/>
+      </appinfo>
+      <documentation>
+         The following is an example of a data model provider extension:
+
+&lt;pre&gt;
+ &lt;extension point=&quot;com.redhat.qute.jdt.dataModelProviders&quot;&gt;
+  &lt;provider namespaces=&quot;inject,cdi&quot;
+            description=&quot;A CDI bean annotated with `@Named` can be referenced in any template through `cdi` and/or `inject` namespaces.&quot;
+            url=&quot;https://quarkus.io/guides/qute-reference#injecting-beans-directly-in-templates&quot;
+            class=&quot;com.redhat.qute.jdt.internal.extensions.quarkus.InjectNamespaceResolverSupport&quot; /&gt;
+ &lt;/extension&gt;
+&lt;/pre&gt;
+      </documentation>
+   </annotation>
+
+
+
+
+</schema>
