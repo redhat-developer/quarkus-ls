@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2021 Red Hat Inc. and others.
+* Copyright (c) 2022 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
@@ -9,9 +9,10 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.jdt.internal.template;
+package com.redhat.qute.jdt.internal.template.datamodel;
 
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.LOCATION_ANNOTATION;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_CLASS;
 import static com.redhat.qute.jdt.utils.JDTQuteProjectUtils.getTemplatePath;
 
 import java.util.ArrayList;
@@ -22,9 +23,13 @@ import java.util.logging.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.JavaModelException;
 
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import com.redhat.qute.jdt.internal.template.TemplateDataSupport;
+import com.redhat.qute.jdt.template.datamodel.AbstractFieldDeclarationTypeReferenceDataModelProvider;
+import com.redhat.qute.jdt.template.datamodel.SearchContext;
 import com.redhat.qute.jdt.utils.AnnotationUtils;
 
 /**
@@ -48,11 +53,25 @@ import com.redhat.qute.jdt.utils.AnnotationUtils;
  * @author Angelo ZERR
  *
  */
-class TemplateFieldSupport {
+public class TemplateFieldSupport extends AbstractFieldDeclarationTypeReferenceDataModelProvider {
 
 	private static final Logger LOGGER = Logger.getLogger(TemplateFieldSupport.class.getName());
 
-	public static void collectDataModelTemplateForTemplateField(IField field,
+	private static final String[] TYPE_NAMES = { TEMPLATE_CLASS };
+
+	@Override
+	protected String[] getTypeNames() {
+		// Pattern to retrieve Template field
+		return TYPE_NAMES;
+	}
+
+	@Override
+	protected void processField(IField field, SearchContext context, IProgressMonitor monitor)
+			throws JavaModelException {
+		collectDataModelTemplateForTemplateField(field, context.getDataModelProject().getTemplates(), monitor);
+	}
+
+	private static void collectDataModelTemplateForTemplateField(IField field,
 			List<DataModelTemplate<DataModelParameter>> templates, IProgressMonitor monitor) {
 		DataModelTemplate<DataModelParameter> template = createTemplateDataModel(field, monitor);
 		templates.add(template);

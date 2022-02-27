@@ -25,8 +25,9 @@ public enum QuteErrorCode implements IQuteErrorCode {
 
 	// Error code for object, property, method parts
 	UndefinedVariable("`{0}` cannot be resolved to a variable."), //
-	UnkwownType("`{0}` cannot be resolved to a type."), //
-	UnkwownMethod("`{0}` cannot be resolved or is not a method of `{1}` Java type."), //
+	UnknownType("`{0}` cannot be resolved to a type."), //
+	UnknownMethod("`{0}` cannot be resolved or is not a method of `{1}` Java type."), //
+	UnkwownNamespaceResolverMethod("`{0}` cannot be resolved or is not a method of `{1}` namespace resolver."), //
 	InvalidMethodVoid("Invalid `{0}` method of `{1}` : void return is not allowed."), //
 	InvalidMethodFromObject("Invalid `{0}` method of `{1}` : method from `java.lang.Object` is not allowed."), //
 	InvalidMethodStatic("Invalid `{0}` method of `{1}` : static method is not allowed."), //
@@ -34,7 +35,7 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	InvalidVirtualMethod(
 			"The virtual method `{0}` in the type `{1}` is not applicable for the base object `{2}` type."), //
 
-	UnkwownProperty("`{0}` cannot be resolved or is not a field of `{1}` Java type."), //
+	UnknownProperty("`{0}` cannot be resolved or is not a field of `{1}` Java type."), //
 
 	// Error code for #for / #each section
 	IterationError("Iteration error: '{'{0}'}' resolved to [{1}] which is not iterable."),

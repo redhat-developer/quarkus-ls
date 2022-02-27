@@ -2,6 +2,10 @@
 <?eclipse version="3.5"?>
 <plugin>
 
+   <extension-point id="dataModelProviders"
+					name="%dataModelProviders.name"
+					schema="schema/dataModelProviders.exsd" />
+
    <!-- Delegate command handler for Qute template -->
    <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
       <delegateCommandHandler class="com.redhat.qute.jdt.internal.ls.QuteSupportForTemplateDelegateCommandHandler">      
@@ -23,4 +27,19 @@
        </delegateCommandHandler>
    </extension>
    
+   <!-- Data model providers for Qute core -->
+   <extension point="com.redhat.qute.jdt.dataModelProviders">
+   	  <provider class="com.redhat.qute.jdt.internal.template.datamodel.CheckedTemplateSupport" />
+      <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateExtensionSupport" />            
+      <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateFieldSupport" />
+   </extension>
+
+   <!-- Data model providers for Quarkus integration for Qute -->
+   <extension point="com.redhat.qute.jdt.dataModelProviders">
+      <provider namespaces="inject,cdi"
+                description="A CDI bean annotated with `@Named` can be referenced in any template through `cdi` and/or `inject` namespaces."
+                url="https://quarkus.io/guides/qute-reference#injecting-beans-directly-in-templates"
+                class="com.redhat.qute.jdt.internal.extensions.quarkus.InjectNamespaceResolverSupport" />
+   </extension>
+
 </plugin>

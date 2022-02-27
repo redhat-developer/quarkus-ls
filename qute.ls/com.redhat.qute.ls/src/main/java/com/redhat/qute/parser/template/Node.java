@@ -160,8 +160,11 @@ public abstract class Node {
 	 */
 	public Section getParentSection() {
 		Node parent = getParent();
-		if (parent != null && parent.getKind() == NodeKind.Section) {
-			return (Section) parent;
+		while (parent != null && parent.getKind() != NodeKind.Template) {
+			if (parent != null && parent.getKind() == NodeKind.Section) {
+				return (Section) parent;
+			}
+			parent = parent.getParent();
 		}
 		return null;
 	}

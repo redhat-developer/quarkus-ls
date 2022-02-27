@@ -13,8 +13,11 @@ package com.redhat.qute.project;
 
 import static com.redhat.qute.parser.template.LiteralSupport.getPrimitiveObjectType;
 import static com.redhat.qute.services.QuteCompletableFutures.EXTENDED_TEMPLATE_DATAMODEL_NULL_FUTURE;
+import static com.redhat.qute.services.QuteCompletableFutures.FIELD_VALUE_RESOLVERS_NULL_FUTURE;
+import static com.redhat.qute.services.QuteCompletableFutures.JAVA_ELEMENT_INFO_NULL_FUTURE;
+import static com.redhat.qute.services.QuteCompletableFutures.METHOD_VALUE_RESOLVERS_NULL_FUTURE;
+import static com.redhat.qute.services.QuteCompletableFutures.NAMESPACE_RESOLVER_INFO_NULL_FUTURE;
 import static com.redhat.qute.services.QuteCompletableFutures.RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
-import static com.redhat.qute.services.QuteCompletableFutures.VALUE_RESOLVERS_NULL_FUTURE;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.Location;
 
+import com.redhat.qute.commons.JavaElementInfo;
 import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
@@ -36,12 +40,12 @@ import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
+import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
@@ -53,8 +57,13 @@ import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
-import com.redhat.qute.project.datamodel.ValueResolversRegistry;
+import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.ValueResolversRegistry;
 import com.redhat.qute.utils.StringUtils;
 
 /**
@@ -104,7 +113,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	private final QuteDataModelProjectProvider dataModelProvider;
 
 	private final QuteUserTagProvider userTagProvider;
-	
+
 	private final QuteJavaTypesProvider javaTypeProvider;
 
 	private final QuteJavaDefinitionProvider definitionProvider;
@@ -265,20 +274,37 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		}
 	}
 
-	public CompletableFuture<List<ValueResolver>> getValueResolvers(String projectUri) {
+	private CompletableFuture<List<MethodValueResolver>> getMethodValueResolvers(String projectUri) {
 		if (StringUtils.isEmpty(projectUri)) {
-			return VALUE_RESOLVERS_NULL_FUTURE;
+			return METHOD_VALUE_RESOLVERS_NULL_FUTURE;
 		}
 		QuteProject project = getProject(projectUri);
 		if (project == null) {
-			return VALUE_RESOLVERS_NULL_FUTURE;
+			return METHOD_VALUE_RESOLVERS_NULL_FUTURE;
 		}
 		return project.getDataModelProject() //
 				.thenApply(dataModel -> {
 					if (dataModel == null) {
 						return null;
 					}
-					return dataModel.getValueResolvers();
+					return dataModel.getMethodValueResolvers();
+				});
+	}
+
+	private CompletableFuture<List<FieldValueResolver>> getFieldValueResolvers(String projectUri) {
+		if (StringUtils.isEmpty(projectUri)) {
+			return FIELD_VALUE_RESOLVERS_NULL_FUTURE;
+		}
+		QuteProject project = getProject(projectUri);
+		if (project == null) {
+			return FIELD_VALUE_RESOLVERS_NULL_FUTURE;
+		}
+		return project.getDataModelProject() //
+				.thenApply(dataModel -> {
+					if (dataModel == null) {
+						return null;
+					}
+					return dataModel.getFieldValueResolvers();
 				});
 	}
 
@@ -314,7 +340,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			QuteDataModelProjectParams params) {
 		return dataModelProvider.getDataModelProject(params);
 	}
-	
+
 	@Override
 	public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
 		return userTagProvider.getUserTags(params);
@@ -428,6 +454,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 * parameter types <code>parameterTypes</code>.
 	 *
 	 * @param baseType       the Java base object type.
+	 * @param namespace      the namespace part and null otherwise.
 	 * @param methodName     the method name to search.
 	 * @param parameterTypes the parameter types of the method to search.
 	 * @param projectUri     the project Uri.
@@ -436,34 +463,37 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 *         matches the given method name <code>methodName</code> with the given
 	 *         parameter types <code>parameterTypes</code>.
 	 */
-	public JavaMemberResult findMethod(ResolvedJavaTypeInfo baseType, String methodName,
+	public JavaMemberResult findMethod(ResolvedJavaTypeInfo baseType, String namespace, String methodName,
 			List<ResolvedJavaTypeInfo> parameterTypes, String projectUri) {
 		// Search in the java root type
 		JavaMemberResult result = new JavaMemberResult();
-		if (findMethod(baseType, methodName, parameterTypes, result, projectUri)) {
-			return result;
-		}
-		if (baseType.getExtendedTypes() != null) {
-			// Search in extended types
-			for (String extendedType : baseType.getExtendedTypes()) {
-				ResolvedJavaTypeInfo resolvedExtendedType = resolveJavaType(extendedType, projectUri).getNow(null);
-				if (resolvedExtendedType != null) {
-					if (findMethod(resolvedExtendedType, methodName, parameterTypes, result, projectUri)) {
-						return result;
+		if (baseType != null) {
+			if (findMethod(baseType, methodName, parameterTypes, result, projectUri)) {
+				return result;
+			}
+			if (baseType.getExtendedTypes() != null) {
+				// Search in extended types
+				for (String extendedType : baseType.getExtendedTypes()) {
+					ResolvedJavaTypeInfo resolvedExtendedType = resolveJavaType(extendedType, projectUri).getNow(null);
+					if (resolvedExtendedType != null) {
+						if (findMethod(resolvedExtendedType, methodName, parameterTypes, result, projectUri)) {
+							return result;
+						}
 					}
 				}
 			}
+
+			// Search in value resolvers
+			// Search in static value resolvers (ex : orEmpty, take, etc)
+			List<MethodValueResolver> staticResolvers = valueResolversRegistry.getResolvers();
+			if (findMethodResolver(baseType, null, methodName, parameterTypes, staticResolvers, result, projectUri)) {
+				return result;
+			}
 		}
 
-		// Search in value resolvers
-		// Search in static value resolvers (ex : orEmpty, take, etc)
-		List<ValueResolver> staticResolvers = valueResolversRegistry.getResolvers();
-		if (findResolver(baseType, methodName, parameterTypes, staticResolvers, result, projectUri)) {
-			return result;
-		}
 		// Search in template extension value resolvers retrieved by @TemplateExtension
-		List<ValueResolver> dynamicResolvers = getValueResolvers(projectUri).getNow(null);
-		if (findResolver(baseType, methodName, parameterTypes, dynamicResolvers, result, projectUri)) {
+		List<MethodValueResolver> dynamicResolvers = getMethodValueResolvers(projectUri).getNow(null);
+		if (findMethodResolver(baseType, namespace, methodName, parameterTypes, dynamicResolvers, result, projectUri)) {
 			return result;
 		}
 		return result;
@@ -480,7 +510,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 				// The current method matches the method name.
 
 				// Check if the current method matches the parameters.
-				boolean matchParameters = isMatchParameters(method, baseType, parameterTypes, projectUri);
+				boolean matchParameters = isMatchParameters(method, parameterTypes, projectUri);
 				if (result.getMember() == null || matchParameters) {
 					result.setMember(method);
 					result.setMatchParameters(matchParameters);
@@ -496,38 +526,48 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		return false;
 	}
 
-	private boolean findResolver(ResolvedJavaTypeInfo baseType, String methodName,
-			List<ResolvedJavaTypeInfo> parameterTypes, List<ValueResolver> allResolvers, JavaMemberResult result,
+	private boolean findMethodResolver(ResolvedJavaTypeInfo baseType, String namespace, String methodName,
+			List<ResolvedJavaTypeInfo> parameterTypes, List<MethodValueResolver> allResolvers, JavaMemberResult result,
 			String projectUri) {
-		for (ValueResolver resolver : allResolvers) {
+		for (MethodValueResolver resolver : allResolvers) {
 			if (isMatchMethod(resolver, methodName, null, null)) {
 				// The current resolver matches the method name.
-
-				// Check if the baseType matches the type of the first parameter of the current
-				// resolver.
-				boolean matchVirtualMethod = matchResolver(baseType, resolver, methodName);
-				boolean matchParameters = false;
-				if (matchVirtualMethod) {
-					// Check if the current resolver matches the parameters.
-					matchParameters = isMatchParameters(resolver, baseType, parameterTypes, projectUri);
-				}
-				if (result.getMember() == null || (matchParameters && matchVirtualMethod)) {
-					result.setMember(resolver);
-					result.setMatchParameters(matchParameters);
-					result.setMatchVirtualMethod(matchVirtualMethod);
-				}
-				if (matchParameters && matchVirtualMethod) {
-					// The current resolver matches the method name, the parameters types and the
-					// virtual method,stop the search
-					return true;
+				if (namespace != null) {
+					if (namespace.equals(resolver.getNamespace())) {
+						result.setMember(resolver);
+						result.setMatchVirtualMethod(true);
+						// Check if the current resolver matches the parameters.
+						boolean matchParameters = isMatchParameters(resolver, parameterTypes, projectUri);
+						result.setMatchParameters(matchParameters);
+						return true;
+					}
+				} else {
+					// Check if the baseType matches the type of the first parameter of the current
+					// resolver.
+					boolean matchVirtualMethod = matchResolver(baseType, resolver, methodName);
+					boolean matchParameters = false;
+					if (matchVirtualMethod) {
+						// Check if the current resolver matches the parameters.
+						matchParameters = isMatchParameters(resolver, parameterTypes, projectUri);
+					}
+					if (result.getMember() == null || (matchParameters && matchVirtualMethod)) {
+						result.setMember(resolver);
+						result.setMatchParameters(matchParameters);
+						result.setMatchVirtualMethod(matchVirtualMethod);
+					}
+					if (matchParameters && matchVirtualMethod) {
+						// The current resolver matches the method name, the parameters types and the
+						// virtual method,stop the search
+						return true;
+					}
 				}
 			}
 		}
 		return false;
 	}
 
-	private boolean isMatchParameters(JavaMethodInfo method, ResolvedJavaTypeInfo baseType,
-			List<ResolvedJavaTypeInfo> parameterTypes, String projectUri) {
+	private boolean isMatchParameters(JavaMethodInfo method, List<ResolvedJavaTypeInfo> parameterTypes,
+			String projectUri) {
 		boolean virtualMethod = method.isVirtual();
 		if (parameterTypes.size() != (method.getParameters().size() - (virtualMethod ? 1 : 0))) {
 			return false;
@@ -575,9 +615,10 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		return value == null || value.isEmpty();
 	}
 
-	public ValueResolver findValueResolver(String property, ResolvedJavaTypeInfo resolvedType, String projectUri) {
-		List<ValueResolver> resolvers = getResolversFor(resolvedType, projectUri);
-		for (ValueResolver resolver : resolvers) {
+	public MethodValueResolver findValueResolver(String property, ResolvedJavaTypeInfo resolvedType,
+			String projectUri) {
+		List<MethodValueResolver> resolvers = getResolversFor(resolvedType, projectUri);
+		for (MethodValueResolver resolver : resolvers) {
 			if (isMatchMethod(resolver, property)) {
 				return resolver;
 			}
@@ -592,44 +633,152 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 *
 	 * @return namespace resolvers from the given Qute project Uri.
 	 */
-	public List<ValueResolver> getNamespaceResolvers(String projectUri) {
-		List<ValueResolver> allResolvers = getValueResolvers(projectUri).getNow(null);
-		if (allResolvers != null) {
-			List<ValueResolver> namespaceResolvers = new ArrayList<>();
-			for (ValueResolver resolver : allResolvers) {
-				if (resolver.getNamespace() != null) {
+	public List<ValueResolver> getNamespaceResolvers(String namespace, String projectUri) {
+		if (StringUtils.isEmpty(projectUri)) {
+			return Collections.emptyList();
+		}
+		QuteProject project = getProject(projectUri);
+		if (project == null) {
+			return Collections.emptyList();
+		}
+
+		ExtendedDataModelProject dataModel = project.getDataModelProject().getNow(null);
+		if (dataModel == null) {
+			return Collections.emptyList();
+		}
+
+		List<ValueResolver> namespaceResolvers = new ArrayList<>();
+		
+		List<TypeValueResolver> allTypeResolvers = dataModel.getTypeValueResolvers();
+		if (allTypeResolvers != null) {
+			for (ValueResolver resolver : allTypeResolvers) {
+				if (isMatchNamespace(resolver, namespace, dataModel)) {
 					namespaceResolvers.add(resolver);
 				}
 			}
-			return namespaceResolvers;
 		}
-		return Collections.emptyList();
+		
+		List<MethodValueResolver> allMethodResolvers = dataModel.getMethodValueResolvers();
+		if (allMethodResolvers != null) {
+			for (ValueResolver resolver : allMethodResolvers) {
+				if (isMatchNamespace(resolver, namespace, dataModel)) {
+					namespaceResolvers.add(resolver);
+				}
+			}
+		}
+		
+		List<FieldValueResolver> allFieldResolvers = dataModel.getFieldValueResolvers();
+		if (allFieldResolvers != null) {
+			for (ValueResolver resolver : allFieldResolvers) {
+				if (isMatchNamespace(resolver, namespace, dataModel)) {
+					namespaceResolvers.add(resolver);
+				}
+			}
+		}
+		return namespaceResolvers;
+	}
+
+	private static boolean isMatchNamespace(ValueResolver resolver, String namespace,
+			ExtendedDataModelProject dataModel) {
+		if (resolver.getNamespace() == null) {
+			return false;
+		}
+		return namespace == null || dataModel.getSimilarNamespace(namespace).equals(resolver.getNamespace());
 	}
 
 	public boolean hasNamespace(String namespace, String projectUri) {
-		List<ValueResolver> resolvers = getValueResolvers(projectUri).getNow(null);
-		if (resolvers != null) {
-			for (ValueResolver resolver : resolvers) {
-				if (namespace.equals(resolver.getNamespace())) {
-					return true;
-				}
-			}
+		return getAllNamespaces(projectUri).contains(namespace);
+	}
+
+	private Set<String> getAllNamespaces(String projectUri) {
+		if (StringUtils.isEmpty(projectUri)) {
+			return Collections.emptySet();
+		}
+		QuteProject project = getProject(projectUri);
+		if (project == null) {
+			return Collections.emptySet();
+		}
+		ExtendedDataModelProject dataModel = project.getDataModelProject().getNow(null);
+		return dataModel != null ? dataModel.getAllNamespaces() : Collections.emptySet();
+	}
+
+	public CompletableFuture<JavaElementInfo> findJavaElementWithNamespace(String namespace, String partName,
+			String projectUri) {
+		if (StringUtils.isEmpty(projectUri)) {
+			return JAVA_ELEMENT_INFO_NULL_FUTURE;
+		}
+		QuteProject project = getProject(projectUri);
+		if (project == null) {
+			return JAVA_ELEMENT_INFO_NULL_FUTURE;
+		}
+		return project.getDataModelProject() //
+				.thenApply(dataModel -> {
+					if (dataModel == null) {
+						return null;
+					}
+					// Search in types resolvers
+					List<TypeValueResolver> typeResolvers = dataModel.getTypeValueResolvers();
+					for (TypeValueResolver resolver : typeResolvers) {
+						if (isMatchNamespaceResolver(namespace, partName, resolver, dataModel)) {
+							return resolver;
+						}
+					}
+					// Search in methods resolvers
+					List<MethodValueResolver> methodResolvers = dataModel.getMethodValueResolvers();
+					for (MethodValueResolver resolver : methodResolvers) {
+						if (isMatchNamespaceResolver(namespace, partName, resolver, dataModel)) {
+							return resolver;
+						}
+					}
+					// Search in field resolvers
+					List<FieldValueResolver> fieldResolvers = dataModel.getFieldValueResolvers();
+					for (FieldValueResolver resolver : fieldResolvers) {
+						if (isMatchNamespaceResolver(namespace, partName, resolver, dataModel)) {
+							return resolver;
+						}
+					}
+					return null;
+				});
+	}
+
+	public boolean isMatchNamespaceResolver(String namespace, String partName, ValueResolver resolver,
+			ExtendedDataModelProject dataModel) {
+		String name = resolver.getNamed() != null ? resolver.getNamed() : resolver.getName();
+		if (dataModel.getSimilarNamespace(namespace).equals(resolver.getNamespace()) && partName.equals(name)) {
+			return true;
 		}
 		return false;
 	}
 
-	public List<ValueResolver> getResolversFor(ResolvedJavaTypeInfo javaType, String projectUri) {
+	public CompletableFuture<NamespaceResolverInfo> getNamespaceResolverInfo(String namespace, String projectUri) {
+		if (StringUtils.isEmpty(projectUri)) {
+			return NAMESPACE_RESOLVER_INFO_NULL_FUTURE;
+		}
+		QuteProject project = getProject(projectUri);
+		if (project == null) {
+			return NAMESPACE_RESOLVER_INFO_NULL_FUTURE;
+		}
+		return project.getDataModelProject() //
+				.thenApply(dataModel -> {
+					if (dataModel == null) {
+						return null;
+					}
+					return dataModel.getNamespaceResolver(namespace);
+				});
+	}
+
+	public List<MethodValueResolver> getResolversFor(ResolvedJavaTypeInfo javaType, String projectUri) {
 		// Search in static value resolvers (ex : orEmpty, take, etc)
-		List<ValueResolver> matches = new ArrayList<>();
-		for (ValueResolver resolver : valueResolversRegistry.getResolvers()) {
+		List<MethodValueResolver> matches = new ArrayList<>();
+		for (MethodValueResolver resolver : valueResolversRegistry.getResolvers()) {
 			if (matchResolver(javaType, resolver, projectUri)) {
 				matches.add(resolver);
 			}
 		}
 		// Search in template extension value resolvers retrieved by @TemplateExtension
-		List<ValueResolver> allResolvers = getValueResolvers(projectUri).getNow(null);
+		List<MethodValueResolver> allResolvers = getMethodValueResolvers(projectUri).getNow(null);
 		if (allResolvers != null) {
-			for (ValueResolver resolver : allResolvers) {
+			for (MethodValueResolver resolver : allResolvers) {
 				if (resolver.getNamespace() == null && matchResolver(javaType, resolver, projectUri)) {
 					matches.add(resolver);
 				}
@@ -651,7 +800,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 *         matches the first parameter of the value resolver method) and false
 	 *         otherwise.
 	 */
-	private boolean matchResolver(ResolvedJavaTypeInfo javaType, ValueResolver resolver, String projectUri) {
+	private boolean matchResolver(ResolvedJavaTypeInfo javaType, MethodValueResolver resolver, String projectUri) {
 		// Example with following signature:
 		// "orEmpty(arg : java.util.List<T>) : java.lang.Iterable<T>"
 		JavaParameterInfo parameter = resolver.getParameterAt(0); // arg : java.util.List<T>

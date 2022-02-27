@@ -14,9 +14,12 @@ package com.redhat.qute.services;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import com.redhat.qute.commons.JavaElementInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
+import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
+import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 
 public class QuteCompletableFutures {
 
@@ -26,6 +29,16 @@ public class QuteCompletableFutures {
 	public static final CompletableFuture<ExtendedDataModelTemplate> EXTENDED_TEMPLATE_DATAMODEL_NULL_FUTURE = CompletableFuture
 			.completedFuture(null);
 
-	public static final CompletableFuture<List<ValueResolver>> VALUE_RESOLVERS_NULL_FUTURE = CompletableFuture
+	public static final CompletableFuture<List<MethodValueResolver>> METHOD_VALUE_RESOLVERS_NULL_FUTURE = CompletableFuture
 			.completedFuture(null);
+
+	public static final CompletableFuture<List<FieldValueResolver>> FIELD_VALUE_RESOLVERS_NULL_FUTURE = CompletableFuture
+			.completedFuture(null);
+
+	public static final CompletableFuture<NamespaceResolverInfo> NAMESPACE_RESOLVER_INFO_NULL_FUTURE = CompletableFuture
+			.completedFuture(null);
+
+	public static final CompletableFuture<JavaElementInfo> JAVA_ELEMENT_INFO_NULL_FUTURE = CompletableFuture
+			.completedFuture(null);
+
 }

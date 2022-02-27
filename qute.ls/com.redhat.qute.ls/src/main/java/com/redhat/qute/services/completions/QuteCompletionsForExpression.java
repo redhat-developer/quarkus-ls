@@ -35,9 +35,9 @@ import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
 import com.redhat.qute.ls.commons.SnippetsBuilder;
 import com.redhat.qute.parser.expression.MethodPart;
+import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.template.Expression;
@@ -54,6 +54,9 @@ import com.redhat.qute.parser.template.sections.WithSection;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.utils.QutePositionUtility;
@@ -101,11 +104,11 @@ public class QuteCompletionsForExpression {
 			CancelChecker cancelChecker) {
 		if (nodeExpression == null) {
 			// ex : { | }
-			return doCompleteExpressionForObjectPart(completionRequest, expression, null, offset, template,
+			return doCompleteExpressionForObjectPart(completionRequest, expression, null, null, offset, template,
 					completionSettings, formattingSettings, cancelChecker);
 		} else if (expression == null) {
 			// ex : {|
-			return doCompleteExpressionForObjectPart(completionRequest, null, nodeExpression, offset, template,
+			return doCompleteExpressionForObjectPart(completionRequest, null, null, nodeExpression, offset, template,
 					completionSettings, formattingSettings, cancelChecker);
 		}
 
@@ -114,8 +117,8 @@ public class QuteCompletionsForExpression {
 			switch (part.getPartKind()) {
 			case Object:
 				// ex : { ite|m }
-				return doCompleteExpressionForObjectPart(null, expression, part, offset, template, completionSettings,
-						formattingSettings, cancelChecker);
+				return doCompleteExpressionForObjectPart(null, expression, part.getNamespace(), part, offset, template,
+						completionSettings, formattingSettings, cancelChecker);
 			case Property: {
 				// ex : { item.n| }
 				// ex : { item.n|ame }
@@ -128,7 +131,7 @@ public class QuteCompletionsForExpression {
 				MethodPart methodPart = (MethodPart) part;
 				if (methodPart.isInParameters(offset)) {
 					// ex : { item.getName(|) }
-					return doCompleteExpressionForObjectPart(null, expression, null, offset, template,
+					return doCompleteExpressionForObjectPart(null, expression, null, null, offset, template,
 							completionSettings, formattingSettings, cancelChecker);
 				}
 				// ex : { item.getN|ame() }
@@ -149,8 +152,8 @@ public class QuteCompletionsForExpression {
 				// ex : { data:|name }
 				Parts parts = (Parts) nodeExpression;
 				Part part = parts.getPartAt(offset + 1);
-				return doCompleteExpressionForObjectPart(null, expression, part, offset, template, completionSettings,
-						formattingSettings, cancelChecker);
+				return doCompleteExpressionForObjectPart(null, expression, parts.getNamespacePart().getPartName(), part,
+						offset, template, completionSettings, formattingSettings, cancelChecker);
 			}
 			case '.': {
 				// ex : { item.| }
@@ -244,8 +247,8 @@ public class QuteCompletionsForExpression {
 
 		// - Static value resolvers (orEmpty, etc)
 		// - Dynamic value resolvers (from @TemplateExtension)
-		List<ValueResolver> resolvers = javaCache.getResolversFor(resolvedType, projectUri);
-		for (ValueResolver method : resolvers) {
+		List<MethodValueResolver> resolvers = javaCache.getResolversFor(resolvedType, projectUri);
+		for (MethodValueResolver method : resolvers) {
 			if (method.isValidName()) {
 				fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
 			}
@@ -276,15 +279,7 @@ public class QuteCompletionsForExpression {
 			// class A extends B {String foo;}
 			// class B {String foo;}
 			if (!existingProperties.contains(fieldName)) {
-				CompletionItem item = new CompletionItem();
-				item.setLabel(field.getSimpleSignature());
-				item.setFilterText(fieldName);
-				item.setKind(CompletionItemKind.Field);
-				TextEdit textEdit = new TextEdit();
-				textEdit.setRange(range);
-				textEdit.setNewText(fieldName);
-				item.setTextEdit(Either.forLeft(textEdit));
-				list.getItems().add(item);
+				fillCompletionField(field, range, list);
 				existingProperties.add(fieldName);
 			}
 		}
@@ -299,6 +294,27 @@ public class QuteCompletionsForExpression {
 				}
 			}
 		}
+	}
+
+	private static CompletionItem fillCompletionField(JavaFieldInfo field, Range range, CompletionList list) {
+		return fillCompletionField(field, null, false, range, list);
+	}
+
+	private static CompletionItem fillCompletionField(JavaFieldInfo field, String namespace,
+			boolean useNamespaceInTextEdit, Range range, CompletionList list) {
+		String label = namespace != null ? namespace + ':' + field.getSimpleSignature() : field.getSimpleSignature();
+		String insertText = useNamespaceInTextEdit && namespace != null ? namespace + ':' + field.getName()
+				: field.getName();
+		CompletionItem item = new CompletionItem();
+		item.setLabel(label);
+		item.setFilterText(insertText);
+		item.setKind(CompletionItemKind.Field);
+		TextEdit textEdit = new TextEdit();
+		textEdit.setRange(range);
+		textEdit.setNewText(insertText);
+		item.setTextEdit(Either.forLeft(textEdit));
+		list.getItems().add(item);
+		return item;
 	}
 
 	/**
@@ -356,16 +372,27 @@ public class QuteCompletionsForExpression {
 
 	private static CompletionItem fillCompletionMethod(JavaMethodInfo method, Range range,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings, CompletionList list) {
-		String methodSignature = method.getSimpleSignature();
+		return fillCompletionMethod(method, null, false, range, completionSettings, formattingSettings, list);
+	}
+
+	private static CompletionItem fillCompletionMethod(JavaMethodInfo method, String namespace,
+			boolean useNamespaceInTextEdit, Range range, QuteCompletionSettings completionSettings,
+			QuteFormattingSettings formattingSettings, CompletionList list) {
+		String label = namespace != null ? namespace + ':' + method.getSimpleSignature() : method.getSimpleSignature();
+		String filterText = namespace != null ? namespace + ':' + method.getName() : method.getName();
 		CompletionItem item = new CompletionItem();
-		item.setLabel(methodSignature);
-		item.setFilterText(method.getName());
+		item.setLabel(label);
+		item.setFilterText(filterText);
 		item.setKind(method.isVirtual() ? CompletionItemKind.Function : CompletionItemKind.Method);
 		item.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported() ? InsertTextFormat.Snippet
 				: InsertTextFormat.PlainText);
 		TextEdit textEdit = new TextEdit();
 		textEdit.setRange(range);
-		textEdit.setNewText(createMethodSnippet(method, completionSettings, formattingSettings));
+		String insertText = createMethodSnippet(method, completionSettings, formattingSettings);
+		if (useNamespaceInTextEdit && namespace != null) {
+			insertText = namespace + ':' + insertText;
+		}
+		textEdit.setNewText(insertText);
 		item.setTextEdit(Either.forLeft(textEdit));
 		list.getItems().add(item);
 		return item;
@@ -402,63 +429,126 @@ public class QuteCompletionsForExpression {
 	}
 
 	private CompletableFuture<CompletionList> doCompleteExpressionForObjectPart(CompletionRequest completionRequest,
-			Expression expression, Node part, int offset, Template template, QuteCompletionSettings completionSettings,
-			QuteFormattingSettings formattingSettings, CancelChecker cancelChecker) {
+			Expression expression, String namespace, Node part, int offset, Template template,
+			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
+			CancelChecker cancelChecker) {
 		// Completion for root object
 		int partStart = part != null && part.getKind() != NodeKind.Text ? part.getStart() : offset;
 		int partEnd = part != null && part.getKind() != NodeKind.Text ? part.getEnd() : offset;
 		Range range = QutePositionUtility.createRange(partStart, partEnd, template);
 		CompletionList list = new CompletionList();
 
-		// Collect alias declared from parameter declaration
-		doCompleteExpressionForObjectPartWithParameterAlias(template, range, list);
-		// Collect parameters from CheckedTemplate method parameters
-		doCompleteExpressionForObjectPartWithCheckedTemplate(template, range, list);
-		// Collect declared model inside section, let, etc
-		Set<String> existingVars = new HashSet<>();
-		doCompleteExpressionForObjectPartWithParentNodes(part, expression != null ? expression : part, range, offset,
-				template.getProjectUri(), existingVars, completionSettings, formattingSettings, list);
-		// Namespace parts
-		doCompleteExpressionForNamespacePart(template, completionSettings, formattingSettings, range, list);
+		// Completion with namespace resolver
+		// {data:item}
+		// {inject:bean}
+		doCompleteNamespaceResolvers(namespace, template, range, completionSettings, formattingSettings, list);
 
-		// Section tag
-		if (completionRequest != null) {
-			char previous = template.getText().charAt(offset - 1);
-			completionForTagSection.doCompleteTagSection(completionRequest, previous == '#' ? "#" : "{",
-					completionSettings, formattingSettings, cancelChecker, list);
-		}
+		if (namespace == null) {
+			// Completion is triggered before the namespace
 
-		if (UserTagUtils.isUserTag(template)) {
-			// provide completion for 'it' and 'nested-content'
-			Collection<SectionMetadata> metadatas = UserTagUtils.getSpecialKeys();
-			for (SectionMetadata metadata : metadatas) {
-				String name = metadata.getName();
-				if (!existingVars.contains(name)) {
-					existingVars.add(name);
-					CompletionItem item = new CompletionItem();
-					item.setLabel(name);
-					item.setKind(CompletionItemKind.Keyword);
-					// Display metadata section (ex : count for #each) after declared variables
-					item.setSortText("Za" + name);
-					TextEdit textEdit = new TextEdit(range, name);
-					item.setTextEdit(Either.forLeft(textEdit));
-					item.setDetail(metadata.getDescription());
-					list.getItems().add(item);
+			// Collect alias declared from parameter declaration
+			doCompleteExpressionForObjectPartWithParameterAlias(template, range, list);
+			// Collect parameters from CheckedTemplate method parameters
+			doCompleteExpressionForObjectPartWithCheckedTemplate(template, range, list);
+			// Collect declared model inside section, let, etc
+			Set<String> existingVars = new HashSet<>();
+			doCompleteExpressionForObjectPartWithParentNodes(part, expression != null ? expression : part, range,
+					offset, template.getProjectUri(), existingVars, completionSettings, formattingSettings, list);
+
+			// Section tag
+			if (completionRequest != null) {
+				char previous = template.getText().charAt(offset - 1);
+				if (previous == '#') {
+					completionForTagSection.doCompleteTagSection(completionRequest, "#", completionSettings,
+							formattingSettings, cancelChecker, list);
+				}
+			}
+
+			if (UserTagUtils.isUserTag(template)) {
+				// provide completion for 'it' and 'nested-content'
+				Collection<SectionMetadata> metadatas = UserTagUtils.getSpecialKeys();
+				for (SectionMetadata metadata : metadatas) {
+					String name = metadata.getName();
+					if (!existingVars.contains(name)) {
+						existingVars.add(name);
+						CompletionItem item = new CompletionItem();
+						item.setLabel(name);
+						item.setKind(CompletionItemKind.Keyword);
+						// Display metadata section (ex : count for #each) after declared variables
+						item.setSortText("Za" + name);
+						TextEdit textEdit = new TextEdit(range, name);
+						item.setTextEdit(Either.forLeft(textEdit));
+						item.setDetail(metadata.getDescription());
+						list.getItems().add(item);
+					}
 				}
 			}
 		}
 		return CompletableFuture.completedFuture(list);
 	}
 
-	private void doCompleteExpressionForNamespacePart(Template template, QuteCompletionSettings completionSettings,
-			QuteFormattingSettings formattingSettings, Range range, CompletionList list) {
-		List<ValueResolver> namespaceResolvers = javaCache.getNamespaceResolvers(template.getProjectUri());
-		for (ValueResolver method : namespaceResolvers) {
-			CompletionItem item = fillCompletionMethod(method, range, completionSettings, formattingSettings, list);
-			item.setKind(CompletionItemKind.Function);
-			// Display namespace resolvers (ex : config:getConfigProperty(...)) after
-			// declared variables
-			item.setSortText("Zb" + item.getLabel());
+	public void doCompleteNamespaceResolvers(String namespace, Template template, Range range,
+			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings, CompletionList list) {
+		if (NamespacePart.DATA_NAMESPACE.equals(namespace)) {
+			// {data:|}
+			// Collect alias declared from parameter declaration
+			doCompleteExpressionForObjectPartWithParameterAlias(template, range, list);
+			// Collect parameters from CheckedTemplate method parameters
+			doCompleteExpressionForObjectPartWithCheckedTemplate(template, range, list);
+			return;
+		}
+
+		// {inject:|}
+		// {|inject:}
+		// {config:|}
+		// {|config:}
+		Set<String> existingResovers = new HashSet<>();
+		List<ValueResolver> namespaceResolvers = javaCache.getNamespaceResolvers(namespace, template.getProjectUri());
+		for (ValueResolver resolver : namespaceResolvers) {
+			boolean useNamespaceInTextEdit = namespace == null;
+			String named = resolver.getNamed();
+			if (named != null) {
+				// @Named("user")
+				// User getUser();
+				String label = useNamespaceInTextEdit ? resolver.getNamespace() + ':' + named : named;
+				if (!existingResovers.contains(label)) {
+					existingResovers.add(label);
+					CompletionItem item = new CompletionItem();
+					item.setLabel(label);
+					item.setFilterText(label);
+					item.setKind(CompletionItemKind.Field);
+					TextEdit textEdit = new TextEdit();
+					textEdit.setRange(range);
+					textEdit.setNewText(label);
+					item.setTextEdit(Either.forLeft(textEdit));
+					item.setSortText("Zb" + item.getLabel());
+					list.getItems().add(item);
+				}
+			} else {
+				switch (resolver.getJavaElementKind()) {
+				case METHOD: {
+					MethodValueResolver method = (MethodValueResolver) resolver;
+					CompletionItem item = fillCompletionMethod(method, method.getNamespace(), useNamespaceInTextEdit,
+							range, completionSettings, formattingSettings, list);
+					item.setKind(CompletionItemKind.Function);
+					// Display namespace resolvers (ex : config:getConfigProperty(...)) after
+					// declared variables
+					item.setSortText("Zc" + item.getLabel());
+					break;
+				}
+				case FIELD: {
+					FieldValueResolver field = (FieldValueResolver) resolver;
+					CompletionItem item = fillCompletionField(field, field.getNamespace(), namespace == null, range,
+							list);
+					item.setKind(CompletionItemKind.Field);
+					// Display namespace resolvers (ex : inject:bean) after
+					// declared variables
+					item.setSortText("Zb" + item.getLabel());
+					break;
+				}
+				default:
+				}
+			}
 		}
 	}
 

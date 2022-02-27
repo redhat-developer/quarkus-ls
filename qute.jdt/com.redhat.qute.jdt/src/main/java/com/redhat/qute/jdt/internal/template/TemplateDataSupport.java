@@ -22,7 +22,6 @@ import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.internal.core.manipulation.dom.ASTResolving;
-import org.eclipse.jdt.internal.core.search.BasicSearchEngine;
 import org.eclipse.lsp4j.Location;
 
 import com.redhat.qute.commons.datamodel.DataModelParameter;
@@ -66,7 +65,7 @@ public class TemplateDataSupport {
 		SearchEngine engine = new SearchEngine();
 		SearchPattern pattern = SearchPattern.createPattern(fieldOrMethod, IJavaSearchConstants.REFERENCES);
 		int searchScope = IJavaSearchScope.SOURCES;
-		IJavaSearchScope scope = BasicSearchEngine.createJavaSearchScope(true,
+		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(true,
 				new IJavaElement[] {
 						searchInJavaProject ? fieldOrMethod.getJavaProject() : fieldOrMethod.getCompilationUnit() },
 				searchScope);

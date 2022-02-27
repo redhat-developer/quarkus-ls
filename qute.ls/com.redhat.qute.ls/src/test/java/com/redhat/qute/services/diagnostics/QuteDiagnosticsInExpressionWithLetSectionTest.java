@@ -63,7 +63,7 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
 
 		testDiagnosticsFor(template, d, //
-				d(2, 3, 2, 7, QuteErrorCode.UnkwownType, "`name` cannot be resolved to a type.",
+				d(2, 3, 2, 7, QuteErrorCode.UnknownType, "`name` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}\r\n")));

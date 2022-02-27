@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2021 Red Hat Inc. and others.
+* Copyright (c) 2022 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
@@ -9,19 +9,28 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.commons;
+package com.redhat.qute.project.datamodel.resolvers;
 
 import java.util.List;
 
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
+import com.redhat.qute.commons.JavaMethodInfo;
+import com.redhat.qute.commons.JavaParameterInfo;
+import com.redhat.qute.commons.JavaTypeInfo;
+import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.parser.template.JavaTypeInfoProvider;
+import com.redhat.qute.parser.template.Node;
+
 /**
- * Qute value resolver.
+ * Qute method value resolver.
  *
  * @author Angelo ZERR
  *
  */
-public class ValueResolver extends JavaMethodInfo {
+public class MethodValueResolver extends JavaMethodInfo implements ValueResolver, JavaTypeInfoProvider {
+
+	private String named;
 
 	private String namespace;
 
@@ -35,16 +44,21 @@ public class ValueResolver extends JavaMethodInfo {
 
 	@Override
 	public boolean isVirtual() {
-		return true;
+		return namespace == null;
 	}
 
-	/**
-	 * Returns the namespace of the resolver and null otherwise.
-	 *
-	 * @return the namespace of the resolver and null otherwise.
-	 */
+	@Override
 	public String getNamespace() {
 		return namespace;
+	}
+
+	@Override
+	public String getNamed() {
+		return named;
+	}
+
+	public void setNamed(String named) {
+		this.named = named;
 	}
 
 	/**
@@ -57,8 +71,8 @@ public class ValueResolver extends JavaMethodInfo {
 	}
 
 	@Override
-	public JavaTypeInfo getJavaType() {
-		JavaTypeInfo javaType = super.getJavaType();
+	public JavaTypeInfo getJavaTypeInfo() {
+		JavaTypeInfo javaType = super.getJavaTypeInfo();
 		if (javaType == null && sourceType != null) {
 			javaType = new JavaTypeInfo();
 			javaType.setSignature(sourceType);
@@ -138,12 +152,6 @@ public class ValueResolver extends JavaMethodInfo {
 		return getParameters().size() - 1 > 0;
 	}
 
-	@Override
-	public String getSignature() {
-		String signature = super.getSignature();
-		return namespace != null ? namespace + ":" + signature : signature;
-	}
-
 	/**
 	 * Returns the resolved type if return type has generic (ex : T,
 	 * java.util.List<T>) by using the given java type argument.
@@ -155,6 +163,9 @@ public class ValueResolver extends JavaMethodInfo {
 	 */
 	@Override
 	public String resolveJavaElementType(ResolvedJavaTypeInfo argType) {
+		if (getNamespace() != null) {
+			return getReturnType();
+		}
 		// Example with following signature:
 		// "orEmpty(arg : java.lang.Iterable<T>) : java.util.List<T>"
 		JavaParameterInfo parameter = getParameterAt(0); // arg : java.lang.Iterable<T>
@@ -178,8 +189,19 @@ public class ValueResolver extends JavaMethodInfo {
 	}
 
 	@Override
+	public Node getJavaTypeOwnerNode() {
+		return null;
+	}
+	
+	@Override
+	public String getJavaType() {
+		return getJavaElementType();
+	}
+	
+	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
+		b.add("named", this.getNamed());
 		b.add("namespace", this.getNamespace());
 		b.add("signature", this.getSignature());
 		b.add("sourceType", this.getSourceType());

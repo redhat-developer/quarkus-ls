@@ -14,6 +14,7 @@ package com.redhat.qute.project;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,10 +26,11 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
@@ -41,7 +43,9 @@ public abstract class MockQuteProject extends QuteProject {
 
 	private List<DataModelTemplate<DataModelParameter>> templates;
 
-	private final List<ValueResolver> resolvers;
+	private final List<ValueResolverInfo> valueResolvers;
+
+	private final Map<String, NamespaceResolverInfo> namespaceResolverInfos;
 
 	public MockQuteProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider,
 			QuteUserTagProvider tagProvider) {
@@ -49,7 +53,8 @@ public abstract class MockQuteProject extends QuteProject {
 		this.typesCache = createTypes();
 		this.resolvedTypesCache = createResolvedTypes();
 		this.templates = createTemplates();
-		this.resolvers = createValueResolvers();
+		this.valueResolvers = createValueResolvers();
+		this.namespaceResolverInfos = createNamespaceResolverInfos();
 	}
 
 	public ResolvedJavaTypeInfo getResolvedJavaTypeSync(String typeName) {
@@ -124,14 +129,18 @@ public abstract class MockQuteProject extends QuteProject {
 	protected synchronized CompletableFuture<ExtendedDataModelProject> loadDataModelProject() {
 		DataModelProject<DataModelTemplate<DataModelParameter>> project = new DataModelProject<DataModelTemplate<DataModelParameter>>();
 		project.setTemplates(templates);
-		project.setValueResolvers(resolvers);
+		project.setValueResolvers(valueResolvers);
+		project.setNamespaceResolverInfos(namespaceResolverInfos);
 		return CompletableFuture.completedFuture(new ExtendedDataModelProject(project));
 	}
 
-	protected static ValueResolver createValueResolver(String signature, String sourceType) {
-		ValueResolver resolver = new ValueResolver();
-		resolver.setSignature(signature);
+	protected static ValueResolverInfo createValueResolver(String namespace, String named, String sourceType,
+			String signature) {
+		ValueResolverInfo resolver = new ValueResolverInfo();
+		resolver.setNamespace(namespace);
+		resolver.setNamed(named);
 		resolver.setSourceType(sourceType);
+		resolver.setSignature(signature);
 		return resolver;
 	}
 
@@ -141,6 +150,8 @@ public abstract class MockQuteProject extends QuteProject {
 
 	protected abstract List<DataModelTemplate<DataModelParameter>> createTemplates();
 
-	protected abstract List<ValueResolver> createValueResolvers();
+	protected abstract List<ValueResolverInfo> createValueResolvers();
+
+	protected abstract Map<String, NamespaceResolverInfo> createNamespaceResolverInfos();
 
 }

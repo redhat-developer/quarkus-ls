@@ -42,14 +42,14 @@ public class ArrayLengthValueResolverTest {
 		template = "{@org.acme.Item[] items}\r\n" + //
 				"{items.lengthXXX}";
 		testDiagnosticsFor(template, //
-				d(1, 7, 1, 16, QuteErrorCode.UnkwownProperty,
+				d(1, 7, 1, 16, QuteErrorCode.UnknownProperty,
 						"`lengthXXX` cannot be resolved or is not a field of `org.acme.Item[]` Java type.",
 						DiagnosticSeverity.Error));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{items.length}";
 		testDiagnosticsFor(template, //
-				d(1, 7, 1, 13, QuteErrorCode.UnkwownProperty,
+				d(1, 7, 1, 13, QuteErrorCode.UnknownProperty,
 						"`length` cannot be resolved or is not a field of `java.util.List<E>` Java type.",
 						DiagnosticSeverity.Error));
 	}

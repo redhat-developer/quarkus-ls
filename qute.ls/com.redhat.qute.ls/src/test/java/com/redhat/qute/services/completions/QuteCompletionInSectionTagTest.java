@@ -33,20 +33,20 @@ public class QuteCompletionInSectionTagTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				SECTION_SNIPPET_SIZE, //
-				c("for", "{#for item in items}" + System.lineSeparator() + //
-						"	{item.name}" + System.lineSeparator() + //
-						"{/for}", //
-						r(0, 0, 0, 1)));
+				3, //
+				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
+				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
+				c("config:getConfigProperty(propertyName : String) : Object", "config:getConfigProperty(propertyName)",
+						r(0, 1, 0, 1)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				SECTION_SNIPPET_SIZE, //
-				c("for", "{#for ${1:item} in ${2:items}}" + System.lineSeparator() + //
-						"	{${1:item}.${3:name}}$0" + System.lineSeparator() + //
-						"{/for}", //
-						r(0, 0, 0, 1)));
+				3, //
+				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
+				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
+				c("config:getConfigProperty(propertyName : String) : Object",
+						"config:getConfigProperty(${1:propertyName})$0", r(0, 1, 0, 1)));
 	}
 
 	@Test
@@ -56,20 +56,20 @@ public class QuteCompletionInSectionTagTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				SECTION_SNIPPET_SIZE, //
-				c("for", "{#for item in items}" + System.lineSeparator() + //
-						"	{item.name}" + System.lineSeparator() + //
-						"{/for}", //
-						r(0, 0, 0, 2)));
+				3, //
+				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
+				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
+				c("config:getConfigProperty(propertyName : String) : Object", "config:getConfigProperty(propertyName)",
+						r(0, 1, 0, 1)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				SECTION_SNIPPET_SIZE, //
-				c("for", "{#for ${1:item} in ${2:items}}" + System.lineSeparator() + //
-						"	{${1:item}.${3:name}}$0" + System.lineSeparator() + //
-						"{/for}", //
-						r(0, 0, 0, 2)));
+				3, //
+				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
+				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
+				c("config:getConfigProperty(propertyName : String) : Object",
+						"config:getConfigProperty(${1:propertyName})$0", r(0, 1, 0, 1)));
 	}
 
 	@Test
@@ -79,20 +79,20 @@ public class QuteCompletionInSectionTagTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				SECTION_SNIPPET_SIZE, //
-				c("for", "{#for item in items}" + System.lineSeparator() + //
-						"	{item.name}" + System.lineSeparator() + //
-						"{/for}", //
-						r(0, 0, 0, 5)));
+				3, //
+				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
+				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
+				c("config:getConfigProperty(propertyName : String) : Object", "config:getConfigProperty(propertyName)",
+						r(0, 1, 0, 1)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				SECTION_SNIPPET_SIZE, //
-				c("for", "{#for ${1:item} in ${2:items}}" + System.lineSeparator() + //
-						"	{${1:item}.${3:name}}$0" + System.lineSeparator() + //
-						"{/for}", //
-						r(0, 0, 0, 5)));
+				3, //
+				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
+				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
+				c("config:getConfigProperty(propertyName : String) : Object",
+						"config:getConfigProperty(${1:propertyName})$0", r(0, 1, 0, 1)));
 	}
 
 	@Test

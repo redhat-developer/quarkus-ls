@@ -17,9 +17,12 @@ import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.Position;
 
+import com.redhat.qute.commons.JavaElementInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.parser.CancelChecker;
+import com.redhat.qute.parser.expression.NamespacePart;
+import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.project.QuteProject;
@@ -147,13 +150,14 @@ public class Template extends Node {
 	}
 
 	/**
-	 * Try to find the class name
+	 * Returns the class name found from:
+	 * 
 	 * <ul>
 	 * <li>- from parameter declaration.</li>
 	 * <li>- from @CheckedTemplate.</li>
 	 * </ul>
 	 * 
-	 * @param partName
+	 * @param partName the part name.
 	 * @return
 	 */
 	public JavaTypeInfoProvider findInInitialDataModel(Part part) {
@@ -208,5 +212,34 @@ public class Template extends Node {
 			configuration = project.getTemplateConfiguration();
 		}
 		return configuration != null ? configuration : TemplateConfiguration.DEFAULT;
+	}
+
+	/**
+	 * Returns the class name found from the namespace and null otherwise.
+	 * 
+	 * Ex : {data:item}, {inject:bean}
+	 * 
+	 * @param objectPart the object part which have a namespace.
+	 * 
+	 * @return the class name found from the namespace and null otherwise.
+	 */
+	public JavaTypeInfoProvider findWithNamespace(ObjectPart objectPart) {
+		String namespace = objectPart.getNamespace();
+		if (namespace == null) {
+			return null;
+		}
+		if (NamespacePart.DATA_NAMESPACE.equals(namespace)) {
+			// {data:item}
+			// Try to find the class name
+			// - from parameter declaration
+			// - from @CheckedTemplate
+			return findInInitialDataModel(objectPart);
+		}
+		if (projectRegistry == null || getProjectUri() == null) {
+			return null;
+		}
+		// {inject:bean}
+		return (JavaTypeInfoProvider) projectRegistry
+				.findJavaElementWithNamespace(namespace, objectPart.getPartName(), getProjectUri()).getNow(null);
 	}
 }

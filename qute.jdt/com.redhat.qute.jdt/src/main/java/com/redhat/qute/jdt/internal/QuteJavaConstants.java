@@ -19,7 +19,8 @@ package com.redhat.qute.jdt.internal;
  */
 public class QuteJavaConstants {
 
-	
+	public static final String JAVAX_INJECT_NAMED_ANNOTATION = "javax.inject.Named";
+
 	public static final String CHECKED_TEMPLATE_ANNOTATION = "io.quarkus.qute.CheckedTemplate";
 
 	public static final String OLD_CHECKED_TEMPLATE_ANNOTATION = "io.quarkus.qute.api.CheckedTemplate";
@@ -27,11 +28,12 @@ public class QuteJavaConstants {
 	public static final String TEMPLATE_EXTENSION_ANNOTATION = "io.quarkus.qute.TemplateExtension";
 
 	public static final String TEMPLATE_EXTENSION_ANNOTATION_NAMESPACE = "namespace";
-	
+
 	public static final String LOCATION_ANNOTATION = "io.quarkus.qute.Location";
 
 	public static final String TEMPLATE_CLASS = "io.quarkus.qute.Template";
-	
+
 	public static final String ENGINE_BUILDER_CLASS = "io.quarkus.qute.EngineBuilder";
 
+	public static final String VALUE_ANNOTATION_NAME = "value";
 }

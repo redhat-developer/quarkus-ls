@@ -17,9 +17,13 @@ import static com.redhat.qute.jdt.internal.ls.ArgumentUtils.getString;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.Location;
 
@@ -45,6 +49,8 @@ import com.redhat.qute.jdt.QuteSupportForTemplate;
  *
  */
 public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDelegateCommandHandler {
+
+	private static final Logger LOGGER = Logger.getLogger(QuteSupportForTemplateDelegateCommandHandler.class.getName());
 
 	private static final String PROJECT_URI_ATTR = "projectUri";
 
@@ -114,9 +120,33 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 	}
 
 	private static DataModelProject<DataModelTemplate<DataModelParameter>> getProjectDataModel(List<Object> arguments,
-			String commandId, IProgressMonitor monitor) throws CoreException {
+			String commandId, IProgressMonitor monitor) throws Exception {
 		QuteDataModelProjectParams params = createQuteProjectDataModelParams(arguments, commandId);
-		return QuteSupportForTemplate.getInstance().getDataModelProject(params, JDTUtilsLSImpl.getInstance(), monitor);
+		// Execute the getProjectDataModel in a Job to benefit with progress
+		// monitor
+		final AtomicReference<DataModelProject<DataModelTemplate<DataModelParameter>>> dataModelRef = new AtomicReference<DataModelProject<DataModelTemplate<DataModelParameter>>>(
+				null);
+		Job job = Job.create("Qute data model collector", progress -> {
+			DataModelProject<DataModelTemplate<DataModelParameter>> project = QuteSupportForTemplate.getInstance()
+					.getDataModelProject(params, JDTUtilsLSImpl.getInstance(), progress);
+			dataModelRef.set(project);
+		});
+		job.schedule();
+		try {
+			job.join();
+		} catch (InterruptedException e) {
+			LOGGER.log(Level.WARNING, "Error while joining Qute data model collector job", e);
+		}
+
+		Exception jobException = (Exception) job.getResult().getException();
+		if (jobException != null) {
+			if (jobException.getCause() != null) {
+				throw (Exception) jobException.getCause();
+			}
+			throw jobException;
+		}
+
+		return dataModelRef.get();
 	}
 
 	private static QuteDataModelProjectParams createQuteProjectDataModelParams(List<Object> arguments,

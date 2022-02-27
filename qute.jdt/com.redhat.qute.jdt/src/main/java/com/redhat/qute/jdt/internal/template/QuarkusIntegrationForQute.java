@@ -11,14 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.template;
 
-import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION;
-import static com.redhat.qute.jdt.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
-import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_CLASS;
-import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_EXTENSION_ANNOTATION;
-import static com.redhat.qute.jdt.internal.template.CheckedTemplateSupport.collectDataModelTemplateForCheckedTemplate;
-import static com.redhat.qute.jdt.internal.template.TemplateExtensionSupport.collectResolversForTemplateExtension;
-import static com.redhat.qute.jdt.internal.template.TemplateFieldSupport.collectDataModelTemplateForTemplateField;
-
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -30,36 +22,26 @@ import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJarEntryResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ILocalVariable;
-import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
-import org.eclipse.jdt.core.search.IJavaSearchConstants;
-import org.eclipse.jdt.core.search.IJavaSearchScope;
-import org.eclipse.jdt.core.search.SearchEngine;
-import org.eclipse.jdt.core.search.SearchMatch;
-import org.eclipse.jdt.core.search.SearchParticipant;
-import org.eclipse.jdt.core.search.SearchPattern;
-import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.internal.core.JavaProject;
-import org.eclipse.jdt.internal.core.PackageFragment;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 
 import com.redhat.qute.commons.JavaTypeInfo;
-import com.redhat.qute.commons.ValueResolver;
+import com.redhat.qute.commons.QuteProjectScope;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.usertags.UserTagInfo;
-import com.redhat.qute.jdt.utils.AnnotationUtils;
+import com.redhat.qute.jdt.internal.template.datamodel.DataModelProviderRegistry;
 
 /**
  * Support for Quarkus integration for Qute which collect parameters information
@@ -88,102 +70,8 @@ public class QuarkusIntegrationForQute {
 
 	public static DataModelProject<DataModelTemplate<DataModelParameter>> getDataModelProject(IJavaProject javaProject,
 			IProgressMonitor monitor) throws CoreException {
-		DataModelProject<DataModelTemplate<DataModelParameter>> project = new DataModelProject<DataModelTemplate<DataModelParameter>>();
-		project.setTemplates(new ArrayList<>());
-		project.setValueResolvers(new ArrayList<>());
-		collectDataModelTemplates(project, javaProject, monitor);
-		return project;
-	}
-
-	private static void collectDataModelTemplates(DataModelProject<DataModelTemplate<DataModelParameter>> project,
-			IJavaProject javaProject, IProgressMonitor monitor) throws CoreException {
-		List<DataModelTemplate<DataModelParameter>> templates = project.getTemplates();
-		List<ValueResolver> valueResolvers = project.getValueResolvers();
-
-		// Scan Java sources to get all classed annotated with @CheckedTemplate
-
-		SearchEngine engine = new SearchEngine();
-		SearchPattern searchPattern = createQuteSearchPattern(javaProject);
-		engine.search(searchPattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
-				createQuteSearchScope(javaProject), new SearchRequestor() {
-
-					@Override
-					public void acceptSearchMatch(SearchMatch match) throws CoreException {
-						if (match.getElement() instanceof IType) {
-							IType type = (IType) match.getElement();
-							if (AnnotationUtils.hasAnnotation(type, CHECKED_TEMPLATE_ANNOTATION)
-									|| AnnotationUtils.hasAnnotation(type, OLD_CHECKED_TEMPLATE_ANNOTATION)) {
-								// See https://quarkus.io/guides/qute-reference#typesafe_templates
-
-								// The Java type class is annotated with @CheckedTemplate
-								// Example:
-								//
-								// @CheckedTemplate
-								// public static class Templates {
-								// public static native TemplateInstance book(Book book);
-								// public static native TemplateInstance books(List<Book> books);
-								// }
-
-								// Collect for each methods (book, books) a template data model
-								collectDataModelTemplateForCheckedTemplate(type, templates, monitor);
-							} else {
-								IAnnotation templateExtension = AnnotationUtils.getAnnotation(type,
-										TEMPLATE_EXTENSION_ANNOTATION);
-								if (templateExtension != null) {
-									// See https://quarkus.io/guides/qute-reference#template_extension_methods
-									collectResolversForTemplateExtension(type, templateExtension, valueResolvers,
-											monitor);
-								}
-							}
-						} else if (match.getElement() instanceof IField) {
-							// private final Template page;
-							IField templateField = (IField) match.getElement();
-							collectDataModelTemplateForTemplateField(templateField, templates, monitor);
-						} else if (match.getElement() instanceof IMethod) {
-							IMethod method = (IMethod) match.getElement();
-							IAnnotation templateExtension = AnnotationUtils.getAnnotation(method,
-									TEMPLATE_EXTENSION_ANNOTATION);
-							if (templateExtension != null) {
-								// See https://quarkus.io/guides/qute-reference#template_extension_methods
-								collectResolversForTemplateExtension(method, templateExtension, valueResolvers,
-										monitor);
-							}
-						}
-					}
-
-				}, monitor);
-	}
-
-	private static IJavaSearchScope createQuteSearchScope(IJavaProject javaProject) throws JavaModelException {
-		IJavaProject[] projects = new IJavaProject[] { javaProject };
-		int scope = IJavaSearchScope.SOURCES | IJavaSearchScope.APPLICATION_LIBRARIES;
-		return SearchEngine.createJavaSearchScope(projects, scope);
-	}
-
-	private static SearchPattern createQuteSearchPattern(IJavaProject javaProject) {
-
-		// Pattern for io.quarkus.qute.CheckedTemplate
-		SearchPattern checkedTemplatePattern = SearchPattern.createPattern(CHECKED_TEMPLATE_ANNOTATION,
-				IJavaSearchConstants.ANNOTATION_TYPE, IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE,
-				SearchPattern.R_EXACT_MATCH);
-		// Pattern for (old annotation) io.quarkus.qute.api.CheckedTemplate
-		SearchPattern oldCheckedTemplatePattern = SearchPattern.createPattern(OLD_CHECKED_TEMPLATE_ANNOTATION,
-				IJavaSearchConstants.ANNOTATION_TYPE, IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE,
-				SearchPattern.R_EXACT_MATCH);
-
-		// Pattern to retrieve Template field
-		SearchPattern templateFieldPattern = SearchPattern.createPattern(TEMPLATE_CLASS, IJavaSearchConstants.TYPE,
-				IJavaSearchConstants.FIELD_DECLARATION_TYPE_REFERENCE, SearchPattern.R_EXACT_MATCH);
-
-		// Pattern for io.quarkus.qute.TemplateExtension
-		SearchPattern templateExtensionPattern = SearchPattern.createPattern(TEMPLATE_EXTENSION_ANNOTATION,
-				IJavaSearchConstants.ANNOTATION_TYPE, IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE,
-				SearchPattern.R_EXACT_MATCH);
-
-		SearchPattern pattern = SearchPattern.createOrPattern(checkedTemplatePattern, oldCheckedTemplatePattern);
-		pattern = SearchPattern.createOrPattern(pattern, templateFieldPattern);
-
-		return SearchPattern.createOrPattern(pattern, templateExtensionPattern);
+		return DataModelProviderRegistry.getInstance().getDataModelProject(javaProject,
+				QuteProjectScope.SOURCES_AND_DEPENDENCIES, monitor);
 	}
 
 	public static String resolveSignature(ILocalVariable methodParameter, IType type) {
@@ -271,8 +159,8 @@ public class QuarkusIntegrationForQute {
 			throws JavaModelException, CoreException {
 		IJavaElement[] children = root.getChildren();
 		for (IJavaElement child : children) {
-			if (child instanceof PackageFragment) {
-				PackageFragment packageRoot = (PackageFragment) child;
+			if (child instanceof IPackageFragment) {
+				IPackageFragment packageRoot = (IPackageFragment) child;
 				if (TEMPLATES_TAGS_ENTRY.equals(packageRoot.getElementName())) {
 					// 'templates.tags' entry exists, loop for all resources to build user tags
 					Object[] resources = packageRoot.getNonJavaResources();

@@ -46,7 +46,7 @@ public class ArrayTakeLastValueResolverTest {
 		template = "{@org.acme.Item[] items}\r\n" + //
 				"{items.takeLast(0).lengthXXX}";
 		testDiagnosticsFor(template, //
-				d(1, 19, 1, 28, QuteErrorCode.UnkwownProperty,
+				d(1, 19, 1, 28, QuteErrorCode.UnknownProperty,
 						"`lengthXXX` cannot be resolved or is not a field of `org.acme.Item[]` Java type.",
 						DiagnosticSeverity.Error));
 	}
