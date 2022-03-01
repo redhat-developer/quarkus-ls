@@ -13,6 +13,7 @@ package com.redhat.qute.project.tags;
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -114,7 +115,7 @@ public class UserTagRegistry {
 		return getBinaryUserTags(params) //
 				.thenApply(tagInfos -> {
 					if (tagInfos == null) {
-						return null;
+						return Collections.emptyList();
 					}
 					return tagInfos //
 							.stream() //
