@@ -1,5 +1,41 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## 0.11.0 (March 24, 2022)
+
+### Enhancements
+
+ * enhancement - Create a Qute Language Server. See [#176](https://github.com/redhat-developer/quarkus-ls/issues/176).
+ * enhancement - Support for method parameters in Qute templates. See [#486](https://github.com/redhat-developer/quarkus-ls/issues/486).
+ * enhancement - Support Java type hover for Qute templates. See [#502](https://github.com/redhat-developer/quarkus-ls/issues/502).
+ * enhancement - Completion for available section after `{#`. See [#538](https://github.com/redhat-developer/quarkus-ls/issues/538).
+ * enhancement - Code action to disable validation. See [#531](https://github.com/redhat-developer/quarkus-ls/issues/531).
+ * enhancement - Add support for `raw` and `safe`, `orEmpty` extension methods, to escape characters. See [#498](https://github.com/redhat-developer/quarkus-ls/issues/498) & [#533](https://github.com/redhat-developer/quarkus-ls/issues/533).
+ * enhancement - User tag support. See [#551](https://github.com/redhat-developer/quarkus-ls/issues/551), [#560](https://github.com/redhat-developer/quarkus-ls/issues/560), [#561](https://github.com/redhat-developer/quarkus-ls/issues/561), [#564](https://github.com/redhat-developer/quarkus-ls/pull/564), [#566](https://github.com/redhat-developer/quarkus-ls/pull/566), [#567](https://github.com/redhat-developer/quarkus-ls/pull/567), [#568](https://github.com/redhat-developer/quarkus-ls/pull/568).
+ * enhancement - Support for injecting Beans directory. See [#546](https://github.com/redhat-developer/quarkus-ls/issues/546).
+ * enhancement - Support for `@TemplateExtension` matchName. See [#583](https://github.com/redhat-developer/quarkus-ls/issues/582).
+ * enhancement - Provide completion for cache name in configuration file. See [#404](https://github.com/redhat-developer/quarkus-ls/issues/404).
+ * enhancement - Definition & Validation support for `@Scheduled/cron`. See [#377](https://github.com/redhat-developer/quarkus-ls/issues/377), [#378](https://github.com/redhat-developer/quarkus-ls/issues/378).
+ * enhancement - Support for `@ConfigMapping`. See [#413](https://github.com/redhat-developer/quarkus-ls/issues/413), [#424](https://github.com/redhat-developer/quarkus-ls/issues/424).
+ * enhancement - Support `application-${profile}.properties`. See [#411](https://github.com/redhat-developer/quarkus-ls/pull/411).
+ * enhancement - Add settings to disable CodeLens. See [#472](https://github.com/redhat-developer/quarkus-ls/issues/472).
+
+### Bug Fixes
+
+ * bug fix - Use SafeConstructor for Yaml parser instantation. See [#527](https://github.com/redhat-developer/quarkus-ls/pull/527).
+ * bug fix - CodeLens URL does not respect `quarkus.http.root-path property`. See [#368](https://github.com/redhat-developer/quarkus-ls/issues/368), [#414](https://github.com/redhat-developer/quarkus-ls/pull/414).
+
+### Build
+
+ * build - Update o.e.jdt.ls.tp dependency to 1.7.0-SNAPSHOT. See [#478](https://github.com/redhat-developer/quarkus-ls/pull/478).
+ * build - Qute artifacts deployment is missing. See [#448](https://github.com/redhat-developer/quarkus-ls/issues/448).
+
+### Other
+
+ * other - Skip Java 17 related tests. See [#576](https://github.com/redhat-developer/quarkus-ls/pull/576).
+ * other - Qute JDT unit tests are not exported. See [#573](https://github.com/redhat-developer/quarkus-ls/issues/573).
+ * other - Update to lsp4j 0.11.0 to reflect change in lsp4mp. See [#417](https://github.com/redhat-developer/quarkus-ls/issues/417).
+ * other - Use Qute 2.7.0. See [#549](https://github.com/redhat-developer/quarkus-ls/pull/549).
+
 ## 0.10.1 (July 20, 2021)
 
 ## Build
