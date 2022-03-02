@@ -46,7 +46,10 @@ public enum QuteErrorCode implements IQuteErrorCode {
 
 	UndefinedSectionTag("No section helper found for `{0}`."), //
 
-	SyntaxError("Syntax error: `{0}`.");
+	SyntaxError("Syntax error: `{0}`."),
+
+	// Error code for deprecated #with section
+	NotRecommendedWithSection("`with` is not recommended. Use `let` instead.");
 
 	private final String rawMessage;
 

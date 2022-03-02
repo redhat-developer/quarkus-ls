@@ -24,7 +24,7 @@ import com.google.gson.JsonObject;
 
 /**
  * Diagnostic factory.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -55,4 +55,5 @@ public class DiagnosticDataFactory {
 				errorCode != null ? errorCode.getCode() : null);
 		return diagnostic;
 	}
+
 }

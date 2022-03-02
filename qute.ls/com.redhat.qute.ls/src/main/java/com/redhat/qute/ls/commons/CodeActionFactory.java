@@ -106,6 +106,16 @@ public class CodeActionFactory {
 		return replace(title, Collections.singletonList(replace), document, diagnostic);
 	}
 
+	@SuppressWarnings("null")
+	public static CodeAction replace(String title, List<Range> ranges, String replaceText, TextDocumentItem document,
+			Diagnostic diagnostic) {
+		List<TextEdit> edits = null;
+		for (Range range : ranges) {
+			edits.add(new TextEdit(range, replaceText));
+		}
+		return replace(title, edits, document, diagnostic);
+	}
+
 	public static CodeAction replace(String title, List<TextEdit> replace, TextDocumentItem document,
 			Diagnostic diagnostic) {
 
