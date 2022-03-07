@@ -29,6 +29,8 @@ public class QuteJavaConstants {
 
 	public static final String TEMPLATE_EXTENSION_ANNOTATION_NAMESPACE = "namespace";
 
+	public static final String TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAME = "matchName";
+	
 	public static final String LOCATION_ANNOTATION = "io.quarkus.qute.Location";
 
 	public static final String TEMPLATE_CLASS = "io.quarkus.qute.Template";

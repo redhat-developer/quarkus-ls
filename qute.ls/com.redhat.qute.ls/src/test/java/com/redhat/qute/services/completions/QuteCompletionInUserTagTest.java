@@ -89,22 +89,23 @@ public class QuteCompletionInUserTagTest {
 
 		// In qute template
 		testCompletionFor(template, //
-				4, //
+				5, //
 				c("item", "item", r(1, 1, 1, 1)), //
 				c("inject:bean", "inject:bean", r(1, 1, 1, 1)), //
 				c("inject:plexux", "inject:plexux", r(1, 1, 1, 1)), //
-				c("config:getConfigProperty(propertyName : String) : Object",
-						"config:getConfigProperty(${1:propertyName})$0", r(1, 1, 1, 1)));
-
+				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(1, 1, 1, 1)),
+				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
+						r(1, 1, 1, 1)));
 		// In user tag
 		testCompletionFor(template, //
 				"src/main/resources/templates/tags/form.html", //
 				"tags/form", //
-				4 /* item, inject:bean, config:getConfigProperty */ + 2 /* it, nested-content */, //
+				5 /* item, inject:bean, config:getConfigProperty */ + 2 /* it, nested-content */, //
 				c("item", "item", r(1, 1, 1, 1)), //
 				c("inject:bean", "inject:bean", r(1, 1, 1, 1)), //
 				c("inject:plexux", "inject:plexux", r(1, 1, 1, 1)), //
-				c("config:getConfigProperty(propertyName : String) : Object", "config:getConfigProperty(propertyName)",
+				c("config:*(propertyName : String) : Object", "config:propertyName", r(1, 1, 1, 1)),
+				c("config:property(propertyName : String) : Object", "config:property(propertyName)",
 						r(1, 1, 1, 1)), //
 				c("it", "it", r(1, 1, 1, 1)), //
 				c("nested-content", "nested-content", r(1, 1, 1, 1)));

@@ -53,16 +53,23 @@ public class QuteDiagnosticsInExpressionWithNamespaceTest {
 
 	@Test
 	public void validInjectMethodNamespace() {
-		String template = "{config:getConfigProperty('qute')}";
+		String template = "{config:property('qute')}";
 		testDiagnosticsFor(template);
 
-		template = "{config:getConfigPropertyXXXX('qute')}";
+		template = "{config:propertyXXXX('qute')}";
 		testDiagnosticsFor(template,
-				d(0, 8, 0, 29, QuteErrorCode.UnkwownNamespaceResolverMethod,
-						"`getConfigPropertyXXXX` cannot be resolved or is not a method of `config` namespace resolver.",
+				d(0, 8, 0, 20, QuteErrorCode.UnkwownNamespaceResolverMethod,
+						"`propertyXXXX` cannot be resolved or is not a method of `config` namespace resolver.",
 						DiagnosticSeverity.Error));
 	}
 
+	@Test
+	public void anyMatchName() {
+		// config:*
+		String template = "{config:foo}";
+		testDiagnosticsFor(template);
+	}
+	
 	@Test
 	public void invalidInjectNamespaceInFirstPart() {
 		String template = "{inject:foo}";

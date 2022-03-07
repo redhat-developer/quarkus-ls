@@ -142,25 +142,30 @@ public class QuteQuickStartProject extends MockQuteProject {
 		List<ValueResolverInfo> resolvers = new ArrayList<>();
 
 		// Type value resolvers
-		resolvers.add(createValueResolver("inject", "plexux",
+		resolvers.add(createValueResolver("inject", "plexux", null,
 				"org.eclipse.aether.internal.transport.wagon.PlexusWagonConfigurator",
 				"org.eclipse.aether.internal.transport.wagon.PlexusWagonConfigurator"));
-		resolvers.add(createValueResolver("inject", "plexux",
+		resolvers.add(createValueResolver("inject", "plexux", null,
 				"org.eclipse.aether.internal.transport.wagon.PlexusWagonProvider",
 				"org.eclipse.aether.internal.transport.wagon.PlexusWagonProvider"));
 
 		// Method value resolvers
 		// No namespace
-		resolvers.add(createValueResolver(null, null, "org.acme.ItemResource",
+		resolvers.add(createValueResolver(null, null, null, "org.acme.ItemResource",
 				"discountedPrice(item : org.acme.Item) : java.math.BigDecimal"));
-		resolvers.add(createValueResolver(null, null, "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
-				"getByIndex(list : java.util.List<T>, index : int) : T"));
+		resolvers.add(
+				createValueResolver(null, null, null, "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
+						"getByIndex(list : java.util.List<T>, index : int) : T"));
 		// 'config' namespace
-		resolvers.add(createValueResolver("config", null, "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
-				"getConfigProperty(propertyName : java.lang.String) : java.lang.Object"));
+		resolvers.add(
+				createValueResolver("config", null, "*", "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
+						"getConfigProperty(propertyName : java.lang.String) : java.lang.Object"));
+		resolvers.add(
+				createValueResolver("config", null, null, "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
+						"property(propertyName : java.lang.String) : java.lang.Object"));
 
 		// Field value resolvers
-		resolvers.add(createValueResolver("inject", "bean", "org.acme.Bean", "bean : java.lang.String"));
+		resolvers.add(createValueResolver("inject", "bean", null, "org.acme.Bean", "bean : java.lang.String"));
 
 		return resolvers;
 	}

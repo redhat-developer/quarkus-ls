@@ -216,11 +216,12 @@ public class QuteCompletionInExpressionWithForSectionTest {
 				"{#else}\r\n" + //
 				"	{|}    \r\n" + // <-- here items is only available because it is on #else block
 				"{/for}";
-		testCompletionFor(template, 4, //
+		testCompletionFor(template, 5, //
 				c("items", "items", r(4, 2, 4, 2)), //
 				c("inject:bean", "inject:bean", r(4, 2, 4, 2)), //
 				c("inject:plexux", "inject:plexux", r(4, 2, 4, 2)), //
-				c("config:getConfigProperty(propertyName : String) : Object",
-						"config:getConfigProperty(${1:propertyName})$0", r(4, 2, 4, 2)));
+				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(4, 2, 4, 2)),
+				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
+						r(4, 2, 4, 2)));
 	}
 }

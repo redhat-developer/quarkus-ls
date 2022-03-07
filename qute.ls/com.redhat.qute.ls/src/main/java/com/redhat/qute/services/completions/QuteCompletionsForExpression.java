@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.project.datamodel.resolvers.ValueResolver.MATCH_NAME_ANY;
 import static com.redhat.qute.services.QuteCompletions.EMPTY_COMPLETION;
 import static com.redhat.qute.services.QuteCompletions.EMPTY_FUTURE_COMPLETION;
 
@@ -379,7 +380,7 @@ public class QuteCompletionsForExpression {
 			boolean useNamespaceInTextEdit, Range range, QuteCompletionSettings completionSettings,
 			QuteFormattingSettings formattingSettings, CompletionList list) {
 		String label = namespace != null ? namespace + ':' + method.getSimpleSignature() : method.getSimpleSignature();
-		String filterText = namespace != null ? namespace + ':' + method.getName() : method.getName();
+		String filterText = namespace != null ? namespace + ':' + method.getMethodName() : method.getMethodName();
 		CompletionItem item = new CompletionItem();
 		item.setLabel(label);
 		item.setFilterText(filterText);
@@ -401,28 +402,43 @@ public class QuteCompletionsForExpression {
 	private static String createMethodSnippet(JavaMethodInfo method, QuteCompletionSettings completionSettings,
 			QuteFormattingSettings formattingSettings) {
 		boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
-		String methodName = method.getName();
-		StringBuilder snippet = new StringBuilder(methodName);
-		if (method.hasParameters()) {
-			int start = 0;
-			if (method.isVirtual() && ((ValueResolver) method).getNamespace() == null) {
-				start++;
+		String methodName = method.getMethodName();
+		StringBuilder snippet = new StringBuilder();
+		if (MATCH_NAME_ANY.equals(methodName)) {
+			// config:*
+			JavaParameterInfo firstParameter = method.getParameterAt(0);
+			String parameterName = firstParameter != null ? firstParameter.getName() : methodName;
+			if (snippetsSupported) {
+				SnippetsBuilder.placeholders(1, parameterName, snippet);
+			} else {
+				snippet.append(parameterName);
 			}
-			snippet.append("(");
-			for (int i = start; i < method.getParameters().size(); i++) {
-				if (i > start) {
-					snippet.append(", ");
-				}
-				JavaParameterInfo parameter = method.getParameterAt(i);
-				if (snippetsSupported) {
-					SnippetsBuilder.placeholders(i - start + 1, parameter.getName(), snippet);
-				} else {
-					snippet.append(parameter.getName());
-				}
-			}
-			snippet.append(")");
 			if (snippetsSupported) {
 				SnippetsBuilder.tabstops(0, snippet);
+			}
+		} else {
+			snippet.append(methodName);
+			if (method.hasParameters()) {
+				int start = 0;
+				if (method.isVirtual() && ((ValueResolver) method).getNamespace() == null) {
+					start++;
+				}
+				snippet.append("(");
+				for (int i = start; i < method.getParameters().size(); i++) {
+					if (i > start) {
+						snippet.append(", ");
+					}
+					JavaParameterInfo parameter = method.getParameterAt(i);
+					if (snippetsSupported) {
+						SnippetsBuilder.placeholders(i - start + 1, parameter.getName(), snippet);
+					} else {
+						snippet.append(parameter.getName());
+					}
+				}
+				snippet.append(")");
+				if (snippetsSupported) {
+					SnippetsBuilder.tabstops(0, snippet);
+				}
 			}
 		}
 		return snippet.toString();

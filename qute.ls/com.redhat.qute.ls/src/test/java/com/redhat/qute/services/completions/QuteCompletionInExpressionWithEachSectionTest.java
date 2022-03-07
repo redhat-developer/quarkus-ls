@@ -193,22 +193,27 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#each |}";
-		testCompletionFor(template, 4, //
+		testCompletionFor(template, 5, //
 				c("items", "items", r(2, 7, 2, 7)), //
 				c("inject:bean", "inject:bean", r(2, 7, 2, 7)), //
 				c("inject:plexux", "inject:plexux", r(2, 7, 2, 7)), //
-				c("config:getConfigProperty(propertyName : String) : Object",
-						"config:getConfigProperty(${1:propertyName})$0", r(2, 7, 2, 7)));
+				c("config:*(propertyName : String) : Object",
+						"config:${1:propertyName}$0", r(2, 7, 2, 7)),
+				c("config:property(propertyName : String) : Object",
+						"config:property(${1:propertyName})$0", r(2, 7, 2, 7)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#each |";
-		testCompletionFor(template, 4, //
+		testCompletionFor(template, 5, //
 				c("items", "items", r(2, 7, 2, 7)), //
 				c("inject:bean", "inject:bean", r(2, 7, 2, 7)), //
 				c("inject:plexux", "inject:plexux", r(2, 7, 2, 7)), //
-				c("config:getConfigProperty(propertyName : String) : Object",
-						"config:getConfigProperty(${1:propertyName})$0", r(2, 7, 2, 7)));
+				c("config:*(propertyName : String) : Object",
+						"config:${1:propertyName}$0", r(2, 7, 2, 7)),
+				c("config:property(propertyName : String) : Object",
+						"config:property(${1:propertyName})$0", r(2, 7, 2, 7)));
+
 	}
 
 }

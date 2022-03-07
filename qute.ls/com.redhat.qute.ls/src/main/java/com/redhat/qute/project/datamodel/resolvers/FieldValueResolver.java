@@ -68,6 +68,11 @@ public class FieldValueResolver extends JavaFieldInfo implements ValueResolver, 
 	}
 
 	@Override
+	public String getMatchName() {
+		return null;
+	}
+	
+	@Override
 	public JavaTypeInfo getJavaTypeInfo() {
 		JavaTypeInfo javaType = super.getJavaTypeInfo();
 		if (javaType == null && sourceType != null) {

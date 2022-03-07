@@ -21,6 +21,8 @@ import com.redhat.qute.commons.JavaElementKind;
  */
 public interface ValueResolver {
 
+	public static final String MATCH_NAME_ANY = "*";
+
 	/**
 	 * Returns the named of the resolver.
 	 * 
@@ -42,6 +44,13 @@ public interface ValueResolver {
 	 */
 	String getNamespace();
 
+	/**
+	 * Returns the named of the resolver.
+	 * 
+	 * @return the named of the resolver.
+	 */
+	String getMatchName();
+	
 	/**
 	 * Returns the Java element signature.
 	 *

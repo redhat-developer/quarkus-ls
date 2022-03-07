@@ -159,11 +159,12 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 				"	{foo.method(n|}\r\n" + //
 				"{/let}";
 		testCompletionFor(template, //
-				4, //
+				5, //
 				c("name", "name", r(1, 13, 1, 14)), //
 				c("inject:bean", "inject:bean", r(1, 13, 1, 14)), //
 				c("inject:plexux", "inject:plexux", r(1, 13, 1, 14)), //
-				c("config:getConfigProperty(propertyName : String) : Object",
-						"config:getConfigProperty(${1:propertyName})$0", r(1, 13, 1, 14)));
+				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(1, 13, 1, 14)),
+				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
+						r(1, 13, 1, 14)));
 	}
 }

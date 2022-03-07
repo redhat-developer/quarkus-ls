@@ -49,6 +49,11 @@ public class TypeValueResolver extends JavaTypeInfo implements ValueResolver, Ja
 	}
 
 	@Override
+	public String getMatchName() {
+		return null;
+	}
+
+	@Override
 	public String getNamed() {
 		return named;
 	}

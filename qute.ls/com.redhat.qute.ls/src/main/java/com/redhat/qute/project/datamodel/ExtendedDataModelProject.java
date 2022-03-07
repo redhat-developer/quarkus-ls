@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.project.datamodel;
 
+import static com.redhat.qute.project.datamodel.resolvers.ValueResolver.MATCH_NAME_ANY;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,8 +49,17 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 
 		typeValueResolvers = new ArrayList<>();
 		fieldValueResolvers = new ArrayList<>();
-		methodValueResolvers = new ArrayList<>();
+		methodValueResolvers = new ArrayList<MethodValueResolver>();
 		updateValueResolvers(typeValueResolvers, fieldValueResolvers, methodValueResolvers, project);
+		Collections.sort(methodValueResolvers, (r1, r2) -> {
+			if (MATCH_NAME_ANY.equals(r1.getMatchName())) {
+				return 1;
+			}
+			if (MATCH_NAME_ANY.equals(r2.getMatchName())) {
+				return -1;
+			}
+			return 0;
+		});
 		allNamespaces = getAllNamespaces(project);
 		similarNamespaces = getSimilarNamespaces(project);
 	}
@@ -80,6 +90,7 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 				MethodValueResolver methodValueResolver = new MethodValueResolver();
 				methodValueResolver.setNamed(resolver.getNamed());
 				methodValueResolver.setNamespace(resolver.getNamespace());
+				methodValueResolver.setMatchName(resolver.getMatchName());
 				methodValueResolver.setSignature(resolver.getSignature());
 				methodValueResolver.setSourceType(resolver.getSourceType());
 				methodValueResolvers.add(methodValueResolver);

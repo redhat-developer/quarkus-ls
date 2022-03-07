@@ -75,7 +75,7 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	 */
 	public String getSimpleSignature() {
 		StringBuilder simpleSignatureBuilder = new StringBuilder();
-		simpleSignatureBuilder.append(getName());
+		simpleSignatureBuilder.append(getMethodName());
 		simpleSignatureBuilder.append("(");
 		List<JavaParameterInfo> parameters = getParameters();
 		StringJoiner commaJoiner = new StringJoiner(", ");
@@ -86,6 +86,15 @@ public class JavaMethodInfo extends JavaMemberInfo {
 		simpleSignatureBuilder.append(") : ");
 		simpleSignatureBuilder.append(super.getSimpleType(getReturnType()));
 		return simpleSignatureBuilder.toString();
+	}
+
+	/**
+	 * Returns the method name.
+	 * 
+	 * @return the method name.
+	 */
+	public String getMethodName() {
+		return getName();
 	}
 
 	/**
@@ -305,7 +314,7 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	 */
 	@Override
 	public String resolveJavaElementType(ResolvedJavaTypeInfo baseType) {
-		return resolveReturnType(baseType, getJavaType());
+		return resolveReturnType(baseType, getJavaTypeInfo());
 	}
 
 	protected String resolveReturnType(ResolvedJavaTypeInfo baseType, JavaTypeInfo baseDeclType) {

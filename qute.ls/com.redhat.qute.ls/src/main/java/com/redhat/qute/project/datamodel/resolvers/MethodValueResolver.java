@@ -34,6 +34,8 @@ public class MethodValueResolver extends JavaMethodInfo implements ValueResolver
 
 	private String namespace;
 
+	private String matchName;
+
 	private String sourceType;
 
 	private String description;
@@ -68,6 +70,21 @@ public class MethodValueResolver extends JavaMethodInfo implements ValueResolver
 	 */
 	public void setNamespace(String namespace) {
 		this.namespace = namespace;
+	}
+
+	@Override
+	public String getMatchName() {
+		return matchName;
+	}
+
+	public void setMatchName(String matchName) {
+		this.matchName = matchName;
+	}
+
+	@Override
+	public String getMethodName() {
+		String name = super.getName();
+		return matchName != null ? matchName : name;
 	}
 
 	@Override
@@ -192,12 +209,12 @@ public class MethodValueResolver extends JavaMethodInfo implements ValueResolver
 	public Node getJavaTypeOwnerNode() {
 		return null;
 	}
-	
+
 	@Override
 	public String getJavaType() {
 		return getJavaElementType();
 	}
-	
+
 	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
