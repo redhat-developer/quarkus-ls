@@ -27,6 +27,8 @@ public class ValueResolverInfo {
 
 	private String namespace;
 
+	private String matchName;
+
 	private String signature;
 
 	private String sourceType;
@@ -65,6 +67,14 @@ public class ValueResolverInfo {
 	 */
 	public void setNamespace(String namespace) {
 		this.namespace = namespace;
+	}
+
+	public String getMatchName() {
+		return matchName;
+	}
+
+	public void setMatchName(String matchName) {
+		this.matchName = matchName;
 	}
 
 	/**
@@ -112,7 +122,7 @@ public class ValueResolverInfo {
 		if (signature.contains("(")) {
 			return JavaElementKind.METHOD;
 		} else if (signature.contains(":")) {
-			return JavaElementKind.FIELD;	
+			return JavaElementKind.FIELD;
 		}
 		return JavaElementKind.TYPE;
 	}
@@ -121,6 +131,7 @@ public class ValueResolverInfo {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((matchName == null) ? 0 : matchName.hashCode());
 		result = prime * result + ((named == null) ? 0 : named.hashCode());
 		result = prime * result + ((namespace == null) ? 0 : namespace.hashCode());
 		result = prime * result + ((signature == null) ? 0 : signature.hashCode());
@@ -137,6 +148,11 @@ public class ValueResolverInfo {
 		if (getClass() != obj.getClass())
 			return false;
 		ValueResolverInfo other = (ValueResolverInfo) obj;
+		if (matchName == null) {
+			if (other.matchName != null)
+				return false;
+		} else if (!matchName.equals(other.matchName))
+			return false;
 		if (named == null) {
 			if (other.named != null)
 				return false;
@@ -165,6 +181,7 @@ public class ValueResolverInfo {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("named", this.named);
 		b.add("namespace", this.namespace);
+		b.add("matchName", this.matchName);
 		b.add("signature", signature);
 		b.add("sourceType", sourceType);
 		return b.toString();

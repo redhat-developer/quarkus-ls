@@ -271,12 +271,13 @@ public class QuteCompletionInExpressionTest {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {|";
 		testCompletionFor(template, //
-				4, //
+				5, //
 				c("item", "item", r(1, 7, 1, 7)), //
 				c("inject:bean", "inject:bean", r(1, 7, 1, 7)), //
 				c("inject:plexux", "inject:plexux", r(1, 7, 1, 7)), //
-				c("config:getConfigProperty(propertyName : String) : Object",
-						"config:getConfigProperty(${1:propertyName})$0", r(1, 7, 1, 7)));
+				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(1, 7, 1, 7)),
+				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
+						r(1, 7, 1, 7)));
 
 	}
 
@@ -297,12 +298,14 @@ public class QuteCompletionInExpressionTest {
 		// three brackets -> expression
 		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {{{|";
-		testCompletionFor(template, 4, //
+		testCompletionFor(template, 5, //
 				c("item", "item", r(1, 9, 1, 9)), //
 				c("inject:bean", "inject:bean", r(1, 9, 1, 9)), //
 				c("inject:plexux", "inject:plexux", r(1, 9, 1, 9)), //
-				c("config:getConfigProperty(propertyName : String) : Object",
-						"config:getConfigProperty(${1:propertyName})$0", r(1, 9, 1, 9)));
+				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(1, 9, 1, 9)),
+				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
+						r(1, 9, 1, 9)));
+
 	}
 
 	@Test

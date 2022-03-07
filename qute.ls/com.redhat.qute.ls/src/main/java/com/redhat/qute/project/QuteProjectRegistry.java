@@ -603,9 +603,9 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	private static boolean isMatchMethod(JavaMethodInfo method, String propertyOrMethodName, String getterMethodName,
 			String booleanGetterName) {
-		if (propertyOrMethodName.equals(method.getName())
-				|| (getterMethodName != null && getterMethodName.equals(method.getName()))
-				|| (booleanGetterName != null && booleanGetterName.equals(method.getName()))) {
+		String methodName = method.getMethodName();
+		if (propertyOrMethodName.equals(methodName) || (getterMethodName != null && getterMethodName.equals(methodName))
+				|| (booleanGetterName != null && booleanGetterName.equals(methodName))) {
 			return true;
 		}
 		return false;
@@ -648,7 +648,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		}
 
 		List<ValueResolver> namespaceResolvers = new ArrayList<>();
-		
+
 		List<TypeValueResolver> allTypeResolvers = dataModel.getTypeValueResolvers();
 		if (allTypeResolvers != null) {
 			for (ValueResolver resolver : allTypeResolvers) {
@@ -657,7 +657,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 				}
 			}
 		}
-		
+
 		List<MethodValueResolver> allMethodResolvers = dataModel.getMethodValueResolvers();
 		if (allMethodResolvers != null) {
 			for (ValueResolver resolver : allMethodResolvers) {
@@ -666,7 +666,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 				}
 			}
 		}
-		
+
 		List<FieldValueResolver> allFieldResolvers = dataModel.getFieldValueResolvers();
 		if (allFieldResolvers != null) {
 			for (ValueResolver resolver : allFieldResolvers) {
@@ -743,11 +743,21 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	public boolean isMatchNamespaceResolver(String namespace, String partName, ValueResolver resolver,
 			ExtendedDataModelProject dataModel) {
-		String name = resolver.getNamed() != null ? resolver.getNamed() : resolver.getName();
-		if (dataModel.getSimilarNamespace(namespace).equals(resolver.getNamespace()) && partName.equals(name)) {
+		String name = getResolverName(resolver);
+		if (dataModel.getSimilarNamespace(namespace).equals(resolver.getNamespace()) && ("*".equals(name) || partName.equals(name))) {
 			return true;
 		}
 		return false;
+	}
+
+	private static String getResolverName(ValueResolver resolver) {
+		if (resolver.getNamed() != null) {
+			return resolver.getNamed();
+		}
+		if (resolver.getMatchName() != null) {
+			return resolver.getMatchName();
+		}
+		return resolver.getName();
 	}
 
 	public CompletableFuture<NamespaceResolverInfo> getNamespaceResolverInfo(String namespace, String projectUri) {

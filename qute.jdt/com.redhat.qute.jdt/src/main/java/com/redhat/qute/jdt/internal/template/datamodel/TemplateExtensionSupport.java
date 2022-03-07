@@ -12,12 +12,14 @@
 package com.redhat.qute.jdt.internal.template.datamodel;
 
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_EXTENSION_ANNOTATION;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAME;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_EXTENSION_ANNOTATION_NAMESPACE;
 
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
@@ -133,11 +135,17 @@ public class TemplateExtensionSupport extends AbstractAnnotationTypeReferenceDat
 		resolver.setSourceType(method.getDeclaringType().getFullyQualifiedName());
 		resolver.setSignature(typeResolver.resolveMethodSignature(method));
 		try {
-			resolver.setNamespace(AnnotationUtils.getAnnotationMemberValue(templateExtension,
-					TEMPLATE_EXTENSION_ANNOTATION_NAMESPACE));
+			String namespace = AnnotationUtils.getAnnotationMemberValue(templateExtension,
+					TEMPLATE_EXTENSION_ANNOTATION_NAMESPACE);
+			String matchName = AnnotationUtils.getAnnotationMemberValue(templateExtension,
+					TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAME);
+			resolver.setNamespace(namespace);
+			if (StringUtils.isNotEmpty(matchName)) {
+				resolver.setMatchName(matchName);
+			}
 		} catch (JavaModelException e) {
-			LOGGER.log(Level.SEVERE, "Error while getting annotatim member value of '" + method.getElementName() + "'.",
-					e);
+			LOGGER.log(Level.SEVERE,
+					"Error while getting annotation member value of '" + method.getElementName() + "'.", e);
 		}
 		if (!resolvers.contains(resolver)) {
 			resolvers.add(resolver);
