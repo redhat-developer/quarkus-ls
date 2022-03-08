@@ -46,4 +46,11 @@ public class CData extends Node {
 	public String getNodeName() {
 		return "#cdata";
 	}
+	
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		visitor.visit(this);
+		visitor.endVisit(this);
+	}
+
 }

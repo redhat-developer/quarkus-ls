@@ -27,4 +27,10 @@ public class Text extends Node {
 	public String getNodeName() {
 		return "#text";
 	}
+	
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		visitor.visit(this);
+		visitor.endVisit(this);
+	}
 }

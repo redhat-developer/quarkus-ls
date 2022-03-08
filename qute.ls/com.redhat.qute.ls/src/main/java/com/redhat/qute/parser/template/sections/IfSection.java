@@ -14,6 +14,7 @@ package com.redhat.qute.parser.template.sections;
 import java.util.Collections;
 import java.util.List;
 
+import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
@@ -42,5 +43,18 @@ public class IfSection extends Section {
 		parameters.forEach(parameter -> {
 			parameter.setCanHaveExpression(true);
 		});
+	}
+	
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		boolean visitChildren = visitor.visit(this);
+		if (visitChildren) {
+			List<Parameter> parameters = getParameters();
+			for (Parameter parameter : parameters) {
+				acceptChild(visitor, parameter);
+			}
+			acceptChildren(visitor, getChildren());
+		}
+		visitor.endVisit(this);
 	}
 }

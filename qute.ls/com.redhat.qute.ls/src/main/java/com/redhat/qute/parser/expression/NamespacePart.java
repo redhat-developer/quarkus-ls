@@ -12,6 +12,7 @@
 package com.redhat.qute.parser.expression;
 
 import com.redhat.qute.parser.expression.Parts.PartKind;
+import com.redhat.qute.parser.template.ASTVisitor;
 
 /**
  * Namespace part.
@@ -36,4 +37,9 @@ public class NamespacePart extends Part {
 		return PartKind.Namespace;
 	}
 
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		visitor.visit(this);
+		visitor.endVisit(this);
+	}
 }

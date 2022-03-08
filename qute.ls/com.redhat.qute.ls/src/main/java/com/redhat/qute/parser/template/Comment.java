@@ -41,9 +41,15 @@ public class Comment extends Node {
 	void setEndContent(int endContent) {
 		this.endContent = endContent;
 	}
-	
+
 	@Override
 	public String getNodeName() {
 		return "#comment";
+	}
+
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		visitor.visit(this);
+		visitor.endVisit(this);
 	}
 }

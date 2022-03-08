@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.parser.expression;
 
+import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
@@ -135,4 +136,12 @@ public class Parts extends Node {
 		return getOwnerTemplate().getText(getStart(), getEnd());
 	}
 
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		boolean visitChildren = visitor.visit(this);
+		if (visitChildren) {
+			acceptChildren(visitor, getChildren());
+		}
+		visitor.endVisit(this);
+	}
 }

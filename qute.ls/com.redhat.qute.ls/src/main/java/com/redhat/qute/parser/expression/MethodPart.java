@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.parameter.ParameterParser;
+import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.ParametersContainer;
@@ -180,5 +181,11 @@ public class MethodPart extends MemberPart implements ParametersContainer {
 	@Override
 	public boolean isClosed() {
 		return closeBracketOffset != NULL_VALUE;
+	}
+	
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		visitor.visit(this);
+		visitor.endVisit(this);
 	}
 }

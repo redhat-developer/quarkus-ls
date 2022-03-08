@@ -12,12 +12,13 @@
 package com.redhat.qute.parser.expression;
 
 import com.redhat.qute.parser.expression.Parts.PartKind;
+import com.redhat.qute.parser.template.ASTVisitor;
 
 /**
  * Property part.
  * 
  * <p>
- * 	{item.name}
+ * {item.name}
  * </p>
  * 
  * @author Angelo ZERR
@@ -35,4 +36,9 @@ public class PropertyPart extends MemberPart {
 		return PartKind.Property;
 	}
 
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		visitor.visit(this);
+		visitor.endVisit(this);
+	}
 }
