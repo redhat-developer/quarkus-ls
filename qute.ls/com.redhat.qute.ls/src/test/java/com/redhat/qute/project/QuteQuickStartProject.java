@@ -19,6 +19,7 @@ import java.util.Map;
 
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaMemberInfo;
+import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ProjectInfo;
@@ -31,6 +32,9 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
+import com.redhat.qute.commons.jaxrs.JaxRsMethodKind;
+import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
+import com.redhat.qute.commons.jaxrs.RestParam;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
 
@@ -287,6 +291,31 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerForReflectionAnnotation = new RegisterForReflectionAnnotation();
 		registerForReflectionAnnotation.setMethods(false);
 		itemWithRegisterForReflectionNoMethods.setRegisterForReflectionAnnotation(registerForReflectionAnnotation);
+
+		// Renarde controller
+		createResolvedJavaTypeInfo(
+				"javax.ws.rs.core.Response", cache, true);
+		ResolvedJavaTypeInfo renardeLogin = createResolvedJavaTypeInfo(
+				"rest.Login", cache, false, "io.quarkiverse.renarde.oidc.ControllerWithUser<model.User>");
+
+		JavaMethodInfo loginMethod = registerMethod("login() : io.quarkus.qute.TemplateInstance", renardeLogin);
+		loginMethod.setJaxRsMethodKind(JaxRsMethodKind.POST);
+
+		JavaMethodInfo manualLoginMethod = registerMethod(
+				"manualLogin(userName : java.lang.String, password : java.lang.String, webAuthnResponse : io.quarkus.security.webauthn.WebAuthnLoginResponse, ctx : io.vertx.ext.web.RoutingContext) : javax.ws.rs.core.Response",
+				renardeLogin);
+		manualLoginMethod.setJaxRsMethodKind(JaxRsMethodKind.POST);
+		Map<String, RestParam> restParameters = new HashMap<>();
+		restParameters.put("userName", new RestParam("userName", JaxRsParamKind.FORM, false));
+		restParameters.put("password", new RestParam("password", JaxRsParamKind.FORM, false));
+		manualLoginMethod.setRestParameters(restParameters);
+
+		JavaMethodInfo confirmMethod = registerMethod("confirm(confirmationCode : java.lang.String) : void",
+				renardeLogin);
+		restParameters = new HashMap<>();
+		restParameters.put("confirmationCode", new RestParam("confirmationCode", JaxRsParamKind.PATH, false));
+		confirmMethod.setJaxRsMethodKind(JaxRsMethodKind.GET);
+		confirmMethod.setRestParameters(restParameters);
 	}
 
 	@Override
@@ -440,6 +469,9 @@ public class QuteQuickStartProject extends MockQuteProject {
 		resolvers.add(createValueResolver(null, "GLOBAL", null, "org.acme.Bean", "bean : java.lang.String",
 				ValueResolverKind.TemplateGlobal, true));
 
+		// Renarde controller
+		resolvers.add(createValueResolver("uri", "Login", null, "rest.Login", "rest.Login",
+				ValueResolverKind.Renarde, false, false));
 		return resolvers;
 	}
 

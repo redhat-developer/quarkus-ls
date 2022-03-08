@@ -27,20 +27,27 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.search.IJavaSearchConstants;
+import org.eclipse.jdt.core.search.IJavaSearchScope;
+import org.eclipse.jdt.core.search.SearchEngine;
+import org.eclipse.jdt.core.search.SearchPattern;
+import org.eclipse.jdt.core.search.TypeNameRequestor;
+import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.handlers.BaseInitHandler;
 import org.eclipse.m2e.core.internal.embedder.MavenExecutionContext;
 import org.eclipse.m2e.core.internal.jobs.IBackgroundProcessingQueue;
 
 /**
- * Copied from m2e's org.eclipse.m2e.tests.common/src/org/eclipse/m2e/tests/common/JobHelpers.java
+ * Copied from m2e's
+ * org.eclipse.m2e.tests.common/src/org/eclipse/m2e/tests/common/JobHelpers.java
  *
  */
 @SuppressWarnings("restriction")
 public final class JobHelpers {
 
 	private JobHelpers() {
-		//no instantiation
+		// no instantiation
 	}
 
 	private static final int POLLING_DELAY = 10;
@@ -49,7 +56,7 @@ public final class JobHelpers {
 	public static void waitForJobsToComplete() {
 		try {
 			waitForJobsToComplete(new NullProgressMonitor());
-		} catch(Exception ex) {
+		} catch (Exception ex) {
 			throw new IllegalStateException(ex);
 		}
 	}
@@ -60,23 +67,24 @@ public final class JobHelpers {
 		/*
 		 * First, make sure refresh job gets all resource change events
 		 *
-		 * Resource change events are delivered after WorkspaceJob#runInWorkspace returns
-		 * and during IWorkspace#run. Each change notification is delivered by
+		 * Resource change events are delivered after WorkspaceJob#runInWorkspace
+		 * returns and during IWorkspace#run. Each change notification is delivered by
 		 * only one thread/job, so we make sure no other workspaceJob is running then
 		 * call IWorkspace#run from this thread.
 		 *
-		 * Unfortunately, this does not catch other jobs and threads that call IWorkspace#run
-		 * so we have to hard-code workarounds
+		 * Unfortunately, this does not catch other jobs and threads that call
+		 * IWorkspace#run so we have to hard-code workarounds
 		 *
-		 * See http://www.eclipse.org/articles/Article-Resource-deltas/resource-deltas.html
+		 * See
+		 * http://www.eclipse.org/articles/Article-Resource-deltas/resource-deltas.html
 		 */
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IJobManager jobManager = Job.getJobManager();
 		jobManager.suspend();
 		try {
 			Job[] jobs = jobManager.find(null);
-			for(int i = 0; i < jobs.length; i++ ) {
-				if(jobs[i] instanceof WorkspaceJob || jobs[i].getClass().getName().endsWith("JREUpdateJob")) {
+			for (int i = 0; i < jobs.length; i++) {
+				if (jobs[i] instanceof WorkspaceJob || jobs[i].getClass().getName().endsWith("JREUpdateJob")) {
 					jobs[i].join();
 				}
 			}
@@ -88,15 +96,16 @@ public final class JobHelpers {
 
 			// Now we flush all background processing queues
 			boolean processed = flushProcessingQueues(jobManager, monitor);
-			for(int i = 0; i < 10 && processed; i++ ) {
+			for (int i = 0; i < 10 && processed; i++) {
 				processed = flushProcessingQueues(jobManager, monitor);
 				try {
 					Thread.sleep(10);
-				} catch(InterruptedException e) {
+				} catch (InterruptedException e) {
 				}
 			}
 			if (processed) {
-				JavaLanguageServerPlugin.logInfo("Could not flush background processing queues: " + getProcessingQueues(jobManager));
+				JavaLanguageServerPlugin
+						.logInfo("Could not flush background processing queues: " + getProcessingQueues(jobManager));
 			}
 		} finally {
 			jobManager.resume();
@@ -108,9 +117,9 @@ public final class JobHelpers {
 	private static boolean flushProcessingQueues(IJobManager jobManager, IProgressMonitor monitor)
 			throws InterruptedException, CoreException {
 		boolean processed = false;
-		for(IBackgroundProcessingQueue queue : getProcessingQueues(jobManager)) {
+		for (IBackgroundProcessingQueue queue : getProcessingQueues(jobManager)) {
 			queue.join();
-			if(!queue.isEmpty()) {
+			if (!queue.isEmpty()) {
 				Deque<MavenExecutionContext> context = MavenExecutionContext.suspend();
 				try {
 					IStatus status = queue.run(monitor);
@@ -122,7 +131,7 @@ public final class JobHelpers {
 					MavenExecutionContext.resume(context);
 				}
 			}
-			if(queue.isEmpty()) {
+			if (queue.isEmpty()) {
 				queue.cancel();
 			}
 		}
@@ -131,8 +140,8 @@ public final class JobHelpers {
 
 	private static List<IBackgroundProcessingQueue> getProcessingQueues(IJobManager jobManager) {
 		ArrayList<IBackgroundProcessingQueue> queues = new ArrayList<>();
-		for(Job job : jobManager.find(null)) {
-			if(job instanceof IBackgroundProcessingQueue) {
+		for (Job job : jobManager.find(null)) {
+			if (job instanceof IBackgroundProcessingQueue) {
 				queues.add((IBackgroundProcessingQueue) job);
 			}
 		}
@@ -144,8 +153,8 @@ public final class JobHelpers {
 		jobManager.suspend();
 		try {
 			Job[] jobs = jobManager.find(null);
-			for(int i = 0; i < jobs.length; i++ ) {
-				if(jobs[i] instanceof WorkspaceJob || jobs[i].getClass().getName().endsWith("JREUpdateJob")) {
+			for (int i = 0; i < jobs.length; i++) {
+				if (jobs[i] instanceof WorkspaceJob || jobs[i].getClass().getName().endsWith("JREUpdateJob")) {
 					jobs[i].join();
 				}
 			}
@@ -176,9 +185,9 @@ public final class JobHelpers {
 
 	public static void waitForJobs(IJobMatcher matcher, int maxWaitMillis) {
 		final long limit = System.currentTimeMillis() + maxWaitMillis;
-		while(true) {
+		while (true) {
 			Job job = getJob(matcher);
-			if(job == null) {
+			if (job == null) {
 				return;
 			}
 			boolean timeout = System.currentTimeMillis() > limit;
@@ -189,7 +198,7 @@ public final class JobHelpers {
 			job.wakeUp();
 			try {
 				Thread.sleep(POLLING_DELAY);
-			} catch(InterruptedException e) {
+			} catch (InterruptedException e) {
 				// ignore and keep waiting
 			}
 		}
@@ -197,8 +206,8 @@ public final class JobHelpers {
 
 	private static Job getJob(IJobMatcher matcher) {
 		Job[] jobs = Job.getJobManager().find(null);
-		for(Job job : jobs) {
-			if(matcher.matches(job)) {
+		for (Job job : jobs) {
+			if (matcher.matches(job)) {
 				return job;
 			}
 		}
@@ -262,7 +271,8 @@ public final class JobHelpers {
 
 		@Override
 		public boolean matches(Job job) {
-			return job.getClass().getName().matches("org.eclipse.m2e.core.internal.project.registry.ProjectRegistryRefreshJob");
+			return job.getClass().getName()
+					.matches("org.eclipse.m2e.core.internal.project.registry.ProjectRegistryRefreshJob");
 		}
 
 	}
@@ -284,7 +294,8 @@ public final class JobHelpers {
 
 		@Override
 		public boolean matches(Job job) {
-			return job.getClass().getName().matches("org.eclipse.buildship.core.internal.util.gradle.PublishedGradleVersionsWrapper.LoadVersionsJob");
+			return job.getClass().getName().matches(
+					"org.eclipse.buildship.core.internal.util.gradle.PublishedGradleVersionsWrapper.LoadVersionsJob");
 		}
 
 	}
@@ -300,4 +311,24 @@ public final class JobHelpers {
 
 	}
 
+	// copied from
+	// ./org.eclipse.jdt.core.tests.performance/src/org/eclipse/jdt/core/tests/performance/FullSourceWorkspaceTests.java
+	public static void waitUntilIndexesReady() {
+		// dummy query for waiting until the indexes are ready
+		SearchEngine engine = new SearchEngine();
+		IJavaSearchScope scope = SearchEngine.createWorkspaceScope();
+		JavaModelManager.getIndexManager().waitForIndex(true, null);
+		try {
+			engine.searchAllTypeNames(null, SearchPattern.R_EXACT_MATCH, "!@$#!@".toCharArray(),
+					SearchPattern.R_PATTERN_MATCH | SearchPattern.R_CASE_SENSITIVE, IJavaSearchConstants.CLASS, scope,
+					new TypeNameRequestor() {
+						@Override
+						public void acceptType(int modifiers, char[] packageName, char[] simpleTypeName,
+								char[][] enclosingTypeNames, String path) {
+						}
+					}, IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH, null);
+		} catch (CoreException e) {
+			JavaLanguageServerPlugin.logException(e.getMessage(), e);
+		}
+	}
 }

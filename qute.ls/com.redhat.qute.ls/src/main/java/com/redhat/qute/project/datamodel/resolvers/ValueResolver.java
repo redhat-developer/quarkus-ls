@@ -12,6 +12,7 @@
 package com.redhat.qute.project.datamodel.resolvers;
 
 import com.redhat.qute.commons.JavaElementKind;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 
 /**
  * Value resolver API.
@@ -79,4 +80,5 @@ public interface ValueResolver {
 	 */
 	boolean isGlobalVariable();
 
+	ValueResolverKind getKind();
 }

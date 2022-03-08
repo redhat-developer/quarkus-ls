@@ -61,6 +61,8 @@ public class QuteProjectTest {
 		public static String qute_quickstart = "qute-quickstart";
 
 		public static String qute_java17 = "qute-java17";
+
+		public static String quarkus_renarde_todo = "quarkus-renarde-todo";
 	}
 
 	@BeforeClass
@@ -118,22 +120,9 @@ public class QuteProjectTest {
 			};
 			IProgressMonitor monitor = new NullProgressMonitor();
 			JavaCore.run(runnable, null, monitor);
-			waitForBackgroundJobs(monitor);			
+			waitForBackgroundJobs(monitor);
+			JobHelpers.waitUntilIndexesReady();
 		}
-		// Collect Quarkus properties from the "hibernate-orm-resteasy" project. It
-		// should collect Quarkus properties from given JAR:
-
-		// 1) quarkus-hibernate-orm.jar which is declared in the dependencies of the
-		// pom.xml
-		// <dependency>
-		// <groupId>io.quarkus</groupId>
-		// <artifactId>quarkus-hibernate-orm</artifactId>
-		// </dependency>
-
-		// 2) quarkus-hibernate-orm-deployment.jar which is declared in
-		// META-INF/quarkus-extension.properties of quarkus-hibernate-orm.jar as
-		// property:
-		// deployment-artifact=io.quarkus\:quarkus-hibernate-orm-deployment\:0.21.1
 		return JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(description.getName());
 	}
 

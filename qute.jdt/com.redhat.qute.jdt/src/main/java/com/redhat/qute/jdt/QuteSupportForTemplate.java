@@ -13,12 +13,9 @@ package com.redhat.qute.jdt;
 
 import static com.redhat.qute.jdt.utils.JDTTypeUtils.findType;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,9 +46,6 @@ import org.eclipse.lsp4j.WorkspaceEdit;
 
 import com.redhat.qute.commons.DocumentFormat;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
-import com.redhat.qute.commons.InvalidMethodReason;
-import com.redhat.qute.commons.JavaFieldInfo;
-import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
@@ -64,9 +58,9 @@ import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
-import com.redhat.qute.jdt.internal.resolver.AbstractTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.ClassFileTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.CompilationUnitTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
@@ -74,10 +68,9 @@ import com.redhat.qute.jdt.internal.template.JavaTypesSearch;
 import com.redhat.qute.jdt.internal.template.QuarkusIntegrationForQute;
 import com.redhat.qute.jdt.internal.template.QuteSupportForTemplateGenerateMissingJavaMemberHandler;
 import com.redhat.qute.jdt.internal.template.TemplateDataSupport;
+import com.redhat.qute.jdt.internal.template.resolvedtype.ResolvedJavaTypeFactoryRegistry;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
-import com.redhat.qute.jdt.utils.JDTTypeUtils;
-import com.redhat.qute.jdt.utils.QuteReflectionAnnotationUtils;
 
 /**
  *
@@ -89,8 +82,6 @@ import com.redhat.qute.jdt.utils.QuteReflectionAnnotationUtils;
 public class QuteSupportForTemplate {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteSupportForTemplate.class.getName());
-
-	private static final String JAVA_LANG_OBJECT = "java.lang.Object";
 
 	private static final QuteSupportForTemplate INSTANCE = new QuteSupportForTemplate();
 
@@ -318,65 +309,8 @@ public class QuteSupportForTemplate {
 			return null;
 		}
 
-		ITypeResolver typeResolver = createTypeResolver(type);
-
-		// 1) Collect fields
-		List<JavaFieldInfo> fieldsInfo = new ArrayList<>();
-
-		// Standard fields
-		IField[] fields = type.getFields();
-		for (IField field : fields) {
-			if (isValidField(field, type)) {
-				// Only public fields are available
-				JavaFieldInfo info = new JavaFieldInfo();
-				info.setSignature(typeResolver.resolveFieldSignature(field));
-				fieldsInfo.add(info);
-			}
-		}
-
-		// Record fields
-		if (type.isRecord()) {
-			for (IField field : type.getRecordComponents()) {
-				// All record components are valid
-				JavaFieldInfo info = new JavaFieldInfo();
-				info.setSignature(typeResolver.resolveFieldSignature(field));
-				fieldsInfo.add(info);
-			}
-		}
-
-		// 2) Collect methods
-		List<JavaMethodInfo> methodsInfo = new ArrayList<>();
-		Map<String, InvalidMethodReason> invalidMethods = new HashMap<>();
-		IMethod[] methods = type.getMethods();
-		for (IMethod method : methods) {
-			if (isValidMethod(method, type)) {
-				try {
-					InvalidMethodReason invalid = getValidMethodForQute(method, typeName);
-					if (invalid != null) {
-						invalidMethods.put(method.getElementName(), invalid);
-					} else {
-						JavaMethodInfo info = new JavaMethodInfo();
-						info.setSignature(typeResolver.resolveMethodSignature(method));
-						methodsInfo.add(info);
-					}
-				} catch (Exception e) {
-					LOGGER.log(Level.SEVERE,
-							"Error while getting method signature of '" + method.getElementName() + "'.", e);
-				}
-			}
-		}
-
-		ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
-		String typeSignature = AbstractTypeResolver.resolveJavaTypeSignature(type);
-		resolvedType.setBinary(type.isBinary());
-		resolvedType.setSignature(typeSignature);
-		resolvedType.setFields(fieldsInfo);
-		resolvedType.setMethods(methodsInfo);
-		resolvedType.setInvalidMethods(invalidMethods);
-		resolvedType.setExtendedTypes(typeResolver.resolveExtendedType());
-		resolvedType.setJavaTypeKind(JDTTypeUtils.getJavaTypeKind(type));
-		QuteReflectionAnnotationUtils.collectAnnotations(resolvedType, type, typeResolver);
-		return resolvedType;
+		ValueResolverKind kind = params.getKind();
+		return ResolvedJavaTypeFactoryRegistry.getInstance().create(type, kind);
 	}
 
 	private static boolean isValidField(IField field, IType type) throws JavaModelException {
@@ -384,48 +318,6 @@ public class QuteSupportForTemplate {
 			return true;
 		}
 		return Flags.isPublic(field.getFlags());
-	}
-
-	private static boolean isValidMethod(IMethod method, IType type) {
-		try {
-			if (method.isConstructor() || !method.exists() || Flags.isSynthetic(method.getFlags())) {
-				return false;
-			}
-			if (!type.isInterface() && !Flags.isPublic(method.getFlags())) {
-				return false;
-			}
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while checking if '" + method.getElementName() + "' is valid.", e);
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Returns the reason
-	 *
-	 * @param method
-	 * @param type
-	 *
-	 * @return
-	 *
-	 * @see https://github.com/quarkusio/quarkus/blob/ce19ff75e9f732ff731bb30c2141b44b42c66050/independent-projects/qute/core/src/main/java/io/quarkus/qute/ReflectionValueResolver.java#L176
-	 */
-	private static InvalidMethodReason getValidMethodForQute(IMethod method, String typeName) {
-		if (JAVA_LANG_OBJECT.equals(typeName)) {
-			return InvalidMethodReason.FromObject;
-		}
-		try {
-			if ("V".equals(method.getReturnType())) {
-				return InvalidMethodReason.VoidReturn;
-			}
-			if (Flags.isStatic(method.getFlags())) {
-				return InvalidMethodReason.Static;
-			}
-		} catch (JavaModelException e) {
-			LOGGER.log(Level.SEVERE, "Error while checking if '" + method.getElementName() + "' is valid.", e);
-		}
-		return null;
 	}
 
 	private static IJavaProject getJavaProjectFromProjectUri(String projectName) {
@@ -506,7 +398,8 @@ public class QuteSupportForTemplate {
 		}
 	}
 
-	private String getJavadoc(IType type, DocumentFormat documentFormat, String memberName, String signature, IJDTUtils utils, IProgressMonitor monitor, Set<IType> visited) throws JavaModelException {
+	private String getJavadoc(IType type, DocumentFormat documentFormat, String memberName, String signature,
+			IJDTUtils utils, IProgressMonitor monitor, Set<IType> visited) throws JavaModelException {
 		if (visited.contains(type)) {
 			return null;
 		}
@@ -522,8 +415,7 @@ public class QuteSupportForTemplate {
 		// Standard fields
 		IField[] fields = type.getFields();
 		for (IField field : fields) {
-			if (isValidField(field, type)
-					&& memberName.equals(field.getElementName())
+			if (isValidField(field, type) && memberName.equals(field.getElementName())
 					&& signature.equals(typeResolver.resolveFieldSignature(field))) {
 				String javadoc = utils.getJavadoc(field, documentFormat);
 				if (javadoc != null) {
@@ -549,20 +441,17 @@ public class QuteSupportForTemplate {
 		// 2) Check the methods for the member
 		IMethod[] methods = type.getMethods();
 		for (IMethod method : methods) {
-			if (isValidMethod(method, type)) {
-				try {
-					InvalidMethodReason invalid = getValidMethodForQute(method, type.getFullyQualifiedName());
-					if (invalid == null && (signature.equals(typeResolver.resolveMethodSignature(method)))) {
-						String javadoc = utils.getJavadoc(method, documentFormat);
-						if (javadoc != null) {
-							return javadoc;
-						}
-						// otherwise, maybe a supertype has it
+			try {
+				if (signature.equals(typeResolver.resolveMethodSignature(method))) {
+					String javadoc = utils.getJavadoc(method, documentFormat);
+					if (javadoc != null) {
+						return javadoc;
 					}
-				} catch (Exception e) {
-					LOGGER.log(Level.SEVERE,
-							"Error while getting method signature of '" + method.getElementName() + "'.", e);
+					// otherwise, maybe a supertype has it
 				}
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE, "Error while getting method signature of '" + method.getElementName() + "'.",
+						e);
 			}
 		}
 
@@ -584,7 +473,8 @@ public class QuteSupportForTemplate {
 
 		if (extendedTypes != null) {
 			for (IType extendedType : extendedTypes) {
-				String javadoc = getJavadoc(extendedType, documentFormat, memberName, signature, utils, monitor, visited);
+				String javadoc = getJavadoc(extendedType, documentFormat, memberName, signature, utils, monitor,
+						visited);
 				if (javadoc != null) {
 					return javadoc;
 				}
@@ -595,7 +485,8 @@ public class QuteSupportForTemplate {
 
 	}
 
-	private IType getTypeFromParams(String typeName, String projectUri, IProgressMonitor monitor) throws JavaModelException {
+	private IType getTypeFromParams(String typeName, String projectUri, IProgressMonitor monitor)
+			throws JavaModelException {
 		IJavaProject javaProject = getJavaProjectFromProjectUri(projectUri);
 		if (javaProject == null) {
 			return null;

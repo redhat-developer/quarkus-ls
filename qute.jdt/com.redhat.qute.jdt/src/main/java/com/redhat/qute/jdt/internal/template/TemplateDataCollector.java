@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.template;
 
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.JAVA_LANG_OBJECT_TYPE;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ITypeBinding;
@@ -61,7 +63,7 @@ public class TemplateDataCollector extends TemplateDataVisitor {
 			paramName = ((StringLiteral) name).getLiteralValue();
 		}
 		if (paramName != null) {
-			String paramType = "java.lang.Object";
+			String paramType = JAVA_LANG_OBJECT_TYPE;
 			if (type instanceof Expression) {
 				ITypeBinding binding = ((Expression) type).resolveTypeBinding();
 				paramType = binding.getQualifiedName();

@@ -11,11 +11,13 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.template;
 
+import static com.redhat.qute.jdt.QuteAssert.assertNotValueResolver;
+import static com.redhat.qute.jdt.QuteAssert.assertParameter;
+import static com.redhat.qute.jdt.QuteAssert.assertValueResolver;
 import static com.redhat.qute.jdt.QuteProjectTest.getJDTUtils;
 import static com.redhat.qute.jdt.QuteProjectTest.loadMavenProject;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.junit.Assert;
@@ -358,48 +360,6 @@ public class TemplateGetDataModelProjectTest {
 		// }
 		assertValueResolver(null, "user() : java.lang.String", "org.acme.qute.Globals", "currentUser", true, resolvers);
 		// }
-	}
-
-	private static void assertValueResolver(String namespace, String signature, String sourceType,
-			List<ValueResolverInfo> resolvers) {
-		assertValueResolver(namespace, signature, sourceType, null, resolvers);
-	}
-
-	private static void assertValueResolver(String namespace, String signature, String sourceType, String named,
-			List<ValueResolverInfo> resolvers) {
-		assertValueResolver(namespace, signature, sourceType, named, false, resolvers);
-	}
-
-	private static void assertValueResolver(String namespace, String signature, String sourceType, String named,
-			boolean globalVariable, List<ValueResolverInfo> resolvers) {
-		Optional<ValueResolverInfo> result = resolvers.stream().filter(r -> signature.equals(r.getSignature()))
-				.findFirst();
-		Assert.assertFalse("Find '" + signature + "' value resolver.", result.isEmpty());
-		ValueResolverInfo resolver = result.get();
-		Assert.assertEquals(namespace, resolver.getNamespace());
-		Assert.assertEquals(signature, resolver.getSignature());
-		Assert.assertEquals(sourceType, resolver.getSourceType());
-		Assert.assertEquals(globalVariable, resolver.isGlobalVariable());
-	}
-
-	private static void assertNotValueResolver(String namespace, String signature, String sourceType, String named,
-			List<ValueResolverInfo> resolvers) {
-		assertNotValueResolver(namespace, signature, sourceType, named, false, resolvers);
-	}
-
-	private static void assertNotValueResolver(String namespace, String signature, String sourceType, String named,
-			boolean globalVariable, List<ValueResolverInfo> resolvers) {
-		Optional<ValueResolverInfo> result = resolvers.stream().filter(r -> signature.equals(r.getSignature()))
-				.findFirst();
-		Assert.assertTrue("Find '" + signature + "' value resolver.", result.isEmpty());
-	}
-
-	private static void assertParameter(String key, String sourceType, boolean dataMethodInvocation,
-			List<DataModelParameter> parameters, int index) {
-		DataModelParameter parameter = parameters.get(index);
-		Assert.assertEquals(key, parameter.getKey());
-		Assert.assertEquals(sourceType, parameter.getSourceType());
-		Assert.assertEquals(dataMethodInvocation, parameter.isDataMethodInvocation());
 	}
 
 }

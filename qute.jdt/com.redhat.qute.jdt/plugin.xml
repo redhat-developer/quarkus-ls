@@ -5,6 +5,9 @@
    <extension-point id="dataModelProviders"
 					name="%dataModelProviders.name"
 					schema="schema/dataModelProviders.exsd" />
+   <extension-point id="resolvedJavaTypeFactories"
+					name="%resolvedJavaTypeFactories.name"
+					schema="schema/resolvedJavaTypeFactories.exsd" />
 
    <!-- Delegate command handler for Qute template -->
    <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
@@ -45,6 +48,19 @@
                 description="A CDI bean annotated with `@Named` can be referenced in any template through `cdi` and/or `inject` namespaces."
                 url="https://quarkus.io/guides/qute-reference#injecting-beans-directly-in-templates"
                 class="com.redhat.qute.jdt.internal.extensions.quarkus.InjectNamespaceResolverSupport" />
+   </extension>
+
+   <!-- Data model providers for Quarkus Renarde -->
+   <extension point="com.redhat.qute.jdt.dataModelProviders">
+      <provider namespaces="uri,uriabs"
+                description="If you want a URI to an endpoint in a Qute view, you can use the `uri` and `uriabs` namespace with a call to the endpoint you want to point to."
+                url="https://github.com/quarkiverse/quarkus-renarde/blob/main/docs/modules/ROOT/pages/index.adoc#obtaining-a-uri-in-qute-views"
+                class="com.redhat.qute.jdt.internal.extensions.renarde.UriNamespaceResolverSupport" />
+   </extension>
+
+   <!-- Resolved Java Type Factories for Quarkus Renarde -->
+   <extension point="com.redhat.qute.jdt.resolvedJavaTypeFactories">
+      <factory class="com.redhat.qute.jdt.internal.extensions.renarde.RenardeResolvedJavaTypeFactory" />
    </extension>
 
 </plugin>

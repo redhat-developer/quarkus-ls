@@ -28,6 +28,10 @@ import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
+import com.redhat.qute.commons.jaxrs.JaxRsMethodKind;
+import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
+import com.redhat.qute.commons.jaxrs.RestParam;
 import com.redhat.qute.jdt.QuteProjectTest.QuteMavenProjectName;
 import com.redhat.qute.jdt.QuteSupportForTemplate;
 
@@ -248,7 +252,7 @@ public class TemplateGetResolvedJavaTypeTest {
 				new NullProgressMonitor());
 		Assert.assertNull(result);
 	}
-	
+
 	@Test
 	public void someInterface() throws Exception {
 		loadMavenProject(QuteMavenProjectName.qute_quickstart);
@@ -531,6 +535,125 @@ public class TemplateGetResolvedJavaTypeTest {
 		extendedTypes = result.getExtendedTypes();
 		Assert.assertNotNull(extendedTypes);
 		Assert.assertTrue(extendedTypes.isEmpty());
+	}
+
+	@Test
+	public void renarde() throws CoreException, Exception {
+		loadMavenProject(QuteMavenProjectName.quarkus_renarde_todo);
+
+		// class Login extends ControllerWithUser<model.User>
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("rest.Login", ValueResolverKind.Renarde,
+				QuteMavenProjectName.quarkus_renarde_todo);
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
+				new NullProgressMonitor());
+		Assert.assertNotNull(result);
+
+		List<String> extendedTypes = result.getExtendedTypes();
+		Assert.assertNotNull(extendedTypes);
+		Assert.assertEquals(1, extendedTypes.size());
+		assertExtendedTypes("rest.Login", "io.quarkiverse.renarde.oidc.ControllerWithUser<model.User>", extendedTypes);
+
+		Assert.assertNotNull(result.getMethods());
+		Assert.assertEquals(7, result.getMethods().size());
+
+		// login
+		JavaMethodInfo loginMethod = result.getMethods().get(0);
+		Assert.assertEquals("login() : io.quarkus.qute.TemplateInstance", loginMethod.getSignature());
+		Assert.assertEquals(JaxRsMethodKind.GET, loginMethod.getJaxRsMethodKind());
+
+		// welcome
+		JavaMethodInfo welcomeMethod = result.getMethods().get(1);
+		Assert.assertEquals("welcome() : io.quarkus.qute.TemplateInstance", welcomeMethod.getSignature());
+		Assert.assertEquals(JaxRsMethodKind.GET, welcomeMethod.getJaxRsMethodKind());
+
+		// manualLogin
+		JavaMethodInfo manualLoginMethod = result.getMethods().get(2);
+		Assert.assertEquals(
+				"manualLogin(userName : java.lang.String, password : java.lang.String, webAuthnResponse : io.quarkus.security.webauthn.WebAuthnLoginResponse, ctx : io.vertx.ext.web.RoutingContext) : javax.ws.rs.core.Response",
+				manualLoginMethod.getSignature());
+		Assert.assertEquals(JaxRsMethodKind.POST, manualLoginMethod.getJaxRsMethodKind());
+		Assert.assertNotNull(manualLoginMethod.getRestParameters());
+		Assert.assertEquals(2, manualLoginMethod.getRestParameters().size());
+
+		RestParam password = manualLoginMethod.getRestParameter("password");
+		Assert.assertNotNull(password);
+		Assert.assertEquals("password", password.getName());
+		Assert.assertEquals(JaxRsParamKind.FORM, password.getParameterKind());
+
+		RestParam userName = manualLoginMethod.getRestParameter("userName");
+		Assert.assertNotNull(userName);
+		Assert.assertEquals("userName", userName.getName());
+		Assert.assertEquals(JaxRsParamKind.FORM, userName.getParameterKind());
+
+		// register
+		JavaMethodInfo registerMethod = result.getMethods().get(3);
+		Assert.assertEquals("register(email : java.lang.String) : io.quarkus.qute.TemplateInstance",
+				registerMethod.getSignature());
+		Assert.assertEquals(JaxRsMethodKind.POST, registerMethod.getJaxRsMethodKind());
+		Assert.assertNotNull(registerMethod.getRestParameters());
+		Assert.assertEquals(1, registerMethod.getRestParameters().size());
+
+		RestParam email = registerMethod.getRestParameter("email");
+		Assert.assertNotNull(email);
+		Assert.assertEquals("email", email.getName());
+		Assert.assertEquals(JaxRsParamKind.FORM, email.getParameterKind());
+
+		// confirm
+		JavaMethodInfo confirmMethod = result.getMethods().get(4);
+		Assert.assertEquals("confirm(confirmationCode : java.lang.String) : io.quarkus.qute.TemplateInstance",
+				confirmMethod.getSignature());
+		Assert.assertEquals(JaxRsMethodKind.GET, confirmMethod.getJaxRsMethodKind());
+		Assert.assertNotNull(confirmMethod.getRestParameters());
+		Assert.assertEquals(1, confirmMethod.getRestParameters().size());
+
+		RestParam confirmationCode = confirmMethod.getRestParameter("confirmationCode");
+		Assert.assertNotNull(confirmationCode);
+		Assert.assertEquals("confirmationCode", confirmationCode.getName());
+		Assert.assertEquals(JaxRsParamKind.PATH, confirmationCode.getParameterKind());
+
+		// logoutFirst
+		JavaMethodInfo logoutFirstMethod = result.getMethods().get(5);
+		Assert.assertEquals("logoutFirst() : io.quarkus.qute.TemplateInstance", logoutFirstMethod.getSignature());
+		Assert.assertEquals(JaxRsMethodKind.GET, logoutFirstMethod.getJaxRsMethodKind());
+
+		// complete
+		JavaMethodInfo completeMethod = result.getMethods().get(6);
+		Assert.assertEquals(
+				"complete(confirmationCode : java.lang.String, userName : java.lang.String, password : java.lang.String, password2 : java.lang.String, webAuthnResponse : io.quarkus.security.webauthn.WebAuthnRegisterResponse, firstName : java.lang.String, lastName : java.lang.String, ctx : io.vertx.ext.web.RoutingContext) : javax.ws.rs.core.Response",
+				completeMethod.getSignature());
+		Assert.assertEquals(JaxRsMethodKind.POST, completeMethod.getJaxRsMethodKind());
+		Assert.assertNotNull(completeMethod.getRestParameters());
+		Assert.assertEquals(6, completeMethod.getRestParameters().size());
+
+		confirmationCode = completeMethod.getRestParameter("confirmationCode");
+		Assert.assertNotNull(confirmationCode);
+		Assert.assertEquals("confirmationCode", confirmationCode.getName());
+		Assert.assertEquals(JaxRsParamKind.QUERY, confirmationCode.getParameterKind());
+
+		RestParam firstName = completeMethod.getRestParameter("firstName");
+		Assert.assertNotNull(firstName);
+		Assert.assertEquals("firstName", firstName.getName());
+		Assert.assertEquals(JaxRsParamKind.FORM, firstName.getParameterKind());
+
+		RestParam lastName = completeMethod.getRestParameter("lastName");
+		Assert.assertNotNull(lastName);
+		Assert.assertEquals("lastName", lastName.getName());
+		Assert.assertEquals(JaxRsParamKind.FORM, lastName.getParameterKind());
+
+		password = completeMethod.getRestParameter("password");
+		Assert.assertNotNull(password);
+		Assert.assertEquals("password", password.getName());
+		Assert.assertEquals(JaxRsParamKind.FORM, password.getParameterKind());
+
+		RestParam password2 = completeMethod.getRestParameter("password2");
+		Assert.assertNotNull(password2);
+		Assert.assertEquals("password2", password2.getName());
+		Assert.assertEquals(JaxRsParamKind.FORM, password2.getParameterKind());
+
+		userName = completeMethod.getRestParameter("userName");
+		Assert.assertNotNull(userName);
+		Assert.assertEquals("userName", userName.getName());
+		Assert.assertEquals(JaxRsParamKind.FORM, userName.getParameterKind());
 	}
 
 	private static void assertExtendedTypes(String type, String extendedType, List<String> extendedTypes) {

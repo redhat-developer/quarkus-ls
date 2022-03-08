@@ -44,6 +44,8 @@ public class CustomSection extends Section {
 	protected void initializeParameters(List<Parameter> parameters) {
 		// All parameters can have expression (ex : {#user name=order.item.parent
 		// isActive=false age=10}
+
+		// For user tag, one parameter can be an expression (for 'it')
 		boolean hasIt = false;
 		for (Parameter parameter : parameters) {
 			if (parameter.hasValueAssigned()) {

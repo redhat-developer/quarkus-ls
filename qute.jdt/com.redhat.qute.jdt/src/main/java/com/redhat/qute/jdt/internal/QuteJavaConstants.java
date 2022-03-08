@@ -19,6 +19,8 @@ package com.redhat.qute.jdt.internal;
  */
 public class QuteJavaConstants {
 
+	public static final String JAVA_LANG_OBJECT_TYPE = "java.lang.Object";
+	
 	public static final String JAVAX_INJECT_NAMED_ANNOTATION = "javax.inject.Named";
 
 	public static final String LOCATION_ANNOTATION = "io.quarkus.qute.Location";

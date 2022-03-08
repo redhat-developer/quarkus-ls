@@ -43,6 +43,7 @@ import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.jdt.QuteSupportForTemplate;
@@ -246,7 +247,13 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 			throw new UnsupportedOperationException(String.format(
 					"Command '%s' must be called with required QuteResolvedJavaTypeParams.className!", commandId));
 		}
-		return new QuteResolvedJavaTypeParams(className, projectUri);
+		ValueResolverKind kind = null;
+		try {
+			kind = ValueResolverKind.forValue(ArgumentUtils.getInt(obj, "kind"));
+		} catch (IllegalArgumentException e) {
+			// ignored
+		}		
+		return new QuteResolvedJavaTypeParams(className, kind, projectUri);
 	}
 
 	private static List<JavaTypeInfo> getJavaTypes(List<Object> arguments, String commandId, IProgressMonitor monitor)
