@@ -67,6 +67,16 @@ public class ParameterScannerTest {
 		assertOffsetAndToken(29, TokenType.EOS, "");
 	}
 
+	@Test
+	public void stringParameter() {
+		// {#formElement name="User Name"}
+		scanner = ParameterScanner.createScanner("name=\"User Name\"");
+		assertOffsetAndToken(0, TokenType.ParameterName, "name");
+		assertOffsetAndToken(4, TokenType.Assign, "=");
+		assertOffsetAndToken(5, TokenType.ParameterValue, "\"User Name\"");
+		assertOffsetAndToken(16, TokenType.EOS, "");
+	}
+	
 	public void assertOffsetAndToken(int tokenOffset, TokenType tokenType) {
 		TokenType token = scanner.scan();
 		assertEquals(tokenOffset, scanner.getTokenOffset());

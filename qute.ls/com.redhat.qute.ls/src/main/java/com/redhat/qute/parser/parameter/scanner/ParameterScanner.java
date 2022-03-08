@@ -98,6 +98,16 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 		}
 
 		case AfterAssign: {
+			int c = stream.peekChar();
+			if (c == '"' || c == '\'') {
+				stream.advance(1);
+				if(stream.advanceUntilChar(c)) {
+					stream.advance(1);
+				}
+				state = ScannerState.WithinParameters;
+				return finishToken(offset, TokenType.ParameterValue);
+			}
+
 			if (hasNextParameterNameOrValue()) {
 				state = ScannerState.WithinParameters;
 				return finishToken(offset, TokenType.ParameterValue);
