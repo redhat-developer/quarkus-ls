@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * User tag diagnostics.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -34,7 +34,7 @@ public class QuteDiagnosticsUserTagTest {
 	@Test
 	public void undefinedVariableInTemplate() {
 		String template = "{name}";
-		Diagnostic d = d(0, 1, 0, 5, QuteErrorCode.UndefinedVariable, "`name` cannot be resolved to a variable.",
+		Diagnostic d = d(0, 1, 0, 5, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("name", false));
 		testDiagnosticsFor(template, //
@@ -54,7 +54,7 @@ public class QuteDiagnosticsUserTagTest {
 	@Test
 	public void undefinedVariableInUserTagCall() {
 		String template = "{#user name=name /}";
-		Diagnostic d = d(0, 12, 0, 16, QuteErrorCode.UndefinedVariable, "`name` cannot be resolved to a variable.",
+		Diagnostic d = d(0, 12, 0, 16, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("name", false));
 		testDiagnosticsFor(template, d);

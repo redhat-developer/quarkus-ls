@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests for Qute completion with @CkeckedTemplate.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -18,7 +18,7 @@ public class QuteDiagnosticsWithCheckedTemplateTest {
 	@Test
 	public void noCheckedTemplateMatching() throws Exception {
 		String template = "Item: {items}";
-		Diagnostic d = d(0, 7, 0, 12, QuteErrorCode.UndefinedVariable, "`items` cannot be resolved to a variable.",
+		Diagnostic d = d(0, 7, 0, 12, QuteErrorCode.UndefinedObject, "`items` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("items", false));
 		testDiagnosticsFor(template, d);

@@ -30,8 +30,8 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 				"	{it.name}    \r\n" + //
 				"{/each}";
 
-		Diagnostic d = d(2, 7, 2, 15, QuteErrorCode.UndefinedVariable, //
-				"`itemsXXX` cannot be resolved to a variable.", DiagnosticSeverity.Warning);
+		Diagnostic d = d(2, 7, 2, 15, QuteErrorCode.UndefinedObject, //
+				"`itemsXXX` cannot be resolved to an object.", DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("itemsXXX", true));
 
 		testDiagnosticsFor(template, d, //

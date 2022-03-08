@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test with #for section
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -48,8 +48,8 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 				"	{item.name}    \r\n" + //
 				"{/for}}";
 
-		Diagnostic d = d(4, 2, 4, 6, QuteErrorCode.UndefinedVariable, //
-				"`item` cannot be resolved to a variable.", DiagnosticSeverity.Warning);
+		Diagnostic d = d(4, 2, 4, 6, QuteErrorCode.UndefinedObject, //
+				"`item` cannot be resolved to an object.", DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
 
 		testDiagnosticsFor(template, d);
@@ -66,8 +66,8 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 				"	{item.name}    \r\n" + //
 				"{/for}";
 
-		Diagnostic d = d(2, 14, 2, 22, QuteErrorCode.UndefinedVariable, //
-				"`itemsXXX` cannot be resolved to a variable.", DiagnosticSeverity.Warning);
+		Diagnostic d = d(2, 14, 2, 22, QuteErrorCode.UndefinedObject, //
+				"`itemsXXX` cannot be resolved to an object.", DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("itemsXXX", true));
 
 		testDiagnosticsFor(template, d, //
@@ -137,7 +137,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 
 	/**
 	 * @see https://quarkus.io/guides/qute-reference#expression_resolution
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -160,7 +160,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 
 	/**
 	 * @see https://quarkus.io/guides/qute-reference#expression_resolution
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -195,7 +195,8 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 				"{/for}";
 		testDiagnosticsFor(template, //
 				d(0, 11, 0, 13, QuteErrorCode.IterationError,
-						"Iteration error: {3d} resolved to [java.lang.Double] which is not iterable.", DiagnosticSeverity.Error),
+						"Iteration error: {3d} resolved to [java.lang.Double] which is not iterable.",
+						DiagnosticSeverity.Error),
 				d(1, 2, 1, 3, QuteErrorCode.UnknownType, "`java.lang.Double` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}

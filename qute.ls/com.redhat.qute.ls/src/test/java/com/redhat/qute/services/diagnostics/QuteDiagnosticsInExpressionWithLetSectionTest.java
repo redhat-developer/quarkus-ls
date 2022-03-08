@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test with #let section
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -58,7 +58,7 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 				"  {doubleQuote}\r\n" + //
 				"{/set}\r\n" + //
 				"";
-		Diagnostic d = d(0, 11, 0, 15, QuteErrorCode.UndefinedVariable, "`item` cannot be resolved to a variable.",
+		Diagnostic d = d(0, 11, 0, 15, QuteErrorCode.UndefinedObject, "`item` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
 
@@ -79,7 +79,7 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 		template = "{#let name='value' /}\r\n" + //
 				" {name}\r\n" + //
 				"{/let}";
-		Diagnostic d = d(1, 2, 1, 6, QuteErrorCode.UndefinedVariable, "`name` cannot be resolved to a variable.",
+		Diagnostic d = d(1, 2, 1, 6, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("name", false));
 

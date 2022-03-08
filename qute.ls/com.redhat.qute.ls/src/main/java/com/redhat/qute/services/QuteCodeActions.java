@@ -50,7 +50,7 @@ import com.redhat.qute.utils.QutePositionUtility;
 
 /**
  * Qute code actions support.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -91,13 +91,13 @@ class QuteCodeActions {
 				QuteErrorCode errorCode = QuteErrorCode.getErrorCode(diagnostic.getCode());
 				if (errorCode != null) {
 					switch (errorCode) {
-					case UndefinedVariable:
+					case UndefinedObject:
 						// The following Qute template:
-						// {undefinedVariable}
+						// {undefinedObject}
 						//
 						// will provide a quickfix like:
 						//
-						// Declare `undefinedVariable` with parameter declaration."
+						// Declare `undefinedObject` with parameter declaration."
 						doCodeActionsForUndefinedVariable(template, diagnostic, codeActions);
 						break;
 					case UndefinedSectionTag:
@@ -188,13 +188,13 @@ class QuteCodeActions {
 
 	/**
 	 * Create the configuration update (done on client side) quick fix.
-	 * 
+	 *
 	 * @param title       the displayed name of the QuickFix.
 	 * @param sectionName the section name of the settings to update.
 	 * @param item        the section value of the settings to update.
 	 * @param editType    the configuration edit type.
 	 * @param diagnostic  the diagnostic list that this CodeAction will fix.
-	 * 
+	 *
 	 * @return the configuration update (done on client side) quick fix.
 	 */
 	private static CodeAction createConfigurationUpdateCodeAction(String title, String scopeUri, String sectionName,
