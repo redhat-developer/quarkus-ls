@@ -61,6 +61,12 @@ public class QuteDiagnosticsUserTagTest {
 	}
 
 	@Test
+	public void stringParameterInUserTagCall() {
+		String template = "{#user name=\"User Name\" /}";
+		testDiagnosticsFor(template);
+	}
+	
+	@Test
 	public void undefinedSectionTag() throws Exception {
 		String template = "{#undefined /}";
 
