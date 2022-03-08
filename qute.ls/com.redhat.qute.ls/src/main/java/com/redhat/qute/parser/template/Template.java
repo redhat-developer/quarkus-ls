@@ -242,4 +242,13 @@ public class Template extends Node {
 		return (JavaTypeInfoProvider) projectRegistry
 				.findJavaElementWithNamespace(namespace, objectPart.getPartName(), getProjectUri()).getNow(null);
 	}
+	
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		boolean visitChildren = visitor.visit(this);
+		if (visitChildren) {
+			acceptChildren(visitor, getChildren());
+		}
+		visitor.endVisit(this);
+	}
 }

@@ -14,6 +14,7 @@ package com.redhat.qute.parser.expression;
 import java.util.List;
 
 import com.redhat.qute.parser.expression.Parts.PartKind;
+import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
@@ -50,9 +51,9 @@ public class ObjectPart extends Part {
 			// ex : {data:item}
 			return template.findWithNamespace(this);
 		}
-		
+
 		// ex : {item}
-		
+
 		// Loop for parent section to discover the class name
 		Section section = super.getParentSection();
 		while (section != null) {
@@ -89,7 +90,11 @@ public class ObjectPart extends Part {
 		// - from parameter declaration
 		// - from @CheckedTemplate
 		return template.findInInitialDataModel(this);
-
 	}
 
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		visitor.visit(this);
+		visitor.endVisit(this);
+	}
 }

@@ -208,4 +208,10 @@ public class ParameterDeclaration extends Node implements ParametersContainer, J
 		}
 		return null;
 	}
+
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		visitor.visit(this);
+		visitor.endVisit(this);
+	}
 }

@@ -11,6 +11,10 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template.sections;
 
+import java.util.List;
+
+import com.redhat.qute.parser.template.ASTVisitor;
+import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.SectionKind;
 
 /**
@@ -55,4 +59,16 @@ public class ElseSection extends AssignSection {
 		return SectionKind.ELSE;
 	}
 
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		boolean visitChildren = visitor.visit(this);
+		if (visitChildren) {
+			List<Parameter> parameters = getParameters();
+			for (Parameter parameter : parameters) {
+				acceptChild(visitor, parameter);
+			}
+			acceptChildren(visitor, getChildren());
+		}
+		visitor.endVisit(this);
+	}
 }

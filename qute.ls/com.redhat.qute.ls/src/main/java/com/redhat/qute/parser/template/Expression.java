@@ -142,4 +142,13 @@ public class Expression extends Node {
 		}
 		return content;
 	}
+	
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		boolean visitChildren = visitor.visit(this);
+		if (visitChildren) {
+			acceptChildren(visitor, getExpressionContent());
+		}
+		visitor.endVisit(this);
+	}
 }

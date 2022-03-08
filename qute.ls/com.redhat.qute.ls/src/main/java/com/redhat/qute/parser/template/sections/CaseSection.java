@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template.sections;
 
+import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.SectionKind;
 
 /**
@@ -43,4 +44,9 @@ public class CaseSection extends AssignSection {
 		return SectionKind.CASE;
 	}
 
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		visitor.visit(this);
+		visitor.endVisit(this);
+	}
 }

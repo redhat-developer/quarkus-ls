@@ -162,4 +162,15 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 		return Node.isIncluded(getStartValue(), getEndValue(), offset);
 	}
 
+	@Override
+	protected void accept0(ASTVisitor visitor) {
+		boolean visitChildren = visitor.visit(this);
+		if (visitChildren) {
+			Expression expression = getJavaTypeExpression();
+			if (expression != null) {
+				acceptChild(visitor, expression);
+			}
+		}
+		visitor.endVisit(this);
+	}
 }
