@@ -12,12 +12,17 @@
 package com.redhat.qute.commons;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+
+import com.redhat.qute.commons.jaxrs.JaxRsMethodKind;
+import com.redhat.qute.commons.jaxrs.RestParam;
 
 /**
  * Java method information.
@@ -30,6 +35,10 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	private static final String GET_PREFIX = "get";
 
 	private static final String IS_PREFIX = "is";
+
+	private JaxRsMethodKind jaxRsMethodKind;
+
+	private Map<String, RestParam> restParameters;
 
 	private transient String methodName;
 
@@ -64,6 +73,55 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	 */
 	public boolean isVirtual() {
 		return false;
+	}
+
+	/**
+	 * Returns the JAX RS method kind and null otherwise.
+	 * 
+	 * @return the JAX RS method kind and null otherwise
+	 */
+	public JaxRsMethodKind getJaxRsMethodKind() {
+		return jaxRsMethodKind;
+	}
+
+	/**
+	 * Set the JAX RS method kind.
+	 * 
+	 * @param jaxRsMethodKind the JAX RS method kind
+	 */
+	public void setJaxRsMethodKind(JaxRsMethodKind jaxRsMethodKind) {
+		this.jaxRsMethodKind = jaxRsMethodKind;
+	}
+
+	/**
+	 * Set the Rest parameters information.
+	 * 
+	 * @param restParameters the Rest parameters information.
+	 */
+	public void setRestParameters(Map<String, RestParam> restParameters) {
+		this.restParameters = restParameters;
+	}
+
+	/**
+	 * Returns the Rest parameters information.
+	 * 
+	 * @return the Rest parameters information.
+	 */
+	public Collection<RestParam> getRestParameters() {
+		return restParameters != null ? restParameters.values() : Collections.emptyList();
+	}
+
+	/**
+	 * Returns the rest parameter information for the given parameter name and null
+	 * otherwise.
+	 * 
+	 * @param name the parameter name.
+	 * 
+	 * @return the rest parameter information for the given parameter name and null
+	 *         otherwise.
+	 */
+	public RestParam getRestParameter(String name) {
+		return restParameters != null ? restParameters.get(name) : null;
 	}
 
 	/**
@@ -157,6 +215,15 @@ public class JavaMethodInfo extends JavaMemberInfo {
 			returnType = index != -1 ? signature.substring(index + 1, signature.length()).trim() : NO_VALUE;
 		}
 		return NO_VALUE.equals(returnType) ? null : returnType;
+	}
+
+	/**
+	 * Returns true if the method is a void method and false otherwise.
+	 * 
+	 * @return true if the method is a void method and false otherwise.
+	 */
+	public boolean isVoidMethod() {
+		return "void".equals(getReturnType());
 	}
 
 	/**
@@ -267,42 +334,42 @@ public class JavaMethodInfo extends JavaMemberInfo {
 			if (!paramTypeParsing) {
 				// ex query :
 				switch (c) {
-				case ' ':
-					// ignore space
-					break;
-				case ':':
-					paramTypeParsing = true;
-					break;
-				default:
-					paramName.append(c);
+					case ' ':
+						// ignore space
+						break;
+					case ':':
+						paramTypeParsing = true;
+						break;
+					default:
+						paramName.append(c);
 				}
 			} else {
 				// ex java.lang.String,
 				switch (c) {
-				case ' ':
-					// ignore space
-					break;
-				case '<':
-					daemon++;
-					paramType.append(c);
-					break;
-				case '>':
-					daemon--;
-					paramType.append(c);
-					break;
-				case ',':
-					if (daemon == 0) {
-						parameters.add(new JavaParameterInfo(paramName.toString(), paramType.toString()));
-						paramName.setLength(0);
-						paramType.setLength(0);
-						paramTypeParsing = false;
-						daemon = 0;
-					} else {
+					case ' ':
+						// ignore space
+						break;
+					case '<':
+						daemon++;
 						paramType.append(c);
-					}
-					break;
-				default:
-					paramType.append(c);
+						break;
+					case '>':
+						daemon--;
+						paramType.append(c);
+						break;
+					case ',':
+						if (daemon == 0) {
+							parameters.add(new JavaParameterInfo(paramName.toString(), paramType.toString()));
+							paramName.setLength(0);
+							paramType.setLength(0);
+							paramTypeParsing = false;
+							daemon = 0;
+						} else {
+							paramType.append(c);
+						}
+						break;
+					default:
+						paramType.append(c);
 				}
 			}
 		}
@@ -448,7 +515,6 @@ public class JavaMethodInfo extends JavaMemberInfo {
 			JavaTypeInfo.applyGenericTypeInvocation(returnType, genericMap, newSignature);
 		}
 		newMethod.setSignature(newSignature.toString());
-		newMethod.setGenericMember(method);
 		return newMethod;
 	}
 

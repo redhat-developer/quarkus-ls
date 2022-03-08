@@ -17,12 +17,13 @@ package com.redhat.qute.commons.datamodel.resolvers;
  * @author datho7561
  */
 public enum ValueResolverKind {
-	TemplateData(0), //
-	TemplateEnum(1), //
-	TemplateExtensionOnMethod(2), //
-	TemplateExtensionOnClass(3), //
-	TemplateGlobal(4), //
-	InjectedBean(5);
+	TemplateData(1), //
+	TemplateEnum(2), //
+	TemplateExtensionOnMethod(3), //
+	TemplateExtensionOnClass(4), //
+	TemplateGlobal(6), //
+	InjectedBean(6), //
+	Renarde(7);
 
 	private final int value;
 

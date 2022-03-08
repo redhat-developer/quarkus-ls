@@ -80,8 +80,8 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
 	}
 
 	@Override
-	protected IDataModelProvider createProvider(IConfigurationElement ce) throws CoreException {
-		IDataModelProvider provider = super.createProvider(ce);
+	protected IDataModelProvider createInstance(IConfigurationElement ce) throws CoreException {
+		IDataModelProvider provider = super.createInstance(ce);
 		String namespaces = ce.getAttribute(NAMESPACES_ATTR);
 		if (StringUtils.isNotEmpty(namespaces)) {
 			String description = ce.getAttribute(DESCRIPTION_ATTR);

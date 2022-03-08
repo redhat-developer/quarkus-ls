@@ -48,6 +48,9 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
+import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
+import com.redhat.qute.commons.jaxrs.RestParam;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
@@ -57,6 +60,7 @@ import com.redhat.qute.ls.api.QuteJavadocProvider;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
+import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
@@ -69,7 +73,6 @@ import com.redhat.qute.project.datamodel.resolvers.ValueResolversRegistry;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.ReflectionJavaTypeFilter;
 import com.redhat.qute.settings.QuteNativeSettings;
-import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.StringUtils;
 
 /**
@@ -218,7 +221,8 @@ public class QuteProjectRegistry
 		}
 	}
 
-	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String javaTypeName, String projectUri) {
+	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String javaTypeName,
+			JavaTypeInfoProvider javaTypeInfo, String projectUri) {
 		QuteProject project = StringUtils.isEmpty(projectUri) ? null : getProject(projectUri);
 		if (project == null) {
 			return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
@@ -227,10 +231,11 @@ public class QuteProjectRegistry
 		if (future != null) {
 			return future;
 		}
-		return resolveJavaType(javaTypeName, project, new HashSet<>());
+		return resolveJavaType(javaTypeName, javaTypeInfo, project, new HashSet<>());
 	}
 
-	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String javaTypeName, QuteProject project,
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String javaTypeName,
+			JavaTypeInfoProvider javaTypeInfo, QuteProject project,
 			Set<String> visited) {
 
 		if (StringUtils.isEmpty(javaTypeName)) {
@@ -255,7 +260,7 @@ public class QuteProjectRegistry
 			if (javaTypeName.endsWith("[]")) {
 				// Array case (ex : org.acme.Item[]), try to to get the, get the item type (ex :
 				// org.acme.Item)
-				future = resolveJavaType(javaTypeName.substring(0, javaTypeName.length() - 2), projectUri) //
+				future = resolveJavaType(javaTypeName.substring(0, javaTypeName.length() - 2), javaTypeInfo, projectUri) //
 						.thenApply(item -> {
 							ResolvedJavaTypeInfo array = new ResolvedJavaTypeInfo();
 							array.setSignature(javaTypeName);
@@ -267,7 +272,7 @@ public class QuteProjectRegistry
 				// - java.util.List<java.lang.String> -> java.util.List
 				// - java.lang.String -> java.lang.String
 				CompletableFuture<ResolvedJavaTypeInfo> loadResolveJavaTypeFuture = resolveJavaTypeWithoutGeneric(
-						javaTypeName, project);
+						javaTypeName, javaTypeInfo, project);
 				future = loadResolveJavaTypeFuture //
 						.thenCompose(resolvedJavaType -> {
 							if (resolvedJavaType != null) {
@@ -284,7 +289,8 @@ public class QuteProjectRegistry
 								if (resolvedJavaType.getExtendedTypes() != null) {
 									Set<CompletableFuture<ResolvedJavaTypeInfo>> resolvingExtendedFutures = new HashSet<>();
 									for (String extendedType : resolvedJavaType.getExtendedTypes()) {
-										resolvingExtendedFutures.add(resolveJavaType(extendedType, project, visited));
+										resolvingExtendedFutures
+												.add(resolveJavaType(extendedType, javaTypeInfo, project, visited));
 									}
 									if (!resolvingExtendedFutures.isEmpty()) {
 										CompletableFuture<Void> allFutures = CompletableFuture
@@ -354,6 +360,7 @@ public class QuteProjectRegistry
 	}
 
 	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaTypeWithoutGeneric(String javaTypeName,
+			JavaTypeInfoProvider javaTypeInfo,
 			QuteProject project) {
 		String javaTypeWithoutGeneric = javaTypeName;
 		int genericIndex = javaTypeName.indexOf('<');
@@ -370,7 +377,11 @@ public class QuteProjectRegistry
 		}
 		// The Java type (without generic) is not loaded from JDT / IJ side, load it.
 		String projectUri = project.getUri();
-		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams(javaTypeWithoutGeneric, projectUri);
+		ValueResolverKind kind = null;
+		if (javaTypeInfo != null && javaTypeInfo instanceof ValueResolver) {
+			kind = ((ValueResolver) javaTypeInfo).getKind();
+		}
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams(javaTypeWithoutGeneric, kind, projectUri);
 		return getResolvedJavaType(params);
 	}
 
@@ -580,7 +591,7 @@ public class QuteProjectRegistry
 		if (baseType.getExtendedTypes() != null) {
 			// Search in extended types
 			for (String superType : baseType.getExtendedTypes()) {
-				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaType(superType, projectUri).getNow(null);
+				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaType(superType, null, projectUri).getNow(null);
 				if (resolvedSuperType != null) {
 					JavaMemberInfo superMemberInfo = findPropertyWithJavaReflection(resolvedSuperType, property,
 							projectUri, visited);
@@ -748,7 +759,7 @@ public class QuteProjectRegistry
 		if (baseType.getExtendedTypes() != null) {
 			// Search in extended types
 			for (String superType : baseType.getExtendedTypes()) {
-				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaType(superType, projectUri).getNow(null);
+				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaType(superType, null, projectUri).getNow(null);
 				if (resolvedSuperType != null) {
 					if (findMethod(resolvedSuperType, methodName, parameterTypes, result, projectUri, visited)) {
 						return true;
@@ -826,7 +837,40 @@ public class QuteProjectRegistry
 				return false;
 			}
 		} else if (declaredNbParameters != nbParameters) {
-			return false;
+			boolean valid = false;
+			if (method.getJaxRsMethodKind() != null) {
+				// Renarde parameters validation rules:
+				// 1) all parameters which are annotated with @RestPath (or @PathParam) are
+				// considered as required
+				// 2) all parameters which are annotated with @RestQuery (or @QueryParam) are
+				// optional
+				// 3) all parameters which are annotated with @RestForm (or @FormParam) cannot
+				// appear in the method of uri.
+				int nbRequiredParameters = 0;
+				int nbOptionalParameters = 0;
+				for (int i = 0; i < nbParameters - (varargs ? 1 : 0); i++) {
+					JavaParameterInfo parameterInfo = method.getParameters().get(i);
+					RestParam restParam = method.getRestParameter(parameterInfo.getName());
+					if (restParam != null) {
+						if (restParam.getParameterKind() == JaxRsParamKind.PATH) {
+							nbRequiredParameters++;
+						} else if (restParam.getParameterKind() == JaxRsParamKind.QUERY) {
+							nbOptionalParameters++;
+						}
+					}
+				}
+				if (declaredNbParameters < nbRequiredParameters) {
+					return false;
+				}
+				if (declaredNbParameters > nbRequiredParameters + nbOptionalParameters) {
+					return false;
+				}
+				nbParameters = declaredNbParameters;
+				valid = true;
+			}
+			if (!valid) {
+				return false;
+			}
 		}
 
 		// Validate all mandatory parameters (without varargs)
@@ -1211,7 +1255,7 @@ public class QuteProjectRegistry
 				}
 
 				// Loop for other levels of super types (ex SmallItem)
-				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaType(superType, projectUri).getNow(null);
+				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaType(superType, null, projectUri).getNow(null);
 				if (resolvedSuperType != null) {
 					if (isMatchType(resolvedSuperType, parameterType, projectUri, visited)) {
 						return true;
@@ -1220,7 +1264,7 @@ public class QuteProjectRegistry
 			}
 		}
 		if (!javaType.getTypeParameters().isEmpty()) {
-			ResolvedJavaTypeInfo result = resolveJavaType(resolvedTypeName, projectUri).getNow(null);
+			ResolvedJavaTypeInfo result = resolveJavaType(resolvedTypeName, null, projectUri).getNow(null);
 			if (result != null && result.getExtendedTypes() != null) {
 				for (String superType : result.getExtendedTypes()) {
 					if (isSameType(parameterType, superType)) {

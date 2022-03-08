@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="com.redhat.qute.jdt" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appinfo>
+         <meta.schema plugin="com.redhat.qute.jdt" id="resolvedJavaTypeFactories" name="Resolved Java Type Factories"/>
+      </appinfo>
+      <documentation>
+         This extension point allows adding a resolved Java Type factory to create a ResolvedJavaTypeInfo from a given JDT IType.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <element ref="factory"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appinfo>
+                  <meta.attribute translatable="true"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="factory">
+      <annotation>
+         <documentation>
+            Resolved Java Type factory
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Name of a class that implements IResolvedJavaTypeFactory
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":com.redhat.qute.jdt.internal.template.resolvedtype.IResolvedJavaTypeFactory"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+
+   <annotation>
+      <appinfo>
+         <meta.section type="examples"/>
+      </appinfo>
+      <documentation>
+         The following is an example of a resolved Java Type factory extension:
+
+&lt;pre&gt;
+  &lt;extension point=&quot;com.redhat.qute.jdt.resolvedJavaTypeFactories&quot;&gt;
+    &lt;factory class=&quot;com.redhat.qute.jdt.internal.extensions.renarde.RenardeResolvedJavaTypeFactory&quot; /&gt;
+  &lt;/extension&gt;
+&lt;/pre&gt;
+      </documentation>
+   </annotation>
+
+
+
+
+</schema>

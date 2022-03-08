@@ -15,6 +15,7 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
 import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Node;
 
@@ -45,6 +46,8 @@ public class FieldValueResolver extends JavaFieldInfo implements ValueResolver, 
 	private String named;
 
 	private Boolean globalVariable;
+
+	private ValueResolverKind kind;
 
 	@Override
 	public String getNamespace() {
@@ -113,6 +116,15 @@ public class FieldValueResolver extends JavaFieldInfo implements ValueResolver, 
 	}
 
 	@Override
+	public ValueResolverKind getKind() {
+		return kind;
+	}
+
+	public void setKind(ValueResolverKind kind) {
+		this.kind = kind;
+	}
+
+	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("named", this.getNamed());
@@ -120,6 +132,7 @@ public class FieldValueResolver extends JavaFieldInfo implements ValueResolver, 
 		b.add("signature", this.getSignature());
 		b.add("sourceType", this.getSourceType());
 		b.add("globalVariable", this.isGlobalVariable());
+		b.add("kind", this.getKind());
 		return b.toString();
 	}
 }

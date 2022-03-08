@@ -142,6 +142,10 @@ public class JavaTypeInfo extends JavaElementInfo {
 	public void setInvalidMethods(Map<String /* method name */, InvalidMethodReason> invalidMethods) {
 		this.invalidMethods = invalidMethods;
 	}
+	
+	public Map<String, InvalidMethodReason> getInvalidMethods() {
+		return invalidMethods;
+	}
 
 	/**
 	 * Returns the java type parameters.

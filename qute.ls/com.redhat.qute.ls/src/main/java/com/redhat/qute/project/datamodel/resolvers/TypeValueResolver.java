@@ -14,6 +14,7 @@ package com.redhat.qute.project.datamodel.resolvers;
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
 import com.redhat.qute.commons.JavaTypeInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Node;
 
@@ -45,6 +46,8 @@ public class TypeValueResolver extends JavaTypeInfo implements ValueResolver, Ja
 
 	private Boolean globalVariable;
 
+	private ValueResolverKind kind;
+	
 	@Override
 	public String getNamespace() {
 		return namespace;
@@ -106,6 +109,14 @@ public class TypeValueResolver extends JavaTypeInfo implements ValueResolver, Ja
 	}
 
 	@Override
+	public ValueResolverKind getKind() {
+		return kind;
+	}	
+	public void setKind(ValueResolverKind kind) {
+		this.kind = kind;
+	}
+	
+	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("named", this.getNamed());
@@ -113,6 +124,7 @@ public class TypeValueResolver extends JavaTypeInfo implements ValueResolver, Ja
 		b.add("signature", this.getSignature());
 		b.add("sourceType", this.getSourceType());
 		b.add("globalVariable", this.isGlobalVariable());
+		b.add("kind", this.getKind());
 		return b.toString();
 	}
 }

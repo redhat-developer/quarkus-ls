@@ -1022,6 +1022,9 @@ class QuteDiagnostics {
 			return null;
 		}
 
+		if (method.isVoidMethod()) {
+			return null;
+		}
 		String memberType = method.resolveJavaElementType(iterableOfType);
 		return validateJavaTypePart(methodPart, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext,
 				memberType, null);

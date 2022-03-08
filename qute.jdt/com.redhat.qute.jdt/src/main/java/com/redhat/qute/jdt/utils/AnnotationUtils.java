@@ -37,8 +37,8 @@ public class AnnotationUtils {
 
 	private static final String ATTRIBUTE_VALUE = "value";
 
-	public static boolean hasAnnotation(IAnnotatable annotatable, String annotationName) throws JavaModelException {
-		return getAnnotation(annotatable, annotationName) != null;
+	public static boolean hasAnnotation(IAnnotatable annotatable, String... annotationNames) throws JavaModelException {
+		return getAnnotation(annotatable, annotationNames) != null;
 	}
 
 	/**
@@ -51,14 +51,17 @@ public class AnnotationUtils {
 	 *         the given name <code>annotationName</code> and null otherwise.
 	 * @throws JavaModelException
 	 */
-	public static IAnnotation getAnnotation(IAnnotatable annotatable, String annotationName) throws JavaModelException {
+	public static IAnnotation getAnnotation(IAnnotatable annotatable, String... annotationNames)
+			throws JavaModelException {
 		if (annotatable == null) {
 			return null;
 		}
 		IAnnotation[] annotations = annotatable.getAnnotations();
 		for (IAnnotation annotation : annotations) {
-			if (isMatchAnnotation(annotation, annotationName)) {
-				return annotation;
+			for (String annotationName : annotationNames) {
+				if (isMatchAnnotation(annotation, annotationName)) {
+					return annotation;
+				}
 			}
 		}
 		return null;

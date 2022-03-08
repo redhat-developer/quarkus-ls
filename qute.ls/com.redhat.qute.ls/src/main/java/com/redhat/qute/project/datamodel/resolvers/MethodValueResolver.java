@@ -19,6 +19,7 @@ import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.parser.template.DocumentableItem;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Node;
@@ -29,7 +30,8 @@ import com.redhat.qute.parser.template.Node;
  * @author Angelo ZERR
  *
  */
-public class MethodValueResolver extends JavaMethodInfo implements ValueResolver, JavaTypeInfoProvider, DocumentableItem {
+public class MethodValueResolver extends JavaMethodInfo
+		implements ValueResolver, JavaTypeInfoProvider, DocumentableItem {
 
 	private String named;
 
@@ -44,8 +46,10 @@ public class MethodValueResolver extends JavaMethodInfo implements ValueResolver
 	private List<String> sample;
 
 	private String url;
-	
+
 	private Boolean globalVariable;
+
+	private ValueResolverKind kind;
 
 	@Override
 	public boolean isVirtual() {
@@ -207,11 +211,11 @@ public class MethodValueResolver extends JavaMethodInfo implements ValueResolver
 		String name = getName();
 		return name.length() > 0 && name.charAt(0) != '@';
 	}
-	
+
 	public boolean isGlobalVariable() {
 		return globalVariable != null && globalVariable.booleanValue();
 	}
-	
+
 	public void setGlobalVariable(boolean globalVariable) {
 		this.globalVariable = globalVariable;
 	}
@@ -227,6 +231,15 @@ public class MethodValueResolver extends JavaMethodInfo implements ValueResolver
 	}
 
 	@Override
+	public ValueResolverKind getKind() {
+		return kind;
+	}
+
+	public void setKind(ValueResolverKind kind) {
+		this.kind = kind;
+	}
+
+	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("named", this.getNamed());
@@ -237,6 +250,7 @@ public class MethodValueResolver extends JavaMethodInfo implements ValueResolver
 		b.add("sample", this.getSample());
 		b.add("url", this.getUrl());
 		b.add("globalVariable", this.isGlobalVariable());
+		b.add("kind", this.getKind());
 		return b.toString();
 	}
 }

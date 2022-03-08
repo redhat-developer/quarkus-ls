@@ -73,8 +73,14 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return projectRegistry.getGlobalVariables(projectUri);
 	}
 
-	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className, String projectUri) {
-		return projectRegistry.resolveJavaType(className, projectUri);
+	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className, 
+			String projectUri) {
+		return resolveJavaType(className, null, projectUri);
+	}
+
+	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className, JavaTypeInfoProvider javaTypeInfo,
+			String projectUri) {
+		return projectRegistry.resolveJavaType(className, javaTypeInfo, projectUri);
 	}
 
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Parameter parameter, String projectUri) {
@@ -100,28 +106,28 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		for (int i = 0; i < partIndex + 1; i++) {
 			Part current = (parts.getChild(i));
 			switch (current.getPartKind()) {
-			case Object:
-				ObjectPart objectPart = (ObjectPart) current;
-				future = resolveJavaType(objectPart, projectUri, nullIfDontMatchWithIterable);
-				break;
-			case Property:
-			case Method:
-				if (future != null) {
-					ResolvedJavaTypeInfo actualResolvedType = future.getNow(null);
-					if (actualResolvedType != null) {
-						future = resolveJavaType(current, projectUri, actualResolvedType);
-					} else {
-						future = future //
-								.thenCompose(resolvedType -> {
-									if (resolvedType == null) {
-										return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
-									}
-									return resolveJavaType(current, projectUri, resolvedType);
-								});
+				case Object:
+					ObjectPart objectPart = (ObjectPart) current;
+					future = resolveJavaType(objectPart, projectUri, nullIfDontMatchWithIterable);
+					break;
+				case Property:
+				case Method:
+					if (future != null) {
+						ResolvedJavaTypeInfo actualResolvedType = future.getNow(null);
+						if (actualResolvedType != null) {
+							future = resolveJavaType(current, projectUri, actualResolvedType);
+						} else {
+							future = future //
+									.thenCompose(resolvedType -> {
+										if (resolvedType == null) {
+											return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+										}
+										return resolveJavaType(current, projectUri, resolvedType);
+									});
+						}
 					}
-				}
-				break;
-			default:
+					break;
+				default:
 			}
 		}
 		return future != null ? future : RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
@@ -173,7 +179,7 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		}
 
 		if (future == null) {
-			future = resolveJavaType(javaType, projectUri);
+			future = resolveJavaType(javaType, javaTypeInfo, projectUri);
 		}
 		Node node = javaTypeInfo.getJavaTypeOwnerNode();
 		Section section = getOwnerSection(node);
@@ -360,7 +366,8 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 			String projectUri, boolean hasMarkdown) {
 		String typeName = javaMemberInfo.getJavaTypeInfo() != null ? javaMemberInfo.getJavaTypeInfo().getName()
 				: javaTypeInfo.getName();
-		String signature = javaMemberInfo.getGenericMember() == null ? javaMemberInfo.getSignature() : javaMemberInfo.getGenericMember().getSignature();
+		String signature = javaMemberInfo.getGenericMember() == null ? javaMemberInfo.getSignature()
+				: javaMemberInfo.getGenericMember().getSignature();
 		return projectRegistry.getJavadoc(new QuteJavadocParams(typeName, projectUri, javaMemberInfo.getName(),
 				signature, hasMarkdown ? DocumentFormat.Markdown : DocumentFormat.PlainText));
 	}

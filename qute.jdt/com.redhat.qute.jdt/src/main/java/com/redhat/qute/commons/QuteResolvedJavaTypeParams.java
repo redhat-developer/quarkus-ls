@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.commons;
 
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
+
 /**
  * Qute resolved java type parameters.
  * 
@@ -21,6 +23,8 @@ public class QuteResolvedJavaTypeParams {
 
 	private String className;
 
+	private ValueResolverKind kind;
+
 	private String projectUri;
 
 	public QuteResolvedJavaTypeParams() {
@@ -28,7 +32,12 @@ public class QuteResolvedJavaTypeParams {
 	}
 
 	public QuteResolvedJavaTypeParams(String className, String projectUri) {
+		this(className, null, projectUri);
+	}
+
+	public QuteResolvedJavaTypeParams(String className, ValueResolverKind kind, String projectUri) {
 		setClassName(className);
+		setKind(kind);
 		setProjectUri(projectUri);
 	}
 
@@ -48,4 +57,11 @@ public class QuteResolvedJavaTypeParams {
 		this.className = className;
 	}
 
+	public ValueResolverKind getKind() {
+		return kind;
+	}
+
+	public void setKind(ValueResolverKind kind) {
+		this.kind = kind;
+	}
 }

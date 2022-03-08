@@ -88,6 +88,7 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 				typeValueResolver.setSignature(resolver.getSignature());
 				typeValueResolver.setSourceType(resolver.getSourceType());
 				typeValueResolver.setGlobalVariable(resolver.isGlobalVariable());
+				typeValueResolver.setKind(resolver.getKind());
 				typeValueResolvers.add(typeValueResolver);
 				break;
 			case FIELD:
@@ -97,6 +98,7 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 				fieldValueResolver.setSignature(resolver.getSignature());
 				fieldValueResolver.setSourceType(resolver.getSourceType());
 				fieldValueResolver.setGlobalVariable(resolver.isGlobalVariable());
+				fieldValueResolver.setKind(resolver.getKind());
 				fieldValueResolvers.add(fieldValueResolver);
 				break;
 			case METHOD:
@@ -107,6 +109,7 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 				methodValueResolver.setSignature(resolver.getSignature());
 				methodValueResolver.setSourceType(resolver.getSourceType());
 				methodValueResolver.setGlobalVariable(resolver.isGlobalVariable());
+				methodValueResolver.setKind(resolver.getKind());
 				methodValueResolvers.add(methodValueResolver);
 				break;
 			default:

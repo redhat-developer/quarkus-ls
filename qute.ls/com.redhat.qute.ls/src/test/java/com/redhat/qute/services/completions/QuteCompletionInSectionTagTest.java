@@ -33,23 +33,25 @@ public class QuteCompletionInSectionTagTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				5, //
+				6, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:propertyName", r(0, 1, 0, 1)),
 				c("config:property(propertyName : String) : Object", "config:property(propertyName)", r(0, 1, 0, 1)), //
-				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)));
+				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
+				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				5, //
+				6, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 1, 0, 1)),
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
 						r(0, 1, 0, 1)), //
-				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)));
+				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
+				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
 	}
 
 	@Test
@@ -59,23 +61,25 @@ public class QuteCompletionInSectionTagTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				5, //
+				6, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:propertyName", r(0, 1, 0, 1)),
 				c("config:property(propertyName : String) : Object", "config:property(propertyName)", r(0, 1, 0, 1)), //
-				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)));
+				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
+				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				5, //
+				6, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 1, 0, 1)),
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
 						r(0, 1, 0, 1)), //
-				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)));
+				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
+				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
 	}
 
 	@Test
@@ -85,23 +89,25 @@ public class QuteCompletionInSectionTagTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				5, //
+				6, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:propertyName", r(0, 1, 0, 1)),
 				c("config:property(propertyName : String) : Object", "config:property(propertyName)", r(0, 1, 0, 1)), //
-				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)));
+				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
+				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				5, //
+				6, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 1, 0, 1)),
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
 						r(0, 1, 0, 1)), //
-				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)));
+				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
+				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
 	}
 
 	@Test

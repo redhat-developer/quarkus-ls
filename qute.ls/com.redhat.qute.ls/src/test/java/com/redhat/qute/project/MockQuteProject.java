@@ -87,18 +87,18 @@ public abstract class MockQuteProject extends QuteProject {
 		return new ArrayList<>(fromResolved);
 	}
 
-	protected static JavaMemberInfo registerField(String fieldSignature, ResolvedJavaTypeInfo resolvedType) {
-		JavaFieldInfo member = new JavaFieldInfo();
-		member.setSignature(fieldSignature);
-		resolvedType.getFields().add(member);
-		return member;
+	protected static JavaFieldInfo registerField(String fieldSignature, ResolvedJavaTypeInfo resolvedType) {
+		JavaFieldInfo field = new JavaFieldInfo();
+		field.setSignature(fieldSignature);
+		resolvedType.getFields().add(field);
+		return field;
 	}
 
-	protected static JavaMemberInfo registerMethod(String methodSignature, ResolvedJavaTypeInfo resolvedType) {
-		JavaMethodInfo member = new JavaMethodInfo();
-		member.setSignature(methodSignature);
-		resolvedType.getMethods().add(member);
-		return member;
+	protected static JavaMethodInfo registerMethod(String methodSignature, ResolvedJavaTypeInfo resolvedType) {
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature(methodSignature);
+		resolvedType.getMethods().add(method);
+		return method;
 	}
 
 	protected static JavaTypeInfo createJavaTypeInfo(String typeName, JavaTypeKind kind, List<JavaTypeInfo> cache) {

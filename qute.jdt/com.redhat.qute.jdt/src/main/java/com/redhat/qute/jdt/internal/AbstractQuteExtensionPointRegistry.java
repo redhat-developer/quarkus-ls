@@ -108,7 +108,7 @@ public abstract class AbstractQuteExtensionPointRegistry<T> implements IRegistry
 	private void addExtensionProviders(IConfigurationElement[] cf) {
 		for (IConfigurationElement ce : cf) {
 			try {
-				T provider = createProvider(ce);
+				T provider = createInstance(ce);
 				synchronized (providers) {
 					providers.add(provider);
 				}
@@ -119,14 +119,14 @@ public abstract class AbstractQuteExtensionPointRegistry<T> implements IRegistry
 		}
 	}
 
-	protected T createProvider(IConfigurationElement ce) throws CoreException {
+	protected T createInstance(IConfigurationElement ce) throws CoreException {
 		return (T) ce.createExecutableExtension(CLASS_ATTR);
 	}
 
 	private void removeExtensionProviders(IConfigurationElement[] cf) {
 		for (IConfigurationElement ce : cf) {
 			try {
-				T provider = createProvider(ce);
+				T provider = createInstance(ce);
 				synchronized (providers) {
 					providers.remove(provider);
 				}
