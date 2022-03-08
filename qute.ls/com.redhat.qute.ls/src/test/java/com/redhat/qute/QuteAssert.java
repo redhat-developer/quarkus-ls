@@ -78,12 +78,13 @@ import com.redhat.qute.services.diagnostics.IQuteErrorCode;
 import com.redhat.qute.services.diagnostics.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
+import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.StringUtils;
 
 /**
  * Qute Assert
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -282,13 +283,23 @@ public class QuteAssert {
 
 	public static void testDiagnosticsFor(String value, String fileUri, String templateId, String projectUri,
 			String templateBaseDir, boolean filter, Diagnostic... expected) {
+		testDiagnosticsFor(value, fileUri, templateId, projectUri, templateBaseDir, filter, null, expected);
+	}
+
+	public static void testDiagnosticsFor(String value, QuteValidationSettings validationSettings,
+			Diagnostic... expected) {
+		testDiagnosticsFor(value, FILE_URI, null, PROJECT_URI, TEMPLATE_BASE_DIR, false, validationSettings, expected);
+	}
+
+	public static void testDiagnosticsFor(String value, String fileUri, String templateId, String projectUri,
+			String templateBaseDir, boolean filter, QuteValidationSettings validationSettings, Diagnostic... expected) {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 		template.setTemplateId(templateId);
 
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
-		List<Diagnostic> actual = languageService.doDiagnostics(template, null, new ResolvingJavaTypeContext(template),
-				() -> {
+		List<Diagnostic> actual = languageService.doDiagnostics(template, validationSettings,
+				new ResolvingJavaTypeContext(template), () -> {
 				});
 		if (expected == null) {
 			assertTrue(actual.isEmpty());

@@ -27,14 +27,24 @@ import java.util.stream.Collectors;
  */
 public class QuteValidationSettings {
 
+	public static enum Severity {
+		ignore, error, warning;
+	}
+
 	public static final QuteValidationSettings DEFAULT;
 
+	private static final QuteValidationTypeSettings DEFAULT_UNDEFINED_OBJECT;
+
 	static {
+		DEFAULT_UNDEFINED_OBJECT = new QuteValidationTypeSettings();
+		DEFAULT_UNDEFINED_OBJECT.setSeverity(Severity.warning.name());
 		DEFAULT = new QuteValidationSettings();
 		DEFAULT.updateDefault();
 	}
 
 	private boolean enabled;
+
+	private QuteValidationTypeSettings undefinedObject;
 
 	private List<String> excluded;
 
@@ -90,6 +100,7 @@ public class QuteValidationSettings {
 		if (updated) {
 			return;
 		}
+		setUndefinedObject(undefinedObject != null ? undefinedObject : DEFAULT_UNDEFINED_OBJECT);
 		updated = true;
 	}
 
@@ -101,6 +112,27 @@ public class QuteValidationSettings {
 	public void update(QuteValidationSettings newValidation) {
 		this.setEnabled(newValidation.isEnabled());
 		this.setExcluded(newValidation.getExcluded());
+		this.setUndefinedObject(newValidation.getUndefinedObject());
+	}
+
+	/**
+	 * Returns the settings for Qute undefined object validation.
+	 *
+	 * @return the settings for Qute undefined object validation
+	 */
+	public QuteValidationTypeSettings getUndefinedObject() {
+		updateDefault();
+		return this.undefinedObject;
+	}
+
+	/**
+	 * Set the settings for Qute undefined object validation.
+	 *
+	 * @param undefined the settings for Qute undefined object validation.
+	 */
+	public void setUndefinedObject(QuteValidationTypeSettings undefined) {
+		this.undefinedObject = undefined;
+		this.updated = false;
 	}
 
 	public boolean canValidate(String templateUri) {
@@ -182,6 +214,7 @@ public class QuteValidationSettings {
 		int result = 1;
 		result = prime * result + (enabled ? 1231 : 1237);
 		result = prime * result + ((excluded == null) ? 0 : excluded.hashCode());
+		result = prime * result + ((undefinedObject == null) ? 0 : undefinedObject.hashCode());
 		return result;
 	}
 
@@ -200,6 +233,12 @@ public class QuteValidationSettings {
 			if (other.excluded != null)
 				return false;
 		} else if (!excluded.equals(other.excluded))
+			return false;
+		if (undefinedObject == null) {
+			if (!getUndefinedObject().equals(other.getUndefinedObject())) {
+				return false;
+			}
+		} else if (!undefinedObject.equals(other.undefinedObject))
 			return false;
 		return true;
 	}

@@ -24,10 +24,10 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	UndefinedNamespace("No namespace resolver found for: `{0}`"), //
 
 	// Error code for object, property, method parts
-	UndefinedVariable("`{0}` cannot be resolved to a variable."), //
+	UndefinedObject("`{0}` cannot be resolved to an object."), //
 	UnknownType("`{0}` cannot be resolved to a type."), //
 	UnknownMethod("`{0}` cannot be resolved or is not a method of `{1}` Java type."), //
-	UnkwownNamespaceResolverMethod("`{0}` cannot be resolved or is not a method of `{1}` namespace resolver."), //
+	UnknownNamespaceResolverMethod("`{0}` cannot be resolved or is not a method of `{1}` namespace resolver."), //
 	InvalidMethodVoid("Invalid `{0}` method of `{1}` : void return is not allowed."), //
 	InvalidMethodFromObject("Invalid `{0}` method of `{1}` : method from `java.lang.Object` is not allowed."), //
 	InvalidMethodStatic("Invalid `{0}` method of `{1}` : static method is not allowed."), //

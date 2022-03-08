@@ -36,7 +36,7 @@ import com.redhat.qute.settings.SharedSettings;
 
 /**
  * Test code action with settings.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -47,8 +47,8 @@ public class QuteCodeActionWithSettingsTest {
 		String template = "{item}";
 
 		Diagnostic d = d(0, 1, 0, 5, //
-				QuteErrorCode.UndefinedVariable, //
-				"`item` cannot be resolved to a variable.", //
+				QuteErrorCode.UndefinedObject, //
+				"`item` cannot be resolved to an object.", //
 				DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
 
@@ -63,8 +63,8 @@ public class QuteCodeActionWithSettingsTest {
 		String template = "{item}";
 
 		Diagnostic d = d(0, 1, 0, 5, //
-				QuteErrorCode.UndefinedVariable, //
-				"`item` cannot be resolved to a variable.", //
+				QuteErrorCode.UndefinedObject, //
+				"`item` cannot be resolved to an object.", //
 				DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
 

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test with #if section
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -42,11 +42,11 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 		String template = "{#if item.name != '' && item > 0}\r\n" + //
 				"{/if}";
 
-		Diagnostic d1 = d(0, 5, 0, 9, QuteErrorCode.UndefinedVariable, "`item` cannot be resolved to a variable.",
+		Diagnostic d1 = d(0, 5, 0, 9, QuteErrorCode.UndefinedObject, "`item` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
 		d1.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
 
-		Diagnostic d2 = d(0, 24, 0, 28, QuteErrorCode.UndefinedVariable, "`item` cannot be resolved to a variable.",
+		Diagnostic d2 = d(0, 24, 0, 28, QuteErrorCode.UndefinedObject, "`item` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
 		d2.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
 

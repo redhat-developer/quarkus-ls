@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test with expressions.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -58,7 +58,7 @@ public class QuteDiagnosticsInExpressionWithNamespaceTest {
 
 		template = "{config:propertyXXXX('qute')}";
 		testDiagnosticsFor(template,
-				d(0, 8, 0, 20, QuteErrorCode.UnkwownNamespaceResolverMethod,
+				d(0, 8, 0, 20, QuteErrorCode.UnknownNamespaceResolverMethod,
 						"`propertyXXXX` cannot be resolved or is not a method of `config` namespace resolver.",
 						DiagnosticSeverity.Error));
 	}
@@ -69,18 +69,18 @@ public class QuteDiagnosticsInExpressionWithNamespaceTest {
 		String template = "{config:foo}";
 		testDiagnosticsFor(template);
 	}
-	
+
 	@Test
 	public void invalidInjectNamespaceInFirstPart() {
 		String template = "{inject:foo}";
-		Diagnostic d = d(0, 8, 0, 11, QuteErrorCode.UndefinedVariable, "`foo` cannot be resolved to a variable.",
+		Diagnostic d = d(0, 8, 0, 11, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("foo", false));
 		testDiagnosticsFor(template, d);
 
 		template = "{inject:foo()}";
 		testDiagnosticsFor(template,
-				d(0, 8, 0, 11, QuteErrorCode.UnkwownNamespaceResolverMethod,
+				d(0, 8, 0, 11, QuteErrorCode.UnknownNamespaceResolverMethod,
 						"`foo` cannot be resolved or is not a method of `inject` namespace resolver.",
 						DiagnosticSeverity.Error));
 	}
@@ -110,22 +110,18 @@ public class QuteDiagnosticsInExpressionWithNamespaceTest {
 		testDiagnosticsFor(template);
 
 	}
-	
+
 	@Test
 	public void badNamespace() {
 		String template = "{X:}";
 		testDiagnosticsFor(template,
-				d(0, 0, 0, 3, QuteErrorCode.SyntaxError,
-						"Parser error on line 1: empty expression found {X:}",
+				d(0, 0, 0, 3, QuteErrorCode.SyntaxError, "Parser error on line 1: empty expression found {X:}",
 						DiagnosticSeverity.Error), //
-				d(0, 1, 0, 2, QuteErrorCode.UndefinedNamespace,
-						"No namespace resolver found for: `X`",
+				d(0, 1, 0, 2, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `X`",
 						DiagnosticSeverity.Warning));
-		
+
 		template = "{X:bean}";
-		testDiagnosticsFor(template,
-				d(0, 1, 0, 2, QuteErrorCode.UndefinedNamespace,
-						"No namespace resolver found for: `X`",
-						DiagnosticSeverity.Warning));
+		testDiagnosticsFor(template, d(0, 1, 0, 2, QuteErrorCode.UndefinedNamespace,
+				"No namespace resolver found for: `X`", DiagnosticSeverity.Warning));
 	}
 }

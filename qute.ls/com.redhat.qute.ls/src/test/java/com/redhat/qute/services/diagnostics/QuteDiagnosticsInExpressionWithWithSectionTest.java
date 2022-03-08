@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test with #with section
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -34,7 +34,7 @@ public class QuteDiagnosticsInExpressionWithWithSectionTest {
 		String template = "{#with item}\r\n" + //
 				"{/with}";
 
-		Diagnostic d = d(0, 7, 0, 11, QuteErrorCode.UndefinedVariable, "`item` cannot be resolved to a variable.",
+		Diagnostic d = d(0, 7, 0, 11, QuteErrorCode.UndefinedObject, "`item` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
 
@@ -68,7 +68,7 @@ public class QuteDiagnosticsInExpressionWithWithSectionTest {
 				"  {/with}\r\n" + //
 				"{/with}";
 
-		Diagnostic d = d(6, 5, 6, 12, QuteErrorCode.UndefinedVariable, "`average` cannot be resolved to a variable.",
+		Diagnostic d = d(6, 5, 6, 12, QuteErrorCode.UndefinedObject, "`average` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedVariableData("average", false));
 
