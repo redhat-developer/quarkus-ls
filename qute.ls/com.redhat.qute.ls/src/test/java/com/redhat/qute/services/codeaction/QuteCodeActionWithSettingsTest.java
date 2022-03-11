@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.codeaction;
 
+import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.te;
@@ -20,14 +21,12 @@ import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.ls.commons.client.CommandCapabilities;
 import com.redhat.qute.ls.commons.client.CommandKindCapabilities;
-import com.redhat.qute.ls.commons.client.ConfigurationItemEdit;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.DiagnosticDataFactory;
@@ -55,7 +54,13 @@ public class QuteCodeActionWithSettingsTest {
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
-						System.lineSeparator())));
+						System.lineSeparator())), //
+				ca(d, c("Ignore `qute.validation.undefinedObject.severity` problem.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.undefinedObject.severity", //
+						"test.qute", //
+						ConfigurationItemEditType.update, "ignore", //
+						d)));
 	}
 
 	@Test
@@ -86,18 +91,13 @@ public class QuteCodeActionWithSettingsTest {
 						ConfigurationItemEditType.add, "test.qute", //
 						d)), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
-						System.lineSeparator())));
-	}
-
-	private static Command c(String title, String commandId, String section, String scopeUri,
-			ConfigurationItemEditType edit, Object value, Diagnostic d) {
-		Command command = new Command();
-		command.setTitle(title);
-		command.setCommand(commandId);
-		ConfigurationItemEdit itemEdit = new ConfigurationItemEdit(section, edit, value);
-		itemEdit.setScopeUri(scopeUri);
-		command.setArguments(Collections.singletonList(itemEdit));
-		return command;
+						System.lineSeparator())), //
+				ca(d, c("Ignore `qute.validation.undefinedObject.severity` problem.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.undefinedObject.severity", //
+						"test.qute", //
+						ConfigurationItemEditType.update, "ignore", //
+						d)));
 	}
 
 	private static SharedSettings createSharedSettings(String... commandIds) {
