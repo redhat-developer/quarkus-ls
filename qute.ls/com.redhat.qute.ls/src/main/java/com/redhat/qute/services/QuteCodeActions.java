@@ -20,6 +20,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,6 +30,7 @@ import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.TextEdit;
 
 import com.google.gson.JsonObject;
 import com.redhat.qute.ls.commons.BadLocationException;
@@ -40,8 +42,12 @@ import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
+import com.redhat.qute.parser.template.ObjectPartASTVisitor;
+import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
+import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.WithSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
@@ -71,6 +77,8 @@ class QuteCodeActions {
 	private static final String QUTE_VALIDATION_EXCLUDED_SECTION = "qute.validation.excluded";
 
 	private static final String EXCLUDED_VALIDATION_TITLE = "Exclude this file from validation.";
+
+	private static final String QUTE_DEPRICATED_WITH_SECTION = "Replace `#with` with `#let`.";
 
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
 			SharedSettings sharedSettings) {
@@ -108,6 +116,15 @@ class QuteCodeActions {
 						//
 						// Create `undefinedTag`"
 						doCodeActionsForUndefinedSectionTag(template, diagnostic, codeActions);
+						break;
+					case NotRecommendedWithSection:
+						// The following Qute template:
+						// {#with }
+						//
+						// will provide a quickfix like:
+						//
+						// Replace `with` with `let`.
+						doCodeActionsForNotRecommendedWithSection(template, diagnostic, codeActions);
 						break;
 					default:
 						break;
@@ -184,6 +201,132 @@ class QuteCodeActions {
 		CodeAction disableValidationForTemplateQuickFix = createConfigurationUpdateCodeAction(title, templateUri,
 				QUTE_VALIDATION_EXCLUDED_SECTION, templateUri, ConfigurationItemEditType.add, diagnostics);
 		codeActions.add(disableValidationForTemplateQuickFix);
+	}
+
+	/**
+	 * Create CodeAction for unrecommended `with` Qute syntax.
+	 *
+	 * e.g. <code>
+	 * {#with item}
+	 *   {name}
+	 * {/with}
+	 * </code> becomes <code>
+	 * {#let name=item.name}
+	 *   {name}
+	 * {/let}
+	 * </code>
+	 *
+	 * @param template    the Qute template.
+	 * @param diagnostic  the diagnostic list that this CodeAction will fix.
+	 * @param codeActions the list of CodeActions to perform.
+	 *
+	 */
+	private static void doCodeActionsForNotRecommendedWithSection(Template template, Diagnostic diagnostic,
+			List<CodeAction> codeActions) {
+		Range withSectionRange = diagnostic.getRange();
+		try {
+			// 1. Retrieve the #with section node using diagnostic range
+			int withSectionStart = template.offsetAt(withSectionRange.getStart());
+			WithSection withSection = (WithSection) template.findNodeAt(withSectionStart + 1);
+
+			// 2. Initialize TextEdit array
+			List<TextEdit> edits = new ArrayList<TextEdit>();
+
+			// 2.1 Create text edit to update section start from #with to #let
+			// and collect all object parts from expression for text edit
+			// (e.g. {name} -> {#let name=item.name})
+			edits.add(createWithSectionOpenEdit(template, withSection));
+
+			// 2.2 Create text edit to update section end from /with to /let
+			edits.add(createWithSectionCloseEdit(template, withSection));
+
+			// 3. Create CodeAction
+			CodeAction replaceWithSection = CodeActionFactory.replace(QUTE_DEPRICATED_WITH_SECTION, edits,
+					template.getTextDocument(), diagnostic);
+			codeActions.add(replaceWithSection);
+		} catch (BadLocationException e) {
+			LOGGER.log(Level.SEVERE, "Creation of not recommended with section code action failed", e);
+		}
+	}
+
+	/**
+	 * Create text edit to replace unrecommended with section opening tag
+	 *
+	 * @param template    the Qute template.
+	 * @param withSection the Qute with section
+	 * @return
+	 * @throws BadLocationException
+	 */
+	private static TextEdit createWithSectionOpenEdit(Template template, WithSection withSection)
+			throws BadLocationException {
+		String objectPartName = withSection.getObjectParameter() != null ? withSection.getObjectParameter().getName()
+				: "";
+		// Use set to avoid duplicate parameters
+//		Set<String> withObjectParts = new HashSet<String>();
+
+		ObjectPartASTVisitor visitor = new ObjectPartASTVisitor();
+		withSection.accept(visitor);
+
+		// Retrieve all expressions in #with section
+//		findObjectParts(withSection, withObjectParts);
+		Set<String> withObjectParts = visitor.getObjectPartNames();
+
+		List<String> letObjectPartParameterList = new ArrayList<String>();
+		for (String objectPart : withObjectParts) {
+			letObjectPartParameterList.add(MessageFormat.format("{1}={0}.{1}", objectPartName, objectPart));
+		}
+
+		// Build text edit string
+		String letObjectPartParameters = String.join(" ", letObjectPartParameterList);
+		String withSectionOpenReplacementText = MessageFormat.format("#let {0}", letObjectPartParameters);
+		Range withSectionOpen = new Range(template.positionAt(withSection.getStartTagNameOpenOffset()),
+				template.positionAt(withSection.getStartTagCloseOffset()));
+
+		return new TextEdit(withSectionOpen, withSectionOpenReplacementText);
+	}
+
+	/**
+	 * Find all object parts by traversing AST Nodes, while retrieveing Expressions
+	 * nested in Sections with recursion
+	 *
+	 * @param node        current node in AST traversal
+	 * @param objectParts set of found object parts
+	 */
+	private static void findObjectParts(Node node, Set<String> objectParts) {
+		List<Node> children = node.getChildren();
+		// Base case: Node is an expression
+		if (children.isEmpty()) {
+			if (node.getKind() == NodeKind.Expression) {
+				objectParts.add(((Expression) node).getContent());
+			}
+		}
+		for (Node child : children) {
+			if (child.getKind() == NodeKind.Expression) {
+				objectParts.add(((Expression) child).getContent());
+			} else if (child.getKind() == NodeKind.Section && ((Section) child).getSectionKind() != SectionKind.WITH) {
+				for (Parameter param : ((Section) child).getParameters()) {
+					objectParts.add(param.getValue());
+				}
+				// Recursive call to traverse nested non-WithSection Sections
+				findObjectParts(child, objectParts);
+			}
+		}
+	}
+
+	/**
+	 * Create text edit to replace unrecommended with section closing tag
+	 *
+	 * @param template    the Qute template.
+	 * @param withSection the Qute with section
+	 * @return
+	 * @throws BadLocationException
+	 */
+	private static TextEdit createWithSectionCloseEdit(Template template, WithSection withSection)
+			throws BadLocationException {
+		String withSectionCloseReplacementText = "/let";
+		Range withSectionClose = new Range(template.positionAt(withSection.getEndTagNameOpenOffset()),
+				template.positionAt(withSection.getEndTagCloseOffset()));
+		return new TextEdit(withSectionClose, withSectionCloseReplacementText);
 	}
 
 	/**

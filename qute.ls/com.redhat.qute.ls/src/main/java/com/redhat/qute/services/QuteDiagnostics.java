@@ -54,6 +54,7 @@ import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
+import com.redhat.qute.parser.template.sections.WithSection;
 import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
@@ -248,6 +249,9 @@ class QuteDiagnostics {
 				case INCLUDE:
 					validateIncludeSection((IncludeSection) section, diagnostics);
 					break;
+				case WITH:
+					validateWithSection((WithSection) section, diagnostics);
+					break;
 				default:
 					validateSectionTag(section, template, resolvingJavaTypeContext, diagnostics);
 				}
@@ -344,6 +348,21 @@ class QuteDiagnostics {
 			// ex: {#include}
 			Range range = QutePositionUtility.selectStartTagName(includeSection);
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.TemplateNotDefined);
+			diagnostics.add(diagnostic);
+		}
+	}
+
+	/**
+	 * Report that `#with` section is deprecated.
+	 *
+	 * @param withSection the with section
+	 * @param diagnostics the diagnostics to fill
+	 */
+	private static void validateWithSection(WithSection withSection, List<Diagnostic> diagnostics) {
+		if (withSection.getObjectParameter() != null) {
+			Range range = QutePositionUtility.createRange(withSection);
+			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
+					QuteErrorCode.NotRecommendedWithSection);
 			diagnostics.add(diagnostic);
 		}
 	}
