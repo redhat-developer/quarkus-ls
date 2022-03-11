@@ -34,9 +34,19 @@ public class QuteGeneralClientSettings {
 
 	private Map<String, QuteGeneralClientSettings> workspaceFolders;
 
+	private QuteCodeLensSettings codeLens;
+
+	private QuteInlayHintSettings inlayHint;
+
 	private QuteValidationSettings validation;
 
-	private QuteCodeLensSettings codeLens;
+	public QuteCodeLensSettings getCodeLens() {
+		return codeLens;
+	}
+
+	public QuteInlayHintSettings getInlayHint() {
+		return inlayHint;
+	}
 
 	/**
 	 * Returns the validation settings.
@@ -48,30 +58,25 @@ public class QuteGeneralClientSettings {
 	}
 
 	/**
-	 * Set the validation settings.
-	 *
-	 * @param validation the validation settings.
-	 */
-	public void setValidation(QuteValidationSettings validation) {
-		this.validation = validation;
-	}
-
-	/**
-	 * Returns the Qute CodeLens settings.
-	 *
-	 * @return the Qute CodeLens settings.
-	 */
-	public QuteCodeLensSettings getCodeLens() {
-		return codeLens;
-	}
-
-	/**
 	 * Set the CodeLens setting.
 	 *
 	 * @param codeLens the CodeLens setting.
 	 */
 	public void setCodeLens(QuteCodeLensSettings codeLens) {
 		this.codeLens = codeLens;
+	}
+
+	public void setInlayHint(QuteInlayHintSettings inlayHint) {
+		this.inlayHint = inlayHint;
+	}
+
+	/**
+	 * Set the validation settings.
+	 *
+	 * @param validation the validation settings.
+	 */
+	public void setValidation(QuteValidationSettings validation) {
+		this.validation = validation;
 	}
 
 	public Map<String, QuteGeneralClientSettings> getWorkspaceFolders() {
@@ -102,9 +107,13 @@ public class QuteGeneralClientSettings {
 
 		private final boolean codeLensSettingsChanged;
 
-		public SettingsUpdateState(boolean validationChanged, boolean codeLensChanged) {
-			this.validationSettingsChanged = validationChanged;
-			this.codeLensSettingsChanged = codeLensChanged;
+		private final boolean inlayHintSettingsChanged;
+
+		public SettingsUpdateState(boolean validationSettingsChanged, boolean codeLensSettingsChanged,
+				boolean inlayHintSettingsChanged) {
+			this.validationSettingsChanged = validationSettingsChanged;
+			this.codeLensSettingsChanged = codeLensSettingsChanged;
+			this.inlayHintSettingsChanged = inlayHintSettingsChanged;
 		}
 
 		/**
@@ -125,6 +134,15 @@ public class QuteGeneralClientSettings {
 			return codeLensSettingsChanged;
 		}
 
+		/**
+		 * Returns true if inlay hint settings changed and false otherwise.
+		 * 
+		 * @return true if inlay hint settings changed and false otherwise.
+		 */
+		public boolean isInlayHintSettingsChanged() {
+			return inlayHintSettingsChanged;
+		}
+
 	}
 
 	/**
@@ -140,19 +158,75 @@ public class QuteGeneralClientSettings {
 		boolean workspaceChanged = sharedSettings
 				.cleanWorkspaceFolderSettings(workspaceFolders != null ? workspaceFolders.keySet() : null);
 
+		// Update code lens settings
+		boolean codeLensSettingsChanged = updateCodeLensSettings(sharedSettings, clientSettings);
+		if (workspaceChanged) {
+			codeLensSettingsChanged = true;
+		}
+
+		// Update inlay hint settings
+		boolean inlayHintSettingsChanged = updateInlayHintSettings(sharedSettings, clientSettings);
+		if (workspaceChanged) {
+			inlayHintSettingsChanged = true;
+		}
+
 		// Update validation settings
 		boolean validationSettingsChanged = updateValidationSettings(sharedSettings, clientSettings);
 		if (workspaceChanged) {
 			validationSettingsChanged = true;
 		}
 
-		// Update CodeLens settings
-		boolean codeLensSettingsChanged = updateCodeLensSettings(sharedSettings, clientSettings);
-		if (workspaceChanged) {
-			codeLensSettingsChanged = true;
-		}
+		return new SettingsUpdateState(validationSettingsChanged, codeLensSettingsChanged, inlayHintSettingsChanged);
+	}
 
-		return new SettingsUpdateState(validationSettingsChanged, codeLensSettingsChanged);
+	private static boolean updateCodeLensSettings(SharedSettings sharedSettings,
+			QuteGeneralClientSettings clientSettings) {
+		// Global codeLens settings
+		boolean codeLensSettingsChanged = updateCodeLensSettings(sharedSettings, clientSettings.getCodeLens());
+		// Workspace folder codeLens settings
+		Map<String, QuteGeneralClientSettings> workspaceFolders = clientSettings.getWorkspaceFolders();
+		if (workspaceFolders != null) {
+			for (Map.Entry<String /* workspace folder Uri */, QuteGeneralClientSettings> entry : workspaceFolders
+					.entrySet()) {
+				String workspaceFolderUri = entry.getKey();
+				BaseSettings settings = sharedSettings.getWorkspaceFolderSettings(workspaceFolderUri);
+				codeLensSettingsChanged |= updateCodeLensSettings(settings, entry.getValue().getCodeLens());
+			}
+		}
+		return codeLensSettingsChanged;
+	}
+
+	private static boolean updateCodeLensSettings(BaseSettings sharedSettings, QuteCodeLensSettings codeLens) {
+		if (codeLens != null && !codeLens.equals(sharedSettings.getCodeLensSettings())) {
+			sharedSettings.getCodeLensSettings().update(codeLens);
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean updateInlayHintSettings(SharedSettings sharedSettings,
+			QuteGeneralClientSettings clientSettings) {
+		// Global inlayHint settings
+		boolean inlayHintSettingsChanged = updateInlayHintSettings(sharedSettings, clientSettings.getInlayHint());
+		// Workspace folder inlayHint settings
+		Map<String, QuteGeneralClientSettings> workspaceFolders = clientSettings.getWorkspaceFolders();
+		if (workspaceFolders != null) {
+			for (Map.Entry<String /* workspace folder Uri */, QuteGeneralClientSettings> entry : workspaceFolders
+					.entrySet()) {
+				String workspaceFolderUri = entry.getKey();
+				BaseSettings settings = sharedSettings.getWorkspaceFolderSettings(workspaceFolderUri);
+				inlayHintSettingsChanged |= updateInlayHintSettings(settings, entry.getValue().getInlayHint());
+			}
+		}
+		return inlayHintSettingsChanged;
+	}
+
+	private static boolean updateInlayHintSettings(BaseSettings sharedSettings, QuteInlayHintSettings inlayHint) {
+		if (inlayHint != null && !inlayHint.equals(sharedSettings.getInlayHintSettings())) {
+			sharedSettings.getInlayHintSettings().update(inlayHint);
+			return true;
+		}
+		return false;
 	}
 
 	private static boolean updateValidationSettings(SharedSettings sharedSettings,
@@ -180,28 +254,4 @@ public class QuteGeneralClientSettings {
 		return false;
 	}
 
-	private static boolean updateCodeLensSettings(SharedSettings sharedSettings,
-			QuteGeneralClientSettings clientSettings) {
-		// Global CodeLens settings
-		boolean codeLensSettingsChanged = updateCodeLensSettings(sharedSettings, clientSettings.getCodeLens());
-		// Workspace folder CodeLens settings
-		Map<String, QuteGeneralClientSettings> workspaceFolders = clientSettings.getWorkspaceFolders();
-		if (workspaceFolders != null) {
-			for (Map.Entry<String /* workspace folder Uri */, QuteGeneralClientSettings> entry : workspaceFolders
-					.entrySet()) {
-				String workspaceFolderUri = entry.getKey();
-				BaseSettings settings = sharedSettings.getWorkspaceFolderSettings(workspaceFolderUri);
-				codeLensSettingsChanged |= updateCodeLensSettings(settings, entry.getValue().getCodeLens());
-			}
-		}
-		return codeLensSettingsChanged;
-	}
-
-	private static boolean updateCodeLensSettings(BaseSettings sharedSettings, QuteCodeLensSettings codeLens) {
-		if (codeLens != null && !codeLens.equals((sharedSettings.getCodeLensSettings()))) {
-			sharedSettings.getCodeLensSettings().update(codeLens);
-			return true;
-		}
-		return false;
-	}
 }

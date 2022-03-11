@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
+import static com.redhat.qute.services.ResolvingJavaTypeContext.RESOLVING_JAVA_TYPE;
+import static com.redhat.qute.services.ResolvingJavaTypeContext.isResolvingJavaType;
 import static com.redhat.qute.services.diagnostics.DiagnosticDataFactory.createDiagnostic;
 
 import java.nio.file.Files;
@@ -64,7 +66,6 @@ import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.services.diagnostics.DiagnosticDataFactory;
 import com.redhat.qute.services.diagnostics.QuteDiagnosticsForSyntax;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
-import com.redhat.qute.services.diagnostics.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.StringUtils;
@@ -77,8 +78,6 @@ import com.redhat.qute.utils.UserTagUtils;
 class QuteDiagnostics {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteDiagnostics.class.getName());
-
-	private static final ResolvedJavaTypeInfo RESOLVING_JAVA_TYPE = new ResolvedJavaTypeInfo();
 
 	private final JavaDataModelCache javaCache;
 
@@ -488,19 +487,7 @@ class QuteDiagnostics {
 
 	private ResolvedJavaTypeInfo resolveJavaType(String javaType, String projectUri,
 			ResolvingJavaTypeContext resolvingJavaTypeContext) {
-		CompletableFuture<ResolvedJavaTypeInfo> resolvingJavaTypeFuture = javaCache.resolveJavaType(javaType,
-				projectUri);
-		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture.getNow(RESOLVING_JAVA_TYPE);
-		if (isResolvingJavaType(resolvedJavaType)) {
-			LOGGER.log(Level.INFO, QuteErrorCode.ResolvingJavaType.getMessage(javaType));
-			resolvingJavaTypeContext.add(resolvingJavaTypeFuture);
-			return RESOLVING_JAVA_TYPE;
-		}
-		return resolvedJavaType;
-	}
-
-	private boolean isResolvingJavaType(ResolvedJavaTypeInfo resolvedJavaClass) {
-		return RESOLVING_JAVA_TYPE.equals(resolvedJavaClass);
+		return resolvingJavaTypeContext.resolveJavaType(javaType, projectUri);
 	}
 
 	/**

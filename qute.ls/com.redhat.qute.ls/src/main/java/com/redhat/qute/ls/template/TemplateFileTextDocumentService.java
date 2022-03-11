@@ -53,13 +53,15 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
+import com.redhat.lsp4j.proposed.InlayHint;
+import com.redhat.lsp4j.proposed.InlayHintParams;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.ls.AbstractTextDocumentService;
 import com.redhat.qute.ls.QuteLanguageServer;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.services.QuteLanguageService;
-import com.redhat.qute.services.diagnostics.ResolvingJavaTypeContext;
+import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 
@@ -237,6 +239,34 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		});
 	}
 
+	@Override
+	public CompletableFuture<List<InlayHint>> inlayHint(InlayHintParams params) {
+		if (!sharedSettings.getInlayHintSettings().isEnabled()) {
+			return CompletableFuture.completedFuture(Collections.emptyList());
+		}
+		return computeModelAsync2(getDocument(params.getTextDocument().getUri()).getModel(),
+				(cancelChecker, template) -> {
+					// Collect inlay hints
+					ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template,
+							quteLanguageServer.getDataModelCache());
+					CompletableFuture<List<InlayHint>> hints = getQuteLanguageService().getInlayHint(template,
+							params.getRange(), sharedSettings.getInlayHintSettings(), resolvingJavaTypeContext,
+							cancelChecker);
+					if (!resolvingJavaTypeContext.isEmpty()) {
+						// Some Java types was not loaded, wait for that all Java types are resolved to
+						// retrigger the inlay hints.
+						CompletableFuture<Void> allFutures = CompletableFuture.allOf(resolvingJavaTypeContext
+								.toArray(new CompletableFuture[resolvingJavaTypeContext.size()]));
+						allFutures.thenAccept(Void -> {
+							// Refresh Inlay Hints when all Java type are resolved.
+							quteLanguageServer.getLanguageClient().refreshInlayHints();
+						});
+					}
+
+					return hints;
+				});
+	}
+
 	private QuteLanguageService getQuteLanguageService() {
 		return quteLanguageServer.getQuarkusLanguageService();
 	}
@@ -250,10 +280,11 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 					template.checkCanceled();
 
 					// Collect diagnostics
-					ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template);
+					ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template,
+							quteLanguageServer.getDataModelCache());
 					List<Diagnostic> diagnostics = getQuteLanguageService().doDiagnostics(template,
-							getSharedSettings().getValidationSettings(template.getUri()),
-							resolvingJavaTypeContext, () -> template.checkCanceled());
+							getSharedSettings().getValidationSettings(template.getUri()), resolvingJavaTypeContext,
+							() -> template.checkCanceled());
 
 					// Diagnostics has been collected, before diagnostics publishing, check if the
 					// document has changed since diagnostics collect.
@@ -364,9 +395,9 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 
 	public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
 		// trigger validation for all opened Qute template files
-				documents.all().stream().forEach(document -> {
-					triggerValidationFor((QuteTextDocument) document);
-				});
+		documents.all().stream().forEach(document -> {
+			triggerValidationFor((QuteTextDocument) document);
+		});
 	}
 
 }

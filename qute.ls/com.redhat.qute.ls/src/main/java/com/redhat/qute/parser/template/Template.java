@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.Position;
 
-import com.redhat.qute.commons.JavaElementInfo;
+import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.parser.CancelChecker;
@@ -27,6 +27,7 @@ import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
+import com.redhat.qute.project.TemplateInfoProvider;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 
@@ -41,6 +42,8 @@ public class Template extends Node {
 	private QuteProjectRegistry projectRegistry;
 
 	private String templateId;
+
+	private TemplateInfoProvider templateInfoProvider;
 
 	Template(TextDocument textDocument) {
 		super(0, textDocument.getText().length());
@@ -242,7 +245,7 @@ public class Template extends Node {
 		return (JavaTypeInfoProvider) projectRegistry
 				.findJavaElementWithNamespace(namespace, objectPart.getPartName(), getProjectUri()).getNow(null);
 	}
-	
+
 	@Override
 	protected void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);
@@ -250,5 +253,16 @@ public class Template extends Node {
 			acceptChildren(visitor, getChildren());
 		}
 		visitor.endVisit(this);
+	}
+
+	public void setTemplateInfoProvider(TemplateInfoProvider templateInfoProvider) {
+		this.templateInfoProvider = templateInfoProvider;
+	}
+
+	public CompletableFuture<ProjectInfo> getProjectFuture() {
+		if (templateInfoProvider == null) {
+			return CompletableFuture.completedFuture(null);
+		}
+		return templateInfoProvider.getProjectInfoFuture();
 	}
 }

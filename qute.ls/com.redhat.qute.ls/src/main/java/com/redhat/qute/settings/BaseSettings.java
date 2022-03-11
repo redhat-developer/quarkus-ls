@@ -19,22 +19,16 @@ package com.redhat.qute.settings;
  */
 public class BaseSettings {
 
-	private final QuteValidationSettings validationSettings;
-
 	private final QuteCodeLensSettings codeLensSettings;
+
+	private final QuteInlayHintSettings inlayHintSettings;
+
+	private final QuteValidationSettings validationSettings;
 
 	public BaseSettings() {
 		this.validationSettings = new QuteValidationSettings();
 		this.codeLensSettings = new QuteCodeLensSettings();
-	}
-
-	/**
-	 * Returns the Qute validation settings.
-	 *
-	 * @return the Qute validation settings.
-	 */
-	public QuteValidationSettings getValidationSettings() {
-		return validationSettings;
+		this.inlayHintSettings = new QuteInlayHintSettings();
 	}
 
 	/**
@@ -44,5 +38,23 @@ public class BaseSettings {
 	 */
 	public QuteCodeLensSettings getCodeLensSettings() {
 		return codeLensSettings;
+	}
+
+	/**
+	 * Returns the inlay hint settings.
+	 * 
+	 * @return the inlay hint settings.
+	 */
+	public QuteInlayHintSettings getInlayHintSettings() {
+		return inlayHintSettings;
+	}
+
+	/**
+	 * Returns the Qute validation settings.
+	 *
+	 * @return the Qute validation settings.
+	 */
+	public QuteValidationSettings getValidationSettings() {
+		return validationSettings;
 	}
 }
