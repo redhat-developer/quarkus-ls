@@ -1,5 +1,6 @@
 package com.redhat.qute.services.diagnostics;
 
+import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.te;
@@ -9,6 +10,9 @@ import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
+
+import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
+import com.redhat.qute.services.commands.QuteClientCommandConstants;
 
 public class QuteDiagnosticsInExpressionWithEachSectionTest {
 
@@ -32,14 +36,20 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 
 		Diagnostic d = d(2, 7, 2, 15, QuteErrorCode.UndefinedObject, //
 				"`itemsXXX` cannot be resolved to an object.", DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("itemsXXX", true));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("itemsXXX", true));
 
 		testDiagnosticsFor(template, d, //
 				d(3, 2, 3, 4, QuteErrorCode.UnknownType, //
 						"`it` cannot be resolved to a type.", //
 						DiagnosticSeverity.Error));
 		testCodeActionsFor(template, d, //
-				ca(d, te(0, 0, 0, 0, "{@java.util.List itemsXXX}\r\n")));
+				ca(d, te(0, 0, 0, 0, "{@java.util.List itemsXXX}\r\n")), //
+				ca(d, c("Ignore `qute.validation.undefinedObject.severity` problem.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.undefinedObject.severity", //
+						"test.qute", //
+						ConfigurationItemEditType.update, "ignore", //
+						d)));
 	}
 
 	@Test

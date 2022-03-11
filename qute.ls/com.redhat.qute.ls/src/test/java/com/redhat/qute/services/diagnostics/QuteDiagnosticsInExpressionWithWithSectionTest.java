@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.diagnostics;
 
+import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.te;
@@ -20,6 +21,9 @@ import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
+
+import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
+import com.redhat.qute.services.commands.QuteClientCommandConstants;
 
 /**
  * Test with #with section
@@ -36,11 +40,17 @@ public class QuteDiagnosticsInExpressionWithWithSectionTest {
 
 		Diagnostic d = d(0, 7, 0, 11, QuteErrorCode.UndefinedObject, "`item` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
-				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}\r\n")));
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}\r\n")), //
+				ca(d, c("Ignore `qute.validation.undefinedObject.severity` problem.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.undefinedObject.severity", //
+						"test.qute", //
+						ConfigurationItemEditType.update, "ignore", //
+						d)));
 	}
 
 	@Test
@@ -70,11 +80,17 @@ public class QuteDiagnosticsInExpressionWithWithSectionTest {
 
 		Diagnostic d = d(6, 5, 6, 12, QuteErrorCode.UndefinedObject, "`average` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("average", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("average", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
-				ca(d, te(0, 0, 0, 0, "{@java.lang.String average}\r\n")));
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String average}\r\n")), //
+				ca(d, c("Ignore `qute.validation.undefinedObject.severity` problem.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.undefinedObject.severity", //
+						"test.qute", //
+						ConfigurationItemEditType.update, "ignore", //
+						d)));
 
 	}
 }

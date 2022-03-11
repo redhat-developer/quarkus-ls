@@ -45,6 +45,7 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
+import com.redhat.qute.settings.QuteValidationSettings.Severity;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 
@@ -71,6 +72,10 @@ class QuteCodeActions {
 	private static final String QUTE_VALIDATION_EXCLUDED_SECTION = "qute.validation.excluded";
 
 	private static final String EXCLUDED_VALIDATION_TITLE = "Exclude this file from validation.";
+
+	private static final String SET_IGNORE_SEVERITY_TITLE = "Ignore `{0}` problem.";
+
+	private static final String UNDEFINED_OBJECT_SEVERITY_SETTING = "qute.validation.undefinedObject.severity";
 
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
 			SharedSettings sharedSettings) {
@@ -162,6 +167,10 @@ class QuteCodeActions {
 				CodeAction insertParameterDeclarationQuickFix = CodeActionFactory.insert(title, position,
 						insertText.toString(), document, diagnostic);
 				codeActions.add(insertParameterDeclarationQuickFix);
+
+				// CodeAction to set validation severity to ignore
+				doCodeActionToSetIgnoreSeverity(template, Collections.singletonList(diagnostic), codeActions,
+						UNDEFINED_OBJECT_SEVERITY_SETTING);
 			}
 
 		} catch (BadLocationException e) {
@@ -172,6 +181,7 @@ class QuteCodeActions {
 	private static void doCodeActionToDisableValidation(Template template, List<Diagnostic> diagnostics,
 			List<CodeAction> codeActions) {
 		String templateUri = template.getUri();
+
 		// Disable Qute validation for the project
 		String projectUri = template.getProjectUri();
 		String title = MessageFormat.format(DISABLE_VALIDATION_ON_PROJECT_LEVEL_TITLE, projectUri);
@@ -184,6 +194,22 @@ class QuteCodeActions {
 		CodeAction disableValidationForTemplateQuickFix = createConfigurationUpdateCodeAction(title, templateUri,
 				QUTE_VALIDATION_EXCLUDED_SECTION, templateUri, ConfigurationItemEditType.add, diagnostics);
 		codeActions.add(disableValidationForTemplateQuickFix);
+	}
+
+	/**
+	 * CodeAction to change severity setting value to "ignore"
+	 *
+	 * @param template        the Qute template
+	 * @param diagnostics     a singleton list diagnostic to set to ignore
+	 * @param codeActions     list of CodeActions
+	 * @param severitySetting the severity setting to set to ignore
+	 */
+	private static void doCodeActionToSetIgnoreSeverity(Template template, List<Diagnostic> diagnostics,
+			List<CodeAction> codeActions, String severitySetting) {
+		String title = MessageFormat.format(SET_IGNORE_SEVERITY_TITLE, severitySetting);
+		CodeAction setIgnoreSeverityQuickFix = createConfigurationUpdateCodeAction(title, template.getUri(),
+				severitySetting, Severity.ignore.name(), ConfigurationItemEditType.update, diagnostics);
+		codeActions.add(setIgnoreSeverityQuickFix);
 	}
 
 	/**

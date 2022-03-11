@@ -67,6 +67,8 @@ import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.ls.commons.client.CommandCapabilities;
 import com.redhat.qute.ls.commons.client.CommandKindCapabilities;
+import com.redhat.qute.ls.commons.client.ConfigurationItemEdit;
+import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.project.MockQuteProjectRegistry;
@@ -670,6 +672,17 @@ public class QuteAssert {
 		codeAction.setCommand(c);
 
 		return codeAction;
+	}
+
+	public static Command c(String title, String commandId, String section, String scopeUri,
+			ConfigurationItemEditType edit, Object value, Diagnostic d) {
+		Command command = new Command();
+		command.setTitle(title);
+		command.setCommand(commandId);
+		ConfigurationItemEdit itemEdit = new ConfigurationItemEdit(section, edit, value);
+		itemEdit.setScopeUri(scopeUri);
+		command.setArguments(Collections.singletonList(itemEdit));
+		return command;
 	}
 
 	public static TextDocumentEdit tde(String uri, int version, TextEdit... te) {

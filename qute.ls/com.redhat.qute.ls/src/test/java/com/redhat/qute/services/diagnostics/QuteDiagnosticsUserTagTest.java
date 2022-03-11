@@ -36,7 +36,7 @@ public class QuteDiagnosticsUserTagTest {
 		String template = "{name}";
 		Diagnostic d = d(0, 1, 0, 5, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("name", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("name", false));
 		testDiagnosticsFor(template, //
 				"src/main/resources/templates/user.html", //
 				"user", //
@@ -56,7 +56,7 @@ public class QuteDiagnosticsUserTagTest {
 		String template = "{#user name=name /}";
 		Diagnostic d = d(0, 12, 0, 16, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("name", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("name", false));
 		testDiagnosticsFor(template, d);
 	}
 

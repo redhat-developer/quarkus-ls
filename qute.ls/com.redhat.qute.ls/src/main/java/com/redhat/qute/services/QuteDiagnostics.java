@@ -552,7 +552,7 @@ class QuteDiagnostics {
 			Diagnostic diagnostic = createDiagnostic(range, severity, QuteErrorCode.UndefinedObject,
 					objectPart.getPartName());
 			// Create data information helpful for code action
-			diagnostic.setData(DiagnosticDataFactory.createUndefinedVariableData(objectPart.getPartName(),
+			diagnostic.setData(DiagnosticDataFactory.createUndefinedObjectData(objectPart.getPartName(),
 					ownerSection != null && ownerSection.isIterable()));
 			diagnostics.add(diagnostic);
 			return null;

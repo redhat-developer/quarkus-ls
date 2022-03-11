@@ -75,7 +75,7 @@ public class QuteDiagnosticsInExpressionWithNamespaceTest {
 		String template = "{inject:foo}";
 		Diagnostic d = d(0, 8, 0, 11, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("foo", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
 		testDiagnosticsFor(template, d);
 
 		template = "{inject:foo()}";

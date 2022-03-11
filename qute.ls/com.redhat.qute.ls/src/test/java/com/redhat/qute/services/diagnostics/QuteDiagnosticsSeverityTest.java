@@ -34,7 +34,7 @@ public class QuteDiagnosticsSeverityTest {
 		QuteValidationSettings validationSettings = new QuteValidationSettings();
 		Diagnostic d = d(0, 1, 0, 4, QuteErrorCode.UndefinedObject, //
 				"`foo` cannot be resolved to an object.", DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("foo", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
 		testDiagnosticsFor(template, validationSettings, d);
 	}
 
@@ -57,7 +57,7 @@ public class QuteDiagnosticsSeverityTest {
 		validationSettings.setUndefinedObject(undefinedObject);
 		Diagnostic d = d(0, 1, 0, 4, QuteErrorCode.UndefinedObject, //
 				"`foo` cannot be resolved to an object.", DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("foo", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
 		testDiagnosticsFor(template, validationSettings, d);
 	}
 
@@ -70,7 +70,7 @@ public class QuteDiagnosticsSeverityTest {
 		validationSettings.setUndefinedObject(undefinedObject);
 		Diagnostic d = d(0, 1, 0, 4, QuteErrorCode.UndefinedObject, //
 				"`foo` cannot be resolved to an object.", DiagnosticSeverity.Error);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("foo", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
 		testDiagnosticsFor(template, validationSettings, d);
 	}
 
