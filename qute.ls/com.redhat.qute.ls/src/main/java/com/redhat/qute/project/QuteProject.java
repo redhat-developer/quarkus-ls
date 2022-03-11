@@ -63,7 +63,7 @@ public class QuteProject {
 
 	private final QuteIndexer indexer;
 
-	private final Map<String /* template id */, TemplateProvider> openedDocuments;
+	private final Map<String /* template id */, TemplateInfoProvider> openedDocuments;
 
 	private final Map<String /* Full qualified name of Java class */, CompletableFuture<ResolvedJavaTypeInfo>> resolvedJavaTypes;
 
@@ -122,7 +122,7 @@ public class QuteProject {
 	}
 
 	public List<QuteIndex> findInsertTagParameter(String templateId, String insertParamater) {
-		TemplateProvider provider = openedDocuments.get(templateId);
+		TemplateInfoProvider provider = openedDocuments.get(templateId);
 		if (provider != null) {
 			Template template = provider.getTemplate().getNow(null);
 			if (template != null) {
@@ -141,7 +141,7 @@ public class QuteProject {
 	 *
 	 * @param document the Qute template.
 	 */
-	public void onDidOpenTextDocument(TemplateProvider document) {
+	public void onDidOpenTextDocument(TemplateInfoProvider document) {
 		openedDocuments.put(document.getTemplateId(), document);
 	}
 
@@ -150,7 +150,7 @@ public class QuteProject {
 	 *
 	 * @param document the Qute template.
 	 */
-	public void onDidCloseTextDocument(TemplateProvider document) {
+	public void onDidCloseTextDocument(TemplateInfoProvider document) {
 		openedDocuments.remove(document.getTemplateId());
 		indexer.scanAsync(true);
 	}

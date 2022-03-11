@@ -31,6 +31,9 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
+import com.redhat.lsp4j.proposed.InlayHint;
+import com.redhat.lsp4j.proposed.InlayHintParams;
+import com.redhat.lsp4j.proposed.QuteInlayHintProvider;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
@@ -73,7 +76,7 @@ import com.redhat.qute.settings.capabilities.ServerCapabilitiesInitializer;
  */
 public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer, QuteLanguageServerAPI,
 		QuteProjectInfoProvider, QuteJavaTypesProvider, QuteResolvedJavaTypeProvider, QuteJavaDefinitionProvider,
-		QuteDataModelProjectProvider, QuteUserTagProvider {
+		QuteDataModelProjectProvider, QuteUserTagProvider, QuteInlayHintProvider {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteLanguageServer.class.getName());
 
@@ -155,13 +158,17 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 
 			// Update shared settings from the new client settings
 			SettingsUpdateState result = QuteGeneralClientSettings.update(getSharedSettings(), clientSettings);
+			if (result.isCodeLensSettingsChanged()) {
+				// Some codelens settings changed, ask the client to refresh all code lenses.
+				getLanguageClient().refreshCodeLenses();
+			}
+			if (result.isInlayHintSettingsChanged()) {
+				// Some inlay hint settings changed, ask the client to refresh all inlay hints.
+				getLanguageClient().refreshInlayHints();
+			}
 			if (result.isValidationSettingsChanged()) {
 				// Some validation settings changed
 				textDocumentService.validationSettingsChanged();
-			}
-			if (result.isCodeLensSettingsChanged()) {
-				// Some CodeLens settings changed
-				getLanguageClient().refreshCodeLenses();
 			}
 		}
 	}
@@ -268,5 +275,10 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 
 	public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
 		textDocumentService.didChangeWatchedFiles(params);
+	}
+
+	@Override
+	public CompletableFuture<List<InlayHint>> inlayHint(InlayHintParams params) {
+		return textDocumentService.inlayHint(params);
 	}
 }

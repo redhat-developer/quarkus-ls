@@ -23,6 +23,11 @@ public class QuteCodeLensSettings {
 		this.enabled = enabled;
 	}
 
+	/**
+	 * Returns true if codelens support is enabled and false otherwise.
+	 * 
+	 * @return true if codelens support is enabled and false otherwise.
+	 */
 	public boolean isEnabled() {
 		return enabled;
 	}

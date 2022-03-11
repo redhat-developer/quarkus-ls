@@ -62,6 +62,7 @@ import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
+import com.redhat.lsp4j.proposed.InlayHint;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.TextDocument;
@@ -75,11 +76,12 @@ import com.redhat.qute.project.MockQuteProjectRegistry;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.QuteLanguageService;
+import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.IQuteErrorCode;
-import com.redhat.qute.services.diagnostics.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
+import com.redhat.qute.settings.QuteInlayHintSettings;
 import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.StringUtils;
@@ -259,16 +261,6 @@ public class QuteAssert {
 		return item;
 	}
 
-	public static Range r(int line, int startChar, int endChar) {
-		return r(line, startChar, line, endChar);
-	}
-
-	public static Range r(int startLine, int startChar, int endLine, int endChar) {
-		Position start = new Position(startLine, startChar);
-		Position end = new Position(endLine, endChar);
-		return new Range(start, end);
-	}
-
 	// ------------------- Diagnostics assert
 
 	public static void testDiagnosticsFor(String value, Diagnostic... expected) {
@@ -299,9 +291,10 @@ public class QuteAssert {
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 		template.setTemplateId(templateId);
 
-		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+		JavaDataModelCache javaCache = new JavaDataModelCache(projectRegistry);
+		QuteLanguageService languageService = new QuteLanguageService(javaCache);
 		List<Diagnostic> actual = languageService.doDiagnostics(template, validationSettings,
-				new ResolvingJavaTypeContext(template), () -> {
+				new ResolvingJavaTypeContext(template, javaCache), () -> {
 				});
 		if (expected == null) {
 			assertTrue(actual.isEmpty());
@@ -565,15 +558,6 @@ public class QuteAssert {
 		assertCodeLens(actual, expected);
 	}
 
-	private static Template createTemplate(String value, String fileUri, String projectUri, String templateBaseDir,
-			QuteProjectRegistry projectRegistry) {
-		Template template = TemplateParser.parse(value, fileUri != null ? fileUri : FILE_URI);
-		template.setProjectUri(projectUri);
-		projectRegistry.getProject(new ProjectInfo(projectUri, templateBaseDir));
-		template.setProjectRegistry(projectRegistry);
-		return template;
-	}
-
 	public static CodeLens cl(Range range, String title, String command) {
 		return new CodeLens(range, new Command(title, command), null);
 	}
@@ -589,6 +573,44 @@ public class QuteAssert {
 				assertEquals(expectedCommand.getCommand(), actualCommand.getCommand());
 			}
 			assertEquals(expected[i].getData(), actual.get(i).getData());
+		}
+	}
+
+	// ------------------- InlayHint assert
+
+	public static void testInlayHintFor(String value, InlayHint... expected) throws Exception {
+		testInlayHintFor(value, null, expected);
+	}
+
+	public static void testInlayHintFor(String value, QuteInlayHintSettings inlayHintSettings, InlayHint... expected)
+			throws Exception {
+		testInlayHintFor(value, FILE_URI, null, PROJECT_URI, TEMPLATE_BASE_DIR, inlayHintSettings, expected);
+	}
+
+	private static void testInlayHintFor(String value, String fileUri, String templateId, String projectUri,
+			String templateBaseDir, QuteInlayHintSettings inlayHintSettings, InlayHint... expected) throws Exception {
+		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
+		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		template.setTemplateId(templateId);
+
+		JavaDataModelCache javaCache = new JavaDataModelCache(projectRegistry);
+		QuteLanguageService languageService = new QuteLanguageService(javaCache);
+		Range range = null;
+		List<InlayHint> actual = languageService.getInlayHint(template, range, inlayHintSettings,
+				new ResolvingJavaTypeContext(template, javaCache), () -> {
+				}).get();
+		assertInlayHint(actual, expected);
+	}
+
+	public static InlayHint ih(Position position, String label) {
+		return new InlayHint(position, Either.forLeft(label));
+	}
+
+	public static void assertInlayHint(List<? extends InlayHint> actual, InlayHint... expected) {
+		assertEquals(expected.length, actual.size());
+		for (int i = 0; i < expected.length; i++) {
+			assertEquals(expected[i].getPosition(), actual.get(i).getPosition(), "position at " + i);
+			assertEquals(expected[i].getLabel(), actual.get(i).getLabel(), "label at " + i);
 		}
 	}
 
@@ -814,4 +836,30 @@ public class QuteAssert {
 		assertEquals(expected.length, actual.size());
 		assertArrayEquals(expected, actual.toArray());
 	}
+
+	// ------------------- Utilities
+
+	public static Range r(int line, int startChar, int endChar) {
+		return r(line, startChar, line, endChar);
+	}
+
+	public static Range r(int startLine, int startChar, int endLine, int endChar) {
+		Position start = p(startLine, startChar);
+		Position end = p(endLine, endChar);
+		return new Range(start, end);
+	}
+
+	public static Position p(int line, int character) {
+		return new Position(line, character);
+	}
+
+	private static Template createTemplate(String value, String fileUri, String projectUri, String templateBaseDir,
+			QuteProjectRegistry projectRegistry) {
+		Template template = TemplateParser.parse(value, fileUri != null ? fileUri : FILE_URI);
+		template.setProjectUri(projectUri);
+		projectRegistry.getProject(new ProjectInfo(projectUri, templateBaseDir));
+		template.setProjectRegistry(projectRegistry);
+		return template;
+	}
+
 }

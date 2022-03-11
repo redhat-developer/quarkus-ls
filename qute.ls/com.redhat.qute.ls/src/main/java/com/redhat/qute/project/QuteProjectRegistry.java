@@ -181,7 +181,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 *
 	 * @param document the Qute template.
 	 */
-	public void onDidOpenTextDocument(TemplateProvider document) {
+	public void onDidOpenTextDocument(TemplateInfoProvider document) {
 		String projectUri = document.getProjectUri();
 		if (projectUri != null) {
 			QuteProject project = getProject(projectUri);
@@ -196,7 +196,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 *
 	 * @param document the Qute template.
 	 */
-	public void onDidCloseTextDocument(TemplateProvider document) {
+	public void onDidCloseTextDocument(TemplateInfoProvider document) {
 		String projectUri = document.getProjectUri();
 		if (projectUri != null) {
 			QuteProject project = getProject(projectUri);
@@ -292,8 +292,17 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	public CompletableFuture<ExtendedDataModelTemplate> getDataModelTemplate(Template template) {
 		String projectUri = template.getProjectUri();
 		if (StringUtils.isEmpty(projectUri)) {
-			return EXTENDED_TEMPLATE_DATAMODEL_NULL_FUTURE;
+			// The project uri is not already get (it occurs when Qute template is opened and the project information takes some times).
+			// Load the project information and call the data model.
+			return template.getProjectFuture() //
+					.thenCompose(project -> {
+						return getDataModelTemplate(template, project.getUri());
+					});
 		}
+		return getDataModelTemplate(template, projectUri);
+	}
+
+	private CompletableFuture<ExtendedDataModelTemplate> getDataModelTemplate(Template template, String projectUri) {
 		QuteProject project = getProject(projectUri);
 		if (project == null) {
 			return EXTENDED_TEMPLATE_DATAMODEL_NULL_FUTURE;

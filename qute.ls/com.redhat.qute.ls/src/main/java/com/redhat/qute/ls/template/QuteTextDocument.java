@@ -28,9 +28,9 @@ import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
-import com.redhat.qute.project.TemplateProvider;
+import com.redhat.qute.project.TemplateInfoProvider;
 
-public class QuteTextDocument extends ModelTextDocument<Template> implements TemplateProvider {
+public class QuteTextDocument extends ModelTextDocument<Template> implements TemplateInfoProvider {
 
 	private CompletableFuture<ProjectInfo> projectInfoFuture;
 
@@ -57,6 +57,7 @@ public class QuteTextDocument extends ModelTextDocument<Template> implements Tem
 		return super.getModel() //
 				.thenApply(template -> {
 					if (template != null && template.getProjectUri() == null) {
+						template.setTemplateInfoProvider(this);
 						ProjectInfo projectInfo = getProjectInfoFuture().getNow(null);
 						if (projectInfo != null) {
 							QuteProject project = projectRegistry.getProject(projectInfo);
@@ -69,6 +70,7 @@ public class QuteTextDocument extends ModelTextDocument<Template> implements Tem
 				});
 	}
 
+	@Override
 	public CompletableFuture<ProjectInfo> getProjectInfoFuture() {
 		if (projectInfoFuture == null || projectInfoFuture.isCompletedExceptionally()
 				|| projectInfoFuture.isCancelled()) {

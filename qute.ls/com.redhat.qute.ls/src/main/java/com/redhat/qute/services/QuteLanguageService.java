@@ -32,14 +32,15 @@ import org.eclipse.lsp4j.ReferenceContext;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.lsp4j.proposed.InlayHint;
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
-import com.redhat.qute.services.diagnostics.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
+import com.redhat.qute.settings.QuteInlayHintSettings;
 import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.settings.SharedSettings;
 
@@ -62,6 +63,7 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	private final QuteDiagnostics diagnostics;
 	private final QuteLinkedEditing linkedEditing;
 	private final QuteReference reference;
+	private final QuteInlayHint inlayHint;
 
 	private SnippetRegistry<Snippet> coreTagSnippetRegistry;
 
@@ -77,6 +79,7 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 		this.diagnostics = new QuteDiagnostics(javaCache);
 		this.reference = new QuteReference();
 		this.linkedEditing = new QuteLinkedEditing();
+		this.inlayHint = new QuteInlayHint(javaCache);
 	}
 
 	/**
@@ -155,6 +158,12 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 		return linkedEditing.findLinkedEditingRanges(template, position, cancelChecker);
 	}
 
+	public CompletableFuture<List<InlayHint>> getInlayHint(Template template, Range range,
+			QuteInlayHintSettings inlayHintSettings, ResolvingJavaTypeContext resolvingJavaTypeContext,
+			CancelChecker cancelChecker) {
+		return inlayHint.getInlayHint(template, range, inlayHintSettings, resolvingJavaTypeContext, cancelChecker);
+	}
+
 	/**
 	 * Returns the core tag (ex : #for, #if, etc) snippet registry.
 	 * 
@@ -174,4 +183,5 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 		}
 		coreTagSnippetRegistry = new SnippetRegistry<Snippet>();
 	}
+
 }
