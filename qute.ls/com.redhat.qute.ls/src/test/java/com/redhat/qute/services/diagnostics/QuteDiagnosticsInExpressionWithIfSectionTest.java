@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 public class QuteDiagnosticsInExpressionWithIfSectionTest {
 
 	@Test
-	public void definedVariable() throws Exception {
+	public void definedObject() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{#if item.name != '' && item > 0}\r\n" + //
 				"{/if}";
@@ -38,17 +38,17 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 	}
 
 	@Test
-	public void undefinedVariable() throws Exception {
+	public void undefinedObject() throws Exception {
 		String template = "{#if item.name != '' && item > 0}\r\n" + //
 				"{/if}";
 
 		Diagnostic d1 = d(0, 5, 0, 9, QuteErrorCode.UndefinedObject, "`item` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d1.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
+		d1.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		Diagnostic d2 = d(0, 24, 0, 28, QuteErrorCode.UndefinedObject, "`item` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d2.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
+		d2.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		testDiagnosticsFor(template, d1, d2);
 		testCodeActionsFor(template, d1, //

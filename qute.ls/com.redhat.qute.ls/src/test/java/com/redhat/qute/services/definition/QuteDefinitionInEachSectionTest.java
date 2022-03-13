@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 public class QuteDefinitionInEachSectionTest {
 
 	@Test
-	public void undefinedVariable() throws Exception {
+	public void undefinedObject() throws Exception {
 		String template = "{#each ite|ms}\r\n" + //
 				"		{it.name}\r\n" + //
 				"{/each}";
@@ -34,7 +34,7 @@ public class QuteDefinitionInEachSectionTest {
 	}
 
 	@Test
-	public void definedVariable() throws Exception {
+	public void definedObject() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{#each ite|ms}\r\n" + //
 				"		{it.name}\r\n" + //

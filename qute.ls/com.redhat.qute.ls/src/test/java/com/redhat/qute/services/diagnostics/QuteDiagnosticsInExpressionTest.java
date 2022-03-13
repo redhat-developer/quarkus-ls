@@ -34,12 +34,12 @@ public class QuteDiagnosticsInExpressionTest {
 
 		Diagnostic d = d(0, 1, 0, 4, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("foo", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
 		testDiagnosticsFor("{foo}", d);
 
 		d = d(0, 1, 0, 5, QuteErrorCode.UndefinedObject, "`_foo` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("_foo", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("_foo", false));
 		testDiagnosticsFor("{_foo}", d);
 
 		testDiagnosticsFor("{ foo}");
@@ -56,7 +56,7 @@ public class QuteDiagnosticsInExpressionTest {
 		template = "{trueX}";
 		Diagnostic d = d(0, 1, 0, 6, QuteErrorCode.UndefinedObject, "`trueX` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("trueX", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("trueX", false));
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String trueX}" + //
@@ -68,7 +68,7 @@ public class QuteDiagnosticsInExpressionTest {
 		template = "{falseX}";
 		d = d(0, 1, 0, 7, QuteErrorCode.UndefinedObject, "`falseX` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("falseX", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("falseX", false));
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String falseX}" + //
@@ -83,7 +83,7 @@ public class QuteDiagnosticsInExpressionTest {
 		template = "{nullX}";
 		Diagnostic d = d(0, 1, 0, 6, QuteErrorCode.UndefinedObject, "`nullX` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("nullX", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("nullX", false));
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String nullX}" + //
@@ -107,7 +107,7 @@ public class QuteDiagnosticsInExpressionTest {
 		template = "{123X}";
 		Diagnostic d = d(0, 1, 0, 5, QuteErrorCode.UndefinedObject, "`123X` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("123X", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("123X", false));
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String 123X}" + //
@@ -122,7 +122,7 @@ public class QuteDiagnosticsInExpressionTest {
 		template = "{123LX}";
 		Diagnostic d = d(0, 1, 0, 6, QuteErrorCode.UndefinedObject, "`123LX` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("123LX", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("123LX", false));
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String 123LX}" + //
@@ -130,14 +130,14 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void undefinedVariable() throws Exception {
+	public void undefinedObject() throws Exception {
 		String template = "{item}";
 
 		Diagnostic d = d(0, 1, 0, 5, //
 				QuteErrorCode.UndefinedObject, //
 				"`item` cannot be resolved to an object.", //
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
@@ -146,14 +146,14 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void undefinedUnderscoreVariable() throws Exception {
+	public void undefinedUnderscoreObject() throws Exception {
 		String template = "{nested-content}";
 
 		Diagnostic d = d(0, 1, 0, 15, //
 				QuteErrorCode.UndefinedObject, //
 				"`nested-content` cannot be resolved to an object.", //
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("nested-content", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("nested-content", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
@@ -162,7 +162,7 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void definedVariableWithParameterDeclaration() {
+	public void definedObjectWithParameterDeclaration() {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{item}";
 		testDiagnosticsFor(template);
@@ -307,7 +307,7 @@ public class QuteDiagnosticsInExpressionTest {
 
 		Diagnostic d = d(0, 1, 0, 7, QuteErrorCode.UndefinedObject, "`person` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("person", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("person", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //

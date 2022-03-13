@@ -36,7 +36,7 @@ public class QuteDiagnosticsInExpressionWithWithSectionTest {
 
 		Diagnostic d = d(0, 7, 0, 11, QuteErrorCode.UndefinedObject, "`item` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
@@ -70,7 +70,7 @@ public class QuteDiagnosticsInExpressionWithWithSectionTest {
 
 		Diagnostic d = d(6, 5, 6, 12, QuteErrorCode.UndefinedObject, "`average` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("average", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("average", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //

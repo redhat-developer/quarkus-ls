@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 public class QuteDiagnosticsInExpressionWithEachSectionTest {
 
 	@Test
-	public void definedVariable() throws Exception {
+	public void definedObject() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#each items}\r\n" + //
@@ -23,7 +23,7 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 	}
 
 	@Test
-	public void undefinedVariable() throws Exception {
+	public void undefinedObject() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#each itemsXXX}\r\n" + //
@@ -32,7 +32,7 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 
 		Diagnostic d = d(2, 7, 2, 15, QuteErrorCode.UndefinedObject, //
 				"`itemsXXX` cannot be resolved to an object.", DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("itemsXXX", true));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("itemsXXX", true));
 
 		testDiagnosticsFor(template, d, //
 				d(3, 2, 3, 4, QuteErrorCode.UnknownType, //

@@ -105,10 +105,33 @@ public class QuteCompletionInUserTagTest {
 				c("inject:bean", "inject:bean", r(1, 1, 1, 1)), //
 				c("inject:plexux", "inject:plexux", r(1, 1, 1, 1)), //
 				c("config:*(propertyName : String) : Object", "config:propertyName", r(1, 1, 1, 1)),
-				c("config:property(propertyName : String) : Object", "config:property(propertyName)",
-						r(1, 1, 1, 1)), //
+				c("config:property(propertyName : String) : Object", "config:property(propertyName)", r(1, 1, 1, 1)), //
 				c("it", "it", r(1, 1, 1, 1)), //
 				c("nested-content", "nested-content", r(1, 1, 1, 1)));
 
+	}
+
+	@Test
+	public void itParameterExpressionInUserTag() throws Exception {
+		// With user tag
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{#user | /}";
+		testCompletionFor(template, //
+				c("item", "item", r(1, 7, 1, 7)));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"{#user item.| /}";
+		testCompletionFor(template, //
+				c("base : String", "base", r(1, 12, 1, 12)), // comes from BaseItem extended by Item
+				c("name : String", "name", r(1, 12, 1, 12)), //
+				c("price : BigInteger", "price", r(1, 12, 1, 12)), //
+				c("review : Review", "review", r(1, 12, 1, 12)), //
+				c("review2 : Review", "review2", r(1, 12, 1, 12)), //
+				c("getReview2() : Review", "getReview2", r(1, 12, 1, 12)));
+
+		// With #let
+		template = "{@org.acme.Item item}\r\n" + //
+				"{#let item.| }";
+		testCompletionFor(template, 0);
 	}
 }

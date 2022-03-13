@@ -44,9 +44,15 @@ public class CustomSection extends Section {
 	protected void initializeParameters(List<Parameter> parameters) {
 		// All parameters can have expression (ex : {#user name=order.item.parent
 		// isActive=false age=10}
-		parameters.forEach(parameter -> {
-			parameter.setCanHaveExpression(parameter.hasValueAssigned());
-		});
+		boolean hasIt = false;
+		for (Parameter parameter : parameters) {
+			if (parameter.hasValueAssigned()) {
+				parameter.setCanHaveExpression(true);
+			} else if (!hasIt) {
+				parameter.setCanHaveExpression(true);
+				hasIt = true;
+			}
+		}
 	}
 
 	@Override
