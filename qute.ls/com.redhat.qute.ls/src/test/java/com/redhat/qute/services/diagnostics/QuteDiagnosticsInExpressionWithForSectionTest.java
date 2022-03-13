@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 public class QuteDiagnosticsInExpressionWithForSectionTest {
 
 	@Test
-	public void definedVariable() throws Exception {
+	public void definedObject() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#for item in items}\r\n" + //
@@ -40,7 +40,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 	}
 
 	@Test
-	public void undefinedVariableInElseBlock() throws Exception {
+	public void undefinedObjectInElseBlock() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#for item in items}\r\n" + //
@@ -50,7 +50,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 
 		Diagnostic d = d(4, 2, 4, 6, QuteErrorCode.UndefinedObject, //
 				"`item` cannot be resolved to an object.", DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
@@ -59,7 +59,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 	}
 
 	@Test
-	public void undefinedVariable() throws Exception {
+	public void undefinedObject() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#for item in itemsXXX}\r\n" + //
@@ -68,7 +68,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 
 		Diagnostic d = d(2, 14, 2, 22, QuteErrorCode.UndefinedObject, //
 				"`itemsXXX` cannot be resolved to an object.", DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("itemsXXX", true));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("itemsXXX", true));
 
 		testDiagnosticsFor(template, d, //
 				d(3, 2, 3, 6, QuteErrorCode.UnknownType, //

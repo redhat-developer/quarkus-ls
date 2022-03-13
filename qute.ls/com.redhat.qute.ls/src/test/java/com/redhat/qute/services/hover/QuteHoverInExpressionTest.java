@@ -122,13 +122,13 @@ public class QuteHoverInExpressionTest {
 	}
 
 	@Test
-	public void undefinedVariable() throws Exception {
+	public void undefinedObject() throws Exception {
 		String template = "{i|tem}";
 		assertHover(template);
 	}
 
 	@Test
-	public void definedVariable() throws Exception {
+	public void definedObject() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{i|tem}";
 		assertHover(template, "```java" + //

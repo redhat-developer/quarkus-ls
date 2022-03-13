@@ -49,6 +49,30 @@ public class QuteHoverInUserTag {
 	}
 
 	@Test
+	public void itParameterObjectPart() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{#user it|em /}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"Item" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 7, 1, 11));
+	}
+
+	@Test
+	public void itParameterPropertyPart() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{#user item.na|me /}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"String org.acme.Item.name" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 12, 1, 16));
+	}
+
+	@Test
 	public void it() throws Exception {
 		String template = "{i|t}";
 

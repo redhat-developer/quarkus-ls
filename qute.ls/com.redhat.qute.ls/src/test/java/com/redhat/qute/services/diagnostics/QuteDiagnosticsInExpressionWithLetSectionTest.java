@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 public class QuteDiagnosticsInExpressionWithLetSectionTest {
 
 	@Test
-	public void definedVariable() throws Exception {
+	public void definedObject() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"\r\n" + //
 				"{#set name=item.name age=10 long=10L negDouble=-10D isActive=true simpleQuote='abcd' doubleQuote=\"efgh\"}\r\n"
@@ -47,7 +47,7 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 	}
 
 	@Test
-	public void undefinedVariable() throws Exception {
+	public void undefinedObject() throws Exception {
 		String template = "{#set name=item.name age=10 long=10L negDouble=-10D isActive=true simpleQuote='abcd' doubleQuote=\"efgh\"}\r\n"
 				+ //
 				"  {true}\r\n" + //
@@ -60,7 +60,7 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 				"";
 		Diagnostic d = d(0, 11, 0, 15, QuteErrorCode.UndefinedObject, "`item` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		testDiagnosticsFor(template, d, //
 				d(2, 3, 2, 7, QuteErrorCode.UnknownType, "`name` cannot be resolved to a type.",
@@ -81,7 +81,7 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 				"{/let}";
 		Diagnostic d = d(1, 2, 1, 6, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("name", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("name", false));
 
 		testDiagnosticsFor(template, //
 				d(2, 6, 2, 6, QuteErrorCode.SyntaxError,

@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 public class QuteDefinitionInLetSectionTest {
 
 	@Test
-	public void definedVariable() throws Exception {
+	public void definedObject() throws Exception {
 		String template = "{#set name=item.name age=10 long=10L negDouble=-10D isActive=true simpleQuote='abcd' doubleQuote=\"efgh\"}\r\n"
 				+ //
 				"  {true}\r\n" + //

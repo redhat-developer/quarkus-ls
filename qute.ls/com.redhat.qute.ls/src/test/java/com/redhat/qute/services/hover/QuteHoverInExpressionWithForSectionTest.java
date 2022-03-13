@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 public class QuteHoverInExpressionWithForSectionTest {
 
 	@Test
-	public void undefinedVariableInIterable() throws Exception {
+	public void undefinedObjectInIterable() throws Exception {
 		String template = "{#for item in ite|ms}\r\n" + //
 				"		{it.name}\r\n" + //
 				"{/for item in}";
@@ -33,7 +33,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 	}
 
 	@Test
-	public void definedVariableInIterable() throws Exception {
+	public void definedObjectInIterable() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{#for item in ite|ms}\r\n" + //
 				"		{item.name}\r\n" + //
@@ -47,7 +47,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 	}
 
 	@Test
-	public void undefinedVariableInAlias() throws Exception {
+	public void undefinedObjectInAlias() throws Exception {
 		String template = "{#for ite|m in items}\r\n" + //
 				"		{it.name}\r\n" + //
 				"{/for item in}";
@@ -55,7 +55,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 	}
 
 	@Test
-	public void definedVariableInAlias() throws Exception {
+	public void definedObjectInAlias() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{#for ite|m in items}\r\n" + //
 				"		{item.name}\r\n" + //
@@ -69,7 +69,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 	}
 
 	@Test
-	public void definedItemVariable() throws Exception {
+	public void definedItemObject() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{#for item in items}\r\n" + //
 				"		{ite|m.name}\r\n" + //
@@ -83,7 +83,7 @@ public class QuteHoverInExpressionWithForSectionTest {
 	}
 
 	@Test
-	public void undefinedItemVariableInElseBlock() throws Exception {
+	public void undefinedItemObjectInElseBlock() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{#for item in items}\r\n" + //
 				"{#else}" + //

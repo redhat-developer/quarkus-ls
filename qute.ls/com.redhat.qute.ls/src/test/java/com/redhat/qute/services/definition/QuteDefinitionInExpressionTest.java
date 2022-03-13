@@ -28,13 +28,13 @@ import com.redhat.qute.project.MockQuteProjectRegistry;
 public class QuteDefinitionInExpressionTest {
 
 	@Test
-	public void definitionInUndefinedVariable() throws Exception {
+	public void definitionInUndefinedObject() throws Exception {
 		String template = "{i|tem}";
 		testDefinitionFor(template);
 	}
 
 	@Test
-	public void definitionInDefinedVariable() throws Exception {
+	public void definitionInDefinedObject() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{i|tem}";
 		testDefinitionFor(template, "test.qute", //

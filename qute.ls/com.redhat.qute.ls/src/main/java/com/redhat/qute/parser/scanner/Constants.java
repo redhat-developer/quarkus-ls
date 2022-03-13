@@ -60,42 +60,4 @@ public class Constants {
 	public final static int _AST = "*".codePointAt(0);
 	public final static int _PLS = "+".codePointAt(0);
 
-	public static final Pattern ENTITY_NAME_REGEX = Pattern.compile("");
-
-	public static final Pattern ELEMENT_NAME_REGEX = Pattern.compile("^[_:\\w][_:\\w-.\\d]*");
-
-	public static final Pattern ATTRIBUTE_NAME_REGEX = Pattern.compile("^[^\\s\\?\"'<>/=\\x00-\\x0F\\x7F\\x80-\\x9F]*");
-
-	public static final Pattern ATTRIBUTE_VALUE_REGEX = Pattern.compile("^(\"[^\"]*\"?)|(\'[^\']*\'?)");
-
-	public static final Pattern URL_VALUE_REGEX = Pattern.compile("^(\"[^<>\"]*\")|(\'[^<>\']*\')");
-
-	public static final Pattern PROLOG_NAME_OPTIONS = Pattern.compile("^(xml)[\\s<>?]?");
-
-	public static final Pattern PI_TAG_NAME = Pattern.compile("^[a-zA-Z0-9]+");
-
-	// Add coming processing instructions that are defined to have attributes as
-	// content
-	public static final Pattern PI_WITH_VARIABLES = Pattern.compile("^(xml-stylesheet)[\\s<>?]?");
-
-	public static final Pattern DOCTYPE_KIND_OPTIONS = Pattern.compile("^(PUBLIC|SYSTEM)([\\s<>\"'])");
-
-	public static final Pattern DTD_ELEMENT_CATEGORY = Pattern.compile("^(EMPTY|ANY)([\\s<>\"'])");
-
-	public static final Pattern DTD_ELEMENT_CONTENT = Pattern.compile("^(\\((([^\\s,]+,)*[^\\s,]+)\\))|\\(\\)");
-
-	public static final Pattern DTD_PCDATA = Pattern.compile("^#PCDATA");
-
-	public static final Pattern DTD_ATTLIST_ATTRIBUTE_TYPE = Pattern
-			.compile("^(CDATA|IDREFS|IDREF|ID|NMTOKENS|NMTOKEN|ENTITIES|ENTITY|NOTATION|xml:|\\(.*\\))([\\s<>\"'])");
-
-	public static final Pattern DTD_ATTLIST_ATTRIBUTE_VALUE = Pattern
-			.compile("^(#REQUIRED|#IMPLIED|\".*\"|#FIXED \".*\")([\\s<>\"'])");
-
-	public static final Pattern DTD_ENTITY_VALUE = Pattern.compile("^\".*\"");
-
-	public static final Pattern DOCTYPE_NAME = Pattern.compile("^[_:\\w][_:\\w-.\\d]*");
-
-	public static final Pattern DOCUMENTATION_CONTENT = Pattern.compile(".*<[\\S]+:?documentation[^\\>]*>(.*)<\\/[\\S]+:?documentation[\\s]*>.*");
-
 }

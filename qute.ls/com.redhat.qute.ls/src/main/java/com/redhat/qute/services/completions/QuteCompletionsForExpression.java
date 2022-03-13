@@ -490,7 +490,7 @@ public class QuteCompletionsForExpression {
 						CompletionItem item = new CompletionItem();
 						item.setLabel(name);
 						item.setKind(CompletionItemKind.Keyword);
-						// Display metadata section (ex : count for #each) after declared variables
+						// Display metadata section (ex : count for #each) after declared objects
 						item.setSortText("Za" + name);
 						TextEdit textEdit = new TextEdit(range, name);
 						item.setTextEdit(Either.forLeft(textEdit));
@@ -548,7 +548,7 @@ public class QuteCompletionsForExpression {
 							range, completionSettings, formattingSettings, list);
 					item.setKind(CompletionItemKind.Function);
 					// Display namespace resolvers (ex : config:getConfigProperty(...)) after
-					// declared variables
+					// declared objects
 					item.setSortText("Zc" + item.getLabel());
 					break;
 				}
@@ -558,7 +558,7 @@ public class QuteCompletionsForExpression {
 							list);
 					item.setKind(CompletionItemKind.Field);
 					// Display namespace resolvers (ex : inject:bean) after
-					// declared variables
+					// declared objects
 					item.setSortText("Zb" + item.getLabel());
 					break;
 				}
@@ -597,7 +597,7 @@ public class QuteCompletionsForExpression {
 						CompletionItem item = new CompletionItem();
 						item.setLabel(name);
 						item.setKind(CompletionItemKind.Keyword);
-						// Display metadata section (ex : count for #each) after declared variables
+						// Display metadata section (ex : count for #each) after declared objects
 						item.setSortText("Za" + name);
 						TextEdit textEdit = new TextEdit(range, name);
 						item.setTextEdit(Either.forLeft(textEdit));

@@ -32,11 +32,11 @@ import org.junit.jupiter.api.Test;
 public class QuteDiagnosticsUserTagTest {
 
 	@Test
-	public void undefinedVariableInTemplate() {
+	public void undefinedObjectInTemplate() {
 		String template = "{name}";
 		Diagnostic d = d(0, 1, 0, 5, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("name", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("name", false));
 		testDiagnosticsFor(template, //
 				"src/main/resources/templates/user.html", //
 				"user", //
@@ -44,7 +44,7 @@ public class QuteDiagnosticsUserTagTest {
 	}
 
 	@Test
-	public void undefinedVariableInUserTagTemplate() {
+	public void undefinedObjectInUserTagTemplate() {
 		String template = "{name}";
 		testDiagnosticsFor(template, //
 				"src/main/resources/templates/tags/user.html", //
@@ -52,14 +52,23 @@ public class QuteDiagnosticsUserTagTest {
 	}
 
 	@Test
-	public void undefinedVariableInUserTagCall() {
+	public void undefinedObjectInUserTagCall() {
 		String template = "{#user name=name /}";
 		Diagnostic d = d(0, 12, 0, 16, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("name", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("name", false));
 		testDiagnosticsFor(template, d);
 	}
 
+	@Test
+	public void undefinedObjectInItUserTagCall() {
+		String template = "{#user name /}";
+		Diagnostic d = d(0, 7, 0, 11, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
+				DiagnosticSeverity.Warning);
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("name", false));
+		testDiagnosticsFor(template, d);
+	}
+	
 	@Test
 	public void stringParameterInUserTagCall() {
 		String template = "{#user name=\"User Name\" /}";

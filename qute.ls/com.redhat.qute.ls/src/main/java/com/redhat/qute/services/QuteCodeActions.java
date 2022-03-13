@@ -58,7 +58,7 @@ class QuteCodeActions {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteCodeActions.class.getName());
 
-	private static final String UNDEFINED_VARIABLE_CODEACTION_TITLE = "Declare `{0}` with parameter declaration.";
+	private static final String UNDEFINED_OBJECT_CODEACTION_TITLE = "Declare `{0}` with parameter declaration.";
 
 	private static final String UNDEFINED_SECTION_TAG_CODEACTION_TITLE = "Create the user tag file `{0}`.";
 
@@ -98,7 +98,7 @@ class QuteCodeActions {
 						// will provide a quickfix like:
 						//
 						// Declare `undefinedObject` with parameter declaration."
-						doCodeActionsForUndefinedVariable(template, diagnostic, codeActions);
+						doCodeActionsForUndefinedObject(template, diagnostic, codeActions);
 						break;
 					case UndefinedSectionTag:
 						// The following Qute template:
@@ -118,7 +118,7 @@ class QuteCodeActions {
 		return CompletableFuture.completedFuture(codeActions);
 	}
 
-	private static void doCodeActionsForUndefinedVariable(Template template, Diagnostic diagnostic,
+	private static void doCodeActionsForUndefinedObject(Template template, Diagnostic diagnostic,
 			List<CodeAction> codeActions) {
 		try {
 			String varName = null;
@@ -144,7 +144,7 @@ class QuteCodeActions {
 				TextDocument document = template.getTextDocument();
 				String lineDelimiter = document.lineDelimiter(0);
 
-				String title = MessageFormat.format(UNDEFINED_VARIABLE_CODEACTION_TITLE, varName);
+				String title = MessageFormat.format(UNDEFINED_OBJECT_CODEACTION_TITLE, varName);
 
 				Position position = new Position(0, 0);
 

@@ -29,17 +29,17 @@ import com.redhat.qute.settings.QuteValidationTypeSettings;
 public class QuteDiagnosticsSeverityTest {
 
 	@Test
-	public void undefinedVariableSeverityDefault() throws Exception {
+	public void undefinedObjectSeverityDefault() throws Exception {
 		String template = "{foo}";
 		QuteValidationSettings validationSettings = new QuteValidationSettings();
 		Diagnostic d = d(0, 1, 0, 4, QuteErrorCode.UndefinedObject, //
 				"`foo` cannot be resolved to an object.", DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("foo", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
 		testDiagnosticsFor(template, validationSettings, d);
 	}
 
 	@Test
-	public void undefinedVariableSeverityIgnore() throws Exception {
+	public void undefinedObjectSeverityIgnore() throws Exception {
 		String template = "{foo}";
 		QuteValidationSettings validationSettings = new QuteValidationSettings();
 		QuteValidationTypeSettings undefinedObject = new QuteValidationTypeSettings();
@@ -49,7 +49,7 @@ public class QuteDiagnosticsSeverityTest {
 	}
 
 	@Test
-	public void undefinedVariableSeverityWarning() throws Exception {
+	public void undefinedObjectSeverityWarning() throws Exception {
 		String template = "{foo}";
 		QuteValidationSettings validationSettings = new QuteValidationSettings();
 		QuteValidationTypeSettings undefinedObject = new QuteValidationTypeSettings();
@@ -57,12 +57,12 @@ public class QuteDiagnosticsSeverityTest {
 		validationSettings.setUndefinedObject(undefinedObject);
 		Diagnostic d = d(0, 1, 0, 4, QuteErrorCode.UndefinedObject, //
 				"`foo` cannot be resolved to an object.", DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("foo", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
 		testDiagnosticsFor(template, validationSettings, d);
 	}
 
 	@Test
-	public void undefinedVariableSeverityError() throws Exception {
+	public void undefinedObjectSeverityError() throws Exception {
 		String template = "{foo}";
 		QuteValidationSettings validationSettings = new QuteValidationSettings();
 		QuteValidationTypeSettings undefinedObject = new QuteValidationTypeSettings();
@@ -70,7 +70,7 @@ public class QuteDiagnosticsSeverityTest {
 		validationSettings.setUndefinedObject(undefinedObject);
 		Diagnostic d = d(0, 1, 0, 4, QuteErrorCode.UndefinedObject, //
 				"`foo` cannot be resolved to an object.", DiagnosticSeverity.Error);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("foo", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
 		testDiagnosticsFor(template, validationSettings, d);
 	}
 

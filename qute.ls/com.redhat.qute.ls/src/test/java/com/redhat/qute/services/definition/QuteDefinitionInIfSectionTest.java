@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 public class QuteDefinitionInIfSectionTest {
 
 	@Test
-	public void definedVariable() throws Exception {
+	public void definedObject() throws Exception {
 		String template = "{#let value=123}\r\n" + //
 				"  {#if val|ue}";
 		testDefinitionFor(template, "test.qute", //
@@ -34,7 +34,7 @@ public class QuteDefinitionInIfSectionTest {
 	}
 
 	@Test
-	public void undefinedVariable() throws Exception {
+	public void undefinedObject() throws Exception {
 		String template = "{#if val|ue}";
 		testDefinitionFor(template);
 	}

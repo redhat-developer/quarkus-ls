@@ -534,16 +534,16 @@ class QuteDiagnostics {
 		JavaTypeInfoProvider javaTypeInfo = objectPart.resolveJavaType();
 		if (javaTypeInfo == null) {
 			if (!resolvingJavaTypeContext.isDataModelTemplateResolved()) {
-				// The data model is not loaded, ignore the error of undefined variable
+				// The data model is not loaded, ignore the error of undefined object
 				return null;
 			}
 
 			if (UserTagUtils.isUserTag(template)) {
-				// Ignore undefined variable diagnostic for user tag
+				// Ignore undefined object diagnostic for user tag
 				return null;
 			}
 
-			// ex : {item} --> undefined variable
+			// ex : {item} --> undefined object
 			DiagnosticSeverity severity = validationSettings.getUndefinedObject().getDiagnosticSeverity();
 			if (severity == null) {
 				return null;
@@ -552,7 +552,7 @@ class QuteDiagnostics {
 			Diagnostic diagnostic = createDiagnostic(range, severity, QuteErrorCode.UndefinedObject,
 					objectPart.getPartName());
 			// Create data information helpful for code action
-			diagnostic.setData(DiagnosticDataFactory.createUndefinedVariableData(objectPart.getPartName(),
+			diagnostic.setData(DiagnosticDataFactory.createUndefinedObjectData(objectPart.getPartName(),
 					ownerSection != null && ownerSection.isIterable()));
 			diagnostics.add(diagnostic);
 			return null;

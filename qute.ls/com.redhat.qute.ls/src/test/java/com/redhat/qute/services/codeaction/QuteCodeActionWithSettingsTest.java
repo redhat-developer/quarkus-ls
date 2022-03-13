@@ -50,7 +50,7 @@ public class QuteCodeActionWithSettingsTest {
 				QuteErrorCode.UndefinedObject, //
 				"`item` cannot be resolved to an object.", //
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
@@ -66,7 +66,7 @@ public class QuteCodeActionWithSettingsTest {
 				QuteErrorCode.UndefinedObject, //
 				"`item` cannot be resolved to an object.", //
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedVariableData("item", false));
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		testDiagnosticsFor(template, d);
 

@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 public class QuteDefinitionInForSectionTest {
 
 	@Test
-	public void undefinedVariable() throws Exception {
+	public void undefinedObject() throws Exception {
 		String template = "{#for item in ite|ms}\r\n" + //
 				"		{it.name}\r\n" + //
 				"{/for item in}";
@@ -34,7 +34,7 @@ public class QuteDefinitionInForSectionTest {
 	}
 
 	@Test
-	public void definedVariable() throws Exception {
+	public void definedObject() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{#for item in ite|ms}\r\n" + //
 				"		{item.name}\r\n" + //
