@@ -77,6 +77,8 @@ class QuteCodeActions {
 
 	private static final String UNDEFINED_OBJECT_SEVERITY_SETTING = "qute.validation.undefinedObject.severity";
 
+	private static final String UNDEFINED_NAMESPACE_SEVERITY_SETTING = "qute.validation.undefinedNamespace.severity";
+
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
 			SharedSettings sharedSettings) {
 		List<CodeAction> codeActions = new ArrayList<>();
@@ -113,6 +115,12 @@ class QuteCodeActions {
 						//
 						// Create `undefinedTag`"
 						doCodeActionsForUndefinedSectionTag(template, diagnostic, codeActions);
+						break;
+					case UndefinedNamespace:
+						// The following Qute template:
+						// {undefinedNamespace:xyz}
+						doCodeActionToSetIgnoreSeverity(template, Collections.singletonList(diagnostic), errorCode,
+								codeActions, UNDEFINED_NAMESPACE_SEVERITY_SETTING);
 						break;
 					default:
 						break;

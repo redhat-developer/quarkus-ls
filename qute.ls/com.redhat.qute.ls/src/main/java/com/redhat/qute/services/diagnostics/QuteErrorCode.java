@@ -21,7 +21,7 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	ResolvingJavaType("Resolving Java type `{0}`."), //
 
 	// Error code for namespaces
-	UndefinedNamespace("No namespace resolver found for: `{0}`"), //
+	UndefinedNamespace("No namespace resolver found for: `{0}`."), //
 
 	// Error code for object, property, method parts
 	UndefinedObject("`{0}` cannot be resolved to an object."), //

@@ -42,7 +42,7 @@ import com.redhat.qute.settings.SharedSettings;
 public class QuteCodeActionWithSettingsTest {
 
 	@Test
-	public void withoutDisableValidationQuickFix() throws Exception {
+	public void withoutDisableValidationQuickFixUndefinedObject() throws Exception {
 		String template = "{item}";
 
 		Diagnostic d = d(0, 1, 0, 5, //
@@ -64,7 +64,26 @@ public class QuteCodeActionWithSettingsTest {
 	}
 
 	@Test
-	public void withDisableValidationQuickFix() throws Exception {
+	public void withoutDisableValidationQuickFixUndefinedNamespace() throws Exception {
+		String template = "{foo:item}";
+
+		Diagnostic d = d(0, 1, 0, 4, //
+				QuteErrorCode.UndefinedNamespace, //
+				"No namespace resolver found for: `foo`.", //
+				DiagnosticSeverity.Warning);
+
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, c("Ignore `UndefinedNamespace` problem.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.undefinedNamespace.severity", //
+						"test.qute", //
+						ConfigurationItemEditType.update, "ignore", //
+						d)));
+	}
+
+	@Test
+	public void withDisableValidationQuickFixUndefinedObject() throws Exception {
 		String template = "{item}";
 
 		Diagnostic d = d(0, 1, 0, 5, //
@@ -95,6 +114,40 @@ public class QuteCodeActionWithSettingsTest {
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
+						"test.qute", //
+						ConfigurationItemEditType.update, "ignore", //
+						d)));
+	}
+
+	@Test
+	public void withDisableValidationQuickFixUndefinedNamespace() throws Exception {
+		String template = "{foo:item}";
+
+		Diagnostic d = d(0, 1, 0, 4, //
+				QuteErrorCode.UndefinedNamespace, //
+				"No namespace resolver found for: `foo`.", //
+				DiagnosticSeverity.Warning);
+
+		testDiagnosticsFor(template, d);
+
+		SharedSettings settings = createSharedSettings(QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE);
+		testCodeActionsFor(template, d, //
+				settings, //
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
+						d)), //
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)), //
+				ca(d, c("Ignore `UndefinedNamespace` problem.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.undefinedNamespace.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
 						d)));

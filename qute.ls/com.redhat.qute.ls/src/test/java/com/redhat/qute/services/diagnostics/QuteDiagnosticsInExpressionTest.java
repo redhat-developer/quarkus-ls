@@ -375,12 +375,19 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void undefineNamespace() {
+	public void undefineNamespace() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{dataXXX:item}";
-		testDiagnosticsFor(template, //
-				d(1, 1, 1, 8, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `dataXXX`",
-						DiagnosticSeverity.Warning));
+		Diagnostic d = d(1, 1, 1, 8, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `dataXXX`.",
+				DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, c("Ignore `UndefinedNamespace` problem.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.undefinedNamespace.severity", //
+						"test.qute", //
+						ConfigurationItemEditType.update, "ignore", //
+						d)));
 	}
 
 	@Test

@@ -28,6 +28,8 @@ import com.redhat.qute.settings.QuteValidationTypeSettings;
  */
 public class QuteDiagnosticsSeverityTest {
 
+	// UndefinedObject
+
 	@Test
 	public void undefinedObjectSeverityDefault() throws Exception {
 		String template = "{foo}";
@@ -71,6 +73,51 @@ public class QuteDiagnosticsSeverityTest {
 		Diagnostic d = d(0, 1, 0, 4, QuteErrorCode.UndefinedObject, //
 				"`foo` cannot be resolved to an object.", DiagnosticSeverity.Error);
 		d.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
+		testDiagnosticsFor(template, validationSettings, d);
+	}
+
+	// UndefinedNamespace
+
+	@Test
+	public void undefinedNamespaceSeverityDefault() throws Exception {
+		String template = "{foo:item}";
+		QuteValidationSettings validationSettings = new QuteValidationSettings();
+		Diagnostic d = d(0, 1, 0, 4, QuteErrorCode.UndefinedNamespace, //
+				"No namespace resolver found for: `foo`.", DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, validationSettings, d);
+	}
+
+	@Test
+	public void undefinedNamespaceSeverityIgnore() throws Exception {
+		String template = "{foo:item}";
+		QuteValidationSettings validationSettings = new QuteValidationSettings();
+		QuteValidationTypeSettings undefinedNamespace = new QuteValidationTypeSettings();
+		undefinedNamespace.setSeverity(Severity.ignore.name());
+		validationSettings.setUndefinedNamespace(undefinedNamespace);
+		testDiagnosticsFor(template, validationSettings);
+	}
+
+	@Test
+	public void undefinedNamespaceSeverityWarning() throws Exception {
+		String template = "{foo:item}";
+		QuteValidationSettings validationSettings = new QuteValidationSettings();
+		QuteValidationTypeSettings undefinedNamespace = new QuteValidationTypeSettings();
+		undefinedNamespace.setSeverity(Severity.warning.name());
+		validationSettings.setUndefinedNamespace(undefinedNamespace);
+		Diagnostic d = d(0, 1, 0, 4, QuteErrorCode.UndefinedNamespace, //
+				"No namespace resolver found for: `foo`.", DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, validationSettings, d);
+	}
+
+	@Test
+	public void undefinedNamespaceSeverityError() throws Exception {
+		String template = "{foo:item}";
+		QuteValidationSettings validationSettings = new QuteValidationSettings();
+		QuteValidationTypeSettings undefinedNamespace = new QuteValidationTypeSettings();
+		undefinedNamespace.setSeverity(Severity.error.name());
+		validationSettings.setUndefinedNamespace(undefinedNamespace);
+		Diagnostic d = d(0, 1, 0, 4, QuteErrorCode.UndefinedNamespace, //
+				"No namespace resolver found for: `foo`.", DiagnosticSeverity.Error);
 		testDiagnosticsFor(template, validationSettings, d);
 	}
 
