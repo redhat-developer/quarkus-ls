@@ -16,6 +16,7 @@ import org.eclipse.lsp4j.jsonrpc.json.adapters.EitherTypeAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.redhat.qute.settings.FaultTolerantTypeAdapterFactory;
 
 /**
  * JSONUtility
@@ -44,8 +45,9 @@ public class JSONUtility {
 
 	private static GsonBuilder getDefaultGsonBuilder() {
 		return new GsonBuilder() //
-				// required to deserialize XMLFormattingOptions which extends FormattingOptions
+				// required to deserialize QuteFormattingOptions which extends FormattingOptions
 				// which uses Either
-				.registerTypeAdapterFactory(new EitherTypeAdapter.Factory());
+				.registerTypeAdapterFactory(new EitherTypeAdapter.Factory()) //
+				.registerTypeAdapterFactory(new FaultTolerantTypeAdapterFactory());
 	}
 }

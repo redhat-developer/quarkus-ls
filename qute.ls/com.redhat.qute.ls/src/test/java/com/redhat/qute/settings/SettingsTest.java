@@ -74,6 +74,18 @@ public class SettingsTest {
 			"	}\r\n" + //
 			"}";
 
+	private static final String badSettings = "{\r\n" + //
+			"    \"settings\": {\r\n" + //
+			"        \"qute\": {\r\n" + //
+			"            \"validation\": {\r\n" + //
+			"              \"enabled\": false,\r\n" + //
+			"              \"excluded\": [],\r\n" + //
+			"              \"undefinedObject\": \"error\"\r\n" + // error --> undefinedObject should define severity
+			"            }\r\n" + //
+			"        }\r\n" + //
+			"    }\r\n" + //
+			"}";
+
 	@Test
 	public void globalClientSettings() {
 
@@ -209,6 +221,15 @@ public class SettingsTest {
 		assertEquals(0, sharedSettings.getWorkspaceFolderSettingsUris().size());
 	}
 
+	@Test
+	public void badSettings() {
+		// Even with bad setings, the load of settings doesn't crash.
+		QuteGeneralClientSettings clientSettings = createBadSettings();
+		assertNotNull(clientSettings);
+
+		assertFalse(clientSettings.getValidation().isEnabled());
+	}
+
 	private static QuteGeneralClientSettings createWorkspaceFoldersSettings() {
 		InitializeParams params = createInitializeParams(workspaceFoldersSettings);
 		Object initializationOptionsSettings = InitializationOptionsSettings.getSettings(params);
@@ -222,6 +243,17 @@ public class SettingsTest {
 
 	private static QuteGeneralClientSettings createOneWorkspaceFoldersSettings() {
 		InitializeParams params = createInitializeParams(oneWorkspaceFoldersSettings);
+		Object initializationOptionsSettings = InitializationOptionsSettings.getSettings(params);
+
+		// Test client commons settings
+		initializationOptionsSettings = AllQuteSettings.getQuteSettings(initializationOptionsSettings);
+		QuteGeneralClientSettings settings = QuteGeneralClientSettings
+				.getGeneralQuteSettings(initializationOptionsSettings);
+		return settings;
+	}
+
+	private static QuteGeneralClientSettings createBadSettings() {
+		InitializeParams params = createInitializeParams(badSettings);
 		Object initializationOptionsSettings = InitializationOptionsSettings.getSettings(params);
 
 		// Test client commons settings
