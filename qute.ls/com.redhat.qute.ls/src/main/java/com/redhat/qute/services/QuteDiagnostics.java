@@ -415,7 +415,8 @@ class QuteDiagnostics {
 
 			case Namespace: {
 				NamespacePart namespacePart = (NamespacePart) current;
-				namespace = validateNamespace(namespacePart, projectUri, resolvingJavaTypeContext, diagnostics);
+				namespace = validateNamespace(namespacePart, projectUri, validationSettings, resolvingJavaTypeContext,
+						diagnostics);
 				if (namespace == null) {
 					// Invalid namespace
 					return null;
@@ -495,7 +496,8 @@ class QuteDiagnostics {
 	 *         otherwise.
 	 */
 	private String validateNamespace(NamespacePart namespacePart, String projectUri,
-			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
+			QuteValidationSettings validationSettings, ResolvingJavaTypeContext resolvingJavaTypeContext,
+			List<Diagnostic> diagnostics) {
 		String namespace = namespacePart.getPartName();
 		if (NamespacePart.DATA_NAMESPACE.equals(namespace)) {
 			return namespace;
@@ -507,9 +509,13 @@ class QuteDiagnostics {
 
 		if (projectUri != null) {
 			if (!javaCache.hasNamespace(namespace, projectUri)) {
+				DiagnosticSeverity severity = validationSettings.getUndefinedNamespace().getDiagnosticSeverity();
+				if (severity == null) {
+					return null;
+				}
 				Range range = QutePositionUtility.createRange(namespacePart);
-				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
-						QuteErrorCode.UndefinedNamespace, namespacePart.getPartName());
+				Diagnostic diagnostic = createDiagnostic(range, severity, QuteErrorCode.UndefinedNamespace,
+						namespacePart.getPartName());
 				diagnostics.add(diagnostic);
 				return null;
 			}

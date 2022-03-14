@@ -35,9 +35,13 @@ public class QuteValidationSettings {
 
 	private static final QuteValidationTypeSettings DEFAULT_UNDEFINED_OBJECT;
 
+	private static final QuteValidationTypeSettings DEFAULT_UNDEFINED_NAMESPACE;
+
 	static {
 		DEFAULT_UNDEFINED_OBJECT = new QuteValidationTypeSettings();
 		DEFAULT_UNDEFINED_OBJECT.setSeverity(Severity.warning.name());
+		DEFAULT_UNDEFINED_NAMESPACE = new QuteValidationTypeSettings();
+		DEFAULT_UNDEFINED_NAMESPACE.setSeverity(Severity.warning.name());
 		DEFAULT = new QuteValidationSettings();
 		DEFAULT.updateDefault();
 	}
@@ -45,6 +49,8 @@ public class QuteValidationSettings {
 	private boolean enabled;
 
 	private QuteValidationTypeSettings undefinedObject;
+
+	private QuteValidationTypeSettings undefinedNamespace;
 
 	private List<String> excluded;
 
@@ -101,6 +107,7 @@ public class QuteValidationSettings {
 			return;
 		}
 		setUndefinedObject(undefinedObject != null ? undefinedObject : DEFAULT_UNDEFINED_OBJECT);
+		setUndefinedNamespace(undefinedNamespace != null ? undefinedNamespace : DEFAULT_UNDEFINED_NAMESPACE);
 		updated = true;
 	}
 
@@ -113,6 +120,7 @@ public class QuteValidationSettings {
 		this.setEnabled(newValidation.isEnabled());
 		this.setExcluded(newValidation.getExcluded());
 		this.setUndefinedObject(newValidation.getUndefinedObject());
+		this.setUndefinedNamespace(newValidation.getUndefinedNamespace());
 	}
 
 	/**
@@ -128,10 +136,31 @@ public class QuteValidationSettings {
 	/**
 	 * Set the settings for Qute undefined object validation.
 	 *
-	 * @param undefined the settings for Qute undefined object validation.
+	 * @param undefinedObject the settings for Qute undefined object validation.
 	 */
-	public void setUndefinedObject(QuteValidationTypeSettings undefined) {
-		this.undefinedObject = undefined;
+	public void setUndefinedObject(QuteValidationTypeSettings undefinedObject) {
+		this.undefinedObject = undefinedObject;
+		this.updated = false;
+	}
+
+	/**
+	 * Returns the settings for Qute undefined namespace validation.
+	 *
+	 * @return the settings for Qute undefined namespace validation
+	 */
+	public QuteValidationTypeSettings getUndefinedNamespace() {
+		updateDefault();
+		return this.undefinedNamespace;
+	}
+
+	/**
+	 * Set the settings for Qute undefined namespace validation.
+	 *
+	 * @param undefinedNamespace the settings for Qute undefined namespace
+	 *                           validation.
+	 */
+	public void setUndefinedNamespace(QuteValidationTypeSettings undefinedNamespace) {
+		this.undefinedNamespace = undefinedNamespace;
 		this.updated = false;
 	}
 
@@ -215,6 +244,7 @@ public class QuteValidationSettings {
 		result = prime * result + (enabled ? 1231 : 1237);
 		result = prime * result + ((excluded == null) ? 0 : excluded.hashCode());
 		result = prime * result + ((undefinedObject == null) ? 0 : undefinedObject.hashCode());
+		result = prime * result + ((undefinedNamespace == null) ? 0 : undefinedNamespace.hashCode());
 		return result;
 	}
 
@@ -239,6 +269,12 @@ public class QuteValidationSettings {
 				return false;
 			}
 		} else if (!undefinedObject.equals(other.undefinedObject))
+			return false;
+		if (undefinedNamespace == null) {
+			if (!getUndefinedNamespace().equals(other.getUndefinedNamespace())) {
+				return false;
+			}
+		} else if (!undefinedNamespace.equals(other.undefinedNamespace))
 			return false;
 		return true;
 	}

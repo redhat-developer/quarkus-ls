@@ -11,12 +11,18 @@
 *******************************************************************************/
 package com.redhat.qute.services.diagnostics;
 
+import static com.redhat.qute.QuteAssert.c;
+import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
+import static com.redhat.qute.QuteAssert.testCodeActionsFor;
 import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
+
+import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
+import com.redhat.qute.services.commands.QuteClientCommandConstants;
 
 /**
  * Test with expressions.
@@ -27,12 +33,19 @@ import org.junit.jupiter.api.Test;
 public class QuteDiagnosticsInExpressionWithNamespaceTest {
 
 	@Test
-	public void undefineNamespace() {
+	public void undefineNamespace() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{dataXXX:item}";
-		testDiagnosticsFor(template, //
-				d(1, 1, 1, 8, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `dataXXX`",
-						DiagnosticSeverity.Warning));
+		Diagnostic d = d(1, 1, 1, 8, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `dataXXX`.",
+				DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, c("Ignore `UndefinedNamespace` problem.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.undefinedNamespace.severity", //
+						"test.qute", //
+						ConfigurationItemEditType.update, "ignore", //
+						d)));
 	}
 
 	@Test
@@ -112,16 +125,24 @@ public class QuteDiagnosticsInExpressionWithNamespaceTest {
 	}
 
 	@Test
-	public void badNamespace() {
+	public void badNamespace() throws Exception {
 		String template = "{X:}";
+		Diagnostic d = d(0, 1, 0, 2, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `X`.",
+				DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template,
 				d(0, 0, 0, 3, QuteErrorCode.SyntaxError, "Parser error on line 1: empty expression found {X:}",
 						DiagnosticSeverity.Error), //
-				d(0, 1, 0, 2, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `X`",
-						DiagnosticSeverity.Warning));
+				d);
 
 		template = "{X:bean}";
 		testDiagnosticsFor(template, d(0, 1, 0, 2, QuteErrorCode.UndefinedNamespace,
-				"No namespace resolver found for: `X`", DiagnosticSeverity.Warning));
+				"No namespace resolver found for: `X`.", DiagnosticSeverity.Warning));
+		testCodeActionsFor(template, d, //
+				ca(d, c("Ignore `UndefinedNamespace` problem.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.undefinedNamespace.severity", //
+						"test.qute", //
+						ConfigurationItemEditType.update, "ignore", //
+						d)));
 	}
 }
