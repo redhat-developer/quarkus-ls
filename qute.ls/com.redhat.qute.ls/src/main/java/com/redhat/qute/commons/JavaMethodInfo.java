@@ -27,6 +27,10 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
  */
 public class JavaMethodInfo extends JavaMemberInfo {
 
+	private static final String GET_PREFIX = "get";
+
+	private static final String IS_PREFIX = "is";
+
 	private transient String methodName;
 
 	private transient String returnType;
@@ -185,10 +189,13 @@ public class JavaMethodInfo extends JavaMemberInfo {
 			return NO_VALUE;
 		}
 		String methodName = getName();
+		if (GET_PREFIX.equals(methodName) || IS_PREFIX.equals(methodName)) {
+			return NO_VALUE;
+		}
 		int index = -1;
-		if (methodName.startsWith("get")) {
+		if (methodName.startsWith(GET_PREFIX)) {
 			index = 3;
-		} else if (methodName.startsWith("is")) {
+		} else if (methodName.startsWith(IS_PREFIX)) {
 			index = 2;
 		}
 		if (index == -1) {
