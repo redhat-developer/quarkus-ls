@@ -23,6 +23,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
@@ -43,6 +44,7 @@ import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.expression.PropertyPart;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
+import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
@@ -170,14 +172,22 @@ class QuteDiagnostics {
 					+ template.getUri() + "'.");
 		}
 		List<Diagnostic> diagnostics = new ArrayList<Diagnostic>();
+		// Validate Qute syntax
 		try {
 			diagnosticsForSyntax.validateWithRealQuteParser(template, diagnostics);
+		} catch (CancellationException e) {
+			throw e;
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while validating Qute syntax'" + template.getUri() + "'.", e);
+		}
+		// Validate data model
+		try {
 			validateDataModel(template, template, validationSettings, resolvingJavaTypeContext, new ResolutionContext(),
 					diagnostics);
 		} catch (CancellationException e) {
 			throw e;
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while validating '" + template.getUri() + "'.", e);
+			LOGGER.log(Level.SEVERE, "Error while validating Qute data model'" + template.getUri() + "'.", e);
 		}
 		cancelChecker.checkCanceled();
 		return diagnostics;
@@ -222,27 +232,45 @@ class QuteDiagnostics {
 				}
 				List<Parameter> parameters = section.getParameters();
 				// validate expression parameters
+				boolean checkValidOperator = section.getSectionKind() == SectionKind.IF;
+				boolean shouldBeAnOperator = false;
 				for (Parameter parameter : parameters) {
-					Expression expression = parameter.getJavaTypeExpression();
-					if (expression != null) {
-						ResolvedJavaTypeInfo result = validateExpression(expression, section, template,
-								validationSettings, previousContext, resolvingJavaTypeContext, diagnostics);
-						switch (section.getSectionKind()) {
-						case FOR:
-						case EACH:
-							String alias = ((LoopSection) section).getAlias();
-							currentContext.put(alias, result);
-							break;
-						case WITH:
-							currentContext.setWithObject(result);
-							break;
-						case LET:
-						case SET:
-							currentContext.put(parameter.getName(), result);
-							break;
-						default:
+					if (shouldBeAnOperator) {
+						// #if section, the current parameter name must be an operator
+						String operatorName = parameter.getName();
+						if (!section.isValidOperator(operatorName)) {
+							Range range = QutePositionUtility.createRange(parameter);
+							Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+									QuteErrorCode.InvalidOperator, operatorName, section.getTag(),
+									section.getAllowedOperators() //
+											.stream() //
+											.collect(Collectors.joining(",", "[", "]")));
+							diagnostics.add(diagnostic);
+						}
+					} else {
+						Expression expression = parameter.getJavaTypeExpression();
+						if (expression != null) {
+							// Validate object, property, method parts from the expression
+							ResolvedJavaTypeInfo result = validateExpression(expression, section, template,
+									validationSettings, previousContext, resolvingJavaTypeContext, diagnostics);
+							switch (section.getSectionKind()) {
+							case FOR:
+							case EACH:
+								String alias = ((LoopSection) section).getAlias();
+								currentContext.put(alias, result);
+								break;
+							case WITH:
+								currentContext.setWithObject(result);
+								break;
+							case LET:
+							case SET:
+								currentContext.put(parameter.getName(), result);
+								break;
+							default:
+							}
 						}
 					}
+					shouldBeAnOperator = checkValidOperator && !shouldBeAnOperator;
 				}
 				switch (section.getSectionKind()) {
 				case INCLUDE:
@@ -391,7 +419,7 @@ class QuteDiagnostics {
 	private ResolvedJavaTypeInfo validateExpressionParts(Parts parts, Section ownerSection, Template template,
 			String projectUri, QuteValidationSettings validationSettings, ResolutionContext resolutionContext,
 			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
-		ResolvedJavaTypeInfo resolvedJavaType = null;
+		ResolvedJavaTypeInfo baseType = null;
 		String namespace = null;
 		for (int i = 0; i < parts.getChildCount(); i++) {
 			Part current = parts.getChild(i);
@@ -426,46 +454,36 @@ class QuteDiagnostics {
 
 			case Object: {
 				ObjectPart objectPart = (ObjectPart) current;
-				resolvedJavaType = validateObjectPart(namespace, objectPart, ownerSection, template, projectUri,
+				baseType = validateObjectPart(namespace, objectPart, ownerSection, template, projectUri,
 						validationSettings, resolutionContext, diagnostics, resolvingJavaTypeContext);
-				if (resolvedJavaType == null) {
-					// The Java type of the object part cannot be resolved, stop the validation of
-					// property, method.
-					return null;
-				}
 				break;
 			}
 
 			case Method:
 			case Property: {
 				// java.util.List<org.acme.Item>
-				ResolvedJavaTypeInfo iter = resolvedJavaType;
-				if (resolvedJavaType != null && resolvedJavaType.isIterable() && !resolvedJavaType.isArray()) {
+				ResolvedJavaTypeInfo iter = baseType;
+				if (baseType != null && baseType.isIterable() && !baseType.isArray()) {
 					// Expression uses iterable type
 					// {@java.util.List<org.acme.Item items>
 					// {items.size()}
 					// Property, method to validate must be done for iterable type (ex :
 					// java.util.List
-					String iterableType = resolvedJavaType.getIterableType();
-					resolvedJavaType = resolveJavaType(iterableType, projectUri, resolvingJavaTypeContext);
-					if (resolvedJavaType == null || isResolvingJavaType(resolvedJavaType)) {
+					String iterableType = baseType.getIterableType();
+					baseType = resolveJavaType(iterableType, projectUri, resolvingJavaTypeContext);
+					if (baseType == null || isResolvingJavaType(baseType)) {
 						// The java type doesn't exists or it is resolving, stop the validation
 						return null;
 					}
 				}
 
-				resolvedJavaType = validateMemberPart(current, ownerSection, template, projectUri, validationSettings,
-						resolutionContext, resolvedJavaType, iter, diagnostics, resolvingJavaTypeContext);
-				if (resolvedJavaType == null) {
-					// The Java type of the previous part cannot be resolved, stop the validation of
-					// followings property, method.
-					return null;
-				}
+				baseType = validateMemberPart(current, ownerSection, template, projectUri, validationSettings,
+						resolutionContext, baseType, iter, diagnostics, resolvingJavaTypeContext);
 				break;
 			}
 			}
 		}
-		return resolvedJavaType;
+		return baseType;
 	}
 
 	private ResolvedJavaTypeInfo resolveJavaType(String javaType, String projectUri,
@@ -539,6 +557,12 @@ class QuteDiagnostics {
 
 		JavaTypeInfoProvider javaTypeInfo = objectPart.resolveJavaType();
 		if (javaTypeInfo == null) {
+			String literalJavaType = LiteralSupport.getLiteralJavaType(objectPart.getPartName()); 
+			if (literalJavaType != null) {
+				// The object part is a literal type (ex : true)
+				return null;
+			}
+			
 			if (!resolvingJavaTypeContext.isDataModelTemplateResolved()) {
 				// The data model is not loaded, ignore the error of undefined object
 				return null;
@@ -644,16 +668,19 @@ class QuteDiagnostics {
 	 * @return the Java type returned by the member part and null otherwise.
 	 */
 	private ResolvedJavaTypeInfo validatePropertyPart(PropertyPart part, Section ownerSection, Template template,
-			String projectUri, ResolutionContext resolutionContext, ResolvedJavaTypeInfo resolvedJavaType,
+			String projectUri, ResolutionContext resolutionContext, ResolvedJavaTypeInfo baseType,
 			ResolvedJavaTypeInfo iterableOfType, List<Diagnostic> diagnostics,
 			ResolvingJavaTypeContext resolvingJavaTypeContext) {
-		JavaMemberInfo javaMember = javaCache.findMember(part, resolvedJavaType, projectUri);
+		if (baseType == null) {
+			return null;
+		}
+		JavaMemberInfo javaMember = javaCache.findMember(part, baseType, projectUri);
 		if (javaMember == null) {
 			// ex : {@org.acme.Item item}
 			// "{item.XXXX}
 			Range range = QutePositionUtility.createRange(part);
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnknownProperty,
-					part.getPartName(), resolvedJavaType.getSignature());
+					part.getPartName(), baseType.getSignature());
 			diagnostics.add(diagnostic);
 			return null;
 		}
@@ -678,8 +705,19 @@ class QuteDiagnostics {
 	 */
 	private ResolvedJavaTypeInfo validateMethodPart(MethodPart methodPart, Section ownerSection, Template template,
 			String projectUri, QuteValidationSettings validationSettings, ResolutionContext resolutionContext,
-			ResolvedJavaTypeInfo resolvedJavaType, ResolvedJavaTypeInfo iter, List<Diagnostic> diagnostics,
+			ResolvedJavaTypeInfo baseType, ResolvedJavaTypeInfo iter, List<Diagnostic> diagnostics,
 			ResolvingJavaTypeContext resolvingJavaTypeContext) {
+		if (methodPart.isInfixNotation()) {
+			// ex : foo or '1'
+			// The method part used with infix notation must have one parameter
+			if (methodPart.getParameters().isEmpty()) {
+				Range range = QutePositionUtility.createRange(methodPart);
+				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+						QuteErrorCode.InfixNotationParameterRequired, methodPart.getPartName());
+				diagnostics.add(diagnostic);
+				return null;
+			}
+		}
 
 		// Validate parameters of the method part
 		boolean undefinedType = false;
@@ -697,17 +735,19 @@ class QuteDiagnostics {
 			parameterTypes.add(result);
 		}
 		if (undefinedType) {
-			// One of parameter cannot be resolved as type, teh validation is stopped
+			// One of parameter cannot be resolved as type, the validation is stopped
 			return null;
+		}
+
+		if (methodPart.isOperator()) {
+			return baseType;
 		}
 
 		// All parameters are resolved, validate the existing of method name according
 		// to the computed parameter types
-
 		String methodName = methodPart.getPartName();
 		String namespace = methodPart.getNamespace();
-		JavaMemberResult result = javaCache.findMethod(resolvedJavaType, namespace, methodName, parameterTypes,
-				projectUri);
+		JavaMemberResult result = javaCache.findMethod(baseType, namespace, methodName, parameterTypes, projectUri);
 		JavaMethodInfo method = (JavaMethodInfo) result.getMember();
 		if (method == null) {
 			QuteErrorCode errorCode = QuteErrorCode.UnknownMethod;
@@ -719,8 +759,8 @@ class QuteDiagnostics {
 			} else {
 				// ex : {@org.acme.Item item}
 				// {item.getXXXX()}
-				arg = resolvedJavaType.getSignature();
-				InvalidMethodReason reason = javaCache.getInvalidMethodReason(methodName, resolvedJavaType, projectUri);
+				arg = baseType.getSignature();
+				InvalidMethodReason reason = javaCache.getInvalidMethodReason(methodName, baseType, projectUri);
 				if (reason != null) {
 					switch (reason) {
 					case VoidReturn:
@@ -749,9 +789,23 @@ class QuteDiagnostics {
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
 					QuteErrorCode.InvalidVirtualMethod, //
 					method.getName(), method.getSimpleSourceType(), //
-					resolvedJavaType.getJavaElementSimpleType());
+					baseType.getJavaElementSimpleType());
 			diagnostics.add(diagnostic);
 			return null;
+		}
+
+		if (methodPart.isInfixNotation()) {
+			int nbParameters = method.getParameters().size() - (method.isVirtual() ? 1 : 0);
+			if (nbParameters != 1) {
+				// infix notation,
+				// ex: String#codePointCount cannot be used with infix notation
+				// String#codePointCount(beginIndex : int,endIndex : int) : int
+				Range range = QutePositionUtility.createRange(methodPart);
+				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+						QuteErrorCode.InvalidMethodInfixNotation, methodName);
+				diagnostics.add(diagnostic);
+				return null;
+			}
 		}
 
 		boolean matchParameters = result.isMatchParameters();

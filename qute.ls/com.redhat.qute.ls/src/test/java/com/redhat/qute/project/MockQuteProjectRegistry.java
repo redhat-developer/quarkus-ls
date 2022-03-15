@@ -99,7 +99,9 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 				// Definition for method
 				String methodName = params.getSourceMethod();
 				if (methodName != null) {
-					JavaMethodInfo methodInfo = findMethod(classInfo, methodName);
+					String getterMethodName = computeGetterName(methodName);
+					String booleanGetterName = computeBooleanGetterName(methodName);
+					JavaMethodInfo methodInfo = findMethod(classInfo, methodName, getterMethodName, booleanGetterName);
 					if (methodInfo != null) {
 						definitionRange = JAVA_METHOD_RANGE;
 					}

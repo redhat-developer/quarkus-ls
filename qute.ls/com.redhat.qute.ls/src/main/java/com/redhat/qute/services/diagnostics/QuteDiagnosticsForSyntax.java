@@ -29,22 +29,25 @@ import com.redhat.qute.project.tags.UserTag;
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.EngineBuilder;
 import io.quarkus.qute.TemplateException;
+import io.quarkus.qute.TemplateNode.Origin;
 import io.quarkus.qute.UserTagSectionHelper;
 
 /**
  * Qute syntax validation done with the real Qute parser.
- * 
+ *
  * @author Angelo ZERR
  *
  */
 public class QuteDiagnosticsForSyntax {
 
+	private static final Range LEFT_TOP_RANGE = new Range(new Position(0, 0), new Position(0, 0));
+
 	/**
 	 * Validate Qute syntax for the given template.
-	 * 
+	 *
 	 * @param template    the Qute template.
 	 * @param diagnostics the diagnostics to update.
-	 * 
+	 *
 	 */
 	public void validateWithRealQuteParser(Template template, List<Diagnostic> diagnostics) {
 		EngineBuilder engineBuilder = Engine.builder().addDefaults();
@@ -86,6 +89,10 @@ public class QuteDiagnosticsForSyntax {
 	}
 
 	private static Range createRange(TemplateException e, Template template) {
+		Origin origin = e.getOrigin();
+		if (origin == null) {
+			return LEFT_TOP_RANGE;
+		}
 		int line = e.getOrigin().getLine() - 1;
 		Position start = new Position(line, e.getOrigin().getLineCharacterStart() - 1);
 		Position end = new Position(line, e.getOrigin().getLineCharacterEnd() - 1);

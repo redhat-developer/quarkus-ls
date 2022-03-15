@@ -29,6 +29,10 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 
 	private boolean canHaveExpression;
 
+	private int assignOffset = -1;
+
+	private ParametersContainer container;
+
 	public Parameter(int start, int end) {
 		super(start, end);
 		this.startName = start;
@@ -71,7 +75,12 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 	}
 
 	public void setParameterParent(ParametersContainer container) {
-		super.setParent((Node) container);
+		if (container instanceof Node) {
+			super.setParent((Node) container);
+		} else {
+			this.container = container;
+		}
+
 	}
 
 	@Override
@@ -86,7 +95,7 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 	 */
 	public String getName() {
 		if (name == null) {
-			name = getOwnerTemplate().getText(getStartName(), getEndName());
+			name = getText(getStartName(), getEndName());
 		}
 		return name;
 	}
@@ -94,12 +103,20 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 	public String getValue() {
 		if (value == null) {
 			if (hasValueAssigned()) {
-				value = getOwnerTemplate().getText(getStartValue(), getEndValue());
+				value = getText(getStartValue(), getEndValue());
 			} else {
 				value = getName();
 			}
 		}
 		return value;
+	}
+
+	private String getText(int start, int end) {
+		Template template = getOwnerTemplate();
+		if (template != null) {
+			return template.getText(start, end);
+		}
+		return container.getTemplateContent().substring(start, end);
 	}
 
 	public boolean hasValueAssigned() {
@@ -156,10 +173,17 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 	}
 
 	public boolean isInValue(int offset) {
+		if (isAfterAssign(offset)) {
+			return true;
+		}
 		if (!hasValueAssigned()) {
 			return false;
 		}
 		return Node.isIncluded(getStartValue(), getEndValue(), offset);
+	}
+
+	public boolean isAfterAssign(int offset) {
+		return offset == assignOffset + 1;
 	}
 
 	@Override
@@ -172,5 +196,10 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 			}
 		}
 		visitor.endVisit(this);
+	}
+
+	public void setAssignOffset(int assignOffset) {
+		this.assignOffset = assignOffset;
+		super.setEnd(assignOffset);
 	}
 }

@@ -1,0 +1,131 @@
+{@java.lang.String nonExistent}
+{@java.lang.String arrayEmpty}
+{@java.lang.String array}
+{@java.lang.String mapEmpty}
+{@java.lang.String setEmpty}
+{@java.lang.String list}
+{@java.lang.String intZero}
+{@java.lang.String intTwo}
+{@java.lang.String boolFalse}
+{@java.lang.String boolTrue}
+{@java.lang.String nameEmpty}
+{@java.lang.String qual}
+{@java.lang.String isActive}
+{@java.lang.String !nok}
+{@java.lang.String ok}
+{@java.lang.String two}
+{@java.lang.String one}
+{@java.lang.String foo}
+{@java.lang.String name}
+
+{!
+	testIfElse
+	https://github.com/quarkusio/quarkus/blob/a0c32982e693e0931ff436c1f0bee92b1aee3461/independent-projects/qute/core/src/test/java/io/quarkus/qute/IfSectionTest.java#L18
+!}
+
+{#if isActive}ACTIVE{#else}INACTIVE{/if}
+
+{!
+	testIfOperator
+	https://github.com/quarkusio/quarkus/blob/a0c32982e693e0931ff436c1f0bee92b1aee3461/independent-projects/qute/core/src/test/java/io/quarkus/qute/IfSectionTest.java#L32
+!}
+
+{#if name eq foo}ACTIVE{#else}INACTIVE{/if}
+{#if name != foo}ACTIVE{#else}INACTIVE{/if}
+{#if one < two}OK{/if}
+{#if one >= one}OK{/if}
+{#if one >= 0}OK{/if}
+{#if one == one}OK{/if}
+{#if one is 2}NOK{#else if name eq foo}OK{/if}
+{#if name is foo}OK{/if}
+{#if two is 2}OK{/if}
+{#if name != null}OK{/if}
+{#if name is null}NOK{#else}OK{/if}
+{#if !false}OK{/if}
+{#if true && true}OK{/if}
+{#if name is 'foo' && true}OK{/if}
+{#if true && true && true}OK{/if}
+{#if false || true}OK{/if}
+{#if false || false || true}OK{/if}
+{#if name or true}OK{/if}
+{#if !(true && false)}OK{/if}
+{#if two > 1 && two < 10}OK{/if}
+
+{!
+	testNestedIf
+	https://github.com/quarkusio/quarkus/blob/a0c32982e693e0931ff436c1f0bee92b1aee3461/independent-projects/qute/core/src/test/java/io/quarkus/qute/IfSectionTest.java#L64
+!}
+{#if ok}{#if !nok}OK{/}{#else}NOK{/if}
+
+{!
+	testCompositeParameters
+	https://github.com/quarkusio/quarkus/blob/a0c32982e693e0931ff436c1f0bee92b1aee3461/independent-projects/qute/core/src/test/java/io/quarkus/qute/IfSectionTest.java#L73
+!}
+
+{#if (true || false) && true}OK{/if}
+{#if (true || false) && true && !false}OK{/if}
+{#if  true && true && !(true || false)}NOK{#else}OK{/if}
+{#if true && true  && !(true && false)}OK{#else}NOK{/if}
+{#if true && !true && (true || false)}NOK{#else}OK{/if}
+{#if true && (true  && ( true && false))}NOK{#else}OK{/if}
+{#if true && (!false || false || (true || false))}OK{#else}NOK{/if}
+{#if (foo.or(false) || false || true) && (true)}OK{/if}
+{#if foo.or(false) || false}OK{#else}NOK{/if}
+{#if false || (foo.or(false) || (false || true))}OK{#else}NOK{/if}
+{#if (true && false)}OK{#else}NOK{/if}
+{#if true && true}OK{#else}NOK{/if}
+{#if true && false}OK{#else}NOK{/if}
+{#if false && true}OK{#else}NOK{/if}
+{#if true and (true or false)}OK{#else}NOK{/if}
+{#if true and (true == false)}OK{#else}NOK{/if}
+{#if true && (false == false)}OK{#else}NOK{/if}
+
+{#if foo.bar != 'something' && foo.bar != 'other'}OK{#else}NOK{/if}
+{#if foo.bar != 'nothing' && foo.bar != 'other'}OK{#else}NOK{/if}
+{#if foo.bar == 'something' || foo.bar != 'other'}OK{#else}NOK{/if}
+{#if (foo.bar == 'something') || (foo.bar == 'other')}OK{#else}NOK{/if}
+
+{#if qual.name != 'javax.inject.Named'
+                  && qual.name != 'javax.enterprise.inject.Any'
+                  && qual.name != 'javax.enterprise.inject.Default'}{qual.name}{/if}
+
+{!
+	testFalsy
+	https://github.com/quarkusio/quarkus/blob/a0c32982e693e0931ff436c1f0bee92b1aee3461/independent-projects/qute/core/src/test/java/io/quarkus/qute/IfSectionTest.java#L158
+!}
+
+{#if name}1{#else}0{/if}
+{#if nameEmpty}1{#else}0{/if}
+{#if boolTrue}1{#else}0{/if}
+{#if boolFalse}1{#else}0{/if}
+{#if intTwo}1{#else}0{/if}
+{#if intZero}1{#else}0{/if}
+{#if list}1{#else}0{/if}
+{#if setEmpty}1{#else}0{/if}
+{#if mapEmpty}1{#else}0{/if}
+{#if array}1{#else}0{/if}
+{#if arrayEmpty}1{#else}0{/if}
+{#if !arrayEmpty}1{#else}0{/if}
+{#if arrayEmpty || name}1{#else}0{/if}
+{#if arrayEmpty && name}1{#else}0{/if}
+{#if array && intTwo}1{#else}0{/if}
+{#if (array && intZero) || true}1{#else}0{/if}
+{#if nonExistent.or(false)}1{#else}0{/if}
+{#if !nonExistent.or(false)}1{#else}0{/if}
+
+{!
+	testSafeExpression
+	https://github.com/quarkusio/quarkus/blob/a0c32982e693e0931ff436c1f0bee92b1aee3461/independent-projects/qute/core/src/test/java/io/quarkus/qute/IfSectionTest.java#L217
+!}
+
+ {#if val.is.not.there??}NOK{#else}OK{/if}
+ {#if hero??}NOK{#else}OK{/if}
+ {#if hero??}OK{#else}NOK{/if}
+
+ {!
+	 testFromageCondition
+	 https://github.com/quarkusio/quarkus/blob/a0c32982e693e0931ff436c1f0bee92b1aee3461/independent-projects/qute/core/src/test/java/io/quarkus/qute/IfSectionTest.java#L232
+ !}
+
+{#if user && target.status == ContentStatus:NEW && !target.voted(user)}NOK{#else}OK{/if}
+{#if user && target.status == ContentStatus:NEW && !target.voted(user)}OK{#else}NOK{/if}

@@ -15,6 +15,7 @@ public enum ScannerState {
 	WithinExpression, //
 	WithinParts, //
 	WithinMethod, //
+	WithinInfixNotation, //
 	WithinString, //
 	AfterNamespace;
 }

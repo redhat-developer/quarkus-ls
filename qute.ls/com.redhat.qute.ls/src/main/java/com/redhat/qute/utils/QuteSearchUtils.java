@@ -279,6 +279,9 @@ public class QuteSearchUtils {
 
 	public static void tryToCollectObjectPartOrParameter(String partName, PartNameMatcher matcher,
 			Expression expression, Node ownerNode, BiConsumer<Node, Range> collector) {
+		if (expression == null) {
+			return;
+		}
 		// Check if the current expression references the given part name (with an
 		// object part)
 		if (!tryToCollectObjectParts(partName, matcher, expression, collector)) {

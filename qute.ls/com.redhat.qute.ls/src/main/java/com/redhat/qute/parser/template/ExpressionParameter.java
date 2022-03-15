@@ -56,4 +56,9 @@ public class ExpressionParameter extends Expression {
 		}
 		return super.getParentSection();
 	}
+	
+	@Override
+	public boolean canSupportInfixNotation() {
+		return false;
+	}
 }

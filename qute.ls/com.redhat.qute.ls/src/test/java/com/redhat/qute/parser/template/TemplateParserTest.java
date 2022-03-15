@@ -42,7 +42,6 @@ public class TemplateParserTest {
 		assertEquals(16, section.getStartTagCloseOffset()); // {#let name=value|}
 		assertEquals(25, section.getEndTagOpenOffset());
 		assertEquals(30, section.getEndTagCloseOffset());
-
 	}
 
 	@Test
@@ -114,5 +113,24 @@ public class TemplateParserTest {
 		assertEquals(23, section.getStartTagCloseOffset()); // {#for| todo in todos|}
 		assertEquals(26, section.getEndTagOpenOffset()); // |{/}
 		assertEquals(28, section.getEndTagCloseOffset()); // {/|}
+	}
+	
+	@Test
+	public void infixNotation() {
+		String content = "{#let name=value}\r\n" + //
+				"    \r\n" + //
+				"{/let}";
+		Template template = TemplateParser.parse(content, "test.qute");
+		assertEquals(1, template.getChildCount());
+		Node first = template.getChild(0);
+		assertEquals(NodeKind.Section, first.getKind());
+		Section section = (Section) first;
+		assertEquals(SectionKind.LET, section.getSectionKind());
+		assertTrue(section.isClosed());
+
+		assertEquals(0, section.getStartTagOpenOffset()); // |{#let
+		assertEquals(16, section.getStartTagCloseOffset()); // {#let name=value|}
+		assertEquals(25, section.getEndTagOpenOffset());
+		assertEquals(30, section.getEndTagCloseOffset());
 	}
 }

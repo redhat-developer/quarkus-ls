@@ -27,29 +27,10 @@ public abstract class Part extends Node {
 
 	private String partName;
 
+	private Boolean optional;
+
 	public Part(int start, int end) {
 		super(start, end);
-	}
-
-	/**
-	 * Returns the part name.
-	 * 
-	 * @return the part name.
-	 */
-	public String getPartName() {
-		if (partName != null) {
-			return partName;
-		}
-		return partName = getOwnerTemplate().getText(getStart(), getEndName());
-	}
-
-	/**
-	 * Returns the offset of the part name end.
-	 * 
-	 * @return the offset of the part name end.
-	 */
-	public int getEndName() {
-		return getEnd();
 	}
 
 	@Override
@@ -62,18 +43,109 @@ public abstract class Part extends Node {
 		return NodeKind.ExpressionPart;
 	}
 
+	/**
+	 * Returns the start offset of the part name.
+	 * 
+	 * @return the start offset of the part name.
+	 */
+	public int getStartName() {
+		return getStart();
+	}
+
+	/**
+	 * Returns the end offset of the part name.
+	 * 
+	 * @return the end offset of the part name.
+	 */
+	public int getEndName() {
+		computeOptionalIfNeeded();
+		return getEnd();
+	}
+
+	/**
+	 * Returns the part name.
+	 * 
+	 * @return the part name.
+	 */
+	public String getPartName() {
+		if (partName != null) {
+			return partName;
+		}
+		return partName = getOwnerTemplate().getText(getStartName(), getEndName());
+	}
+
+	/**
+	 * Compute the optional information ( ex: valueNotFound?? means that
+	 * valueNotFound is optional) if needed.
+	 */
+	private void computeOptionalIfNeeded() {
+		if (canBeOptional() && optional == null) {
+			int endName = getEnd();
+			computeOptional(endName);
+		}
+	}
+
+	/**
+	 * Compute the optional information ( ex: valueNotFound?? means that
+	 * valueNotFound is optional).
+	 * 
+	 * @param end the end name offset.
+	 */
+	private synchronized void computeOptional(int end) {
+		if (optional != null) {
+			return;
+		}
+
+		// valueNotFound??
+		// See https://quarkus.io/guides/qute-reference#strict_rendering
+		if (end - getStart() > 2) {
+			String text = getOwnerTemplate().getText();
+			if (text.charAt(end - 1) == '?' && text.charAt(end - 2) == '?') {
+				// ex : {valueNotFound??}
+				// adjust the end name offset and set optional flag to true
+				setEnd(end - 2);
+				optional = true; // valueNotFound??
+				return;
+			}
+		}
+		optional = false; // valueNotFound
+	}
+
+	/**
+	 * Returns true if the part name is optional (ex : valueNotFound??) and false
+	 * otherwise.
+	 * 
+	 * @return true if the part name is optional (ex : valueNotFound??) and false
+	 *         otherwise.
+	 */
+	public boolean isOptional() {
+		computeOptionalIfNeeded();
+		return optional != null ? optional : false;
+	}
+
+	/**
+	 * Returns true if the part (ex: object, property part) can be optional and
+	 * false otherwise.
+	 * 
+	 * @return true if the part (ex: object, property part) can be optional and
+	 *         false otherwise.
+	 */
+	protected boolean canBeOptional() {
+		return false;
+	}
+
 	@Override
 	public Parts getParent() {
 		return (Parts) super.getParent();
 	}
 
-	public abstract PartKind getPartKind();
-
-	@Override
-	public String toString() {
-		return getPartName();
-	}
-
+	/**
+	 * Returns true if the part is the last from the parent parts and false
+	 * otherwise.
+	 * 
+	 * @return true if the part is the last from the parent parts and false
+	 *         otherwise.
+	 */
 	public boolean isLast() {
 		Parts parts = getParent();
 		return parts.getPartIndex(this) == parts.getChildCount() - 1;
@@ -103,6 +175,11 @@ public abstract class Part extends Node {
 		return null;
 	}
 
+	/**
+	 * Returns the namespace part and null otherwise.
+	 * 
+	 * @return the namespace part and null otherwise.
+	 */
 	public String getNamespace() {
 		Parts parts = getParent();
 		int index = parts.getPartIndex(this);
@@ -115,4 +192,17 @@ public abstract class Part extends Node {
 		}
 		return (part.getPartKind() == PartKind.Namespace) ? part.getPartName() : null;
 	}
+
+	@Override
+	public String toString() {
+		return getPartName();
+	}
+
+	/**
+	 * Returns the part kind.
+	 * 
+	 * @return the part kind.
+	 */
+	public abstract PartKind getPartKind();
+
 }

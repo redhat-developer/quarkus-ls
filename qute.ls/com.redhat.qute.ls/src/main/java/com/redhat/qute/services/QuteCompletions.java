@@ -27,6 +27,7 @@ import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
+import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.ParameterDeclaration;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
@@ -159,8 +160,14 @@ public class QuteCompletions {
 			// {#|}
 			return completionForTagSection.doCompleteTagSection(completionRequest, completionSettings,
 					formattingSettings, cancelChecker);
+		} else if (node.getKind() == NodeKind.Parameter) {
+			Parameter parameter = (Parameter) node;
+			if (parameter.isAfterAssign(offset)) {
+				// {# let name=|
+				return completionForExpression.doCompleteExpression(completionRequest, null, null, template, offset,
+						completionSettings, formattingSettings, cancelChecker);
+			}
 		}
-
 		return collectSnippetSuggestions(completionRequest);
 	}
 

@@ -23,36 +23,43 @@ import com.redhat.qute.parser.scanner.AbstractScanner;
  */
 public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 
-	private static final Predicate<Integer> PARAMETER_NAME_OR_VALUE_PREDICATE = ch -> {
+	private static final Predicate<Integer> PARAM_SPLITTED_BY_ONLY_SPACE = ch -> {
+		return ch != ' ';
+	};
+
+	private static final Predicate<Integer> PARAM_SPLITTED_BY_SPACE_OR_EQUALS = ch -> {
 		return ch != ' ' && ch != '=';
 	};
 
 	public static ParameterScanner createScanner(String input) {
-		return createScanner(input, false);
+		return createScanner(input, false, true);
 	}
 
-	public static ParameterScanner createScanner(String input, boolean methodParameters) {
-		return createScanner(input, 0, input.length(), methodParameters);
-	}
-
-	public static ParameterScanner createScanner(String input, int initialOffset, int endOffset,
-			boolean methodParameters) {
-		return createScanner(input, initialOffset, endOffset, methodParameters, ScannerState.WithinParameter);
+	public static ParameterScanner createScanner(String input, boolean methodParameters, boolean splitWithEquals) {
+		return createScanner(input, 0, input.length(), methodParameters, splitWithEquals);
 	}
 
 	public static ParameterScanner createScanner(String input, int initialOffset, int endOffset,
-			boolean methodParameters, ScannerState initialState) {
-		return new ParameterScanner(input, initialOffset, endOffset, methodParameters, initialState);
+			boolean methodParameters, boolean splitWithEquals) {
+		return createScanner(input, initialOffset, endOffset, methodParameters, splitWithEquals,
+				ScannerState.WithinParameter);
+	}
+
+	public static ParameterScanner createScanner(String input, int initialOffset, int endOffset,
+			boolean methodParameters, boolean splitWithEquals, ScannerState initialState) {
+		return new ParameterScanner(input, initialOffset, endOffset, methodParameters, splitWithEquals, initialState);
 	}
 
 	private final boolean methodParameters;
+	private final boolean splitWithEquals;
 
 	private int bracket;
 
-	ParameterScanner(String input, int initialOffset, int endOffset, boolean methodParameters,
+	ParameterScanner(String input, int initialOffset, int endOffset, boolean methodParameters, boolean splitWithEquals,
 			ScannerState initialState) {
 		super(input, initialOffset, endOffset, initialState, TokenType.Unknown, TokenType.EOS);
 		this.methodParameters = methodParameters;
+		this.splitWithEquals = splitWithEquals;
 	}
 
 	@Override
@@ -81,9 +88,7 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 		}
 
 		case WithinParameter: {
-			if (methodParameters) {
-
-			} else {
+			if (!methodParameters && splitWithEquals) {
 				if (stream.advanceIfChar('=')) {
 					if (!stream.eos() && (stream.peekChar() == ' ' || stream.peekChar() == '=')) {
 						state = ScannerState.WithinParameters;
@@ -101,7 +106,7 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 			int c = stream.peekChar();
 			if (c == '"' || c == '\'') {
 				stream.advance(1);
-				if(stream.advanceUntilChar(c)) {
+				if (stream.advanceUntilChar(c)) {
 					stream.advance(1);
 				}
 				state = ScannerState.WithinParameters;
@@ -121,7 +126,10 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 	}
 
 	private boolean hasNextParameterNameOrValue() {
-		return stream.advanceWhileChar(PARAMETER_NAME_OR_VALUE_PREDICATE) > 0;
+		if (splitWithEquals) {
+			return stream.advanceWhileChar(PARAM_SPLITTED_BY_SPACE_OR_EQUALS) > 0;
+		}
+		return stream.advanceWhileChar(PARAM_SPLITTED_BY_ONLY_SPACE) > 0;
 	}
 
 	private TokenType parseParameterName(int offset) {

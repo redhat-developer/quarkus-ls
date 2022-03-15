@@ -71,7 +71,7 @@ public class Expression extends Node {
 		if (expressionContent != null) {
 			return;
 		}
-		expressionContent = ExpressionParser.parse(this, getOwnerTemplate().getCancelChecker());
+		expressionContent = ExpressionParser.parse(this, canSupportInfixNotation(), getOwnerTemplate().getCancelChecker());
 	}
 
 	public List<Node> getExpressionContent() {
@@ -150,5 +150,9 @@ public class Expression extends Node {
 			acceptChildren(visitor, getExpressionContent());
 		}
 		visitor.endVisit(this);
+	}
+	
+	public boolean canSupportInfixNotation() {
+		return true;
 	}
 }

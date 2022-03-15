@@ -36,12 +36,15 @@ public class ExpressionParser {
 	/**
 	 * Returns the parsing result of the given expression content.
 	 * 
-	 * @param expression    the content to parse.
-	 * @param cancelChecker the cancel checker.
+	 * @param expression              the content to parse.
+	 * @param canSupportInfixNotation true if expression can support infix notation
+	 *                                and false otherwise.
+	 * @param cancelChecker           the cancel checker.
 	 * 
 	 * @return the parsing result of the given expression content.
 	 */
-	public static List<Node> parse(Expression expression, CancelChecker cancelChecker) {
+	public static List<Node> parse(Expression expression, boolean canSupportInfixNotation,
+			CancelChecker cancelChecker) {
 		if (cancelChecker == null) {
 			cancelChecker = DEFAULT_CANCEL_CHECKER;
 		}
@@ -49,7 +52,7 @@ public class ExpressionParser {
 		String text = template.getText();
 		int start = expression.getStartContentOffset();
 		int end = expression.getEndContentOffset();
-		ExpressionScanner scanner = ExpressionScanner.createScanner(text, start, end);
+		ExpressionScanner scanner = ExpressionScanner.createScanner(text, canSupportInfixNotation, start, end);
 		TokenType token = scanner.scan();
 		List<Node> expressionContent = new ArrayList<>();
 		Parts currentParts = null;
@@ -59,7 +62,13 @@ public class ExpressionParser {
 			int tokenEnd = scanner.getTokenEnd();
 			switch (token) {
 			case Whitespace:
-				currentParts = null;
+				// In infix notation there is an one parts, because space means:
+				// - the call of a method (ex : {name |or}
+				// - the call of a parameter method (ex : {name or |'param'}
+				if (!canSupportInfixNotation) {
+					// Not in infix notation context, create a new parts
+					currentParts = null;
+				}
 				break;
 			case NamespacePart:
 				currentParts = new Parts(tokenOffset, tokenEnd);
@@ -92,6 +101,12 @@ public class ExpressionParser {
 					currentParts.addPart(methodPart);
 				}
 				break;
+			case InfixMethodPart:
+				if (currentParts != null) {
+					MethodPart methodPart = new InfixNotationMethodPart(tokenOffset, tokenEnd);
+					currentParts.addPart(methodPart);
+				}
+				break;
 			case Dot:
 				if (currentParts != null) {
 					currentParts.addDot(tokenOffset);
@@ -118,30 +133,48 @@ public class ExpressionParser {
 					}
 				}
 				break;
+			case InfixParameter:
 			case StartString:
 			case String:
 			case EndString:
-				// ignore string tokens
+				// Adjust end of method part with the end of the infix parameter (here 1)
+				// foo charAt 1|
+				adjustEndOfInfixNotationMethod(currentParts, scanner, tokenEnd);
 				break;
 			default:
 				currentParts = null;
 				break;
 			}
-			token = scanner.scan();
+			token = scanner.scan();			
 		}
 		// adjust end offset for the current parts
 		if (currentParts != null) {
-			currentParts.setEnd(end);
 			Node last = currentParts.getLastChild();
-			if (last instanceof MethodPart) {
-				if (!last.isClosed()) {
-					// the current method is not closed with ')', adjust end method with the end
-					// offset.
-					((MethodPart) last).setEnd(end);
+			int endParts = currentParts.getEnd();
+			char c = text.charAt(endParts -1);
+			if (c != '.') {
+				// not in case {item.     }
+				currentParts.setEnd(end);
+				if (last instanceof MethodPart) {
+					if (!last.isClosed()) {
+						// the current method is not closed with ')', adjust end method with the end
+						// offset.
+						((MethodPart) last).setEnd(end);
+					}
 				}
 			}
 		}
 		return expressionContent;
+	}
+
+	public static void adjustEndOfInfixNotationMethod(Parts currentParts, ExpressionScanner scanner, int tokenEnd) {
+		if (currentParts != null/* && scanner.isInInfixNotation() */) {
+			Node last = currentParts.getLastChild();
+			if (last instanceof MethodPart) {
+				MethodPart methodPart = (MethodPart) last;
+				methodPart.setEnd(tokenEnd);
+			}
+		}
 	}
 
 }

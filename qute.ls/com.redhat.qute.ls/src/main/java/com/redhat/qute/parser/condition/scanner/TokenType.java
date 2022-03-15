@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2021 Red Hat Inc. and others.
+* Copyright (c) 2022 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
@@ -9,25 +9,19 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.parser.expression.scanner;
+package com.redhat.qute.parser.condition.scanner;
 
+/**
+ * Token type for condition expression.
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public enum TokenType {
-	NamespacePart, //
-	ObjectPart, //
-	PropertyPart, //
-	MethodPart, //
-	OpenBracket, //
-	CloseBracket, //
-	InfixMethodPart, //
-	InfixParameter, //
 
-	Dot, //
-	ColonSpace, //
-	StartString, //
-	EndString, //
-	String, //
-
-	Whitespace, //
+	StartBracketCondition, //
+	EndBracketCondition, //
+	// Other token types
 	Unknown, //
 	EOS;
 }

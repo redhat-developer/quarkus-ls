@@ -58,6 +58,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerMethod("codePointCount(beginIndex : int,endIndex : int) : int", string);
 		string.setInvalidMethod("getChars", InvalidMethodReason.VoidReturn); // void getChars(int srcBegin, int srcEnd,
 																				// char dst[], int dstBegin)
+		registerMethod("charAt(index : int) : char", string);
 		registerMethod("getBytes(charsetName : java.lang.String) : byte[]", string);
 		registerMethod("getBytes() : byte[]", string);
 

@@ -131,4 +131,16 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 				c("plexux", "plexux", r(0, 8, 0, 11)));
 	}
 
+	@Test
+	public void orpheanColonSpace() throws Exception {
+		String template = "	{inject :|}";
+		testCompletionFor(template, //
+				4, //
+				c("inject:bean", "inject:bean", r(0, 10, 0, 10)), //
+				c("inject:plexux", "inject:plexux", r(0, 10, 0, 10)), //
+				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 10, 0, 10)),
+				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
+						r(0, 10, 0, 10)));
+	}
+
 }
