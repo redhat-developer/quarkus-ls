@@ -44,7 +44,7 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 						DiagnosticSeverity.Error));
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.util.List itemsXXX}\r\n")), //
-				ca(d, c("Ignore `qute.validation.undefinedObject.severity` problem.", //
+				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //

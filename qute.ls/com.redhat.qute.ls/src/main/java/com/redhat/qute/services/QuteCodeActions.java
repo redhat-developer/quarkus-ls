@@ -103,7 +103,7 @@ class QuteCodeActions {
 						// will provide a quickfix like:
 						//
 						// Declare `undefinedObject` with parameter declaration."
-						doCodeActionsForUndefinedObject(template, diagnostic, codeActions);
+						doCodeActionsForUndefinedObject(template, diagnostic, errorCode, codeActions);
 						break;
 					case UndefinedSectionTag:
 						// The following Qute template:
@@ -124,7 +124,7 @@ class QuteCodeActions {
 	}
 
 	private static void doCodeActionsForUndefinedObject(Template template, Diagnostic diagnostic,
-			List<CodeAction> codeActions) {
+			QuteErrorCode errorCode, List<CodeAction> codeActions) {
 		try {
 			String varName = null;
 			boolean isIterable = false;
@@ -169,7 +169,7 @@ class QuteCodeActions {
 				codeActions.add(insertParameterDeclarationQuickFix);
 
 				// CodeAction to set validation severity to ignore
-				doCodeActionToSetIgnoreSeverity(template, Collections.singletonList(diagnostic), codeActions,
+				doCodeActionToSetIgnoreSeverity(template, Collections.singletonList(diagnostic), errorCode, codeActions,
 						UNDEFINED_OBJECT_SEVERITY_SETTING);
 			}
 
@@ -201,12 +201,14 @@ class QuteCodeActions {
 	 *
 	 * @param template        the Qute template
 	 * @param diagnostics     a singleton list diagnostic to set to ignore
+	 * @param errorCode       the Qute error code.
 	 * @param codeActions     list of CodeActions
 	 * @param severitySetting the severity setting to set to ignore
 	 */
 	private static void doCodeActionToSetIgnoreSeverity(Template template, List<Diagnostic> diagnostics,
-			List<CodeAction> codeActions, String severitySetting) {
-		String title = MessageFormat.format(SET_IGNORE_SEVERITY_TITLE, severitySetting);
+			QuteErrorCode errorCode, List<CodeAction> codeActions, String severitySetting) {
+
+		String title = MessageFormat.format(SET_IGNORE_SEVERITY_TITLE, errorCode.getCode());
 		CodeAction setIgnoreSeverityQuickFix = createConfigurationUpdateCodeAction(title, template.getUri(),
 				severitySetting, Severity.ignore.name(), ConfigurationItemEditType.update, diagnostics);
 		codeActions.add(setIgnoreSeverityQuickFix);
