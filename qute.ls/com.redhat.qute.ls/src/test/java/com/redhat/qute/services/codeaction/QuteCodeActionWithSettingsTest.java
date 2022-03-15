@@ -55,7 +55,7 @@ public class QuteCodeActionWithSettingsTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
 						System.lineSeparator())), //
-				ca(d, c("Ignore `qute.validation.undefinedObject.severity` problem.", //
+				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
@@ -92,7 +92,7 @@ public class QuteCodeActionWithSettingsTest {
 						d)), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
 						System.lineSeparator())), //
-				ca(d, c("Ignore `qute.validation.undefinedObject.severity` problem.", //
+				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
