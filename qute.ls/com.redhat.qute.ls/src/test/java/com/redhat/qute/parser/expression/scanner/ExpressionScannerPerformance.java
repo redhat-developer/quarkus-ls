@@ -27,7 +27,7 @@ public class ExpressionScannerPerformance {
 		// Continuously parses the large nasa.xml file with the XML scanner
 		//while (true) {
 			long start = System.currentTimeMillis();
-			Scanner<TokenType, ScannerState> scanner = ExpressionScanner.createScanner(text);
+			Scanner<TokenType, ScannerState> scanner = ExpressionScanner.createScanner(text, true);
 			TokenType token = scan(scanner);
 			while (token != TokenType.EOS) {
 				token = scan(scanner);

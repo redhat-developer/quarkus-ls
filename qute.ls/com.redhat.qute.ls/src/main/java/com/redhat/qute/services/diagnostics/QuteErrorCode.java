@@ -23,6 +23,9 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	// Error code for namespaces
 	UndefinedNamespace("No namespace resolver found for: `{0}`."), //
 
+	// Error code for operator
+	InvalidOperator("Invalid `{0}` operator for section `#{1}`. Allowed operators are `{2}`."), //
+	
 	// Error code for object, property, method parts
 	UndefinedObject("`{0}` cannot be resolved to an object."), //
 	UnknownType("`{0}` cannot be resolved to a type."), //
@@ -34,7 +37,9 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	InvalidMethodParameter("The method `{0}` in the type `{1}` is not applicable for the arguments `{2}`."), //
 	InvalidVirtualMethod(
 			"The virtual method `{0}` in the type `{1}` is not applicable for the base object `{2}` type."), //
-
+	InfixNotationParameterRequired("A parameter for the infix notation method `{0}` is required."), //
+	InvalidMethodInfixNotation("The method `{0}` cannot be used with infix notation, because it has not `1` parameter."), //
+	
 	UnknownProperty("`{0}` cannot be resolved or is not a field of `{1}` Java type."), //
 
 	// Error code for #for / #each section

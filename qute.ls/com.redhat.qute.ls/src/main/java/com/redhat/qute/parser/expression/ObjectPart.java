@@ -34,6 +34,8 @@ import com.redhat.qute.parser.template.sections.LoopSection;
 
 public class ObjectPart extends Part {
 
+	private Boolean notComputed;
+
 	public ObjectPart(int start, int end) {
 		super(start, end);
 	}
@@ -41,6 +43,33 @@ public class ObjectPart extends Part {
 	@Override
 	public PartKind getPartKind() {
 		return PartKind.Object;
+	}
+
+	@Override
+	public int getStartName() {
+		computeNotIfNeeded();
+		return super.getStartName();
+	}
+
+	private void computeNotIfNeeded() {
+		if (notComputed != null) {
+			return;
+		}
+		computeNot();
+	}
+
+	private synchronized void computeNot() {
+		if (notComputed != null) {
+			return;
+		}
+		String text = getOwnerTemplate().getText();
+		int start = super.getStartName();
+		if (text.charAt(start) == '!') {
+			// ex : !true
+			// !true --> true
+			super.setStart(start + 1);
+		}
+		notComputed = Boolean.TRUE;
 	}
 
 	public JavaTypeInfoProvider resolveJavaType() {
@@ -90,6 +119,11 @@ public class ObjectPart extends Part {
 		// - from parameter declaration
 		// - from @CheckedTemplate
 		return template.findInInitialDataModel(this);
+	}
+
+	@Override
+	protected boolean canBeOptional() {
+		return true;
 	}
 
 	@Override

@@ -115,6 +115,14 @@
 				"{#for r in recordsList.take(3)}"
 			],
 			"url": "https://quarkus.io/guides/qute-reference#collections"
+		},
+		{
+			"signature": "@java.lang.Integer(base : java.util.List<T>) : T",
+			"description": "Returns the element at the specified `index` from the given list.",
+			"sample": [
+				"{myList.0}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#collections"
 		}
 	]
 }

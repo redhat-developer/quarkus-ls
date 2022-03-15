@@ -31,22 +31,23 @@ public class QuteCompletionInExpressionWithIfSectionTest {
 				"{#if |}";
 		testCompletionFor(template, //
 				c("item", "item", r(1, 5, 1, 5)));
-		
+
 		template = "{@org.acme.Item item}\r\n" + //
 				"{#if abcd != '' && i|t }";
 		testCompletionFor(template, //
 				c("item", "item", r(1, 19, 1, 21)));
 	}
-	
+
 	@Test
 	public void propertyPart() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{#if item.|}";
 		testCompletionFor(template, //
 				c("name : String", "name", r(1, 10, 1, 10)));
-		
+
 		template = "{@org.acme.Item item}\r\n" + //
 				"{#if abcd != '' && item.| }";
 		testCompletionFor(template, //
 				c("name : String", "name", r(1, 24, 1, 24)));
-	}}
+	}
+}

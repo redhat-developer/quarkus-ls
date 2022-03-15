@@ -196,14 +196,6 @@ public class MultiLineStream {
 		return this.position - posNow;
 	}
 
-	public int getLastNonWhitespaceOffset() {
-		int posNow = this.position;
-		while (posNow > 0 && WHITESPACE_PREDICATE.test(peekCharAtOffset(posNow - 1))) {
-			posNow--;
-		}
-		return posNow;
-	}
-
 	/**
 	 * Will advance the stream position until ch or '{'
 	 */

@@ -29,28 +29,7 @@ public class QuteCompletionInExpressionTest {
 	public void completionInExpressionForObjectPart() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {|}";
-		testCompletionFor(template, //
-				c("item", "item", r(1, 7, 1, 7)));
-
-		template = "{@org.acme.Item item}\r\n" + //
-				"Item: {i|}";
-		testCompletionFor(template, //
-				c("item", "item", r(1, 7, 1, 8)));
-
-		template = "{@org.acme.Item item}\r\n" + //
-				"Item: {|i}";
-		testCompletionFor(template, //
-				c("item", "item", r(1, 7, 1, 7)));
-
-		template = "{@org.acme.Item item}\r\n" + //
-				"Item: {i|te}";
-		testCompletionFor(template, //
-				c("item", "item", r(1, 7, 1, 10)));
-
-		template = "{@org.acme.Item item}\r\n" + //
-				"Item: {item|}";
-		testCompletionFor(template, //
-				c("item", "item", r(1, 7, 1, 11)));
+		
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item. |}";
@@ -266,6 +245,33 @@ public class QuteCompletionInExpressionTest {
 				c("average : Integer", "average", r(1, 20, 1, 22)));
 	}
 
+	@Test
+	public void completionInExpressionWithBracketNotation() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"Item: {item['review2'].|}";
+		testCompletionFor(template, //
+				c("name : String", "name", r(1, 23, 1, 23)), //
+				c("average : Integer", "average", r(1, 23, 1, 23)));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"Item: {item['review2'].n|}";
+		testCompletionFor(template, //
+				c("name : String", "name", r(1, 23, 1, 24)), //
+				c("average : Integer", "average", r(1, 23, 1, 24)));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"Item: {item['review2'].|n}";
+		testCompletionFor(template, //
+				c("name : String", "name", r(1, 23, 1, 24)), //
+				c("average : Integer", "average", r(1, 23, 1, 24)));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"Item: {item['review2'].n|a}";
+		testCompletionFor(template, //
+				c("name : String", "name", r(1, 23, 1, 25)), //
+				c("average : Integer", "average", r(1, 23, 1, 25)));
+	}
+	
 	@Test
 	public void completionInExpressionWithOnlyStartBracket() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //

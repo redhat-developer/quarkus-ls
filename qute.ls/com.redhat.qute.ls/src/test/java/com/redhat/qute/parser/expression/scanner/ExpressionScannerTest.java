@@ -29,14 +29,14 @@ public class ExpressionScannerTest {
 
 	@Test
 	public void testObjectPart() {
-		scanner = ExpressionScanner.createScanner("item");
+		scanner = createInfixNotationScanner("item");
 		assertOffsetAndToken(0, TokenType.ObjectPart, "item");
 		assertOffsetAndToken(4, TokenType.EOS, "");
 	}
 
 	@Test
 	public void testObjectAndPropertyPart() {
-		scanner = ExpressionScanner.createScanner("item.name");
+		scanner = createInfixNotationScanner("item.name");
 		assertOffsetAndToken(0, TokenType.ObjectPart, "item");
 		assertOffsetAndToken(4, TokenType.Dot, ".");
 		assertOffsetAndToken(5, TokenType.PropertyPart, "name");
@@ -45,7 +45,7 @@ public class ExpressionScannerTest {
 
 	@Test
 	public void testObjectAndMethodPart() {
-		scanner = ExpressionScanner.createScanner("item.name()");
+		scanner = createInfixNotationScanner("item.name()");
 		assertOffsetAndToken(0, TokenType.ObjectPart, "item");
 		assertOffsetAndToken(4, TokenType.Dot, ".");
 		assertOffsetAndToken(5, TokenType.MethodPart, "name");
@@ -56,7 +56,7 @@ public class ExpressionScannerTest {
 
 	@Test
 	public void testObjectAndMethodPartWithParameters() {
-		scanner = ExpressionScanner.createScanner("item.name(1, base, 'abcd')");
+		scanner = createInfixNotationScanner("item.name(1, base, 'abcd')");
 		assertOffsetAndToken(0, TokenType.ObjectPart, "item");
 		assertOffsetAndToken(4, TokenType.Dot, ".");
 		assertOffsetAndToken(5, TokenType.MethodPart, "name");
@@ -67,19 +67,10 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(25, TokenType.CloseBracket, ")");
 		assertOffsetAndToken(26, TokenType.EOS, "");
 	}
-
-	@Test
-	public void testTwoParts() {
-		scanner = ExpressionScanner.createScanner("a b");
-		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
-		assertOffsetAndToken(1, TokenType.Whitespace, " ");
-		assertOffsetAndToken(2, TokenType.ObjectPart, "b");
-		assertOffsetAndToken(3, TokenType.EOS, "");
-	}
-
+	
 	@Test
 	public void testNamespaceStartWithObject() {
-		scanner = ExpressionScanner.createScanner("data:foo");
+		scanner = createInfixNotationScanner("data:foo");
 		assertOffsetAndToken(0, TokenType.NamespacePart, "data");
 		assertOffsetAndToken(4, TokenType.ColonSpace, ":");
 		assertOffsetAndToken(5, TokenType.ObjectPart, "foo");
@@ -88,7 +79,7 @@ public class ExpressionScannerTest {
 
 	@Test
 	public void testNamespaceStartWithMethod() {
-		scanner = ExpressionScanner.createScanner("data:foo()");
+		scanner = createInfixNotationScanner("data:foo()");
 		assertOffsetAndToken(0, TokenType.NamespacePart, "data");
 		assertOffsetAndToken(4, TokenType.ColonSpace, ":");
 		assertOffsetAndToken(5, TokenType.MethodPart, "foo");
@@ -99,7 +90,7 @@ public class ExpressionScannerTest {
 
 	@Test
 	public void testNamespaceWithProperty() {
-		scanner = ExpressionScanner.createScanner("data:foo.bar");
+		scanner = createInfixNotationScanner("data:foo.bar");
 		assertOffsetAndToken(0, TokenType.NamespacePart, "data");
 		assertOffsetAndToken(4, TokenType.ColonSpace, ":");
 		assertOffsetAndToken(5, TokenType.ObjectPart, "foo");
@@ -110,7 +101,7 @@ public class ExpressionScannerTest {
 
 	@Test
 	public void testNamespaceWithMethod() {
-		scanner = ExpressionScanner.createScanner("data:foo.bar()");
+		scanner = createInfixNotationScanner("data:foo.bar()");
 		assertOffsetAndToken(0, TokenType.NamespacePart, "data");
 		assertOffsetAndToken(4, TokenType.ColonSpace, ":");
 		assertOffsetAndToken(5, TokenType.ObjectPart, "foo");
@@ -123,7 +114,7 @@ public class ExpressionScannerTest {
 
 	@Test
 	public void testNamespaceWithMethodAndProperty() {
-		scanner = ExpressionScanner.createScanner("data:foo.bar().baz");
+		scanner = createInfixNotationScanner("data:foo.bar().baz");
 		assertOffsetAndToken(0, TokenType.NamespacePart, "data");
 		assertOffsetAndToken(4, TokenType.ColonSpace, ":");
 		assertOffsetAndToken(5, TokenType.ObjectPart, "foo");
@@ -141,22 +132,20 @@ public class ExpressionScannerTest {
 	 */
 	@Test
 	public void testElvisOperator() {
-		scanner = ExpressionScanner.createScanner("person.name ?: 'John'");
+		scanner = createInfixNotationScanner("person.name ?: 'John'");
 		assertOffsetAndToken(0, TokenType.ObjectPart, "person");
 		assertOffsetAndToken(6, TokenType.Dot, ".");
 		assertOffsetAndToken(7, TokenType.PropertyPart, "name");
 		assertOffsetAndToken(11, TokenType.Whitespace, " ");
-		assertOffsetAndToken(12, TokenType.ElvisOperator, "?:");
+		assertOffsetAndToken(12, TokenType.InfixMethodPart, "?:");
 		assertOffsetAndToken(14, TokenType.Whitespace, " ");
-		assertOffsetAndToken(15, TokenType.StartString, "'");
-		assertOffsetAndToken(16, TokenType.String, "John");
-		assertOffsetAndToken(20, TokenType.EndString, "'");
+		assertOffsetAndToken(15, TokenType.InfixParameter, "'John'");
 		assertOffsetAndToken(21, TokenType.EOS, "");
 	}
 
 	@Test
 	public void underscore() {
-		scanner = ExpressionScanner.createScanner("nested-content.toString()");
+		scanner = createInfixNotationScanner("nested-content.toString()");
 		assertOffsetAndToken(0, TokenType.ObjectPart, "nested-content");
 		assertOffsetAndToken(14, TokenType.Dot, ".");
 		assertOffsetAndToken(15, TokenType.MethodPart, "toString");
@@ -165,10 +154,158 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(25, TokenType.EOS, "");
 	}
 
+	// Infix notation tests
+	
+	@Test
+	public void testTwoPartsWithInfixNotation() {
+		scanner = createInfixNotationScanner("a b");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.InfixMethodPart, "b"); // infix notation -> method part
+		assertOffsetAndToken(3, TokenType.EOS, "");
+	}
+
+	@Test
+	public void testTwoPartsWithoutInfixNotation() {
+		scanner = createNoInfixNotationScanner("a b");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.ObjectPart, "b"); // No infix notation -> object part
+		assertOffsetAndToken(3, TokenType.EOS, "");
+	}
+	
+	@Test
+	public void testThreePartsWithInfixNotation() {
+		scanner = createInfixNotationScanner("a b c");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.InfixMethodPart, "b");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.InfixParameter, "c");
+		assertOffsetAndToken(5, TokenType.EOS, "");
+	}
+	
+	@Test
+	public void testSeveralPartsWithInfixNotation() {
+		scanner = createInfixNotationScanner("a b c d e");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.InfixMethodPart, "b");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.InfixParameter, "c");
+		assertOffsetAndToken(5, TokenType.Whitespace, " ");
+		assertOffsetAndToken(6, TokenType.InfixMethodPart, "d");
+		assertOffsetAndToken(7, TokenType.Whitespace, " ");
+		assertOffsetAndToken(8, TokenType.InfixParameter, "e");
+		assertOffsetAndToken(9, TokenType.EOS, "");
+	}
+	
+	@Test
+	public void testThreePartsWithoutInfixNotation() {
+		scanner = createNoInfixNotationScanner("a b c");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.ObjectPart, "b");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.ObjectPart, "c");
+		assertOffsetAndToken(5, TokenType.EOS, "");
+	}
+	
+	@Test
+	public void testOrInfixNotation() {
+		scanner = createInfixNotationScanner("person.name or 'John'");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "person");
+		assertOffsetAndToken(6, TokenType.Dot, ".");
+		assertOffsetAndToken(7, TokenType.PropertyPart, "name");
+		assertOffsetAndToken(11, TokenType.Whitespace, " ");
+		assertOffsetAndToken(12, TokenType.InfixMethodPart, "or");
+		assertOffsetAndToken(14, TokenType.Whitespace, " ");
+		assertOffsetAndToken(15, TokenType.InfixParameter, "'John'");
+		assertOffsetAndToken(21, TokenType.EOS, "");
+	}
+	
+	@Test
+	public void testCharAtInfixNotation() {
+		scanner = createInfixNotationScanner("foo charAt '1'");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "foo");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.InfixMethodPart, "charAt");
+		assertOffsetAndToken(10, TokenType.Whitespace, " ");
+		assertOffsetAndToken(11, TokenType.InfixParameter, "'1'");
+		assertOffsetAndToken(14, TokenType.EOS, "");
+	}
+	
+	@Test
+	public void testCharAtNoInfixNotation() {
+		scanner = createNoInfixNotationScanner("foo charAt '1'");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "foo");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.ObjectPart, "charAt");
+		assertOffsetAndToken(10, TokenType.Whitespace, " ");
+		assertOffsetAndToken(11, TokenType.StartString, "'");
+		assertOffsetAndToken(12, TokenType.String, "1");
+		assertOffsetAndToken(13, TokenType.EndString, "'");
+		assertOffsetAndToken(14, TokenType.EOS, "");
+	}
+	
+	@Test
+	public void testMethodsAndInfixNotation() {
+		scanner = createInfixNotationScanner("items.get(0) or 1");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "items");
+		assertOffsetAndToken(5, TokenType.Dot, ".");
+		assertOffsetAndToken(6, TokenType.MethodPart, "get");
+		assertOffsetAndToken(9, TokenType.OpenBracket, "(");
+		assertOffsetAndToken(11, TokenType.CloseBracket, ")");
+		assertOffsetAndToken(12, TokenType.Whitespace, " ");
+		assertOffsetAndToken(13, TokenType.InfixMethodPart, "or");
+		assertOffsetAndToken(15, TokenType.Whitespace, " ");
+		assertOffsetAndToken(16, TokenType.InfixParameter, "1");
+		assertOffsetAndToken(17, TokenType.EOS, "");
+	}
+	
+	@Test
+	public void dotSpace() {
+		scanner = createInfixNotationScanner("items. ");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "items");
+		assertOffsetAndToken(5, TokenType.Dot, ".");
+		assertOffsetAndToken(6, TokenType.Whitespace, " ");
+		assertOffsetAndToken(7, TokenType.EOS, "");
+	}
+	
+	@Test
+	public void twoMethodsWithOr() {
+		scanner = createInfixNotationScanner("item.name or item.name");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "item");
+		assertOffsetAndToken(4, TokenType.Dot, ".");
+		assertOffsetAndToken(5, TokenType.PropertyPart, "name");
+		assertOffsetAndToken(9, TokenType.Whitespace, " ");
+		assertOffsetAndToken(10, TokenType.InfixMethodPart, "or");
+		assertOffsetAndToken(12, TokenType.Whitespace, " ");
+		assertOffsetAndToken(13, TokenType.InfixParameter, "item.name");
+		assertOffsetAndToken(22, TokenType.EOS, "");
+	}
+	
+	@Test
+	public void infixNotationWithBracket() {
+		scanner = createInfixNotationScanner("foo getBytes()");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "foo");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.InfixMethodPart, "getBytes()");
+		assertOffsetAndToken(14, TokenType.EOS, "");
+	}
+	
 	private void assertOffsetAndToken(int tokenOffset, TokenType tokenType, String tokenText) {
 		TokenType token = scanner.scan();
 		assertEquals(tokenOffset, scanner.getTokenOffset());
 		assertEquals(tokenType, token);
 		assertEquals(tokenText, scanner.getTokenText());
+	}
+
+	private ExpressionScanner createInfixNotationScanner(String input) {
+		return ExpressionScanner.createScanner(input, true);
+	}
+	
+	private ExpressionScanner createNoInfixNotationScanner(String input) {
+		return ExpressionScanner.createScanner(input, false);
 	}
 }

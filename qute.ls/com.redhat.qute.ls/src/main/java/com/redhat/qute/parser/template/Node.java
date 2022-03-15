@@ -55,6 +55,10 @@ public abstract class Node {
 		return start;
 	}
 
+	protected void setStart(int start) {
+		this.start = start;
+	}
+	
 	public int getEnd() {
 		return end;
 	}

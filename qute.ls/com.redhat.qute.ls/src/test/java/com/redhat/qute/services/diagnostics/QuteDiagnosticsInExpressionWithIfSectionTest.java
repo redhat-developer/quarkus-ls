@@ -42,6 +42,14 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 	}
 
 	@Test
+	public void definedObjectInBracket() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{#if (item.name != '' && item > 0) && item > 0}\r\n" + //
+				"{/if}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
 	public void undefinedObject() throws Exception {
 		String template = "{#if item.name != '' && item > 0}\r\n" + //
 				"{/if}";
@@ -71,6 +79,45 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
 						d2)));
+	}
+
+	@Test
+	public void invalidOperator() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{#if item.name XX '' && item > 0}\r\n" + //
+				"{/if}";
+		testDiagnosticsFor(template, //
+				d(1, 15, 1, 17, QuteErrorCode.InvalidOperator,
+						"Invalid `XX` operator for section `#if`. Allowed operators are `[==,&&,||,!,<=,or,lt,is,eq,gt,and,ne,le,<,!=,>,ge,>=]`.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void doubleEqualsOperator() throws Exception {
+		String template = "{@java.lang.String one}\r\n" + //
+				"{#if one == one}OK{/if}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void conditionWithMethod() throws Exception {
+		String template = "{@java.lang.String foo}\r\n" + //
+				"{#if (foo.or(false) || false || true) && (true)}OK{/if}\r\n" + //
+				"{#if foo.or(false) || false}OK{#else}NOK{/if}\r\n" + //
+				"{#if false || (foo.or(false) || (false || true))}OK{#else}NOK{/if}";
+		testDiagnosticsFor(template);
+	}
+	
+	@Test
+	public void notOperator() {
+		String template = "{#if !true}NOK{#else}OK{/if}";
+		testDiagnosticsFor(template);
+		
+		Diagnostic d = d(0, 6, 0, 9, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
+				DiagnosticSeverity.Warning);
+		d.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
+		template = "{#if !foo}NOK{#else}OK{/if}";
+		testDiagnosticsFor(template, d);
 	}
 
 }

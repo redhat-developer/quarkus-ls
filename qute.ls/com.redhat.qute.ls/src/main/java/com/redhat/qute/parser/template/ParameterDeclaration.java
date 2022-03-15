@@ -14,6 +14,8 @@ package com.redhat.qute.parser.template;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.redhat.qute.parser.CancelChecker;
+
 public class ParameterDeclaration extends Node implements ParametersContainer, JavaTypeInfoProvider {
 
 	public static class JavaTypeRangeOffset extends RangeOffset {
@@ -214,4 +216,15 @@ public class ParameterDeclaration extends Node implements ParametersContainer, J
 		visitor.visit(this);
 		visitor.endVisit(this);
 	}
+	
+	@Override
+	public String getTemplateContent() {
+		return getOwnerTemplate().getText();
+	}
+	
+	@Override
+	public CancelChecker getCancelChecker() {
+		return getOwnerTemplate().getCancelChecker();
+	}
+
 }

@@ -342,4 +342,18 @@ public class QuteHighlightingInParameterDeclarationTest {
 				hl(r(0, 16, 0, 20), Write), //
 				hl(r(1, 1, 1, 5), Read));
 	}
+	
+	@Test
+	public void toValueInIfSection() throws BadLocationException {
+		String template = "{@org.acme.Item it|em}\r\n" + //
+				"{#if item.price > 10 and (item.price < 50 || item??) }\r\n" + //
+				"{/if}\r\n" + //
+				"{item.name}";
+		testHighlightsFor(template, //
+				hl(r(0, 16, 0, 20), Write), //
+				hl(r(1, 5, 1, 9), Read), //
+				hl(r(1, 26, 1, 30), Read), //
+				hl(r(1, 45, 1, 49), Read), //
+				hl(r(3, 1, 3, 5), Read));
+	}
 }

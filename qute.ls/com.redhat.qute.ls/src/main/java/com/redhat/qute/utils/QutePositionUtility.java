@@ -74,7 +74,7 @@ public class QutePositionUtility {
 
 	public static Range createRange(Part part) {
 		Template template = part.getOwnerTemplate();
-		return createRange(part.getStart(), part.getEndName(), template);
+		return createRange(part.getStartName(), part.getEndName(), template);
 	}
 
 	public static Range createRange(Node node) {
@@ -125,6 +125,10 @@ public class QutePositionUtility {
 				Expression expression = null;
 				Parameter parameter = section.getParameterAtOffset(offset);
 				if (parameter != null) {
+					if (parameter.isAfterAssign(offset)) {
+						// ex : {#let name=| }
+						return parameter;
+					}
 					if (parameter.hasValueAssigned() && !parameter.isInValue(offset)) {
 						// ex : {#let nam|e=value }
 						return parameter;

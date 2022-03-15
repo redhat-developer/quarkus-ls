@@ -14,8 +14,10 @@ package com.redhat.qute.parser.template;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.redhat.qute.parser.CancelChecker;
 import com.redhat.qute.parser.parameter.ParameterParser;
 
 /**
@@ -329,9 +331,13 @@ public abstract class Section extends Node implements ParametersContainer {
 			return Collections.emptyList();
 		}
 
-		List<Parameter> parameters = ParameterParser.parse(this, false, getOwnerTemplate().getCancelChecker());
+		List<Parameter> parameters = collectParameters();
 		initializeParameters(parameters);
 		return parameters;
+	}
+
+	protected List<Parameter> collectParameters() {
+		return ParameterParser.parse(this, false, true);
 	}
 
 	protected void initializeParameters(List<Parameter> parameters) {
@@ -508,5 +514,35 @@ public abstract class Section extends Node implements ParametersContainer {
 	 */
 	public List<SectionKind> getBlockLabels() {
 		return Collections.emptyList();
+	}
+
+	@Override
+	public String getTemplateContent() {
+		return getOwnerTemplate().getText();
+	}
+
+	@Override
+	public CancelChecker getCancelChecker() {
+		return getOwnerTemplate().getCancelChecker();
+	}
+
+	/**
+	 * Returns true if the given part name is a valid operator and false otherwise.
+	 * 
+	 * @param partName the part name.
+	 * 
+	 * @return true if the given part name is a valid operator and false otherwise.
+	 */
+	public boolean isValidOperator(String partName) {
+		return false;
+	}
+
+	/**
+	 * Returns the allowed operators for the expression inside section.
+	 * 
+	 * @return the allowed operators for the expression inside section.
+	 */
+	public Set<String> getAllowedOperators() {
+		return Collections.emptySet();
 	}
 }

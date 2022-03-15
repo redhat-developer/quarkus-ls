@@ -78,6 +78,16 @@ public class Parts extends Node {
 		}
 		return null;
 	}
+	
+	/**
+	 * Returns the namespace of the parts and null otherwise.
+	 * 
+	 * @return the namespace of the parts and null otherwise.
+	 */
+	public String getNamespace() {
+		NamespacePart namespacePart = getNamespacePart();
+		return namespacePart != null ? namespacePart.getPartName() : null;
+	}
 
 	@Override
 	public Part getChild(int index) {
@@ -144,4 +154,5 @@ public class Parts extends Node {
 		}
 		visitor.endVisit(this);
 	}
+
 }

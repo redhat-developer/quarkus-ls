@@ -355,7 +355,9 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			}
 		}
 		// Search in the java root type
-		JavaMemberInfo memberInfo = findMember(baseType, property);
+		String getterMethodName = computeGetterName(property);
+		String booleanGetterName = computeBooleanGetterName(property);
+		JavaMemberInfo memberInfo = findMember(baseType, property, getterMethodName, booleanGetterName);
 		if (memberInfo != null) {
 			return memberInfo;
 		}
@@ -386,12 +388,13 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 * @param property the property
 	 * @return the member retrieved by the given property and null otherwise.
 	 */
-	private JavaMemberInfo findMember(ResolvedJavaTypeInfo resolvedType, String property) {
-		JavaFieldInfo fieldInfo = findField(resolvedType, property);
+	private JavaMemberInfo findMember(ResolvedJavaTypeInfo resolvedType, String propertyOrMethodName,
+			String getterMethodName, String booleanGetterName) {
+		JavaFieldInfo fieldInfo = findField(resolvedType, propertyOrMethodName);
 		if (fieldInfo != null) {
 			return fieldInfo;
 		}
-		return findMethod(resolvedType, property);
+		return findMethod(resolvedType, propertyOrMethodName, getterMethodName, booleanGetterName);
 	}
 
 	/**
@@ -419,21 +422,22 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 * Returns the member method retrieved by the given property or method name and
 	 * null otherwise.
 	 * 
-	 * @param baseType             the Java base type.
-	 * @param propertyOrMethodName property or method name
+	 * @param baseType          the Java base type.
+	 * @param methodName        property or method name.
+	 * @param getterMethodName  the getter method name.
+	 * @param booleanGetterName the boolean getter method name.
 	 *
 	 * @return the member field retrieved by the given property or method name and
 	 *         null otherwise.
 	 */
-	protected static JavaMethodInfo findMethod(ResolvedJavaTypeInfo baseType, String propertyOrMethodName) {
+	protected static JavaMethodInfo findMethod(ResolvedJavaTypeInfo baseType, String methodName,
+			String getterMethodName, String booleanGetterName) {
 		List<JavaMethodInfo> methods = baseType.getMethods();
-		if (methods == null || methods.isEmpty() || isEmpty(propertyOrMethodName)) {
+		if (methods == null || methods.isEmpty() || isEmpty(methodName)) {
 			return null;
 		}
-		String getterMethodName = computeGetterName(propertyOrMethodName);
-		String booleanGetterName = computeBooleanGetterName(propertyOrMethodName);
 		for (JavaMethodInfo method : methods) {
-			if (isMatchMethod(method, propertyOrMethodName, getterMethodName, booleanGetterName)) {
+			if (isMatchMethod(method, methodName, getterMethodName, booleanGetterName)) {
 				return method;
 			}
 		}
@@ -580,12 +584,12 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		return true;
 	}
 
-	private static String computeGetterName(String propertyOrMethodName) {
+	protected static String computeGetterName(String propertyOrMethodName) {
 		return "get" + (propertyOrMethodName.charAt(0) + "").toUpperCase()
 				+ propertyOrMethodName.substring(1, propertyOrMethodName.length());
 	}
 
-	private static String computeBooleanGetterName(String propertyOrMethodName) {
+	protected static String computeBooleanGetterName(String propertyOrMethodName) {
 		return "is" + (propertyOrMethodName.charAt(0) + "").toUpperCase()
 				+ propertyOrMethodName.substring(1, propertyOrMethodName.length());
 	}
@@ -824,7 +828,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	private boolean isMatchType(ResolvedJavaTypeInfo javaType, String parameterType, String projectUri) {
 		String resolvedTypeName = javaType.getName();
-		if ("java.lang.Object".equals(parameterType) && !JavaTypeInfo.PRIMITIVE_TYPES.contains(resolvedTypeName)) {
+		if ("java.lang.Object".equals(parameterType)) {
 			return true;
 		}
 		if (isSameType(parameterType, resolvedTypeName)) {
