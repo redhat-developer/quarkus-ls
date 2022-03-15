@@ -12,6 +12,7 @@
 package com.redhat.qute.commons;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -62,5 +63,29 @@ public class JavaMethodInfoTest {
 
 		String resolved = method.resolveJavaElementType(listOfItem);
 		assertEquals("org.acme.Item", resolved);
+	}
+
+	@Test
+	public void getter() {
+		// getFoo()
+		JavaMethodInfo getFooMethod = new JavaMethodInfo();
+		getFooMethod.setSignature("getFoo() : int");
+		assertEquals("foo", getFooMethod.getGetterName());
+
+		// get()
+		JavaMethodInfo getMethod = new JavaMethodInfo();
+		getMethod.setSignature("get() : int");
+		assertNull(getMethod.getGetterName());
+
+		// isFoo()
+		JavaMethodInfo isFooMethod = new JavaMethodInfo();
+		isFooMethod.setSignature("isFoo() : boolean");
+		assertEquals("foo", isFooMethod.getGetterName());
+
+		// is()
+		JavaMethodInfo isMethod = new JavaMethodInfo();
+		isMethod.setSignature("is() : boolean");
+		assertNull(isMethod.getGetterName());
+
 	}
 }
