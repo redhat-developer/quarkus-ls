@@ -13,7 +13,7 @@ package com.redhat.qute.settings;
 
 /**
  * Base class for settings.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -21,16 +21,28 @@ public class BaseSettings {
 
 	private final QuteValidationSettings validationSettings;
 
+	private final QuteCodeLensSettings codeLensSettings;
+
 	public BaseSettings() {
 		this.validationSettings = new QuteValidationSettings();
+		this.codeLensSettings = new QuteCodeLensSettings();
 	}
 
 	/**
 	 * Returns the Qute validation settings.
-	 * 
+	 *
 	 * @return the Qute validation settings.
 	 */
 	public QuteValidationSettings getValidationSettings() {
 		return validationSettings;
+	}
+
+	/**
+	 * Returns the Qute CodeLens settings.
+	 *
+	 * @return the Qute CodeLens settings.
+	 */
+	public QuteCodeLensSettings getCodeLensSettings() {
+		return codeLensSettings;
 	}
 }
