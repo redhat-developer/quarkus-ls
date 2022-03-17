@@ -19,13 +19,12 @@ import java.util.Set;
 
 /**
  * Qute shared settings.
- * 
+ *
  * @author Angelo ZERR
  *
  */
 public class SharedSettings extends BaseSettings {
 	private final QuteCompletionSettings completionSettings;
-	private final QuteCodeLensSettings codeLensSettings;
 	private final QuteFormattingSettings formattingSettings;
 	private final QuteHoverSettings hoverSettings;
 	private final QuteCommandCapabilities commandCapabilities;
@@ -35,7 +34,6 @@ public class SharedSettings extends BaseSettings {
 	public SharedSettings() {
 		super();
 		this.completionSettings = new QuteCompletionSettings();
-		this.codeLensSettings = new QuteCodeLensSettings();
 		this.formattingSettings = new QuteFormattingSettings();
 		this.hoverSettings = new QuteHoverSettings();
 		this.commandCapabilities = new QuteCommandCapabilities();
@@ -43,7 +41,7 @@ public class SharedSettings extends BaseSettings {
 
 	/**
 	 * Returns the completion settings.
-	 * 
+	 *
 	 * @return the completion settings.
 	 */
 	public QuteCompletionSettings getCompletionSettings() {
@@ -51,17 +49,8 @@ public class SharedSettings extends BaseSettings {
 	}
 
 	/**
-	 * Returns the codeLens settings.
-	 * 
-	 * @return the codeLens settings.
-	 */
-	public QuteCodeLensSettings getCodeLensSettings() {
-		return codeLensSettings;
-	}
-
-	/**
 	 * Returns the formatting settings.
-	 * 
+	 *
 	 * @return the formatting settings.
 	 */
 	public QuteFormattingSettings getFormattingSettings() {
@@ -70,9 +59,9 @@ public class SharedSettings extends BaseSettings {
 
 	/**
 	 * Returns the validation settings for the given Qute template file Uri.
-	 * 
+	 *
 	 * @param templateFileUri the Qute template file Uri.
-	 * 
+	 *
 	 * @return the validation settings for the given Qute template file Uri.
 	 */
 	public QuteValidationSettings getValidationSettings(String templateFileUri) {
@@ -81,7 +70,7 @@ public class SharedSettings extends BaseSettings {
 
 	/**
 	 * Returns the hover settings.
-	 * 
+	 *
 	 * @return the hover settings.
 	 */
 	public QuteHoverSettings getHoverSettings() {
@@ -99,9 +88,9 @@ public class SharedSettings extends BaseSettings {
 
 	/**
 	 * Returns the settings for the given Qute template file Uri.
-	 * 
+	 *
 	 * @param templateFileUri the Qute template file Uri.
-	 * 
+	 *
 	 * @return the settings for the given Qute template file Uri.
 	 */
 	private BaseSettings getSettings(String templateFileUri) {
@@ -118,9 +107,9 @@ public class SharedSettings extends BaseSettings {
 
 	/**
 	 * Returns the settings for the given workspace folder Uri.
-	 * 
+	 *
 	 * @param workspaceFolderUri the workspace folder Uri.
-	 * 
+	 *
 	 * @return the settings for the given workspace folder Uri.
 	 */
 	public BaseSettings getWorkspaceFolderSettings(String workspaceFolderUri) {
@@ -135,9 +124,9 @@ public class SharedSettings extends BaseSettings {
 
 	/**
 	 * Clean unused workspace folder settings.
-	 * 
+	 *
 	 * @param existingWorkspaceFolderUris the existing workspace folder uris.
-	 * 
+	 *
 	 * @return true if a workspace folder settings is clear and false otherwise.
 	 */
 	public boolean cleanWorkspaceFolderSettings(Set<String> existingWorkspaceFolderUris) {
@@ -162,7 +151,7 @@ public class SharedSettings extends BaseSettings {
 
 	/**
 	 * Returns the workspace folder settings Uris.
-	 * 
+	 *
 	 * @return the workspace folder settings Uris.
 	 */
 	public Set<String> getWorkspaceFolderSettingsUris() {

@@ -84,16 +84,20 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	private final QuteProjectRegistry projectRegistry;
 
 	private final QuteLanguageService quteLanguageService;
+
 	private final QuteTextDocumentService textDocumentService;
+
 	private final QuteWorkspaceService workspaceService;
 
 	private Integer parentProcessId;
+
 	private QuteLanguageClientAPI languageClient;
+
 	private QuteCapabilityManager capabilityManager;
 
 	public QuteLanguageServer() {
 		this.sharedSettings = new SharedSettings();
-		this.projectRegistry = new QuteProjectRegistry(this, this, this, this,this);
+		this.projectRegistry = new QuteProjectRegistry(this, this, this, this, this);
 		this.dataModelCache = new JavaDataModelCache(projectRegistry);
 		this.quteLanguageService = new QuteLanguageService(dataModelCache);
 		this.textDocumentService = new QuteTextDocumentService(this);
@@ -154,6 +158,10 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 			if (result.isValidationSettingsChanged()) {
 				// Some validation settings changed
 				textDocumentService.validationSettingsChanged();
+			}
+			if (result.isCodeLensSettingsChanged()) {
+				// Some CodeLens settings changed
+				getLanguageClient().refreshCodeLenses();
 			}
 		}
 	}

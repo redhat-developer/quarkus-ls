@@ -13,6 +13,7 @@ package com.redhat.qute.ls.java;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -73,6 +74,9 @@ public class JavaFileTextDocumentService extends AbstractTextDocumentService {
 
 	@Override
 	public CompletableFuture<List<? extends CodeLens>> codeLens(CodeLensParams params) {
+		if (!sharedSettings.getCodeLensSettings().isEnabled()) {
+			return CompletableFuture.completedFuture(Collections.emptyList());
+		}
 		QuteJavaCodeLensParams javaParams = new QuteJavaCodeLensParams(params.getTextDocument().getUri());
 		return quteLanguageServer.getLanguageClient().getJavaCodelens(javaParams);
 	}
