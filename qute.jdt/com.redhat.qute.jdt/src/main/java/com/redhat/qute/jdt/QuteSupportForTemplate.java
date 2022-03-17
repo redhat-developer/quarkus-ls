@@ -408,12 +408,12 @@ public class QuteSupportForTemplate {
 						.collect(Collectors.toList());
 			}
 		} else {
-			ITypeHierarchy typeHierarchy = type.newSupertypeHierarchy(monitor);
-			IType[] rootClasses = typeHierarchy.getAllClasses();
-			extendedTypes = Stream.of(rootClasses) //
-					.map(interfaceType -> interfaceType.getFullyQualifiedName()) //
+			// ex : String implements CharSequence, ....
+			ITypeHierarchy typeHierarchy = type.newSupertypeHierarchy(monitor);			
+			IType[] allSuperTypes = typeHierarchy.getSupertypes(type);
+			extendedTypes = Stream.of(allSuperTypes) //
+					.map(superType -> superType.getFullyQualifiedName()) //
 					.collect(Collectors.toList());
-
 		}
 
 		if (extendedTypes != null) {

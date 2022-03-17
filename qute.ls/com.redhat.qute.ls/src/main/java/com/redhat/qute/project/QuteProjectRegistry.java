@@ -744,7 +744,8 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	public boolean isMatchNamespaceResolver(String namespace, String partName, ValueResolver resolver,
 			ExtendedDataModelProject dataModel) {
 		String name = getResolverName(resolver);
-		if (dataModel.getSimilarNamespace(namespace).equals(resolver.getNamespace()) && ("*".equals(name) || partName.equals(name))) {
+		if (dataModel.getSimilarNamespace(namespace).equals(resolver.getNamespace())
+				&& ("*".equals(name) || partName.equals(name))) {
 			return true;
 		}
 		return false;
@@ -834,18 +835,29 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		if (isSameType(parameterType, resolvedTypeName)) {
 			return true;
 		}
+		// class BigItem <- Item <- SmallItem
+		// javaType = BigItem => javaType.getExtendedTypes() = [Item]
 		if (javaType.getExtendedTypes() != null) {
-			for (String extendedType : javaType.getExtendedTypes()) {
-				if (isSameType(parameterType, extendedType)) {
+			// Loop for first level of super types (ex Item)
+			for (String superType : javaType.getExtendedTypes()) {
+				if (isSameType(parameterType, superType)) {
 					return true;
+				}
+
+				// Loop for other levels of super types (ex SmallItem)
+				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaType(superType, projectUri).getNow(null);
+				if (resolvedSuperType != null) {
+					if (isMatchType(resolvedSuperType, parameterType, projectUri)) {
+						return true;
+					}
 				}
 			}
 		}
 		if (!javaType.getTypeParameters().isEmpty()) {
 			ResolvedJavaTypeInfo result = resolveJavaType(resolvedTypeName, projectUri).getNow(null);
 			if (result != null && result.getExtendedTypes() != null) {
-				for (String extendedType : result.getExtendedTypes()) {
-					if (isSameType(parameterType, extendedType)) {
+				for (String superType : result.getExtendedTypes()) {
+					if (isSameType(parameterType, superType)) {
 						return true;
 					}
 				}

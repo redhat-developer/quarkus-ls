@@ -14,6 +14,7 @@ package com.redhat.qute.jdt.template;
 import static com.redhat.qute.jdt.QuteProjectTest.getJDTUtils;
 import static com.redhat.qute.jdt.QuteProjectTest.loadMavenProject;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -25,8 +26,8 @@ import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.jdt.QuteSupportForTemplate;
 import com.redhat.qute.jdt.QuteProjectTest.QuteMavenProjectName;
+import com.redhat.qute.jdt.QuteSupportForTemplate;
 
 /**
  * Tests for
@@ -283,6 +284,19 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertNull(getCharsMethod);
 		InvalidMethodReason reason = result.getInvalidMethodReason("getChars");
 		Assert.assertEquals(InvalidMethodReason.VoidReturn, reason);
+
+		// Extended types
+		// public final class String implements java.io.Serializable,
+		// Comparable<String>, CharSequence {
+		List<String> extendedTypes = result.getExtendedTypes();
+		Assert.assertNotNull(extendedTypes);
+		assertExtendedTypes("java.lang.String", "java.io.Serializable", extendedTypes);
+		assertExtendedTypes("java.lang.String", "java.lang.CharSequence", extendedTypes);
+	}
+
+	private static void assertExtendedTypes(String type, String extendedType, List<String> extendedTypes) {
+		Assert.assertTrue("The Java type '" + type + "' should extends '" + extendedType + "'.",
+				extendedTypes.contains(extendedType));
 	}
 
 	private static JavaMethodInfo findMethod(ResolvedJavaTypeInfo javaType, String methodName) {
