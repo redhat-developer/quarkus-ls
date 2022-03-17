@@ -606,4 +606,22 @@ public class QuteDiagnosticsInExpressionTest {
 						"The method `getBytes(String)` in the type `String` is not applicable for the arguments `(Integer)`.",
 						DiagnosticSeverity.Error));
 	}
+
+	@Test
+	public void parameterSuperType() {
+
+		String template = "{@org.acme.Item item}\r\n" + //
+				"		{@org.acme.BaseItem baseItem}\r\n" + //
+				"		{@org.acme.AbstractItem abstractItem}\r\n" + //
+				"\r\n" + //
+				"		{abstractItem.convert(1)}\r\n" + //
+				"		{abstractItem.convert(item)}\r\n" + //
+				"		{abstractItem.convert(baseItem)}\r\n" + //
+				"		{abstractItem.convert(item)}";
+		testDiagnosticsFor(template, //
+				d(4, 16, 4, 23, QuteErrorCode.InvalidMethodParameter,
+						"The method `convert(AbstractItem)` in the type `AbstractItem` is not applicable for the arguments `(Integer)`.",
+						DiagnosticSeverity.Error));
+
+	}
 }

@@ -75,7 +75,11 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerField("name : java.lang.String", review);
 		registerField("average : java.lang.Integer", review);
 
-		ResolvedJavaTypeInfo baseItem = createResolvedJavaTypeInfo("org.acme.Basetem", cache);
+		// Item <- BaseItem <- AbstractItem
+		ResolvedJavaTypeInfo abstractItem = createResolvedJavaTypeInfo("org.acme.AbstractItem", cache);
+		registerMethod("convert(item : org.acme.AbstractItem) : int", abstractItem);
+		
+		ResolvedJavaTypeInfo baseItem = createResolvedJavaTypeInfo("org.acme.BaseItem", cache, abstractItem);
 		registerField("base : java.lang.String", baseItem);
 		registerField("name : java.lang.String", baseItem);
 		registerMethod("getReviews() : java.util.List<org.acme.Review>", baseItem);
