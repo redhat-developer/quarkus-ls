@@ -216,7 +216,13 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
 
 	private void collectDataModel(SearchMatch match, SearchContext context, IProgressMonitor monitor) {
 		for (IDataModelProvider provider : getProviders()) {
-			provider.collectDataModel(match, context, monitor);
+			try {
+				provider.collectDataModel(match, context, monitor);
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE,
+						"Error while collecting data model with the provider '" + provider.getClass().getName() + "'.",
+						e);
+			}
 		}
 	}
 
