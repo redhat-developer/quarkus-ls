@@ -608,8 +608,35 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void parameterSuperType() {
+	public void methodSuperType() {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"		{item.convert(item)}";
+		testDiagnosticsFor(template);
 
+		template = "{@org.acme.Item item}\r\n" + //
+				"		{item.convert(1)}";
+		testDiagnosticsFor(template, //
+				d(1, 8, 1, 15, QuteErrorCode.InvalidMethodParameter,
+						"The method `convert(AbstractItem)` in the type `AbstractItem` is not applicable for the arguments `(Integer)`.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void fieldSuperType() {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"		{item.abstractName}"; // from super class org.acme.AbstractItem#abstractName
+		testDiagnosticsFor(template);
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"		{item.XXXX}";
+		testDiagnosticsFor(template, //
+				d(1, 8, 1, 12, QuteErrorCode.UnknownProperty,
+						"`XXXX` cannot be resolved or is not a field of `org.acme.Item` Java type.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void parameterSuperType() {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"		{@org.acme.BaseItem baseItem}\r\n" + //
 				"		{@org.acme.AbstractItem abstractItem}\r\n" + //
@@ -622,6 +649,5 @@ public class QuteDiagnosticsInExpressionTest {
 				d(4, 16, 4, 23, QuteErrorCode.InvalidMethodParameter,
 						"The method `convert(AbstractItem)` in the type `AbstractItem` is not applicable for the arguments `(Integer)`.",
 						DiagnosticSeverity.Error));
-
 	}
 }

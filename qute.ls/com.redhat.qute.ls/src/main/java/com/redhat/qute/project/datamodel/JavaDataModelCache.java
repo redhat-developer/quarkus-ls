@@ -109,7 +109,7 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 
 	private CompletionStage<ResolvedJavaTypeInfo> resolveJavaType(Part part, String projectUri,
 			ResolvedJavaTypeInfo resolvedType) {
-		JavaMemberInfo member = projectRegistry.findMember(part, resolvedType, projectUri);
+		JavaMemberInfo member = findMember(part, resolvedType, projectUri);
 		if (member == null) {
 			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 		}
@@ -249,12 +249,12 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return null;
 	}
 
-	public JavaMemberInfo findMember(Part part, ResolvedJavaTypeInfo previousResolvedType, String projectUri) {
-		return projectRegistry.findMember(part, previousResolvedType, projectUri);
+	public JavaMemberInfo findMember(Part part, ResolvedJavaTypeInfo baseType, String projectUri) {
+		return findMember(baseType, part.getPartName(), projectUri);
 	}
 
-	public JavaMemberInfo findMember(ResolvedJavaTypeInfo resolvedType, String property) {
-		return projectRegistry.findMember(resolvedType, property);
+	public JavaMemberInfo findMember(ResolvedJavaTypeInfo baseType, String property, String projectUri) {
+		return projectRegistry.findMember(baseType, property, projectUri);
 	}
 
 	public boolean hasNamespace(String namespace, String projectUri) {
