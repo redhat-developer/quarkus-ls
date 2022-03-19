@@ -77,6 +77,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 
 		// Item <- BaseItem <- AbstractItem
 		ResolvedJavaTypeInfo abstractItem = createResolvedJavaTypeInfo("org.acme.AbstractItem", cache);
+		registerField("abstractName : java.lang.String", abstractItem);
 		registerMethod("convert(item : org.acme.AbstractItem) : int", abstractItem);
 		
 		ResolvedJavaTypeInfo baseItem = createResolvedJavaTypeInfo("org.acme.BaseItem", cache, abstractItem);

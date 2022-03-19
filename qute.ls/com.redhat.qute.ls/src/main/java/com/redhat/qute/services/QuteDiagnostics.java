@@ -113,13 +113,13 @@ class QuteDiagnostics {
 					ResolvedJavaTypeInfo resolvedIterableType = javaCache.resolveJavaType(iterableType, projectUri)
 							.getNow(null);
 					if (resolvedIterableType != null) {
-						JavaMemberInfo member = javaCache.findMember(resolvedIterableType, property);
+						JavaMemberInfo member = javaCache.findMember(resolvedIterableType, property, projectUri);
 						if (member != null) {
 							return member;
 						}
 					}
 				} else {
-					JavaMemberInfo member = javaCache.findMember(withObject, property);
+					JavaMemberInfo member = javaCache.findMember(withObject, property, projectUri);
 					if (member != null) {
 						return member;
 					}

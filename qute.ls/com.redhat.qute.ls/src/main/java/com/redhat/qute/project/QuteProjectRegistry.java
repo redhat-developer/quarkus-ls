@@ -13,7 +13,6 @@ package com.redhat.qute.project;
 
 import static com.redhat.qute.parser.template.LiteralSupport.getPrimitiveObjectType;
 import static com.redhat.qute.services.QuteCompletableFutures.EXTENDED_TEMPLATE_DATAMODEL_NULL_FUTURE;
-import static com.redhat.qute.services.QuteCompletableFutures.FIELD_VALUE_RESOLVERS_NULL_FUTURE;
 import static com.redhat.qute.services.QuteCompletableFutures.JAVA_ELEMENT_INFO_NULL_FUTURE;
 import static com.redhat.qute.services.QuteCompletableFutures.METHOD_VALUE_RESOLVERS_NULL_FUTURE;
 import static com.redhat.qute.services.QuteCompletableFutures.NAMESPACE_RESOLVER_INFO_NULL_FUTURE;
@@ -54,7 +53,6 @@ import com.redhat.qute.ls.api.QuteJavaTypesProvider;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
-import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
@@ -291,23 +289,6 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 				});
 	}
 
-	private CompletableFuture<List<FieldValueResolver>> getFieldValueResolvers(String projectUri) {
-		if (StringUtils.isEmpty(projectUri)) {
-			return FIELD_VALUE_RESOLVERS_NULL_FUTURE;
-		}
-		QuteProject project = getProject(projectUri);
-		if (project == null) {
-			return FIELD_VALUE_RESOLVERS_NULL_FUTURE;
-		}
-		return project.getDataModelProject() //
-				.thenApply(dataModel -> {
-					if (dataModel == null) {
-						return null;
-					}
-					return dataModel.getFieldValueResolvers();
-				});
-	}
-
 	public CompletableFuture<ExtendedDataModelTemplate> getDataModelTemplate(Template template) {
 		String projectUri = template.getProjectUri();
 		if (StringUtils.isEmpty(projectUri)) {
@@ -346,37 +327,46 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		return userTagProvider.getUserTags(params);
 	}
 
-	public JavaMemberInfo findMember(Part part, ResolvedJavaTypeInfo resolvedType, String projectUri) {
-		if (resolvedType == null) {
+	/**
+	 * Returns the Java member (field or method) from the given Java base type with
+	 * the given property and null otherwise.
+	 * 
+	 * @param baseType   the Java base type.
+	 * @param property   the member property (field name or getter method name).
+	 * @param projectUri the project Uri used to search in the extended Java type.
+	 * @return the Java member (field or method) from the given Java base type with
+	 *         the given property and null otherwise.
+	 */
+	public JavaMemberInfo findMember(ResolvedJavaTypeInfo baseType, String property, String projectUri) {
+		if (baseType == null) {
 			return null;
 		}
-		if (resolvedType.isIterable() && !resolvedType.isArray()) {
+		if (baseType.isIterable() && !baseType.isArray()) {
 			// Expression uses iterable type
 			// {@java.util.List<org.acme.Item items>
 			// {items.size()}
 			// Property, method to validate must be done for iterable type (ex :
 			// java.util.List
-			String iterableType = resolvedType.getIterableType();
-			resolvedType = resolveJavaType(iterableType, projectUri).getNow(null);
-			if (resolvedType == null) {
+			String iterableType = baseType.getIterableType();
+			baseType = resolveJavaType(iterableType, projectUri).getNow(null);
+			if (baseType == null) {
 				// The java type doesn't exists or it is resolving, stop the validation
 				return null;
 			}
 		}
-		String property = part.getPartName();
 		// Search in the java root type
-		JavaMemberInfo memberInfo = findMember(resolvedType, property);
+		JavaMemberInfo memberInfo = findMember(baseType, property);
 		if (memberInfo != null) {
 			return memberInfo;
 		}
-		if (resolvedType.getExtendedTypes() != null) {
+		if (baseType.getExtendedTypes() != null) {
 			// Search in extended types
-			for (String extendedType : resolvedType.getExtendedTypes()) {
-				ResolvedJavaTypeInfo resolvedExtendedType = resolveJavaType(extendedType, projectUri).getNow(null);
-				if (resolvedExtendedType != null) {
-					memberInfo = findMember(resolvedExtendedType, property);
-					if (memberInfo != null) {
-						return memberInfo;
+			for (String superType : baseType.getExtendedTypes()) {
+				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaType(superType, projectUri).getNow(null);
+				if (resolvedSuperType != null) {
+					JavaMemberInfo superMemberInfo = findMember(resolvedSuperType, property, projectUri);
+					if (superMemberInfo != null) {
+						return superMemberInfo;
 					}
 				}
 			}
@@ -387,7 +377,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			// ex : @java.lang.Integer(base : T[]) : T (see qute-resolvers.jsonc)
 			property = "@" + literalType;
 		}
-		return findValueResolver(property, resolvedType, projectUri);
+		return findValueResolver(property, baseType, projectUri);
 	}
 
 	/**
@@ -396,7 +386,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 * @param property the property
 	 * @return the member retrieved by the given property and null otherwise.
 	 */
-	public JavaMemberInfo findMember(ResolvedJavaTypeInfo resolvedType, String property) {
+	private JavaMemberInfo findMember(ResolvedJavaTypeInfo resolvedType, String property) {
 		JavaFieldInfo fieldInfo = findField(resolvedType, property);
 		if (fieldInfo != null) {
 			return fieldInfo;
@@ -407,12 +397,13 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	/**
 	 * Returns the member field retrieved by the given name and null otherwise.
 	 *
+	 * @param baseType  the Java base type.
 	 * @param fieldName the field name
 	 *
 	 * @return the member field retrieved by the given property and null otherwise.
 	 */
-	protected static JavaFieldInfo findField(ResolvedJavaTypeInfo resolvedType, String fieldName) {
-		List<JavaFieldInfo> fields = resolvedType.getFields();
+	protected static JavaFieldInfo findField(ResolvedJavaTypeInfo baseType, String fieldName) {
+		List<JavaFieldInfo> fields = baseType.getFields();
 		if (fields == null || fields.isEmpty() || isEmpty(fieldName)) {
 			return null;
 		}
@@ -427,14 +418,15 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	/**
 	 * Returns the member method retrieved by the given property or method name and
 	 * null otherwise.
-	 *
+	 * 
+	 * @param baseType             the Java base type.
 	 * @param propertyOrMethodName property or method name
 	 *
 	 * @return the member field retrieved by the given property or method name and
 	 *         null otherwise.
 	 */
-	protected static JavaMethodInfo findMethod(ResolvedJavaTypeInfo resolvedType, String propertyOrMethodName) {
-		List<JavaMethodInfo> methods = resolvedType.getMethods();
+	protected static JavaMethodInfo findMethod(ResolvedJavaTypeInfo baseType, String propertyOrMethodName) {
+		List<JavaMethodInfo> methods = baseType.getMethods();
 		if (methods == null || methods.isEmpty() || isEmpty(propertyOrMethodName)) {
 			return null;
 		}
@@ -471,17 +463,6 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			if (findMethod(baseType, methodName, parameterTypes, result, projectUri)) {
 				return result;
 			}
-			if (baseType.getExtendedTypes() != null) {
-				// Search in extended types
-				for (String extendedType : baseType.getExtendedTypes()) {
-					ResolvedJavaTypeInfo resolvedExtendedType = resolveJavaType(extendedType, projectUri).getNow(null);
-					if (resolvedExtendedType != null) {
-						if (findMethod(resolvedExtendedType, methodName, parameterTypes, result, projectUri)) {
-							return result;
-						}
-					}
-				}
-			}
 
 			// Search in value resolvers
 			// Search in static value resolvers (ex : orEmpty, take, etc)
@@ -501,25 +482,39 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	private boolean findMethod(ResolvedJavaTypeInfo baseType, String methodName,
 			List<ResolvedJavaTypeInfo> parameterTypes, JavaMemberResult result, String projectUri) {
-		List<JavaMethodInfo> methods = baseType.getMethods();
-		if (methods == null || methods.isEmpty() || isEmpty(methodName)) {
+		if (isEmpty(methodName)) {
 			return false;
 		}
-		for (JavaMethodInfo method : methods) {
-			if (isMatchMethod(method, methodName, null, null)) {
-				// The current method matches the method name.
+		List<JavaMethodInfo> methods = baseType.getMethods();
+		boolean hasMethods = methods != null && !methods.isEmpty();
+		if (hasMethods) {
+			for (JavaMethodInfo method : methods) {
+				if (isMatchMethod(method, methodName, null, null)) {
+					// The current method matches the method name.
 
-				// Check if the current method matches the parameters.
-				boolean matchParameters = isMatchParameters(method, parameterTypes, projectUri);
-				if (result.getMember() == null || matchParameters) {
-					result.setMember(method);
-					result.setMatchParameters(matchParameters);
-					result.setMatchVirtualMethod(true);
+					// Check if the current method matches the parameters.
+					boolean matchParameters = isMatchParameters(method, parameterTypes, projectUri);
+					if (result.getMember() == null || matchParameters) {
+						result.setMember(method);
+						result.setMatchParameters(matchParameters);
+						result.setMatchVirtualMethod(true);
+					}
+					if (matchParameters) {
+						// The current method matches the method name and and parameters types,stop the
+						// search
+						return true;
+					}
 				}
-				if (matchParameters) {
-					// The current method matches the method name and and parameters types,stop the
-					// search
-					return true;
+			}
+		}
+		if (baseType.getExtendedTypes() != null) {
+			// Search in extended types
+			for (String superType : baseType.getExtendedTypes()) {
+				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaType(superType, projectUri).getNow(null);
+				if (resolvedSuperType != null) {
+					if (findMethod(resolvedSuperType, methodName, parameterTypes, result, projectUri)) {
+						return true;
+					}
 				}
 			}
 		}
