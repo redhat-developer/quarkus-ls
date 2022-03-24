@@ -60,7 +60,8 @@ public class QuteCodeActionWithSettingsTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(0, 5, 0, 5, "??")));
 	}
 
 	@Test
@@ -116,7 +117,8 @@ public class QuteCodeActionWithSettingsTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(0, 5, 0, 5, "??")));
 	}
 
 	@Test

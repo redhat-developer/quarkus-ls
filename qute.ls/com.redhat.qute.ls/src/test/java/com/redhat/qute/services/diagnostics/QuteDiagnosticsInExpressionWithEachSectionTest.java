@@ -49,7 +49,8 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)),
+				ca(d, te(2, 15, 2, 15, "??")));
 	}
 
 	@Test

@@ -12,6 +12,7 @@
 package com.redhat.qute.services;
 
 import static com.redhat.qute.ls.commons.CodeActionFactory.createCommand;
+import static com.redhat.qute.ls.commons.CodeActionFactory.insert;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_ITERABLE;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_NAME;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_TAG;
@@ -179,6 +180,9 @@ class QuteCodeActions {
 				// CodeAction to set validation severity to ignore
 				doCodeActionToSetIgnoreSeverity(template, Collections.singletonList(diagnostic), errorCode, codeActions,
 						UNDEFINED_OBJECT_SEVERITY_SETTING);
+
+				// CodeAction to append ?? to object to make it optional
+				doCodeActionToAddOptionalSuffix(template, diagnostic, codeActions);
 			}
 
 		} catch (BadLocationException e) {
@@ -215,11 +219,29 @@ class QuteCodeActions {
 	 */
 	private static void doCodeActionToSetIgnoreSeverity(Template template, List<Diagnostic> diagnostics,
 			QuteErrorCode errorCode, List<CodeAction> codeActions, String severitySetting) {
-
 		String title = MessageFormat.format(SET_IGNORE_SEVERITY_TITLE, errorCode.getCode());
 		CodeAction setIgnoreSeverityQuickFix = createConfigurationUpdateCodeAction(title, template.getUri(),
 				severitySetting, Severity.ignore.name(), ConfigurationItemEditType.update, diagnostics);
 		codeActions.add(setIgnoreSeverityQuickFix);
+	}
+
+	/**
+	 * CodeAction to append ?? to object to make it optional
+	 *
+	 * @param template    the Qute template
+	 * @param diagnostic  the UndefinedVariable diagnostic
+	 * @param codeActions list of CodeActions
+	 * @throws BadLocationException
+	 */
+	private static void doCodeActionToAddOptionalSuffix(Template template, Diagnostic diagnostic,
+			List<CodeAction> codeActions) throws BadLocationException {
+		Position objectEnd = diagnostic.getRange().getEnd();
+		int diagnosticStartOffset = template.offsetAt(diagnostic.getRange().getStart());
+		int diagnosticEndOffset = template.offsetAt(objectEnd);
+		String title = MessageFormat.format("Append ?? to undefined object `{0}`",
+				template.getText(diagnosticStartOffset, diagnosticEndOffset));
+		CodeAction appendOptionalSuffix = insert(title, objectEnd, "??", template.getTextDocument(), diagnostic);
+		codeActions.add(appendOptionalSuffix);
 	}
 
 	/**
