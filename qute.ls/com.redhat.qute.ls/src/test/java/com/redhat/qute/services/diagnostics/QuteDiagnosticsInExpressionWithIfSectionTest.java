@@ -70,7 +70,8 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d1)));
+						d1)), //
+				ca(d1, te(0, 9, 0, 9, "??")));
 		testCodeActionsFor(template, d2, //
 				ca(d2, te(0, 0, 0, 0, "{@java.lang.String item}\r\n")), //
 				ca(d2, c("Ignore `UndefinedObject` problem.", //
@@ -78,7 +79,8 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d2)));
+						d2)), //
+				ca(d2, te(0, 28, 0, 28, "??")));
 	}
 
 	@Test
@@ -107,12 +109,12 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 				"{#if false || (foo.or(false) || (false || true))}OK{#else}NOK{/if}";
 		testDiagnosticsFor(template);
 	}
-	
+
 	@Test
 	public void notOperator() {
 		String template = "{#if !true}NOK{#else}OK{/if}";
 		testDiagnosticsFor(template);
-		
+
 		Diagnostic d = d(0, 6, 0, 9, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
 		d.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));

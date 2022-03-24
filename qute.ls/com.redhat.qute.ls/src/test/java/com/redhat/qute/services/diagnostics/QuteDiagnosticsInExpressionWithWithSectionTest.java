@@ -50,7 +50,8 @@ public class QuteDiagnosticsInExpressionWithWithSectionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(0, 11, 0, 11, "??")));
 	}
 
 	@Test
@@ -90,7 +91,8 @@ public class QuteDiagnosticsInExpressionWithWithSectionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(6, 12, 6, 12, "??")));
 
 	}
 }

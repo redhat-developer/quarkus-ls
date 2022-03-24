@@ -557,12 +557,17 @@ class QuteDiagnostics {
 
 		JavaTypeInfoProvider javaTypeInfo = objectPart.resolveJavaType();
 		if (javaTypeInfo == null) {
-			String literalJavaType = LiteralSupport.getLiteralJavaType(objectPart.getPartName()); 
+			if (objectPart.isOptional()) {
+				// The object part is optional (ex : foo??)
+				return null;
+			}
+
+			String literalJavaType = LiteralSupport.getLiteralJavaType(objectPart.getPartName());
 			if (literalJavaType != null) {
 				// The object part is a literal type (ex : true)
 				return null;
 			}
-			
+
 			if (!resolvingJavaTypeContext.isDataModelTemplateResolved()) {
 				// The data model is not loaded, ignore the error of undefined object
 				return null;

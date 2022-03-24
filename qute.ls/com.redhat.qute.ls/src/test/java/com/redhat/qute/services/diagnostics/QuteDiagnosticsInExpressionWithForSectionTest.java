@@ -64,7 +64,8 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(4, 6, 4, 6, "??")));
 
 	}
 
@@ -91,11 +92,12 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(2, 22, 2, 22, "??")));
 	}
 
 	@Test
-	public void unkwownProperty() throws Exception {
+	public void unknownProperty() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#for item in items}\r\n" + //

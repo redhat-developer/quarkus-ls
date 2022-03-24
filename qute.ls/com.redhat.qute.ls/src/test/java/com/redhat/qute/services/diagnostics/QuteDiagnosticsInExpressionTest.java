@@ -70,7 +70,8 @@ public class QuteDiagnosticsInExpressionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(0, 6, 0, 6, "??")));
 
 		template = "{false}";
 		testDiagnosticsFor(template);
@@ -88,7 +89,8 @@ public class QuteDiagnosticsInExpressionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(0, 7, 0, 7, "??")));
 	}
 
 	@Test
@@ -109,7 +111,8 @@ public class QuteDiagnosticsInExpressionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(0, 6, 0, 6, "??")));
 	}
 
 	@Test
@@ -139,7 +142,8 @@ public class QuteDiagnosticsInExpressionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(0, 5, 0, 5, "??")));
 	}
 
 	@Test
@@ -160,7 +164,8 @@ public class QuteDiagnosticsInExpressionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(0, 6, 0, 6, "??")));
 	}
 
 	@Test
@@ -182,7 +187,8 @@ public class QuteDiagnosticsInExpressionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(0, 5, 0, 5, "??")));
 	}
 
 	@Test
@@ -204,7 +210,8 @@ public class QuteDiagnosticsInExpressionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(0, 15, 0, 15, "??")));
 	}
 
 	@Test
@@ -215,7 +222,7 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void unkwownProperty() {
+	public void unknownProperty() {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{item.XXXX}";
 		testDiagnosticsFor(template, //
@@ -239,7 +246,7 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void kwownProperty() {
+	public void knownProperty() {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{item.name}";
 		testDiagnosticsFor(template);
@@ -250,7 +257,7 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void unkwownMethod() {
+	public void unknownMethod() {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{item.XXXX()}";
 		testDiagnosticsFor(template, //
@@ -274,7 +281,7 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void kwownMethod() {
+	public void knownMethod() {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{item.getReview2()}";
 		testDiagnosticsFor(template);
@@ -312,7 +319,7 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void kwownMethodForIterable() {
+	public void knownMethodForIterable() {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{items.size}";
 		testDiagnosticsFor(template);
@@ -323,7 +330,7 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void unkwownMethodForIterable() {
+	public void unknownMethodForIterable() {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{items.sizeXXX}";
 		testDiagnosticsFor(template, //
@@ -340,7 +347,7 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void unkwownMethodForPrimitive() {
+	public void unknownMethodForPrimitive() {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{items.size.XXX}";
 		testDiagnosticsFor(template, d(1, 12, 1, 15, QuteErrorCode.UnknownProperty,
@@ -364,7 +371,8 @@ public class QuteDiagnosticsInExpressionTest {
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)), //
+				ca(d, te(0, 7, 0, 7, "??")));
 	}
 
 	@Test
@@ -649,5 +657,11 @@ public class QuteDiagnosticsInExpressionTest {
 				d(4, 16, 4, 23, QuteErrorCode.InvalidMethodParameter,
 						"The method `convert(AbstractItem)` in the type `AbstractItem` is not applicable for the arguments `(Integer)`.",
 						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void optionalObject() {
+		String template = "{foo??}";
+		testDiagnosticsFor(template);
 	}
 }
