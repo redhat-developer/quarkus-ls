@@ -15,6 +15,7 @@ import java.util.List;
 
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.ASTVisitor;
+import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
@@ -81,7 +82,10 @@ public class ObjectPart extends Part {
 			return template.findWithNamespace(this);
 		}
 
-		// ex : {item}
+		// ex :
+		// - {item}
+		// - {item??}
+		Parameter matchedOptionalParameter = null;
 
 		// Loop for parent section to discover the class name
 		Section section = super.getParentSection();
@@ -98,7 +102,7 @@ public class ObjectPart extends Part {
 				}
 				break;
 			case LET:
-			case SET:
+			case SET: {
 				List<Parameter> parameters = section.getParameters();
 				for (Parameter parameter : parameters) {
 					if (partName.equals(parameter.getName())) {
@@ -106,6 +110,20 @@ public class ObjectPart extends Part {
 					}
 				}
 				break;
+			}
+			case IF: {
+				if (matchedOptionalParameter == null) {
+					List<Parameter> parameters = section.getParameters();
+					for (Parameter parameter : parameters) {
+						if (partName.equals(parameter.getName()) && parameter.isOptional()) {
+							// here {foo} is inside an #if block which matches {#if foo?? }
+							matchedOptionalParameter = parameter;
+						}
+						break;
+					}
+				}
+				break;
+			}
 			default:
 			}
 			// ex : count for #each
@@ -118,12 +136,39 @@ public class ObjectPart extends Part {
 		// Try to find the class name
 		// - from parameter declaration
 		// - from @CheckedTemplate
-		return template.findInInitialDataModel(this);
+		JavaTypeInfoProvider initialDataModel = template.findInInitialDataModel(this);
+		if (initialDataModel != null) {
+			return initialDataModel;
+		}
+		// There are no parameter which matches the object part name from #set, #let,
+		// #for
+		// and there are no initial data model which matches the object part name.
+		// We return the matched optional parameter inside the #if section {#if foo?? }
+		// if it is not null.
+		return matchedOptionalParameter;
 	}
 
 	@Override
 	protected boolean canBeOptional() {
 		return true;
+	}
+
+	/**
+	 * Returns the owner parameter of the object part and null otherwise.
+	 * 
+	 * <p>
+	 * {#if foo?? }
+	 * </p>
+	 *
+	 * <p>
+	 * {#let foo='bar' }
+	 * </p>
+	 * 
+	 * @return the owner parameter of the object part and null otherwise.
+	 */
+	public Parameter getOwnerParameter() {
+		Expression expression = getParent().getParent();
+		return expression != null ? expression.getOwnerParameter() : null;
 	}
 
 	@Override

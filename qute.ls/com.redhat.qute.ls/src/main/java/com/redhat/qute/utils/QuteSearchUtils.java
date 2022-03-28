@@ -99,6 +99,7 @@ public class QuteSearchUtils {
 	private static Parameter searchDeclaredObjectInParameter(ObjectPart part, CancelChecker cancelChecker) {
 		String partName = part.getPartName();
 		Node parent = part.getParentSection();
+		Parameter matchedOptionalParameter = null;
 		while (parent != null) {
 			if (parent.getKind() == NodeKind.Section) {
 				Section section = (Section) parent;
@@ -117,20 +118,34 @@ public class QuteSearchUtils {
 					}
 					break;
 				case LET:
-				case SET:
+				case SET: {
 					List<Parameter> parameters = section.getParameters();
 					for (Parameter parameter : parameters) {
 						if (partName.equals(parameter.getName())) {
 							return parameter;
 						}
 					}
+				}
 					break;
+				case IF: {
+					if (matchedOptionalParameter == null) {
+						List<Parameter> parameters = section.getParameters();
+						for (Parameter parameter : parameters) {
+							if (partName.equals(parameter.getName()) && parameter.isOptional()) {
+								// here {foo} is inside an #if block which matches {#if foo?? }
+								matchedOptionalParameter = parameter;
+							}
+							break;
+						}
+					}
+					break;
+				}
 				default:
 				}
 			}
 			parent = parent.getParent();
 		}
-		return null;
+		return matchedOptionalParameter;
 	}
 
 	// ------------------- Search referenced objects
@@ -177,6 +192,23 @@ public class QuteSearchUtils {
 			String alias = parameter.getName();
 			searchReferencedObjects(alias, PartNameMatcher.ONLY_NAME, parameter.getParent(), collector, cancelChecker);
 			break;
+		}
+		case ExpressionPart: {
+			Part part = (Part) node;
+			if (part.getPartKind() == PartKind.Object) {
+				ObjectPart objectPart = (ObjectPart) part;
+				if (objectPart.isOptional()) {
+					Parameter parameter = objectPart.getOwnerParameter();
+					if (parameter != null && parameter.getOwnerSection() != null
+							&& parameter.getOwnerSection().getSectionKind() == SectionKind.IF) {
+						// here we are in the case with optional parameter in the #if
+						// {#if foo??}
+						// search all object inside the #if block which matches 'foo' as object part
+						// name.
+						searchReferencedObjects(parameter, offset, collector, includeNode, cancelChecker);
+					}
+				}
+			}
 		}
 		default:
 			break;

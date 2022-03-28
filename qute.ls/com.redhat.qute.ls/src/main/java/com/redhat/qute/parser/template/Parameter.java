@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template;
 
+import com.redhat.qute.parser.expression.ObjectPart;
+
 public class Parameter extends Node implements JavaTypeInfoProvider {
 
 	private String name = null;
@@ -94,6 +96,14 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 	 * @return the parameter name.
 	 */
 	public String getName() {
+		if (!hasValueAssigned()) {
+			// ex : {#if foo?? }
+			Expression expression = getJavaTypeExpression();
+			ObjectPart objectPart = expression != null ? expression.getObjectPart() : null;
+			if (objectPart != null) {
+				return objectPart.getPartName();
+			}
+		}
 		if (name == null) {
 			name = getText(getStartName(), getEndName());
 		}
@@ -201,5 +211,22 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 	public void setAssignOffset(int assignOffset) {
 		this.assignOffset = assignOffset;
 		super.setEnd(assignOffset);
+	}
+
+	/**
+	 * Returns true if the last part of the expression parameter is optional (ends
+	 * with ??) and false otherwise.
+	 * 
+	 * <p>
+	 * {#let bar=foo??}
+	 * {#if foo??}
+	 * </p>
+	 * 
+	 * @return true if the last part of the expression parameter is optional (ends
+	 *         with ??) and false otherwise.
+	 */
+	public boolean isOptional() {
+		Expression expression = getJavaTypeExpression();
+		return expression != null ? expression.isOptional() : false;
 	}
 }

@@ -120,4 +120,15 @@ public class LiteralSupport {
 		return null;
 	}
 
+	/**
+	 * Returns true if the given literal is 'null'and false otherwise.
+	 * 
+	 * @param javaType the Java type.
+	 * 
+	 * @return true if the given literal is 'null'and false otherwise.
+	 */
+	public static boolean isNull(String javaType) {
+		return NULL_TYPE.equals(javaType);
+	}
+
 }

@@ -39,4 +39,43 @@ public class QuteDefinitionInIfSectionTest {
 		testDefinitionFor(template);
 	}
 
+	@Test
+	public void noOptionalParameterInIfBlock() throws Exception {
+		String template = "{#if foo}\r\n" + //
+				"	{fo|o}\r\n" + //
+				"{/if}";
+		testDefinitionFor(template);
+	}
+
+	@Test
+	public void optionalParameterInIfBlock() throws Exception {
+		String template = "{#if foo??}\r\n" + //
+				"	{fo|o}\r\n" + //
+				"{/if}";
+		testDefinitionFor(template, "test.qute", //
+				ll("test.qute", r(1, 2, 1, 5), r(0, 5, 0, 8)));
+
+		template = "{#if f|oo??}\r\n" + //
+				"	{foo}\r\n" + //
+				"{/if}";
+		testDefinitionFor(template);
+	}
+
+	@Test
+	public void optionalParameterInIfBlockDeclaredInParentlet() throws Exception {
+		String template = "{#let foo='bar'}\r\n" + //
+				"  {#if foo??}\r\n" + //
+				"        {f|oo}\r\n" + // find definition here --> {#let foo|
+				"    {/if}\r\n" + //
+				"{/let}";
+		testDefinitionFor(template, "test.qute", //
+				ll("test.qute", r(2, 9, 2, 12), r(0, 6, 0, 9)));
+
+		template = "{#let foo='bar'}\r\n" + //
+				"  {#if fo|o??}\r\n" + // find definition here --> {#let foo|
+				"        {foo}\r\n" + "    {/if}\r\n" + //
+				"{/let}";
+		testDefinitionFor(template, "test.qute", //
+				ll("test.qute", r(1, 7, 1, 10), r(0, 6, 0, 9)));
+	}
 }

@@ -29,7 +29,9 @@ import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
+import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
+import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.QuteSearchUtils;
@@ -63,7 +65,20 @@ class QuteHighlighting {
 			case ExpressionPart:
 				Part part = (Part) node;
 				if (part.getPartKind() == PartKind.Object) {
-					highlightDeclaredObject((ObjectPart) part, highlights, cancelChecker);
+					ObjectPart objectPart = (ObjectPart) part;
+					highlightDeclaredObject(objectPart, highlights, cancelChecker);
+					if (highlights.size() == 1 && part.isOptional()) {
+						Parameter parameter = objectPart.getOwnerParameter();
+						if (parameter != null && parameter.getOwnerSection() != null
+								&& parameter.getOwnerSection().getSectionKind() == SectionKind.IF) {
+							// Case with {#if fo|o??} {foo}
+							// In this case, the foo?? has the same behavior than a parameter declaration,
+							// search the
+							// referenced object parts
+							highlights.clear();
+							highlightReferenceObjectPart(parameter, offset, highlights, cancelChecker);
+						}
+					}
 				}
 				break;
 			case Section:

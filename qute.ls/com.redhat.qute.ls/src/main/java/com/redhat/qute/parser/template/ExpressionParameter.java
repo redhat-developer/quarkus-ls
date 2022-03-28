@@ -56,9 +56,38 @@ public class ExpressionParameter extends Expression {
 		}
 		return super.getParentSection();
 	}
-	
+
 	@Override
 	public boolean canSupportInfixNotation() {
 		return false;
+	}
+
+	/**
+	 * Returns the owner parameter of the expression and null otherwise.
+	 * 
+	 * For example for:
+	 * <p>
+	 * {#let foo=bar }
+	 * </p>
+	 * 
+	 * bar which is an expression will return foo as owner parameter.
+	 * 
+	 * @return the owner parameter of the expression and null otherwise.
+	 */
+	public Parameter getOwnerParameter() {
+		Node parent = getParent();
+		return parent != null && parent.getKind() == NodeKind.Parameter ? (Parameter) parent : null;
+	}
+
+	/**
+	 * Returns the owner section of the parameter expression and null otherwise.
+	 * 
+	 * For expression like {#let foo='bar'}, the owner section is #let.
+	 * 
+	 * @return the owner section of the parameter expression and null otherwise.
+	 */
+	@Override
+	public Section getOwnerSection() {
+		return ownerSection;
 	}
 }
