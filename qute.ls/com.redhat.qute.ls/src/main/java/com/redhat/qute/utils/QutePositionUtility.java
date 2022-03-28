@@ -68,7 +68,7 @@ public class QutePositionUtility {
 	public static Range selectParameterName(Parameter parameter) {
 		Template template = parameter.getOwnerTemplate();
 		int startOffset = parameter.getStartName();
-		int endOffset = parameter.getEndName();
+		int endOffset = parameter.getEndName() - (parameter.isOptional() ? 2 : 0);
 		return createRange(startOffset, endOffset, template);
 	}
 

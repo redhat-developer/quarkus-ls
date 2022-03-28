@@ -12,7 +12,9 @@
 package com.redhat.qute.services.highlighting;
 
 import static com.redhat.qute.QuteAssert.hl;
+import static com.redhat.qute.QuteAssert.ll;
 import static com.redhat.qute.QuteAssert.r;
+import static com.redhat.qute.QuteAssert.testDefinitionFor;
 import static com.redhat.qute.QuteAssert.testHighlightsFor;
 import static org.eclipse.lsp4j.DocumentHighlightKind.Read;
 import static org.eclipse.lsp4j.DocumentHighlightKind.Write;
@@ -53,5 +55,25 @@ public class QuteHighlightingInIfSectionTest {
 		testHighlightsFor(template, //
 				hl(r(1, 6, 1, 11), Read), //
 				hl(r(0, 6, 0, 11), Write));
+	}
+	
+	@Test
+	public void fromOptionalParameter() throws Exception {
+		String template = "{#if fo|o??}\r\n" + //
+				"	{foo}\r\n" + //
+				"{/if}";
+		testHighlightsFor(template, //
+				hl(r(0, 5, 0, 8), Write), //
+				hl(r(1, 2, 1, 5), Read));
+	}
+	
+	@Test
+	public void toOptionalParameter() throws Exception {
+		String template = "{#if foo??}\r\n" + //
+				"	{fo|o}\r\n" + //
+				"{/if}";
+		testHighlightsFor(template, //
+				hl(r(1, 2, 1, 5), Read), //
+				hl(r(0, 5, 0, 8), Write));
 	}
 }

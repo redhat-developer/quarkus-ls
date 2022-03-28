@@ -122,4 +122,38 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 		testDiagnosticsFor(template, d);
 	}
 
+	@Test
+	public void noOptionalParameterInIfBlock() {
+		String template = "{#if foo}\r\n" + //
+				"	{foo}\r\n" + //
+				"{/if}";
+
+		Diagnostic d1 = d(0, 5, 0, 8, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
+				DiagnosticSeverity.Warning);
+		d1.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
+		Diagnostic d2 = d(1, 2, 1, 5, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
+				DiagnosticSeverity.Warning);
+		d2.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
+
+		testDiagnosticsFor(template, d1, d2);
+	}
+
+	@Test
+	public void optionalParameterInIfBlock() {
+		String template = "{#if foo??}\r\n" + //
+				"	{foo}\r\n" + //
+				"{/if}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void optionalParameterInIfBlockWithNull() {
+		String template = "{#let bar=null}\r\n" + //
+				"    {#if bar??}\r\n" + //
+				"        {bar}\r\n" + //
+				"    {/if}\r\n" + //
+				"{/let}";
+		testDiagnosticsFor(template);
+	}
+
 }

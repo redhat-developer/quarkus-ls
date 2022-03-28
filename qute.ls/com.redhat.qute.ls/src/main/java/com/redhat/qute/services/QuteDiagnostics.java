@@ -623,7 +623,7 @@ class QuteDiagnostics {
 			}
 		}
 		return validateJavaTypePart(objectPart, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext,
-				javaTypeToResolve);
+				javaTypeToResolve, javaTypeInfo.getJavaTypeOwnerNode());
 	}
 
 	/**
@@ -690,7 +690,7 @@ class QuteDiagnostics {
 			return null;
 		}
 		String memberType = javaMember.resolveJavaElementType(iterableOfType);
-		return validateJavaTypePart(part, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext, memberType);
+		return validateJavaTypePart(part, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext, memberType, null);
 	}
 
 	/**
@@ -854,16 +854,26 @@ class QuteDiagnostics {
 
 		String memberType = method.resolveJavaElementType(iter);
 		return validateJavaTypePart(methodPart, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext,
-				memberType);
+				memberType, null);
 	}
 
 	private ResolvedJavaTypeInfo validateJavaTypePart(Part part, Section ownerSection, String projectUri,
-			List<Diagnostic> diagnostics, ResolvingJavaTypeContext resolvingJavaTypeContext, String javaTypeToResolve) {
+			List<Diagnostic> diagnostics, ResolvingJavaTypeContext resolvingJavaTypeContext, String javaTypeToResolve,
+			Node referencedNode) {
 		if (StringUtils.isEmpty(javaTypeToResolve)) {
+			if (referencedNode != null && referencedNode.getKind() == NodeKind.Parameter
+					&& ((Parameter) (referencedNode)).isOptional()) {
+				// {foo} inside an #if block references foo as optional {#if foo??}
+				return null;
+			}
 			Range range = QutePositionUtility.createRange(part);
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnknownType,
 					part.getPartName());
 			diagnostics.add(diagnostic);
+			return null;
+		}
+
+		if (LiteralSupport.isNull(javaTypeToResolve)) {
 			return null;
 		}
 

@@ -680,7 +680,7 @@ public class QuteCompletionsForExpression {
 					}
 					break;
 				case LET:
-				case SET:
+				case SET: {
 					// completion for parameters coming from #let, #set
 					List<Parameter> parameters = section.getParameters();
 					if (parameters != null) {
@@ -698,6 +698,29 @@ public class QuteCompletionsForExpression {
 						}
 					}
 					break;
+				}
+				case IF: {
+					// completion for parameters coming from #if
+					List<Parameter> parameters = section.getParameters();
+					if (parameters != null) {
+						for (Parameter parameter : parameters) {
+							if (parameter.isOptional()) {
+								// {#if foo??}
+								String parameterName = parameter.getName();
+								if (!existingVars.contains(parameterName)) {
+									existingVars.add(parameterName);
+									CompletionItem item = new CompletionItem();
+									item.setLabel(parameterName);
+									item.setKind(CompletionItemKind.Reference);
+									TextEdit textEdit = new TextEdit(range, parameterName);
+									item.setTextEdit(Either.forLeft(textEdit));
+									list.getItems().add(item);
+								}
+							}
+						}
+					}
+					break;
+				}
 				case WITH:
 					// Completion for properties/methods of with object from #with
 					Parameter object = ((WithSection) section).getObjectParameter();

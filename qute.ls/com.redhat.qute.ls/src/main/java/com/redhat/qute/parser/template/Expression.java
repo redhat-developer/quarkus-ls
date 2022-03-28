@@ -19,6 +19,17 @@ import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 
+/**
+ * Simple Qute expression
+ * 
+ * <p>
+ * {foo}
+ * {foo ?: foo : 'bar'}
+ * </p>
+ * 
+ * @author Angelo ZERR
+ *
+ */
 public class Expression extends Node {
 
 	private List<Node> expressionContent;
@@ -71,7 +82,8 @@ public class Expression extends Node {
 		if (expressionContent != null) {
 			return;
 		}
-		expressionContent = ExpressionParser.parse(this, canSupportInfixNotation(), getOwnerTemplate().getCancelChecker());
+		expressionContent = ExpressionParser.parse(this, canSupportInfixNotation(),
+				getOwnerTemplate().getCancelChecker());
 	}
 
 	public List<Node> getExpressionContent() {
@@ -142,7 +154,7 @@ public class Expression extends Node {
 		}
 		return content;
 	}
-	
+
 	@Override
 	protected void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);
@@ -151,8 +163,46 @@ public class Expression extends Node {
 		}
 		visitor.endVisit(this);
 	}
-	
+
 	public boolean canSupportInfixNotation() {
 		return true;
+	}
+
+	/**
+	 * Returns true if the last part of the expression is optional (ends with ??)
+	 * and false otherwise.
+	 * 
+	 * <p>
+	 * {foo??}
+	 * </p>
+	 * 
+	 * @return true if the last part of the expression is optional (ends with ??)
+	 *         and false otherwise.
+	 */
+	public boolean isOptional() {
+		Part lastPart = getLastPart();
+		return lastPart != null ? lastPart.isOptional() : false;
+	}
+
+	/**
+	 * Returns the owner parameter of the expression and null otherwise.
+	 * 
+	 * For expression like {foo}, the owner parameter is null.
+	 * 
+	 * @return the owner parameter of the expression and null otherwise.
+	 */
+	public Parameter getOwnerParameter() {
+		return null;
+	}
+
+	/**
+	 * Returns the owner section of the expression and null otherwise.
+	 * 
+	 * For expression like {foo}, the owner section is null.
+	 * 
+	 * @return the owner section of the expression and null otherwise.
+	 */
+	public Section getOwnerSection() {
+		return null;
 	}
 }

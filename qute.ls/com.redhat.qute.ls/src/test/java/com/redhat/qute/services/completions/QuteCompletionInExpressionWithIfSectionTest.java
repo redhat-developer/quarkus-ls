@@ -50,4 +50,15 @@ public class QuteCompletionInExpressionWithIfSectionTest {
 		testCompletionFor(template, //
 				c("name : String", "name", r(1, 24, 1, 24)));
 	}
+
+	@Test
+	public void optionalParameter() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{#if foo??}\r\n" + //
+				"	{|}\r\n" + //
+				"{/for}";
+		testCompletionFor(template, //
+				c("foo", "foo", r(2, 2, 2, 2)), //
+				c("item", "item", r(2, 2, 2, 2)));
+	}
 }
