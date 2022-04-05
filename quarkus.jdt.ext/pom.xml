@@ -17,7 +17,7 @@
     <jdt.ls.version>1.7.0.20211216164144</jdt.ls.version>
     <tycho.test.platformArgs />
     <tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
-    <lsp4mp.p2.url>https://download.eclipse.org/lsp4mp/snapshots/0.4.0/repository/</lsp4mp.p2.url>
+    <lsp4mp.p2.url>https://download.eclipse.org/lsp4mp/snapshots/0.5.0/repository/</lsp4mp.p2.url>
 
     <!-- Code coverage -->
     <jacoco.version>0.7.9</jacoco.version>
