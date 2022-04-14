@@ -183,7 +183,7 @@
 				<deployScriptDir>${project.build.directory}/releng-scripts/sources</deployScriptDir>
 				<deployScript>${deployScriptDir}/publish/rsync.sh</deployScript>
 				<deploySourceFolder>${project.build.directory}/repository</deploySourceFolder>
-				<filemgmtJbossOrg>10.5.105.197</filemgmtJbossOrg>
+				<filemgmtJbossOrg>filemgmt-prod-sync.jboss.org</filemgmtJbossOrg>
 				<deployDestination>tools@${filemgmtJbossOrg}:downloads_htdocs/jbosstools</deployDestination>
 				<deployTargetFolder>vscode/snapshots/builds/qute-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/</deployTargetFolder>
 				<deployNumbuildstokeep>2</deployNumbuildstokeep>
