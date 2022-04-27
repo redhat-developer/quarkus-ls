@@ -13,9 +13,12 @@ package com.redhat.qute.parser.template;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+
+import com.redhat.qute.parser.template.sections.ForSection;
 
 /**
  * Test with template parser which builds a Template AST.
@@ -114,7 +117,7 @@ public class TemplateParserTest {
 		assertEquals(26, section.getEndTagOpenOffset()); // |{/}
 		assertEquals(28, section.getEndTagCloseOffset()); // {/|}
 	}
-	
+
 	@Test
 	public void infixNotation() {
 		String content = "{#let name=value}\r\n" + //
@@ -133,4 +136,41 @@ public class TemplateParserTest {
 		assertEquals(25, section.getEndTagOpenOffset());
 		assertEquals(30, section.getEndTagCloseOffset());
 	}
+
+	@Test
+	public void for1() {
+		String content = "{#for item in items}" + //
+				"{/for}";
+		Template template = TemplateParser.parse(content, "test.qute");
+		assertEquals(1, template.getChildCount());
+		Node first = template.getChild(0);
+		assertEquals(NodeKind.Section, first.getKind());
+		Section section = (Section) first;
+		assertEquals(SectionKind.FOR, section.getSectionKind());
+		assertTrue(section.isClosed());
+		assertEquals(0, section.getStartTagOpenOffset()); // |{#let
+		assertEquals(19, section.getStartTagCloseOffset()); // {#let name=value|}
+		assertEquals(20, section.getEndTagOpenOffset());
+		assertEquals(25, section.getEndTagCloseOffset());
+
+		ForSection forSection = (ForSection) section;
+		assertEquals(3, forSection.getParameters().size());
+		Parameter parameter = forSection.getParameters().get(0);
+		assertEquals(6, parameter.getStart());
+		assertEquals(10, parameter.getEnd());
+		assertEquals("item", parameter.getName());
+		parameter = forSection.getParameters().get(1);
+		assertEquals(11, parameter.getStart());
+		assertEquals(13, parameter.getEnd());
+		assertEquals("in", parameter.getName());
+		parameter = forSection.getParameters().get(2);
+		assertEquals(14, parameter.getStart());
+		assertEquals(19, parameter.getEnd());
+		assertEquals("items", parameter.getName());
+		assertNotNull(parameter.getJavaTypeExpression());
+		Expression expression = parameter.getJavaTypeExpression();
+		assertEquals(14, expression.getStart());
+		assertEquals(19, expression.getEnd());
+	}
+
 }
