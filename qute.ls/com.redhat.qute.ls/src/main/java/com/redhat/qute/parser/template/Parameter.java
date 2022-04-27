@@ -151,7 +151,7 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 			startExpression = getStartValue();
 			endExpression = getEndValue();
 		}
-		expression = new ExpressionParameter(startExpression - 1, endExpression + 1, getOwnerSection());
+		expression = new ExpressionParameter(startExpression, endExpression, getOwnerSection());
 		expression.setParent(this);
 		expression.setClosed(true);
 		return expression;

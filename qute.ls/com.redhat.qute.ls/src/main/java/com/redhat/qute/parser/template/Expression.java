@@ -24,6 +24,9 @@ import com.redhat.qute.parser.expression.Parts;
  * 
  * <p>
  * {foo}
+ * </p>
+ * 
+ * <p>
  * {foo ?: foo : 'bar'}
  * </p>
  * 
@@ -150,7 +153,7 @@ public class Expression extends Node {
 
 	public String getContent() {
 		if (content == null) {
-			content = getOwnerTemplate().getText(getStart() + 1, getEnd() - 1);
+			content = getOwnerTemplate().getText(getStartContentOffset(), getEndContentOffset());
 		}
 		return content;
 	}

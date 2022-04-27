@@ -90,4 +90,14 @@ public class ExpressionParameter extends Expression {
 	public Section getOwnerSection() {
 		return ownerSection;
 	}
+	
+	@Override
+	public int getStartContentOffset() {
+		return super.getStart();
+	}
+	
+	@Override
+	public int getEndContentOffset() {
+		return super.getEnd();
+	}
 }
