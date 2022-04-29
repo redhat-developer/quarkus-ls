@@ -40,6 +40,7 @@ import com.redhat.qute.services.completions.QuteCompletionsForParameterDeclarati
 import com.redhat.qute.services.completions.QuteCompletionsForSnippets;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
+import com.redhat.qute.settings.QuteNativeSettings;
 
 /**
  * The Qute completions
@@ -74,16 +75,17 @@ public class QuteCompletions {
 	/**
 	 * Returns completion list for the given position
 	 *
-	 * @param template           the Qute template
-	 * @param position           the position where completion was triggered
-	 * @param completionSettings the completion settings.
-	 * @param formattingSettings the formatting settings.
-	 * @param cancelChecker      the cancel checker
+	 * @param template             the Qute template
+	 * @param position             the position where completion was triggered
+	 * @param completionSettings   the completion settings.
+	 * @param formattingSettings   the formatting settings.
+	 * @param nativeImagesSettings the native image settings.
+	 * @param cancelChecker        the cancel checker
 	 * @return completion list for the given position
 	 */
 	public CompletableFuture<CompletionList> doComplete(Template template, Position position,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
-			CancelChecker cancelChecker) {
+			QuteNativeSettings nativeImagesSettings, CancelChecker cancelChecker) {
 		CompletionRequest completionRequest = null;
 		try {
 			completionRequest = new CompletionRequest(template, position, completionSettings, formattingSettings);
@@ -112,7 +114,7 @@ public class QuteCompletions {
 				expression = ((Part) node).getParent().getParent();
 			}
 			return completionForExpression.doCompleteExpression(completionRequest, expression, nodeExpression, template,
-					offset, completionSettings, formattingSettings, cancelChecker);
+					offset, completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
 		} else if (node.getKind() == NodeKind.Text) {
 			// The completion is triggered in text node (before node)
 			Section parent = node.getParentSection();
@@ -149,7 +151,7 @@ public class QuteCompletions {
 				if (nbBrackets % 2 != 0) {
 					// The completion is triggered in text node after bracket '{' character
 					return completionForExpression.doCompleteExpression(completionRequest, null, node, template, offset,
-							completionSettings, formattingSettings, cancelChecker);
+							completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
 				}
 				return EMPTY_FUTURE_COMPLETION;
 			}
@@ -165,7 +167,7 @@ public class QuteCompletions {
 			if (parameter.isAfterAssign(offset)) {
 				// {# let name=|
 				return completionForExpression.doCompleteExpression(completionRequest, null, null, template, offset,
-						completionSettings, formattingSettings, cancelChecker);
+						completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
 			}
 		}
 		return collectSnippetSuggestions(completionRequest);

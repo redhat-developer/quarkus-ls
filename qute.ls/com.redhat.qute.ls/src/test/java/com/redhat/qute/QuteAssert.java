@@ -82,6 +82,7 @@ import com.redhat.qute.services.diagnostics.IQuteErrorCode;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.QuteInlayHintSettings;
+import com.redhat.qute.settings.QuteNativeSettings;
 import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.StringUtils;
@@ -145,8 +146,14 @@ public class QuteAssert {
 	}
 
 	public static void testCompletionFor(String value, boolean snippetSupport, String fileUri, String templateId,
-			String projectUri, String templateBaseDir, Integer expectedCount, CompletionItem... expectedItems)
-			throws Exception {
+			String projectUri, String templateBaseDir, Integer expectedCount, CompletionItem... expectedItems) throws Exception {
+		testCompletionFor(value, snippetSupport, fileUri, templateId, projectUri, templateBaseDir, expectedCount,
+				new QuteNativeSettings(), expectedItems);
+	}
+
+	public static void testCompletionFor(String value, boolean snippetSupport, String fileUri, String templateId,
+			String projectUri, String templateBaseDir, Integer expectedCount, QuteNativeSettings nativeImagesSettings,
+			CompletionItem... expectedItems) throws Exception {
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
@@ -167,7 +174,7 @@ public class QuteAssert {
 
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
 		CompletionList list = languageService
-				.doComplete(template, position, completionSettings, formattingSettings, () -> {
+				.doComplete(template, position, completionSettings, formattingSettings, nativeImagesSettings, () -> {
 				}).get();
 
 		// no duplicate labels
@@ -287,13 +294,20 @@ public class QuteAssert {
 
 	public static void testDiagnosticsFor(String value, String fileUri, String templateId, String projectUri,
 			String templateBaseDir, boolean filter, QuteValidationSettings validationSettings, Diagnostic... expected) {
+		testDiagnosticsFor(value, fileUri, templateId, projectUri, templateBaseDir, filter, validationSettings,
+				new QuteNativeSettings(), expected);
+	}
+
+	public static void testDiagnosticsFor(String value, String fileUri, String templateId, String projectUri,
+			String templateBaseDir, boolean filter, QuteValidationSettings validationSettings,
+			QuteNativeSettings nativeImagesSettings, Diagnostic... expected) {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 		template.setTemplateId(templateId);
 
 		JavaDataModelCache javaCache = new JavaDataModelCache(projectRegistry);
 		QuteLanguageService languageService = new QuteLanguageService(javaCache);
-		List<Diagnostic> actual = languageService.doDiagnostics(template, validationSettings,
+		List<Diagnostic> actual = languageService.doDiagnostics(template, validationSettings, nativeImagesSettings,
 				new ResolvingJavaTypeContext(template, javaCache), () -> {
 				});
 		if (expected == null) {

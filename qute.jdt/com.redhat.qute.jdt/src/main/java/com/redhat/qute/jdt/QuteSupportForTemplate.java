@@ -69,6 +69,7 @@ import com.redhat.qute.jdt.internal.template.QuarkusIntegrationForQute;
 import com.redhat.qute.jdt.internal.template.TemplateDataSupport;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
+import com.redhat.qute.jdt.utils.QuteReflectionAnnotationUtils;
 
 /**
  * Qute support for Template file.
@@ -409,7 +410,7 @@ public class QuteSupportForTemplate {
 			}
 		} else {
 			// ex : String implements CharSequence, ....
-			ITypeHierarchy typeHierarchy = type.newSupertypeHierarchy(monitor);			
+			ITypeHierarchy typeHierarchy = type.newSupertypeHierarchy(monitor);
 			IType[] allSuperTypes = typeHierarchy.getSupertypes(type);
 			extendedTypes = Stream.of(allSuperTypes) //
 					.map(superType -> superType.getFullyQualifiedName()) //
@@ -427,6 +428,7 @@ public class QuteSupportForTemplate {
 		resolvedType.setMethods(methodsInfo);
 		resolvedType.setInvalidMethods(invalidMethods);
 		resolvedType.setExtendedTypes(extendedTypes);
+		QuteReflectionAnnotationUtils.collectAnnotations(resolvedType, type);
 		return resolvedType;
 	}
 

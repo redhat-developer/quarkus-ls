@@ -33,7 +33,7 @@ public class QuteDiagnosticsInfixNotationTest {
 				"{foo codePointCount 1}";
 		testDiagnosticsFor(template, //
 				d(1, 5, 1, 19, QuteErrorCode.InvalidMethodInfixNotation,
-						"The method `codePointCount` cannot be used with infix notation, because it has not `1` parameter.",
+						"The method `codePointCount` cannot be used with infix notation, because it does not have exactly `1` parameter.",
 						DiagnosticSeverity.Error));
 	}
 

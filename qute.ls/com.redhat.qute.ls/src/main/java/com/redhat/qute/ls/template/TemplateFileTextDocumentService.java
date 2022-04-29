@@ -121,7 +121,8 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 				(cancelChecker, template) -> {
 					return getQuteLanguageService()
 							.doComplete(template, params.getPosition(), sharedSettings.getCompletionSettings(),
-									sharedSettings.getFormattingSettings(), cancelChecker) //
+									sharedSettings.getFormattingSettings(), sharedSettings.getNativeSettings(),
+									cancelChecker) //
 							.thenApply(list -> {
 								return Either.forRight(list);
 							});
@@ -283,7 +284,8 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 					ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template,
 							quteLanguageServer.getDataModelCache());
 					List<Diagnostic> diagnostics = getQuteLanguageService().doDiagnostics(template,
-							getSharedSettings().getValidationSettings(template.getUri()), resolvingJavaTypeContext,
+							getSharedSettings().getValidationSettings(template.getUri()),
+							getSharedSettings().getNativeSettings(), resolvingJavaTypeContext,
 							() -> template.checkCanceled());
 
 					// Diagnostics has been collected, before diagnostics publishing, check if the

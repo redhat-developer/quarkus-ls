@@ -292,10 +292,14 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	public CompletableFuture<ExtendedDataModelTemplate> getDataModelTemplate(Template template) {
 		String projectUri = template.getProjectUri();
 		if (StringUtils.isEmpty(projectUri)) {
-			// The project uri is not already get (it occurs when Qute template is opened and the project information takes some times).
+			// The project uri is not already get (it occurs when Qute template is opened
+			// and the project information takes some times).
 			// Load the project information and call the data model.
 			return template.getProjectFuture() //
 					.thenCompose(project -> {
+						if (project == null) {
+							return null;
+						}
 						return getDataModelTemplate(template, project.getUri());
 					});
 		}
@@ -350,6 +354,77 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		if (baseType == null) {
 			return null;
 		}
+		JavaMemberInfo member = findPropertyWithJavaReflection(baseType, property, projectUri);
+		if (member != null) {
+			return member;
+		}
+		return findValueResolver(baseType, property, projectUri);
+	}
+
+	/**
+	 * Returns the Java method / field from the given Java type
+	 * <code>baseType</code> which matches the given property name
+	 * <code>property</code>.
+	 *
+	 * @param baseType   the Java base object type.
+	 * @param property   the property name to search.
+	 * @param nativeMode the native image mode.
+	 * @param projectUri the project Uri.
+	 *
+	 * @return the Java method / field from the given Java type
+	 *         <code>baseType</code> which matches the given property name
+	 *         <code>property</code>.
+	 */
+	public JavaMemberResult findProperty(ResolvedJavaTypeInfo baseType, String property, boolean nativeMode,
+			String projectUri) {
+		JavaMemberResult result = new JavaMemberResult();
+
+		if (!nativeMode) {
+
+			// Find member with Java reflection.
+			JavaMemberInfo member = findPropertyWithJavaReflection(baseType, property, projectUri);
+			if (member != null) {
+				result.setMember(member);
+				return result;
+			}
+
+			// Find member with value resolvers.
+			member = findValueResolver(baseType, property, projectUri);
+			if (member != null) {
+				result.setMember(member);
+			}
+			return result;
+		}
+
+		// Find member with value resolvers.
+		JavaMemberInfo member = findValueResolver(baseType, property, projectUri);
+		if (member != null) {
+			result.setMember(member);
+			return result;
+		}
+
+		// Find member with Java reflection.
+		member = findPropertyWithJavaReflection(baseType, property, projectUri);
+		if (member != null) {
+			result.setMember(member);
+			return result;
+		}
+		return result;
+	}
+
+	/**
+	 * Returns the Java member from the given base type wich matches the given
+	 * property by using Java reflection and null otherwise.
+	 * 
+	 * @param baseType   the Java type.
+	 * @param property   the property member.
+	 * @param projectUri the project Uri.
+	 * 
+	 * @return the Java member from the given base type wich matches the given
+	 *         property by using Java reflection and null otherwise.
+	 */
+	private JavaMemberInfo findPropertyWithJavaReflection(ResolvedJavaTypeInfo baseType, String property,
+			String projectUri) {
 		if (baseType.isIterable() && !baseType.isArray()) {
 			// Expression uses iterable type
 			// {@java.util.List<org.acme.Item items>
@@ -375,20 +450,15 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			for (String superType : baseType.getExtendedTypes()) {
 				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaType(superType, projectUri).getNow(null);
 				if (resolvedSuperType != null) {
-					JavaMemberInfo superMemberInfo = findMember(resolvedSuperType, property, projectUri);
+					JavaMemberInfo superMemberInfo = findPropertyWithJavaReflection(resolvedSuperType, property,
+							projectUri);
 					if (superMemberInfo != null) {
 						return superMemberInfo;
 					}
 				}
 			}
 		}
-		// Search in value resolver
-		String literalType = LiteralSupport.getLiteralJavaType(property);
-		if (literalType != null) {
-			// ex : @java.lang.Integer(base : T[]) : T (see qute-resolvers.jsonc)
-			property = "@" + literalType;
-		}
-		return findValueResolver(property, baseType, projectUri);
+		return null;
 	}
 
 	/**
@@ -462,6 +532,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 * @param namespace      the namespace part and null otherwise.
 	 * @param methodName     the method name to search.
 	 * @param parameterTypes the parameter types of the method to search.
+	 * @param nativeMode     the native image mode.
 	 * @param projectUri     the project Uri.
 	 *
 	 * @return the Java method from the given Java type <code>baseType</code> which
@@ -469,18 +540,13 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 *         parameter types <code>parameterTypes</code>.
 	 */
 	public JavaMemberResult findMethod(ResolvedJavaTypeInfo baseType, String namespace, String methodName,
-			List<ResolvedJavaTypeInfo> parameterTypes, String projectUri) {
+			List<ResolvedJavaTypeInfo> parameterTypes, boolean nativeMode, String projectUri) {
 		// Search in the java root type
 		JavaMemberResult result = new JavaMemberResult();
-		if (baseType != null) {
-			if (findMethod(baseType, methodName, parameterTypes, result, projectUri)) {
-				return result;
-			}
 
-			// Search in value resolvers
-			// Search in static value resolvers (ex : orEmpty, take, etc)
-			List<MethodValueResolver> staticResolvers = valueResolversRegistry.getResolvers();
-			if (findMethodResolver(baseType, null, methodName, parameterTypes, staticResolvers, result, projectUri)) {
+		if (!nativeMode && baseType != null) {
+			// In NO native image mode, search with Java reflection at the begin
+			if (findMethod(baseType, methodName, parameterTypes, result, projectUri)) {
 				return result;
 			}
 		}
@@ -490,6 +556,22 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		if (findMethodResolver(baseType, namespace, methodName, parameterTypes, dynamicResolvers, result, projectUri)) {
 			return result;
 		}
+
+		if (baseType != null) {
+			// Search in static value resolvers (ex : orEmpty, take, etc)
+			List<MethodValueResolver> staticResolvers = valueResolversRegistry.getResolvers();
+			if (findMethodResolver(baseType, null, methodName, parameterTypes, staticResolvers, result, projectUri)) {
+				return result;
+			}
+
+			if (nativeMode) {
+				// In native image mode, search with Java reflection at the end
+				if (findMethod(baseType, methodName, parameterTypes, result, projectUri)) {
+					return result;
+				}
+			}
+		}
+
 		return result;
 	}
 
@@ -623,9 +705,14 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		return value == null || value.isEmpty();
 	}
 
-	public MethodValueResolver findValueResolver(String property, ResolvedJavaTypeInfo resolvedType,
-			String projectUri) {
-		List<MethodValueResolver> resolvers = getResolversFor(resolvedType, projectUri);
+	public MethodValueResolver findValueResolver(ResolvedJavaTypeInfo baseType, String property, String projectUri) {
+		// Search in value resolver
+		String literalType = LiteralSupport.getLiteralJavaType(property);
+		if (literalType != null) {
+			// ex : @java.lang.Integer(base : T[]) : T (see qute-resolvers.jsonc)
+			property = "@" + literalType;
+		}
+		List<MethodValueResolver> resolvers = getResolversFor(baseType, projectUri);
 		for (MethodValueResolver resolver : resolvers) {
 			if (isMatchMethod(resolver, property)) {
 				return resolver;

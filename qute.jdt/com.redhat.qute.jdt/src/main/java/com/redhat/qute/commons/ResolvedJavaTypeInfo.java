@@ -40,6 +40,10 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
 	private Boolean isIterable;
 
+	private RegisterForReflectionAnnotation registerForReflectionAnnotation;
+
+	private List<TemplateDataAnnotation> templateDataAnnotations;
+
 	/**
 	 * Returns list of extended types.
 	 * 
@@ -178,6 +182,50 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		return iterable;
 	}
 
+	/**
+	 * Returns the list of '@io.quarkus.qute.TemplateData' annotations for the Java
+	 * type.
+	 * 
+	 * @return the list of '@io.quarkus.qute.TemplateData' annotations for the Java
+	 *         type.
+	 */
+	public List<TemplateDataAnnotation> getTemplateDataAnnotations() {
+		return templateDataAnnotations;
+	}
+
+	/**
+	 * Set the list of '@io.quarkus.qute.TemplateData' annotations for the Java
+	 * type.
+	 * 
+	 * @param templateDataAnnotations the list of '@io.quarkus.qute.TemplateData'
+	 *                                annotations for the Java type.
+	 */
+	public void setTemplateDataAnnotations(List<TemplateDataAnnotation> templateDataAnnotations) {
+		this.templateDataAnnotations = templateDataAnnotations;
+	}
+
+	/**
+	 * Returns '@io.quarkus.runtime.annotations.RegisterForReflection' for the Java
+	 * type.
+	 * 
+	 * @return '@io.quarkus.runtime.annotations.RegisterForReflection' for the Java
+	 *         type.
+	 */
+	public RegisterForReflectionAnnotation getRegisterForReflectionAnnotation() {
+		return registerForReflectionAnnotation;
+	}
+
+	/**
+	 * Set the '@io.quarkus.runtime.annotations.RegisterForReflection' for the Java
+	 * type.
+	 * 
+	 * @param registerForReflectionAnnotation '@io.quarkus.runtime.annotations.RegisterForReflection'
+	 *                                        for the Java type.
+	 */
+	public void setRegisterForReflectionAnnotation(RegisterForReflectionAnnotation registerForReflectionAnnotation) {
+		this.registerForReflectionAnnotation = registerForReflectionAnnotation;
+	}
+
 	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
@@ -185,6 +233,8 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		b.add("signature", this.getSignature());
 		b.add("iterableOf", this.getIterableOf());
 		b.add("iterableType", this.getIterableType());
+		b.add("templateDataAnnotations", this.getTemplateDataAnnotations());
+		b.add("registerForReflectionAnnotation", this.getRegisterForReflectionAnnotation());
 		return b.toString();
 	}
 

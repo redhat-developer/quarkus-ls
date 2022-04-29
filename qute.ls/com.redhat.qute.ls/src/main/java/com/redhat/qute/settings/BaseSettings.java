@@ -25,10 +25,13 @@ public class BaseSettings {
 
 	private final QuteValidationSettings validationSettings;
 
+	private final QuteNativeSettings nativeImagesSettings;
+
 	public BaseSettings() {
 		this.validationSettings = new QuteValidationSettings();
 		this.codeLensSettings = new QuteCodeLensSettings();
 		this.inlayHintSettings = new QuteInlayHintSettings();
+		this.nativeImagesSettings = new QuteNativeSettings();
 	}
 
 	/**
@@ -56,5 +59,14 @@ public class BaseSettings {
 	 */
 	public QuteValidationSettings getValidationSettings() {
 		return validationSettings;
+	}
+
+	/**
+	 * Returns the Qute native images settings.
+	 * 
+	 * @return the Qute native images settings.
+	 */
+	public QuteNativeSettings getNativeSettings() {
+		return nativeImagesSettings;
 	}
 }
