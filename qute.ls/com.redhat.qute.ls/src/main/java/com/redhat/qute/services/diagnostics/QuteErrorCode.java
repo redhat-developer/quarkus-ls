@@ -25,10 +25,20 @@ public enum QuteErrorCode implements IQuteErrorCode {
 
 	// Error code for operator
 	InvalidOperator("Invalid `{0}` operator for section `#{1}`. Allowed operators are `{2}`."), //
-	
-	// Error code for object, property, method parts
+
+	// Error code for object part
 	UndefinedObject("`{0}` cannot be resolved to an object."), //
 	UnknownType("`{0}` cannot be resolved to a type."), //
+
+	// Error codes for property part
+	UnknownProperty("`{0}` cannot be resolved or is not a field of `{1}` Java type."), //
+	PropertyNotSupportedInNativeMode("Property `{0}` of `{1}` Java type cannot be used in native image mode."), //
+	InheritedPropertyNotSupportedInNativeMode(
+			"Inherited property `{0}` of `{1}` Java type cannot be used in native image mode because Java type is annotated with `@TemplateData(ignoreSuperclasses = true)`."), //
+	ForbiddenByRegisterForReflectionFields(
+			"The field `{0}` of `{1}` Java type cannot be used in native image mode because Java type is annotated with `@RegisterForReflection(fields = false)`."), //
+
+	// Error code for method part
 	UnknownMethod("`{0}` cannot be resolved or is not a method of `{1}` Java type."), //
 	UnknownNamespaceResolverMethod("`{0}` cannot be resolved or is not a method of `{1}` namespace resolver."), //
 	InvalidMethodVoid("Invalid `{0}` method of `{1}` : void return is not allowed."), //
@@ -38,9 +48,13 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	InvalidVirtualMethod(
 			"The virtual method `{0}` in the type `{1}` is not applicable for the base object `{2}` type."), //
 	InfixNotationParameterRequired("A parameter for the infix notation method `{0}` is required."), //
-	InvalidMethodInfixNotation("The method `{0}` cannot be used with infix notation, because it has not `1` parameter."), //
-	
-	UnknownProperty("`{0}` cannot be resolved or is not a field of `{1}` Java type."), //
+	InvalidMethodInfixNotation(
+			"The method `{0}` cannot be used with infix notation, because it does not have exactly `1` parameter."), //
+	MethodNotSupportedInNativeMode("Method `{0}` of `{1}` Java type cannot be used in native image mode."), //
+	InheritedMethodNotSupportedInNativeMode(
+			"Inherited method `{0}` of `{1}` Java type cannot be used in native image mode because Java type is annotated with `@TemplateData(ignoreSuperclasses = true)`."), //
+	ForbiddenByRegisterForReflectionMethods(
+			"The method `{0}` of `{1}` Java type cannot be used in native image mode because Java type is annotated with `@RegisterForReflection(methods = false)`."), //
 
 	// Error code for #for / #each section
 	IterationError("Iteration error: '{'{0}'}' resolved to [{1}] which is not iterable."),

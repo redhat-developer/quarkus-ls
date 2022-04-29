@@ -13,6 +13,7 @@ package com.redhat.qute.settings;
 
 import java.util.Map;
 
+import com.google.gson.annotations.SerializedName;
 import com.redhat.qute.utils.JSONUtility;
 
 /**
@@ -40,10 +41,23 @@ public class QuteGeneralClientSettings {
 
 	private QuteValidationSettings validation;
 
+	@SerializedName(value = "native")
+	private QuteNativeSettings nativeImages;
+
+	/**
+	 * Returns the code lens settings.
+	 * 
+	 * @return the code lens settings.
+	 */
 	public QuteCodeLensSettings getCodeLens() {
 		return codeLens;
 	}
 
+	/**
+	 * Returns the inlay hint settings.
+	 * 
+	 * @return the inlay hint settings.
+	 */
 	public QuteInlayHintSettings getInlayHint() {
 		return inlayHint;
 	}
@@ -58,6 +72,15 @@ public class QuteGeneralClientSettings {
 	}
 
 	/**
+	 * Returns the native images settings.
+	 * 
+	 * @return the native images settings.
+	 */
+	public QuteNativeSettings getNativeImages() {
+		return nativeImages;
+	}
+
+	/**
 	 * Set the CodeLens setting.
 	 *
 	 * @param codeLens the CodeLens setting.
@@ -66,6 +89,11 @@ public class QuteGeneralClientSettings {
 		this.codeLens = codeLens;
 	}
 
+	/**
+	 * Set the inlay hint settings.
+	 * 
+	 * @param inlayHint the inlay hint settings.
+	 */
 	public void setInlayHint(QuteInlayHintSettings inlayHint) {
 		this.inlayHint = inlayHint;
 	}
@@ -77,6 +105,15 @@ public class QuteGeneralClientSettings {
 	 */
 	public void setValidation(QuteValidationSettings validation) {
 		this.validation = validation;
+	}
+
+	/**
+	 * Set the native images settings.
+	 * 
+	 * @param nativeImages the native images settings.
+	 */
+	public void setNativeImages(QuteNativeSettings nativeImages) {
+		this.nativeImages = nativeImages;
 	}
 
 	public Map<String, QuteGeneralClientSettings> getWorkspaceFolders() {
@@ -109,11 +146,14 @@ public class QuteGeneralClientSettings {
 
 		private final boolean inlayHintSettingsChanged;
 
+		private boolean nativeImagesSettingsChanged;
+
 		public SettingsUpdateState(boolean validationSettingsChanged, boolean codeLensSettingsChanged,
-				boolean inlayHintSettingsChanged) {
+				boolean inlayHintSettingsChanged, boolean nativeImagesSettingsChanged) {
 			this.validationSettingsChanged = validationSettingsChanged;
 			this.codeLensSettingsChanged = codeLensSettingsChanged;
 			this.inlayHintSettingsChanged = inlayHintSettingsChanged;
+			this.nativeImagesSettingsChanged = nativeImagesSettingsChanged;
 		}
 
 		/**
@@ -143,6 +183,14 @@ public class QuteGeneralClientSettings {
 			return inlayHintSettingsChanged;
 		}
 
+		/**
+		 * Returns true if native images settings changed and false otherwise.
+		 * 
+		 * @return true if native images settings changed and false otherwise.
+		 */
+		public boolean isNativeImagesSettingsChanged() {
+			return nativeImagesSettingsChanged;
+		}
 	}
 
 	/**
@@ -176,7 +224,14 @@ public class QuteGeneralClientSettings {
 			validationSettingsChanged = true;
 		}
 
-		return new SettingsUpdateState(validationSettingsChanged, codeLensSettingsChanged, inlayHintSettingsChanged);
+		// Update native images settings
+		boolean nativeImagesSettingsChanged = updateNativeImagesSettings(sharedSettings, clientSettings);
+		if (workspaceChanged) {
+			nativeImagesSettingsChanged = true;
+		}
+
+		return new SettingsUpdateState(validationSettingsChanged, codeLensSettingsChanged, inlayHintSettingsChanged,
+				nativeImagesSettingsChanged);
 	}
 
 	private static boolean updateCodeLensSettings(SharedSettings sharedSettings,
@@ -249,6 +304,32 @@ public class QuteGeneralClientSettings {
 	private static boolean updateValidationSettings(BaseSettings sharedSettings, QuteValidationSettings validation) {
 		if (validation != null && !validation.equals(sharedSettings.getValidationSettings())) {
 			sharedSettings.getValidationSettings().update(validation);
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean updateNativeImagesSettings(SharedSettings sharedSettings,
+			QuteGeneralClientSettings clientSettings) {
+		// Global nativeImages settings
+		boolean nativeImagesSettingsChanged = updateNativeImagesSettings(sharedSettings,
+				clientSettings.getNativeImages());
+		// Workspace folder nativeImages settings
+		Map<String, QuteGeneralClientSettings> workspaceFolders = clientSettings.getWorkspaceFolders();
+		if (workspaceFolders != null) {
+			for (Map.Entry<String /* workspace folder Uri */, QuteGeneralClientSettings> entry : workspaceFolders
+					.entrySet()) {
+				String workspaceFolderUri = entry.getKey();
+				BaseSettings settings = sharedSettings.getWorkspaceFolderSettings(workspaceFolderUri);
+				nativeImagesSettingsChanged |= updateNativeImagesSettings(settings, entry.getValue().getNativeImages());
+			}
+		}
+		return nativeImagesSettingsChanged;
+	}
+
+	private static boolean updateNativeImagesSettings(BaseSettings sharedSettings, QuteNativeSettings nativeImages) {
+		if (nativeImages != null && !nativeImages.equals(sharedSettings.getNativeSettings())) {
+			sharedSettings.getNativeSettings().update(nativeImages);
 			return true;
 		}
 		return false;

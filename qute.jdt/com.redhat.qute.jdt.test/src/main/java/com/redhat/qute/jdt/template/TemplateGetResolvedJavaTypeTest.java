@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2021 Red Hat Inc. and others.
+0* Copyright (c) 2021 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
@@ -17,6 +17,7 @@ import static com.redhat.qute.jdt.QuteProjectTest.loadMavenProject;
 import java.util.List;
 import java.util.Optional;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -294,6 +295,90 @@ public class TemplateGetResolvedJavaTypeTest {
 		assertExtendedTypes("java.lang.String", "java.lang.CharSequence", extendedTypes);
 	}
 
+	@Test
+	public void templateData() throws CoreException, Exception {
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.ItemWithTemplateData",
+				QuteMavenProjectName.qute_quickstart);
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
+				new NullProgressMonitor());
+		Assert.assertNotNull(result);
+		Assert.assertEquals("org.acme.qute.ItemWithTemplateData", result.getSignature());
+		Assert.assertFalse(result.isIterable());
+
+		// @TemplateData
+
+		// @TemplateData(target = BigDecimal.class)
+		// @TemplateData(ignoreSuperclasses = true)
+		// public class ItemWithTemplateData {
+		Assert.assertNotNull(result.getTemplateDataAnnotations());
+		Assert.assertEquals(2, result.getTemplateDataAnnotations().size());
+		// @TemplateData(target = BigDecimal.class)
+		Assert.assertFalse(result.getTemplateDataAnnotations().get(0).isIgnoreSuperclasses());
+		// @TemplateData(ignoreSuperclasses = true)
+		Assert.assertTrue(result.getTemplateDataAnnotations().get(1).isIgnoreSuperclasses());
+
+		// Fields
+		Assert.assertNotNull(result.getFields());
+		Assert.assertEquals(2, result.getFields().size());
+		Assert.assertEquals("name", result.getFields().get(0).getName());
+		Assert.assertEquals("java.lang.String", result.getFields().get(0).getType());
+		Assert.assertEquals("price", result.getFields().get(1).getName());
+		Assert.assertEquals("java.math.BigDecimal", result.getFields().get(1).getType());
+
+		// Methods
+		Assert.assertNotNull(result.getMethods());
+		Assert.assertEquals(1, result.getMethods().size());
+		Assert.assertEquals("getDerivedItems() : org.acme.qute.Item[]", result.getMethods().get(0).getSignature());
+
+		// Invalid methods(static method)
+		JavaMethodInfo discountedPriceMethod = findMethod(result, "staticMethod");
+		Assert.assertNull(discountedPriceMethod);
+		InvalidMethodReason reason = result.getInvalidMethodReason("staticMethod");
+		Assert.assertEquals(InvalidMethodReason.Static, reason);
+	}
+
+	@Test
+	public void registerForReflection() throws CoreException, Exception {
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.ItemWithRegisterForReflection",
+				QuteMavenProjectName.qute_quickstart);
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
+				new NullProgressMonitor());
+		Assert.assertNotNull(result);
+		Assert.assertEquals("org.acme.qute.ItemWithRegisterForReflection", result.getSignature());
+		Assert.assertFalse(result.isIterable());
+
+		// @RegisterForReflection
+
+		// @RegisterForReflection(fields = false)
+		// public class ItemWithRegisterForReflection {
+		Assert.assertNotNull(result.getRegisterForReflectionAnnotation());
+		Assert.assertFalse(result.getRegisterForReflectionAnnotation().isFields());
+		Assert.assertTrue(result.getRegisterForReflectionAnnotation().isMethods());
+		
+		// Fields
+		Assert.assertNotNull(result.getFields());
+		Assert.assertEquals(2, result.getFields().size());
+		Assert.assertEquals("name", result.getFields().get(0).getName());
+		Assert.assertEquals("java.lang.String", result.getFields().get(0).getType());
+		Assert.assertEquals("price", result.getFields().get(1).getName());
+		Assert.assertEquals("java.math.BigDecimal", result.getFields().get(1).getType());
+
+		// Methods
+		Assert.assertNotNull(result.getMethods());
+		Assert.assertEquals(1, result.getMethods().size());
+		Assert.assertEquals("getDerivedItems() : org.acme.qute.Item[]", result.getMethods().get(0).getSignature());
+
+		// Invalid methods(static method)
+		JavaMethodInfo discountedPriceMethod = findMethod(result, "staticMethod");
+		Assert.assertNull(discountedPriceMethod);
+		InvalidMethodReason reason = result.getInvalidMethodReason("staticMethod");
+		Assert.assertEquals(InvalidMethodReason.Static, reason);
+	}
+	
 	private static void assertExtendedTypes(String type, String extendedType, List<String> extendedTypes) {
 		Assert.assertTrue("The Java type '" + type + "' should extends '" + extendedType + "'.",
 				extendedTypes.contains(extendedType));

@@ -166,7 +166,7 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 				// Some inlay hint settings changed, ask the client to refresh all inlay hints.
 				getLanguageClient().refreshInlayHints();
 			}
-			if (result.isValidationSettingsChanged()) {
+			if (result.isValidationSettingsChanged() || result.isNativeImagesSettingsChanged()) {
 				// Some validation settings changed
 				textDocumentService.validationSettingsChanged();
 			}

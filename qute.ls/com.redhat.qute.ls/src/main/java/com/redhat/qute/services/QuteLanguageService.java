@@ -41,6 +41,7 @@ import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.QuteInlayHintSettings;
+import com.redhat.qute.settings.QuteNativeSettings;
 import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.settings.SharedSettings;
 
@@ -85,17 +86,19 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	/**
 	 * Returns completion list for the given position
 	 * 
-	 * @param template           the Qute template
-	 * @param position           the position where completion was triggered
-	 * @param completionSettings the completion settings.
-	 * @param formattingSettings the formatting settings.
-	 * @param cancelChecker      the cancel checker
+	 * @param template             the Qute template
+	 * @param position             the position where completion was triggered
+	 * @param completionSettings   the completion settings.
+	 * @param formattingSettings   the formatting settings.
+	 * @param nativeImagesSettings the native image settings.
+	 * @param cancelChecker        the cancel checker
 	 * @return completion list for the given position
 	 */
 	public CompletableFuture<CompletionList> doComplete(Template template, Position position,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
-			CancelChecker cancelChecker) {
-		return completions.doComplete(template, position, completionSettings, formattingSettings, cancelChecker);
+			QuteNativeSettings nativeImagesSettings, CancelChecker cancelChecker) {
+		return completions.doComplete(template, position, completionSettings, formattingSettings, nativeImagesSettings,
+				cancelChecker);
 	}
 
 	public CompletableFuture<List<? extends CodeLens>> getCodeLens(Template template, SharedSettings settings,
@@ -138,14 +141,17 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	/**
 	 * Validate the given Qute <code>template</code>.
 	 * 
-	 * @param template           the Qute template.
-	 * @param validationSettings the validation settings.
-	 * @param cancelChecker      the cancel checker.
+	 * @param template             the Qute template.
+	 * @param validationSettings   the validation settings.
+	 * @param nativeImagesSettings the native image settings.
+	 * @param cancelChecker        the cancel checker.
 	 * @return the result of the validation.
 	 */
 	public List<Diagnostic> doDiagnostics(Template template, QuteValidationSettings validationSettings,
-			ResolvingJavaTypeContext resolvingJavaTypeFutures, CancelChecker cancelChecker) {
-		return diagnostics.doDiagnostics(template, validationSettings, resolvingJavaTypeFutures, cancelChecker);
+			QuteNativeSettings nativeImagesSettings, ResolvingJavaTypeContext resolvingJavaTypeFutures,
+			CancelChecker cancelChecker) {
+		return diagnostics.doDiagnostics(template, validationSettings, nativeImagesSettings, resolvingJavaTypeFutures,
+				cancelChecker);
 	}
 
 	public List<? extends Location> findReferences(Template template, Position position, ReferenceContext context,

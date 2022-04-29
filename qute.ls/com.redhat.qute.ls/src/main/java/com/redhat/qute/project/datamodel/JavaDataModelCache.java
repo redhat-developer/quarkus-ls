@@ -257,6 +257,11 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return projectRegistry.findMember(baseType, property, projectUri);
 	}
 
+	public JavaMemberResult findProperty(Part part, ResolvedJavaTypeInfo baseType, boolean nativeMode,
+			String projectUri) {
+		return projectRegistry.findProperty(baseType, part.getPartName(), nativeMode, projectUri);
+	}
+
 	public boolean hasNamespace(String namespace, String projectUri) {
 		return projectRegistry.hasNamespace(namespace, projectUri);
 	}
@@ -275,8 +280,8 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 	}
 
 	public JavaMemberResult findMethod(ResolvedJavaTypeInfo baseType, String namespace, String methodName,
-			List<ResolvedJavaTypeInfo> parameterTypes, String projectUri) {
-		return projectRegistry.findMethod(baseType, namespace, methodName, parameterTypes, projectUri);
+			List<ResolvedJavaTypeInfo> parameterTypes, boolean nativeMode, String projectUri) {
+		return projectRegistry.findMethod(baseType, namespace, methodName, parameterTypes, nativeMode, projectUri);
 	}
 
 }
