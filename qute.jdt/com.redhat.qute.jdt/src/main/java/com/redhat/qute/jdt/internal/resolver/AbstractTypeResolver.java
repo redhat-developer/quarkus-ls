@@ -101,6 +101,11 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		return signature.toString();
 	}
 
+	@Override
+	public String resolveTypeSignature(String typeSignature) {
+		return resolveTypeSignature(typeSignature, false);
+	}
+
 	private String resolveTypeSignature(String typeSignature, boolean varargs) {
 		if (typeSignature.charAt(0) == '[') {
 			return doResolveTypeSignature(typeSignature.substring(1, typeSignature.length()))
@@ -145,6 +150,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 			}
 			return name;
 		} else {
+			// ex : Ljava.lang.Long;
 			return Signature.toString(typeSignature.substring(arrayCount));
 		}
 	}

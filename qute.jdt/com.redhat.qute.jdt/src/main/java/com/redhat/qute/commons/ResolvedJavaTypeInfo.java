@@ -16,6 +16,9 @@ import java.util.List;
 
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
+import com.redhat.qute.commons.annotations.RegisterForReflectionAnnotation;
+import com.redhat.qute.commons.annotations.TemplateDataAnnotation;
+
 /**
  * Resolved Java type information.
  * 

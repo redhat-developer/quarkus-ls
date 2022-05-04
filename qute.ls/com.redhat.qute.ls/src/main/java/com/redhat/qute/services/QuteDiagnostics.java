@@ -67,9 +67,9 @@ import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.services.diagnostics.DiagnosticDataFactory;
 import com.redhat.qute.services.diagnostics.QuteDiagnosticsForSyntax;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
+import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
-import com.redhat.qute.services.nativemode.JavaTypeFilter.JavaMemberdAccess;
-import com.redhat.qute.services.nativemode.NativeModeUtils;
+import com.redhat.qute.services.nativemode.JavaTypeFilter.JavaMemberAccessibility;
 import com.redhat.qute.settings.QuteNativeSettings;
 import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.utils.QutePositionUtility;
@@ -202,33 +202,16 @@ class QuteDiagnostics {
 	private void validateDataModel(Node parent, Template template, QuteValidationSettings validationSettings,
 			QuteNativeSettings nativeImagesSettings, ResolvingJavaTypeContext resolvingJavaTypeContext,
 			ResolutionContext currentContext, List<Diagnostic> diagnostics) {
+		String projectUri = template.getProjectUri();
+		JavaTypeFilter filter = javaCache.getJavaTypeFilter(projectUri, nativeImagesSettings);
 		ResolutionContext previousContext = currentContext;
 		List<Node> children = parent.getChildren();
 		for (Node node : children) {
 			switch (node.getKind()) {
 			case ParameterDeclaration: {
 				ParameterDeclaration parameter = (ParameterDeclaration) node;
-				String javaTypeToResolve = parameter.getJavaType();
-				if (!StringUtils.isEmpty(javaTypeToResolve)) {
-					String projectUri = template.getProjectUri();
-					if (projectUri != null) {
-						List<JavaTypeRangeOffset> classNameRanges = parameter.getJavaTypeNameRanges();
-						for (RangeOffset classNameRange : classNameRanges) {
-							String className = template.getText(classNameRange);
-							ResolvedJavaTypeInfo resolvedJavaType = resolveJavaType(className, projectUri,
-									resolvingJavaTypeContext);
-							if (resolvedJavaType == null) {
-								// Java type doesn't exist
-								Range range = QutePositionUtility.createRange(classNameRange, template);
-								Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-										QuteErrorCode.UnknownType, className);
-								diagnostics.add(diagnostic);
-							} else if (!isResolvingJavaType(resolvedJavaType)) {
-								currentContext.put(javaTypeToResolve, resolvedJavaType);
-							}
-						}
-					}
-				}
+				validateParameterDeclaration(parameter, template, projectUri, resolvingJavaTypeContext, currentContext,
+						diagnostics);
 				break;
 			}
 			case Section: {
@@ -258,8 +241,7 @@ class QuteDiagnostics {
 						if (expression != null) {
 							// Validate object, property, method parts from the expression
 							ResolvedJavaTypeInfo result = validateExpression(expression, section, template,
-									validationSettings, nativeImagesSettings, previousContext, resolvingJavaTypeContext,
-									diagnostics);
+									validationSettings, filter, previousContext, resolvingJavaTypeContext, diagnostics);
 							switch (section.getSectionKind()) {
 							case FOR:
 							case EACH:
@@ -289,14 +271,50 @@ class QuteDiagnostics {
 				break;
 			}
 			case Expression: {
-				validateExpression((Expression) node, null, template, validationSettings, nativeImagesSettings,
-						previousContext, resolvingJavaTypeContext, diagnostics);
+				validateExpression((Expression) node, null, template, validationSettings, filter, previousContext,
+						resolvingJavaTypeContext, diagnostics);
 				break;
 			}
 			default:
 			}
 			validateDataModel(node, template, validationSettings, nativeImagesSettings, resolvingJavaTypeContext,
 					currentContext, diagnostics);
+		}
+	}
+
+	/**
+	 * Validate parameter declaration.
+	 * 
+	 * @param parameter                the parameter declaration.
+	 * @param template                 the owner Qute template.
+	 * @param projectUri               the project Uri.
+	 * @param resolvingJavaTypeContext the resoving Java type context.
+	 * @param currentContext           the resolution context.
+	 * @param diagnostics              the diagnostics to update.
+	 */
+	private void validateParameterDeclaration(ParameterDeclaration parameter, Template template, String projectUri,
+			ResolvingJavaTypeContext resolvingJavaTypeContext, ResolutionContext currentContext,
+			List<Diagnostic> diagnostics) {
+		String javaTypeToResolve = parameter.getJavaType();
+		if (!StringUtils.isEmpty(javaTypeToResolve)) {
+			if (projectUri != null) {
+				List<JavaTypeRangeOffset> classNameRanges = parameter.getJavaTypeNameRanges();
+				for (RangeOffset classNameRange : classNameRanges) {
+					String className = template.getText(classNameRange);
+					ResolvedJavaTypeInfo resolvedJavaType = resolveJavaType(className, projectUri,
+							resolvingJavaTypeContext);
+					if (resolvedJavaType == null) {
+						// ex : {@org.acme.XXXXX item}
+						// Java type 'org.acme.XXXXX' doesn't exist
+						Range range = QutePositionUtility.createRange(classNameRange, template);
+						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+								QuteErrorCode.UnknownType, className);
+						diagnostics.add(diagnostic);
+					} else if (!isResolvingJavaType(resolvedJavaType)) {
+						currentContext.put(javaTypeToResolve, resolvedJavaType);
+					}
+				}
+			}
 		}
 	}
 
@@ -384,9 +402,8 @@ class QuteDiagnostics {
 	}
 
 	private ResolvedJavaTypeInfo validateExpression(Expression expression, Section ownerSection, Template template,
-			QuteValidationSettings validationSettings, QuteNativeSettings nativeImagesSettings,
-			ResolutionContext resolutionContext, ResolvingJavaTypeContext resolvingJavaTypeContext,
-			List<Diagnostic> diagnostics) {
+			QuteValidationSettings validationSettings, JavaTypeFilter filter, ResolutionContext resolutionContext,
+			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
 		try {
 			String projectUri = template.getProjectUri();
 			String literalJavaType = expression.getLiteralJavaType();
@@ -411,8 +428,7 @@ class QuteDiagnostics {
 				if (expressionChild.getKind() == NodeKind.ExpressionParts) {
 					Parts parts = (Parts) expressionChild;
 					resolvedJavaType = validateExpressionParts(parts, ownerSection, template, projectUri,
-							validationSettings, nativeImagesSettings, resolutionContext, resolvingJavaTypeContext,
-							diagnostics);
+							validationSettings, filter, resolutionContext, resolvingJavaTypeContext, diagnostics);
 				}
 			}
 			return resolvedJavaType;
@@ -426,9 +442,11 @@ class QuteDiagnostics {
 	}
 
 	private ResolvedJavaTypeInfo validateExpressionParts(Parts parts, Section ownerSection, Template template,
-			String projectUri, QuteValidationSettings validationSettings, QuteNativeSettings nativeImagesSettings,
+			String projectUri, QuteValidationSettings validationSettings, JavaTypeFilter filter,
 			ResolutionContext resolutionContext, ResolvingJavaTypeContext resolvingJavaTypeContext,
 			List<Diagnostic> diagnostics) {
+		// In native mode we need to collect all Java type of the expression to use it
+		// for filter Java type, fields and methods.
 		ResolvedJavaTypeInfo baseType = null;
 		String namespace = null;
 		for (int i = 0; i < parts.getChildCount(); i++) {
@@ -486,8 +504,6 @@ class QuteDiagnostics {
 						return null;
 					}
 				}
-
-				JavaTypeFilter filter = NativeModeUtils.getJavaTypeFilter(baseType, nativeImagesSettings);
 				baseType = validateMemberPart(current, ownerSection, template, projectUri, validationSettings, filter,
 						resolutionContext, baseType, iter, diagnostics, resolvingJavaTypeContext);
 				break;
@@ -689,46 +705,66 @@ class QuteDiagnostics {
 					part.getPartName(), baseType.getSignature());
 			diagnostics.add(diagnostic);
 			return null;
-		} else if (filter.isInNativeMode()) {
+		} else if (canValidateMemberInNativeMode(filter, javaMember)) {
 			// The property (field, method) has been retrieved, check if it is a valid in
 			// native mode
-			if (!filter.isJavaTypeAllowed(baseType)) {
-				Range range = QutePositionUtility.createRange(part);
-				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-						QuteErrorCode.PropertyNotSupportedInNativeMode, part.getPartName(), baseType.getSignature());
-				diagnostics.add(diagnostic);
-				return null;
-			}
-			if (!filter.isSuperClassAllowed(javaMember)) {
-				// @TemplateData(ignoreSuperclasses = true)
-				Range range = QutePositionUtility.createRange(part);
-				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-						QuteErrorCode.InheritedPropertyNotSupportedInNativeMode, part.getPartName(),
-						baseType.getSignature());
-				diagnostics.add(diagnostic);
-				return null;
-			}
+			JavaTypeAccessibiltyRule javaTypeAccessibility = filter.getJavaTypeAccessibility(baseType,
+					resolvingJavaTypeContext.getJavaTypesSupportedInNativeMode());
+			if (!JavaTypeAccessibiltyRule.ALLOWED_WITHOUT_RESTRICTION.equals(javaTypeAccessibility)) {
+				if (javaTypeAccessibility == null) {
+					Range range = QutePositionUtility.createRange(part);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.PropertyNotSupportedInNativeMode, part.getPartName(),
+							baseType.getSignature());
+					diagnostics.add(diagnostic);
+					return null;
+				}
+				if (!filter.isSuperClassAllowed(javaMember, baseType, javaTypeAccessibility)) {
+					// @TemplateData(ignoreSuperclasses = true)
+					Range range = QutePositionUtility.createRange(part);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.InheritedPropertyNotSupportedInNativeMode, part.getPartName(),
+							baseType.getSignature());
+					diagnostics.add(diagnostic);
+					return null;
+				}
 
-			JavaMemberdAccess access = filter.getJavaMemberAccess(javaMember);
-			switch (access) {
-			case FORBIDDEN_BY_TEMPLATE_DATA_IGNORE: {
-				// TODO : support error message
-				return null;
-			}
+				JavaMemberAccessibility javaMemberAccessibility = filter.getJavaMemberAccessibility(javaMember,
+						javaTypeAccessibility);
+				switch (javaMemberAccessibility.getKind()) {
+				case FORBIDDEN_BY_TEMPLATE_DATA_IGNORE: {
+					Range range = QutePositionUtility.createRange(part);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.MethodIgnoredByTemplateData, part.getPartName(), baseType.getSignature(),
+							javaMemberAccessibility.getIgnore());
+					diagnostics.add(diagnostic);
+					return null;
+				}
 
-			case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_FIELDS:
-			case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_METHODS: {
-				Range range = QutePositionUtility.createRange(part);
-				QuteErrorCode errorCode = javaMember.getJavaElementKind() == JavaElementKind.METHOD
-						? QuteErrorCode.ForbiddenByRegisterForReflectionMethods
-						: QuteErrorCode.ForbiddenByRegisterForReflectionFields;
-				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode, part.getPartName(),
-						baseType.getSignature());
-				diagnostics.add(diagnostic);
-				return null;
-			}
+				case FORBIDDEN_BY_TEMPLATE_DATA_PROPERTIES: {
+					JavaMethodInfo method = (JavaMethodInfo) javaMember;
+					Range range = QutePositionUtility.createRange(part);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.ForbiddenByTemplateDataProperties, method.getName(), baseType.getSignature(),
+							method.getParameters().size());
+					diagnostics.add(diagnostic);
+					return null;
+				}
 
-			default:
+				case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_FIELDS:
+				case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_METHODS: {
+					Range range = QutePositionUtility.createRange(part);
+					QuteErrorCode errorCode = javaMember.getJavaElementKind() == JavaElementKind.METHOD
+							? QuteErrorCode.ForbiddenByRegisterForReflectionMethods
+							: QuteErrorCode.ForbiddenByRegisterForReflectionFields;
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode,
+							part.getPartName(), baseType.getSignature());
+					diagnostics.add(diagnostic);
+					return null;
+				}
+
+				default:
+				}
 			}
 		}
 
@@ -740,11 +776,12 @@ class QuteDiagnostics {
 	/**
 	 * Validate the given method part.
 	 *
-	 * @param part                     the method part to validate.
+	 * @param methodPart               the method part to validate.
 	 * @param ownerSection             the owner section and null otherwise.
 	 * @param template                 the template.
 	 * @param projectUri               the project Uri.
-	 * @param nativeImagesSettings
+	 * @param validationSettings       the validation settings.
+	 * @param the                      Java type filter.
 	 * @param resolutionContext        the resolution context.
 	 * @param baseType                 the base object type.
 	 * @param iterableOfType           the iterable of type.
@@ -755,7 +792,7 @@ class QuteDiagnostics {
 	 */
 	private ResolvedJavaTypeInfo validateMethodPart(MethodPart methodPart, Section ownerSection, Template template,
 			String projectUri, QuteValidationSettings validationSettings, JavaTypeFilter filter,
-			ResolutionContext resolutionContext, ResolvedJavaTypeInfo baseType, ResolvedJavaTypeInfo iter,
+			ResolutionContext resolutionContext, ResolvedJavaTypeInfo baseType, ResolvedJavaTypeInfo iterableOfType,
 			List<Diagnostic> diagnostics, ResolvingJavaTypeContext resolvingJavaTypeContext) {
 		if (methodPart.isInfixNotation()) {
 			// ex : foo or '1'
@@ -776,8 +813,8 @@ class QuteDiagnostics {
 			ResolvedJavaTypeInfo result = null;
 			Expression expression = parameter.getJavaTypeExpression();
 			if (expression != null) {
-				result = validateExpression(expression, ownerSection, template, validationSettings,
-						filter.getNativeSettings(), resolutionContext, resolvingJavaTypeContext, diagnostics);
+				result = validateExpression(expression, ownerSection, template, validationSettings, filter,
+						resolutionContext, resolvingJavaTypeContext, diagnostics);
 			}
 			if (result == null) {
 				undefinedType = true;
@@ -810,20 +847,22 @@ class QuteDiagnostics {
 			} else {
 				// ex : {@org.acme.Item item}
 				// {item.getXXXX()}
-				arg = baseType.getSignature();
-				InvalidMethodReason reason = javaCache.getInvalidMethodReason(methodName, baseType, projectUri);
-				if (reason != null) {
-					switch (reason) {
-					case VoidReturn:
-						errorCode = QuteErrorCode.InvalidMethodVoid;
-						break;
-					case Static:
-						errorCode = QuteErrorCode.InvalidMethodStatic;
-						break;
-					case FromObject:
-						errorCode = QuteErrorCode.InvalidMethodFromObject;
-						break;
-					default:
+				if (baseType != null) {
+					arg = baseType.getSignature();
+					InvalidMethodReason reason = javaCache.getInvalidMethodReason(methodName, baseType, projectUri);
+					if (reason != null) {
+						switch (reason) {
+						case VoidReturn:
+							errorCode = QuteErrorCode.InvalidMethodVoid;
+							break;
+						case Static:
+							errorCode = QuteErrorCode.InvalidMethodStatic;
+							break;
+						case FromObject:
+							errorCode = QuteErrorCode.InvalidMethodFromObject;
+							break;
+						default:
+						}
 					}
 				}
 			}
@@ -831,44 +870,64 @@ class QuteDiagnostics {
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode, methodName, arg);
 			diagnostics.add(diagnostic);
 			return null;
-		} else if (!method.isVirtual() && filter.isInNativeMode()) {
+		} else if (canValidateMemberInNativeMode(filter, method)) {
 			// The (non virtual) method has been retrieved, check if it is a valid in native
 			// mode
-			if (!filter.isJavaTypeAllowed(baseType)) {
-				Range range = QutePositionUtility.createRange(methodPart);
-				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-						QuteErrorCode.MethodNotSupportedInNativeMode, method.getName(), baseType.getSignature());
-				diagnostics.add(diagnostic);
-				return null;
-			}
-			if (!filter.isSuperClassAllowed(method)) {
-				Range range = QutePositionUtility.createRange(methodPart);
-				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-						QuteErrorCode.InheritedMethodNotSupportedInNativeMode, method.getName(),
-						baseType.getSignature());
-				diagnostics.add(diagnostic);
-				return null;
-			}
-			JavaMemberdAccess access = filter.getJavaMemberAccess(method);
-			switch (access) {
-			case FORBIDDEN_BY_TEMPLATE_DATA_IGNORE: {
-				// TODO : support error message
-				return null;
-			}
 
-			case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_FIELDS:
-			case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_METHODS: {
-				Range range = QutePositionUtility.createRange(methodPart);
-				QuteErrorCode errorCode = method.getJavaElementKind() == JavaElementKind.METHOD
-						? QuteErrorCode.ForbiddenByRegisterForReflectionMethods
-						: QuteErrorCode.ForbiddenByRegisterForReflectionFields;
-				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode, method.getName(),
-						baseType.getSignature());
-				diagnostics.add(diagnostic);
-				return null;
-			}
+			JavaTypeAccessibiltyRule javaTypeAccessibility = filter.getJavaTypeAccessibility(baseType,
+					resolvingJavaTypeContext.getJavaTypesSupportedInNativeMode());
+			if (!JavaTypeAccessibiltyRule.ALLOWED_WITHOUT_RESTRICTION.equals(javaTypeAccessibility)) {
 
-			default:
+				if (javaTypeAccessibility == null) {
+					Range range = QutePositionUtility.createRange(methodPart);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.MethodNotSupportedInNativeMode, method.getName(), baseType.getSignature());
+					diagnostics.add(diagnostic);
+					return null;
+				}
+				if (!filter.isSuperClassAllowed(method, baseType, javaTypeAccessibility)) {
+					Range range = QutePositionUtility.createRange(methodPart);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.InheritedMethodNotSupportedInNativeMode, method.getName(),
+							baseType.getSignature());
+					diagnostics.add(diagnostic);
+					return null;
+				}
+				JavaMemberAccessibility javaMemberAccessibility = filter.getJavaMemberAccessibility(method,
+						javaTypeAccessibility);
+				switch (javaMemberAccessibility.getKind()) {
+
+				case FORBIDDEN_BY_TEMPLATE_DATA_IGNORE: {
+					Range range = QutePositionUtility.createRange(methodPart);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.MethodIgnoredByTemplateData, method.getName(), baseType.getSignature(),
+							javaMemberAccessibility.getIgnore());
+					diagnostics.add(diagnostic);
+					return null;
+				}
+
+				case FORBIDDEN_BY_TEMPLATE_DATA_PROPERTIES: {
+					Range range = QutePositionUtility.createRange(methodPart);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.ForbiddenByTemplateDataProperties, method.getName(), baseType.getSignature(),
+							method.getParameters().size());
+					diagnostics.add(diagnostic);
+					return null;
+				}
+
+				case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_FIELDS:
+				case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_METHODS: {
+					Range range = QutePositionUtility.createRange(methodPart);
+					QuteErrorCode errorCode = method.getJavaElementKind() == JavaElementKind.METHOD
+							? QuteErrorCode.ForbiddenByRegisterForReflectionMethods
+							: QuteErrorCode.ForbiddenByRegisterForReflectionFields;
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode,
+							method.getName(), baseType.getSignature());
+					diagnostics.add(diagnostic);
+					return null;
+				}
+				default:
+				}
 			}
 		}
 
@@ -937,9 +996,19 @@ class QuteDiagnostics {
 			return null;
 		}
 
-		String memberType = method.resolveJavaElementType(iter);
+		String memberType = method.resolveJavaElementType(iterableOfType);
 		return validateJavaTypePart(methodPart, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext,
 				memberType, null);
+	}
+
+	private static boolean canValidateMemberInNativeMode(JavaTypeFilter filter, JavaMemberInfo member) {
+		if (member.getJavaElementKind() == JavaElementKind.METHOD) {
+			JavaMethodInfo method = (JavaMethodInfo) member;
+			if (method.isVirtual()) {
+				return false;
+			}
+		}
+		return filter.isInNativeMode();
 	}
 
 	private ResolvedJavaTypeInfo validateJavaTypePart(Part part, Section ownerSection, String projectUri,

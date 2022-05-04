@@ -37,6 +37,8 @@ public enum QuteErrorCode implements IQuteErrorCode {
 			"Inherited property `{0}` of `{1}` Java type cannot be used in native image mode because Java type is annotated with `@TemplateData(ignoreSuperclasses = true)`."), //
 	ForbiddenByRegisterForReflectionFields(
 			"The field `{0}` of `{1}` Java type cannot be used in native image mode because Java type is annotated with `@RegisterForReflection(fields = false)`."), //
+	PropertyIgnoredByTemplateData(
+			"The property `{0}` of `{1}` Java type cannot be used in native image mode because Java type is annotated with `@TemplateData(ignore = {2})`."), //
 
 	// Error code for method part
 	UnknownMethod("`{0}` cannot be resolved or is not a method of `{1}` Java type."), //
@@ -55,6 +57,10 @@ public enum QuteErrorCode implements IQuteErrorCode {
 			"Inherited method `{0}` of `{1}` Java type cannot be used in native image mode because Java type is annotated with `@TemplateData(ignoreSuperclasses = true)`."), //
 	ForbiddenByRegisterForReflectionMethods(
 			"The method `{0}` of `{1}` Java type cannot be used in native image mode because Java type is annotated with `@RegisterForReflection(methods = false)`."), //
+	ForbiddenByTemplateDataProperties(
+			"The method `{0}` of `{1}` Java type cannot be used in native image mode because it has `{2}` parameters and Java type is annotated with `@TemplateData(properties = true)`."), //
+	MethodIgnoredByTemplateData(
+			"The method `{0}` of `{1}` Java type cannot be used in native image mode because Java type is annotated with `@TemplateData(ignore = {2})`."), //
 
 	// Error code for #for / #each section
 	IterationError("Iteration error: '{'{0}'}' resolved to [{1}] which is not iterable."),

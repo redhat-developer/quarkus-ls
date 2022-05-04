@@ -27,6 +27,7 @@ import org.eclipse.lsp4j.Position;
 
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.annotations.TemplateDataAnnotation;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
@@ -48,6 +49,10 @@ import com.redhat.qute.project.indexing.QuteTemplateIndex;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagRegistry;
 import com.redhat.qute.services.completions.CompletionRequest;
+import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
+import com.redhat.qute.services.nativemode.JavaTypeFilter;
+import com.redhat.qute.services.nativemode.NativeModeJavaTypeFilter;
+import com.redhat.qute.utils.StringUtils;
 
 /**
  * A Qute project.
@@ -67,11 +72,15 @@ public class QuteProject {
 
 	private final Map<String /* Full qualified name of Java class */, CompletableFuture<ResolvedJavaTypeInfo>> resolvedJavaTypes;
 
+	private Map<String /* Full qualified name of Java class */, JavaTypeAccessibiltyRule> targetAnnotations;
+
 	private CompletableFuture<ExtendedDataModelProject> dataModelProjectFuture;
 
 	private final QuteDataModelProjectProvider dataModelProvider;
 
 	private final UserTagRegistry tagRegistry;
+
+	private final NativeModeJavaTypeFilter filterInNativeMode;
 
 	public QuteProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider,
 			QuteUserTagProvider userTagProvider) {
@@ -82,6 +91,7 @@ public class QuteProject {
 		this.dataModelProvider = dataModelProvider;
 		this.resolvedJavaTypes = new HashMap<>();
 		this.tagRegistry = new UserTagRegistry(uri, templateBaseDir, userTagProvider);
+		this.filterInNativeMode = new NativeModeJavaTypeFilter(this);
 	}
 
 	/**
@@ -189,6 +199,14 @@ public class QuteProject {
 
 	void registerResolvedJavaType(String typeName, CompletableFuture<ResolvedJavaTypeInfo> future) {
 		resolvedJavaTypes.put(typeName, future);
+		future //
+				.thenApply(c -> {
+					if (targetAnnotations != null) {
+						// Update target annotations @TemplateData, @RegisterForReflection
+						updateTargetAnnotation(c, targetAnnotations);
+					}
+					return c;
+				});
 	}
 
 	public CompletableFuture<ExtendedDataModelProject> getDataModelProject() {
@@ -226,6 +244,7 @@ public class QuteProject {
 			dataModelProjectFuture = null;
 		}
 		resolvedJavaTypes.clear();
+		targetAnnotations = null;
 	}
 
 	/**
@@ -303,4 +322,104 @@ public class QuteProject {
 	public Path getTagsDir() {
 		return tagRegistry.getTagsDir();
 	}
+
+	public JavaTypeAccessibiltyRule getJavaTypeAccessibiltyInNativeMode(String javaTypeName) {
+		if (getJavaTypesSupportedInNativeMode().contains(javaTypeName)) {
+			return JavaTypeAccessibiltyRule.ALLOWED_WITHOUT_RESTRICTION;
+		}
+		
+		// Native images mode : the java reflection is supported only if the Java type
+		// is
+		// annotated with:
+		// - @TemplateData
+		// - @RegisterForReflection
+
+		// Case 1 : Item
+		// javaType = Item
+		// @TemplateData
+		// public class Item
+		//
+		// Or
+		//
+		// @RegisterForReflection
+		// public class Item
+		// return Arrays.asList(javaType);
+
+		// Case 1 : BigDecimal
+		// javaType = BigDecimal
+		// @TemplateData(target = BigDecimal.class)
+		// public class Item
+		//
+		// Or
+		//
+		// @RegisterForReflection(targets = {BigDecimal.class})
+		// public class Item
+		if (targetAnnotations == null) {
+			targetAnnotations = loadTargetAnnotations();
+		}
+		return targetAnnotations.get(javaTypeName);
+	}
+
+	private synchronized Map<String, JavaTypeAccessibiltyRule> loadTargetAnnotations() {
+		if (targetAnnotations != null) {
+			return targetAnnotations;
+		}
+
+		Map<String /* Full qualified name of Java class */, JavaTypeAccessibiltyRule> targetAnnotations = new HashMap<>();
+		resolvedJavaTypes.values().forEach(future -> {
+			updateTargetAnnotation(future.getNow(null), targetAnnotations);
+		});
+		return targetAnnotations;
+	}
+
+	private void updateTargetAnnotation(ResolvedJavaTypeInfo baseType,
+			Map<String /* Full qualified name of Java class */, JavaTypeAccessibiltyRule> targetAnnotations) {
+		if (baseType == null) {
+			return;
+		}
+		if (baseType.getTemplateDataAnnotations() != null && !baseType.getTemplateDataAnnotations().isEmpty()) {
+			// Loop for @TemplateData
+			for (TemplateDataAnnotation annotation : baseType.getTemplateDataAnnotations()) {
+				// Merge information about @TemplateData (ignore, etc) in the proper
+				// JavaTypeAccessResult
+				String target = StringUtils.isEmpty(annotation.getTarget()) ? baseType.getName()
+						: annotation.getTarget();
+				JavaTypeAccessibiltyRule result = getJavaTypeAccessibiltyRule(target, targetAnnotations);
+				result.merge(annotation);
+			}
+		}
+		if (baseType.getRegisterForReflectionAnnotation() != null) {
+			// Merge information about @RegisterForReflection (fields, etc) in the proper
+			// JavaTypeAccessResult
+			List<String> targets = baseType.getRegisterForReflectionAnnotation().getTargets();
+			if (targets != null && !targets.isEmpty()) {
+				for (String target : targets) {
+					JavaTypeAccessibiltyRule result = getJavaTypeAccessibiltyRule(target, targetAnnotations);
+					result.merge(baseType.getRegisterForReflectionAnnotation());
+				}
+			} else {
+				String target = baseType.getName();
+				JavaTypeAccessibiltyRule result = getJavaTypeAccessibiltyRule(target, targetAnnotations);
+				result.merge(baseType.getRegisterForReflectionAnnotation());
+			}
+		}
+	}
+
+	private static JavaTypeAccessibiltyRule getJavaTypeAccessibiltyRule(String target,
+			Map<String, JavaTypeAccessibiltyRule> targetAnnotations) {
+		return targetAnnotations.computeIfAbsent(target, (x -> new JavaTypeAccessibiltyRule()));
+	}
+
+	public JavaTypeFilter getJavaTypeFilterInNativeMode() {
+		return filterInNativeMode;
+	}
+
+	public Collection<? extends String> getJavaTypesSupportedInNativeMode() {
+		ExtendedDataModelProject dataModel = getDataModelProject().getNow(null);
+		if (dataModel == null) {
+			return Collections.emptySet();
+		}
+		return dataModel.getJavaTypesSupportedInNativeMode();
+	}
+
 }

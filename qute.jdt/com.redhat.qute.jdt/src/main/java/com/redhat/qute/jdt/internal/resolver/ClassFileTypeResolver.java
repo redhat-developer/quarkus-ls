@@ -22,7 +22,6 @@ import org.eclipse.jdt.core.IClassFile;
 public class ClassFileTypeResolver extends AbstractTypeResolver {
 
 	public ClassFileTypeResolver(IClassFile classFile) {
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override

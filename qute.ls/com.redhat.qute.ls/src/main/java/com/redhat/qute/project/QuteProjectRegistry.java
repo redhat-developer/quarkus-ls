@@ -63,6 +63,9 @@ import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolversRegistry;
+import com.redhat.qute.services.nativemode.JavaTypeFilter;
+import com.redhat.qute.services.nativemode.ReflectionJavaTypeFilter;
+import com.redhat.qute.settings.QuteNativeSettings;
 import com.redhat.qute.utils.StringUtils;
 
 /**
@@ -618,9 +621,12 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	}
 
 	private boolean findMethodResolver(ResolvedJavaTypeInfo baseType, String namespace, String methodName,
-			List<ResolvedJavaTypeInfo> parameterTypes, List<MethodValueResolver> allResolvers, JavaMemberResult result,
+			List<ResolvedJavaTypeInfo> parameterTypes, List<MethodValueResolver> resolvers, JavaMemberResult result,
 			String projectUri) {
-		for (MethodValueResolver resolver : allResolvers) {
+		if (resolvers == null) {
+			return false;
+		}
+		for (MethodValueResolver resolver : resolvers) {
 			if (isMatchMethod(resolver, methodName, null, null)) {
 				// The current resolver matches the method name.
 				if (namespace != null) {
@@ -1095,4 +1101,25 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 				});
 	}
 
+	/**
+	 * Returns the java type filter according the given root java type and the
+	 * native mode.
+	 * 
+	 * @param rootJavaType         the Java root type.
+	 * @param nativeImagesSettings the native images settings.
+	 * 
+	 * @return the java type filter according the given root java type and the
+	 *         native mode.
+	 */
+	public JavaTypeFilter getJavaTypeFilter(String projectUri, QuteNativeSettings nativeImagesSettings) {
+		if (nativeImagesSettings != null && nativeImagesSettings.isEnabled()) {
+			if (projectUri != null) {
+				QuteProject project = getProject(projectUri);
+				if (project != null) {
+					return project.getJavaTypeFilterInNativeMode();
+				}
+			}
+		}
+		return ReflectionJavaTypeFilter.INSTANCE;
+	}
 }

@@ -39,6 +39,8 @@ import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
+import com.redhat.qute.services.nativemode.JavaTypeFilter;
+import com.redhat.qute.settings.QuteNativeSettings;
 import com.redhat.qute.utils.StringUtils;
 
 public class JavaDataModelCache implements DataModelTemplateProvider {
@@ -292,4 +294,17 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return projectRegistry.findMethod(baseType, namespace, methodName, parameterTypes, nativeMode, projectUri);
 	}
 
+	/**
+	 * Returns the java type filter according the given root java type and the
+	 * native mode.
+	 * 
+	 * @param rootJavaType         the Java root type.
+	 * @param nativeImagesSettings the native images settings.
+	 * 
+	 * @return the java type filter according the given root java type and the
+	 *         native mode.
+	 */
+	public JavaTypeFilter getJavaTypeFilter(String projectUri, QuteNativeSettings nativeImagesSettings) {
+		return projectRegistry.getJavaTypeFilter(projectUri, nativeImagesSettings);
+	}
 }

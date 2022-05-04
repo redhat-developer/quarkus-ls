@@ -9,7 +9,9 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.commons;
+package com.redhat.qute.commons.annotations;
+
+import java.util.List;
 
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
@@ -30,6 +32,17 @@ public class RegisterForReflectionAnnotation {
 	 * If the fields should be registered
 	 */
 	private Boolean fields;
+
+	/**
+	 * Alternative classes that should actually be registered for reflection instead
+	 * of the current class.
+	 *
+	 * This allows for classes in 3rd party libraries to be registered without
+	 * modification or writing an extension. If this is set then the class it is
+	 * placed on is not registered for reflection, so this should generally just be
+	 * placed on an empty class that is not otherwise used.
+	 */
+	private List<String> targets;
 
 	public boolean isMethods() {
 		if (methods == null) {
@@ -53,11 +66,20 @@ public class RegisterForReflectionAnnotation {
 		this.fields = fields;
 	}
 
+	public List<String> getTargets() {
+		return targets;
+	}
+
+	public void setTargets(List<String> targets) {
+		this.targets = targets;
+	}
+
 	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("fields", this.isFields());
 		b.add("methods", this.isMethods());
+		b.add("targets", this.getTargets());
 		return b.toString();
 	}
 

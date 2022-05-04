@@ -21,9 +21,9 @@ import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ProjectInfo;
-import com.redhat.qute.commons.RegisterForReflectionAnnotation;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.TemplateDataAnnotation;
+import com.redhat.qute.commons.annotations.RegisterForReflectionAnnotation;
+import com.redhat.qute.commons.annotations.TemplateDataAnnotation;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
@@ -40,6 +40,9 @@ import com.redhat.qute.ls.api.QuteUserTagProvider;
 public class QuteQuickStartProject extends MockQuteProject {
 
 	public final static String PROJECT_URI = "qute-quickstart";
+
+	public static final String ITEMRESOURCE_ITEMS_TEMPLATE_URI = "src/main/resources/templates/ItemResource/items";
+	public static final String NATIVEITEMRESOURCE_ITEMS_TEMPLATE_URI = "src/main/resources/templates/NativeItemResource/items";
 
 	public QuteQuickStartProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider,
 			QuteUserTagProvider tagProvider) {
@@ -69,8 +72,10 @@ public class QuteQuickStartProject extends MockQuteProject {
 		createResolvedJavaTypeInfo("java.lang.Double", cache);
 		createResolvedJavaTypeInfo("java.lang.Long", cache);
 		createResolvedJavaTypeInfo("java.lang.Float", cache);
-		createResolvedJavaTypeInfo("java.math.BigInteger", cache);
 		createResolvedJavaTypeInfo("java.math.BigDecimal", cache);
+
+		ResolvedJavaTypeInfo bigInteger = createResolvedJavaTypeInfo("java.math.BigInteger", cache);
+		registerMethod("divide(val : java.math.BigInteger) : java.math.BigInteger", bigInteger);
 
 		ResolvedJavaTypeInfo bean = createResolvedJavaTypeInfo("org.acme.Bean", cache);
 		registerField("bean : java.lang.String", bean);
@@ -78,6 +83,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		ResolvedJavaTypeInfo review = createResolvedJavaTypeInfo("org.acme.Review", cache);
 		registerField("name : java.lang.String", review);
 		registerField("average : java.lang.Integer", review);
+		registerMethod("getReviews() : java.util.List<org.acme.Review>", review);
 
 		// Item <- BaseItem <- AbstractItem
 		ResolvedJavaTypeInfo abstractItem = createResolvedJavaTypeInfo("org.acme.AbstractItem", cache);
@@ -115,8 +121,34 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerField("name : java.lang.String", itemWithTemplateData); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithTemplateData);
 		registerMethod("getReview2() : org.acme.Review", itemWithTemplateData);
-		TemplateDataAnnotation annotation = new TemplateDataAnnotation();
-		itemWithTemplateData.setTemplateDataAnnotations(Arrays.asList(annotation));
+		registerMethod("getSubClasses() : int", itemWithTemplateData);
+		itemWithTemplateData.setTemplateDataAnnotations(Arrays.asList(new TemplateDataAnnotation()));
+
+		// @TemplateData
+		// @TemplateData(target = BigInteger.class)
+		// public class ItemWithTemplateDataWithTarget
+		ResolvedJavaTypeInfo itemWithTemplateDataWithTarget = createResolvedJavaTypeInfo(
+				"org.acme.ItemWithTemplateDataWithTarget", cache, baseItem);
+		registerField("name : java.lang.String", itemWithTemplateDataWithTarget); // Override BaseItem#name
+		registerField("price : java.math.BigInteger", itemWithTemplateDataWithTarget);
+		registerMethod("getReview2() : org.acme.Review", itemWithTemplateDataWithTarget);
+		registerMethod("getSubClasses() : int", itemWithTemplateDataWithTarget);
+		TemplateDataAnnotation templateDataAnnotationWithTarget = new TemplateDataAnnotation();
+		templateDataAnnotationWithTarget.setTarget("java.lang.String");
+		itemWithTemplateDataWithTarget.setTemplateDataAnnotations(
+				Arrays.asList(new TemplateDataAnnotation(), templateDataAnnotationWithTarget));
+
+		// @TemplateData(properties = true)
+		// public class ItemWithTemplateDataProperties
+		ResolvedJavaTypeInfo itemWithTemplateDataProperties = createResolvedJavaTypeInfo(
+				"org.acme.ItemWithTemplateDataProperties", cache, baseItem);
+		registerField("name : java.lang.String", itemWithTemplateDataProperties); // Override BaseItem#name
+		registerField("price : java.math.BigInteger", itemWithTemplateDataProperties);
+		registerMethod("getReview2() : org.acme.Review", itemWithTemplateDataProperties);
+		registerMethod("getSubClasses() : int", itemWithTemplateDataProperties);
+		TemplateDataAnnotation propertiesTemplateDataAnnotation = new TemplateDataAnnotation();
+		propertiesTemplateDataAnnotation.setProperties(true);
+		itemWithTemplateDataProperties.setTemplateDataAnnotations(Arrays.asList(propertiesTemplateDataAnnotation));
 
 		// @TemplateData(ignoreSuperclasses = true)
 		// public class ItemWithTemplateDataIgnoreSubClasses
@@ -126,10 +158,9 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerField("price : java.math.BigInteger", itemWithTemplateDataIgnoreSubClasses);
 		registerMethod("getReview2() : org.acme.Review", itemWithTemplateDataIgnoreSubClasses);
 		registerMethod("getSubClasses() : int", itemWithTemplateDataIgnoreSubClasses);
-
-		annotation = new TemplateDataAnnotation();
-		annotation.setIgnoreSuperclasses(true);
-		itemWithTemplateDataIgnoreSubClasses.setTemplateDataAnnotations(Arrays.asList(annotation));
+		TemplateDataAnnotation templateDataAnnotation = new TemplateDataAnnotation();
+		templateDataAnnotation.setIgnoreSuperclasses(true);
+		itemWithTemplateDataIgnoreSubClasses.setTemplateDataAnnotations(Arrays.asList(templateDataAnnotation));
 
 		// @RegisterForReflection
 		// public class ItemWithRegisterForReflection
@@ -184,18 +215,80 @@ public class QuteQuickStartProject extends MockQuteProject {
 	@Override
 	protected List<DataModelTemplate<DataModelParameter>> createTemplates() {
 		List<DataModelTemplate<DataModelParameter>> templates = new ArrayList<>();
+		createItemsTemplate(templates);
+		createItemsNativeTemplate(templates);
+		return templates;
+	}
+
+	private static void createItemsTemplate(List<DataModelTemplate<DataModelParameter>> templates) {
 		DataModelTemplate<DataModelParameter> template = new DataModelTemplate<DataModelParameter>();
-		template.setTemplateUri("src/main/resources/templates/ItemResource/items");
+		template.setTemplateUri(ITEMRESOURCE_ITEMS_TEMPLATE_URI);
 		template.setSourceType("org.acme.qute.ItemResource$Templates");
 		template.setSourceMethod("items");
 		templates.add(template);
 
+		// ItemResource$Templates#items(Item item)
 		DataModelParameter parameter = new DataModelParameter();
 		parameter.setKey("items");
 		parameter.setSourceType("java.util.List<org.acme.Item>");
 		template.addParameter(parameter);
+	}
 
-		return templates;
+	private static void createItemsNativeTemplate(List<DataModelTemplate<DataModelParameter>> templates) {
+		DataModelTemplate<DataModelParameter> template = new DataModelTemplate<DataModelParameter>();
+		template.setTemplateUri(NATIVEITEMRESOURCE_ITEMS_TEMPLATE_URI);
+		template.setSourceType("org.acme.qute.NativeItemResource$Templates");
+		template.setSourceMethod("items");
+		templates.add(template);
+
+		// template.data("item", ...)
+		DataModelParameter parameter = new DataModelParameter();
+		parameter.setDataMethodInvocation(true);
+		parameter.setKey("review");
+		parameter.setSourceType("org.acme.Review");
+		template.addParameter(parameter);
+
+		parameter = new DataModelParameter();
+		parameter.setDataMethodInvocation(true);
+		parameter.setKey("itemWithTemplateData");
+		parameter.setSourceType("org.acme.ItemWithTemplateData");
+		template.addParameter(parameter);
+
+		parameter = new DataModelParameter();
+		parameter.setDataMethodInvocation(true);
+		parameter.setKey("itemWithTemplateDataWithTarget");
+		parameter.setSourceType("org.acme.ItemWithTemplateDataWithTarget");
+		template.addParameter(parameter);
+
+		parameter = new DataModelParameter();
+		parameter.setDataMethodInvocation(true);
+		parameter.setKey("itemWithTemplateDataIgnoreSubClasses");
+		parameter.setSourceType("org.acme.ItemWithTemplateDataIgnoreSubClasses");
+		template.addParameter(parameter);
+
+		parameter = new DataModelParameter();
+		parameter.setDataMethodInvocation(true);
+		parameter.setKey("itemWithRegisterForReflectionNoFields");
+		parameter.setSourceType("org.acme.ItemWithRegisterForReflectionNoFields");
+		template.addParameter(parameter);
+
+		parameter = new DataModelParameter();
+		parameter.setDataMethodInvocation(true);
+		parameter.setKey("itemWithRegisterForReflectionNoMethods");
+		parameter.setSourceType("org.acme.ItemWithRegisterForReflectionNoMethods");
+		template.addParameter(parameter);
+
+		parameter = new DataModelParameter();
+		parameter.setDataMethodInvocation(true);
+		parameter.setKey("itemWithRegisterForReflection");
+		parameter.setSourceType("org.acme.ItemWithRegisterForReflection");
+		template.addParameter(parameter);
+
+		parameter = new DataModelParameter();
+		parameter.setDataMethodInvocation(true);
+		parameter.setKey("itemWithTemplateDataProperties");
+		parameter.setSourceType("org.acme.ItemWithTemplateDataProperties");
+		template.addParameter(parameter);
 	}
 
 	@Override
@@ -217,10 +310,9 @@ public class QuteQuickStartProject extends MockQuteProject {
 		resolvers.add(
 				createValueResolver(null, null, null, "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
 						"getByIndex(list : java.util.List<T>, index : int) : T"));
-		resolvers.add(
-				createValueResolver(null, null, null, "org.acme.ItemResource",
-						"pretty(item : org.acme.Item, elements : java.lang.String...) : java.lang.String"));		
-		
+		resolvers.add(createValueResolver(null, null, null, "org.acme.ItemResource",
+				"pretty(item : org.acme.Item, elements : java.lang.String...) : java.lang.String"));
+
 		// 'config' namespace
 		resolvers.add(
 				createValueResolver("config", null, "*", "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
@@ -234,7 +326,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 
 		// Static field value resolvers
 		resolvers.add(createValueResolver(null, "GLOBAL", null, "org.acme.Bean", "bean : java.lang.String", true));
-				
+
 		return resolvers;
 	}
 

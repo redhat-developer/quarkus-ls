@@ -17,6 +17,8 @@ import static com.redhat.qute.QuteAssert.testCompletionFor;
 
 import org.junit.jupiter.api.Test;
 
+import com.redhat.qute.project.QuteQuickStartProject;
+
 /**
  * Tests for Qute completion in expression with namespace.
  *
@@ -77,14 +79,14 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 				0);
 
 		testCompletionFor(template, //
-				"src/main/resources/templates/ItemResource/items.qute.html", //
+				QuteQuickStartProject.ITEMRESOURCE_ITEMS_TEMPLATE_URI, //
 				"ItemResource/items", //
 				1, //
 				c("items", "items", r(0, 6, 0, 6)));
 
 		template = "{data:items.|}";
 		testCompletionFor(template, //
-				"src/main/resources/templates/ItemResource/items.qute.html", //
+				QuteQuickStartProject.ITEMRESOURCE_ITEMS_TEMPLATE_URI, //
 				"ItemResource/items", //
 				null, //
 				c("size() : int", "size", r(0, 12, 0, 12)));

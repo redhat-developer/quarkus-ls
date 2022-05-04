@@ -23,6 +23,27 @@ import org.eclipse.jdt.core.IMethod;
 public interface ITypeResolver {
 
 	/**
+	 * Returns the resolved Java type signature from the given String <code>typeSignature</code>.
+	 * 
+	 * Example:
+	 * 
+	 * <code>
+	 * String
+	 * </code>
+	 * 
+	 * will returns:
+	 * 
+	 * <code>
+	 * java.lang.String
+	 * </code>
+	 *  
+	 * @param typeSignature the Java type signature.
+	 * 
+	 * @return the resolved  Java type signature from the given String <code>typeSignature</code>.
+	 */
+	String resolveTypeSignature(String typeSignature);
+	
+	/**
 	 * Returns the Java field signature from the given JDT <code>field</code>.
 	 * 
 	 * Example:

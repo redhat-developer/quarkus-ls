@@ -16,6 +16,7 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ActivationPolicy: lazy
 Export-Package: com.redhat.qute.commons,
+ com.redhat.qute.commons.annotations,
  com.redhat.qute.commons.datamodel,
  com.redhat.qute.commons.datamodel.resolvers,
  com.redhat.qute.commons.usertags,

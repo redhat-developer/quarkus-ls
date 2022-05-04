@@ -110,7 +110,7 @@ public class QuteCompletionInParameterDeclarationTest {
 
 		// Without snippet
 		testCompletionFor(template, //
-				false, 7,
+				false, 9,
 				// Class completion
 				c("java.lang.Integer", "java.lang.Integer integer}", r(0, 2, 0, 4)), //
 				c("org.acme.Item", "org.acme.Item item}", r(0, 2, 0, 4)), //
@@ -131,7 +131,7 @@ public class QuteCompletionInParameterDeclarationTest {
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				7,
+				9,
 				// Class completion
 				c("java.lang.Integer", "java.lang.Integer ${1:integer}}$0", r(0, 2, 0, 4)), //
 				c("org.acme.Item", "org.acme.Item ${1:item}}$0", r(0, 2, 0, 4)), //
@@ -156,7 +156,7 @@ public class QuteCompletionInParameterDeclarationTest {
 
 		// Without snippet
 		testCompletionFor(template, //
-				false, 7,
+				false, 9,
 				// Class completion
 				c("java.lang.Integer", "java.lang.Integer integer}", r(0, 2, 0, 4)), //
 				c("org.acme.Item", "org.acme.Item item}", r(0, 2, 0, 4)), //
@@ -177,7 +177,7 @@ public class QuteCompletionInParameterDeclarationTest {
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				7,
+				9,
 				// Class completion
 				c("java.lang.Integer", "java.lang.Integer ${1:integer}}$0", r(0, 2, 0, 4)), //
 				c("org.acme.Item", "org.acme.Item ${1:item}}$0", r(0, 2, 0, 4)), //
@@ -199,7 +199,7 @@ public class QuteCompletionInParameterDeclarationTest {
 
 		// Without snippet
 		testCompletionFor(template, //
-				false, 6,
+				false, 8,
 				// Class completion
 				c("org.acme.Item", "org.acme.Item item}", r(0, 2, 0, 4)), //
 				c("org.acme.ItemWithTemplateData", "org.acme.ItemWithTemplateData itemWithTemplateData}",
@@ -219,7 +219,7 @@ public class QuteCompletionInParameterDeclarationTest {
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				6,
+				8,
 				// Class completion
 				c("org.acme.Item", "org.acme.Item ${1:item}}$0", r(0, 2, 0, 4)), //
 				c("org.acme.ItemWithTemplateData", "org.acme.ItemWithTemplateData ${1:itemWithTemplateData}}$0",

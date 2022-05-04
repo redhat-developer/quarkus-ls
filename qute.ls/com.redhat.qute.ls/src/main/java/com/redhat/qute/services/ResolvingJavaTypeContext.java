@@ -12,6 +12,7 @@
 package com.redhat.qute.services;
 
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,8 +45,13 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 
 	private boolean binaryUserTagResolved;
 
+	private Set<String> javaTypesSupportedInNativeMode;
+
+	private final Template template;
+
 	public ResolvingJavaTypeContext(Template template, JavaDataModelCache javaCache) {
 		this.javaCache = javaCache;
+		this.template = template;
 		projectResolved = template.getProjectUri() != null;
 		if (projectResolved) {
 			// Get or load the data model template, data model defined
@@ -132,6 +138,13 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 			return RESOLVING_JAVA_TYPE;
 		}
 		return resolvedJavaType;
+	}
+
+	public Set<String> getJavaTypesSupportedInNativeMode() {
+		if (javaTypesSupportedInNativeMode == null) {
+			javaTypesSupportedInNativeMode = template.getJavaTypesSupportedInNativeMode();
+		}
+		return javaTypesSupportedInNativeMode;
 	}
 
 }

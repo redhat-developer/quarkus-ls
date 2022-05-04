@@ -32,153 +32,195 @@ public class QuteDiagnosticsInNativeModeTest {
 
 	@Test
 	public void templateDataField() {
-		QuteNativeSettings nativeImagesSettings = new QuteNativeSettings();
-		nativeImagesSettings.setEnabled(true);
-
 		// public class Item
-		String template = "{@org.acme.Item item}\r\n" + //
-				"{item.name}";
-		testDiagnosticsFor(template, nativeImagesSettings, //
-				d(1, 6, 1, 10, QuteErrorCode.PropertyNotSupportedInNativeMode,
-						"Property `name` of `org.acme.Item` Java type cannot be used in native image mode.",
+		String template = // "{@org.acme.Review review}\r\n" + //
+				"{review.name}";
+		testDiagnosticsFor(template, //
+				d(0, 8, 0, 12, QuteErrorCode.PropertyNotSupportedInNativeMode,
+						"Property `name` of `org.acme.Review` Java type cannot be used in native image mode.",
 						DiagnosticSeverity.Error));
+
+		template = "{@org.acme.Review review}\r\n" + //
+				"{review.name}";
+		testDiagnosticsFor(template);
 
 		// @TemplateData
 		// public class ItemWithTemplateData
-		template = "{@org.acme.ItemWithTemplateData item}\r\n" + //
-				"{item.name}";
-		testDiagnosticsFor(template, nativeImagesSettings);
+		template = // "{@org.acme.ItemWithTemplateData itemWithTemplateData}\r\n" + //
+				"{itemWithTemplateData.name}";
+		testDiagnosticsFor(template);
+
+		template = // "{@org.acme.ItemWithTemplateData itemWithTemplateData}\r\n" + //
+				"{itemWithTemplateData.price.divide(0)}";
+		testDiagnosticsFor(template, //
+				d(0, 28, 0, 34, QuteErrorCode.MethodNotSupportedInNativeMode,
+						"Method `divide` of `java.math.BigInteger` Java type cannot be used in native image mode.",
+						DiagnosticSeverity.Error));
+
+		template = // "{@org.acme.ItemWithTemplateData itemWithTemplateData}\r\n" + //
+				"{itemWithTemplateData.name.isEmpty()}";
+		testDiagnosticsFor(template, //
+				d(0, 27, 0, 34, QuteErrorCode.MethodNotSupportedInNativeMode,
+						"Method `isEmpty` of `java.lang.String` Java type cannot be used in native image mode.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void templateDataFieldWithTarget() {
+		// @TemplateData
+		// @TemplateData(target = String.class)
+		// public class ItemWithTemplateDataWithTarget
+		String template = "{@org.acme.ItemWithTemplateDataWithTarget itemWithTemplateDataWithTarget}\r\n" + //
+				"{itemWithTemplateDataWithTarget.name}";
+		testDiagnosticsFor(template);
+
+		template = // "{@org.acme.ItemWithTemplateDataWithTarget
+					// itemWithTemplateDataWithTarget}\r\n" + //
+				"{itemWithTemplateDataWithTarget.name.isEmpty()}";
+		testDiagnosticsFor(template);
+
+		template = // "{@org.acme.ItemWithTemplateDataWithTarget
+					// itemWithTemplateDataWithTarget}\r\n" + //
+				"{itemWithTemplateDataWithTarget.price.divide(0)}";
+		testDiagnosticsFor(template, //
+				d(0, 38, 0, 44, QuteErrorCode.MethodNotSupportedInNativeMode,
+						"Method `divide` of `java.math.BigInteger` Java type cannot be used in native image mode.",
+						DiagnosticSeverity.Error));
+
+		// here java.lang.String#isEmpty is supported in native mode because
+		// ItemWithTemplateDataWithTarget defines @TemplateData(target = String.class)
+		template = // "{@org.acme.ItemWithTemplateDataWithTarget
+					// itemWithTemplateDataWithTarget}\r\n" + //
+				"{itemWithTemplateDataWithTarget.name.isEmpty()}";
+		testDiagnosticsFor(template);
 	}
 
 	@Test
 	public void templateDataFieldIgnoreSubClasses() {
-		QuteNativeSettings nativeImagesSettings = new QuteNativeSettings();
-		nativeImagesSettings.setEnabled(true);
-
 		// @TemplateData(ignoreSubClasses = true)
 		// public class ItemWithTemplateDataIgnoreSubClasses
-		String template = "{@org.acme.ItemWithTemplateDataIgnoreSubClasses item}\r\n" + //
-				"{item.price}\r\n" + // <-- no error because price comes from ItemWithTemplateDataIgnoreSubClasses
-				"{item.base}"; // <-- error because base comes from super class BaseItem
-		testDiagnosticsFor(template, nativeImagesSettings, //
-				d(2, 6, 2, 10, QuteErrorCode.InheritedPropertyNotSupportedInNativeMode,
+		String template = // "{@org.acme.ItemWithTemplateDataIgnoreSubClasses
+							// itemWithTemplateDataIgnoreSubClasses}\r\n" + //
+				"{itemWithTemplateDataIgnoreSubClasses.price}\r\n" + // <-- no error because price comes from
+																		// ItemWithTemplateDataIgnoreSubClasses
+						"{itemWithTemplateDataIgnoreSubClasses.base}"; // <-- error because base comes from super class
+																		// BaseItem
+		testDiagnosticsFor(template, //
+				d(1, 38, 1, 42, QuteErrorCode.InheritedPropertyNotSupportedInNativeMode,
 						"Inherited property `base` of `org.acme.ItemWithTemplateDataIgnoreSubClasses` Java type cannot be used in native image mode because Java type is annotated with `@TemplateData(ignoreSuperclasses = true)`.",
 						DiagnosticSeverity.Error));
 	}
 
 	@Test
 	public void templateDataMethod() {
-		QuteNativeSettings nativeImagesSettings = new QuteNativeSettings();
-		nativeImagesSettings.setEnabled(true);
 
 		// public class Item
-		String template = "{@org.acme.Item item}\r\n" + //
-				"{item.getReview2()}";
-		testDiagnosticsFor(template, nativeImagesSettings, //
-				d(1, 6, 1, 16, QuteErrorCode.MethodNotSupportedInNativeMode,
-						"Method `getReview2` of `org.acme.Item` Java type cannot be used in native image mode.",
+		String template = // "{@org.acme.Review review}\r\n" + //
+				"{review.getReviews()}";
+		testDiagnosticsFor(template, //
+				d(0, 8, 0, 18, QuteErrorCode.MethodNotSupportedInNativeMode,
+						"Method `getReviews` of `org.acme.Review` Java type cannot be used in native image mode.",
 						DiagnosticSeverity.Error));
 
 		// @TemplateData
 		// public class ItemWithTemplateData
-		template = "{@org.acme.ItemWithTemplateData item}\r\n" + //
-				"{item.getReview2()}";
-		testDiagnosticsFor(template, nativeImagesSettings);
+		template = // "{@org.acme.ItemWithTemplateData itemWithTemplateData}\r\n" + //
+				"iItemWithTemplateData.getReview2()}";
+		testDiagnosticsFor(template);
 	}
 
 	@Test
 	public void templateDataMethodIgnoreSubClasses() {
-		QuteNativeSettings nativeImagesSettings = new QuteNativeSettings();
-		nativeImagesSettings.setEnabled(true);
-
 		// @TemplateData(ignoreSubClasses = true)
 		// public class ItemWithTemplateDataIgnoreSubClasses
-		String template = "{@org.acme.ItemWithTemplateDataIgnoreSubClasses item}\r\n" + //
-				"{item.getSubClasses()}\r\n" + // <-- no error because getSubClasses comes from
-												// ItemWithTemplateDataIgnoreSubClasses
-				"{item.getReviews()}"; // <-- error because getReviews comes from super class BaseItem
-		testDiagnosticsFor(template, nativeImagesSettings, //
-				d(2, 6, 2, 16, QuteErrorCode.InheritedMethodNotSupportedInNativeMode,
+		String template = // "{@org.acme.ItemWithTemplateDataIgnoreSubClasses
+							// itemWithTemplateDataIgnoreSubClasses}\r\n" + //
+				"{itemWithTemplateDataIgnoreSubClasses.getSubClasses()}\r\n" + // <-- no error because getSubClasses
+																				// comes from
+				// ItemWithTemplateDataIgnoreSubClasses
+						"{itemWithTemplateDataIgnoreSubClasses.getReviews()}"; // <-- error because getReviews comes
+																				// from super
+																				// class BaseItem
+		testDiagnosticsFor(template, //
+				d(1, 38, 1, 48, QuteErrorCode.InheritedMethodNotSupportedInNativeMode,
 						"Inherited method `getReviews` of `org.acme.ItemWithTemplateDataIgnoreSubClasses` Java type cannot be used in native image mode because Java type is annotated with `@TemplateData(ignoreSuperclasses = true)`.",
 						DiagnosticSeverity.Error));
 	}
 
 	@Test
 	public void registerForReflectionField() {
-		QuteNativeSettings nativeImagesSettings = new QuteNativeSettings();
-		nativeImagesSettings.setEnabled(true);
-
 		// public class Item
-		String template = "{@org.acme.Item item}\r\n" + //
-				"{item.name}";
-		testDiagnosticsFor(template, nativeImagesSettings, //
-				d(1, 6, 1, 10, QuteErrorCode.PropertyNotSupportedInNativeMode,
-						"Property `name` of `org.acme.Item` Java type cannot be used in native image mode.",
+		String template = // "{@org.acme.Review review}\r\n" + //
+				"{review.name}";
+		testDiagnosticsFor(template, //
+				d(0, 8, 0, 12, QuteErrorCode.PropertyNotSupportedInNativeMode,
+						"Property `name` of `org.acme.Review` Java type cannot be used in native image mode.",
 						DiagnosticSeverity.Error));
 
 		// @RegisterForReflection
 		// public class ItemWithRegisterForReflection
-		template = "{@org.acme.ItemWithRegisterForReflection item}\r\n" + //
-				"{item.name}";
-		testDiagnosticsFor(template, nativeImagesSettings);
+		template = // "{@org.acme.ItemWithRegisterForReflection itemWithRegisterForReflection}\r\n"
+					// + //
+				"{itemWithRegisterForReflection.name}";
+		testDiagnosticsFor(template);
 	}
 
 	@Test
 	public void registerForReflectionNoFields() {
-		QuteNativeSettings nativeImagesSettings = new QuteNativeSettings();
-		nativeImagesSettings.setEnabled(true);
 
 		// @RegisterForReflection(fields = false)
 		// public class ItemWithRegisterForReflectionNoFields
-		String template = "{@org.acme.ItemWithRegisterForReflectionNoFields item}\r\n" + //
-				"{item.getReview2()}\r\n" + // <-- no error because it's a method
-				"{item.base}"; // <-- error because fields are ignored
-		testDiagnosticsFor(template, nativeImagesSettings, //
-				d(2, 6, 2, 10, QuteErrorCode.ForbiddenByRegisterForReflectionFields,
+		String template = // "{@org.acme.ItemWithRegisterForReflectionNoFields
+							// itemWithRegisterForReflectionNoFields}\r\n" + //
+				"{itemWithRegisterForReflectionNoFields.getReview2()}\r\n" + // <-- no error because it's a method
+						"{itemWithRegisterForReflectionNoFields.base}"; // <-- error because fields are ignored
+		testDiagnosticsFor(template, //
+				d(1, 39, 1, 43, QuteErrorCode.ForbiddenByRegisterForReflectionFields,
 						"The field `base` of `org.acme.ItemWithRegisterForReflectionNoFields` Java type cannot be used in native image mode because Java type is annotated with `@RegisterForReflection(fields = false)`.",
 						DiagnosticSeverity.Error));
 	}
 
 	@Test
 	public void registerForReflectionNoMethods() {
-		QuteNativeSettings nativeImagesSettings = new QuteNativeSettings();
-		nativeImagesSettings.setEnabled(true);
 
 		// @RegisterForReflection(methods = false)
 		// public class ItemWithRegisterForReflectionNoMethods
-		String template = "{@org.acme.ItemWithRegisterForReflectionNoMethods item}\r\n" + //
-				"{item.getReview2()}\r\n" + // <-- error because methods are ignored
-				"{item.base}"; // <-- no error because it's a field
-		testDiagnosticsFor(template, nativeImagesSettings, //
-				d(1, 6, 1, 16, QuteErrorCode.ForbiddenByRegisterForReflectionMethods,
+		String template = // "{@org.acme.ItemWithRegisterForReflectionNoMethods
+							// itemWithRegisterForReflectionNoMethods}\r\n" + //
+				"{itemWithRegisterForReflectionNoMethods.getReview2()}\r\n" + // <-- error because methods are ignored
+						"{itemWithRegisterForReflectionNoMethods.base}"; // <-- no error because it's a field
+		testDiagnosticsFor(template, //
+				d(0, 40, 0, 50, QuteErrorCode.ForbiddenByRegisterForReflectionMethods,
 						"The method `getReview2` of `org.acme.ItemWithRegisterForReflectionNoMethods` Java type cannot be used in native image mode because Java type is annotated with `@RegisterForReflection(methods = false)`.",
 						DiagnosticSeverity.Error));
 	}
 
 	@Test
 	public void registerForReflectionMethod() {
-		QuteNativeSettings nativeImagesSettings = new QuteNativeSettings();
-		nativeImagesSettings.setEnabled(true);
-
 		// public class Item
-		String template = "{@org.acme.Item item}\r\n" + //
-				"{item.getReview2()}";
-		testDiagnosticsFor(template, nativeImagesSettings, //
-				d(1, 6, 1, 16, QuteErrorCode.MethodNotSupportedInNativeMode,
-						"Method `getReview2` of `org.acme.Item` Java type cannot be used in native image mode.",
+		String template = //"{@org.acme.Review review}\r\n" + //
+				"{review.getReviews()}";
+		testDiagnosticsFor(template, //
+				d(0, 8, 0, 18, QuteErrorCode.MethodNotSupportedInNativeMode,
+						"Method `getReviews` of `org.acme.Review` Java type cannot be used in native image mode.",
 						DiagnosticSeverity.Error));
 
 		// @RegisterForReflection
 		// public class ItemWithRegisterForReflection
-		template = "{@org.acme.ItemWithRegisterForReflection item}\r\n" + //
-				"{item.getReview2()}";
-		testDiagnosticsFor(template, nativeImagesSettings);
+		template = // "{@org.acme.ItemWithRegisterForReflection itemWithRegisterForReflection}\r\n" + //
+				"{itemWithRegisterForReflection.getReview2()}";
+		testDiagnosticsFor(template);
 	}
 
-	private static void testDiagnosticsFor(String value, QuteNativeSettings nativeImagesSettings,
-			Diagnostic... expected) {
+	private static void testDiagnosticsFor(String value, Diagnostic... expected) {
+		String templateUri = QuteQuickStartProject.NATIVEITEMRESOURCE_ITEMS_TEMPLATE_URI;
+
+		QuteNativeSettings nativeImagesSettings = new QuteNativeSettings();
+		nativeImagesSettings.setEnabled(true);
+
 		QuteValidationSettings validationSettings = new QuteValidationSettings();
-		QuteAssert.testDiagnosticsFor(value, "test.qute", null, QuteQuickStartProject.PROJECT_URI,
+
+		QuteAssert.testDiagnosticsFor(value, templateUri, null, QuteQuickStartProject.PROJECT_URI,
 				QuteAssert.TEMPLATE_BASE_DIR, false, validationSettings, nativeImagesSettings, expected);
 	}
 }
