@@ -186,10 +186,33 @@ public class AnnotationUtils {
 	public static String getAnnotationMemberValue(IAnnotation annotation, String memberName) throws JavaModelException {
 		for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
 			if (memberName.equals(pair.getMemberName())) {
-				return pair.getValue() != null ? pair.getValue().toString() : null;
+				return getValueAsString(pair);
 			}
 		}
 		return null;
+	}
+
+	public static String getValueAsString(IMemberValuePair pair) {
+		return pair.getValue() != null ? pair.getValue().toString() : null;
+	}
+
+	public static Boolean getValueAsBoolean(IMemberValuePair pair) {
+		if (pair.getValue() == null) {
+			return null;
+		}
+		return "true".equals(pair.getValue().toString()) ? Boolean.TRUE : Boolean.FALSE;
+	}
+
+	public static Object[] getValueAsArray(IMemberValuePair pair) {
+		if (pair.getValue() == null) {
+			return null;
+		}
+		if (pair.getValue() instanceof Object[]) {
+			// @TemplateData(ignore = {"title", "id"})
+			return (Object[]) pair.getValue();
+		}
+		// @TemplateData(ignore = "title")
+		return new Object[] { pair.getValue() };
 	}
 
 	/**

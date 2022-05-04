@@ -12,9 +12,11 @@
 package com.redhat.qute.project.datamodel;
 
 import static com.redhat.qute.project.datamodel.resolvers.ValueResolver.MATCH_NAME_ANY;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,6 +24,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.redhat.qute.commons.JavaElementKind;
+import com.redhat.qute.commons.JavaParameterInfo;
+import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
@@ -30,6 +34,7 @@ import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
+import com.redhat.qute.utils.StringUtils;
 
 public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModelTemplate> {
 
@@ -42,6 +47,8 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 	private final List<MethodValueResolver> methodValueResolvers;
 
 	private final Map<String, String> similarNamespaces;
+
+	private Set<String> javaTypesSupportedInNativeMode;
 
 	public ExtendedDataModelProject(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
 		super.setTemplates(createTemplates(project.getTemplates()));
@@ -150,10 +157,10 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 	}
 
 	public String getSimilarNamespace(String namespace) {
-		String similar = similarNamespaces.get(namespace); 
+		String similar = similarNamespaces.get(namespace);
 		return similar != null ? similar : namespace;
 	}
-	
+
 	public List<TypeValueResolver> getTypeValueResolvers() {
 		return typeValueResolvers;
 	}
@@ -179,6 +186,42 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 	public NamespaceResolverInfo getNamespaceResolver(String namespace) {
 		String mainNamespace = getSimilarNamespace(namespace);
 		return super.getNamespaceResolverInfos().get(mainNamespace);
+	}
+
+	public Set<String> getJavaTypesSupportedInNativeMode() {
+		if (javaTypesSupportedInNativeMode == null) {
+			javaTypesSupportedInNativeMode = loadJavaTypesSupportedInNativeMode();
+		}
+		return javaTypesSupportedInNativeMode;
+	}
+
+	private synchronized Set<String> loadJavaTypesSupportedInNativeMode() {
+		if (javaTypesSupportedInNativeMode != null) {
+			return javaTypesSupportedInNativeMode;
+		}
+		Set<String> javaTypesSupportedInNativeMode = new HashSet<String>();
+		getTemplates().forEach(t -> {
+			List<ExtendedDataModelParameter> parameters = t.getParameters();
+			for (ExtendedDataModelParameter parameter : parameters) {
+				if (!parameter.isDataMethodInvocation()) {
+					String sourceType = parameter.getJavaType();
+					if (StringUtils.isEmpty(sourceType)) {
+						return;
+					}
+					if (sourceType.contains("<")) {
+						JavaTypeInfo javaType = new JavaTypeInfo();
+						javaType.setSignature(sourceType);
+						List<JavaParameterInfo> javaTypeParameters = javaType.getTypeParameters();
+						for (JavaParameterInfo parameterType : javaTypeParameters) {
+							javaTypesSupportedInNativeMode.add(parameterType.getType());
+						}
+					} else {
+						javaTypesSupportedInNativeMode.add(sourceType);	
+					}
+				}
+			}
+		});
+		return javaTypesSupportedInNativeMode;
 	}
 
 }

@@ -12,7 +12,10 @@
 package com.redhat.qute.parser.template;
 
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.Position;
@@ -25,6 +28,7 @@ import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts.PartKind;
+import com.redhat.qute.parser.template.ParameterDeclaration.JavaTypeRangeOffset;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.TemplateInfoProvider;
@@ -244,6 +248,22 @@ public class Template extends Node {
 		// {inject:bean}
 		return (JavaTypeInfoProvider) projectRegistry
 				.findJavaElementWithNamespace(namespace, objectPart.getPartName(), getProjectUri()).getNow(null);
+	}
+	
+	public Set<String> getJavaTypesSupportedInNativeMode() {
+		Set<String> javaTypesSupportedInNativeMode = new HashSet<>();
+		// From parameter declaration
+		for (Node node : super.getChildren()) {
+			if (node.getKind() == NodeKind.ParameterDeclaration) {
+				ParameterDeclaration parameter = (ParameterDeclaration) node;
+				List<JavaTypeRangeOffset> classNameRanges = parameter.getJavaTypeNameRanges();
+				for (RangeOffset classNameRange : classNameRanges) {
+					String className = this.getText(classNameRange);
+					javaTypesSupportedInNativeMode.add(className);
+				}
+			}
+		} 	
+		return javaTypesSupportedInNativeMode;
 	}
 
 	public JavaTypeInfoProvider findGlobalVariables(ObjectPart objectPart) {

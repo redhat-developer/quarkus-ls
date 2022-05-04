@@ -11,6 +11,9 @@
 *******************************************************************************/
 package com.redhat.qute.jdt;
 
+import static com.redhat.qute.jdt.utils.JDTTypeUtils.findType;
+import static com.redhat.qute.jdt.utils.JDTTypeUtils.getFullQualifiedName;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -72,6 +75,7 @@ import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
 import com.redhat.qute.jdt.utils.QuteReflectionAnnotationUtils;
 
 /**
+ * 
  * Qute support for Template file.
  * 
  * @author Angelo ZERR
@@ -329,7 +333,7 @@ public class QuteSupportForTemplate {
 			}
 
 			String iterableOf = typeName.substring(index + 1, typeName.length() - 1);
-			iterableOf = getFullQualifiedName(monitor, javaProject, iterableOf);
+			iterableOf = getFullQualifiedName(iterableOf, javaProject, monitor);
 			iterableClassName = iterableType.getFullyQualifiedName('.');
 			typeName = iterableClassName + "<" + iterableOf + ">";
 			return createIterableType(typeName, iterableClassName, iterableOf);
@@ -340,7 +344,7 @@ public class QuteSupportForTemplate {
 			if (iterableOfType == null) {
 				return null;
 			}
-			iterableOf = getFullQualifiedName(monitor, javaProject, iterableOf);
+			iterableOf = getFullQualifiedName(iterableOf, javaProject, monitor);
 			typeName = iterableOf + "[]";
 			return createIterableType(typeName, null, iterableOf);
 		}
@@ -428,38 +432,8 @@ public class QuteSupportForTemplate {
 		resolvedType.setMethods(methodsInfo);
 		resolvedType.setInvalidMethods(invalidMethods);
 		resolvedType.setExtendedTypes(extendedTypes);
-		QuteReflectionAnnotationUtils.collectAnnotations(resolvedType, type);
+		QuteReflectionAnnotationUtils.collectAnnotations(resolvedType, type, typeResolver);
 		return resolvedType;
-	}
-
-	private String getFullQualifiedName(IProgressMonitor monitor, IJavaProject javaProject, String name)
-			throws JavaModelException {
-		if (name.indexOf('.') != -1) {
-			return name;
-		}
-		IType nameType = findType(name, javaProject, monitor);
-		if (nameType != null && nameType.exists()) {
-			return AbstractTypeResolver.resolveJavaTypeSignature(nameType);
-		}
-		return name;
-	}
-
-	private IType findType(String className, IJavaProject javaProject, IProgressMonitor monitor)
-			throws JavaModelException {
-		try {
-			IType type = javaProject.findType(className, monitor);
-			if (type != null) {
-				return type;
-			}
-			if (className.indexOf('.') == -1) {
-				// No package, try with java.lang package
-				// ex : if className = String we should find type of java.lang.String
-				return javaProject.findType("java.lang." + className, monitor);
-			}
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while finding type for '" + className + "'.", e);
-		}
-		return null;
 	}
 
 	private ResolvedJavaTypeInfo createIterableType(String className, String iterableClassName, String iterableOf) {
