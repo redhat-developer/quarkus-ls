@@ -21,10 +21,10 @@ import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -63,10 +63,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 
 	private static final Logger LOGGER = Logger.getLogger(TemplateDataAnnotationSupport.class.getName());
 
-	private static final String[] ANNOTATION_NAMES = {
-			TEMPLATE_DATA_ANNOTATION
-
-	};
+	private static final String[] ANNOTATION_NAMES = { TEMPLATE_DATA_ANNOTATION };
 
 	@Override
 	protected String[] getAnnotationNames() {
@@ -76,76 +73,78 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 	@Override
 	protected void processAnnotation(IJavaElement javaElement, IAnnotation annotation, String annotationName,
 			SearchContext context, IProgressMonitor monitor) throws JavaModelException {
-		if (!(javaElement instanceof IAnnotatable)) {
+		if (javaElement.getElementType() != IJavaElement.TYPE) {
 			return;
 		}
-		IAnnotation templateData = AnnotationUtils.getAnnotation((IAnnotatable) javaElement, TEMPLATE_DATA_ANNOTATION);
-		if (templateData == null) {
+		IType type = (IType) javaElement;
+		// Check if the given Java type defines a @TemplateData/namespace
+
+		// Loop for @TemplateData annotations:
+		// Ex :
+		// @TemplateData
+		// @TemplateData(namespace = "foo")
+		// public class Item
+		String namespace = null;
+		boolean hasTemplateData = false;
+		for (IAnnotation typeAnnotation : type.getAnnotations()) {
+			if (AnnotationUtils.isMatchAnnotation(typeAnnotation, TEMPLATE_DATA_ANNOTATION)) {
+				hasTemplateData = true;
+				namespace = AnnotationUtils.getAnnotationMemberValue(typeAnnotation,
+						TEMPLATE_DATA_ANNOTATION_NAMESPACE);
+				if (StringUtils.isNotEmpty(namespace)) {
+					break;
+				}
+			}
+		}
+		if (!hasTemplateData) {
 			return;
 		}
-		if (javaElement instanceof IType) {
-			IType type = (IType) javaElement;
-			collectResolversForTemplateData(type, templateData, context.getDataModelProject().getValueResolvers(),
-					monitor);
+
+		ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(type);
+
+		// Loop for static fields
+		IField[] fields = type.getFields();
+		for (IField field : fields) {
+			collectResolversForTemplateData(field, namespace, context.getDataModelProject().getValueResolvers(),
+					typeResolver, monitor);
+		}
+
+		// Loop for static methods
+		IMethod[] methods = type.getMethods();
+		for (IMethod method : methods) {
+			collectResolversForTemplateData(method, namespace, context.getDataModelProject().getValueResolvers(),
+					typeResolver, monitor);
 		}
 	}
 
-	private static void collectResolversForTemplateData(IType type, IAnnotation templateData,
-			List<ValueResolverInfo> resolvers, IProgressMonitor monitor) {
+	private void collectResolversForTemplateData(IMember member, String namespace, List<ValueResolverInfo> resolvers,
+			ITypeResolver typeResolver, IProgressMonitor monitor) {
 		try {
-			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(type);
-			IField[] fields = type.getFields();
-			for (IField field : fields) {
-				if (Modifier.isPublic(field.getFlags()) && Modifier.isStatic(field.getFlags())) {
-					collectResolversForTemplateData(field, templateData, resolvers, typeResolver);
+			if (Modifier.isPublic(member.getFlags()) && Modifier.isStatic(member.getFlags())) {
+				// The field, method is public and static
+				String sourceType = member.getDeclaringType().getFullyQualifiedName();
+				ValueResolverInfo resolver = new ValueResolverInfo();
+				resolver.setSourceType(sourceType);
+				resolver.setSignature(getSignature(member, typeResolver));
+				resolver.setNamespace(StringUtils.isNotEmpty(namespace) ? namespace : sourceType.replace('.', '_'));
+				if (!resolvers.contains(resolver)) {
+					resolvers.add(resolver);
 				}
 			}
-			IMethod[] methods = type.getMethods();
-			for (IMethod method : methods) {
-				if (Modifier.isPublic(method.getFlags()) && Modifier.isStatic(method.getFlags())) {
-					collectResolversForTemplateData(method, templateData, resolvers, typeResolver);
-				}
-			}
-		} catch (JavaModelException e) {
-			LOGGER.log(Level.SEVERE, "Error while getting methods of '" + type.getElementName() + "'.", e);
-		}
-	}
-
-	private static void collectResolversForTemplateData(IField field, IAnnotation templateData,
-			List<ValueResolverInfo> resolvers, ITypeResolver typeResolver) {
-		ValueResolverInfo resolver = new ValueResolverInfo();
-		resolver.setSourceType(field.getDeclaringType().getFullyQualifiedName());
-		resolver.setSignature(typeResolver.resolveFieldSignature(field));
-		try {
-			String namespace = AnnotationUtils.getAnnotationMemberValue(templateData,
-					TEMPLATE_DATA_ANNOTATION_NAMESPACE);
-			resolver.setNamespace(StringUtils.isNotEmpty(namespace) ? namespace
-					: field.getDeclaringType().getFullyQualifiedName().replace('.', '_'));
-		} catch (JavaModelException e) {
-			LOGGER.log(Level.SEVERE, "Error while getting annotation member value of '" + field.getElementName() + "'.",
-					e);
-		}
-		if (!resolvers.contains(resolver)) {
-			resolvers.add(resolver);
-		}
-	}
-
-	private static void collectResolversForTemplateData(IMethod method, IAnnotation templateData,
-			List<ValueResolverInfo> resolvers, ITypeResolver typeResolver) {
-		ValueResolverInfo resolver = new ValueResolverInfo();
-		resolver.setSourceType(method.getDeclaringType().getFullyQualifiedName());
-		resolver.setSignature(typeResolver.resolveMethodSignature(method));
-		try {
-			String namespace = AnnotationUtils.getAnnotationMemberValue(templateData,
-					TEMPLATE_DATA_ANNOTATION_NAMESPACE);
-			resolver.setNamespace(StringUtils.isNotEmpty(namespace) ? namespace
-					: method.getDeclaringType().getFullyQualifiedName().replace('.', '_'));
 		} catch (JavaModelException e) {
 			LOGGER.log(Level.SEVERE,
-					"Error while getting annotation member value of '" + method.getElementName() + "'.", e);
-		}
-		if (!resolvers.contains(resolver)) {
-			resolvers.add(resolver);
+					"Error while getting annotation member value of '" + member.getElementName() + "'.", e);
 		}
 	}
+
+	private static String getSignature(IMember javaMember, ITypeResolver typeResolver) {
+		switch (javaMember.getElementType()) {
+		case IJavaElement.FIELD:
+			return typeResolver.resolveFieldSignature((IField) javaMember);
+		case IJavaElement.METHOD:
+			return typeResolver.resolveMethodSignature((IMethod) javaMember);
+		}
+		return null;
+	}
+
 }
