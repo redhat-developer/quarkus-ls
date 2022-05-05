@@ -36,18 +36,39 @@ import com.redhat.qute.jdt.template.datamodel.SearchContext;
 import com.redhat.qute.jdt.utils.AnnotationUtils;
 
 /**
- * Template extension support.
- * 
+ * @TemplateExtension annotation support.
+ *
+ * <code>
+ * class Item {
+ *
+ * 		public final BigDecimal price;
+ *
+ * 		public Item(BigDecimal price) {
+ * 			this.price = price;
+ * 		}
+ * }
+ *
+ * &#64;TemplateExtension
+ * class MyExtensions {
+ * 		static BigDecimal discountedPrice(Item item) {
+ * 			return item.getPrice().multiply(new BigDecimal("0.9"));
+ * 		}
+ * }
+ * </code>
+ *
+ *
  * @author Angelo ZERR
- * 
+ *
  * @see https://quarkus.io/guides/qute-reference#template_extension_methods
  *
  */
-public class TemplateExtensionSupport extends AbstractAnnotationTypeReferenceDataModelProvider {
+public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeReferenceDataModelProvider {
 
-	private static final Logger LOGGER = Logger.getLogger(TemplateExtensionSupport.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(TemplateExtensionAnnotationSupport.class.getName());
 
-	private static final String[] ANNOTATION_NAMES = { TEMPLATE_EXTENSION_ANNOTATION };
+	private static final String[] ANNOTATION_NAMES = {
+			TEMPLATE_EXTENSION_ANNOTATION
+	};
 
 	@Override
 	protected String[] getAnnotationNames() {
@@ -98,15 +119,15 @@ public class TemplateExtensionSupport extends AbstractAnnotationTypeReferenceDat
 	/**
 	 * Returns true if the given method <code>method</code> is a template extension
 	 * method and false otherwise.
-	 * 
+	 *
 	 * A template extension method:
-	 * 
+	 *
 	 * <ul>
 	 * <li>must not be private</li>
 	 * <li>must be static,</li>
 	 * <li>must not return void.</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param method the method to check.
 	 * @return true if the given method <code>method</code> is a template extension
 	 *         method and false otherwise.

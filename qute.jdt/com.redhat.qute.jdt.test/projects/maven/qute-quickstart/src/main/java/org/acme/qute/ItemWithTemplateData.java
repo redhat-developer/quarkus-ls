@@ -12,6 +12,8 @@ public class ItemWithTemplateData {
 
 	public final BigDecimal price;
 
+	public static String count;
+
 	public ItemWithTemplateData(BigDecimal price, String name) {
 		this.price = price;
 		this.name = name;

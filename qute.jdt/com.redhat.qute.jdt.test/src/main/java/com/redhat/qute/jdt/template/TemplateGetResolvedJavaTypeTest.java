@@ -321,11 +321,13 @@ public class TemplateGetResolvedJavaTypeTest {
 
 		// Fields
 		Assert.assertNotNull(result.getFields());
-		Assert.assertEquals(2, result.getFields().size());
+		Assert.assertEquals(3, result.getFields().size());
 		Assert.assertEquals("name", result.getFields().get(0).getName());
 		Assert.assertEquals("java.lang.String", result.getFields().get(0).getType());
 		Assert.assertEquals("price", result.getFields().get(1).getName());
 		Assert.assertEquals("java.math.BigDecimal", result.getFields().get(1).getType());
+		Assert.assertEquals("count", result.getFields().get(2).getName());
+		Assert.assertEquals("java.lang.String", result.getFields().get(2).getType());
 
 		// Methods
 		Assert.assertNotNull(result.getMethods());
@@ -340,11 +342,50 @@ public class TemplateGetResolvedJavaTypeTest {
 	}
 
 	@Test
+	public void templateDataStatic() throws CoreException, Exception {
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.Statuses",
+				QuteMavenProjectName.qute_quickstart);
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
+				new NullProgressMonitor());
+		Assert.assertNotNull(result);
+		Assert.assertEquals("org.acme.qute.Statuses", result.getSignature());
+		Assert.assertFalse(result.isIterable());
+
+		// @TemplateData
+		// @TemplateData(namespace = "FOO")
+		// @TemplateData(namespace = "BAR")
+		// public class Statuses {
+		Assert.assertNotNull(result.getTemplateDataAnnotations());
+		Assert.assertEquals(3, result.getTemplateDataAnnotations().size());
+		// @TemplateData
+		Assert.assertFalse(result.getTemplateDataAnnotations().get(0).isIgnoreSuperclasses());
+		// @TemplateData(namespace = "FOO")
+		Assert.assertFalse(result.getTemplateDataAnnotations().get(1).isIgnoreSuperclasses());
+		// @TemplateData(namespace = "BAR")
+		Assert.assertFalse(result.getTemplateDataAnnotations().get(2).isIgnoreSuperclasses());
+
+		// Fields
+		Assert.assertNotNull(result.getFields());
+		Assert.assertEquals(2, result.getFields().size());
+		Assert.assertEquals("ON", result.getFields().get(0).getName());
+		Assert.assertEquals("java.lang.String", result.getFields().get(0).getType());
+		Assert.assertEquals("OFF", result.getFields().get(1).getName());
+		Assert.assertEquals("java.lang.String", result.getFields().get(1).getType());
+
+		// Invalid methods(static method)
+		Assert.assertNull(findMethod(result, "staticMethod"));
+		InvalidMethodReason reason = result.getInvalidMethodReason("staticMethod");
+		Assert.assertEquals(InvalidMethodReason.Static, reason);
+	}
+
+	@Test
 	public void registerForReflection() throws CoreException, Exception {
 		loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
-		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.ItemWithRegisterForReflection",
-				QuteMavenProjectName.qute_quickstart);
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams(
+				"org.acme.qute.ItemWithRegisterForReflection", QuteMavenProjectName.qute_quickstart);
 		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new NullProgressMonitor());
 		Assert.assertNotNull(result);
@@ -358,7 +399,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertNotNull(result.getRegisterForReflectionAnnotation());
 		Assert.assertFalse(result.getRegisterForReflectionAnnotation().isFields());
 		Assert.assertTrue(result.getRegisterForReflectionAnnotation().isMethods());
-		
+
 		// Fields
 		Assert.assertNotNull(result.getFields());
 		Assert.assertEquals(2, result.getFields().size());
@@ -378,7 +419,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		InvalidMethodReason reason = result.getInvalidMethodReason("staticMethod");
 		Assert.assertEquals(InvalidMethodReason.Static, reason);
 	}
-	
+
 	private static void assertExtendedTypes(String type, String extendedType, List<String> extendedTypes) {
 		Assert.assertTrue("The Java type '" + type + "' should extends '" + extendedType + "'.",
 				extendedTypes.contains(extendedType));
