@@ -17,7 +17,7 @@ import com.redhat.qute.commons.JavaElementKind;
 
 /**
  * Value resolver information.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -37,7 +37,7 @@ public class ValueResolverInfo {
 
 	/**
 	 * Returns the named of the resolver.
-	 * 
+	 *
 	 * @return the named of the resolver.
 	 */
 	public String getNamed() {
@@ -46,7 +46,7 @@ public class ValueResolverInfo {
 
 	/**
 	 * Set the named of the resolver.
-	 * 
+	 *
 	 * @param named the named of the resolver.
 	 */
 	public void setNamed(String named) {
@@ -64,7 +64,7 @@ public class ValueResolverInfo {
 
 	/**
 	 * Set the namespace of the resolver.
-	 * 
+	 *
 	 * @param namespace the namespace of the resolver.
 	 */
 	public void setNamespace(String namespace) {
@@ -90,7 +90,7 @@ public class ValueResolverInfo {
 
 	/**
 	 * Set the Java element signature.
-	 * 
+	 *
 	 * @param signature the Java element signature.
 	 */
 	public void setSignature(String signature) {
@@ -99,7 +99,7 @@ public class ValueResolverInfo {
 
 	/**
 	 * Returns the java source type and null otherwise.
-	 * 
+	 *
 	 * @return the java source type and null otherwise.
 	 */
 	public String getSourceType() {
@@ -108,7 +108,7 @@ public class ValueResolverInfo {
 
 	/**
 	 * Set the java source type.
-	 * 
+	 *
 	 * @param sourceType the java source type
 	 */
 	public void setSourceType(String sourceType) {
@@ -117,7 +117,7 @@ public class ValueResolverInfo {
 
 	/**
 	 * Returns true if it is a global variable and false otherwise.
-	 * 
+	 *
 	 * @return true if it is a global variable and false otherwise.
 	 */
 	public boolean isGlobalVariable() {
@@ -126,7 +126,7 @@ public class ValueResolverInfo {
 
 	/**
 	 * Set true if it is a global variable and false otherwise.
-	 * 
+	 *
 	 * @param global true if it is a global variable and false otherwise.
 	 */
 	public void setGlobalVariable(boolean global) {
@@ -156,6 +156,7 @@ public class ValueResolverInfo {
 		result = prime * result + ((namespace == null) ? 0 : namespace.hashCode());
 		result = prime * result + ((signature == null) ? 0 : signature.hashCode());
 		result = prime * result + ((sourceType == null) ? 0 : sourceType.hashCode());
+		result = prime * result + ((globalVariable == null) ? 0 : globalVariable.hashCode());
 		return result;
 	}
 
@@ -193,6 +194,11 @@ public class ValueResolverInfo {
 				return false;
 		} else if (!sourceType.equals(other.sourceType))
 			return false;
+		if (globalVariable == null) {
+			if (other.globalVariable != null)
+				return false;
+		} else if (!globalVariable.equals(other.globalVariable))
+			return false;
 		return true;
 	}
 
@@ -204,6 +210,7 @@ public class ValueResolverInfo {
 		b.add("matchName", this.matchName);
 		b.add("signature", signature);
 		b.add("sourceType", sourceType);
+		b.add("globalVariable", globalVariable);
 		return b.toString();
 	}
 }

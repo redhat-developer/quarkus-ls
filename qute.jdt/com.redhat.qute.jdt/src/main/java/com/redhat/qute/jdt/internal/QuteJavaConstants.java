@@ -50,10 +50,16 @@ public class QuteJavaConstants {
 	public static final String TEMPLATE_DATA_ANNOTATION_IGNORE_SUPER_CLASSES = "ignoreSuperclasses";
 
 	public static final String TEMPLATE_DATA_ANNOTATION_NAMESPACE = "namespace";
-	
+
 	// @TemplateEnum
 
 	public static final String TEMPLATE_ENUM_ANNOTATION = "io.quarkus.qute.TemplateEnum";
+
+	// @TemplateGlobal
+
+	public static final String TEMPLATE_GLOBAL_ANNOTATION = "io.quarkus.qute.TemplateGlobal";
+
+	public static final String TEMPLATE_GLOBAL_ANNOTATION_NAME = "name";
 
 	// @io.quarkus.runtime.annotations.RegisterForReflection
 

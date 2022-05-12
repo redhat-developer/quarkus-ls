@@ -34,11 +34,12 @@ import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 import com.redhat.qute.jdt.template.datamodel.AbstractAnnotationTypeReferenceDataModelProvider;
 import com.redhat.qute.jdt.template.datamodel.SearchContext;
 import com.redhat.qute.jdt.utils.AnnotationUtils;
+import com.redhat.qute.jdt.utils.JDTTypeUtils;
 
 /**
  * @TemplateExtension annotation support.
  *
- * <code>
+ *                    <code>
  * class Item {
  *
  * 		public final BigDecimal price;
@@ -67,7 +68,7 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 	private static final Logger LOGGER = Logger.getLogger(TemplateExtensionAnnotationSupport.class.getName());
 
 	private static final String[] ANNOTATION_NAMES = {
-			TEMPLATE_EXTENSION_ANNOTATION
+		TEMPLATE_EXTENSION_ANNOTATION
 	};
 
 	@Override
@@ -77,38 +78,38 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 
 	@Override
 	protected void processAnnotation(IJavaElement javaElement, IAnnotation annotation, String annotationName,
-			SearchContext context, IProgressMonitor monitor) throws JavaModelException {
+		SearchContext context, IProgressMonitor monitor) throws JavaModelException {
 		if (!(javaElement instanceof IAnnotatable)) {
 			return;
 		}
 		IAnnotation templateExtension = AnnotationUtils.getAnnotation((IAnnotatable) javaElement,
-				TEMPLATE_EXTENSION_ANNOTATION);
+			TEMPLATE_EXTENSION_ANNOTATION);
 		if (templateExtension == null) {
 			return;
 		}
 		if (javaElement instanceof IType) {
 			IType type = (IType) javaElement;
 			collectResolversForTemplateExtension(type, templateExtension,
-					context.getDataModelProject().getValueResolvers(), monitor);
+				context.getDataModelProject().getValueResolvers(), monitor);
 		} else if (javaElement instanceof IMethod) {
 			IMethod method = (IMethod) javaElement;
 			collectResolversForTemplateExtension(method, templateExtension,
-					context.getDataModelProject().getValueResolvers(), monitor);
+				context.getDataModelProject().getValueResolvers(), monitor);
 		}
 	}
 
 	private static void collectResolversForTemplateExtension(IType type, IAnnotation templateExtension,
-			List<ValueResolverInfo> resolvers, IProgressMonitor monitor) {
+		List<ValueResolverInfo> resolvers, IProgressMonitor monitor) {
 		try {
 			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(type);
 			IMethod[] methods = type.getMethods();
 			for (IMethod method : methods) {
 				if (isTemplateExtensionMethod(method)) {
 					IAnnotation methodTemplateExtension = AnnotationUtils.getAnnotation(method,
-							TEMPLATE_EXTENSION_ANNOTATION);
+						TEMPLATE_EXTENSION_ANNOTATION);
 					collectResolversForTemplateExtension(method,
-							methodTemplateExtension != null ? methodTemplateExtension : templateExtension, resolvers,
-							typeResolver);
+						methodTemplateExtension != null ? methodTemplateExtension : templateExtension, resolvers,
+						typeResolver);
 				}
 			}
 		} catch (JavaModelException e) {
@@ -135,7 +136,7 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 	private static boolean isTemplateExtensionMethod(IMethod method) {
 		try {
 			return !method.isConstructor() /* && Flags.isPublic(method.getFlags()) */
-					&& !"void".equals(method.getReturnType());
+				&& !JDTTypeUtils.isVoidReturnType(method);
 		} catch (JavaModelException e) {
 			LOGGER.log(Level.SEVERE, "Error while getting method information of '" + method.getElementName() + "'.", e);
 			return false;
@@ -143,7 +144,7 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 	}
 
 	public static void collectResolversForTemplateExtension(IMethod method, IAnnotation templateExtension,
-			List<ValueResolverInfo> resolvers, IProgressMonitor monitor) {
+		List<ValueResolverInfo> resolvers, IProgressMonitor monitor) {
 		if (isTemplateExtensionMethod(method)) {
 			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(method);
 			collectResolversForTemplateExtension(method, templateExtension, resolvers, typeResolver);
@@ -151,22 +152,22 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 	}
 
 	private static void collectResolversForTemplateExtension(IMethod method, IAnnotation templateExtension,
-			List<ValueResolverInfo> resolvers, ITypeResolver typeResolver) {
+		List<ValueResolverInfo> resolvers, ITypeResolver typeResolver) {
 		ValueResolverInfo resolver = new ValueResolverInfo();
 		resolver.setSourceType(method.getDeclaringType().getFullyQualifiedName());
 		resolver.setSignature(typeResolver.resolveMethodSignature(method));
 		try {
 			String namespace = AnnotationUtils.getAnnotationMemberValue(templateExtension,
-					TEMPLATE_EXTENSION_ANNOTATION_NAMESPACE);
+				TEMPLATE_EXTENSION_ANNOTATION_NAMESPACE);
 			String matchName = AnnotationUtils.getAnnotationMemberValue(templateExtension,
-					TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAME);
+				TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAME);
 			resolver.setNamespace(namespace);
 			if (StringUtils.isNotEmpty(matchName)) {
 				resolver.setMatchName(matchName);
 			}
 		} catch (JavaModelException e) {
 			LOGGER.log(Level.SEVERE,
-					"Error while getting annotation member value of '" + method.getElementName() + "'.", e);
+				"Error while getting annotation member value of '" + method.getElementName() + "'.", e);
 		}
 		if (!resolvers.contains(resolver)) {
 			resolvers.add(resolver);
