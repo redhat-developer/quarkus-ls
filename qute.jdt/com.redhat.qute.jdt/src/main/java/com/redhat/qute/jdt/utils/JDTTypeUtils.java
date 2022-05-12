@@ -11,6 +11,9 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.utils;
 
+import static org.eclipse.jdt.core.Signature.SIG_VOID;
+
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 
@@ -196,7 +199,7 @@ public class JDTTypeUtils {
 
 	/**
 	 * Returns the source type of the given <code>type</code> and null otherwise
-	 * 
+	 *
 	 * @param type the type
 	 * @return the source type of the given <code>type</code> and null otherwise
 	 */
@@ -254,7 +257,7 @@ public class JDTTypeUtils {
 	}
 
 	public static IType getEnclosedType(IType type, String typeName, IJavaProject javaProject)
-			throws JavaModelException {
+		throws JavaModelException {
 		// type name is the string of the JDT type (which could be null if type is not
 		// retrieved)
 		String enclosedType = typeName;
@@ -275,13 +278,15 @@ public class JDTTypeUtils {
 		int end = fieldTypeName.lastIndexOf(">");
 		String keyValue = fieldTypeName.substring(start, end);
 		int index = keyValue.indexOf(',');
-		return new String[] { keyValue.substring(0, index), keyValue.substring(index + 1, keyValue.length()) };
+		return new String[] {
+			keyValue.substring(0, index), keyValue.substring(index + 1, keyValue.length())
+		};
 	}
 
 	public static boolean isPrimitiveType(String valueClass) {
 		return valueClass.equals("java.lang.String") || valueClass.equals("java.lang.Boolean")
-				|| valueClass.equals("java.lang.Integer") || valueClass.equals("java.lang.Long")
-				|| valueClass.equals("java.lang.Double") || valueClass.equals("java.lang.Float");
+			|| valueClass.equals("java.lang.Integer") || valueClass.equals("java.lang.Long")
+			|| valueClass.equals("java.lang.Double") || valueClass.equals("java.lang.Float");
 	}
 
 	public static boolean isMap(String mapValueClass) {
@@ -301,7 +306,7 @@ public class JDTTypeUtils {
 	}
 
 	public static IJarEntryResource findPropertiesResource(IPackageFragmentRoot packageRoot, String propertiesFileName)
-			throws JavaModelException {
+		throws JavaModelException {
 		Object[] resources = packageRoot.getNonJavaResources();
 		if (resources != null) {
 			for (Object object : resources) {
@@ -326,7 +331,7 @@ public class JDTTypeUtils {
 
 	public static boolean isSimpleFieldType(IType type, String typeName) throws JavaModelException {
 		return type == null || isPrimitiveType(typeName) || isList(typeName) || isMap(typeName) || isOptional(typeName)
-				|| (type != null && type.isEnum());
+			|| (type != null && type.isEnum());
 	}
 
 	public static boolean overlaps(ISourceRange typeRange, ISourceRange methodRange) {
@@ -336,6 +341,50 @@ public class JDTTypeUtils {
 		// method range is overlapping if it appears before or actually overlaps the
 		// type's range
 		return methodRange.getOffset() < typeRange.getOffset() || methodRange.getOffset() >= typeRange.getOffset()
-				&& methodRange.getOffset() <= (typeRange.getOffset() + typeRange.getLength());
+			&& methodRange.getOffset() <= (typeRange.getOffset() + typeRange.getLength());
+	}
+
+	/**
+	 * Return true if member is static, and false otherwise
+	 *
+	 * @param member the member to check for static
+	 * @return
+	 * @throws JavaModelException
+	 */
+	public static boolean isStaticMember(IMember member) throws JavaModelException {
+		return Modifier.isStatic(member.getFlags());
+	}
+
+	/**
+	 * Return true if member is private, and false otherwise
+	 *
+	 * @param member the member to check for private access modifier
+	 * @return
+	 * @throws JavaModelException
+	 */
+	public static boolean isPrivateMember(IMember member) throws JavaModelException {
+		return Modifier.isPrivate(member.getFlags());
+	}
+
+	/**
+	 * Return true if member is public, and false otherwise
+	 *
+	 * @param member the member to check for public access modifier
+	 * @return
+	 * @throws JavaModelException
+	 */
+	public static boolean isPublicMember(IMember member) throws JavaModelException {
+		return Modifier.isPublic(member.getFlags());
+	}
+
+	/**
+	 * Return true if method returns `void`, and false otherwise
+	 *
+	 * @param method the method to check return value of
+	 * @return
+	 * @throws JavaModelException
+	 */
+	public static boolean isVoidReturnType(IMethod method) throws JavaModelException {
+		return SIG_VOID.equals(method.getReturnType());
 	}
 }

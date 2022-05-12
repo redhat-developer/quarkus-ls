@@ -14,7 +14,6 @@ package com.redhat.qute.jdt.internal.template.datamodel;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_DATA_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_DATA_ANNOTATION_NAMESPACE;
 
-import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,6 +34,7 @@ import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 import com.redhat.qute.jdt.template.datamodel.AbstractAnnotationTypeReferenceDataModelProvider;
 import com.redhat.qute.jdt.template.datamodel.SearchContext;
 import com.redhat.qute.jdt.utils.AnnotationUtils;
+import com.redhat.qute.jdt.utils.JDTTypeUtils;
 
 /**
  * @TemplateData annotation support.
@@ -64,7 +64,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 	private static final Logger LOGGER = Logger.getLogger(TemplateDataAnnotationSupport.class.getName());
 
 	private static final String[] ANNOTATION_NAMES = {
-			TEMPLATE_DATA_ANNOTATION
+		TEMPLATE_DATA_ANNOTATION
 	};
 
 	@Override
@@ -74,7 +74,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 
 	@Override
 	protected void processAnnotation(IJavaElement javaElement, IAnnotation annotation, String annotationName,
-			SearchContext context, IProgressMonitor monitor) throws JavaModelException {
+		SearchContext context, IProgressMonitor monitor) throws JavaModelException {
 		if (javaElement.getElementType() != IJavaElement.TYPE) {
 			return;
 		}
@@ -94,7 +94,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 			if (AnnotationUtils.isMatchAnnotation(typeAnnotation, TEMPLATE_DATA_ANNOTATION)) {
 				hasTemplateData = true;
 				namespace = AnnotationUtils.getAnnotationMemberValue(typeAnnotation,
-						TEMPLATE_DATA_ANNOTATION_NAMESPACE);
+					TEMPLATE_DATA_ANNOTATION_NAMESPACE);
 				if (StringUtils.isNotEmpty(namespace)) {
 					break;
 				}
@@ -110,21 +110,21 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 		IField[] fields = type.getFields();
 		for (IField field : fields) {
 			collectResolversForTemplateData(field, namespace, context.getDataModelProject().getValueResolvers(),
-					typeResolver, monitor);
+				typeResolver, monitor);
 		}
 
 		// Loop for static methods
 		IMethod[] methods = type.getMethods();
 		for (IMethod method : methods) {
 			collectResolversForTemplateData(method, namespace, context.getDataModelProject().getValueResolvers(),
-					typeResolver, monitor);
+				typeResolver, monitor);
 		}
 	}
 
 	private void collectResolversForTemplateData(IMember member, String namespace, List<ValueResolverInfo> resolvers,
-			ITypeResolver typeResolver, IProgressMonitor monitor) {
+		ITypeResolver typeResolver, IProgressMonitor monitor) {
 		try {
-			if (Modifier.isPublic(member.getFlags()) && Modifier.isStatic(member.getFlags())) {
+			if (JDTTypeUtils.isPublicMember(member) && JDTTypeUtils.isStaticMember(member)) {
 				// The field or method is public and static
 				String sourceType = member.getDeclaringType().getFullyQualifiedName();
 				ValueResolverInfo resolver = new ValueResolverInfo();
@@ -137,7 +137,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 			}
 		} catch (JavaModelException e) {
 			LOGGER.log(Level.SEVERE,
-					"Error while getting annotation member value of '" + member.getElementName() + "'.", e);
+				"Error while getting annotation member value of '" + member.getElementName() + "'.", e);
 		}
 	}
 
