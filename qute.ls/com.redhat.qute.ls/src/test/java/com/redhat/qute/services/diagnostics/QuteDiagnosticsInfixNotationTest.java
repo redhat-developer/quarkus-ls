@@ -146,6 +146,13 @@ public class QuteDiagnosticsInfixNotationTest {
 	}
 	
 	@Test
+	public void elvisOperatorWithStringSpace() throws Exception {
+		String template = "{@java.lang.String foo}\r\n" + //
+				"{foo ?: foo : 'hello word'}"; //
+		testDiagnosticsFor(template);
+	}
+	
+	@Test
 	public void twoParts() throws Exception {
 		String template = "{@java.lang.String foo}\r\n" + //
 				"{foo 'word'}"; //
