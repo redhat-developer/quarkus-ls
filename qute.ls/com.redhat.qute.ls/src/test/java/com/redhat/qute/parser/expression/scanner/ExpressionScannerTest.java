@@ -293,6 +293,17 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(4, TokenType.InfixMethodPart, "getBytes()");
 		assertOffsetAndToken(14, TokenType.EOS, "");
 	}
+
+	@Test
+	public void elvisOperator() {
+		scanner = createInfixNotationScanner("name ?: \"Quarkus Insights\"");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "name");
+		assertOffsetAndToken(4, TokenType.Whitespace, " ");
+		assertOffsetAndToken(5, TokenType.InfixMethodPart, "?:");
+		assertOffsetAndToken(7, TokenType.Whitespace, " ");
+		assertOffsetAndToken(8, TokenType.InfixParameter, "\"Quarkus Insights\"");
+		assertOffsetAndToken(26, TokenType.EOS, "");
+	}
 	
 	private void assertOffsetAndToken(int tokenOffset, TokenType tokenType, String tokenText) {
 		TokenType token = scanner.scan();

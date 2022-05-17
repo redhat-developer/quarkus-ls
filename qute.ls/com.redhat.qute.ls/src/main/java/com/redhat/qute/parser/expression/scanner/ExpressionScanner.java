@@ -205,8 +205,15 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 	private void nextJavaIdentifierPart() {
 		TokenType lastTokenType = getTokenType();
 		if (canSupportInfixNotation && lastTokenType == TokenType.Whitespace) {
-			// foo or| bar
-			stream.advanceUntilAnyOfChars(' ', '.', '[');
+			int c = stream.peekChar();
+			if (c == '"' || c == '\'') {
+				// foo or "bar baz"
+				stream.advance(1);
+				stream.advanceUntilChar(c);
+			} else {
+				// foo or| bar
+				stream.advanceUntilAnyOfChars(' ', '.', '[');
+			}
 		}
 		// foo.or|
 		stream.advanceUntilAnyOfChars(' ', '.', '[', '(', ':');
