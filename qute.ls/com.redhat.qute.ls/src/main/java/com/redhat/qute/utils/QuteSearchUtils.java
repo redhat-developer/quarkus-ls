@@ -140,6 +140,24 @@ public class QuteSearchUtils {
 					}
 					break;
 				}
+				case CUSTOM: {
+					List<Parameter> parameters = section.getParameters();
+					if (parameters != null) {
+						for (Parameter parameter : parameters) {
+							if (parameter.canHaveExpression()) {
+								// {#linkItem item name=item.name item /}
+								// in this case :
+								// - first item is collected (it is the it)
+								// - name=it|em.name is collected
+								// - last item is not collected because we can have just one it.
+								if (partName.equals(parameter.getName())) {
+									return parameter;
+								}
+							}
+						}
+					}
+					break;
+				}
 				default:
 				}
 			}
@@ -282,6 +300,24 @@ public class QuteSearchUtils {
 					Parameter parameter = ((BaseWhenSection) section).getValueParameter();
 					Expression parameterExpr = parameter.getJavaTypeExpression();
 					tryToCollectObjectPartOrParameter(partName, matcher, parameterExpr, ownerNode, collector);
+					break;
+				}
+				case CUSTOM: {
+					List<Parameter> parameters = section.getParameters();
+					if (parameters != null) {
+						for (Parameter parameter : parameters) {
+							if (parameter.canHaveExpression()) {
+								// {#linkItem item name=item.name item /}
+								// in this case :
+								// - first item is collected (it is the it)
+								// - name=it|em.name is collected
+								// - last item is not collected because we can have just one it.
+								Expression parameterExpr = parameter.getJavaTypeExpression();
+								tryToCollectObjectPartOrParameter(partName, matcher, parameterExpr, ownerNode,
+										collector);
+							}
+						}
+					}
 					break;
 				}
 				default:

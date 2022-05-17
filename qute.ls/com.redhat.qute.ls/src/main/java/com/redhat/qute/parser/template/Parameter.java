@@ -135,7 +135,7 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 
 	@Override
 	public Expression getJavaTypeExpression() {
-		if (!isCanHaveExpression()) {
+		if (!canHaveExpression()) {
 			return null;
 		}
 		if (expression != null) {
@@ -174,7 +174,7 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 		this.canHaveExpression = canHaveExpression;
 	}
 
-	public boolean isCanHaveExpression() {
+	public boolean canHaveExpression() {
 		return canHaveExpression;
 	}
 
