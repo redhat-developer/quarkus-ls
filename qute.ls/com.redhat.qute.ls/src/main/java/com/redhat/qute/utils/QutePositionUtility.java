@@ -133,7 +133,7 @@ public class QutePositionUtility {
 						// ex : {#let nam|e=value }
 						return parameter;
 					}
-					if (!parameter.hasValueAssigned() && !parameter.isCanHaveExpression()) {
+					if (!parameter.hasValueAssigned() && !parameter.canHaveExpression()) {
 						// ex : {#for it|em in items }
 						return parameter;
 					}

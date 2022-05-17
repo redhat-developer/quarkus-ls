@@ -110,7 +110,7 @@ public class UserTagUtils {
 			Section section = (Section) parent;
 			List<Parameter> parameters = section.getParameters();
 			for (Parameter parameter : parameters) {
-				if (parameter.isCanHaveExpression()) {
+				if (parameter.canHaveExpression()) {
 					Expression expression = parameter.getJavaTypeExpression();
 					collectUserTagParameters(expression, extistingObjectParts, collector, cancelChecker);
 				}
