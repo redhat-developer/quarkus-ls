@@ -34,12 +34,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.redhat.qute.commons.QuteJavaCodeLensParams;
-import com.redhat.qute.jdt.QuteSupportForJava;
 import com.redhat.qute.jdt.QuteProjectTest.QuteMavenProjectName;
+import com.redhat.qute.jdt.QuteSupportForJava;
 
 /**
  * Tests for Qute @CheckedTemplate support code lens inside Java files.
- *  
+ * 
  * @author Angelo ZERR
  *
  */
@@ -62,16 +62,28 @@ public class JavaCodeLensTest {
 	@Test
 	public void templateField() throws CoreException, Exception {
 		// public class HelloResource {
-		
+
 		// [Open `src/main/resources/templates/hello.qute.html`]
 		// Template hello;
-		
+
 		// [Create `src/main/resources/templates/goodbye.qute.html`]
 		// Template goodbye;
-		
+
 		// [Create `src/main/resources/templates/detail/items2_v1.html`]
 		// @Location("detail/items2_v1.html")
 		// Template hallo;
+		//
+		// [Open `src/main/resources/templates/detail/page1.html`]
+		// Template bonjour;
+		//
+		// [Create `src/main/resources/templates/detail/page2.html`]
+		// Template aurevoir;
+		//
+		// public HelloResource(@Location("detail/page1.html") Template page1,
+		// @Location("detail/page2.html") Template page2) {
+		// this.bonjour = page1;
+		// this.aurevoir = requireNonNull(page2, "page is required");
+		// }
 
 		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
@@ -81,15 +93,19 @@ public class JavaCodeLensTest {
 
 		List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, getJDTUtils(),
 				new NullProgressMonitor());
-		assertEquals(3, lenses.size());
+		assertEquals(5, lenses.size());
 
 		String helloTemplateFileUri = javaProject.getProject().getFile("src/main/resources/templates/hello.qute.html")
 				.getLocationURI().toString();
-		String goodbyeTemplateFileUri = javaProject.getProject().getFile("src/main/resources/templates/goodbye.qute.html")
-				.getLocationURI().toString();
-		String halloTemplateFileUri = javaProject.getProject().getFile("src/main/resources/templates/detail/items2_v1.html")
-				.getLocationURI().toString();
-		
+		String goodbyeTemplateFileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/goodbye.qute.html").getLocationURI().toString();
+		String halloTemplateFileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/detail/items2_v1.html").getLocationURI().toString();
+		String bonjourTemplateFileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/detail/page1.html").getLocationURI().toString();
+		String aurevoirTemplateFileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/detail/page2.html").getLocationURI().toString();
+
 		assertCodeLens(lenses, //
 				cl(r(16, 1, 17, 16), //
 						"Open `src/main/resources/templates/hello.qute.html`", //
@@ -99,7 +115,13 @@ public class JavaCodeLensTest {
 						"qute.command.generate.template.file", Arrays.asList(goodbyeTemplateFileUri)), //
 				cl(r(22, 1, 24, 16), //
 						"Create `src/main/resources/templates/detail/items2_v1.html`", //
-						"qute.command.generate.template.file", Arrays.asList(halloTemplateFileUri)));
+						"qute.command.generate.template.file", Arrays.asList(halloTemplateFileUri)), //
+				cl(r(26, 1, 27, 18), //
+						"Open `src/main/resources/templates/detail/page1.html`", //
+						"qute.command.open.uri", Arrays.asList(bonjourTemplateFileUri)), //
+				cl(r(29, 1, 30, 19), //
+						"Create `src/main/resources/templates/detail/page2.html`", //
+						"qute.command.generate.template.file", Arrays.asList(aurevoirTemplateFileUri)));
 	}
 
 	@Test
@@ -110,6 +132,7 @@ public class JavaCodeLensTest {
 		// public static native TemplateInstance hello2(String name);
 		// [Open `src/main/resources/templates/hello3.qute.html`]
 		// public static native TemplateInstance hello3(String name);
+
 		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
 		QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();

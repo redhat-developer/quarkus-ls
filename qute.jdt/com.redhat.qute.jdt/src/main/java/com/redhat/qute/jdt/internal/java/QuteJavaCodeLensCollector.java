@@ -14,6 +14,7 @@ package com.redhat.qute.jdt.internal.java;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -63,7 +64,7 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
 	}
 
 	@Override
-	protected void processTemplateLink(ASTNode fieldOrMethod, TypeDeclaration type, String className, String fieldOrMethodName,
+	protected void collectTemplateLink(ASTNode fieldOrMethod, ASTNode locationAnnotation, TypeDeclaration type, String className, String fieldOrMethodName,
 			String location, IFile templateFile, String templateFilePath) throws JavaModelException {
 		Command command = null;
 		if (templateFile.exists()) {
@@ -85,19 +86,19 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
 		lenses.add(codeLens);
 	}
 
-	private List<DataModelParameter> createParameters(ASTNode node) {
-		if (node.getNodeType() == ASTNode.FIELD_DECLARATION) {
-			return createParameter((FieldDeclaration) node);
+	private static List<DataModelParameter> createParameters(ASTNode node) {
+		if (node.getNodeType() == ASTNode.METHOD_DECLARATION) {
+			return createParameter((MethodDeclaration) node);
 		}
-		return createParameter((MethodDeclaration) node);
+		return Collections.emptyList();
 	}
 
-	private List<DataModelParameter> createParameter(FieldDeclaration node) {
+	private static List<DataModelParameter> createParameter(FieldDeclaration node) {
 		List<DataModelParameter> parameters = new ArrayList<>();
 		return parameters;
 	}
 
-	private List<DataModelParameter> createParameter(MethodDeclaration method) {
+	private static List<DataModelParameter> createParameter(MethodDeclaration method) {
 		List<DataModelParameter> parameters = new ArrayList<>();
 		@SuppressWarnings("rawtypes")
 		List methodParameters = method.parameters();

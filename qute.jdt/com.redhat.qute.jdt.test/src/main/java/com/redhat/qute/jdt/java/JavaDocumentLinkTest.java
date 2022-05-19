@@ -32,8 +32,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.redhat.qute.commons.QuteJavaDocumentLinkParams;
-import com.redhat.qute.jdt.QuteSupportForJava;
 import com.redhat.qute.jdt.QuteProjectTest.QuteMavenProjectName;
+import com.redhat.qute.jdt.QuteSupportForJava;
 
 /**
  * Tests for Qute @CheckedTemplate support document link inside Java files.
@@ -75,7 +75,7 @@ public class JavaDocumentLinkTest {
 
 		List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, getJDTUtils(),
 				new NullProgressMonitor());
-		assertEquals(3, links.size());
+		assertEquals(5, links.size());
 
 		String helloTemplateUri = javaProject.getProject().getFile("src/main/resources/templates/hello.qute.html")
 				.getLocationURI().toString();
@@ -83,14 +83,22 @@ public class JavaDocumentLinkTest {
 				.getLocationURI().toString();
 		String halloTemplateUri = javaProject.getProject().getFile("src/main/resources/templates/detail/items2_v1.html")
 				.getLocationURI().toString();
-		
+		String bonjourTemplateFileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/detail/page1.html").getLocationURI().toString();
+		String aurevoirTemplateFileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/detail/page2.html").getLocationURI().toString();
+
 		assertDocumentLink(links, //
 				dl(r(17, 10, 17, 15), //
 						helloTemplateUri, "Open `src/main/resources/templates/hello.qute.html`"),
 				dl(r(20, 10, 20, 17), //
 						goodbyeTemplateUri, "Open `src/main/resources/templates/goodbye.qute.html`"), //
-				dl(r(24, 10, 24, 15), //
-						halloTemplateUri, "Open `src/main/resources/templates/detail/items2_v1.html`"));
+				dl(r(22, 11, 22, 34), //
+						halloTemplateUri, "Open `src/main/resources/templates/detail/items2_v1.html`"), //
+				dl(r(32, 32, 32, 51), //
+						bonjourTemplateFileUri, "Open `src/main/resources/templates/detail/page1.html`"), //
+				dl(r(32, 79, 32, 98), //
+						aurevoirTemplateFileUri, "Create `src/main/resources/templates/detail/page2.html`"));
 	}
 
 	@Test
