@@ -51,8 +51,8 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
 	}
 
 	@Override
-	protected void processTemplateLink(ASTNode fieldOrMethod, TypeDeclaration type, String className,
-			String fieldOrMethodName, String location, IFile templateFile, String templateFilePath)
+	protected void collectTemplateLink(ASTNode fieldOrMethod, ASTNode locationAnnotation, TypeDeclaration type,
+			String className, String fieldOrMethodName, String location, IFile templateFile, String templateFilePath)
 			throws JavaModelException {
 		if (!templateFile.exists()) {
 			// No template matching the path HelloResource/index could be found for:
@@ -60,7 +60,7 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
 			String path = createPath(className, fieldOrMethodName, location);
 			ITypeBinding binding = type.resolveBinding();
 			String fullQualifiedName = ((IType) binding.getJavaElement()).getFullyQualifiedName();
-			Range range = createRange(fieldOrMethod);
+			Range range = createRange(locationAnnotation != null ? locationAnnotation : fieldOrMethod);
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.NoMatchingTemplate,
 					path, fullQualifiedName);
 			this.diagnostics.add(diagnostic);

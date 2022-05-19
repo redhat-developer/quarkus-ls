@@ -24,6 +24,21 @@ public class HelloResource {
 	@Inject
 	Template hallo;
 
+	@Inject
+	Template bonjour;
+
+	@Inject
+	Template aurevoir;
+
+	public HelloResource(@Location("detail/page1.html") Template page1, @Location("detail/page2.html") Template page2) {
+		this.bonjour = page1;
+		this.aurevoir = requireNonNull(page2, "page is required");
+	}
+
+	private Template requireNonNull(Template page2, String string) {
+		return null;
+	}
+
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public TemplateInstance get(@QueryParam("name") String name) {

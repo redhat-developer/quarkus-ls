@@ -51,12 +51,12 @@ public class QuteJavaDocumentLinkCollector extends AbstractQuteTemplateLinkColle
 	}
 
 	@Override
-	protected void processTemplateLink(ASTNode fieldOrMethod, TypeDeclaration type, String className,
-			String fieldOrMethodName, String location, IFile templateFile, String templateFilePath)
+	protected void collectTemplateLink(ASTNode fieldOrMethod, ASTNode locationAnnotation, TypeDeclaration type,
+			String className, String fieldOrMethodName, String location, IFile templateFile, String templateFilePath)
 			throws JavaModelException {
 		String templateUri = templateFile.getLocationURI().toString();
 		String tooltip = getTooltip(templateFile, templateFilePath);
-		Range range = createRange(fieldOrMethod);
+		Range range = createRange(locationAnnotation != null ? locationAnnotation : fieldOrMethod);
 		DocumentLink link = new DocumentLink(range, templateUri, null, tooltip);
 		links.add(link);
 	}
