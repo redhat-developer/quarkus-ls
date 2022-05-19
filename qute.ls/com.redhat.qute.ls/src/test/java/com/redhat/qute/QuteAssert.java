@@ -45,6 +45,7 @@ import org.eclipse.lsp4j.DocumentLink;
 import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverCapabilities;
+import org.eclipse.lsp4j.InlayHint;
 import org.eclipse.lsp4j.LinkedEditingRanges;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
@@ -62,7 +63,6 @@ import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
-import com.redhat.lsp4j.proposed.InlayHint;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.TextDocument;
@@ -146,7 +146,8 @@ public class QuteAssert {
 	}
 
 	public static void testCompletionFor(String value, boolean snippetSupport, String fileUri, String templateId,
-			String projectUri, String templateBaseDir, Integer expectedCount, CompletionItem... expectedItems) throws Exception {
+			String projectUri, String templateBaseDir, Integer expectedCount, CompletionItem... expectedItems)
+			throws Exception {
 		testCompletionFor(value, snippetSupport, fileUri, templateId, projectUri, templateBaseDir, expectedCount,
 				new QuteNativeSettings(), expectedItems);
 	}

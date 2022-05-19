@@ -20,12 +20,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.lsp4j.InlayHint;
+import org.eclipse.lsp4j.InlayHintKind;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
-import com.redhat.lsp4j.proposed.InlayHint;
-import com.redhat.lsp4j.proposed.InlayHintKind;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Expression;

@@ -27,13 +27,11 @@ import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.ServerCapabilities;
+import org.eclipse.lsp4j.SetTraceParams;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
-import com.redhat.lsp4j.proposed.InlayHint;
-import com.redhat.lsp4j.proposed.InlayHintParams;
-import com.redhat.lsp4j.proposed.QuteInlayHintProvider;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
@@ -76,7 +74,7 @@ import com.redhat.qute.settings.capabilities.ServerCapabilitiesInitializer;
  */
 public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer, QuteLanguageServerAPI,
 		QuteProjectInfoProvider, QuteJavaTypesProvider, QuteResolvedJavaTypeProvider, QuteJavaDefinitionProvider,
-		QuteDataModelProjectProvider, QuteUserTagProvider, QuteInlayHintProvider {
+		QuteDataModelProjectProvider, QuteUserTagProvider {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteLanguageServer.class.getName());
 
@@ -278,7 +276,8 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	}
 
 	@Override
-	public CompletableFuture<List<InlayHint>> inlayHint(InlayHintParams params) {
-		return textDocumentService.inlayHint(params);
+	public void setTrace(SetTraceParams params) {
+		// to avoid having error in vscode, the method is implemented
+		// FIXME : implement the behavior of this method.
 	}
 }
