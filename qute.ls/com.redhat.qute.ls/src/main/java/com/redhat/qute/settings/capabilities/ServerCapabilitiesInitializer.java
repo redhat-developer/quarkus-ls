@@ -55,6 +55,7 @@ public class ServerCapabilitiesInitializer {
 		}
 		serverCapabilities.setReferencesProvider(!clientCapabilities.isReferencesDynamicRegistrationSupported());
 		serverCapabilities.setLinkedEditingRangeProvider(!clientCapabilities.isLinkedEditingRangeDynamicRegistered());
+		serverCapabilities.setInlayHintProvider(!clientCapabilities.isInlayHintDynamicRegistered());
 		return serverCapabilities;
 	}
 }

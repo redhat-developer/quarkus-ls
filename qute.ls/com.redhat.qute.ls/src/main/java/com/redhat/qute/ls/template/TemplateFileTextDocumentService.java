@@ -42,6 +42,8 @@ import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
+import org.eclipse.lsp4j.InlayHint;
+import org.eclipse.lsp4j.InlayHintParams;
 import org.eclipse.lsp4j.LinkedEditingRangeParams;
 import org.eclipse.lsp4j.LinkedEditingRanges;
 import org.eclipse.lsp4j.Location;
@@ -53,8 +55,6 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
-import com.redhat.lsp4j.proposed.InlayHint;
-import com.redhat.lsp4j.proposed.InlayHintParams;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.ls.AbstractTextDocumentService;
 import com.redhat.qute.ls.QuteLanguageServer;
@@ -258,9 +258,9 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 						// retrigger the inlay hints.
 						CompletableFuture<Void> allFutures = CompletableFuture.allOf(resolvingJavaTypeContext
 								.toArray(new CompletableFuture[resolvingJavaTypeContext.size()]));
-						allFutures.thenAccept(Void -> {
-							// Refresh Inlay Hints when all Java type are resolved.
-							quteLanguageServer.getLanguageClient().refreshInlayHints();
+						return allFutures.thenCompose(Void -> {
+							// All Java type are resolved, recompute the inlay hints. 
+							return inlayHint(params);
 						});
 					}
 

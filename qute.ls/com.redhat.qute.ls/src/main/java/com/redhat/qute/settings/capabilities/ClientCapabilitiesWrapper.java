@@ -97,6 +97,10 @@ public class ClientCapabilitiesWrapper {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getLinkedEditingRange());
 	}
 
+	public boolean isInlayHintDynamicRegistered() {
+		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getInlayHint());
+	}
+	
 	private boolean isDynamicRegistrationSupported(DynamicRegistrationCapabilities capability) {
 		return capability != null && capability.getDynamicRegistration() != null
 				&& capability.getDynamicRegistration().booleanValue();

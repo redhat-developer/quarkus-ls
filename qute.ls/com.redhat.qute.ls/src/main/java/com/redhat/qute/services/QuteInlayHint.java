@@ -17,10 +17,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.lsp4j.InlayHint;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
-import com.redhat.lsp4j.proposed.InlayHint;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
@@ -66,10 +66,11 @@ public class QuteInlayHint {
 							LOGGER.log(Level.SEVERE, "Error while getting offsets view port range", e);
 						}
 					}
+					cancelChecker.checkCanceled();
 					InlayHintASTVistor visitor = new InlayHintASTVistor(javaCache, startOffset, endOffset, settings,
-							resolvingJavaTypeContext, 
-							cancelChecker);
+							resolvingJavaTypeContext, cancelChecker);
 					template.accept(visitor);
+					cancelChecker.checkCanceled();
 					return visitor.getInlayHints();
 				});
 	}
