@@ -72,4 +72,11 @@ public interface ValueResolver {
 	 */
 	JavaElementKind getJavaElementKind();
 
+	/**
+	 * Returns true if it is a global variable and false otherwise.
+	 * 
+	 * @return true if it is a global variable and false otherwise.
+	 */
+	boolean isGlobalVariable();
+
 }

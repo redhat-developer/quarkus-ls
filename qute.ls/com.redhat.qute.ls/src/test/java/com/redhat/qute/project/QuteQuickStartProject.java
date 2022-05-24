@@ -230,6 +230,9 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// Field value resolvers
 		resolvers.add(createValueResolver("inject", "bean", null, "org.acme.Bean", "bean : java.lang.String"));
 
+		// Static field value resolvers
+		resolvers.add(createValueResolver(null, "GLOBAL", null, "org.acme.Bean", "bean : java.lang.String", true));
+				
 		return resolvers;
 	}
 

@@ -43,6 +43,8 @@ public class MethodValueResolver extends JavaMethodInfo implements ValueResolver
 	private List<String> sample;
 
 	private String url;
+	
+	private Boolean globalVariable;
 
 	@Override
 	public boolean isVirtual() {
@@ -204,6 +206,14 @@ public class MethodValueResolver extends JavaMethodInfo implements ValueResolver
 		String name = getName();
 		return name.length() > 0 && name.charAt(0) != '@';
 	}
+	
+	public boolean isGlobalVariable() {
+		return globalVariable != null && globalVariable.booleanValue();
+	}
+	
+	public void setGlobalVariable(boolean globalVariable) {
+		this.globalVariable = globalVariable;
+	}
 
 	@Override
 	public Node getJavaTypeOwnerNode() {
@@ -225,6 +235,7 @@ public class MethodValueResolver extends JavaMethodInfo implements ValueResolver
 		b.add("description", this.getDescription());
 		b.add("sample", this.getSample());
 		b.add("url", this.getUrl());
+		b.add("globalVariable", this.isGlobalVariable());
 		return b.toString();
 	}
 }

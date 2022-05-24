@@ -664,4 +664,19 @@ public class QuteDiagnosticsInExpressionTest {
 		String template = "{foo??}";
 		testDiagnosticsFor(template);
 	}
+
+	@Test
+	public void globalVariables() throws Exception {
+		String template = "{GLOBAL}";
+		testDiagnosticsFor(template);
+
+		template = "{GLOBAL.isEmpty()}";
+		testDiagnosticsFor(template);
+
+		template = "{GLOBAL.XXXX}";
+		testDiagnosticsFor(template, //
+				d(0, 8, 0, 12, QuteErrorCode.UnknownProperty,
+						"`XXXX` cannot be resolved or is not a field of `java.lang.String` Java type.",
+						DiagnosticSeverity.Error));
+	}
 }

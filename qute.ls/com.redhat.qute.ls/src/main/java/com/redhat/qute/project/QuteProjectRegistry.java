@@ -17,6 +17,7 @@ import static com.redhat.qute.services.QuteCompletableFutures.JAVA_ELEMENT_INFO_
 import static com.redhat.qute.services.QuteCompletableFutures.METHOD_VALUE_RESOLVERS_NULL_FUTURE;
 import static com.redhat.qute.services.QuteCompletableFutures.NAMESPACE_RESOLVER_INFO_NULL_FUTURE;
 import static com.redhat.qute.services.QuteCompletableFutures.RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
+import static com.redhat.qute.services.QuteCompletableFutures.VALUE_RESOLVERS_NULL_FUTURE;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -836,11 +837,58 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 				});
 	}
 
-	public boolean isMatchNamespaceResolver(String namespace, String partName, ValueResolver resolver,
+	public CompletableFuture<JavaElementInfo> findGlobalVariableJavaElement(String partName, String projectUri) {
+		if (StringUtils.isEmpty(projectUri)) {
+			return JAVA_ELEMENT_INFO_NULL_FUTURE;
+		}
+		QuteProject project = getProject(projectUri);
+		if (project == null) {
+			return JAVA_ELEMENT_INFO_NULL_FUTURE;
+		}
+		return project.getDataModelProject() //
+				.thenApply(dataModel -> {
+					if (dataModel == null) {
+						return null;
+					}
+					// Search in types resolvers
+					List<TypeValueResolver> typeResolvers = dataModel.getTypeValueResolvers();
+					for (TypeValueResolver resolver : typeResolvers) {
+						if (isMatchGlobalVariableResolver(partName, resolver, dataModel)) {
+							return resolver;
+						}
+					}
+					// Search in methods resolvers
+					List<MethodValueResolver> methodResolvers = dataModel.getMethodValueResolvers();
+					for (MethodValueResolver resolver : methodResolvers) {
+						if (isMatchGlobalVariableResolver(partName, resolver, dataModel)) {
+							return resolver;
+						}
+					}
+					// Search in field resolvers
+					List<FieldValueResolver> fieldResolvers = dataModel.getFieldValueResolvers();
+					for (FieldValueResolver resolver : fieldResolvers) {
+						if (isMatchGlobalVariableResolver(partName, resolver, dataModel)) {
+							return resolver;
+						}
+					}
+					return null;
+				});
+	}
+
+	private static boolean isMatchNamespaceResolver(String namespace, String partName, ValueResolver resolver,
 			ExtendedDataModelProject dataModel) {
 		String name = getResolverName(resolver);
 		if (dataModel.getSimilarNamespace(namespace).equals(resolver.getNamespace())
 				&& ("*".equals(name) || partName.equals(name))) {
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean isMatchGlobalVariableResolver(String partName, ValueResolver resolver,
+			ExtendedDataModelProject dataModel) {
+		String name = getResolverName(resolver);
+		if (resolver.isGlobalVariable() && partName.equals(name)) {
 			return true;
 		}
 		return false;
@@ -979,6 +1027,43 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			return primitiveType.equals(autoboxing.get(type2));
 		}
 		return false;
+	}
+
+	public List<ValueResolver> getGlobalVariables(String projectUri) {
+		return getGlobalVariablesValueResolvers(projectUri).getNow(null);
+	}
+
+	private CompletableFuture<List<ValueResolver>> getGlobalVariablesValueResolvers(String projectUri) {
+		if (StringUtils.isEmpty(projectUri)) {
+			return VALUE_RESOLVERS_NULL_FUTURE;
+		}
+		QuteProject project = getProject(projectUri);
+		if (project == null) {
+			return VALUE_RESOLVERS_NULL_FUTURE;
+		}
+		return project.getDataModelProject() //
+				.thenApply(dataModel -> {
+					if (dataModel == null) {
+						return null;
+					}
+					List<ValueResolver> globalVariables = new ArrayList<>();
+					for (ValueResolver valueResolver : dataModel.getTypeValueResolvers()) {
+						if (valueResolver.isGlobalVariable()) {
+							globalVariables.add(valueResolver);
+						}
+					}
+					for (ValueResolver valueResolver : dataModel.getMethodValueResolvers()) {
+						if (valueResolver.isGlobalVariable()) {
+							globalVariables.add(valueResolver);
+						}
+					}
+					for (ValueResolver valueResolver : dataModel.getFieldValueResolvers()) {
+						if (valueResolver.isGlobalVariable()) {
+							globalVariables.add(valueResolver);
+						}
+					}
+					return globalVariables;
+				});
 	}
 
 }

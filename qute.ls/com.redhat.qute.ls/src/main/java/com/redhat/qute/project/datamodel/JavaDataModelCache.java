@@ -64,6 +64,10 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return projectRegistry.getResolversFor(javaType, projectUri);
 	}
 
+	public List<ValueResolver> getGlobalVariables(String projectUri) {
+		return projectRegistry.getGlobalVariables(projectUri);
+	}
+
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className, String projectUri) {
 		return projectRegistry.resolveJavaType(className, projectUri);
 	}
@@ -269,6 +273,10 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 	public CompletableFuture<JavaElementInfo> findJavaElementWithNamespace(String namespace, String partName,
 			String projectUri) {
 		return projectRegistry.findJavaElementWithNamespace(namespace, partName, projectUri);
+	}
+
+	public CompletableFuture<JavaElementInfo> findGlobalVariableJavaElement(String partName, String projectUri) {
+		return projectRegistry.findGlobalVariableJavaElement(partName, projectUri);
 	}
 
 	public List<ValueResolver> getNamespaceResolvers(String namespace, String projectUri) {

@@ -44,6 +44,8 @@ public class FieldValueResolver extends JavaFieldInfo implements ValueResolver, 
 
 	private String named;
 
+	private Boolean globalVariable;
+
 	@Override
 	public String getNamespace() {
 		return namespace;
@@ -71,7 +73,7 @@ public class FieldValueResolver extends JavaFieldInfo implements ValueResolver, 
 	public String getMatchName() {
 		return null;
 	}
-	
+
 	@Override
 	public JavaTypeInfo getJavaTypeInfo() {
 		JavaTypeInfo javaType = super.getJavaTypeInfo();
@@ -92,6 +94,14 @@ public class FieldValueResolver extends JavaFieldInfo implements ValueResolver, 
 		this.sourceType = sourceType;
 	}
 
+	public boolean isGlobalVariable() {
+		return globalVariable != null && globalVariable.booleanValue();
+	}
+
+	public void setGlobalVariable(boolean globalVariable) {
+		this.globalVariable = globalVariable;
+	}
+
 	@Override
 	public Node getJavaTypeOwnerNode() {
 		return null;
@@ -109,6 +119,7 @@ public class FieldValueResolver extends JavaFieldInfo implements ValueResolver, 
 		b.add("namespace", this.getNamespace());
 		b.add("signature", this.getSignature());
 		b.add("sourceType", this.getSourceType());
+		b.add("globalVariable", this.isGlobalVariable());
 		return b.toString();
 	}
 }

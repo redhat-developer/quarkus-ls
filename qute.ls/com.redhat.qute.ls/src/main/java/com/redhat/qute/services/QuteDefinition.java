@@ -314,6 +314,7 @@ class QuteDefinition {
 
 		String projectUri = template.getProjectUri();
 		if (projectUri != null) {
+			// Try to find in parameter data model
 			return findDefinitionFromParameterDataModel(part, template, projectUri);
 		}
 		return NO_DEFINITION;
@@ -323,11 +324,16 @@ class QuteDefinition {
 			Template template, String projectUri) {
 		return template.getParameterDataModel(part.getPartName()) //
 				.thenCompose(parameter -> {
+					// Try to find in parameter model
 					if (parameter != null) {
 						QuteJavaDefinitionParams params = parameter.toJavaDefinitionParams(projectUri);
 						return findJavaDefinition(params, () -> QutePositionUtility.createRange(part));
 					}
-					return NO_DEFINITION;
+					// try to find in global variables
+					return javaCache.findGlobalVariableJavaElement(part.getPartName(), projectUri) //
+							.thenCompose(member -> {
+								return findDefinitionFromJavaMember(member, part, projectUri);
+							});
 				});
 	}
 

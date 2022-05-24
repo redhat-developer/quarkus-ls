@@ -246,6 +246,19 @@ public class Template extends Node {
 				.findJavaElementWithNamespace(namespace, objectPart.getPartName(), getProjectUri()).getNow(null);
 	}
 
+	public JavaTypeInfoProvider findGlobalVariables(ObjectPart objectPart) {
+		String namespace = objectPart.getNamespace();
+		if (namespace != null) {
+			return null;
+		}
+		if (projectRegistry == null || getProjectUri() == null) {
+			return null;
+		}
+		// {inject:bean}
+		return (JavaTypeInfoProvider) projectRegistry
+				.findGlobalVariableJavaElement(objectPart.getPartName(), getProjectUri()).getNow(null);
+	}
+	
 	@Override
 	protected void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);

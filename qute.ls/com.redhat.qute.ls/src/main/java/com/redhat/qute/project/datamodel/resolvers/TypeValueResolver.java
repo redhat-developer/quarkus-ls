@@ -43,6 +43,8 @@ public class TypeValueResolver extends JavaTypeInfo implements ValueResolver, Ja
 
 	private String named;
 
+	private Boolean globalVariable;
+
 	@Override
 	public String getNamespace() {
 		return namespace;
@@ -85,6 +87,14 @@ public class TypeValueResolver extends JavaTypeInfo implements ValueResolver, Ja
 		this.sourceType = sourceType;
 	}
 
+	public boolean isGlobalVariable() {
+		return globalVariable != null && globalVariable.booleanValue();
+	}
+
+	public void setGlobalVariable(boolean globalVariable) {
+		this.globalVariable = globalVariable;
+	}
+
 	@Override
 	public Node getJavaTypeOwnerNode() {
 		return null;
@@ -102,6 +112,7 @@ public class TypeValueResolver extends JavaTypeInfo implements ValueResolver, Ja
 		b.add("namespace", this.getNamespace());
 		b.add("signature", this.getSignature());
 		b.add("sourceType", this.getSourceType());
+		b.add("globalVariable", this.isGlobalVariable());
 		return b.toString();
 	}
 }

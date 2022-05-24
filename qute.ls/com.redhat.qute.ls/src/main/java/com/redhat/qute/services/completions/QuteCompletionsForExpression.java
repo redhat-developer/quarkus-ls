@@ -311,7 +311,7 @@ public class QuteCompletionsForExpression {
 	/**
 	 * Fill completion list <code>list</code> with the methods of the given Java
 	 * type <code>resolvedType</code>.
-	 * 
+	 *
 	 * @param rootBaseType       the Java root type class, interface.
 	 * @param baseType           the Java type class, interface.
 	 * @param range              the range.
@@ -380,7 +380,7 @@ public class QuteCompletionsForExpression {
 	/**
 	 * Fill completion list <code>list</code> with the methods of the given Java
 	 * type <code>resolvedType</code>.
-	 * 
+	 *
 	 * @param rootBaseType       the Java root type class, interface.
 	 * @param baseType           the Java type class, interface.
 	 * @param range              the range.
@@ -556,6 +556,8 @@ public class QuteCompletionsForExpression {
 		if (namespace == null) {
 			// Completion is triggered before the namespace
 
+			// Collect global variable
+			doCompleteExpressionForObjectPartWithGlobalVariables(template, range, list);
 			// Collect alias declared from parameter declaration
 			doCompleteExpressionForObjectPartWithParameterAlias(template, range, list);
 			// Collect parameters from CheckedTemplate method parameters
@@ -596,6 +598,39 @@ public class QuteCompletionsForExpression {
 			}
 		}
 		return CompletableFuture.completedFuture(list);
+	}
+
+	private void doCompleteExpressionForObjectPartWithGlobalVariables(Template template, Range range,
+			CompletionList list) {
+		List<ValueResolver> globalVariables = javaCache.getGlobalVariables(template.getProjectUri());
+		if (globalVariables != null) {
+			for (ValueResolver globalVariable : globalVariables) {
+				String name = globalVariable.getNamed();
+				if (name == null) {
+					name = globalVariable.getName();
+				}
+				CompletionItem item = new CompletionItem();
+				item.setLabel(name);
+				item.setKind(getCompletionKind(globalVariable));
+				TextEdit textEdit = new TextEdit(range, name);
+				item.setTextEdit(Either.forLeft(textEdit));
+				list.getItems().add(item);
+			}
+		}
+	}
+
+	private static CompletionItemKind getCompletionKind(ValueResolver globalVariable) {
+		switch (globalVariable.getJavaElementKind()) {
+		case FIELD:
+			return CompletionItemKind.Field;
+		case METHOD:
+			return CompletionItemKind.Method;
+		case TYPE:
+			return CompletionItemKind.Class;
+		case PARAMETER:
+			return CompletionItemKind.TypeParameter;
+		}
+		return CompletionItemKind.Class;
 	}
 
 	public void doCompleteNamespaceResolvers(String namespace, Template template, Range range,

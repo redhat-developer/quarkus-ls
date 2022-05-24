@@ -33,6 +33,8 @@ public class ValueResolverInfo {
 
 	private String sourceType;
 
+	private Boolean globalVariable;
+
 	/**
 	 * Returns the named of the resolver.
 	 * 
@@ -111,6 +113,24 @@ public class ValueResolverInfo {
 	 */
 	public void setSourceType(String sourceType) {
 		this.sourceType = sourceType;
+	}
+
+	/**
+	 * Returns true if it is a global variable and false otherwise.
+	 * 
+	 * @return true if it is a global variable and false otherwise.
+	 */
+	public boolean isGlobalVariable() {
+		return globalVariable != null && globalVariable.booleanValue();
+	}
+
+	/**
+	 * Set true if it is a global variable and false otherwise.
+	 * 
+	 * @param global true if it is a global variable and false otherwise.
+	 */
+	public void setGlobalVariable(boolean global) {
+		this.globalVariable = global;
 	}
 
 	/**

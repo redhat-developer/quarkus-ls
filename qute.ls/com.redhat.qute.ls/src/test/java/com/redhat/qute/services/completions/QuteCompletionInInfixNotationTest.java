@@ -84,26 +84,28 @@ public class QuteCompletionInInfixNotationTest {
 
 		// Infix notation : only methods with one parameter of String class
 		testCompletionFor(template, //
-				5, //
+				6, //
 				c("item", "item", r(1, 14, 1, 14)), //
 				c("inject:bean", "inject:bean", r(1, 14, 1, 14)), //
 				c("inject:plexux", "inject:plexux", r(1, 14, 1, 14)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(1, 14, 1, 14)),
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
-						r(1, 14, 1, 14)));
+						r(1, 14, 1, 14)), //
+				c("GLOBAL", "GLOBAL", r(1, 14, 1, 14)));
 		
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.name ?: item.name :|}";
 
 		// Infix notation : only methods with one parameter of String class
 		testCompletionFor(template, //
-				5, //
+				6, //
 				c("item", "item", r(1, 25, 1, 25)), //
 				c("inject:bean", "inject:bean", r(1, 25, 1, 25)), //
 				c("inject:plexux", "inject:plexux", r(1, 25, 1, 25)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(1, 25, 1, 25)),
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
-						r(1, 25, 1, 25)));
+						r(1, 25, 1, 25)), //
+				c("GLOBAL", "GLOBAL", r(1, 25, 1, 25)));
 	}
 	
 }

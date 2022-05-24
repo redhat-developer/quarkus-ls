@@ -230,7 +230,6 @@ public class QuteHoverInExpressionTest {
 				System.lineSeparator() + //
 				"```", //
 				r(1, 1, 1, 6));
-
 	}
 
 	@Test
@@ -243,7 +242,6 @@ public class QuteHoverInExpressionTest {
 				System.lineSeparator() + //
 				"```", //
 				r(1, 7, 1, 11));
-
 	}
 
 	@Test
@@ -256,6 +254,28 @@ public class QuteHoverInExpressionTest {
 				System.lineSeparator() + //
 				"```", //
 				r(1, 5, 1, 13));
+	}
+
+	@Test
+	public void hoverForGlobalVariables() throws Exception {
+		String template = "{GLO|BAL}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"String" + //
+				System.lineSeparator() + //
+				"```", //
+				r(0, 1, 0, 7));
+	}
+
+	@Test
+	public void methodHoverForGlobalVariables() throws Exception {
+		String template = "{GLOBAL.getByte|s('abcd')}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"byte[] java.lang.String.getBytes(String charsetName)" + //
+				System.lineSeparator() + //
+				"```", //
+				r(0, 8, 0, 16));
 
 	}
 }

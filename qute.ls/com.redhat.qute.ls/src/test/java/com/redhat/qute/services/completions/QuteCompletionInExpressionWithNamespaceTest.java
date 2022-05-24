@@ -32,14 +32,15 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 				"  {|}\r\n" + //
 				"{/let}";
 		testCompletionFor(template, //
-				6, // name and item
+				7, // name and item
 				c("item", "item", r(2, 3, 2, 3)), //
 				c("name", "name", r(2, 3, 2, 3)), //
 				c("inject:bean", "inject:bean", r(2, 3, 2, 3)), //
 				c("inject:plexux", "inject:plexux", r(2, 3, 2, 3)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(2, 3, 2, 3)),
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
-						r(2, 3, 2, 3)));
+						r(2, 3, 2, 3)), //
+				c("GLOBAL", "GLOBAL", r(2, 3, 2, 3)));
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"{#let name=123 }\r\n" + //
@@ -108,12 +109,13 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 	public void namespaceResolver() throws Exception {
 		String template = "{|}";
 		testCompletionFor(template, //
-				4, //
+				5, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 1, 0, 1)),
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
-						r(0, 1, 0, 1)));
+						r(0, 1, 0, 1)), //
+				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)));
 	}
 
 	@Test
@@ -135,12 +137,13 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 	public void orpheanColonSpace() throws Exception {
 		String template = "	{inject :|}";
 		testCompletionFor(template, //
-				4, //
+				5, //
 				c("inject:bean", "inject:bean", r(0, 10, 0, 10)), //
 				c("inject:plexux", "inject:plexux", r(0, 10, 0, 10)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 10, 0, 10)),
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
-						r(0, 10, 0, 10)));
+						r(0, 10, 0, 10)), //
+				c("GLOBAL", "GLOBAL", r(0, 10, 0, 10)));
 	}
 
 }
