@@ -29,7 +29,6 @@ public class QuteCompletionInExpressionTest {
 	public void completionInExpressionForObjectPart() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {|}";
-		
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item. |}";
@@ -271,19 +270,20 @@ public class QuteCompletionInExpressionTest {
 				c("name : String", "name", r(1, 23, 1, 25)), //
 				c("average : Integer", "average", r(1, 23, 1, 25)));
 	}
-	
+
 	@Test
 	public void completionInExpressionWithOnlyStartBracket() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {|";
 		testCompletionFor(template, //
-				5, //
+				6, //
 				c("item", "item", r(1, 7, 1, 7)), //
 				c("inject:bean", "inject:bean", r(1, 7, 1, 7)), //
 				c("inject:plexux", "inject:plexux", r(1, 7, 1, 7)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(1, 7, 1, 7)),
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
-						r(1, 7, 1, 7)));
+						r(1, 7, 1, 7)), //
+				c("GLOBAL", "GLOBAL", r(1, 7, 1, 7)));
 
 	}
 
@@ -304,14 +304,14 @@ public class QuteCompletionInExpressionTest {
 		// three brackets -> expression
 		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {{{|";
-		testCompletionFor(template, 5, //
+		testCompletionFor(template, 6, //
 				c("item", "item", r(1, 9, 1, 9)), //
 				c("inject:bean", "inject:bean", r(1, 9, 1, 9)), //
 				c("inject:plexux", "inject:plexux", r(1, 9, 1, 9)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(1, 9, 1, 9)),
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
-						r(1, 9, 1, 9)));
-
+						r(1, 9, 1, 9)), //
+				c("GLOBAL", "GLOBAL", r(1, 9, 1, 9)));
 	}
 
 	@Test
@@ -333,5 +333,36 @@ public class QuteCompletionInExpressionTest {
 				"Item: {item.name.codePointCount(|}";
 		testCompletionFor(template, //
 				c("item", "item", r(1, 32, 1, 32)));
+	}
+
+	@Test
+	public void globalVariablesObjectPart() throws Exception {
+		String template = "{|";
+		testCompletionFor(template, //
+				5, //
+				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
+				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
+				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 1, 0, 1)),
+				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
+						r(0, 1, 0, 1)), //
+				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)));
+
+	}
+
+	@Test
+	public void globalVariablesMethodPart() throws Exception {
+		String template = "{GLOBAL.|";
+		testCompletionFor(template, //
+				13, //
+				// - resolvers
+				c("orEmpty(base : T) : List<T>", "orEmpty", r(0, 8, 0, 8)),
+				c("ifTruthy(base : T, arg : Object) : T", "ifTruthy(${1:arg})$0", r(0, 8, 0, 8)),
+				c("or(base : T, arg : Object) : T", "or(${1:arg})$0", r(0, 8, 0, 8)),
+				// - String Java fields
+				c("UTF16 : byte", "UTF16", r(0, 8, 0, 8)),
+				// - String Java methods
+				c("getBytes() : byte[]", "getBytes", r(0, 8, 0, 8)),
+				c("getBytes(charsetName : String) : byte[]", "getBytes(${1:charsetName})$0", r(0, 8, 0, 8)),
+				c("charAt(index : int) : char", "charAt(${1:index})$0", r(0, 8, 0, 8)));
 	}
 }

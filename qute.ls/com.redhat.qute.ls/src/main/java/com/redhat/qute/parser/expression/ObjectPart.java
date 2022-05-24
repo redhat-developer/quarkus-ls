@@ -140,6 +140,13 @@ public class ObjectPart extends Part {
 		if (initialDataModel != null) {
 			return initialDataModel;
 		}
+
+		// Try to find global variables
+		JavaTypeInfoProvider globalVariable = template.findGlobalVariables(this);
+		if (globalVariable != null) {
+			return globalVariable;
+		}
+
 		// There are no parameter which matches the object part name from #set, #let,
 		// #for
 		// and there are no initial data model which matches the object part name.

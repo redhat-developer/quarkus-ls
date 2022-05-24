@@ -134,14 +134,20 @@ public abstract class MockQuteProject extends QuteProject {
 		return CompletableFuture.completedFuture(new ExtendedDataModelProject(project));
 	}
 
-	protected static ValueResolverInfo createValueResolver(String namespace, String named, String matchName, String sourceType,
-			String signature) {
+	protected static ValueResolverInfo createValueResolver(String namespace, String named, String matchName,
+			String sourceType, String signature) {
+		return createValueResolver(namespace, named, matchName, sourceType, signature, false);
+	}
+
+	protected static ValueResolverInfo createValueResolver(String namespace, String named, String matchName,
+			String sourceType, String signature, boolean globalVariable) {
 		ValueResolverInfo resolver = new ValueResolverInfo();
 		resolver.setNamespace(namespace);
 		resolver.setNamed(named);
 		resolver.setMatchName(matchName);
 		resolver.setSourceType(sourceType);
 		resolver.setSignature(signature);
+		resolver.setGlobalVariable(globalVariable);
 		return resolver;
 	}
 

@@ -86,4 +86,18 @@ public class QuteDefinitionInExpressionTest {
 				ll("java/util/List.java", r(1, 7, 1, 11), MockQuteProjectRegistry.JAVA_METHOD_RANGE));
 
 	}
+
+	@Test
+	public void definitionForGlobalVariables() throws Exception {
+		String template = "{GLO|BAL}";
+		testDefinitionFor(template, //
+				ll("org/acme/Bean.java", r(0, 1, 0, 7), MockQuteProjectRegistry.JAVA_FIELD_RANGE));
+	}
+
+	@Test
+	public void methodDefinitionForGlobalVariables() throws Exception {
+		String template = "{GLOBAL.isEmp|ty()}";
+		testDefinitionFor(template, //
+				ll("java/lang/String.java", r(0, 8, 0, 15), MockQuteProjectRegistry.JAVA_METHOD_RANGE));
+	}
 }

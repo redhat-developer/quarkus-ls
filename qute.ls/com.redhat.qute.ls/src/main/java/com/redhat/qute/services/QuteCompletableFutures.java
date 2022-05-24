@@ -20,6 +20,7 @@ import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 
 public class QuteCompletableFutures {
 
@@ -33,6 +34,9 @@ public class QuteCompletableFutures {
 			.completedFuture(null);
 
 	public static final CompletableFuture<List<FieldValueResolver>> FIELD_VALUE_RESOLVERS_NULL_FUTURE = CompletableFuture
+			.completedFuture(null);
+
+	public static final CompletableFuture<List<ValueResolver>> VALUE_RESOLVERS_NULL_FUTURE = CompletableFuture
 			.completedFuture(null);
 
 	public static final CompletableFuture<NamespaceResolverInfo> NAMESPACE_RESOLVER_INFO_NULL_FUTURE = CompletableFuture
