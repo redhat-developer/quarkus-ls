@@ -110,7 +110,7 @@ public class QuteCompletionInParameterDeclarationTest {
 
 		// Without snippet
 		testCompletionFor(template, //
-				false, 8,
+				false, 7,
 				// Class completion
 				c("java.lang.Integer", "java.lang.Integer integer}", r(0, 2, 0, 4)), //
 				c("org.acme.Item", "org.acme.Item item}", r(0, 2, 0, 4)), //
@@ -126,13 +126,12 @@ public class QuteCompletionInParameterDeclarationTest {
 						r(0, 2, 0, 4)), //
 				c("org.acme.ItemWithRegisterForReflectionNoMethods",
 						"org.acme.ItemWithRegisterForReflectionNoMethods itemWithRegisterForReflectionNoMethods}",
-						r(0, 2, 0, 4)), //
-				c("org.acme.ItemResource", "org.acme.ItemResource itemResource}", r(0, 2, 0, 4)));
+						r(0, 2, 0, 4)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				8,
+				7,
 				// Class completion
 				c("java.lang.Integer", "java.lang.Integer ${1:integer}}$0", r(0, 2, 0, 4)), //
 				c("org.acme.Item", "org.acme.Item ${1:item}}$0", r(0, 2, 0, 4)), //
@@ -148,9 +147,7 @@ public class QuteCompletionInParameterDeclarationTest {
 						r(0, 2, 0, 4)), //
 				c("org.acme.ItemWithRegisterForReflectionNoMethods",
 						"org.acme.ItemWithRegisterForReflectionNoMethods ${1:itemWithRegisterForReflectionNoMethods}}$0",
-						r(0, 2, 0, 4)), //
-				c("org.acme.ItemResource", "org.acme.ItemResource ${1:itemResource}}$0", r(0, 2, 0, 4)));
-
+						r(0, 2, 0, 4)));
 	}
 
 	@Test
@@ -159,7 +156,7 @@ public class QuteCompletionInParameterDeclarationTest {
 
 		// Without snippet
 		testCompletionFor(template, //
-				false, 8,
+				false, 7,
 				// Class completion
 				c("java.lang.Integer", "java.lang.Integer integer}", r(0, 2, 0, 4)), //
 				c("org.acme.Item", "org.acme.Item item}", r(0, 2, 0, 4)), //
@@ -175,13 +172,12 @@ public class QuteCompletionInParameterDeclarationTest {
 						r(0, 2, 0, 4)), //
 				c("org.acme.ItemWithRegisterForReflectionNoMethods",
 						"org.acme.ItemWithRegisterForReflectionNoMethods itemWithRegisterForReflectionNoMethods}",
-						r(0, 2, 0, 4)), //
-				c("org.acme.ItemResource", "org.acme.ItemResource itemResource}", r(0, 2, 0, 4)));
+						r(0, 2, 0, 4)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				8,
+				7,
 				// Class completion
 				c("java.lang.Integer", "java.lang.Integer ${1:integer}}$0", r(0, 2, 0, 4)), //
 				c("org.acme.Item", "org.acme.Item ${1:item}}$0", r(0, 2, 0, 4)), //
@@ -197,14 +193,13 @@ public class QuteCompletionInParameterDeclarationTest {
 						r(0, 2, 0, 4)), //
 				c("org.acme.ItemWithRegisterForReflectionNoMethods",
 						"org.acme.ItemWithRegisterForReflectionNoMethods ${1:itemWithRegisterForReflectionNoMethods}}$0",
-						r(0, 2, 0, 4)), //
-				c("org.acme.ItemResource", "org.acme.ItemResource ${1:itemResource}}$0", r(0, 2, 0, 4)));
+						r(0, 2, 0, 4)));
 
 		template = "{@It|\r\n";
 
 		// Without snippet
 		testCompletionFor(template, //
-				false, 7,
+				false, 6,
 				// Class completion
 				c("org.acme.Item", "org.acme.Item item}", r(0, 2, 0, 4)), //
 				c("org.acme.ItemWithTemplateData", "org.acme.ItemWithTemplateData itemWithTemplateData}",
@@ -219,13 +214,12 @@ public class QuteCompletionInParameterDeclarationTest {
 						r(0, 2, 0, 4)), //
 				c("org.acme.ItemWithRegisterForReflectionNoMethods",
 						"org.acme.ItemWithRegisterForReflectionNoMethods itemWithRegisterForReflectionNoMethods}",
-						r(0, 2, 0, 4)), //
-				c("org.acme.ItemResource", "org.acme.ItemResource itemResource}", r(0, 2, 0, 4)));
+						r(0, 2, 0, 4)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				7,
+				6,
 				// Class completion
 				c("org.acme.Item", "org.acme.Item ${1:item}}$0", r(0, 2, 0, 4)), //
 				c("org.acme.ItemWithTemplateData", "org.acme.ItemWithTemplateData ${1:itemWithTemplateData}}$0",
@@ -240,9 +234,7 @@ public class QuteCompletionInParameterDeclarationTest {
 						r(0, 2, 0, 4)), //
 				c("org.acme.ItemWithRegisterForReflectionNoMethods",
 						"org.acme.ItemWithRegisterForReflectionNoMethods ${1:itemWithRegisterForReflectionNoMethods}}$0",
-						r(0, 2, 0, 4)), //
-				c("org.acme.ItemResource", "org.acme.ItemResource ${1:itemResource}}$0", r(0, 2, 0, 4)));
-
+						r(0, 2, 0, 4)));
 	}
 
 	@Test

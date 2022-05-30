@@ -36,10 +36,12 @@ public class QuteCompletionInNativeModeTest {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.|}";
 
-		testCompletionFor(template, 6 /* value resolvers */,
+		testCompletionFor(template, 7 /* value resolvers */,
 				c("orEmpty(base : T) : List<T>", "orEmpty", r(1, 12, 1, 12)),
 				c("ifTruthy(base : T, arg : Object) : T", "ifTruthy(arg)", r(1, 12, 1, 12)),
-				c("or(base : T, arg : Object) : T", "or(arg)", r(1, 12, 1, 12)));
+				c("or(base : T, arg : Object) : T", "or(arg)", r(1, 12, 1, 12)), //
+				c("discountedPrice(item : Item) : BigDecimal", "discountedPrice", r(1, 12, 1, 12)), //
+				c("pretty(item : Item, elements : String...) : String", "pretty(elements)", r(1, 12, 1, 12)));
 	}
 
 	@Test

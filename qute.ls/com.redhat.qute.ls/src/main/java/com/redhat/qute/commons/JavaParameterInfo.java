@@ -21,11 +21,15 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
  */
 public class JavaParameterInfo extends JavaElementInfo {
 
+	private static final String VARARGS = "...";
+
 	private final String name;
 
 	private final String type;
 
 	private transient JavaTypeInfo javaType;
+
+	private String varArgType;
 
 	public JavaParameterInfo(String name, String type) {
 		this.name = name;
@@ -49,6 +53,29 @@ public class JavaParameterInfo extends JavaElementInfo {
 	 */
 	public String getType() {
 		return type;
+	}
+
+	/**
+	 * Returns the Java type parameter as String.
+	 *
+	 * @return the Java type parameter as String.
+	 */
+	public String getVarArgType() {
+		if (varArgType == null && isVarargs()) {
+			varArgType = type.substring(0, type.length() - 3);
+		}
+		return varArgType;
+	}
+
+	/**
+	 * Returns true if the Java type is a varargs (ex : java.lang.String...) and
+	 * false otherwise.
+	 * 
+	 * @return true if the Java type is a varargs (ex : java.lang.String...) and
+	 *         false otherwise.
+	 */
+	public boolean isVarargs() {
+		return type.endsWith(VARARGS);
 	}
 
 	/**
@@ -84,6 +111,15 @@ public class JavaParameterInfo extends JavaElementInfo {
 	}
 
 	@Override
+	public String getJavaElementSimpleType() {
+		if (isVarargs()) {
+			String type = getVarArgType();
+			return getSimpleType(type) + VARARGS;
+		}
+		return super.getJavaElementSimpleType();
+	}
+
+	@Override
 	public JavaElementKind getJavaElementKind() {
 		return JavaElementKind.PARAMETER;
 	}
@@ -98,6 +134,7 @@ public class JavaParameterInfo extends JavaElementInfo {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("name", this.getName());
 		b.add("type", this.getType());
+		b.add("varargs", this.isVarargs());
 		b.add("signature", this.getSignature());
 		return b.toString();
 	}

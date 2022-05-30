@@ -43,6 +43,26 @@ public class QuteHoverInValueResolverTest {
 				System.lineSeparator() + //
 				"```", // ,
 				r(1, 8, 1, 23));
-
+	}
+	
+	@Test
+	public void vararg() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"		{item.pret|ty}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"String org.acme.ItemResource.pretty(String... elements)" + //
+				System.lineSeparator() + //
+				"```", // ,
+				r(1, 8, 1, 14));
+		
+		template = "{@org.acme.Item item}\r\n" + //
+				"		{item.pret|ty()}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"String org.acme.ItemResource.pretty(String... elements)" + //
+				System.lineSeparator() + //
+				"```", // ,
+				r(1, 8, 1, 14));
 	}
 }

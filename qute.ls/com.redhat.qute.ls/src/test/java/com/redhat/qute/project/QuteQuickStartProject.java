@@ -70,6 +70,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		createResolvedJavaTypeInfo("java.lang.Long", cache);
 		createResolvedJavaTypeInfo("java.lang.Float", cache);
 		createResolvedJavaTypeInfo("java.math.BigInteger", cache);
+		createResolvedJavaTypeInfo("java.math.BigDecimal", cache);
 
 		ResolvedJavaTypeInfo bean = createResolvedJavaTypeInfo("org.acme.Bean", cache);
 		registerField("bean : java.lang.String", bean);
@@ -172,9 +173,6 @@ public class QuteQuickStartProject extends MockQuteProject {
 
 		ResolvedJavaTypeInfo map = createResolvedJavaTypeInfo("java.util.Map", cache);
 
-		ResolvedJavaTypeInfo itemResource = createResolvedJavaTypeInfo("org.acme.ItemResource", cache);
-		registerMethod("discountedPrice(item : org.acme.Item) : java.math.BigDecimal", itemResource);
-
 		// RawString for raw and safe resolver tests
 		ResolvedJavaTypeInfo rawString = createResolvedJavaTypeInfo("io.quarkus.qute.RawString", cache);
 		registerMethod("getValue() : java.lang.String", rawString);
@@ -219,6 +217,10 @@ public class QuteQuickStartProject extends MockQuteProject {
 		resolvers.add(
 				createValueResolver(null, null, null, "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
 						"getByIndex(list : java.util.List<T>, index : int) : T"));
+		resolvers.add(
+				createValueResolver(null, null, null, "org.acme.ItemResource",
+						"pretty(item : org.acme.Item, elements : java.lang.String...) : java.lang.String"));		
+		
 		// 'config' namespace
 		resolvers.add(
 				createValueResolver("config", null, "*", "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",

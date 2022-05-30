@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,8 +36,11 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
+import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 
 public abstract class MockQuteProject extends QuteProject {
+
+	private static final Logger LOGGER = Logger.getLogger(MockQuteProject.class.getName());
 
 	private final List<JavaTypeInfo> typesCache;
 
@@ -160,5 +165,19 @@ public abstract class MockQuteProject extends QuteProject {
 	protected abstract List<ValueResolverInfo> createValueResolvers();
 
 	protected abstract Map<String, NamespaceResolverInfo> createNamespaceResolverInfos();
+
+	public JavaMethodInfo getMethodValueResolver(String typeName, String methodName) {
+		try {
+			List<MethodValueResolver> resolvers = super.getDataModelProject().get().getMethodValueResolvers();
+			for (MethodValueResolver resolver : resolvers) {
+				if (typeName.equals(resolver.getSourceType()) && methodName.equals(resolver.getMethodName())) {
+					return resolver;
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while gettings method value resolvers.");
+		}
+		return null;
+	}
 
 }

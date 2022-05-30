@@ -17,6 +17,10 @@ public class Item {
 		return null;
 	}
 
+	public String varArgsMethod(int index, String... elements) {
+		return null;
+	}
+	
 	public static BigDecimal staticMethod(Item item) {
 		return item.price.multiply(new BigDecimal("0.9"));
 	}
