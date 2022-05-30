@@ -86,6 +86,24 @@ public class JavaMethodInfoTest {
 		JavaMethodInfo isMethod = new JavaMethodInfo();
 		isMethod.setSignature("is() : boolean");
 		assertNull(isMethod.getGetterName());
+	}
 
+	@Test
+	public void varargs() {
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("pretty(item : org.acme.Item, elements : java.lang.String...) : java.lang.String");
+		assertEquals("pretty", method.getName());
+		
+		assertTrue(method.hasParameters());
+		assertEquals(2, method.getParameters().size());
+
+		JavaParameterInfo parameter = method.getParameters().get(0);
+		assertEquals("item", parameter.getName());
+		assertEquals("org.acme.Item", parameter.getType());
+
+		parameter = method.getParameters().get(1);
+		assertEquals("elements", parameter.getName());
+		assertEquals("java.lang.String...", parameter.getType());
+		//assertTrue(parameter.isVararg());
 	}
 }

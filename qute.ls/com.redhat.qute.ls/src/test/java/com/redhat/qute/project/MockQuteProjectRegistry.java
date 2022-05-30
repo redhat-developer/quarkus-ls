@@ -43,6 +43,8 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 
 	public static final Range JAVA_METHOD_RANGE = new Range(new Position(2, 2), new Position(2, 2));
 
+	public static final Range JAVA_STATIC_METHOD_RANGE = new Range(new Position(3, 3), new Position(3, 3));
+
 	public MockQuteProjectRegistry() {
 		super(null, null, null, null, null);
 	}
@@ -80,18 +82,20 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 
 	@Override
 	public CompletableFuture<Location> getJavaDefinition(QuteJavaDefinitionParams params) {
-		MockQuteProject project = (MockQuteProject) getProject(params.getProjectUri());
+		String projectUri = params.getProjectUri();
+		MockQuteProject project = (MockQuteProject) getProject(projectUri);
 		if (project == null) {
 			return CompletableFuture.completedFuture(null);
 		}
+		Range definitionRange = null;
 		String className = params.getSourceType();
 		ResolvedJavaTypeInfo classInfo = project.getResolvedJavaTypeSync(className);
 		if (classInfo != null) {
-			Range definitionRange = null;
+			// Find by field, method of Java type
 			String fieldName = params.getSourceField();
 			if (fieldName != null) {
 				// Definition for field
-				JavaFieldInfo fieldInfo = findField(classInfo, fieldName);
+				JavaFieldInfo fieldInfo = super.findField(classInfo, fieldName);
 				if (fieldInfo != null) {
 					definitionRange = JAVA_FIELD_RANGE;
 				}
@@ -101,28 +105,40 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 				if (methodName != null) {
 					String getterMethodName = computeGetterName(methodName);
 					String booleanGetterName = computeBooleanGetterName(methodName);
-					JavaMethodInfo methodInfo = findMethod(classInfo, methodName, getterMethodName, booleanGetterName);
+					JavaMethodInfo methodInfo = super.findMethod(classInfo, methodName, getterMethodName,
+							booleanGetterName);
 					if (methodInfo != null) {
 						definitionRange = JAVA_METHOD_RANGE;
-					}
+					} 
 				} else {
 					// Definition for class
 					definitionRange = JAVA_CLASS_RANGE;
 				}
 			}
+		} 
 
-			if (definitionRange != null) {
-				int index = className.indexOf('<');
-				if (index != -1) {
-					// ex : java.util.List<E>
-					// Remove generic
-					className = className.substring(0, index);
-				}
-				// ex : java/util/List.java
-				String javeFileUri = className.replaceAll("[.]", "/") + ".java";
-				Location location = new Location(javeFileUri, definitionRange);
-				return CompletableFuture.completedFuture(location);
+		if (definitionRange == null) {
+			// Find by field, method of value resolver
+			String methodName = params.getSourceMethod();
+			if (methodName != null) {
+				JavaMethodInfo methodInfo = project.getMethodValueResolver(className, methodName);
+				if (methodInfo != null) {
+					definitionRange = JAVA_STATIC_METHOD_RANGE;
+				} 
 			}
+		}
+		
+		if (definitionRange != null) {
+			int index = className.indexOf('<');
+			if (index != -1) {
+				// ex : java.util.List<E>
+				// Remove generic
+				className = className.substring(0, index);
+			}
+			// ex : java/util/List.java
+			String javeFileUri = className.replace('.', '/') + ".java";
+			Location location = new Location(javeFileUri, definitionRange);
+			return CompletableFuture.completedFuture(location);
 		}
 		return CompletableFuture.completedFuture(null);
 	}

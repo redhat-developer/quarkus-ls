@@ -32,6 +32,14 @@ public class QuteDefinitionInValueResolverTest {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"		{item.discountedPr|ice}";
 		testDefinitionFor(template, //
-				ll("org/acme/ItemResource.java", r(1, 8, 1, 23), MockQuteProjectRegistry.JAVA_METHOD_RANGE));
+				ll("org/acme/ItemResource.java", r(1, 8, 1, 23), MockQuteProjectRegistry.JAVA_STATIC_METHOD_RANGE));
+	}
+	
+	@Test
+	public void varargs() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"		{item.prett|y('a')}";
+		testDefinitionFor(template, //
+				ll("org/acme/ItemResource.java", r(1, 8, 1, 14), MockQuteProjectRegistry.JAVA_STATIC_METHOD_RANGE));
 	}
 }

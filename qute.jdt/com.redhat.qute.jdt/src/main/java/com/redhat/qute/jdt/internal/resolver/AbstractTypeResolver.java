@@ -14,6 +14,7 @@ package com.redhat.qute.jdt.internal.resolver;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMethod;
@@ -58,7 +59,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		StringBuilder signature = new StringBuilder(field.getElementName());
 		signature.append(" : ");
 		try {
-			signature.append(resolveTypeSignature(field.getTypeSignature()));
+			signature.append(resolveTypeSignature(field.getTypeSignature(), false));
 		} catch (JavaModelException e) {
 			LOGGER.log(Level.SEVERE, "Error while resolving field type '" + field.getElementName() + "'", e);
 		}
@@ -71,14 +72,18 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		signature.append('(');
 		try {
 			ILocalVariable[] parameters = method.getParameters();
-			for (int i = 0; i < parameters.length; i++) {
-				if (i > 0) {
-					signature.append(", ");
+			if (parameters.length > 0) {
+				boolean varargs = Flags.isVarargs(method.getFlags());
+				for (int i = 0; i < parameters.length; i++) {
+					if (i > 0) {
+						signature.append(", ");
+					}
+					ILocalVariable parameter = parameters[i];
+					signature.append(parameter.getElementName());
+					signature.append(" : ");
+					signature.append(
+							resolveTypeSignature(parameter.getTypeSignature(), varargs && i == parameters.length - 1));
 				}
-				ILocalVariable parameter = parameters[i];
-				signature.append(parameter.getElementName());
-				signature.append(" : ");
-				signature.append(resolveTypeSignature(parameter.getTypeSignature()));
 			}
 		} catch (JavaModelException e) {
 			LOGGER.log(Level.SEVERE,
@@ -86,7 +91,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		}
 		signature.append(')');
 		try {
-			String returnType = resolveTypeSignature(method.getReturnType());
+			String returnType = resolveTypeSignature(method.getReturnType(), false);
 			signature.append(" : ");
 			signature.append(returnType);
 		} catch (JavaModelException e) {
@@ -96,9 +101,10 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		return signature.toString();
 	}
 
-	private String resolveTypeSignature(String typeSignature) {
+	private String resolveTypeSignature(String typeSignature, boolean varargs) {
 		if (typeSignature.charAt(0) == '[') {
-			return doResolveTypeSignature(typeSignature.substring(1, typeSignature.length())) + "[]";
+			return doResolveTypeSignature(typeSignature.substring(1, typeSignature.length()))
+					+ (varargs ? "..." : "[]");
 		}
 		return doResolveTypeSignature(typeSignature);
 	}

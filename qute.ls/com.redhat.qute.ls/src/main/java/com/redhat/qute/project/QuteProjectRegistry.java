@@ -660,11 +660,27 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	private boolean isMatchParameters(JavaMethodInfo method, List<ResolvedJavaTypeInfo> parameterTypes,
 			String projectUri) {
 		boolean virtualMethod = method.isVirtual();
-		if (parameterTypes.size() != (method.getParameters().size() - (virtualMethod ? 1 : 0))) {
+		int nbParameters = method.getParameterslength();
+		int declaredNbParameters = parameterTypes.size();
+		JavaParameterInfo lastParameter = method.hasParameters() ? method.getParameterAt(method.getParameters().size() - 1) : null;
+		boolean varargs = lastParameter != null && lastParameter.isVarargs();
+		if (varargs) {
+			if (declaredNbParameters == 0) {
+				// Method defines just a varargs parameter
+				if (parameterTypes.isEmpty()) {
+					// with varargs, the parameter is optional
+					return true;
+				}
+			}
+			if (declaredNbParameters < nbParameters) {
+				return false;
+			}
+		} else if (declaredNbParameters != nbParameters) {
 			return false;
 		}
 
-		for (int i = 0; i < parameterTypes.size(); i++) {
+		// Validate all mandatory parameters (without varargs)
+		for (int i = 0; i < nbParameters - (varargs ? 1 : 0); i++) {
 			JavaParameterInfo parameterInfo = method.getParameters().get(i + (virtualMethod ? 1 : 0));
 			ResolvedJavaTypeInfo result = parameterTypes.get(i);
 
@@ -673,6 +689,19 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 				return false;
 			}
 		}
+
+		if (varargs) {
+			// Validate varargs parameters
+			for (int i = nbParameters - 1; i < declaredNbParameters; i++) {
+				ResolvedJavaTypeInfo result = parameterTypes.get(i);
+
+				String parameterType = lastParameter.getVarArgType();
+				if (!isMatchType(result, parameterType, projectUri)) {
+					return false;
+				}
+			}
+		}
+
 		return true;
 	}
 

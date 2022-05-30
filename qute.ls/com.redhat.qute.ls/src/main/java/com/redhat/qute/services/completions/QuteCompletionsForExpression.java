@@ -450,7 +450,7 @@ public class QuteCompletionsForExpression {
 		if (!infixNotation) {
 			return true;
 		}
-		int nbParameters = method.getParameters().size() - (method.isVirtual() ? 1 : 0);
+		int nbParameters = method.getParameterslength();
 		return nbParameters == 1;
 	}
 

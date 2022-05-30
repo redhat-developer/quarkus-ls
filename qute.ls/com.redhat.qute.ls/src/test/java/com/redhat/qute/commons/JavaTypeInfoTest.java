@@ -43,7 +43,7 @@ public class JavaTypeInfoTest {
 		assertTrue(type.isGenericType());
 		assertTrue(type.getTypeParameters().isEmpty());
 	}
-	
+
 	@Test
 	public void listOfGeneric() {
 		String signature = "java.util.List<T>";
@@ -106,4 +106,27 @@ public class JavaTypeInfoTest {
 		assertEquals("long", type.getName());
 		assertFalse(type.isGenericType());
 	}
+
+	@Test
+	public void string() {
+		String signature = "java.lang.String";
+		JavaTypeInfo type = new JavaTypeInfo();
+		type.setSignature(signature);
+		assertEquals("java.lang.String", type.getName());
+		assertEquals("String", type.getJavaElementSimpleType());
+		assertFalse(type.isArray());
+		assertFalse(type.isGenericType());
+	}
+
+	@Test
+	public void stringArray() {
+		String signature = "java.lang.String[]";
+		JavaTypeInfo type = new JavaTypeInfo();
+		type.setSignature(signature);
+		assertEquals("java.lang.String[]", type.getName());
+		assertEquals("String[]", type.getJavaElementSimpleType());
+		assertTrue(type.isArray());
+		assertFalse(type.isGenericType());
+	}
+
 }

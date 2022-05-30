@@ -319,7 +319,8 @@ public class QuteCompletionInExpressionTest {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.|}";
 		testCompletionFor(template, //
-				c("discountedPrice(item : Item) : BigDecimal", "discountedPrice", r(1, 12, 1, 12)));
+				c("discountedPrice(item : Item) : BigDecimal", "discountedPrice", r(1, 12, 1, 12)), //
+				c("pretty(item : Item, elements : String...) : String", "pretty(elements)", r(1, 12, 1, 12)));
 	}
 
 	@Test

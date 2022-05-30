@@ -270,6 +270,7 @@ public class JavaTypeInfo extends JavaElementInfo {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("name", this.getName());
 		b.add("signature", this.getSignature());
+		b.add("array", this.isArray());
 		b.add("genericType", this.isGenericType());
 		return b.toString();
 	}

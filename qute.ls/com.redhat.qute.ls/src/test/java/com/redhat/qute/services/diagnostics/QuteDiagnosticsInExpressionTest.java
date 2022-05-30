@@ -438,12 +438,56 @@ public class QuteDiagnosticsInExpressionTest {
 						DiagnosticSeverity.Error));
 	}
 
+	@Test
 	public void virtualMethod() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"		{item.discountedPrice}";
 		testDiagnosticsFor(template);
 	}
 
+	@Test
+	public void varargs() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"		{item.pretty()}";
+		testDiagnosticsFor(template);
+		
+		template = "{@org.acme.Item item}\r\n" + //
+				"		{item.pretty('a')}";
+		testDiagnosticsFor(template);
+		
+		template = "{@org.acme.Item item}\r\n" + //
+				"		{item.pretty('a','b')}";
+		testDiagnosticsFor(template);
+		
+		template = "{@org.acme.Item item}\r\n" + //
+				"		{item.pretty(0)}";
+		testDiagnosticsFor(template, //
+				d(1, 8, 1, 14, QuteErrorCode.InvalidMethodParameter,
+						"The method `pretty(String...)` in the type `ItemResource` is not applicable for the arguments `(Integer)`.",
+						DiagnosticSeverity.Error));
+		
+		template = "{@org.acme.Item item}\r\n" + //
+				"		{item.pretty(0,'a')}";
+		testDiagnosticsFor(template, //
+				d(1, 8, 1, 14, QuteErrorCode.InvalidMethodParameter,
+						"The method `pretty(String...)` in the type `ItemResource` is not applicable for the arguments `(Integer, String)`.",
+						DiagnosticSeverity.Error));
+		
+		template = "{@org.acme.Item item}\r\n" + //
+				"		{item.pretty('a',0)}";
+		testDiagnosticsFor(template, //
+				d(1, 8, 1, 14, QuteErrorCode.InvalidMethodParameter,
+						"The method `pretty(String...)` in the type `ItemResource` is not applicable for the arguments `(String, Integer)`.",
+						DiagnosticSeverity.Error));
+		
+		template = "{@org.acme.Item item}\r\n" + //
+				"		{item.pretty('a',0,'b')}";
+		testDiagnosticsFor(template, //
+				d(1, 8, 1, 14, QuteErrorCode.InvalidMethodParameter,
+						"The method `pretty(String...)` in the type `ItemResource` is not applicable for the arguments `(String, Integer, String)`.",
+						DiagnosticSeverity.Error));
+	}
+	
 	@Test
 	public void listGeneric() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //

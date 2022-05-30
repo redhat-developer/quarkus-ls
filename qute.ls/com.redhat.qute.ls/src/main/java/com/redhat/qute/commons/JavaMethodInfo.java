@@ -239,6 +239,15 @@ public class JavaMethodInfo extends JavaMemberInfo {
 		}
 		return parameters;
 	}
+	
+	/**
+	 * Returns the parameters length of the method.
+	 * 
+	 * @return the parameters length of the method.
+	 */
+	public int getParameterslength() {
+		return getParameters().size() - (isVirtual() ? 1 : 0);
+	}
 
 	private static List<JavaParameterInfo> parseParameters(String signature) {
 		List<JavaParameterInfo> parameters = new ArrayList<>();
