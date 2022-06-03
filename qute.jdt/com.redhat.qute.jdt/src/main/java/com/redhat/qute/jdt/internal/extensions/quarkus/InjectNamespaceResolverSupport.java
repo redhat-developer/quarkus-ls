@@ -21,10 +21,8 @@ import java.util.logging.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
-import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
@@ -125,19 +123,9 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 		ValueResolverInfo resolver = new ValueResolverInfo();
 		resolver.setNamed(named);
 		resolver.setSourceType(javaMember.getDeclaringType().getFullyQualifiedName());
-		resolver.setSignature(getSignature(javaMember, typeResolver));
+		resolver.setSignature(typeResolver.resolveSignature(javaMember));
 		resolver.setNamespace(INJECT_NAMESPACE);
 		resolvers.add(resolver);
-	}
-
-	private static String getSignature(IMember javaMember, ITypeResolver typeResolver) {
-		switch (javaMember.getElementType()) {
-		case IJavaElement.FIELD:
-			return typeResolver.resolveFieldSignature((IField) javaMember);
-		case IJavaElement.METHOD:
-			return typeResolver.resolveMethodSignature((IMethod) javaMember);
-		}
-		return null;
 	}
 
 }
