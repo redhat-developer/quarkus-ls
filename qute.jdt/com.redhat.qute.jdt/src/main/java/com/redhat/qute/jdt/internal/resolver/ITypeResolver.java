@@ -12,6 +12,7 @@
 package com.redhat.qute.jdt.internal.resolver;
 
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 
 /**
@@ -23,7 +24,26 @@ import org.eclipse.jdt.core.IMethod;
 public interface ITypeResolver {
 
 	/**
-	 * Returns the resolved Java type signature from the given String <code>typeSignature</code>.
+	 * Returns the Java signature from the given JDT <code>javaElement</code>.
+	 * 
+	 * @param javaElement the Java element (field, method).
+	 * 
+	 * @return the Java signature from the given JDT <code>javaElement</code>.
+	 */
+	default String resolveSignature(IJavaElement javaElement) {
+		switch (javaElement.getElementType()) {
+		case IJavaElement.FIELD:
+			return resolveFieldSignature((IField) javaElement);
+		case IJavaElement.METHOD:
+			return resolveMethodSignature((IMethod) javaElement);
+		default:
+			throw new UnsupportedOperationException("Unsupported java element type: " + javaElement.getElementType());
+		}
+	}
+
+	/**
+	 * Returns the resolved Java type signature from the given String
+	 * <code>typeSignature</code>.
 	 * 
 	 * Example:
 	 * 
@@ -36,13 +56,14 @@ public interface ITypeResolver {
 	 * <code>
 	 * java.lang.String
 	 * </code>
-	 *  
+	 * 
 	 * @param typeSignature the Java type signature.
 	 * 
-	 * @return the resolved  Java type signature from the given String <code>typeSignature</code>.
+	 * @return the resolved Java type signature from the given String
+	 *         <code>typeSignature</code>.
 	 */
 	String resolveTypeSignature(String typeSignature);
-	
+
 	/**
 	 * Returns the Java field signature from the given JDT <code>field</code>.
 	 * 

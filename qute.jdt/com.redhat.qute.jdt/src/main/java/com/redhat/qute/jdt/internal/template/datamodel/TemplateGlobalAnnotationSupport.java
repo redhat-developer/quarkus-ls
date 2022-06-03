@@ -64,9 +64,7 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 
 	private static final Logger LOGGER = Logger.getLogger(TemplateGlobalAnnotationSupport.class.getName());
 
-	private static final String[] ANNOTATION_NAMES = {
-		TEMPLATE_GLOBAL_ANNOTATION
-	};
+	private static final String[] ANNOTATION_NAMES = { TEMPLATE_GLOBAL_ANNOTATION };
 
 	@Override
 	protected String[] getAnnotationNames() {
@@ -75,7 +73,7 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 
 	@Override
 	protected void processAnnotation(IJavaElement javaElement, IAnnotation annotation, String annotationName,
-		SearchContext context, IProgressMonitor monitor) throws JavaModelException {
+			SearchContext context, IProgressMonitor monitor) throws JavaModelException {
 		if (!(javaElement instanceof IAnnotatable)) {
 			return;
 		}
@@ -86,29 +84,29 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 		if (javaElement.getElementType() == IJavaElement.TYPE) {
 			IType type = (IType) javaElement;
 			collectResolversForTemplateGlobal(type, annotation, context.getDataModelProject().getValueResolvers(),
-				typeResolver, monitor);
+					typeResolver, monitor);
 		} else if (javaElement.getElementType() == IJavaElement.FIELD
-			|| javaElement.getElementType() == IJavaElement.METHOD) {
+				|| javaElement.getElementType() == IJavaElement.METHOD) {
 			IMember member = (IMember) javaElement;
 			collectResolversForTemplateGlobal(member, annotation, context.getDataModelProject().getValueResolvers(),
-				typeResolver, monitor);
+					typeResolver, monitor);
 		}
 	}
 
 	private void collectResolversForTemplateGlobal(IType type, IAnnotation templateGlobal,
-		List<ValueResolverInfo> resolvers, ITypeResolver typeResolver, IProgressMonitor monitor) {
+			List<ValueResolverInfo> resolvers, ITypeResolver typeResolver, IProgressMonitor monitor) {
 		try {
 			IField[] fields = type.getFields();
 			for (IField field : fields) {
 				if (!AnnotationUtils.hasAnnotation(field, TEMPLATE_GLOBAL_ANNOTATION)
-					&& isTemplateGlobalMember(field)) {
+						&& isTemplateGlobalMember(field)) {
 					collectResolversForTemplateGlobal(field, templateGlobal, resolvers, typeResolver, monitor);
 				}
 			}
 			IMethod[] methods = type.getMethods();
 			for (IMethod method : methods) {
 				if (!AnnotationUtils.hasAnnotation(method, TEMPLATE_GLOBAL_ANNOTATION)
-					&& isTemplateGlobalMember(method)) {
+						&& isTemplateGlobalMember(method)) {
 					collectResolversForTemplateGlobal(method, templateGlobal, resolvers, typeResolver, monitor);
 				}
 			}
@@ -118,17 +116,17 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 	}
 
 	private void collectResolversForTemplateGlobal(IMember member, IAnnotation templateGlobal,
-		List<ValueResolverInfo> resolvers, ITypeResolver typeResolver, IProgressMonitor monitor) {
+			List<ValueResolverInfo> resolvers, ITypeResolver typeResolver, IProgressMonitor monitor) {
 		if (isTemplateGlobalMember(member)) {
 			String sourceType = member.getDeclaringType().getFullyQualifiedName();
 			ValueResolverInfo resolver = new ValueResolverInfo();
 			resolver.setSourceType(sourceType);
-			resolver.setSignature(getSignature(member, typeResolver));
+			resolver.setSignature(typeResolver.resolveSignature(member));
 			// Constant value for {@link #name()} indicating that the field/method name
 			// should be used
 			try {
 				resolver.setNamed(
-					AnnotationUtils.getAnnotationMemberValue(templateGlobal, TEMPLATE_GLOBAL_ANNOTATION_NAME));
+						AnnotationUtils.getAnnotationMemberValue(templateGlobal, TEMPLATE_GLOBAL_ANNOTATION_NAME));
 			} catch (JavaModelException e) {
 				LOGGER.log(Level.SEVERE, "Error while getting annotation member value of 'name'.", e);
 			}
@@ -181,22 +179,4 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 			return false;
 		}
 	}
-
-	/**
-	 * Assign the signature based on the IMember type
-	 *
-	 * @param javaMember   Java member to return signature for
-	 * @param typeResolver type resolver to declare signature
-	 * @return the Java member type signature
-	 */
-	private static String getSignature(IMember javaMember, ITypeResolver typeResolver) {
-		switch (javaMember.getElementType()) {
-		case IJavaElement.FIELD:
-			return typeResolver.resolveFieldSignature((IField) javaMember);
-		case IJavaElement.METHOD:
-			return typeResolver.resolveMethodSignature((IMethod) javaMember);
-		}
-		return null;
-	}
-
 }

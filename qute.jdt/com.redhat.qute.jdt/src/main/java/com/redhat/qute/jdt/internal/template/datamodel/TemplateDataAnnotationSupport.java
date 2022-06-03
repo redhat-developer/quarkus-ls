@@ -129,7 +129,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 				String sourceType = member.getDeclaringType().getFullyQualifiedName();
 				ValueResolverInfo resolver = new ValueResolverInfo();
 				resolver.setSourceType(sourceType);
-				resolver.setSignature(getSignature(member, typeResolver));
+				resolver.setSignature(typeResolver.resolveSignature(member));
 				resolver.setNamespace(StringUtils.isNotEmpty(namespace) ? namespace : sourceType.replace('.', '_'));
 				if (!resolvers.contains(resolver)) {
 					resolvers.add(resolver);
@@ -141,20 +141,4 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 		}
 	}
 
-	/**
-	 * Assign the signature based on the IMember type
-	 *
-	 * @param javaMember   Java member to return signature for
-	 * @param typeResolver type resolver to declare signature
-	 * @return the Java member type signature
-	 */
-	private static String getSignature(IMember javaMember, ITypeResolver typeResolver) {
-		switch (javaMember.getElementType()) {
-		case IJavaElement.FIELD:
-			return typeResolver.resolveFieldSignature((IField) javaMember);
-		case IJavaElement.METHOD:
-			return typeResolver.resolveMethodSignature((IMethod) javaMember);
-		}
-		return null;
-	}
 }
