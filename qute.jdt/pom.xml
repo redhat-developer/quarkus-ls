@@ -39,7 +39,7 @@
 		<repository>
 			<id>jdt.ls.p2</id>
 			<layout>p2</layout>
-			<url>http://download.eclipse.org/jdtls/snapshots/repository/latest/</url>
+			<url>https://download.eclipse.org/jdtls/milestones/1.12.0/repository/</url>
 		</repository>
 		<repository>
 			<id>jdt.ls.maven</id>
