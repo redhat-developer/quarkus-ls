@@ -25,17 +25,19 @@ import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.INLAY_HINT_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.LINKED_EDITING_RANGE_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.REFERENCES_ID;
+import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.RENAME_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_CODE_ACTION;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_CODE_LENS;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_COMPLETION;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_DEFINITION;
+import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_DOCUMENT_LINK;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_DOCUMENT_SYMBOL;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_HIGHLIGHT;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_HOVER;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_INLAY_HINT;
-import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_LINK;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_LINKED_EDITING_RANGE;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_REFERENCES;
+import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_RENAME;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.WORKSPACE_EXECUTE_COMMAND;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.WORKSPACE_EXECUTE_COMMAND_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.WORKSPACE_WATCHED_FILES;
@@ -80,8 +82,11 @@ public class QuteCapabilityManager {
 		if (this.getClientCapabilities().isCodeActionDynamicRegistered()) {
 			registerCapability(CODE_ACTION_ID, TEXT_DOCUMENT_CODE_ACTION);
 		}
-		if (this.getClientCapabilities().isDocumentHighlightDynamicRegistered()) {
-			registerCapability(DOCUMENT_HIGHLIGHT_ID, TEXT_DOCUMENT_HIGHLIGHT);
+		if (this.getClientCapabilities().isCodeLensDynamicRegistered()) {
+			registerCapability(CODE_LENS_ID, TEXT_DOCUMENT_CODE_LENS, DEFAULT_CODELENS_OPTIONS);
+		}
+		if (this.getClientCapabilities().isCompletionDynamicRegistrationSupported()) {
+			registerCapability(COMPLETION_ID, TEXT_DOCUMENT_COMPLETION, DEFAULT_COMPLETION_OPTIONS);
 		}
 		if (this.getClientCapabilities().isDefinitionDynamicRegistered()) {
 			registerCapability(DOCUMENT_DEFINITION_ID, TEXT_DOCUMENT_DEFINITION);
@@ -89,26 +94,26 @@ public class QuteCapabilityManager {
 		if (this.getClientCapabilities().isDocumentLinkDynamicRegistered()) {
 			registerCapability(DOCUMENT_DEFINITION_ID, TEXT_DOCUMENT_DEFINITION);
 		}
+		if (this.getClientCapabilities().isDocumentHighlightDynamicRegistered()) {
+			registerCapability(DOCUMENT_HIGHLIGHT_ID, TEXT_DOCUMENT_HIGHLIGHT);
+		}
+		if (this.getClientCapabilities().isDocumentLinkDynamicRegistered()) {
+			registerCapability(DOCUMENT_LINK_ID, TEXT_DOCUMENT_DOCUMENT_LINK, DEFAULT_DOCUMENT_LINK_OPTIONS);
+		}
 		if (this.getClientCapabilities().isDocumentSymbolDynamicRegistrationSupported()) {
 			registerCapability(DOCUMENT_SYMBOL_ID, TEXT_DOCUMENT_DOCUMENT_SYMBOL);
-		}
-		if (this.getClientCapabilities().isCompletionDynamicRegistrationSupported()) {
-			registerCapability(COMPLETION_ID, TEXT_DOCUMENT_COMPLETION, DEFAULT_COMPLETION_OPTIONS);
-		}
-		if (this.getClientCapabilities().isCodeLensDynamicRegistered()) {
-			registerCapability(CODE_LENS_ID, TEXT_DOCUMENT_CODE_LENS, DEFAULT_CODELENS_OPTIONS);
 		}
 		if (this.getClientCapabilities().isHoverDynamicRegistered()) {
 			registerCapability(HOVER_ID, TEXT_DOCUMENT_HOVER);
 		}
-		if (this.getClientCapabilities().isDocumentLinkDynamicRegistered()) {
-			registerCapability(DOCUMENT_LINK_ID, TEXT_DOCUMENT_LINK, DEFAULT_DOCUMENT_LINK_OPTIONS);
+		if (this.getClientCapabilities().isLinkedEditingRangeDynamicRegistered()) {
+			registerCapability(LINKED_EDITING_RANGE_ID, TEXT_DOCUMENT_LINKED_EDITING_RANGE);
 		}
 		if (this.getClientCapabilities().isReferencesDynamicRegistrationSupported()) {
 			registerCapability(REFERENCES_ID, TEXT_DOCUMENT_REFERENCES);
 		}
-		if (this.getClientCapabilities().isLinkedEditingRangeDynamicRegistered()) {
-			registerCapability(LINKED_EDITING_RANGE_ID, TEXT_DOCUMENT_LINKED_EDITING_RANGE);
+		if (this.getClientCapabilities().isRenameDynamicRegistered()) {
+			registerCapability(RENAME_ID, TEXT_DOCUMENT_RENAME);
 		}
 		if (this.getClientCapabilities().isInlayHintDynamicRegistered()) {
 			registerCapability(INLAY_HINT_ID, TEXT_DOCUMENT_INLAY_HINT);
