@@ -26,47 +26,47 @@ public class ServerCapabilitiesConstants {
 	private ServerCapabilitiesConstants() {
 	}
 
-	public static final String TEXT_DOCUMENT_COMPLETION = "textDocument/completion";
-	public static final String TEXT_DOCUMENT_HOVER = "textDocument/hover";
-	public static final String TEXT_DOCUMENT_DOCUMENT_SYMBOL = "textDocument/documentSymbol";
-	public static final String TEXT_DOCUMENT_DEFINITION = "textDocument/definition";
-	public static final String TEXT_DOCUMENT_LINK = "textDocument/documentLink";
-	public static final String TEXT_DOCUMENT_FORMATTING = "textDocument/formatting";
-	public static final String TEXT_DOCUMENT_RANGE_FORMATTING = "textDocument/rangeFormatting";
+	/* textDocument/... */
 	public static final String TEXT_DOCUMENT_CODE_ACTION = "textDocument/codeAction";
 	public static final String TEXT_DOCUMENT_CODE_LENS = "textDocument/codeLens";
-
+	public static final String TEXT_DOCUMENT_COMPLETION = "textDocument/completion";
+	public static final String TEXT_DOCUMENT_DEFINITION = "textDocument/definition";
+	public static final String TEXT_DOCUMENT_DOCUMENT_LINK = "textDocument/documentLink";
+	public static final String TEXT_DOCUMENT_DOCUMENT_SYMBOL = "textDocument/documentSymbol";
+	public static final String TEXT_DOCUMENT_FORMATTING = "textDocument/formatting";
 	public static final String TEXT_DOCUMENT_HIGHLIGHT = "textDocument/documentHighlight";
-
-	public static final String TEXT_DOCUMENT_REFERENCES = "textDocument/references";
-
+	public static final String TEXT_DOCUMENT_HOVER = "textDocument/hover";
 	public static final String TEXT_DOCUMENT_LINKED_EDITING_RANGE = "textDocument/linkedEditingRange";
+	public static final String TEXT_DOCUMENT_RANGE_FORMATTING = "textDocument/rangeFormatting";
+	public static final String TEXT_DOCUMENT_REFERENCES = "textDocument/references";
+	public static final String TEXT_DOCUMENT_RENAME = "textDocument/rename";
 	public static final String TEXT_DOCUMENT_INLAY_HINT = "textDocument/inlayHint";
+	/* workspace/... */
 	public static final String WORKSPACE_EXECUTE_COMMAND = "workspace/executeCommand";
-
 	public static final String WORKSPACE_WATCHED_FILES = "workspace/didChangeWatchedFiles";
 
-	public static final String DOCUMENT_HIGHLIGHT_ID = UUID.randomUUID().toString();
-	public static final String COMPLETION_ID = UUID.randomUUID().toString();
-	public static final String HOVER_ID = UUID.randomUUID().toString();
-	public static final String DOCUMENT_SYMBOL_ID = UUID.randomUUID().toString();
-	public static final String DOCUMENT_DEFINITION_ID = UUID.randomUUID().toString();
-	public static final String DOCUMENT_LINK_ID = UUID.randomUUID().toString();
-	public static final String FORMATTING_ID = UUID.randomUUID().toString();
-	public static final String RANGE_FORMATTING_ID = UUID.randomUUID().toString();
-
+	/* UUID */
 	public static final String CODE_ACTION_ID = UUID.randomUUID().toString();
 	public static final String CODE_LENS_ID = UUID.randomUUID().toString();
-
-	public static final String WORKSPACE_EXECUTE_COMMAND_ID = UUID.randomUUID().toString();
-	public static final String REFERENCES_ID = UUID.randomUUID().toString();
-	public static final String WORKSPACE_WATCHED_FILES_ID = UUID.randomUUID().toString();
+	public static final String COMPLETION_ID = UUID.randomUUID().toString();
+	public static final String DOCUMENT_DEFINITION_ID = UUID.randomUUID().toString();
+	public static final String DOCUMENT_HIGHLIGHT_ID = UUID.randomUUID().toString();
+	public static final String DOCUMENT_LINK_ID = UUID.randomUUID().toString();
+	public static final String DOCUMENT_SYMBOL_ID = UUID.randomUUID().toString();
+	public static final String FORMATTING_ID = UUID.randomUUID().toString();
+	public static final String HOVER_ID = UUID.randomUUID().toString();
 	public static final String LINKED_EDITING_RANGE_ID = UUID.randomUUID().toString();
+	public static final String RANGE_FORMATTING_ID = UUID.randomUUID().toString();
+	public static final String REFERENCES_ID = UUID.randomUUID().toString();
+	public static final String RENAME_ID = UUID.randomUUID().toString();
+	public static final String WORKSPACE_EXECUTE_COMMAND_ID = UUID.randomUUID().toString();
+	public static final String WORKSPACE_WATCHED_FILES_ID = UUID.randomUUID().toString();
 	public static final String INLAY_HINT_ID = UUID.randomUUID().toString();
+
+	/* Default Options */
+	public static final CodeLensOptions DEFAULT_CODELENS_OPTIONS = new CodeLensOptions();
 	public static final CompletionOptions DEFAULT_COMPLETION_OPTIONS = new CompletionOptions(false,
 			Arrays.asList("{", "@", "#", ".", ":"));
-
 	public static final DocumentLinkOptions DEFAULT_DOCUMENT_LINK_OPTIONS = new DocumentLinkOptions(true);
 
-	public static final CodeLensOptions DEFAULT_CODELENS_OPTIONS = new CodeLensOptions();
 }

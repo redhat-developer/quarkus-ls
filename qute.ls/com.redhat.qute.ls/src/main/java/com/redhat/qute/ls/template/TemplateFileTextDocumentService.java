@@ -50,8 +50,10 @@ import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.ReferenceParams;
+import org.eclipse.lsp4j.RenameParams;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
+import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
@@ -142,6 +144,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 				});
 	}
 
+	@Override
 	public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActionParams params) {
 		return computeModelAsync2(getDocument(params.getTextDocument().getUri()).getModel(),
 				(cancelChecker, template) -> {
@@ -229,6 +232,14 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 	public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
 		return getTemplate(params.getTextDocument(), (cancelChecker, template) -> {
 			return getQuteLanguageService().findReferences(template, params.getPosition(), params.getContext(),
+					cancelChecker);
+		});
+	}
+
+	@Override
+	public CompletableFuture<WorkspaceEdit> rename(RenameParams params) {
+		return getTemplate(params.getTextDocument(), (cancelChecker, template) -> {
+			return getQuteLanguageService().doRename(template, params.getPosition(), params.getNewName(),
 					cancelChecker);
 		});
 	}

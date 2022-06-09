@@ -100,7 +100,11 @@ public class ClientCapabilitiesWrapper {
 	public boolean isInlayHintDynamicRegistered() {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getInlayHint());
 	}
-	
+
+	public boolean isRenameDynamicRegistered() {
+		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getRename());
+	}
+
 	private boolean isDynamicRegistrationSupported(DynamicRegistrationCapabilities capability) {
 		return capability != null && capability.getDynamicRegistration() != null
 				&& capability.getDynamicRegistration().booleanValue();

@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
@@ -786,6 +787,44 @@ public class QuteAssert {
 	public static void assertLocation(List<? extends Location> actual, Location... expected) {
 		assertEquals(expected.length, actual.size());
 		assertArrayEquals(expected, actual.toArray());
+	}
+
+	// ------------------- Rename assert
+
+	public static void assertRename(String value, String newText) throws BadLocationException {
+		assertRename(value, newText, FILE_URI, PROJECT_URI, TEMPLATE_BASE_DIR, Collections.emptyList());
+	}
+
+	public static void assertRename(String value, String newText, List<TextEdit> expectedEdits)
+			throws BadLocationException {
+		assertRename(value, newText, FILE_URI, PROJECT_URI, TEMPLATE_BASE_DIR, expectedEdits);
+	}
+
+	public static void assertRename(String value, String newText, String fileUri, String projectUri,
+			String templateBaseDir, List<TextEdit> expectedEdits) throws BadLocationException {
+		int offset = value.indexOf('|');
+		value = value.substring(0, offset) + value.substring(offset + 1);
+
+		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
+		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+
+		Position position = template.positionAt(offset);
+
+		WorkspaceEdit workspaceEdit = languageService.doRename(template, position, newText, () -> {
+		});
+		if (workspaceEdit == null) {
+			assertArrayEquals(expectedEdits.toArray(), Collections.emptyList().toArray());
+		} else {
+			List<TextEdit> actualEdits = workspaceEdit.getChanges().get(FILE_URI);
+			assertArrayEquals(expectedEdits.toArray(), actualEdits.toArray());
+		}
+	}
+
+	public static List<TextEdit> edits(String newText, Range... ranges) {
+		return Stream.of(ranges) //
+				.map(r -> new TextEdit(r, newText)) //
+				.collect(Collectors.toList());
 	}
 
 	// ------------------- Linked Editing assert

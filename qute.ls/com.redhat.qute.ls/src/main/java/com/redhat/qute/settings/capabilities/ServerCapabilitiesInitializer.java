@@ -28,9 +28,9 @@ public class ServerCapabilitiesInitializer {
 
 	/**
 	 * Returns all server capabilities (with default values) that aren't dynamic.
-	 * 
+	 *
 	 * A service's dynamic capability is indicated by the client.
-	 * 
+	 *
 	 * @param clientCapabilities
 	 * @return ServerCapabilities object
 	 */
@@ -56,6 +56,7 @@ public class ServerCapabilitiesInitializer {
 		serverCapabilities.setReferencesProvider(!clientCapabilities.isReferencesDynamicRegistrationSupported());
 		serverCapabilities.setLinkedEditingRangeProvider(!clientCapabilities.isLinkedEditingRangeDynamicRegistered());
 		serverCapabilities.setInlayHintProvider(!clientCapabilities.isInlayHintDynamicRegistered());
+		serverCapabilities.setRenameProvider(!clientCapabilities.isRenameDynamicRegistered());
 		return serverCapabilities;
 	}
 }

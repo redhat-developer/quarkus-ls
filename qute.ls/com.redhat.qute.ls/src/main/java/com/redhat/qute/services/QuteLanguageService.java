@@ -31,6 +31,7 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.ReferenceContext;
 import org.eclipse.lsp4j.SymbolInformation;
+import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.ls.commons.snippets.Snippet;
@@ -47,45 +48,72 @@ import com.redhat.qute.settings.SharedSettings;
 
 /**
  * The Qute language service.
- * 
+ *
  * @author Angelo ZERR
  *
  */
 public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 
-	private final QuteCodeLens codelens;
 	private final QuteCodeActions codeActions;
+	private final QuteCodeLens codeLens;
 	private final QuteCompletions completions;
-	private final QuteHover hover;
-	private final QuteHighlighting highlighting;
 	private final QuteDefinition definition;
-	private final QuteDocumentLink documentLink;
-	private final QuteSymbolsProvider symbolsProvider;
 	private final QuteDiagnostics diagnostics;
+	private final QuteDocumentLink documentLink;
+	private final QuteHighlighting highlighting;
+	private final QuteHover hover;
+	private final QuteInlayHint inlayHint;
 	private final QuteLinkedEditing linkedEditing;
 	private final QuteReference reference;
-	private final QuteInlayHint inlayHint;
+	private final QuteRename rename;
+	private final QuteSymbolsProvider symbolsProvider;
 
 	private SnippetRegistry<Snippet> coreTagSnippetRegistry;
 
 	public QuteLanguageService(JavaDataModelCache javaCache) {
-		this.completions = new QuteCompletions(javaCache, this);
-		this.codelens = new QuteCodeLens(javaCache);
 		this.codeActions = new QuteCodeActions();
-		this.hover = new QuteHover(javaCache, this);
-		this.highlighting = new QuteHighlighting();
+		this.codeLens = new QuteCodeLens(javaCache);
+		this.completions = new QuteCompletions(javaCache, this);
 		this.definition = new QuteDefinition(javaCache);
-		this.documentLink = new QuteDocumentLink();
-		this.symbolsProvider = new QuteSymbolsProvider();
 		this.diagnostics = new QuteDiagnostics(javaCache);
-		this.reference = new QuteReference();
-		this.linkedEditing = new QuteLinkedEditing();
+		this.documentLink = new QuteDocumentLink();
+		this.highlighting = new QuteHighlighting();
+		this.hover = new QuteHover(javaCache, this);
 		this.inlayHint = new QuteInlayHint(javaCache);
+		this.linkedEditing = new QuteLinkedEditing();
+		this.reference = new QuteReference();
+		this.rename = new QuteRename();
+		this.symbolsProvider = new QuteSymbolsProvider();
+	}
+
+	/**
+	 * Create CodeAction(s) in the given Qute <code>template</code>.
+	 *
+	 * @param template       the Qute template.
+	 * @param context        the Code Action context.
+	 * @param sharedSettings the Qute shared settings.
+	 * @return the CodeAction(s) to be added to the Qute template.
+	 */
+	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
+			SharedSettings sharedSettings) {
+		return codeActions.doCodeActions(template, context, range, sharedSettings);
+	}
+
+	/**
+	 * Create CodeLens' in the given Qute <code>template</code>.
+	 *
+	 * @param template       the Qute template.
+	 * @param sharedSettings the Qute shared settings.
+	 * @return the CodeLens' to be added to the Qute template.
+	 */
+	public CompletableFuture<List<? extends CodeLens>> getCodeLens(Template template, SharedSettings settings,
+			CancelChecker cancelChecker) {
+		return codeLens.getCodelens(template, settings, cancelChecker);
 	}
 
 	/**
 	 * Returns completion list for the given position
-	 * 
+	 *
 	 * @param template             the Qute template
 	 * @param position             the position where completion was triggered
 	 * @param completionSettings   the completion settings.
@@ -101,46 +129,22 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 				cancelChecker);
 	}
 
-	public CompletableFuture<List<? extends CodeLens>> getCodeLens(Template template, SharedSettings settings,
-			CancelChecker cancelChecker) {
-		return codelens.getCodelens(template, settings, cancelChecker);
-	}
-
-	public CompletableFuture<Hover> doHover(Template template, Position position, SharedSettings sharedSettings,
-			CancelChecker cancelChecker) {
-		return hover.doHover(template, position, sharedSettings, cancelChecker);
-	}
-
-	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
-			SharedSettings sharedSettings) {
-		return codeActions.doCodeActions(template, context, range, sharedSettings);
-	}
-
-	public List<DocumentHighlight> findDocumentHighlights(Template template, Position position,
-			CancelChecker cancelChecker) {
-		return highlighting.findDocumentHighlights(template, position, cancelChecker);
-	}
-
+	/**
+	 * Resolve definition in the given Qute <code>template</code>.
+	 *
+	 * @param template      the Qute template.
+	 * @param postion       the position sent in the request.
+	 * @param cancelChecker the cancel checker.
+	 * @return link(s) to the location of the definition.
+	 */
 	public CompletableFuture<List<? extends LocationLink>> findDefinition(Template template, Position position,
 			CancelChecker cancelChecker) {
 		return definition.findDefinition(template, position, cancelChecker);
 	}
 
-	public List<DocumentLink> findDocumentLinks(Template template) {
-		return documentLink.findDocumentLinks(template);
-	}
-
-	public List<DocumentSymbol> findDocumentSymbols(Template template, CancelChecker cancelChecker) {
-		return symbolsProvider.findDocumentSymbols(template, cancelChecker);
-	}
-
-	public List<SymbolInformation> findSymbolInformations(Template template, CancelChecker cancelChecker) {
-		return symbolsProvider.findSymbolInformations(template, cancelChecker);
-	}
-
 	/**
 	 * Validate the given Qute <code>template</code>.
-	 * 
+	 *
 	 * @param template             the Qute template.
 	 * @param validationSettings   the validation settings.
 	 * @param nativeImagesSettings the native image settings.
@@ -154,16 +158,53 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 				cancelChecker);
 	}
 
-	public List<? extends Location> findReferences(Template template, Position position, ReferenceContext context,
-			CancelChecker cancelChecker) {
-		return reference.findReferences(template, position, context, cancelChecker);
+	/**
+	 * Document links in the given Qute <code>template</code>.
+	 *
+	 * @param template the Qute template.
+	 * @return link range(s) of the document(s).
+	 */
+	public List<DocumentLink> findDocumentLinks(Template template) {
+		return documentLink.findDocumentLinks(template);
 	}
 
-	public LinkedEditingRanges findLinkedEditingRanges(Template template, Position position,
+	/**
+	 * Document highlights in the given Qute <code>template</code>.
+	 *
+	 * @param template      the Qute template.
+	 * @param postion       the position sent in the request.
+	 * @param cancelChecker the cancel checker.
+	 * @return highlight range(s) of the document(s).
+	 */
+	public List<DocumentHighlight> findDocumentHighlights(Template template, Position position,
 			CancelChecker cancelChecker) {
-		return linkedEditing.findLinkedEditingRanges(template, position, cancelChecker);
+		return highlighting.findDocumentHighlights(template, position, cancelChecker);
 	}
 
+	/**
+	 * Hover display(s) in the given Qute <code>template</code>.
+	 *
+	 * @param template       the Qute template.
+	 * @param postion        the position sent in the request.
+	 * @param sharedSettings the Qute shared settings.
+	 * @param cancelChecker  the cancel checker.
+	 * @return hover response for the hovered member.
+	 */
+	public CompletableFuture<Hover> doHover(Template template, Position position, SharedSettings sharedSettings,
+			CancelChecker cancelChecker) {
+		return hover.doHover(template, position, sharedSettings, cancelChecker);
+	}
+
+	/**
+	 * Inlay hint display(s) in the given Qute <code>template</code>.
+	 *
+	 * @param template                 the Qute template.
+	 * @param range                    the position sent in the request.
+	 * @param inlayHintSettings        the Qute inlay hint settings.
+	 * @param resolvingJavaTypeContext context for resolved java type in hint.
+	 * @param cancelChecker            the cancel checker.
+	 * @return hover response for the hovered member.
+	 */
 	public CompletableFuture<List<InlayHint>> getInlayHint(Template template, Range range,
 			QuteInlayHintSettings inlayHintSettings, ResolvingJavaTypeContext resolvingJavaTypeContext,
 			CancelChecker cancelChecker) {
@@ -171,8 +212,70 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	}
 
 	/**
+	 * Linked editing range(s) in the given Qute <code>template</code>.
+	 *
+	 * @param template      the Qute template.
+	 * @param postion       the position sent in the request.
+	 * @param cancelChecker the cancel checker.
+	 * @return linked editing range(s) of the symbol.
+	 */
+	public LinkedEditingRanges findLinkedEditingRanges(Template template, Position position,
+			CancelChecker cancelChecker) {
+		return linkedEditing.findLinkedEditingRanges(template, position, cancelChecker);
+	}
+
+	/**
+	 * Reference location(s) in the given Qute <code>template</code>.
+	 *
+	 * @param template      the Qute template.
+	 * @param postion       the position sent in the request.
+	 * @param context       the reference context for symbol references.
+	 * @param cancelChecker the cancel checker.
+	 * @return linked editing range(s) of the symbol.
+	 */
+	public List<? extends Location> findReferences(Template template, Position position, ReferenceContext context,
+			CancelChecker cancelChecker) {
+		return reference.findReferences(template, position, context, cancelChecker);
+	}
+
+	/**
+	 * Rename instances in the given Qute <code>template</code>.
+	 *
+	 * @param template           the Qute template.
+	 * @param validationSettings the validation settings.
+	 * @param newText            the new text to replace the referenced instances.
+	 * @param cancelChecker      the cancel checker.
+	 * @return the rename edits to be made to the Qute template.
+	 */
+	public WorkspaceEdit doRename(Template template, Position position, String newText, CancelChecker cancelChecker) {
+		return rename.doRename(template, position, newText, cancelChecker);
+	}
+
+	/**
+	 * Document symbol(s) in the given Qute <code>template</code>.
+	 *
+	 * @param template      the Qute template.
+	 * @param cancelChecker the cancel checker.
+	 * @return document symbol(s) in the template.
+	 */
+	public List<DocumentSymbol> findDocumentSymbols(Template template, CancelChecker cancelChecker) {
+		return symbolsProvider.findDocumentSymbols(template, cancelChecker);
+	}
+
+	/**
+	 * Document symbol information in the given Qute <code>template</code>.
+	 *
+	 * @param template      the Qute template.
+	 * @param cancelChecker the cancel checker.
+	 * @return a list of document symbol information in the template.
+	 */
+	public List<SymbolInformation> findSymbolInformations(Template template, CancelChecker cancelChecker) {
+		return symbolsProvider.findSymbolInformations(template, cancelChecker);
+	}
+
+	/**
 	 * Returns the core tag (ex : #for, #if, etc) snippet registry.
-	 * 
+	 *
 	 * @return the core tag (ex : #for, #if, etc) snippet registry.
 	 */
 	@Override
