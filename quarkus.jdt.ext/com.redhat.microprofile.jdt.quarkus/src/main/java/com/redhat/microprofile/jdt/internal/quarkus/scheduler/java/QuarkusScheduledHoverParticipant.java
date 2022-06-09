@@ -14,7 +14,7 @@
 package com.redhat.microprofile.jdt.internal.quarkus.scheduler.java;
 
 import static com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants.SCHEDULED_SUPPORTED_PARTICIPANT_MEMBERS;
-import static org.eclipse.lsp4mp.commons.PropertyReplacerStrategy.EXPRESSION_REPLACER;
+import static org.eclipse.lsp4mp.jdt.core.java.PropertyReplacerStrategy.EXPRESSION_REPLACER;
 
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.lsp4mp.jdt.core.java.hover.PropertiesHoverParticipant;
