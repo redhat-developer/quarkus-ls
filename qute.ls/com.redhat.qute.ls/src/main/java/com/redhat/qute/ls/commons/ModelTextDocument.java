@@ -22,7 +22,7 @@ import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
 
 /**
  * A {@link TextDocument} which is associate to a model loaded in async.
- * 
+ *
  * @author Angelo ZERR
  *
  * @param <T> the model type (ex : DOM Document)
@@ -33,7 +33,7 @@ public class ModelTextDocument<T> extends TextDocument {
 
 	private final BiFunction<TextDocument, CancelChecker, T> parse;
 
-	private CompletableFuture<T> model;
+	private T model;
 
 	public ModelTextDocument(TextDocumentItem document, BiFunction<TextDocument, CancelChecker, T> parse) {
 		super(document);
@@ -46,33 +46,55 @@ public class ModelTextDocument<T> extends TextDocument {
 	}
 
 	/**
-	 * Returns the completable future which loads the model. The process of parse od
-	 * the model is stopped as soon as possible when text content changed.
-	 * 
-	 * @return the completable future which loads the model.
+	 * Returns the existing parsed model synchronized with last version of the text
+	 * document and null otherwise.
+	 *
+	 * @return the existing parsed model synchronized with last version of the text
+	 *         document and null otherwise.
 	 */
-	public CompletableFuture<T> getModel() {
+	public T getExistingModel() {
+		return model;
+	}
+
+	/**
+	 * Returns the parsed model synchronized with last version of the text document.
+	 *
+	 * @return the parsed model synchronized with last version of the text document.
+	 */
+	public T getModel() {
 		if (model == null) {
-			int version = super.getVersion();
-			model = CompletableFutures.computeAsync((requestCancelChecker) -> {
-				long start = System.currentTimeMillis();
-				try {
-					LOGGER.fine("Start parsing of model with version '" + version);
-					// Stop of parse process can be done when completable future is canceled or when
-					// version of document changes
-					MultiCancelChecker cancelChecker = new MultiCancelChecker(requestCancelChecker,
-							new TextDocumentVersionChecker(this, version));
-					// parse the model
-					return parse.apply(this, cancelChecker);
-				} catch (CancellationException e) {
-					LOGGER.fine("Stop parsing parsing of model with version '" + version + "' in "
-							+ (System.currentTimeMillis() - start) + "ms");
-					throw e;
-				} finally {
-					LOGGER.fine("End parse of model with version '" + version + "' in "
-							+ (System.currentTimeMillis() - start) + "ms");
-				}
-			});
+			return getSynchronizedModel();
+		}
+		return model;
+	}
+
+	/**
+	 * Return the existing parsed model synchronized with last version of the text
+	 * document or parse the model.
+	 *
+	 * @return the existing parsed model synchronized with last version of the text
+	 *         document or parse the model.
+	 */
+	private synchronized T getSynchronizedModel() {
+		if (model != null) {
+			return model;
+		}
+		int version = super.getVersion();
+		long start = System.currentTimeMillis();
+		try {
+			LOGGER.fine("Start parsing of model with version '" + version);
+			// Stop of parse process can be done when completable future is canceled or when
+			// version of document changes
+			CancelChecker cancelChecker = new TextDocumentVersionChecker(this, version);
+			// parse the model
+			model = parse.apply(this, cancelChecker);
+		} catch (CancellationException e) {
+			LOGGER.fine("Stop parsing parsing of model with version '" + version + "' in "
+					+ (System.currentTimeMillis() - start) + "ms");
+			throw e;
+		} finally {
+			LOGGER.fine("End parse of model with version '" + version + "' in " + (System.currentTimeMillis() - start)
+					+ "ms");
 		}
 		return model;
 	}
@@ -87,18 +109,15 @@ public class ModelTextDocument<T> extends TextDocument {
 	@Override
 	public void setVersion(int version) {
 		super.setVersion(version);
-		// version changed, cancel the completable future which load the model
+		// version changed, mark the model as dirty
 		cancelModel();
 	}
 
 	/**
-	 * Cancel the completable future which loads the model.
+	 * Mark the model as dirty
 	 */
 	private void cancelModel() {
-		if (model != null) {
-			model.cancel(true);
-			model = null;
-		}
+		model = null;
 	}
 
 }

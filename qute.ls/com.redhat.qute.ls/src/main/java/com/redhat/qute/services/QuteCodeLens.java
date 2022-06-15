@@ -42,7 +42,7 @@ import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * Qute code lens support.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -59,6 +59,7 @@ class QuteCodeLens {
 			CancelChecker cancelChecker) {
 		return javaCache.getDataModelTemplate(template) //
 				.thenApply(templateDataModel -> {
+					cancelChecker.checkCanceled();
 					List<CodeLens> lenses = new ArrayList<>();
 
 					// #insert code lens references
