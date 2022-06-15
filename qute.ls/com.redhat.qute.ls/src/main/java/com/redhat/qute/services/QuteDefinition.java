@@ -82,21 +82,22 @@ class QuteDefinition {
 			}
 			int offset = definitionRequest.getOffset();
 			switch (node.getKind()) {
-			case Section:
-				// - Start end tag definition
-				// - Java data model definition
-				return findDefinitionFromSection(offset, (Section) node, template, cancelChecker);
-			case ParameterDeclaration:
-				// Return Java class definition
-				return findDefinitionFromParameterDeclaration(offset, (ParameterDeclaration) node, template);
-			case Expression:
-				return findDefinitionFromExpression(offset, (Expression) node, template, cancelChecker);
-			case ExpressionPart:
-				Part part = (Part) node;
-				return findDefinitionFromPart(part, template, cancelChecker);
-			default:
-				// no definitions
-				return NO_DEFINITION;
+				case Section:
+					// - Start end tag definition
+					// - Java data model definition
+					return findDefinitionFromSection(offset, (Section) node, template, cancelChecker);
+				case ParameterDeclaration:
+					// Return Java class definition
+					return findDefinitionFromParameterDeclaration(offset, (ParameterDeclaration) node, template,
+							cancelChecker);
+				case Expression:
+					return findDefinitionFromExpression(offset, (Expression) node, template, cancelChecker);
+				case ExpressionPart:
+					Part part = (Part) node;
+					return findDefinitionFromPart(part, template, cancelChecker);
+				default:
+					// no definitions
+					return NO_DEFINITION;
 			}
 
 		} catch (BadLocationException e) {
@@ -108,12 +109,12 @@ class QuteDefinition {
 
 	/**
 	 * Find start end tag definition.
-	 * 
+	 *
 	 * @param offset
-	 * 
+	 *
 	 * @param document
 	 * @param template
-	 * 
+	 *
 	 * @param request  the definition request
 	 * @return
 	 * @throws BadLocationException
@@ -204,23 +205,26 @@ class QuteDefinition {
 	}
 
 	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameterDeclaration(int offset,
-			ParameterDeclaration parameterDeclaration, Template template) {
+			ParameterDeclaration parameterDeclaration, Template template, CancelChecker cancelChecker) {
 		String projectUri = template.getProjectUri();
 		if (projectUri != null && parameterDeclaration.isInJavaTypeName(offset)) {
 			RangeOffset range = parameterDeclaration.getJavaTypeNameRange(offset);
 			if (range != null) {
 				String className = template.getText(range);
 				QuteJavaDefinitionParams params = new QuteJavaDefinitionParams(className, projectUri);
-				return findJavaDefinition(params, () -> QutePositionUtility.createRange(range, template));
+				return findJavaDefinition(params, cancelChecker,
+						() -> QutePositionUtility.createRange(range, template));
 			}
 		}
 		return NO_DEFINITION;
 	}
 
 	private CompletableFuture<List<? extends LocationLink>> findJavaDefinition(QuteJavaDefinitionParams params,
+			CancelChecker cancelChecker,
 			Supplier<Range> originSelectionRangeProvider) {
 		return javaCache.getJavaDefinition(params) //
 				.thenApply(location -> {
+					cancelChecker.checkCanceled();
 					if (location != null) {
 						String targetUri = location.getUri();
 						Range targetRange = location.getRange();
@@ -251,23 +255,23 @@ class QuteDefinition {
 			// {data:ite|m}
 			// {inject:bea|n}
 			// {config:booleanP|roperty(propertyName)}
-			return findDefinitionFromPartWithNamespace(namespace, part, template);
+			return findDefinitionFromPartWithNamespace(namespace, part, template, cancelChecker);
 		}
 
 		switch (part.getPartKind()) {
-		case Object:
-			return findDefinitionFromObjectPart((ObjectPart) part, template, cancelChecker);
-		case Property:
-			return findDefinitionFromPropertyPart((PropertyPart) part, template);
-		case Method:
-			return findDefinitionFromPropertyPart((MethodPart) part, template);
-		default:
-			return NO_DEFINITION;
+			case Object:
+				return findDefinitionFromObjectPart((ObjectPart) part, template, cancelChecker);
+			case Property:
+				return findDefinitionFromPropertyPart((PropertyPart) part, template, cancelChecker);
+			case Method:
+				return findDefinitionFromPropertyPart((MethodPart) part, template, cancelChecker);
+			default:
+				return NO_DEFINITION;
 		}
 	}
 
 	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromPartWithNamespace(String namespace,
-			Part part, Template template) {
+			Part part, Template template, CancelChecker cancelChecker) {
 		String projectUri = template.getProjectUri();
 		if (NamespacePart.DATA_NAMESPACE.equals(namespace)) {
 			// {data:it|em}
@@ -282,7 +286,7 @@ class QuteDefinition {
 			}
 			// check if it is defined with @CheckedTemplate
 			if (projectUri != null) {
-				return findDefinitionFromParameterDataModel(part, template, projectUri);
+				return findDefinitionFromParameterDataModel(part, template, projectUri, cancelChecker);
 			}
 			return NO_DEFINITION;
 		}
@@ -291,7 +295,8 @@ class QuteDefinition {
 			// {config:booleanP|roperty(propertyName)}
 			return javaCache.findJavaElementWithNamespace(namespace, part.getPartName(), projectUri) //
 					.thenCompose(member -> {
-						return findDefinitionFromJavaMember(member, part, projectUri);
+						cancelChecker.checkCanceled();
+						return findDefinitionFromJavaMember(member, part, projectUri, cancelChecker);
 					});
 		}
 		return NO_DEFINITION;
@@ -315,36 +320,39 @@ class QuteDefinition {
 		String projectUri = template.getProjectUri();
 		if (projectUri != null) {
 			// Try to find in parameter data model
-			return findDefinitionFromParameterDataModel(part, template, projectUri);
+			return findDefinitionFromParameterDataModel(part, template, projectUri, cancelChecker);
 		}
 		return NO_DEFINITION;
 	}
 
 	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameterDataModel(Part part,
-			Template template, String projectUri) {
+			Template template, String projectUri, CancelChecker cancelChecker) {
 		return template.getParameterDataModel(part.getPartName()) //
 				.thenCompose(parameter -> {
+					cancelChecker.checkCanceled();
 					// Try to find in parameter model
 					if (parameter != null) {
 						QuteJavaDefinitionParams params = parameter.toJavaDefinitionParams(projectUri);
-						return findJavaDefinition(params, () -> QutePositionUtility.createRange(part));
+						return findJavaDefinition(params, cancelChecker, () -> QutePositionUtility.createRange(part));
 					}
 					// try to find in global variables
 					return javaCache.findGlobalVariableJavaElement(part.getPartName(), projectUri) //
 							.thenCompose(member -> {
-								return findDefinitionFromJavaMember(member, part, projectUri);
+								cancelChecker.checkCanceled();
+								return findDefinitionFromJavaMember(member, part, projectUri, cancelChecker);
 							});
 				});
 	}
 
 	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromPropertyPart(Part part,
-			Template template) {
+			Template template, CancelChecker cancelChecker) {
 		String projectUri = template.getProjectUri();
 		if (projectUri != null) {
 			Parts parts = part.getParent();
 			Part previousPart = parts.getPreviousPart(part);
 			return javaCache.resolveJavaType(previousPart, projectUri) //
 					.thenCompose(previousResolvedType -> {
+						cancelChecker.checkCanceled();
 						if (previousResolvedType != null) {
 							if (previousResolvedType.isIterable()) {
 								// Expression uses iterable type
@@ -356,10 +364,13 @@ class QuteDefinition {
 								CompletableFuture<ResolvedJavaTypeInfo> iterableResolvedTypeFuture = javaCache
 										.resolveJavaType(iterableType, projectUri);
 								return iterableResolvedTypeFuture.thenCompose((iterableResolvedType) -> {
-									return findDefinitionFromPropertyPart(part, projectUri, iterableResolvedType);
+									cancelChecker.checkCanceled();
+									return findDefinitionFromPropertyPart(part, projectUri, iterableResolvedType,
+											cancelChecker);
 								});
 							}
-							return findDefinitionFromPropertyPart(part, projectUri, previousResolvedType);
+							return findDefinitionFromPropertyPart(part, projectUri, previousResolvedType,
+									cancelChecker);
 						}
 						return NO_DEFINITION;
 					});
@@ -368,15 +379,15 @@ class QuteDefinition {
 	}
 
 	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromPropertyPart(Part part, String projectUri,
-			ResolvedJavaTypeInfo previousResolvedType) {
+			ResolvedJavaTypeInfo previousResolvedType, CancelChecker cancelChecker) {
 		// The Java class type from the previous part has been resolved, resolve the
 		// property
 		JavaMemberInfo member = javaCache.findMember(part, previousResolvedType, projectUri);
-		return findDefinitionFromJavaMember(member, part, projectUri);
+		return findDefinitionFromJavaMember(member, part, projectUri, cancelChecker);
 	}
 
 	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromJavaMember(JavaElementInfo member,
-			Part part, String projectUri) {
+			Part part, String projectUri, CancelChecker cancelChecker) {
 		if (member == null) {
 			return NO_DEFINITION;
 		}
@@ -390,16 +401,16 @@ class QuteDefinition {
 		QuteJavaDefinitionParams params = new QuteJavaDefinitionParams(sourceType, projectUri);
 		if (member != null) {
 			switch (member.getJavaElementKind()) {
-			case FIELD:
-				params.setSourceField(member.getName());
-				break;
-			case METHOD:
-				params.setSourceMethod(member.getName());
-				break;
-			default:
+				case FIELD:
+					params.setSourceField(member.getName());
+					break;
+				case METHOD:
+					params.setSourceMethod(member.getName());
+					break;
+				default:
 			}
 		}
-		return findJavaDefinition(params, () -> QutePositionUtility.createRange(part));
+		return findJavaDefinition(params, cancelChecker, () -> QutePositionUtility.createRange(part));
 	}
 
 }

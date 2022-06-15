@@ -112,5 +112,6 @@ buildNumber.properties
 
 # End of https://www.gitignore.io/api/java,maven,eclipse
 
+# Ignore config for Eclipse PDE in VS Code until we get remote repositories working
 javaConfig.json
 **/*.target

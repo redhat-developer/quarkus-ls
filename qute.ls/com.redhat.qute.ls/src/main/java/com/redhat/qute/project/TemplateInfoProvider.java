@@ -18,7 +18,7 @@ import com.redhat.qute.parser.template.Template;
 
 /**
  * Template information provider for a given template.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -26,28 +26,28 @@ public interface TemplateInfoProvider {
 
 	/**
 	 * Returns the current parsed template.
-	 * 
+	 *
 	 * @return the current parsed template
 	 */
-	CompletableFuture<Template> getTemplate();
+	Template getTemplate();
 
 	/**
 	 * Returns the owner project information of the template.
-	 * 
+	 *
 	 * @return the owner project information of the template.
 	 */
 	CompletableFuture<ProjectInfo> getProjectInfoFuture();
 
 	/**
 	 * Returns the owner project uri of the template.
-	 * 
+	 *
 	 * @return the owner project uri of the template.
 	 */
 	String getProjectUri();
 
 	/**
 	 * Returns the template id.
-	 * 
+	 *
 	 * @return the template id.
 	 */
 	String getTemplateId();

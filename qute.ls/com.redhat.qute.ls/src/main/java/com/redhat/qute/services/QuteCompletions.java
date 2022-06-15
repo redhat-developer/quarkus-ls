@@ -157,7 +157,7 @@ public class QuteCompletions {
 			}
 		} else if (node.getKind() == NodeKind.ParameterDeclaration) {
 			return completionsForParameterDeclaration.doCollectJavaClassesSuggestions((ParameterDeclaration) node,
-					template, offset, completionSettings);
+					template, offset, completionSettings, cancelChecker);
 		} else if (node.getKind() == NodeKind.Section) {
 			// {#|}
 			return completionForTagSection.doCompleteTagSection(completionRequest, completionSettings,

@@ -134,7 +134,7 @@ public class QuteProject {
 	public List<QuteIndex> findInsertTagParameter(String templateId, String insertParamater) {
 		TemplateInfoProvider provider = openedDocuments.get(templateId);
 		if (provider != null) {
-			Template template = provider.getTemplate().getNow(null);
+			Template template = provider.getTemplate();
 			if (template != null) {
 				List<QuteIndex> indexes = new ArrayList<>();
 				collectInsert(insertParamater, template, template, indexes);
@@ -316,7 +316,7 @@ public class QuteProject {
 
 	/**
 	 * Returns the src/main/resources/templates/tags directory.
-	 * 
+	 *
 	 * @return the src/main/resources/templates/tags directory.
 	 */
 	public Path getTagsDir() {
@@ -327,7 +327,7 @@ public class QuteProject {
 		if (getJavaTypesSupportedInNativeMode().contains(javaTypeName)) {
 			return JavaTypeAccessibiltyRule.ALLOWED_WITHOUT_RESTRICTION;
 		}
-		
+
 		// Native images mode : the java reflection is supported only if the Java type
 		// is
 		// annotated with:

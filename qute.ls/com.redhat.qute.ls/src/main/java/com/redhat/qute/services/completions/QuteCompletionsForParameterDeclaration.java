@@ -21,6 +21,7 @@ import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.InsertTextFormat;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.commons.JavaParameterInfo;
@@ -38,7 +39,7 @@ import com.redhat.qute.utils.QutePositionUtility;
 
 /**
  * Qute completion for classes in parameter declaration.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -51,7 +52,7 @@ public class QuteCompletionsForParameterDeclaration {
 	}
 
 	public CompletableFuture<CompletionList> doCollectJavaClassesSuggestions(ParameterDeclaration parameterDeclaration,
-			Template template, int offset, QuteCompletionSettings completionSettings) {
+			Template template, int offset, QuteCompletionSettings completionSettings, CancelChecker cancelChecker) {
 		String projectUri = template.getProjectUri();
 		if (projectUri != null) {
 			if (parameterDeclaration.isInJavaTypeName(offset)) {
@@ -62,7 +63,7 @@ public class QuteCompletionsForParameterDeclaration {
 					boolean closed = parameterDeclaration.isClosed();
 					String patternTypeName = template.getText(rangeOffset.getStart(), offset);
 					return collectJavaClassesSuggestions(patternTypeName, hasAlias, closed, rangeOffset, projectUri, template,
-							completionSettings);
+							completionSettings, cancelChecker);
 				}
 			}
 		}
@@ -71,22 +72,23 @@ public class QuteCompletionsForParameterDeclaration {
 
 	private CompletableFuture<CompletionList> collectJavaClassesSuggestions(String pattern, boolean hasAlias,
 			boolean closed, JavaTypeRangeOffset rangeOffset, String projectUri, Template template,
-			QuteCompletionSettings completionSettings) {
+			QuteCompletionSettings completionSettings, CancelChecker cancelChecker) {
 		QuteJavaTypesParams params = new QuteJavaTypesParams(pattern, projectUri);
 		return javaCache.getJavaTypes(params) //
 				.thenApply(result -> {
+					cancelChecker.checkCanceled();
 					if (result == null) {
 						return null;
 					}
 					CompletionList list = new CompletionList();
 					list.setItems(new ArrayList<>());
 					Range range = QutePositionUtility.createRange(rangeOffset, template);
-					
+
 					for (JavaTypeInfo typeInfo : result) {
 						String fullClassName = typeInfo.getName();
 						CompletionItem item = new CompletionItem();
 						item.setLabel(typeInfo.getSignature());
-						TextEdit textEdit = new TextEdit();						
+						TextEdit textEdit = new TextEdit();
 						textEdit.setRange(range);
 
 						StringBuilder insertText = new StringBuilder(fullClassName);

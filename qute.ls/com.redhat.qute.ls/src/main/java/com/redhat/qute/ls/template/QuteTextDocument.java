@@ -53,21 +53,19 @@ public class QuteTextDocument extends ModelTextDocument<Template> implements Tem
 	}
 
 	@Override
-	public CompletableFuture<Template> getModel() {
-		return super.getModel() //
-				.thenApply(template -> {
-					if (template != null && template.getProjectUri() == null) {
-						template.setTemplateInfoProvider(this);
-						ProjectInfo projectInfo = getProjectInfoFuture().getNow(null);
-						if (projectInfo != null) {
-							QuteProject project = projectRegistry.getProject(projectInfo);
-							template.setProjectUri(project.getUri());
-							template.setTemplateId(templateId);
-						}
-						template.setProjectRegistry(projectRegistry);
-					}
-					return template;
-				});
+	public Template getModel() {
+		var template = super.getModel();
+		if (template != null && template.getProjectUri() == null) {
+			template.setTemplateInfoProvider(this);
+			ProjectInfo projectInfo = getProjectInfoFuture().getNow(null);
+			if (projectInfo != null) {
+				QuteProject project = projectRegistry.getProject(projectInfo);
+				template.setProjectUri(project.getUri());
+				template.setTemplateId(templateId);
+			}
+			template.setProjectRegistry(projectRegistry);
+		}
+		return template;
 	}
 
 	@Override
@@ -90,7 +88,7 @@ public class QuteTextDocument extends ModelTextDocument<Template> implements Tem
 	}
 
 	@Override
-	public CompletableFuture<Template> getTemplate() {
+	public Template getTemplate() {
 		return getModel();
 	}
 
