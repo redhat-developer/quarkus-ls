@@ -33,7 +33,7 @@
 		"description": "If section"
 	},
 	"#else": {
-		"prefix": "else",
+		"prefix": "if-else",
 		"body": [
 			"{#if ${1:condition}}",
 			"\t$2",
@@ -44,7 +44,7 @@
 		"description": "Else section"
 	},
 	"#elseif": {
-		"prefix": "elseif",
+		"prefix": "if-elseif",
 		"body": [
 			"{#if ${1:condition}}",
 			"\t$2",
@@ -98,7 +98,7 @@
 			"{/set}"
 		],
 		"description": "Let section"
-	},		
+	},
 	"#switch": {
 		"prefix": "switch",
 		"body": [
@@ -107,7 +107,7 @@
 			"{/switch}"
 		],
 		"description": "Switch section"
-	},		
+	},
 	"#with": {
 		"prefix": "with",
 		"body": [
@@ -116,7 +116,7 @@
 			"{/with}"
 		],
 		"description": "With section"
-	},		
+	},
 	"#when": {
 		"prefix": "when",
 		"body": [

@@ -25,6 +25,8 @@ public class QuteSnippetRegistryLoader implements ISnippetRegistryLoader<Snippet
 	public void load(SnippetRegistry<Snippet> registry) throws Exception {
 		registry.registerSnippets(QuteSnippetRegistryLoader.class.getResourceAsStream("qute-snippets.json"),
 				QuteSnippetContext.IN_TEXT);
+		registry.registerSnippets(QuteSnippetRegistryLoader.class.getResourceAsStream("qute-nested-snippets.json"),
+				QuteParentSnippetContext.IN_PARENT);
 	}
 
 }
