@@ -79,14 +79,28 @@ public class QuteSnippetCompletionInIfSectionTest {
 	}
 
 	@Test
-	public void elseSnippetCompletionInNestedIf() throws Exception {
+	public void snippetCompletionInNestedIfWithElseIf() throws Exception {
 		String template = "{#if condition}\n" + //
-				"{#el|}\n" + //
+				"{#else if condition}\n" + //
+				"|\n" + //
 				"{/if}";
 		testCompletionFor(template, //
 				true, // snippet support
 				SECTION_SNIPPET_SIZE /* #each, #if, ... */ + 2, /* #else #else if */ //
-				c("else", "{#else}$0", r(1, 0, 1, 5)), //
-				c("elseif", "{#else if ${1:condition}}$0", r(1, 0, 1, 5)));
+				c("else", "{#else}$0", r(2, 0, 2, 0)), //
+				c("elseif", "{#else if ${1:condition}}$0", r(2, 0, 2, 0)));
+	}
+
+	@Test
+	public void snippetCompletionInNestedIfWithElse() throws Exception {
+		String template = "{#if condition}\n" + //
+				"{#else}\n" + //
+				"|\n" + //
+				"{/if}";
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE /* #each, #if, ... */ + 2, /* #else #else if */ //
+				c("else", "{#else}$0", r(2, 0, 2, 0)), //
+				c("elseif", "{#else if ${1:condition}}$0", r(2, 0, 2, 0)));
 	}
 }

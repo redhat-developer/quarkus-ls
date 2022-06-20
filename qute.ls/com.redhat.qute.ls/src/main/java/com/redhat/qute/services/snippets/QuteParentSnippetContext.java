@@ -28,18 +28,20 @@ import com.redhat.qute.services.completions.CompletionRequest;
  *
  * e.g.
  *
- * "context": { "parent": "if" }
+ * "context": { "parent" : "for", "unique" : true }
  *
  */
 
-public class QuteParentSnippetContext implements IQuteSnippetContext {
+public class QuteParentSnippetContext extends AbstractQuteSnippetContext {
 
 	public static final TypeAdapter<QuteParentSnippetContext> IN_PARENT = new SnippetContextForQuteParentAdapter();
 
 	private final String parent;
+	private final boolean unique;
 
-	public QuteParentSnippetContext(String parent) {
+	public QuteParentSnippetContext(String parent, boolean unique) {
 		this.parent = parent;
+		this.unique = unique;
 	}
 
 	@Override
@@ -50,7 +52,7 @@ public class QuteParentSnippetContext implements IQuteSnippetContext {
 		// {#if ...}
 		// | --> here {#else} completion is shown, the cursor is nested in #if parent.
 		// {/if}
-		if (isMatchParent(node)) {
+		if (isMatchParent(node) && isMatchUnique(node)) {
 			if ((node.getKind() == NodeKind.Template || node.getKind() == NodeKind.Text)) {
 				return true;
 			} else if (node.getKind() == NodeKind.Section) {
@@ -69,14 +71,20 @@ public class QuteParentSnippetContext implements IQuteSnippetContext {
 			if (nextToken == JsonToken.NULL) {
 				return null;
 			}
-
+			String parent = null;
+			boolean unique = false;
 			in.beginObject();
 			while (in.hasNext()) {
 				String name = in.nextName();
 				switch (name) {
 				case "parent":
 					if (in.peek() == JsonToken.STRING) {
-						return new QuteParentSnippetContext(in.nextString());
+						parent = in.nextString();
+					}
+					break;
+				case "unique":
+					if (in.peek() == JsonToken.BOOLEAN) {
+						unique = in.nextBoolean();
 					}
 					break;
 				default:
@@ -84,6 +92,9 @@ public class QuteParentSnippetContext implements IQuteSnippetContext {
 				}
 			}
 			in.endObject();
+			if (parent != null) {
+				return new QuteParentSnippetContext(parent, unique);
+			}
 			return null;
 		}
 
@@ -101,6 +112,34 @@ public class QuteParentSnippetContext implements IQuteSnippetContext {
 	 */
 	private boolean isMatchParent(Node node) {
 		return (node.getParentSection() != null && parent.equals(node.getParentSection().getTag()));
+	}
+
+	/**
+	 * Return true if unqiue context is false, or if parent node doesn't contain the
+	 * nested snippet, false otherwise.
+	 *
+	 * @param node the completion request node
+	 * @return true if unqiue context is true, and if parent node doesn't contain
+	 *         the nested snippet, false otherwise.
+	 */
+	private boolean isMatchUnique(Node node) {
+		if (!unique) {
+			return true;
+		}
+		Section parentSection = node.getParentSection();
+		if (parentSection != null) {
+			for (Node child : parentSection.getChildren()) {
+				if (child instanceof Section && ((Section) child).getTag() != null
+						&& ((Section) child).getTag().equals(getTag())) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	private String getTag() {
+		return super.getPrefixes().get(0);
 	}
 
 }
