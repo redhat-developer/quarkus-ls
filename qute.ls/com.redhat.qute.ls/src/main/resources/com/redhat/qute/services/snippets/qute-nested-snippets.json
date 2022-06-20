@@ -1,12 +1,44 @@
 {
-    "#else": {
+    "#case": {
+        "prefix": "case",
+        "body": [
+            "{#case ${1:case}}$0"
+        ],
+        "description": "Case section",
+        "context": {
+            "parent": "switch"
+        }
+    },
+    "#if-else": {
         "prefix": "else",
         "body": [
             "{#else}$0"
         ],
-        "description": "Else section",
+        "description": "Else section for if section",
         "context": {
             "parent": "if"
+        }
+    },
+    "#for-else": {
+        "prefix": "else",
+        "body": [
+            "{#else}$0"
+        ],
+        "description": "Else section for loop section",
+        "context": {
+            "parent": "for",
+            "unique": true
+        }
+    },
+    "#each-else": {
+        "prefix": "else",
+        "body": [
+            "{#else}$0"
+        ],
+        "description": "Else section for loop section",
+        "context": {
+            "parent": "each",
+            "unique": true
         }
     },
     "#elseif": {
@@ -17,6 +49,16 @@
         "description": "Else If section",
         "context": {
             "parent": "if"
+        }
+    },
+    "#is": {
+        "prefix": "is",
+        "body": [
+            "{#is ${1:case}}$0"
+        ],
+        "description": "Is section",
+        "context": {
+            "parent": "when"
         }
     }
 }

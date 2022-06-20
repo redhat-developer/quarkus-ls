@@ -5,7 +5,7 @@
 * http://www.eclipse.org/legal/epl-v20.html
 *
 * SPDX-License-Identifier: EPL-2.0
-* 
+*
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
@@ -17,7 +17,7 @@ import java.util.function.BiPredicate;
 
 /**
  * Snippet description (like vscode snippet).
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -101,6 +101,7 @@ public class Snippet {
 
 	public void setContext(ISnippetContext<?> context) {
 		this.context = context;
+		this.context.setPrefixes(getPrefixes());
 	}
 
 	public boolean hasContext() {

@@ -18,7 +18,7 @@ import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.services.completions.CompletionRequest;
 
-public abstract class QuteSnippetContext implements IQuteSnippetContext {
+public abstract class QuteSnippetContext extends AbstractQuteSnippetContext {
 
 	public static final QuteSnippetContext IN_TEXT = new QuteSnippetContext() {
 

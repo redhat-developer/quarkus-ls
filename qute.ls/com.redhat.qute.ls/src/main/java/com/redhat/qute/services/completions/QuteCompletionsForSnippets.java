@@ -26,7 +26,7 @@ import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.services.snippets.IQuteSnippetContext;
+import com.redhat.qute.services.snippets.AbstractQuteSnippetContext;
 import com.redhat.qute.utils.QutePositionUtility;
 
 public class QuteCompletionsForSnippets<T extends Snippet> {
@@ -41,9 +41,9 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 
 	public QuteCompletionsForSnippets(SnippetRegistryProvider<T> snippetRegistryProvider) {
 		this(snippetRegistryProvider, false);
-		
+
 	}
-	
+
 	public QuteCompletionsForSnippets() {
 		this(true);
 	}
@@ -51,7 +51,7 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 	public QuteCompletionsForSnippets(boolean loadDefault) {
 		this(null, loadDefault);
 	}
-	
+
 	private QuteCompletionsForSnippets(SnippetRegistryProvider<T> snippetRegistryProvider, boolean loadDefault) {
 		this.loadDefault = loadDefault;
 		this.snippetRegistryProvider = snippetRegistryProvider;
@@ -83,8 +83,8 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 			List<CompletionItem> snippets = getSnippetRegistry().getCompletionItems(replaceRange, lineDelimiter,
 					completionRequest.canSupportMarkupKind(MarkupKind.MARKDOWN),
 					completionRequest.isCompletionSnippetsSupported(), (context, model) -> {
-						if (context instanceof IQuteSnippetContext) {
-							return (((IQuteSnippetContext) context).isMatch(completionRequest, model));
+						if (context instanceof AbstractQuteSnippetContext) {
+							return (((AbstractQuteSnippetContext) context).isMatch(completionRequest, model));
 						}
 						return false;
 					}, (suffix) -> {
