@@ -302,7 +302,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			return template.getProjectFuture() //
 					.thenCompose(project -> {
 						if (project == null) {
-							return null;
+							return EXTENDED_TEMPLATE_DATAMODEL_NULL_FUTURE;
 						}
 						return getDataModelTemplate(template, project.getUri());
 					});
