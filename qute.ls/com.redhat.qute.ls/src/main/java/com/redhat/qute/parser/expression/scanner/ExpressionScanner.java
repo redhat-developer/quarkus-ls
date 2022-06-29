@@ -11,9 +11,16 @@
 *******************************************************************************/
 package com.redhat.qute.parser.expression.scanner;
 
+import static com.redhat.qute.parser.template.scanner.TemplateScanner.QUOTE;
+import static com.redhat.qute.parser.template.scanner.TemplateScanner.QUOTE_C;
+
 import com.redhat.qute.parser.scanner.AbstractScanner;
 
 public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> {
+
+	private static final int[] QUOTE_OR_PAREN = new int[] { '(', ')', '"', '\'', };
+	private static final int[] SPACE_PERIOD_LBRACKET = new int[] {' ', '.', '['};
+	private static final int[] SPACE_PERIOD_LBRACKET_LPAREN_COLON = new int[] {' ', '.', '[', '(', ':'};
 
 	public static ExpressionScanner createScanner(String input, boolean canSupportInfixNotation) {
 		return createScanner(input, canSupportInfixNotation, 0, input.length());
@@ -107,7 +114,7 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 				bracket++;
 				return finishToken(offset, TokenType.OpenBracket);
 			}
-			stream.advanceUntilChar('(', ')', '"', '\'');
+			stream.advanceUntilChar(QUOTE_OR_PAREN);
 			if (stream.peekChar() == '(') {
 				stream.advance(1);
 				bracket++;
@@ -132,7 +139,7 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 		}
 
 		case WithinString: {
-			if (stream.advanceIfAnyOfChars('"', '\'')) {
+			if (stream.advanceIfAnyOfChars(QUOTE_C)) {
 				if (inMethod) {
 					state = ScannerState.WithinMethod;
 				} else {
@@ -140,7 +147,7 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 				}
 				return finishToken(offset, TokenType.EndString);
 			}
-			stream.advanceUntilChar('"', '\'');
+			stream.advanceUntilChar(QUOTE);
 			return finishToken(offset, TokenType.String);
 		}
 
@@ -212,17 +219,17 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 				stream.advanceUntilChar(c);
 			} else {
 				// foo or| bar
-				stream.advanceUntilAnyOfChars(' ', '.', '[');
+				stream.advanceUntilAnyOfChars(SPACE_PERIOD_LBRACKET);
 			}
 		}
 		// foo.or|
-		stream.advanceUntilAnyOfChars(' ', '.', '[', '(', ':');
+		stream.advanceUntilAnyOfChars(SPACE_PERIOD_LBRACKET_LPAREN_COLON);
 	}
 
 	/**
 	 * Returns true if the current expression scan an Infix Notation and false
 	 * otherwise.
-	 * 
+	 *
 	 * @return true if the current expression scan an Infix Notation and false
 	 *         otherwise.
 	 */
