@@ -15,7 +15,7 @@ import com.redhat.qute.parser.scanner.AbstractScanner;
 
 /**
  * Condition scanner.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -35,6 +35,8 @@ public class ConditionScanner extends AbstractScanner<TokenType, ScannerState> {
 	}
 
 	private int nbMethods;
+
+	private static final int[] QUOTE_OR_PAREN = new int[] {'(', ')', '\'', '"'};
 
 	@Override
 	protected TokenType internalScan() {
@@ -68,7 +70,7 @@ public class ConditionScanner extends AbstractScanner<TokenType, ScannerState> {
 				}
 				return finishToken(offset, TokenType.EndBracketCondition);
 			}
-			if (stream.advanceUntilChar('(', ')', '\'', '"')) {
+			if (stream.advanceUntilChar(QUOTE_OR_PAREN)) {
 				int c = stream.peekChar();
 				if (c == '"' || c == '\'') {
 					stream.advance(1);

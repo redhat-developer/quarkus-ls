@@ -17,11 +17,13 @@ import com.redhat.qute.parser.scanner.AbstractScanner;
 
 /**
  * Parameter scanner.
- * 
+ *
  * @author Angelo ZERR
  *
  */
 public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
+
+	private static final int[] PAREN_COMMA = new int[] { '(', ')', ',' };
 
 	private static final Predicate<Integer> PARAM_SPLITTED_BY_ONLY_SPACE = ch -> {
 		return ch != ' ';
@@ -72,54 +74,54 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 		String errorMessage = null;
 		switch (state) {
 
-		case WithinParameters: {
-			if (stream.skipWhitespace()) {
-				return finishToken(offset, TokenType.Whitespace);
-			}
-			if (methodParameters) {
-				return parseParameterName(offset);
-			} else {
-				if (hasNextParameterNameOrValue()) {
-					state = ScannerState.WithinParameter;
-					return finishToken(offset, TokenType.ParameterName);
+			case WithinParameters: {
+				if (stream.skipWhitespace()) {
+					return finishToken(offset, TokenType.Whitespace);
 				}
-			}
-			return finishToken(offset, TokenType.Unknown);
-		}
-
-		case WithinParameter: {
-			if (!methodParameters && splitWithEquals) {
-				if (stream.advanceIfChar('=')) {
-					if (!stream.eos() && (stream.peekChar() == ' ' || stream.peekChar() == '=')) {
-						state = ScannerState.WithinParameters;
-					} else {
-						state = ScannerState.AfterAssign;
+				if (methodParameters) {
+					return parseParameterName(offset);
+				} else {
+					if (hasNextParameterNameOrValue()) {
+						state = ScannerState.WithinParameter;
+						return finishToken(offset, TokenType.ParameterName);
 					}
-					return finishToken(offset, TokenType.Assign);
 				}
+				return finishToken(offset, TokenType.Unknown);
 			}
-			state = ScannerState.WithinParameters;
-			return internalScan();
-		}
 
-		case AfterAssign: {
-			int c = stream.peekChar();
-			if (c == '"' || c == '\'') {
-				stream.advance(1);
-				if (stream.advanceUntilChar(c)) {
+			case WithinParameter: {
+				if (!methodParameters && splitWithEquals) {
+					if (stream.advanceIfChar('=')) {
+						if (!stream.eos() && (stream.peekChar() == ' ' || stream.peekChar() == '=')) {
+							state = ScannerState.WithinParameters;
+						} else {
+							state = ScannerState.AfterAssign;
+						}
+						return finishToken(offset, TokenType.Assign);
+					}
+				}
+				state = ScannerState.WithinParameters;
+				return internalScan();
+			}
+
+			case AfterAssign: {
+				int c = stream.peekChar();
+				if (c == '"' || c == '\'') {
 					stream.advance(1);
+					if (stream.advanceUntilChar(c)) {
+						stream.advance(1);
+					}
+					state = ScannerState.WithinParameters;
+					return finishToken(offset, TokenType.ParameterValue);
 				}
-				state = ScannerState.WithinParameters;
-				return finishToken(offset, TokenType.ParameterValue);
+
+				if (hasNextParameterNameOrValue()) {
+					state = ScannerState.WithinParameters;
+					return finishToken(offset, TokenType.ParameterValue);
+				}
 			}
 
-			if (hasNextParameterNameOrValue()) {
-				state = ScannerState.WithinParameters;
-				return finishToken(offset, TokenType.ParameterValue);
-			}
-		}
-
-		default:
+			default:
 		}
 		stream.advance(1);
 		return finishToken(offset, TokenType.Unknown, errorMessage);
@@ -134,7 +136,7 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 
 	private TokenType parseParameterName(int offset) {
 		if (methodParameters) {
-			stream.advanceUntilChar('(', ')', ',');
+			stream.advanceUntilChar(PAREN_COMMA);
 			if (stream.peekChar() == '(') {
 				stream.advance(1);
 				bracket++;

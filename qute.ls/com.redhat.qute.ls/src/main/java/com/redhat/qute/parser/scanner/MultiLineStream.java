@@ -73,7 +73,7 @@ public class MultiLineStream {
 
 	/**
 	 * Peeks at next char at position + n. peekChar() == peekChar(0)
-	 * 
+	 *
 	 * @param n
 	 * @return
 	 */
@@ -87,7 +87,7 @@ public class MultiLineStream {
 
 	/**
 	 * Peeks at the char at position 'offset' of the whole document
-	 * 
+	 *
 	 * @param offset
 	 * @return
 	 */
@@ -106,7 +106,7 @@ public class MultiLineStream {
 		return false;
 	}
 
-	public boolean advanceIfChars(int... ch) {
+	public boolean advanceIfChars(int[] ch) {
 		int i;
 		if (this.position + ch.length > this.len) {
 			return false;
@@ -120,7 +120,7 @@ public class MultiLineStream {
 		return true;
 	}
 
-	public boolean advanceIfAnyOfChars(char... ch) {
+	public boolean advanceIfAnyOfChars(char[] ch) {
 		int i;
 		if (this.position + 1 > this.len) {
 			return false;
@@ -135,10 +135,10 @@ public class MultiLineStream {
 
 	/**
 	 * Advances stream.position no matter what until it hits ch or eof(this.len)
-	 * 
+	 *
 	 * @return boolean: was the char found
 	 */
-	public boolean advanceUntilChar(int... ch) {
+	public boolean advanceUntilChar(int[] ch) {
 		while (this.position < this.len) {
 			for (int c : ch) {
 				if (peekChar() == c) {
@@ -151,9 +151,24 @@ public class MultiLineStream {
 	}
 
 	/**
+	 * Advances stream.position no matter what until it hits ch or eof(this.len)
+	 *
+	 * @return boolean: was the char found
+	 */
+	public boolean advanceUntilChar(int ch) {
+		while (this.position < this.len) {
+			if (peekChar() == ch) {
+				return true;
+			}
+			this.advance(1);
+		}
+		return false;
+	}
+
+	/**
 	 * Will advance until any of the provided chars are encountered
 	 */
-	public boolean advanceUntilAnyOfChars(int... ch) {
+	public boolean advanceUntilAnyOfChars(int[] ch) {
 		while (this.position < this.len) {
 			for (int i = 0; i < ch.length; i++) {
 				if (peekChar() == ch[i]) {
@@ -166,7 +181,7 @@ public class MultiLineStream {
 		return false;
 	}
 
-	public boolean advanceUntilChars(int... ch) {
+	public boolean advanceUntilChars(int[] ch) {
 		while (this.position + ch.length <= this.len) {
 			int i = 0;
 			for (; i < ch.length && peekChar(i) == ch[i]; i++) {
