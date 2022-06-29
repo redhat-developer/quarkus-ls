@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.CodeLens;
@@ -34,31 +35,43 @@ import com.redhat.qute.commons.QuteJavaDiagnosticsParams;
 import com.redhat.qute.commons.QuteJavaDocumentLinkParams;
 import com.redhat.qute.ls.AbstractTextDocumentService;
 import com.redhat.qute.ls.QuteLanguageServer;
+import com.redhat.qute.ls.commons.TextDocument;
+import com.redhat.qute.ls.commons.TextDocuments;
+import com.redhat.qute.ls.commons.ValidatorDelayer;
 import com.redhat.qute.settings.SharedSettings;
 
 public class JavaFileTextDocumentService extends AbstractTextDocumentService {
 
+	private final TextDocuments<TextDocument> textDocuments;
+	private final ValidatorDelayer<TextDocument> validatorDelayer;
+
 	public JavaFileTextDocumentService(QuteLanguageServer quteLanguageServer, SharedSettings sharedSettings) {
 		super(quteLanguageServer, sharedSettings);
+		textDocuments = new TextDocuments<>();
+		validatorDelayer = new ValidatorDelayer<>((textDocument) -> {
+			triggerValidationFor(textDocument);
+		});
 	}
 
 	// ------------------------------ did* for Java file -------------------------
 
 	@Override
 	public void didOpen(DidOpenTextDocumentParams params) {
-		triggerValidationFor(params.getTextDocument().getUri());
+		TextDocument textDocument = textDocuments.onDidOpenTextDocument(params);
+		validate(textDocument, false);
 	}
 
 	@Override
 	public void didChange(DidChangeTextDocumentParams params) {
-		triggerValidationFor(params.getTextDocument().getUri());
+		TextDocument textDocument = textDocuments.onDidChangeTextDocument(params);
+		validate(textDocument, true);
 	}
 
 	@Override
 	public void didClose(DidCloseTextDocumentParams params) {
-		String uri = params.getTextDocument().getUri();
+		TextDocument textDocument = textDocuments.onDidCloseTextDocument(params);
 		quteLanguageServer.getLanguageClient()
-				.publishDiagnostics(new PublishDiagnosticsParams(uri, new ArrayList<Diagnostic>()));
+				.publishDiagnostics(new PublishDiagnosticsParams(textDocument.getUri(), new ArrayList<Diagnostic>()));
 	}
 
 	@Override
@@ -91,19 +104,29 @@ public class JavaFileTextDocumentService extends AbstractTextDocumentService {
 
 	// ------------------------------ Diagnostics ------------------------------
 
-	private void triggerValidationFor(String uri) {
-		triggerValidationFor(Arrays.asList(uri));
+	private void validate(TextDocument textDocument, boolean delay) {
+		if (delay) {
+			validatorDelayer.validateWithDelay(textDocument);
+		} else {
+			triggerValidationFor(textDocument);
+		}
+	}
+
+	private void triggerValidationFor(TextDocument textDocument) {
+		triggerValidationFor(Arrays.asList(textDocument));
 	}
 
 	/**
 	 * Validate all given Java files uris.
 	 *
-	 * @param uris Java files uris to validate.
+	 * @param textDocuments Java files uris to validate.
 	 */
-	private void triggerValidationFor(List<String> uris) {
-		if (uris.isEmpty()) {
+	private void triggerValidationFor(List<TextDocument> textDocuments) {
+		if (textDocuments.isEmpty()) {
 			return;
 		}
+		List<String> uris = textDocuments.stream().map(textDocument -> textDocument.getUri())
+				.collect(Collectors.toList());
 		QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams(uris);
 		quteLanguageServer.getLanguageClient().getJavaDiagnostics(params) //
 				.thenApply(diagnostics -> {

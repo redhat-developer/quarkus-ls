@@ -55,12 +55,12 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import org.eclipse.lsp4j.jsonrpc.messages.Tuple;
 
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.ls.AbstractTextDocumentService;
 import com.redhat.qute.ls.QuteLanguageServer;
-import com.redhat.qute.ls.commons.ModelValidatorDelayer;
+import com.redhat.qute.ls.commons.ModelTextDocument;
+import com.redhat.qute.ls.commons.ValidatorDelayer;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.services.QuteLanguageService;
@@ -75,14 +75,14 @@ import com.redhat.qute.utils.QutePositionUtility;
 public class TemplateFileTextDocumentService extends AbstractTextDocumentService {
 
 	private final QuteTextDocuments documents;
-	private ModelValidatorDelayer<Template> validatorDelayer;
+	private ValidatorDelayer<ModelTextDocument<Template>> validatorDelayer;
 
 	public TemplateFileTextDocumentService(QuteLanguageServer quteLanguageServer, SharedSettings sharedSettings) {
 		super(quteLanguageServer, sharedSettings);
 		this.documents = new QuteTextDocuments((document, cancelChecker) -> {
 			return TemplateParser.parse(document, () -> cancelChecker.checkCanceled());
 		}, quteLanguageServer, quteLanguageServer.getProjectRegistry());
-		this.validatorDelayer = new ModelValidatorDelayer<Template>((template) -> {
+		this.validatorDelayer = new ValidatorDelayer<ModelTextDocument<Template>>((template) -> {
 			validate((QuteTextDocument) template);
 		});
 	}
