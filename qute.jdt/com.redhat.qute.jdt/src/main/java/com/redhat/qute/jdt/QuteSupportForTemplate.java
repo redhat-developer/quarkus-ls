@@ -46,7 +46,9 @@ import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.WorkspaceEdit;
 
+import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
@@ -69,15 +71,16 @@ import com.redhat.qute.jdt.internal.resolver.CompilationUnitTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 import com.redhat.qute.jdt.internal.template.JavaTypesSearch;
 import com.redhat.qute.jdt.internal.template.QuarkusIntegrationForQute;
+import com.redhat.qute.jdt.internal.template.QuteSupportForTemplateGenerateMissingJavaMemberHandler;
 import com.redhat.qute.jdt.internal.template.TemplateDataSupport;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
 import com.redhat.qute.jdt.utils.QuteReflectionAnnotationUtils;
 
 /**
- * 
+ *
  * Qute support for Template file.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -100,11 +103,11 @@ public class QuteSupportForTemplate {
 
 	/**
 	 * Returns the project information for the given project Uri.
-	 * 
+	 *
 	 * @param params  the project information parameters.
 	 * @param utils   the JDT LS utility.
 	 * @param monitor the progress monitor.
-	 * 
+	 *
 	 * @return the project information for the given project Uri and null otherwise.
 	 */
 	public ProjectInfo getProjectInfo(QuteProjectParams params, IJDTUtils utils, IProgressMonitor monitor) {
@@ -118,7 +121,7 @@ public class QuteSupportForTemplate {
 	/**
 	 * Collect data model templates from the given project Uri. A data model
 	 * template can be declared with:
-	 * 
+	 *
 	 * <ul>
 	 * <li>@CheckedTemplate support: collect parameters for Qute Template by
 	 * searching @CheckedTemplate annotation.</li>
@@ -127,13 +130,13 @@ public class QuteSupportForTemplate {
 	 * <li>Template extension support: see
 	 * https://quarkus.io/guides/qute-reference#template_extension_methods</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param params  the project uri.
 	 * @param utils   JDT LS utilities
 	 * @param monitor the progress monitor
-	 * 
+	 *
 	 * @return data model templates from the given project Uri.
-	 * 
+	 *
 	 * @throws CoreException
 	 */
 	public DataModelProject<DataModelTemplate<DataModelParameter>> getDataModelProject(
@@ -148,13 +151,13 @@ public class QuteSupportForTemplate {
 
 	/**
 	 * Collect user tags from the given project Uri.
-	 * 
+	 *
 	 * @param params  the project uri.
 	 * @param utils   JDT LS utilities
 	 * @param monitor the progress monitor
-	 * 
+	 *
 	 * @return user tags from the given project Uri.
-	 * 
+	 *
 	 * @throws CoreException
 	 */
 	public List<UserTagInfo> getUserTags(QuteUserTagParams params, IJDTUtils utils, IProgressMonitor monitor)
@@ -170,13 +173,13 @@ public class QuteSupportForTemplate {
 	/**
 	 * Returns Java types for the given pattern which belong to the given project
 	 * Uri.
-	 * 
+	 *
 	 * @param params  the java types parameters.
 	 * @param utils   the JDT LS utility.
 	 * @param monitor the progress monitor.
-	 * 
+	 *
 	 * @return list of Java types.
-	 * 
+	 *
 	 * @throws CoreException
 	 */
 	public List<JavaTypeInfo> getJavaTypes(QuteJavaTypesParams params, IJDTUtils utils, IProgressMonitor monitor)
@@ -192,11 +195,11 @@ public class QuteSupportForTemplate {
 	/**
 	 * Returns the Java definition of the given Java type, method, field, method
 	 * parameter, method invocation parameter and null otherwise.
-	 * 
+	 *
 	 * @param params  the Java element information.
 	 * @param utils   the JDT LS utility.
 	 * @param monitor the progress monitor.
-	 * 
+	 *
 	 * @return the Java definition of the given Java type, method, field, method
 	 *         parameter, method invocation parameter and null otherwise.
 	 * @throws CoreException
@@ -298,13 +301,13 @@ public class QuteSupportForTemplate {
 
 	/**
 	 * Returns the resolved type (fields and methods) for the given Java type.
-	 * 
+	 *
 	 * @param params  the Java type to resolve.
 	 * @param utils   the JDT LS utility.
 	 * @param monitor the progress monitor.
-	 * 
+	 *
 	 * @return the resolved type (fields and methods) for the given Java type.
-	 * 
+	 *
 	 * @throws CoreException
 	 */
 	public ResolvedJavaTypeInfo getResolvedJavaType(QuteResolvedJavaTypeParams params, IJDTUtils utils,
@@ -479,12 +482,12 @@ public class QuteSupportForTemplate {
 
 	/**
 	 * Returns the reason
-	 * 
+	 *
 	 * @param method
 	 * @param type
-	 * 
+	 *
 	 * @return
-	 * 
+	 *
 	 * @see https://github.com/quarkusio/quarkus/blob/ce19ff75e9f732ff731bb30c2141b44b42c66050/independent-projects/qute/core/src/main/java/io/quarkus/qute/ReflectionValueResolver.java#L176
 	 */
 	private static InvalidMethodReason getValidMethodForQute(IMethod method, String typeName) {
@@ -540,6 +543,22 @@ public class QuteSupportForTemplate {
 				? new CompilationUnitTypeResolver((ICompilationUnit) member.getAncestor(IJavaElement.COMPILATION_UNIT))
 				: new ClassFileTypeResolver((IClassFile) member.getAncestor(IJavaElement.CLASS_FILE));
 		return typeResolver;
+	}
+
+	/**
+	 * Returns the workspace edit to generate the given java member for the given
+	 * type.
+	 *
+	 * @param params  the parameters needed to resolve the workspace edit
+	 * @param utils   the jdt utils
+	 * @param monitor the progress monitor
+	 * @return the workspace edit to generate the given java member for the given
+	 *         type
+	 */
+	public WorkspaceEdit generateMissingJavaMember(GenerateMissingJavaMemberParams params, IJDTUtils utils,
+			IProgressMonitor monitor) {
+		return QuteSupportForTemplateGenerateMissingJavaMemberHandler.handleGenerateMissingJavaMember(params, utils,
+				monitor);
 	}
 
 }

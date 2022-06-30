@@ -26,7 +26,10 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.WorkspaceEdit;
 
+import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
+import com.redhat.qute.commons.GenerateMissingJavaMemberParams.MemberType;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
@@ -44,7 +47,7 @@ import com.redhat.qute.jdt.QuteSupportForTemplate;
 
 /**
  * JDT LS commands used by Qute template.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -80,21 +83,25 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 
 	private static final String QUTE_TEMPLATE_RESOLVED_JAVA_TYPE_COMMAND_ID = "qute/template/resolvedJavaType";
 
+	private static final String QUTE_TEMPLATE_GENERATE_MISSING_JAVA_MEMBER = "qute/template/generateMissingJavaMember";
+
 	@Override
 	public Object executeCommand(String commandId, List<Object> arguments, IProgressMonitor monitor) throws Exception {
 		switch (commandId) {
-		case QUTE_TEMPLATE_PROJECT_COMMAND_ID:
-			return getProjectInfo(arguments, commandId, monitor);
-		case QUTE_TEMPLATE_PROJECT_DATA_MODEL_COMMAND_ID:
-			return getProjectDataModel(arguments, commandId, monitor);
-		case QUTE_TEMPLATE_USER_TAGS_COMMAND_ID:
-			return getUserTags(arguments, commandId, monitor);
-		case QUTE_TEMPLATE_JAVA_TYPES_COMMAND_ID:
-			return getJavaTypes(arguments, commandId, monitor);
-		case QUTE_TEMPLATE_RESOLVED_JAVA_TYPE_COMMAND_ID:
-			return getResolvedJavaType(arguments, commandId, monitor);
-		case QUTE_TEMPLATE_JAVA_DEFINITION_COMMAND_ID:
-			return getJavaDefinition(arguments, commandId, monitor);
+			case QUTE_TEMPLATE_PROJECT_COMMAND_ID:
+				return getProjectInfo(arguments, commandId, monitor);
+			case QUTE_TEMPLATE_PROJECT_DATA_MODEL_COMMAND_ID:
+				return getProjectDataModel(arguments, commandId, monitor);
+			case QUTE_TEMPLATE_USER_TAGS_COMMAND_ID:
+				return getUserTags(arguments, commandId, monitor);
+			case QUTE_TEMPLATE_JAVA_TYPES_COMMAND_ID:
+				return getJavaTypes(arguments, commandId, monitor);
+			case QUTE_TEMPLATE_RESOLVED_JAVA_TYPE_COMMAND_ID:
+				return getResolvedJavaType(arguments, commandId, monitor);
+			case QUTE_TEMPLATE_JAVA_DEFINITION_COMMAND_ID:
+				return getJavaDefinition(arguments, commandId, monitor);
+			case QUTE_TEMPLATE_GENERATE_MISSING_JAVA_MEMBER:
+				return generateMissingJavaMember(arguments, commandId, monitor);
 		}
 		return null;
 	}
@@ -167,13 +174,13 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 
 	/**
 	 * Collect user tags from a given project Uri.
-	 * 
+	 *
 	 * @param arguments
 	 * @param commandId
 	 * @param monitor
-	 * 
+	 *
 	 * @return user tags from a given project Uri.
-	 * 
+	 *
 	 * @throws CoreException
 	 */
 	private static List<UserTagInfo> getUserTags(List<Object> arguments, String commandId, IProgressMonitor monitor)
@@ -309,6 +316,62 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 		boolean dataMethodInvocation = getBoolean(obj, DATA_METHOD_INVOCATION_ATTR);
 		params.setDataMethodInvocation(dataMethodInvocation);
 		return params;
+	}
+
+	private static WorkspaceEdit generateMissingJavaMember(List<Object> arguments, String commandId,
+			IProgressMonitor monitor)
+			throws JavaModelException, CoreException {
+
+		// Create java definition parameter
+		GenerateMissingJavaMemberParams params = createGenerateMissingJavaMemberParams(arguments, commandId);
+		// Return file information from the parameter
+		return QuteSupportForTemplate.getInstance().generateMissingJavaMember(params, JDTUtilsLSImpl.getInstance(),
+				monitor);
+	}
+
+	private static GenerateMissingJavaMemberParams createGenerateMissingJavaMemberParams(List<Object> arguments,
+			String commandId) {
+
+		Map<String, Object> obj = getFirst(arguments);
+		if (obj == null) {
+			throw new UnsupportedOperationException(String
+					.format("Command '%s' must be called with one QuteTemplateCodeActionParams argument!", commandId));
+		}
+
+		MemberType memberType = null;
+		try {
+			memberType = MemberType.forValue(ArgumentUtils.getInt(obj, "memberType"));
+		} catch (IllegalArgumentException e) {
+			// ignored
+		}
+		if (memberType == null) {
+			throw new UnsupportedOperationException(String.format(
+					"Command '%s' must be called with required GenerateMissingJavaMemberParams.memberType !",
+					commandId));
+		}
+
+		String missingProperty = getString(obj, "missingProperty");
+		if (missingProperty == null) {
+			throw new UnsupportedOperationException(String.format(
+					"Command '%s' must be called with required GenerateMissingJavaMemberParams.missingProperty !",
+					commandId));
+		}
+
+		String javaType = getString(obj, "javaType");
+		if (javaType == null) {
+			throw new UnsupportedOperationException(String.format(
+					"Command '%s' must be called with required GenerateMissingJavaMemberParams.javaType !", commandId));
+		}
+
+		String projectUri = getString(obj, "projectUri");
+		if (projectUri == null) {
+			throw new UnsupportedOperationException(String.format(
+					"Command '%s' must be called with required GenerateMissingJavaMemberParams.projectUri !",
+					commandId));
+		}
+
+		return new GenerateMissingJavaMemberParams(memberType, missingProperty, javaType, projectUri);
+
 	}
 
 }

@@ -92,7 +92,7 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 
 	/**
 	 * Returns the parameter name.
-	 * 
+	 *
 	 * @return the parameter name.
 	 */
 	public String getName() {
@@ -216,12 +216,12 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 	/**
 	 * Returns true if the last part of the expression parameter is optional (ends
 	 * with ??) and false otherwise.
-	 * 
+	 *
 	 * <p>
 	 * {#let bar=foo??}
 	 * {#if foo??}
 	 * </p>
-	 * 
+	 *
 	 * @return true if the last part of the expression parameter is optional (ends
 	 *         with ??) and false otherwise.
 	 */

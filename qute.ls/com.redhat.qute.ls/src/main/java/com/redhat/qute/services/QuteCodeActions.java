@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
+import static com.redhat.qute.ls.commons.CodeActionFactory.createCodeActionWithData;
 import static com.redhat.qute.ls.commons.CodeActionFactory.createCommand;
 import static com.redhat.qute.ls.commons.CodeActionFactory.insert;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_ITERABLE;
@@ -30,9 +31,11 @@ import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.google.gson.JsonObject;
+import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
+import com.redhat.qute.commons.GenerateMissingJavaMemberParams.MemberType;
+import com.redhat.qute.ls.api.QuteTemplateGenerateMissingJavaMember;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.CodeActionFactory;
 import com.redhat.qute.ls.commons.TextDocument;
@@ -46,6 +49,8 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
+import com.redhat.qute.services.diagnostics.DiagnosticDataFactory;
+import com.redhat.qute.services.diagnostics.UnknownPropertyData;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.settings.QuteValidationSettings.Severity;
 import com.redhat.qute.settings.SharedSettings;
@@ -81,10 +86,21 @@ class QuteCodeActions {
 
 	private static final String UNDEFINED_NAMESPACE_SEVERITY_SETTING = "qute.validation.undefinedNamespace.severity";
 
+	private static final String APPEND_TO_TEMPLATE_EXTENSIONS = "Create template extension `%s()` in detected template extensions class.";
+	
+	private static final String CREATE_TEMPLATE_EXTENSIONS = "Create template extension `%s()` in a new template extensions class.";
+
+	private static final String CREATE_GETTER = "Create getter `get%s()` in `%s`.";
+
+	private static final String CREATE_PUBLIC_FIELD = "Create public field `%s` in `%s`.";
+
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
-			SharedSettings sharedSettings) {
+			QuteTemplateGenerateMissingJavaMember resolver, SharedSettings sharedSettings) {
 		List<CodeAction> codeActions = new ArrayList<>();
 		List<Diagnostic> diagnostics = context.getDiagnostics();
+
+		List<CompletableFuture<Void>> codeActionResolveFutures = new ArrayList<>();
+
 		if (diagnostics != null && !diagnostics.isEmpty()) {
 			boolean canUpdateConfiguration = sharedSettings.getCommandCapabilities()
 					.isCommandSupported(QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE);
@@ -100,37 +116,120 @@ class QuteCodeActions {
 				QuteErrorCode errorCode = QuteErrorCode.getErrorCode(diagnostic.getCode());
 				if (errorCode != null) {
 					switch (errorCode) {
-					case UndefinedObject:
-						// The following Qute template:
-						// {undefinedObject}
-						//
-						// will provide a quickfix like:
-						//
-						// Declare `undefinedObject` with parameter declaration."
-						doCodeActionsForUndefinedObject(template, diagnostic, errorCode, codeActions);
-						break;
-					case UndefinedSectionTag:
-						// The following Qute template:
-						// {#undefinedTag }
-						//
-						// will provide a quickfix like:
-						//
-						// Create `undefinedTag`"
-						doCodeActionsForUndefinedSectionTag(template, diagnostic, codeActions);
-						break;
-					case UndefinedNamespace:
-						// The following Qute template:
-						// {undefinedNamespace:xyz}
-						doCodeActionToSetIgnoreSeverity(template, Collections.singletonList(diagnostic), errorCode,
-								codeActions, UNDEFINED_NAMESPACE_SEVERITY_SETTING);
-						break;
-					default:
-						break;
+						case UndefinedObject:
+							// The following Qute template:
+							// {undefinedObject}
+							//
+							// will provide a quickfix like:
+							//
+							// Declare `undefinedObject` with parameter declaration."
+							doCodeActionsForUndefinedObject(template, diagnostic, errorCode, codeActions);
+							break;
+						case UndefinedSectionTag:
+							// The following Qute template:
+							// {#undefinedTag }
+							//
+							// will provide a quickfix like:
+							//
+							// Create `undefinedTag`"
+							doCodeActionsForUndefinedSectionTag(template, diagnostic, codeActions);
+							break;
+						case UndefinedNamespace:
+							// The following Qute template:
+							// {undefinedNamespace:xyz}
+							doCodeActionToSetIgnoreSeverity(template, Collections.singletonList(diagnostic), errorCode,
+									codeActions, UNDEFINED_NAMESPACE_SEVERITY_SETTING);
+							break;
+						case UnknownProperty:
+							doCodeActionToCreateProperty(template, diagnostic, errorCode, codeActions,
+									codeActionResolveFutures,
+									resolver,
+									sharedSettings);
+							break;
+						default:
+							break;
 					}
 				}
 			}
 		}
-		return CompletableFuture.completedFuture(codeActions);
+		CompletableFuture<Void>[] registrationsArray = new CompletableFuture[codeActionResolveFutures.size()];
+		codeActionResolveFutures.toArray(registrationsArray);
+		return CompletableFuture.allOf(registrationsArray).thenApply((Void _void) -> {
+			return codeActions;
+		});
+	}
+
+	private void doCodeActionToCreateProperty(Template template, Diagnostic diagnostic, QuteErrorCode errorCode,
+			List<CodeAction> codeActions, List<CompletableFuture<Void>> registrations,
+			QuteTemplateGenerateMissingJavaMember resolver, SharedSettings settings) {
+
+		UnknownPropertyData unknownPropertyData = DiagnosticDataFactory.getMissingMemberData(diagnostic);
+		if (unknownPropertyData == null) {
+			return;
+		}
+		String missingProperty = unknownPropertyData.getProperty();
+		String resolvedType = unknownPropertyData.getSignature();
+		String propertyCapitalized = missingProperty.substring(0, 1).toUpperCase() + missingProperty.substring(1);
+
+		String projectUri = template.getProjectUri();
+
+		GenerateMissingJavaMemberParams publicFieldParams = new GenerateMissingJavaMemberParams(MemberType.Field,
+				missingProperty, resolvedType, projectUri);
+		GenerateMissingJavaMemberParams getterParams = new GenerateMissingJavaMemberParams(MemberType.Getter,
+				missingProperty, resolvedType, projectUri);
+		GenerateMissingJavaMemberParams appendToTemplateExtensionsParams = new GenerateMissingJavaMemberParams(
+				MemberType.AppendTemplateExtension, missingProperty, resolvedType, projectUri);
+		GenerateMissingJavaMemberParams createTemplateExtensionsParams = new GenerateMissingJavaMemberParams(
+				MemberType.CreateTemplateExtension, missingProperty, resolvedType, projectUri);
+		
+
+		CodeAction createPublicField = createCodeActionWithData(
+				String.format(CREATE_PUBLIC_FIELD, missingProperty, resolvedType), publicFieldParams,
+				Collections.singletonList(diagnostic));
+		CodeAction createGetter = createCodeActionWithData(
+				String.format(CREATE_GETTER, propertyCapitalized, resolvedType), getterParams,
+				Collections.singletonList(diagnostic));
+		CodeAction appendToTemplateExtensions = createCodeActionWithData(String
+				.format(APPEND_TO_TEMPLATE_EXTENSIONS, missingProperty),
+				appendToTemplateExtensionsParams, Collections.singletonList(diagnostic));
+		CodeAction createTemplateExtensions = createCodeActionWithData(String.format(CREATE_TEMPLATE_EXTENSIONS, missingProperty), createTemplateExtensionsParams, Collections.singletonList(diagnostic));
+		codeActions.add(createPublicField);
+		codeActions.add(createGetter);
+		codeActions.add(appendToTemplateExtensions);
+		codeActions.add(createTemplateExtensions);
+
+		registrations.add(resolver.generateMissingJavaMember(publicFieldParams) //
+				.thenAccept((workspaceEdit) -> {
+					if (workspaceEdit == null) {
+						return;
+					}
+					createPublicField.setEdit(workspaceEdit);
+				}));
+
+		registrations.add(resolver.generateMissingJavaMember(getterParams) //
+				.thenAccept((workspaceEdit) -> {
+					if (workspaceEdit == null) {
+						return;
+					}
+					createGetter.setEdit(workspaceEdit);
+				}));
+
+		registrations.add(resolver.generateMissingJavaMember(appendToTemplateExtensionsParams) //
+				.thenAccept((workspaceEdit) -> {
+					if (workspaceEdit == null) {
+						return;
+					}
+					appendToTemplateExtensions.setEdit(workspaceEdit);
+				}));
+		
+		registrations.add(resolver.generateMissingJavaMember(createTemplateExtensionsParams) //
+				.thenAccept((workspaceEdit) -> {
+					if (workspaceEdit == null) {
+						return;
+					}
+					createTemplateExtensions.setEdit(workspaceEdit);
+				}));
+
 	}
 
 	private static void doCodeActionsForUndefinedObject(Template template, Diagnostic diagnostic,
