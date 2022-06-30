@@ -43,8 +43,9 @@ public class QuteSnippetCompletionInWhenSectionTest {
 				"{/when}";
 		testCompletionFor(template, //
 				true, // snippet support
-				SECTION_SNIPPET_SIZE /* #each, #if, ... */ + 1, /* #is */ //
-				c("is", "{#is ${1:case}}$0", r(1, 1, 1, 1)));
+				SECTION_SNIPPET_SIZE /* #each, #if, ... */ + 2, /* #is, #else */ //
+				c("is", "{#is ${1:case}}$0", r(1, 1, 1, 1)), //
+				c("else", "{#else}$0", r(1, 1, 1, 1)));
 	}
 
 	@Test
@@ -54,19 +55,46 @@ public class QuteSnippetCompletionInWhenSectionTest {
 				"{/when}";
 		testCompletionFor(template, //
 				true, // snippet support
-				SECTION_SNIPPET_SIZE /* #each, #if, ... */ + 1, /* #is */ //
+				SECTION_SNIPPET_SIZE /* #each, #if, ... */ + 2, /* #is, #else */ //
 				c("is", "{#is ${1:case}}$0", r(1, 1, 1, 5)));
 	}
 
 	@Test
-	public void isSnippetCompletionInNestedWhenWithIs() throws Exception {
+	public void snippetCompletionInNestedWhenWithIs() throws Exception {
 		String template = "{#when value}\n" + //
 				"\t{#is case}\n" + //
 				"\t|\n" + //
 				"{/when}";
 		testCompletionFor(template, //
 				true, // snippet support
-				SECTION_SNIPPET_SIZE /* #each, #if, ... */ + 1, /* #is */ //
-				c("is", "{#is ${1:case}}$0", r(2, 1, 2, 1)));
+				SECTION_SNIPPET_SIZE /* #each, #if, ... */ + 2, /* #is, #else */ //
+				c("is", "{#is ${1:case}}$0", r(2, 1, 2, 1)), //
+				c("else", "{#else}$0", r(2, 1, 2, 1)));
+	}
+
+	@Test
+	public void elseSnippetCompletionInNestedWhenWithIs() throws Exception {
+		String template = "{#when value}\n" + //
+				"\t{#is case}\n" + //
+				"\t{#el|}\n" + //
+				"{/when}";
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE /* #each, #if, ... */ + 2, /* #is, #else */ //
+				c("is", "{#is ${1:case}}$0", r(2, 1, 2, 6)), //
+				c("else", "{#else}$0", r(2, 1, 2, 6)));
+	}
+
+	@Test
+	public void sectionStartSnippetCompletionInNestedWhen() throws Exception {
+		String template = "{#when value}\n" + //
+				"\t{#is case}\n" + //
+				"\t{#|}\n" + //
+				"{/when}";
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE /* #each, #if, ... */ + 2, /* #is, #else */ //
+				c("is", "{#is ${1:case}}$0", r(2, 1, 2, 4)), //
+				c("else", "{#else}$0", r(2, 1, 2, 4)));
 	}
 }
