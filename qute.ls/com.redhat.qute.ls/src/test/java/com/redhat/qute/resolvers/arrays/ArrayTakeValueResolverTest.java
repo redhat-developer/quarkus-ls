@@ -21,6 +21,7 @@ import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
+import com.redhat.qute.services.diagnostics.UnknownPropertyData;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
@@ -38,16 +39,17 @@ public class ArrayTakeValueResolverTest {
 		String template = "{@org.acme.Item[] items}\r\n" + //
 				"{items.take(0)}";
 		testDiagnosticsFor(template);
-		
+
 		template = "{@org.acme.Item[] items}\r\n" + //
 				"{items.take(0).length}";
 		testDiagnosticsFor(template);
-		
+
 		template = "{@org.acme.Item[] items}\r\n" + //
 				"{items.take(0).lengthXXX}";
 		testDiagnosticsFor(template, //
 				d(1, 15, 1, 24, QuteErrorCode.UnknownProperty,
 						"`lengthXXX` cannot be resolved or is not a field of `org.acme.Item[]` Java type.",
+						new UnknownPropertyData("org.acme.Item[]", "lengthXXX"),
 						DiagnosticSeverity.Error));
 	}
 

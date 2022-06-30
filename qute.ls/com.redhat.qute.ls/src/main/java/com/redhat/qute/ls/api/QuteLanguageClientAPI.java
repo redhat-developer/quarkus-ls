@@ -15,12 +15,13 @@ import org.eclipse.lsp4j.services.LanguageClient;
 
 /**
  * Qute language client API.
- * 
+ *
  * @author Angelo ZERR
  *
  */
-public interface QuteLanguageClientAPI extends LanguageClient, QuteJavaTypesProvider, QuteResolvedJavaTypeProvider,
-		QuteJavaDefinitionProvider, QuteProjectInfoProvider, QuteDataModelProjectProvider, QuteUserTagProvider,
-		QuteJavaCodeLensProvider, QuteJavaDiagnosticsProvider, QuteJavaDocumentLinkProvider {
+public interface QuteLanguageClientAPI
+		extends LanguageClient, QuteJavaTypesProvider, QuteResolvedJavaTypeProvider, QuteJavaDefinitionProvider,
+		QuteProjectInfoProvider, QuteDataModelProjectProvider, QuteUserTagProvider, QuteJavaCodeLensProvider,
+		QuteJavaDiagnosticsProvider, QuteJavaDocumentLinkProvider, QuteTemplateGenerateMissingJavaMember {
 
 }

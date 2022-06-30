@@ -34,6 +34,7 @@ import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.qute.ls.api.QuteTemplateGenerateMissingJavaMember;
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
@@ -91,12 +92,13 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	 *
 	 * @param template       the Qute template.
 	 * @param context        the Code Action context.
+	 * @param resolver       the generate missing java member resolver
 	 * @param sharedSettings the Qute shared settings.
 	 * @return the CodeAction(s) to be added to the Qute template.
 	 */
-	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
-			SharedSettings sharedSettings) {
-		return codeActions.doCodeActions(template, context, range, sharedSettings);
+	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context,
+			QuteTemplateGenerateMissingJavaMember resolver, Range range, SharedSettings sharedSettings) {
+		return codeActions.doCodeActions(template, context, range, resolver, sharedSettings);
 	}
 
 	/**

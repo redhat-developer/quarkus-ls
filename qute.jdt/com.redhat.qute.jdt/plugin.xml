@@ -8,29 +8,30 @@
 
    <!-- Delegate command handler for Qute template -->
    <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
-      <delegateCommandHandler class="com.redhat.qute.jdt.internal.ls.QuteSupportForTemplateDelegateCommandHandler">      
+      <delegateCommandHandler class="com.redhat.qute.jdt.internal.ls.QuteSupportForTemplateDelegateCommandHandler">
             <command id="qute/template/project"/>
             <command id="qute/template/projectDataModel"/>
-            <command id="qute/template/userTags"/>            
+            <command id="qute/template/userTags"/>
             <command id="qute/template/javaTypes"/>
             <command id="qute/template/resolvedJavaType"/>
             <command id="qute/template/javaDefinition"/>
+            <command id="qute/template/generateMissingJavaMember"/>
        </delegateCommandHandler>
    </extension>
 
    <!-- Delegate command handler for Java files-->
    <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
-      <delegateCommandHandler class="com.redhat.qute.jdt.internal.ls.QuteSupportForJavaDelegateCommandHandler">      
+      <delegateCommandHandler class="com.redhat.qute.jdt.internal.ls.QuteSupportForJavaDelegateCommandHandler">
             <command id="qute/java/codeLens"/>
             <command id="qute/java/diagnostics"/>
             <command id="qute/java/documentLink"/>
        </delegateCommandHandler>
    </extension>
-   
+
    <!-- Data model providers for Qute core -->
    <extension point="com.redhat.qute.jdt.dataModelProviders">
    	  <provider class="com.redhat.qute.jdt.internal.template.datamodel.CheckedTemplateSupport" />
-      <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateExtensionAnnotationSupport" />            
+      <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateExtensionAnnotationSupport" />
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateFieldSupport" />
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateDataAnnotationSupport" />
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateEnumAnnotationSupport" />

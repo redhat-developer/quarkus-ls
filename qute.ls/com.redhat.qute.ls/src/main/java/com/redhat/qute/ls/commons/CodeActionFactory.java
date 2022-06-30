@@ -204,6 +204,23 @@ public class CodeActionFactory {
 		return codeAction;
 	}
 
+	/**
+	 * Makes a CodeAction and attaches the associated data.
+	 *
+	 * No edits/workspace edits/commands are specified for the CodeAction
+	 *
+	 * @param title       The displayed name of the CodeAction
+	 * @param data        The data to attach to the CodeAction
+	 * @param diagnostics The diagnostic list that this CodeAction will fix
+	 * @return the new CodeAction
+	 */
+	public static CodeAction createCodeActionWithData(String title, Object data, List<Diagnostic> diagnostics) {
+		CodeAction codeAction = new CodeAction(title);
+		codeAction.setData(data);
+		codeAction.setKind(CodeActionKind.QuickFix);
+		return codeAction;
+	}
+
 	public static boolean isDiagnosticCode(Either<String, Integer> diagnosticCode, String code) {
 		if (diagnosticCode == null || diagnosticCode.isRight()) {
 			return false;

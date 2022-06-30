@@ -59,6 +59,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.ls.AbstractTextDocumentService;
 import com.redhat.qute.ls.QuteLanguageServer;
+import com.redhat.qute.ls.api.QuteLanguageClientAPI;
 import com.redhat.qute.ls.commons.ModelTextDocument;
 import com.redhat.qute.ls.commons.ValidatorDelayer;
 import com.redhat.qute.parser.template.Template;
@@ -76,6 +77,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 
 	private final QuteTextDocuments documents;
 	private ValidatorDelayer<ModelTextDocument<Template>> validatorDelayer;
+	private final QuteLanguageServer languageServer;
 
 	public TemplateFileTextDocumentService(QuteLanguageServer quteLanguageServer, SharedSettings sharedSettings) {
 		super(quteLanguageServer, sharedSettings);
@@ -85,6 +87,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		this.validatorDelayer = new ValidatorDelayer<ModelTextDocument<Template>>((template) -> {
 			validate((QuteTextDocument) template);
 		});
+		this.languageServer = quteLanguageServer;
 	}
 
 	@Override
@@ -155,7 +158,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 					// Cancel checker is not passed to doCodeActions, since code actions don't yet
 					// need to interact with JDT/editor
 					return getQuteLanguageService()
-							.doCodeActions(template, params.getContext(), params.getRange(), sharedSettings) //
+							.doCodeActions(template, params.getContext(), getLanguageClient(), params.getRange(), sharedSettings) //
 							.thenApply(codeActions -> {
 								cancelChecker.checkCanceled();
 								return codeActions.stream() //
@@ -401,6 +404,10 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		documents.all().stream().forEach(document -> {
 			triggerValidationFor((QuteTextDocument) document, true);
 		});
+	}
+
+	private QuteLanguageClientAPI getLanguageClient() {
+		return languageServer.getLanguageClient();
 	}
 
 }

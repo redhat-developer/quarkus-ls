@@ -21,10 +21,12 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Range;
 
 import com.google.gson.JsonObject;
+import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.utils.JSONUtility;
 
 /**
  * Diagnostic factory.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -41,6 +43,20 @@ public class DiagnosticDataFactory {
 		JsonObject data = new JsonObject();
 		data.addProperty(DIAGNOSTIC_DATA_TAG, tagName);
 		return data;
+	}
+
+
+	public static UnknownPropertyData getMissingMemberData(Diagnostic diagnostic) {
+		if (diagnostic.getData() == null) {
+			// TODO: the client may not support diagnostic data; resolve the needed
+			// information some other way, such as with the Java cache
+			return null;
+		}
+		return JSONUtility.toModel(diagnostic.getData(), UnknownPropertyData.class);
+	}
+
+	public static UnknownPropertyData getMissingMemberData(JsonObject obj) {
+		return JSONUtility.toModel(obj, UnknownPropertyData.class);
 	}
 
 	public static Diagnostic createDiagnostic(Range range, DiagnosticSeverity severity, IQuteErrorCode errorCode,

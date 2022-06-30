@@ -32,6 +32,8 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.JavaMemberInfo;
@@ -65,6 +67,7 @@ import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.project.indexing.QuteIndex;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.services.diagnostics.DiagnosticDataFactory;
+import com.redhat.qute.services.diagnostics.UnknownPropertyData;
 import com.redhat.qute.services.diagnostics.QuteDiagnosticsForSyntax;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
@@ -284,7 +287,7 @@ class QuteDiagnostics {
 
 	/**
 	 * Validate parameter declaration.
-	 * 
+	 *
 	 * @param parameter                the parameter declaration.
 	 * @param template                 the owner Qute template.
 	 * @param projectUri               the project Uri.
@@ -701,8 +704,11 @@ class QuteDiagnostics {
 			// ex : {@org.acme.Item item}
 			// "{item.XXXX}
 			Range range = QutePositionUtility.createRange(part);
+			String signature = baseType.getSignature();
+			String property = part.getPartName();
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnknownProperty,
-					part.getPartName(), baseType.getSignature());
+					property, signature);
+			diagnostic.setData(new UnknownPropertyData(signature, property));
 			diagnostics.add(diagnostic);
 			return null;
 		} else if (canValidateMemberInNativeMode(filter, javaMember)) {

@@ -65,6 +65,7 @@ import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.commons.ProjectInfo;
+import com.redhat.qute.ls.api.QuteTemplateGenerateMissingJavaMember;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.ls.commons.client.CommandCapabilities;
@@ -375,6 +376,13 @@ public class QuteAssert {
 	}
 
 	public static Diagnostic d(int startLine, int startCharacter, int endLine, int endCharacter, IQuteErrorCode code,
+			String message, Object data, DiagnosticSeverity severity) {
+		Diagnostic diagnostic = d(startLine, startCharacter, endLine, endCharacter, code, message, QUTE_SOURCE, severity);
+		diagnostic.setData(data);
+		return diagnostic;
+	}
+
+	public static Diagnostic d(int startLine, int startCharacter, int endLine, int endCharacter, IQuteErrorCode code,
 			String message, String source, DiagnosticSeverity severity) {
 		// Diagnostic on 1 line
 		return new Diagnostic(r(startLine, startCharacter, endLine, endCharacter), message, severity, source,
@@ -666,7 +674,9 @@ public class QuteAssert {
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
 
-		List<CodeAction> actual = languageService.doCodeActions(template, context, range, settings).get();
+		List<CodeAction> actual = languageService.doCodeActions(template, context, new QuteTemplateGenerateMissingJavaMember() {
+			// do not attempt to resolve "generate missing java member" code actions in qute-ls unit tests
+		}, range, settings).get();
 		assertCodeActions(actual, expected);
 	}
 
