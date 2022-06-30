@@ -41,6 +41,17 @@
             "unique": true
         }
     },
+    "#when-else": {
+        "prefix": "else",
+        "body": [
+            "{#else}$0"
+        ],
+        "description": "Else section for when section",
+        "context": {
+            "parent": "when",
+            "unique": true
+        }
+    },
     "#elseif": {
         "prefix": "elseif",
         "body": [
