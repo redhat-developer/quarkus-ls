@@ -14,13 +14,13 @@
     <tycho.extras.version>${tycho.version}</tycho.extras.version>
     <tycho.scmUrl>scm:git:https://github.com/redhat-developer/quarkus-ls</tycho.scmUrl>
     <tycho.generateSourceReferences>true</tycho.generateSourceReferences>
-    <jdt.ls.version>1.7.0.20211216164144</jdt.ls.version>
+    <jdt.ls.version>1.13.0.20220630173130</jdt.ls.version>
     <tycho.test.platformArgs />
     <tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
     <lsp4mp.p2.url>https://download.eclipse.org/lsp4mp/snapshots/0.5.0/repository/</lsp4mp.p2.url>
 
     <!-- Code coverage -->
-    <jacoco.version>0.7.9</jacoco.version>
+    <jacoco.version>0.8.8</jacoco.version>
     <coverage.filter>com.redhat.microprofile.jdt.*</coverage.filter>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <jacoco.destFile>${project.build.directory}/jacoco.exec</jacoco.destFile>
@@ -33,7 +33,7 @@
     <repository>
       <id>jdt.ls.p2</id>
       <layout>p2</layout>
-      <url>https://download.eclipse.org/jdtls/milestones/1.12.0/repository/</url>
+      <url>https://download.eclipse.org/jdtls/milestones/1.13.0/repository/</url>
     </repository>
     <repository>
       <id>lsp4mp.p2</id>
@@ -258,5 +258,5 @@
     <module>com.redhat.microprofile.jdt.quarkus.test</module>
     <module>com.redhat.microprofile.jdt.quarkus.site</module>
   </modules>
-  
+
 </project>
