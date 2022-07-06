@@ -13,7 +13,7 @@ pipeline {
       when { not { equals expected: '', actual: VERSION } }
       steps {
         sh '''
-          export JAVA_HOME="${NATIVE_TOOLS}${SEP}jdk11_last"
+          export JAVA_HOME="${NATIVE_TOOLS}${SEP}openjdk17_last"
           MVN="${COMMON_TOOLS}${SEP}maven3-latest/bin/mvn -V -Dmaven.repo.local=${WORKSPACE}/.repository/ -B -ntp"
           ${MVN} -f ${WORKSPACE}/quarkus.jdt.ext/pom.xml org.eclipse.tycho:tycho-versions-plugin:1.7.0:set-version -DnewVersion=${VERSION} -Dtycho.mode=maven
           ${MVN} -f ${WORKSPACE}/quarkus.ls.ext/com.redhat.quarkus.ls/pom.xml versions:set -DnewVersion=$VERSION -DnewVersion=${VERSION} -Dtycho.mode=maven
@@ -26,10 +26,10 @@ pipeline {
       steps {
         sh '''
           WORKSPACE_SAV=${WORKSPACE}
-          export JAVA_HOME="${NATIVE_TOOLS}${SEP}jdk11_last"
+          export JAVA_HOME="${NATIVE_TOOLS}${SEP}openjdk17_last"
           MVN="${COMMON_TOOLS}${SEP}maven3-latest/bin/mvn -V -Dmaven.repo.local=${WORKSPACE}/.repository/ -B -ntp"
           BUILD_TIMESTAMP=`date -u +%Y-%m-%d_%H-%M-%S`
-		
+
           pom=${WORKSPACE_SAV}/quarkus.jdt.ext/pom.xml
 
           pomVersion=$(grep "<version>" ${pom} | head -1 | sed -e "s#.*<version>\\(.\\+\\)</version>.*#\\1#")
@@ -56,7 +56,7 @@ pipeline {
       steps {
         sh '''
           mvnFlags="-B -ntp -DaltSnapshotDeploymentRepository=origin-repository.jboss.org"
-          export JAVA_HOME="${NATIVE_TOOLS}${SEP}jdk11_last"
+          export JAVA_HOME="${NATIVE_TOOLS}${SEP}openjdk17_last"
           MVN="${COMMON_TOOLS}${SEP}maven3-latest/bin/mvn -V -Dmaven.repo.local=${WORKSPACE}/.repository/"
 
           pom=${WORKSPACE}/quarkus.ls.ext/com.redhat.quarkus.ls/pom.xml
