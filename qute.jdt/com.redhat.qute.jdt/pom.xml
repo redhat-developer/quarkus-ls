@@ -13,11 +13,4 @@
 	<name>Qute JDT LS Extension</name>
 	<description>Qute JDT LS Extension </description>
 
-	<dependencies>
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.8.5</version>
-		</dependency>
-	</dependencies>
 </project>
