@@ -1,40 +1,81 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## 0.12.0 (July 25, 2022)
+
+### Enhancements
+
+ * Support for `@TemplateGlobal` annotation. See [#605](https://github.com/redhat-developer/quarkus-ls/issues/605).
+ * Support for `textDocument/InlayHint` in Qute templates. See [#595](https://github.com/redhat-developer/quarkus-ls/issues/595).
+ * Suppress undefined variable errors in certain contexts. See [#548](https://github.com/redhat-developer/quarkus-ls/issues/548).
+ * Add Rename support within Qute templates. See [#492](https://github.com/redhat-developer/quarkus-ls/issues/492).
+ * Support missing attributes for `@TemplateData` / `@RegisterForReflection`. See [#631](https://github.com/redhat-developer/quarkus-ls/pull/631).
+ * Provide `qute.native.enabled` setting. See [#629](https://github.com/redhat-developer/quarkus-ls/issues/629).
+ * Code action to add `??` at the end of the object part for `UndefinedObject`. See [#613](https://github.com/redhat-developer/quarkus-ls/issues/613).
+ * Completion for nested block section. See [#497](https://github.com/redhat-developer/quarkus-ls/issues/497).
+
+### Performance
+ * Delay revalidation of Java files, Qute template files, and improve cancel checking. See [#659](https://github.com/redhat-developer/quarkus-ls/pull/659), [#666](https://github.com/redhat-developer/quarkus-ls/pull/666).
+ * Improve memory and performance of Qute language server. See [#654](https://github.com/redhat-developer/quarkus-ls/issues/654).
+
+### Bug Fixes
+
+ * Fix NPE with data model template. See [#664](https://github.com/redhat-developer/quarkus-ls/pull/664).
+ * Template validation complains about strings containing spaces. See [#639](https://github.com/redhat-developer/quarkus-ls/issues/639).
+ * Expression indexes are wrong. See [#627](https://github.com/redhat-developer/quarkus-ls/issues/627).
+ * Simplify the resolve signature logic. See [#652](https://github.com/redhat-developer/quarkus-ls/pull/652).
+ * `QuarkusConfigPropertiesProvider` void return type check doesn't work. See [#650](https://github.com/redhat-developer/quarkus-ls/issues/650).
+ * Linked editing doesn't work if variable is used as a parameter into a section. See [#638](https://github.com/redhat-developer/quarkus-ls/pull/638).
+
+### Build
+
+ * Update Jenkinsfile to use Java 17. See [#669](https://github.com/redhat-developer/quarkus-ls/pull/669).
+ * Adapt to new version of m2e in JDT-LS. See [#668](https://github.com/redhat-developer/quarkus-ls/pull/668).
+ * Remove unnecessary 2019-06 release repository from target platform. See [#658](https://github.com/redhat-developer/quarkus-ls/pull/658).
+ * Updates sites are not deployed anymore to download.jboss.org. See [#623](https://github.com/redhat-developer/quarkus-ls/issues/623).
+ * P2 update sites (quarkus.jdt, qute.jdt) are not archived for new releases/tags. See [#617](https://github.com/redhat-developer/quarkus-ls/issues/617).
+ * Remove unnecessary Gson dependency in pom files. See [#672](https://github.com/redhat-developer/quarkus-ls/pull/672).
+ * Move to LSP4J 0.14.0. See [#644](https://github.com/redhat-developer/quarkus-ls/issues/644).
+ * Update Quarkus LS to use LSP4MP 0.5.0 Snapshots. See [#621](https://github.com/redhat-developer/quarkus-ls/pull/621).
+
+### Documentation
+
+ * Add DCO information to `CONTRIBUTING.md`. See [#662](https://github.com/redhat-developer/quarkus-ls/issues/662).
+
 ## 0.11.0 (March 24, 2022)
 
 ### Enhancements
 
- * enhancement - Create a Qute Language Server. See [#176](https://github.com/redhat-developer/quarkus-ls/issues/176).
- * enhancement - Support for method parameters in Qute templates. See [#486](https://github.com/redhat-developer/quarkus-ls/issues/486).
- * enhancement - Support Java type hover for Qute templates. See [#502](https://github.com/redhat-developer/quarkus-ls/issues/502).
- * enhancement - Completion for available section after `{#`. See [#538](https://github.com/redhat-developer/quarkus-ls/issues/538).
- * enhancement - Code action to disable validation. See [#531](https://github.com/redhat-developer/quarkus-ls/issues/531).
- * enhancement - Add support for `raw` and `safe`, `orEmpty` extension methods, to escape characters. See [#498](https://github.com/redhat-developer/quarkus-ls/issues/498) & [#533](https://github.com/redhat-developer/quarkus-ls/issues/533).
- * enhancement - User tag support. See [#551](https://github.com/redhat-developer/quarkus-ls/issues/551), [#560](https://github.com/redhat-developer/quarkus-ls/issues/560), [#561](https://github.com/redhat-developer/quarkus-ls/issues/561), [#564](https://github.com/redhat-developer/quarkus-ls/pull/564), [#566](https://github.com/redhat-developer/quarkus-ls/pull/566), [#567](https://github.com/redhat-developer/quarkus-ls/pull/567), [#568](https://github.com/redhat-developer/quarkus-ls/pull/568).
- * enhancement - Support for injecting Beans directory. See [#546](https://github.com/redhat-developer/quarkus-ls/issues/546).
- * enhancement - Support for `@TemplateExtension` matchName. See [#583](https://github.com/redhat-developer/quarkus-ls/issues/582).
- * enhancement - Provide completion for cache name in configuration file. See [#404](https://github.com/redhat-developer/quarkus-ls/issues/404).
- * enhancement - Definition & Validation support for `@Scheduled/cron`. See [#377](https://github.com/redhat-developer/quarkus-ls/issues/377), [#378](https://github.com/redhat-developer/quarkus-ls/issues/378).
- * enhancement - Support for `@ConfigMapping`. See [#413](https://github.com/redhat-developer/quarkus-ls/issues/413), [#424](https://github.com/redhat-developer/quarkus-ls/issues/424).
- * enhancement - Support `application-${profile}.properties`. See [#411](https://github.com/redhat-developer/quarkus-ls/pull/411).
- * enhancement - Add settings to disable CodeLens. See [#472](https://github.com/redhat-developer/quarkus-ls/issues/472).
+ * Create a Qute Language Server. See [#176](https://github.com/redhat-developer/quarkus-ls/issues/176).
+ * Support for method parameters in Qute templates. See [#486](https://github.com/redhat-developer/quarkus-ls/issues/486).
+ * Support Java type hover for Qute templates. See [#502](https://github.com/redhat-developer/quarkus-ls/issues/502).
+ * Completion for available section after `{#`. See [#538](https://github.com/redhat-developer/quarkus-ls/issues/538).
+ * Code action to disable validation. See [#531](https://github.com/redhat-developer/quarkus-ls/issues/531).
+ * Add support for `raw` and `safe`, `orEmpty` extension methods, to escape characters. See [#498](https://github.com/redhat-developer/quarkus-ls/issues/498) & [#533](https://github.com/redhat-developer/quarkus-ls/issues/533).
+ * User tag support. See [#551](https://github.com/redhat-developer/quarkus-ls/issues/551), [#560](https://github.com/redhat-developer/quarkus-ls/issues/560), [#561](https://github.com/redhat-developer/quarkus-ls/issues/561), [#564](https://github.com/redhat-developer/quarkus-ls/pull/564), [#566](https://github.com/redhat-developer/quarkus-ls/pull/566), [#567](https://github.com/redhat-developer/quarkus-ls/pull/567), [#568](https://github.com/redhat-developer/quarkus-ls/pull/568).
+ * Support for injecting Beans directory. See [#546](https://github.com/redhat-developer/quarkus-ls/issues/546).
+ * Support for `@TemplateExtension` matchName. See [#583](https://github.com/redhat-developer/quarkus-ls/issues/582).
+ * Provide completion for cache name in configuration file. See [#404](https://github.com/redhat-developer/quarkus-ls/issues/404).
+ * Definition & Validation support for `@Scheduled/cron`. See [#377](https://github.com/redhat-developer/quarkus-ls/issues/377), [#378](https://github.com/redhat-developer/quarkus-ls/issues/378).
+ * Support for `@ConfigMapping`. See [#413](https://github.com/redhat-developer/quarkus-ls/issues/413), [#424](https://github.com/redhat-developer/quarkus-ls/issues/424).
+ * Support `application-${profile}.properties`. See [#411](https://github.com/redhat-developer/quarkus-ls/pull/411).
+ * Add settings to disable CodeLens. See [#472](https://github.com/redhat-developer/quarkus-ls/issues/472).
 
 ### Bug Fixes
 
- * bug fix - Use SafeConstructor for Yaml parser instantation. See [#527](https://github.com/redhat-developer/quarkus-ls/pull/527).
- * bug fix - CodeLens URL does not respect `quarkus.http.root-path property`. See [#368](https://github.com/redhat-developer/quarkus-ls/issues/368), [#414](https://github.com/redhat-developer/quarkus-ls/pull/414).
+ * Use SafeConstructor for Yaml parser instantation. See [#527](https://github.com/redhat-developer/quarkus-ls/pull/527).
+ * CodeLens URL does not respect `quarkus.http.root-path property`. See [#368](https://github.com/redhat-developer/quarkus-ls/issues/368), [#414](https://github.com/redhat-developer/quarkus-ls/pull/414).
 
 ### Build
 
- * build - Update o.e.jdt.ls.tp dependency to 1.7.0-SNAPSHOT. See [#478](https://github.com/redhat-developer/quarkus-ls/pull/478).
- * build - Qute artifacts deployment is missing. See [#448](https://github.com/redhat-developer/quarkus-ls/issues/448).
+ * Update o.e.jdt.ls.tp dependency to 1.7.0-SNAPSHOT. See [#478](https://github.com/redhat-developer/quarkus-ls/pull/478).
+ * Qute artifacts deployment is missing. See [#448](https://github.com/redhat-developer/quarkus-ls/issues/448).
 
 ### Other
 
- * other - Skip Java 17 related tests. See [#576](https://github.com/redhat-developer/quarkus-ls/pull/576).
- * other - Qute JDT unit tests are not exported. See [#573](https://github.com/redhat-developer/quarkus-ls/issues/573).
- * other - Update to lsp4j 0.11.0 to reflect change in lsp4mp. See [#417](https://github.com/redhat-developer/quarkus-ls/issues/417).
- * other - Use Qute 2.7.0. See [#549](https://github.com/redhat-developer/quarkus-ls/pull/549).
+ * Skip Java 17 related tests. See [#576](https://github.com/redhat-developer/quarkus-ls/pull/576).
+ * Qute JDT unit tests are not exported. See [#573](https://github.com/redhat-developer/quarkus-ls/issues/573).
+ * Update to lsp4j 0.11.0 to reflect change in lsp4mp. See [#417](https://github.com/redhat-developer/quarkus-ls/issues/417).
+ * Use Qute 2.7.0. See [#549](https://github.com/redhat-developer/quarkus-ls/pull/549).
 
 ## 0.10.1 (July 20, 2021)
 
