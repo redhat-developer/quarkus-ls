@@ -56,7 +56,7 @@ pipeline {
       steps {
         sh '''
           mvnFlags="-B -ntp -DaltSnapshotDeploymentRepository=origin-repository.jboss.org"
-          export JAVA_HOME="${NATIVE_TOOLS}${SEP}openjdk17_last"
+          export JAVA_HOME="${NATIVE_TOOLS}${SEP}jdk11_last"
           MVN="${COMMON_TOOLS}${SEP}maven3-latest/bin/mvn -V -Dmaven.repo.local=${WORKSPACE}/.repository/"
 
           pom=${WORKSPACE}/quarkus.ls.ext/com.redhat.quarkus.ls/pom.xml
