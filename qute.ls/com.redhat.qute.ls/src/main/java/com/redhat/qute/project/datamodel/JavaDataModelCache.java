@@ -12,6 +12,7 @@
 package com.redhat.qute.project.datamodel;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -89,7 +90,7 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 			boolean nullIfDontMatchWithIterable) {
 		CompletableFuture<ResolvedJavaTypeInfo> future = null;
 		for (int i = 0; i < partIndex + 1; i++) {
-			Part current = ((Part) parts.getChild(i));
+			Part current = (parts.getChild(i));
 			switch (current.getPartKind()) {
 			case Object:
 				ObjectPart objectPart = (ObjectPart) current;
@@ -272,6 +273,10 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return projectRegistry.hasNamespace(namespace, projectUri);
 	}
 
+	public Set<String> getAllNamespaces(String projectUri) {
+		return projectRegistry.getAllNamespaces(projectUri);
+	}
+
 	public CompletableFuture<JavaElementInfo> findJavaElementWithNamespace(String namespace, String partName,
 			String projectUri) {
 		return projectRegistry.findJavaElementWithNamespace(namespace, partName, projectUri);
@@ -297,10 +302,10 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 	/**
 	 * Returns the java type filter according the given root java type and the
 	 * native mode.
-	 * 
+	 *
 	 * @param rootJavaType         the Java root type.
 	 * @param nativeImagesSettings the native images settings.
-	 * 
+	 *
 	 * @return the java type filter according the given root java type and the
 	 *         native mode.
 	 */

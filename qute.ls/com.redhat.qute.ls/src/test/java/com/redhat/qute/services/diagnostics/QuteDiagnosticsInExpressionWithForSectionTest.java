@@ -65,7 +65,9 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
 						d)), //
-				ca(d, te(4, 6, 4, 6, "??")));
+				ca(d, te(4, 6, 4, 6, "??")), //
+				ca(d, te(4, 2, 4, 6, "item")), //
+				ca(d, te(4, 2, 4, 6, "items")));
 
 	}
 
@@ -106,8 +108,7 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 		testDiagnosticsFor(template, //
 				d(3, 7, 3, 14, QuteErrorCode.UnknownProperty,
 						"`nameXXX` cannot be resolved or is not a field of `org.acme.Item` Java type.",
-						new UnknownPropertyData("org.acme.Item", "nameXXX"),
-						DiagnosticSeverity.Error));
+						new UnknownPropertyData("org.acme.Item", "nameXXX"), DiagnosticSeverity.Error));
 	}
 
 	@Test
