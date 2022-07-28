@@ -43,6 +43,8 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
 	private Boolean isIterable;
 
+	private Boolean source;
+
 	private RegisterForReflectionAnnotation registerForReflectionAnnotation;
 
 	private List<TemplateDataAnnotation> templateDataAnnotations;
@@ -152,6 +154,26 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	}
 
 	/**
+	 * Returns true if this Java type is in a user modifiable source file, and false
+	 * otherwise.
+	 * 
+	 * @return true if this Java type is in a user modifiable source file, and false
+	 *         otherwise
+	 */
+	public boolean isSource() {
+		return source != null && source.booleanValue();
+	}
+
+	/**
+	 * Set if this type comes from a source file.
+	 * 
+	 * @param source true if the type comes from a source file, false otherwise
+	 */
+	public void setSource(Boolean source) {
+		this.source = source;
+	}
+
+	/**
 	 * Returns true if the Java type is an integer and false otherwise.
 	 * 
 	 * @return true if the Java type is an integer and false otherwise.
@@ -234,6 +256,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("name", this.getName());
 		b.add("signature", this.getSignature());
+		b.add("source", this.isSource() ? "SOURCE" : "BINARY");
 		b.add("iterableOf", this.getIterableOf());
 		b.add("iterableType", this.getIterableType());
 		b.add("templateDataAnnotations", this.getTemplateDataAnnotations());

@@ -9,6 +9,8 @@
 *******************************************************************************/
 package com.redhat.qute.commons;
 
+import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+
 /**
  * Parameters required for generating a field, getter, or template extension in
  * a Java type.
@@ -96,6 +98,29 @@ public class GenerateMissingJavaMemberParams {
 
 	public void setProjectUri(String projectUri) {
 		this.projectUri = projectUri;
+	}
+
+	@Override
+	public String toString() {
+		ToStringBuilder builder = new ToStringBuilder(this);
+		builder.add("memberType", memberType);
+		builder.add("missingProperty", missingProperty);
+		builder.add("javaType", javaType);
+		builder.add("projectUri", projectUri);
+		return builder.toString();
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other == null || !(other instanceof GenerateMissingJavaMemberParams)) {
+			return false;
+		}
+		GenerateMissingJavaMemberParams that = (GenerateMissingJavaMemberParams) other;
+		return (this.memberType == that.memberType) //
+				&& ((this.missingProperty == null && that.missingProperty == null)
+						|| this.missingProperty.equals(that.missingProperty)) //
+				&& ((this.javaType == null && that.javaType == null) || this.javaType.equals(that.javaType)) //
+				&& ((this.projectUri == null && that.projectUri == null) || this.projectUri.equals(that.projectUri));
 	}
 
 }

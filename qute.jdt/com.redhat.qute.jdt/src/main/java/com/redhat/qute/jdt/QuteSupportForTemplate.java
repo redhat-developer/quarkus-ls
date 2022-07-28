@@ -359,6 +359,9 @@ public class QuteSupportForTemplate {
 		}
 
 		ITypeResolver typeResolver = createTypeResolver(type);
+		
+		// Find if the type is a source or binary file
+		boolean isTypeSource = !type.isBinary();
 
 		// 1) Collect fields
 		List<JavaFieldInfo> fieldsInfo = new ArrayList<>();
@@ -430,6 +433,7 @@ public class QuteSupportForTemplate {
 
 		ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
 		String typeSignature = AbstractTypeResolver.resolveJavaTypeSignature(type);
+		resolvedType.setSource(isTypeSource);
 		resolvedType.setSignature(typeSignature);
 		resolvedType.setFields(fieldsInfo);
 		resolvedType.setMethods(methodsInfo);

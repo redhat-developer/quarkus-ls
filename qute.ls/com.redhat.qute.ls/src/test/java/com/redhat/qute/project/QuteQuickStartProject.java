@@ -53,11 +53,11 @@ public class QuteQuickStartProject extends MockQuteProject {
 	protected List<ResolvedJavaTypeInfo> createResolvedTypes() {
 		List<ResolvedJavaTypeInfo> cache = new ArrayList<>();
 
-		createResolvedJavaTypeInfo("org.acme", cache).setKind(JavaTypeKind.Package);
+		createResolvedJavaTypeInfo("org.acme", cache, true).setKind(JavaTypeKind.Package);
 
-		createResolvedJavaTypeInfo("java.lang.Object", cache);
+		createResolvedJavaTypeInfo("java.lang.Object", cache, false);
 
-		ResolvedJavaTypeInfo string = createResolvedJavaTypeInfo("java.lang.String", cache);
+		ResolvedJavaTypeInfo string = createResolvedJavaTypeInfo("java.lang.String", cache, false);
 		registerField("UTF16 : byte", string);
 		registerMethod("isEmpty() : boolean", string);
 		registerMethod("codePointCount(beginIndex : int,endIndex : int) : int", string);
@@ -67,36 +67,36 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerMethod("getBytes(charsetName : java.lang.String) : byte[]", string);
 		registerMethod("getBytes() : byte[]", string);
 
-		createResolvedJavaTypeInfo("java.lang.Boolean", cache);
-		createResolvedJavaTypeInfo("java.lang.Integer", cache);
-		createResolvedJavaTypeInfo("java.lang.Double", cache);
-		createResolvedJavaTypeInfo("java.lang.Long", cache);
-		createResolvedJavaTypeInfo("java.lang.Float", cache);
-		createResolvedJavaTypeInfo("java.math.BigDecimal", cache);
+		createResolvedJavaTypeInfo("java.lang.Boolean", cache, false);
+		createResolvedJavaTypeInfo("java.lang.Integer", cache, false);
+		createResolvedJavaTypeInfo("java.lang.Double", cache, false);
+		createResolvedJavaTypeInfo("java.lang.Long", cache, false);
+		createResolvedJavaTypeInfo("java.lang.Float", cache, false);
+		createResolvedJavaTypeInfo("java.math.BigDecimal", cache, false);
 
-		ResolvedJavaTypeInfo bigInteger = createResolvedJavaTypeInfo("java.math.BigInteger", cache);
+		ResolvedJavaTypeInfo bigInteger = createResolvedJavaTypeInfo("java.math.BigInteger", cache, false);
 		registerMethod("divide(val : java.math.BigInteger) : java.math.BigInteger", bigInteger);
 
-		ResolvedJavaTypeInfo bean = createResolvedJavaTypeInfo("org.acme.Bean", cache);
+		ResolvedJavaTypeInfo bean = createResolvedJavaTypeInfo("org.acme.Bean", cache, true);
 		registerField("bean : java.lang.String", bean);
 
-		ResolvedJavaTypeInfo review = createResolvedJavaTypeInfo("org.acme.Review", cache);
+		ResolvedJavaTypeInfo review = createResolvedJavaTypeInfo("org.acme.Review", cache, true);
 		registerField("name : java.lang.String", review);
 		registerField("average : java.lang.Integer", review);
 		registerMethod("getReviews() : java.util.List<org.acme.Review>", review);
 
 		// Item <- BaseItem <- AbstractItem
-		ResolvedJavaTypeInfo abstractItem = createResolvedJavaTypeInfo("org.acme.AbstractItem", cache);
+		ResolvedJavaTypeInfo abstractItem = createResolvedJavaTypeInfo("org.acme.AbstractItem", cache, true);
 		registerField("abstractName : java.lang.String", abstractItem);
 		registerMethod("convert(item : org.acme.AbstractItem) : int", abstractItem);
 
-		ResolvedJavaTypeInfo baseItem = createResolvedJavaTypeInfo("org.acme.BaseItem", cache, abstractItem);
+		ResolvedJavaTypeInfo baseItem = createResolvedJavaTypeInfo("org.acme.BaseItem", cache, true, abstractItem);
 		registerField("base : java.lang.String", baseItem);
 		registerField("name : java.lang.String", baseItem);
 		registerMethod("getReviews() : java.util.List<org.acme.Review>", baseItem);
 
 		// org.acme.Item
-		ResolvedJavaTypeInfo item = createResolvedJavaTypeInfo("org.acme.Item", cache, baseItem);
+		ResolvedJavaTypeInfo item = createResolvedJavaTypeInfo("org.acme.Item", cache, true, baseItem);
 		registerField("name : java.lang.String", item); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", item);
 		registerField("review : org.acme.Review", item);
@@ -104,20 +104,20 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerMethod("getReview2() : org.acme.Review", item);
 		// Override BaseItem#getReviews()
 		registerMethod("getReviews() : java.util.List<org.acme.Review>", item);
-		createResolvedJavaTypeInfo("java.util.List<org.acme.Review>", "java.util.List", "org.acme.Review", cache);
+		createResolvedJavaTypeInfo("java.util.List<org.acme.Review>", "java.util.List", "org.acme.Review", cache, false, null);
 		registerField("derivedItems : java.util.List<org.acme.Item>", item);
 		registerField("derivedItemArray : org.acme.Item[]", item);
 		item.setInvalidMethod("staticMethod", InvalidMethodReason.Static); // public static BigDecimal
 																			// staticMethod(Item item)
 
-		createResolvedJavaTypeInfo("java.util.List<org.acme.Item>", "java.util.List", "org.acme.Item", cache);
-		createResolvedJavaTypeInfo("java.lang.Iterable<org.acme.Item>", "java.lang.Iterable", "org.acme.Item", cache);
-		createResolvedJavaTypeInfo("org.acme.Item[]", null, "org.acme.Item", cache);
+		createResolvedJavaTypeInfo("java.util.List<org.acme.Item>", "java.util.List", "org.acme.Item", cache, false);
+		createResolvedJavaTypeInfo("java.lang.Iterable<org.acme.Item>", "java.lang.Iterable", "org.acme.Item", cache, false);
+		createResolvedJavaTypeInfo("org.acme.Item[]", null, "org.acme.Item", cache, false);
 
 		// @TemplateData
 		// public class ItemWithTemplateData
 		ResolvedJavaTypeInfo itemWithTemplateData = createResolvedJavaTypeInfo("org.acme.ItemWithTemplateData", cache,
-				baseItem);
+				true, baseItem);
 		registerField("name : java.lang.String", itemWithTemplateData); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithTemplateData);
 		registerMethod("getReview2() : org.acme.Review", itemWithTemplateData);
@@ -128,7 +128,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// @TemplateData(target = BigInteger.class)
 		// public class ItemWithTemplateDataWithTarget
 		ResolvedJavaTypeInfo itemWithTemplateDataWithTarget = createResolvedJavaTypeInfo(
-				"org.acme.ItemWithTemplateDataWithTarget", cache, baseItem);
+				"org.acme.ItemWithTemplateDataWithTarget", cache, true, baseItem);
 		registerField("name : java.lang.String", itemWithTemplateDataWithTarget); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithTemplateDataWithTarget);
 		registerMethod("getReview2() : org.acme.Review", itemWithTemplateDataWithTarget);
@@ -141,7 +141,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// @TemplateData(properties = true)
 		// public class ItemWithTemplateDataProperties
 		ResolvedJavaTypeInfo itemWithTemplateDataProperties = createResolvedJavaTypeInfo(
-				"org.acme.ItemWithTemplateDataProperties", cache, baseItem);
+				"org.acme.ItemWithTemplateDataProperties", cache, true, baseItem);
 		registerField("name : java.lang.String", itemWithTemplateDataProperties); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithTemplateDataProperties);
 		registerMethod("getReview2() : org.acme.Review", itemWithTemplateDataProperties);
@@ -153,7 +153,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// @TemplateData(ignoreSuperclasses = true)
 		// public class ItemWithTemplateDataIgnoreSubClasses
 		ResolvedJavaTypeInfo itemWithTemplateDataIgnoreSubClasses = createResolvedJavaTypeInfo(
-				"org.acme.ItemWithTemplateDataIgnoreSubClasses", cache, baseItem);
+				"org.acme.ItemWithTemplateDataIgnoreSubClasses", cache, true, baseItem);
 		registerField("name : java.lang.String", itemWithTemplateDataIgnoreSubClasses); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithTemplateDataIgnoreSubClasses);
 		registerMethod("getReview2() : org.acme.Review", itemWithTemplateDataIgnoreSubClasses);
@@ -165,7 +165,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// @RegisterForReflection
 		// public class ItemWithRegisterForReflection
 		ResolvedJavaTypeInfo itemWithRegisterForReflection = createResolvedJavaTypeInfo(
-				"org.acme.ItemWithRegisterForReflection", cache, baseItem);
+				"org.acme.ItemWithRegisterForReflection", cache, true, baseItem);
 		registerField("name : java.lang.String", itemWithRegisterForReflection); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithRegisterForReflection);
 		registerMethod("getReview2() : org.acme.Review", itemWithRegisterForReflection);
@@ -175,7 +175,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// @RegisterForReflection(fields = false)
 		// public class ItemWithRegisterForReflectionNoFields
 		ResolvedJavaTypeInfo itemWithRegisterForReflectionNoFields = createResolvedJavaTypeInfo(
-				"org.acme.ItemWithRegisterForReflectionNoFields", cache, baseItem);
+				"org.acme.ItemWithRegisterForReflectionNoFields", cache, true, baseItem);
 		registerField("name : java.lang.String", itemWithRegisterForReflectionNoFields); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithRegisterForReflectionNoFields);
 		registerMethod("getReview2() : org.acme.Review", itemWithRegisterForReflectionNoFields);
@@ -186,7 +186,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// @RegisterForReflection(methods = false)
 		// public class ItemWithRegisterForReflectionNoMethods
 		ResolvedJavaTypeInfo itemWithRegisterForReflectionNoMethods = createResolvedJavaTypeInfo(
-				"org.acme.ItemWithRegisterForReflectionNoMethods", cache, baseItem);
+				"org.acme.ItemWithRegisterForReflectionNoMethods", cache, true, baseItem);
 		registerField("name : java.lang.String", itemWithRegisterForReflectionNoMethods); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithRegisterForReflectionNoMethods);
 		registerMethod("getReview2() : org.acme.Review", itemWithRegisterForReflectionNoMethods);
@@ -195,17 +195,17 @@ public class QuteQuickStartProject extends MockQuteProject {
 		itemWithRegisterForReflectionNoMethods.setRegisterForReflectionAnnotation(registerForReflectionAnnotation);
 
 		ResolvedJavaTypeInfo iterable = createResolvedJavaTypeInfo("java.lang.Iterable<T>", "java.lang.Iterable", "T",
-				cache);
+				cache, false);
 
-		ResolvedJavaTypeInfo list = createResolvedJavaTypeInfo("java.util.List<E>", "java.util.List", "E", cache);
+		ResolvedJavaTypeInfo list = createResolvedJavaTypeInfo("java.util.List<E>", "java.util.List", "E", cache, false);
 		list.setExtendedTypes(Arrays.asList("java.lang.Iterable"));
 		registerMethod("size() : int", list);
 		registerMethod("get(index : int) : E", list);
 
-		ResolvedJavaTypeInfo map = createResolvedJavaTypeInfo("java.util.Map", cache);
+		ResolvedJavaTypeInfo map = createResolvedJavaTypeInfo("java.util.Map", cache, false);
 
 		// RawString for raw and safe resolver tests
-		ResolvedJavaTypeInfo rawString = createResolvedJavaTypeInfo("io.quarkus.qute.RawString", cache);
+		ResolvedJavaTypeInfo rawString = createResolvedJavaTypeInfo("io.quarkus.qute.RawString", cache, false);
 		registerMethod("getValue() : java.lang.String", rawString);
 		registerMethod("toString() : java.lang.String", rawString);
 

@@ -708,7 +708,7 @@ class QuteDiagnostics {
 			String property = part.getPartName();
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnknownProperty,
 					property, signature);
-			diagnostic.setData(new UnknownPropertyData(signature, property));
+			diagnostic.setData(new UnknownPropertyData(signature, property, baseType.isSource()));
 			diagnostics.add(diagnostic);
 			return null;
 		} else if (canValidateMemberInNativeMode(filter, javaMember)) {

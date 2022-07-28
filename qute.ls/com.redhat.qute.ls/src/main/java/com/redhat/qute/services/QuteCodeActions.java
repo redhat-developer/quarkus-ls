@@ -435,48 +435,47 @@ class QuteCodeActions {
 
 		String projectUri = template.getProjectUri();
 
-		GenerateMissingJavaMemberParams publicFieldParams = new GenerateMissingJavaMemberParams(MemberType.Field,
-				missingProperty, resolvedType, projectUri);
-		GenerateMissingJavaMemberParams getterParams = new GenerateMissingJavaMemberParams(MemberType.Getter,
-				missingProperty, resolvedType, projectUri);
+		if (unknownPropertyData.isSource()) {
+			GenerateMissingJavaMemberParams publicFieldParams = new GenerateMissingJavaMemberParams(MemberType.Field,
+					missingProperty, resolvedType, projectUri);
+			GenerateMissingJavaMemberParams getterParams = new GenerateMissingJavaMemberParams(MemberType.Getter,
+					missingProperty, resolvedType, projectUri);
+			CodeAction createPublicField = createCodeActionWithData(
+					String.format(CREATE_PUBLIC_FIELD, missingProperty, resolvedType), publicFieldParams,
+					Collections.singletonList(diagnostic));
+			CodeAction createGetter = createCodeActionWithData(
+					String.format(CREATE_GETTER, propertyCapitalized, resolvedType), getterParams,
+					Collections.singletonList(diagnostic));
+			codeActions.add(createPublicField);
+			codeActions.add(createGetter);
+			registrations.add(resolver.generateMissingJavaMember(publicFieldParams) //
+					.thenAccept((workspaceEdit) -> {
+						if (workspaceEdit == null) {
+							return;
+						}
+						createPublicField.setEdit(workspaceEdit);
+					}));
+
+			registrations.add(resolver.generateMissingJavaMember(getterParams) //
+					.thenAccept((workspaceEdit) -> {
+						if (workspaceEdit == null) {
+							return;
+						}
+						createGetter.setEdit(workspaceEdit);
+					}));
+		}
 		GenerateMissingJavaMemberParams appendToTemplateExtensionsParams = new GenerateMissingJavaMemberParams(
 				MemberType.AppendTemplateExtension, missingProperty, resolvedType, projectUri);
 		GenerateMissingJavaMemberParams createTemplateExtensionsParams = new GenerateMissingJavaMemberParams(
 				MemberType.CreateTemplateExtension, missingProperty, resolvedType, projectUri);
-
-		CodeAction createPublicField = createCodeActionWithData(
-				String.format(CREATE_PUBLIC_FIELD, missingProperty, resolvedType), publicFieldParams,
-				Collections.singletonList(diagnostic));
-		CodeAction createGetter = createCodeActionWithData(
-				String.format(CREATE_GETTER, propertyCapitalized, resolvedType), getterParams,
-				Collections.singletonList(diagnostic));
 		CodeAction appendToTemplateExtensions = createCodeActionWithData(
 				String.format(APPEND_TO_TEMPLATE_EXTENSIONS, missingProperty), appendToTemplateExtensionsParams,
 				Collections.singletonList(diagnostic));
 		CodeAction createTemplateExtensions = createCodeActionWithData(
 				String.format(CREATE_TEMPLATE_EXTENSIONS, missingProperty), createTemplateExtensionsParams,
 				Collections.singletonList(diagnostic));
-		codeActions.add(createPublicField);
-		codeActions.add(createGetter);
 		codeActions.add(appendToTemplateExtensions);
 		codeActions.add(createTemplateExtensions);
-
-		registrations.add(resolver.generateMissingJavaMember(publicFieldParams) //
-				.thenAccept((workspaceEdit) -> {
-					if (workspaceEdit == null) {
-						return;
-					}
-					createPublicField.setEdit(workspaceEdit);
-				}));
-
-		registrations.add(resolver.generateMissingJavaMember(getterParams) //
-				.thenAccept((workspaceEdit) -> {
-					if (workspaceEdit == null) {
-						return;
-					}
-					createGetter.setEdit(workspaceEdit);
-				}));
-
 		registrations.add(resolver.generateMissingJavaMember(appendToTemplateExtensionsParams) //
 				.thenAccept((workspaceEdit) -> {
 					if (workspaceEdit == null) {
@@ -492,6 +491,7 @@ class QuteCodeActions {
 					}
 					createTemplateExtensions.setEdit(workspaceEdit);
 				}));
+
 
 	}
 
