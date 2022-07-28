@@ -12,6 +12,7 @@
 package com.redhat.qute.project.datamodel;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -270,6 +271,10 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 
 	public boolean hasNamespace(String namespace, String projectUri) {
 		return projectRegistry.hasNamespace(namespace, projectUri);
+	}
+	
+	public Set<String> getAllNamespaces(String projectUri) {
+		return projectRegistry.getAllNamespaces(projectUri);
 	}
 
 	public CompletableFuture<JavaElementInfo> findJavaElementWithNamespace(String namespace, String partName,

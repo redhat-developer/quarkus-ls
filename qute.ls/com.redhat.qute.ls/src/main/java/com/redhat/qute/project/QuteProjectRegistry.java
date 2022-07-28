@@ -821,7 +821,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		return getAllNamespaces(projectUri).contains(namespace);
 	}
 
-	private Set<String> getAllNamespaces(String projectUri) {
+	public Set<String> getAllNamespaces(String projectUri) {
 		if (StringUtils.isEmpty(projectUri)) {
 			return Collections.emptySet();
 		}

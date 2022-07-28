@@ -15,7 +15,6 @@ import static com.redhat.qute.ls.commons.CodeActionFactory.createCodeActionWithD
 import static com.redhat.qute.ls.commons.CodeActionFactory.createCommand;
 import static com.redhat.qute.ls.commons.CodeActionFactory.insert;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_ITERABLE;
-import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_NAME;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_TAG;
 import static com.redhat.qute.utils.StringUtils.isSimilar;
 
@@ -23,8 +22,8 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,15 +38,13 @@ import org.eclipse.lsp4j.Range;
 import com.google.gson.JsonObject;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams.MemberType;
-import com.redhat.qute.commons.JavaFieldInfo;
-import com.redhat.qute.commons.JavaMethodInfo;
-import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.api.QuteTemplateGenerateMissingJavaMember;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.CodeActionFactory;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEdit;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
+import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.template.Expression;
@@ -157,19 +154,7 @@ class QuteCodeActions {
 					case UndefinedNamespace:
 						// The following Qute template:
 						// {undefinedNamespace:xyz}
-						doCodeActionToSetIgnoreSeverity(template, Collections.singletonList(diagnostic), errorCode,
-								codeActions, UNDEFINED_NAMESPACE_SEVERITY_SETTING);
-						break;
-					case UnknownMethod:
-						// CodeAction(s) to replace text with similar suggestions
-						try {
-							String varName = QutePositionUtility
-									.findBestNode(template.offsetAt(diagnostic.getRange().getStart()), template
-											.findNodeBefore(template.offsetAt(diagnostic.getRange().getStart())))
-									.getNodeName();
-							doCodeActionsForSimilarValues(template, diagnostic, codeActions, varName);
-						} catch (BadLocationException e) {
-						}
+						doCodeActionsForUndefinedNamespace(template, diagnostic, errorCode, codeActions);
 						break;
 					case UnknownProperty:
 						doCodeActionToCreateProperty(template, diagnostic, errorCode, codeActions,
@@ -178,17 +163,6 @@ class QuteCodeActions {
 					default:
 						break;
 					}
-
-					// CodeAction(s) to replace text with similar suggestions
-					try {
-						String varName = QutePositionUtility
-								.findBestNode(template.offsetAt(diagnostic.getRange().getStart()),
-										template.findNodeBefore(template.offsetAt(diagnostic.getRange().getStart())))
-								.getNodeName();
-						doCodeActionsForSimilarValues(template, diagnostic, codeActions, varName);
-					} catch (BadLocationException e) {
-					}
-					break;
 				}
 			}
 		}
@@ -198,6 +172,182 @@ class QuteCodeActions {
 			return codeActions;
 		});
 	}
+
+	// Code actions for Undefined object
+
+	private void doCodeActionsForUndefinedObject(Template template, Diagnostic diagnostic, QuteErrorCode errorCode,
+			List<CodeAction> codeActions) {
+		try {
+			ObjectPart part = getSelectedObjectPart(template, diagnostic);
+			if (part == null) {
+				return;
+			}
+			String varName = part.getPartName();
+			boolean isIterable = false;
+			JsonObject data = (JsonObject) diagnostic.getData();
+			if (data != null) {
+				isIterable = data.get(DIAGNOSTIC_DATA_ITERABLE).getAsBoolean();
+			}
+			if (varName != null) {
+				TextDocument document = template.getTextDocument();
+				String lineDelimiter = document.lineDelimiter(0);
+
+				String title = MessageFormat.format(UNDEFINED_OBJECT_CODEACTION_TITLE, varName);
+
+				Position position = new Position(0, 0);
+
+				StringBuilder insertText = new StringBuilder("{@");
+				if (isIterable) {
+					insertText.append("java.util.List");
+				} else {
+					insertText.append("java.lang.String");
+				}
+				insertText.append(" ");
+				insertText.append(varName);
+				insertText.append("}");
+				insertText.append(lineDelimiter);
+
+				CodeAction insertParameterDeclarationQuickFix = CodeActionFactory.insert(title, position,
+						insertText.toString(), document, diagnostic);
+				codeActions.add(insertParameterDeclarationQuickFix);
+
+				// CodeAction to set validation severity to ignore
+				doCodeActionToSetIgnoreSeverity(template, Collections.singletonList(diagnostic), errorCode, codeActions,
+						UNDEFINED_OBJECT_SEVERITY_SETTING);
+
+				// CodeAction to append ?? to object to make it optional
+				doCodeActionToAddOptionalSuffix(template, diagnostic, codeActions);
+
+				// CodeAction(s) to replace text with similar suggestions
+				doCodeActionsForSimilarValues(part, template, diagnostic, codeActions);
+			}
+
+		} catch (BadLocationException e) {
+			LOGGER.log(Level.SEVERE, "Creation of undefined object code action failed", e);
+		}
+	}
+
+	private static ObjectPart getSelectedObjectPart(Template template, Diagnostic diagnostic)
+			throws BadLocationException {
+		Node node = getSelectedNode(template, diagnostic);
+		if (node != null && node.getKind() == NodeKind.Expression) {
+			Expression expression = (Expression) node;
+			return expression.getObjectPart();
+		}
+		return null;
+	}
+
+	private void doCodeActionsForSimilarValues(ObjectPart part, Template template, Diagnostic diagnostic,
+			List<CodeAction> codeActions) throws BadLocationException {
+		Collection<String> availableValues = collectAvailableValuesForObjectPart(part, template);
+		doCodeActionsForSimilarValues(part, availableValues, template, diagnostic, codeActions);
+	}
+
+	private Collection<String> collectAvailableValuesForObjectPart(Node node, Template template) {
+		Collection<String> availableValues = new HashSet<>();
+		String projectUri = template.getProjectUri();
+
+		List<ValueResolver> globalResolvers = javaCache.getGlobalVariables(projectUri);
+		for (ValueResolver resolver : globalResolvers) {
+			availableValues.add(resolver.getName());
+		}
+
+		List<String> aliases = template.getChildren().stream() //
+				.filter(n -> n.getKind() == NodeKind.ParameterDeclaration) //
+				.map(n -> ((ParameterDeclaration) n).getAlias()) //
+				.filter(alias -> alias != null) //
+				.collect(Collectors.toList());
+		for (String alias : aliases) {
+			availableValues.add(alias);
+		}
+
+		ExtendedDataModelTemplate dataModel = javaCache.getDataModelTemplate(template).getNow(null);
+		if (dataModel != null) {
+			for (ExtendedDataModelParameter parameter : dataModel.getParameters()) {
+				availableValues.add(parameter.getKey());
+			}
+		}
+
+		Section section = node != null ? node.getParentSection() : null;
+		if (section != null) {
+			List<SectionMetadata> metadatas = section.getMetadata();
+			for (SectionMetadata metadata : metadatas) {
+				availableValues.add(metadata.getName());
+			}
+		}
+
+		if (UserTagUtils.isUserTag(template)) {
+			Collection<SectionMetadata> specialKeysMetadatas = UserTagUtils.getSpecialKeys();
+			for (SectionMetadata metadata : specialKeysMetadatas) {
+				String name = metadata.getName();
+				if (!availableValues.contains(name)) {
+					availableValues.add(name);
+				}
+			}
+		}
+
+		return availableValues;
+	}
+
+	/**
+	 * CodeAction to append ?? to object to make it optional
+	 *
+	 * @param template    the Qute template
+	 * @param diagnostic  the UndefinedVariable diagnostic
+	 * @param codeActions list of CodeActions
+	 * @throws BadLocationException
+	 */
+	private static void doCodeActionToAddOptionalSuffix(Template template, Diagnostic diagnostic,
+			List<CodeAction> codeActions) throws BadLocationException {
+		Position objectEnd = diagnostic.getRange().getEnd();
+		int diagnosticStartOffset = template.offsetAt(diagnostic.getRange().getStart());
+		int diagnosticEndOffset = template.offsetAt(objectEnd);
+		String title = MessageFormat.format("Append ?? to undefined object `{0}`",
+				template.getText(diagnosticStartOffset, diagnosticEndOffset));
+		CodeAction appendOptionalSuffix = insert(title, objectEnd, "??", template.getTextDocument(), diagnostic);
+		codeActions.add(appendOptionalSuffix);
+	}
+
+	// Code actions for Undefined Namespace
+
+	private void doCodeActionsForUndefinedNamespace(Template template, Diagnostic diagnostic, QuteErrorCode errorCode,
+			List<CodeAction> codeActions) {
+
+		doCodeActionToSetIgnoreSeverity(template, Collections.singletonList(diagnostic), errorCode, codeActions,
+				UNDEFINED_NAMESPACE_SEVERITY_SETTING);
+		try {
+			NamespacePart part = getSelectedNamespacePart(template, diagnostic);
+			if (part == null) {
+				return;
+			}
+			doCodeActionsForSimilarValues(part, template, diagnostic, codeActions);
+		} catch (BadLocationException e) {
+			LOGGER.log(Level.SEVERE, "Creation of undefined namespace code action failed", e);
+		}
+	}
+
+	private static NamespacePart getSelectedNamespacePart(Template template, Diagnostic diagnostic)
+			throws BadLocationException {
+		Node node = getSelectedNode(template, diagnostic);
+		if (node != null && node.getKind() == NodeKind.Expression) {
+			Expression expression = (Expression) node;
+			return expression.getNamespacePart();
+		}
+		return null;
+	}
+
+	private void doCodeActionsForSimilarValues(NamespacePart part, Template template, Diagnostic diagnostic,
+			List<CodeAction> codeActions) throws BadLocationException {
+		Collection<String> availableValues = collectAvailableValuesForNamespacePart(part, template);
+		doCodeActionsForSimilarValues(part, availableValues, template, diagnostic, codeActions);
+	}
+
+	private Collection<String> collectAvailableValuesForNamespacePart(NamespacePart node, Template template) {
+		String projectUri = template.getProjectUri();
+		return javaCache.getAllNamespaces(projectUri);
+	}
+
+	// Code actions for Undefined Property
 
 	private void doCodeActionToCreateProperty(Template template, Diagnostic diagnostic, QuteErrorCode errorCode,
 			List<CodeAction> codeActions, List<CompletableFuture<Void>> registrations,
@@ -273,65 +423,12 @@ class QuteCodeActions {
 
 	}
 
-	private void doCodeActionsForUndefinedObject(Template template, Diagnostic diagnostic, QuteErrorCode errorCode,
-			List<CodeAction> codeActions) {
-		try {
-			String varName = null;
-			boolean isIterable = false;
-			JsonObject data = (JsonObject) diagnostic.getData();
-			if (data != null) {
-				varName = data.get(DIAGNOSTIC_DATA_NAME).getAsString();
-				isIterable = data.get(DIAGNOSTIC_DATA_ITERABLE).getAsBoolean();
-			} else {
-				int offset = template.offsetAt(diagnostic.getRange().getStart());
-				Node node = template.findNodeAt(offset);
-				node = QutePositionUtility.findBestNode(offset, node);
-				if (node.getKind() == NodeKind.Expression) {
-					Expression expression = (Expression) node;
-					ObjectPart part = expression.getObjectPart();
-					if (part != null) {
-						varName = part.getPartName();
-					}
-				}
-			}
+	// Utilities methods
 
-			if (varName != null) {
-				TextDocument document = template.getTextDocument();
-				String lineDelimiter = document.lineDelimiter(0);
-
-				String title = MessageFormat.format(UNDEFINED_OBJECT_CODEACTION_TITLE, varName);
-
-				Position position = new Position(0, 0);
-
-				StringBuilder insertText = new StringBuilder("{@");
-				if (isIterable) {
-					insertText.append("java.util.List");
-				} else {
-					insertText.append("java.lang.String");
-				}
-				insertText.append(" ");
-				insertText.append(varName);
-				insertText.append("}");
-				insertText.append(lineDelimiter);
-
-				CodeAction insertParameterDeclarationQuickFix = CodeActionFactory.insert(title, position,
-						insertText.toString(), document, diagnostic);
-				codeActions.add(insertParameterDeclarationQuickFix);
-
-				// CodeAction to set validation severity to ignore
-				doCodeActionToSetIgnoreSeverity(template, Collections.singletonList(diagnostic), errorCode, codeActions,
-						UNDEFINED_OBJECT_SEVERITY_SETTING);
-
-				// CodeAction to append ?? to object to make it optional
-				doCodeActionToAddOptionalSuffix(template, diagnostic, codeActions);
-
-				// CodeAction(s) to replace text with similar suggestions
-				doCodeActionsForSimilarValues(template, diagnostic, codeActions, varName);
-			}
-
-		} catch (BadLocationException e) {
-
-		}
+	private static Node getSelectedNode(Template template, Diagnostic diagnostic) throws BadLocationException {
+		int offset = template.offsetAt(diagnostic.getRange().getStart());
+		Node node = template.findNodeAt(offset);
+		return QutePositionUtility.findBestNode(offset, node);
 	}
 
 	private static void doCodeActionToDisableValidation(Template template, List<Diagnostic> diagnostics,
@@ -367,25 +464,6 @@ class QuteCodeActions {
 		CodeAction setIgnoreSeverityQuickFix = createConfigurationUpdateCodeAction(title, template.getUri(),
 				severitySetting, Severity.ignore.name(), ConfigurationItemEditType.update, diagnostics);
 		codeActions.add(setIgnoreSeverityQuickFix);
-	}
-
-	/**
-	 * CodeAction to append ?? to object to make it optional
-	 *
-	 * @param template    the Qute template
-	 * @param diagnostic  the UndefinedVariable diagnostic
-	 * @param codeActions list of CodeActions
-	 * @throws BadLocationException
-	 */
-	private static void doCodeActionToAddOptionalSuffix(Template template, Diagnostic diagnostic,
-			List<CodeAction> codeActions) throws BadLocationException {
-		Position objectEnd = diagnostic.getRange().getEnd();
-		int diagnosticStartOffset = template.offsetAt(diagnostic.getRange().getStart());
-		int diagnosticEndOffset = template.offsetAt(objectEnd);
-		String title = MessageFormat.format("Append ?? to undefined object `{0}`",
-				template.getText(diagnosticStartOffset, diagnosticEndOffset));
-		CodeAction appendOptionalSuffix = insert(title, objectEnd, "??", template.getTextDocument(), diagnostic);
-		codeActions.add(appendOptionalSuffix);
 	}
 
 	/**
@@ -442,127 +520,20 @@ class QuteCodeActions {
 		}
 	}
 
-	private void doCodeActionsForSimilarValues(Template template, Diagnostic diagnostic, List<CodeAction> codeActions,
-			String varName) throws BadLocationException {
-		Range diagnosticRange = diagnostic.getRange();
-		int offset = template.offsetAt(diagnosticRange.getEnd());
-
-		Node nodeBefore = template.findNodeBefore(offset);
-		if (nodeBefore == null) {
+	private void doCodeActionsForSimilarValues(Part part, Collection<String> availableValues, Template template,
+			Diagnostic diagnostic, List<CodeAction> codeActions) {
+		if (availableValues.isEmpty()) {
 			return;
 		}
 
-		Node node = QutePositionUtility.findBestNode(offset, nodeBefore);
-
-		if (node.getKind() == NodeKind.ExpressionPart) {
-			Range rangeValue = new Range(
-					new Position(diagnosticRange.getStart().getLine(), diagnosticRange.getStart().getCharacter()),
-					new Position(diagnosticRange.getEnd().getLine(), diagnosticRange.getEnd().getCharacter()));
-
-			Collection<String> availableValues = new TreeSet<>();
-
-			switch (((Part) node).getPartKind()) {
-			case Object:
-				collectAvailableValuesForObjectPart(node, template, availableValues);
-			case Namespace:
-				collectAvailableValuesForNamespacePart(node, template, availableValues);
-				break;
-			case Method:
-			case Property:
-				String signature = null;
-				JsonObject data = (JsonObject) diagnostic.getData();
-				if (data != null) {
-					signature = data.get(DIAGNOSTIC_DATA_TAG).getAsString();
-					collectAvailableValuesForJavaTypePart(node, template, signature, availableValues);
-					break;
-				}
+		Range rangeValue = QutePositionUtility.createRange(part);
+		String partName = part.getPartName();
+		for (String value : availableValues) {
+			if (isSimilar(value, partName)) {
+				CodeAction similarCodeAction = CodeActionFactory.replace("Did you mean '" + value + "'?", rangeValue,
+						value, template.getTextDocument(), diagnostic);
+				codeActions.add(similarCodeAction);
 			}
-
-			for (String value : availableValues) {
-				if (isSimilar(value, varName)) {
-					CodeAction similarCodeAction = CodeActionFactory.replace("Did you mean '" + value + "'?",
-							rangeValue, value, template.getTextDocument(), diagnostic);
-					codeActions.add(similarCodeAction);
-				}
-			}
-		}
-	}
-
-	private void collectAvailableValuesForObjectPart(Node node, Template template, Collection<String> availableValues) {
-		String projectUri = template.getProjectUri();
-
-		List<ValueResolver> globalResolvers = javaCache.getGlobalVariables(projectUri);
-		for (ValueResolver resolver : globalResolvers) {
-			availableValues.add(resolver.getName());
-		}
-
-		List<String> aliases = template.getChildren().stream() //
-				.filter(n -> n.getKind() == NodeKind.ParameterDeclaration) //
-				.map(n -> ((ParameterDeclaration) n).getAlias()) //
-				.filter(alias -> alias != null) //
-				.collect(Collectors.toList());
-		for (String alias : aliases) {
-			availableValues.add(alias);
-		}
-
-		ExtendedDataModelTemplate dataModel = javaCache.getDataModelTemplate(template).getNow(null);
-		if (dataModel != null) {
-			for (ExtendedDataModelParameter parameter : dataModel.getParameters()) {
-				availableValues.add(parameter.getKey());
-			}
-		}
-
-		Section section = node != null ? node.getParentSection() : null;
-		if (section != null) {
-			List<SectionMetadata> metadatas = section.getMetadata();
-			for (SectionMetadata metadata : metadatas) {
-				availableValues.add(metadata.getName());
-			}
-		}
-
-		Collection<SectionMetadata> specialKeysMetadatas = UserTagUtils.getSpecialKeys();
-		for (SectionMetadata metadata : specialKeysMetadatas) {
-			String name = metadata.getName();
-			if (!availableValues.contains(name)) {
-				availableValues.add(name);
-			}
-		}
-	}
-
-	private void collectAvailableValuesForNamespacePart(Node node, Template template,
-			Collection<String> availableValues) {
-		String projectUri = template.getProjectUri();
-
-		String namespace = ((Part) node).getNamespace();
-		if (namespace != null) {
-			List<ValueResolver> namespaceResolvers = javaCache.getNamespaceResolvers(namespace, projectUri);
-			for (ValueResolver resolver : namespaceResolvers) {
-				boolean useNamespaceInTextEdit = namespace == null;
-				String named = resolver.getNamed();
-				if (named != null) {
-					// @Named("user")
-					// User getUser();
-					String label = useNamespaceInTextEdit ? resolver.getNamespace() + ':' + named : named;
-					if (!availableValues.contains(label)) {
-						availableValues.add(label);
-					}
-				}
-			}
-		}
-	}
-
-	private void collectAvailableValuesForJavaTypePart(Node node, Template template, String signature,
-			Collection<String> availableValues) {
-		String projectUri = template.getProjectUri();
-
-		ResolvedJavaTypeInfo resolvedJavaType = javaCache.resolveJavaType(signature, projectUri).getNow(null);
-
-		for (JavaFieldInfo field : resolvedJavaType.getFields()) {
-			availableValues.add(field.getName());
-		}
-
-		for (JavaMethodInfo method : resolvedJavaType.getMethods()) {
-			availableValues.add(method.getName());
 		}
 	}
 }
