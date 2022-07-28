@@ -13,12 +13,13 @@ package com.redhat.qute.ls.commons;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
-import org.eclipse.lsp4j.jsonrpc.messages.Tuple;
+import org.eclipse.lsp4j.jsonrpc.CompletableFutures.FutureCancelChecker;
 
 /**
  * The cache of {@link TextDocument} linked to a model.
@@ -132,17 +133,22 @@ public class ModelTextDocuments<T> extends TextDocuments<ModelTextDocument<T>> {
 	 */
 	public <R> CompletableFuture<R> computeModelAsyncCompose(TextDocumentIdentifier documentIdentifier,
 			BiFunction<T, CancelChecker, CompletableFuture<R>> code) {
-		return CompletableFutures.computeAsync(cancelChecker -> {
+		return computeAsyncCompose(cancelChecker -> {
 			// Get or parse the model.
 			T model = getModel(documentIdentifier);
 			if (model == null) {
 				return null;
 			}
 			cancelChecker.checkCanceled();
-			// Apply the function code by using the parsed model.
-			return Tuple.two(model, cancelChecker);
-		}).thenCompose((tuple) -> {
-			return code.apply(tuple.getFirst(), tuple.getSecond());
+			// Apply the function code by using the parsed model.{
+			return code.apply(model, cancelChecker);
 		});
+	}
+
+	private static <R> CompletableFuture<R> computeAsyncCompose(Function<CancelChecker, CompletableFuture<R>> code) {
+		CompletableFuture<CancelChecker> start = new CompletableFuture<>();
+		CompletableFuture<R> result = start.thenComposeAsync(code);
+		start.complete(new FutureCancelChecker(result));
+		return result;
 	}
 }
