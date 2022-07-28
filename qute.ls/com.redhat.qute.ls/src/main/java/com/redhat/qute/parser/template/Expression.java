@@ -21,15 +21,15 @@ import com.redhat.qute.parser.expression.Parts;
 
 /**
  * Simple Qute expression
- * 
+ *
  * <p>
  * {foo}
  * </p>
- * 
+ *
  * <p>
  * {foo ?: foo : 'bar'}
  * </p>
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -51,13 +51,14 @@ public class Expression extends Node {
 		return NodeKind.Expression;
 	}
 
+	@Override
 	public String getNodeName() {
 		return "#expression";
 	}
 
 	/**
 	 * Returns the start offset of the expression content (after '{')
-	 * 
+	 *
 	 * @return the start offset of the expression content (after '{')
 	 */
 	public int getStartContentOffset() {
@@ -66,7 +67,7 @@ public class Expression extends Node {
 
 	/**
 	 * Returns the end offset of the expression content (before '}')
-	 * 
+	 *
 	 * @return the end offset of the expression content (before '}')
 	 */
 	public int getEndContentOffset() {
@@ -96,7 +97,7 @@ public class Expression extends Node {
 
 	/**
 	 * Returns the object part of the expression and null otherwise.
-	 * 
+	 *
 	 * @return the object part of the expression and null otherwise.
 	 */
 	public ObjectPart getObjectPart() {
@@ -110,7 +111,7 @@ public class Expression extends Node {
 
 	/**
 	 * Returns the namespace part of the expression and null otherwise.
-	 * 
+	 *
 	 * @return the namespace part of the expression and null otherwise.
 	 */
 	public NamespacePart getNamespacePart() {
@@ -124,7 +125,7 @@ public class Expression extends Node {
 
 	/**
 	 * Returns the last part of the expression and null otherwise.
-	 * 
+	 *
 	 * @return the last part of the expression and null otherwise.
 	 */
 	public Part getLastPart() {
@@ -138,7 +139,7 @@ public class Expression extends Node {
 
 	/**
 	 * Returns the Java type of the expression if it's a literal and null otherwise.
-	 * 
+	 *
 	 * @return the Java type of the expression if it's a literal and null otherwise.
 	 */
 	public String getLiteralJavaType() {
@@ -174,11 +175,11 @@ public class Expression extends Node {
 	/**
 	 * Returns true if the last part of the expression is optional (ends with ??)
 	 * and false otherwise.
-	 * 
+	 *
 	 * <p>
 	 * {foo??}
 	 * </p>
-	 * 
+	 *
 	 * @return true if the last part of the expression is optional (ends with ??)
 	 *         and false otherwise.
 	 */
@@ -189,9 +190,9 @@ public class Expression extends Node {
 
 	/**
 	 * Returns the owner parameter of the expression and null otherwise.
-	 * 
+	 *
 	 * For expression like {foo}, the owner parameter is null.
-	 * 
+	 *
 	 * @return the owner parameter of the expression and null otherwise.
 	 */
 	public Parameter getOwnerParameter() {
@@ -200,9 +201,9 @@ public class Expression extends Node {
 
 	/**
 	 * Returns the owner section of the expression and null otherwise.
-	 * 
+	 *
 	 * For expression like {foo}, the owner section is null.
-	 * 
+	 *
 	 * @return the owner section of the expression and null otherwise.
 	 */
 	public Section getOwnerSection() {

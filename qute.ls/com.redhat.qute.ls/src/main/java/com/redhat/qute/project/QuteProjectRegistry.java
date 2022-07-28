@@ -347,7 +347,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	/**
 	 * Returns the Java member (field or method) from the given Java base type with
 	 * the given property and null otherwise.
-	 * 
+	 *
 	 * @param baseType   the Java base type.
 	 * @param property   the member property (field name or getter method name).
 	 * @param projectUri the project Uri used to search in the extended Java type.
@@ -419,11 +419,11 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	/**
 	 * Returns the Java member from the given base type wich matches the given
 	 * property by using Java reflection and null otherwise.
-	 * 
+	 *
 	 * @param baseType   the Java type.
 	 * @param property   the property member.
 	 * @param projectUri the project Uri.
-	 * 
+	 *
 	 * @return the Java member from the given base type wich matches the given
 	 *         property by using Java reflection and null otherwise.
 	 */
@@ -504,7 +504,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	/**
 	 * Returns the member method retrieved by the given property or method name and
 	 * null otherwise.
-	 * 
+	 *
 	 * @param baseType          the Java base type.
 	 * @param methodName        property or method name.
 	 * @param getterMethodName  the getter method name.
@@ -668,7 +668,9 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		boolean virtualMethod = method.isVirtual();
 		int nbParameters = method.getParameterslength();
 		int declaredNbParameters = parameterTypes.size();
-		JavaParameterInfo lastParameter = method.hasParameters() ? method.getParameterAt(method.getParameters().size() - 1) : null;
+		JavaParameterInfo lastParameter = method.hasParameters()
+				? method.getParameterAt(method.getParameters().size() - 1)
+				: null;
 		boolean varargs = lastParameter != null && lastParameter.isVarargs();
 		if (varargs) {
 			if (declaredNbParameters == 0) {
@@ -821,7 +823,14 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		return getAllNamespaces(projectUri).contains(namespace);
 	}
 
-	private Set<String> getAllNamespaces(String projectUri) {
+	/**
+	 * Return all namespaces from the given Qute project Uri.
+	 *
+	 * @param projectUri the Qute project Uri
+	 *
+	 * @return all namespace from the given Qute project Uri.
+	 */
+	public Set<String> getAllNamespaces(String projectUri) {
 		if (StringUtils.isEmpty(projectUri)) {
 			return Collections.emptySet();
 		}
@@ -1104,10 +1113,10 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	/**
 	 * Returns the java type filter according the given root java type and the
 	 * native mode.
-	 * 
+	 *
 	 * @param rootJavaType         the Java root type.
 	 * @param nativeImagesSettings the native images settings.
-	 * 
+	 *
 	 * @return the java type filter according the given root java type and the
 	 *         native mode.
 	 */

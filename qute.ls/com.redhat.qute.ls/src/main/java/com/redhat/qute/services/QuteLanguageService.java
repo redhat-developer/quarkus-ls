@@ -72,7 +72,7 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	private SnippetRegistry<Snippet> coreTagSnippetRegistry;
 
 	public QuteLanguageService(JavaDataModelCache javaCache) {
-		this.codeActions = new QuteCodeActions();
+		this.codeActions = new QuteCodeActions(javaCache);
 		this.codeLens = new QuteCodeLens(javaCache);
 		this.completions = new QuteCompletions(javaCache, this);
 		this.definition = new QuteDefinition(javaCache);
