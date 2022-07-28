@@ -9,6 +9,8 @@
 *******************************************************************************/
 package com.redhat.qute.services.diagnostics;
 
+import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+
 /**
  * Represents the data needed to create a "create missing member" CodeAction
  *
@@ -18,10 +20,12 @@ public class UnknownPropertyData {
 
 	private String signature;
 	private String property;
+	private Boolean source;
 
-	public UnknownPropertyData(String signature, String property) {
+	public UnknownPropertyData(String signature, String property, Boolean source) {
 		this.signature = signature;
 		this.property = property;
+		this.source = source;
 	}
 
 	public String getSignature() {
@@ -32,9 +36,13 @@ public class UnknownPropertyData {
 		return this.property;
 	}
 
+	public Boolean isSource() {
+		return source != null && this.source.booleanValue();
+	}
+
 	@Override
 	public UnknownPropertyData clone() {
-		return new UnknownPropertyData(signature, property);
+		return new UnknownPropertyData(signature, property, source);
 	}
 
 	@Override
@@ -43,8 +51,20 @@ public class UnknownPropertyData {
 			return false;
 		}
 		UnknownPropertyData otherCast = (UnknownPropertyData) other;
-		return (this.property.equals(otherCast.property))
-				&& (this.signature.equals(otherCast.signature));
+		return ((this.property == null && otherCast.property == null) || (this.property.equals(otherCast.property)))
+				&& ((this.signature == null && otherCast.signature == null)
+						|| (this.signature.equals(otherCast.signature)))
+				&& ((this.source == null && otherCast.source == null)
+						|| (this.source.booleanValue() == otherCast.source.booleanValue()));
+	}
+
+	@Override
+	public String toString() {
+		ToStringBuilder builder = new ToStringBuilder(this);
+		builder.add("signature", signature);
+		builder.add("property", property);
+		builder.add("source", source);
+		return builder.toString();
 	}
 
 }

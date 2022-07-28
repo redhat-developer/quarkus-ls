@@ -228,7 +228,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(1, 6, 1, 10, QuteErrorCode.UnknownProperty,
 						"`XXXX` cannot be resolved or is not a field of `org.acme.Item` Java type.",
-						new UnknownPropertyData("org.acme.Item", "XXXX"),
+						new UnknownPropertyData("org.acme.Item", "XXXX", true),
 						DiagnosticSeverity.Error));
 
 		template = "{@org.acme.Item item}\r\n" + //
@@ -236,7 +236,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(1, 6, 1, 10, QuteErrorCode.UnknownProperty,
 						"`XXXX` cannot be resolved or is not a field of `org.acme.Item` Java type.",
-						new UnknownPropertyData("org.acme.Item", "XXXX"),
+						new UnknownPropertyData("org.acme.Item", "XXXX", true),
 						DiagnosticSeverity.Error));
 
 		template = "{@org.acme.Item item}\r\n" + //
@@ -244,7 +244,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(1, 11, 1, 15, QuteErrorCode.UnknownProperty,
 						"`YYYY` cannot be resolved or is not a field of `java.lang.String` Java type.",
-						new UnknownPropertyData("java.lang.String", "YYYY"),
+						new UnknownPropertyData("java.lang.String", "YYYY", false),
 						DiagnosticSeverity.Error));
 	}
 
@@ -339,7 +339,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(1, 7, 1, 14, QuteErrorCode.UnknownProperty,
 						"`sizeXXX` cannot be resolved or is not a field of `java.util.List<E>` Java type.",
-						new UnknownPropertyData("java.util.List<E>", "sizeXXX"),
+						new UnknownPropertyData("java.util.List<E>", "sizeXXX", false),
 						DiagnosticSeverity.Error));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
@@ -356,7 +356,7 @@ public class QuteDiagnosticsInExpressionTest {
 				"{items.size.XXX}";
 		testDiagnosticsFor(template, d(1, 12, 1, 15, QuteErrorCode.UnknownProperty,
 				"`XXX` cannot be resolved or is not a field of `int` Java type.",
-				new UnknownPropertyData("int", "XXX"),
+				new UnknownPropertyData("int", "XXX", false),
 				DiagnosticSeverity.Error));
 	}
 
@@ -690,7 +690,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(1, 8, 1, 12, QuteErrorCode.UnknownProperty,
 						"`XXXX` cannot be resolved or is not a field of `org.acme.Item` Java type.",
-						new UnknownPropertyData("org.acme.Item", "XXXX"),
+						new UnknownPropertyData("org.acme.Item", "XXXX", true),
 						DiagnosticSeverity.Error));
 	}
 
@@ -728,7 +728,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(0, 8, 0, 12, QuteErrorCode.UnknownProperty,
 						"`XXXX` cannot be resolved or is not a field of `java.lang.String` Java type.",
-						new UnknownPropertyData("java.lang.String", "XXXX"),
+						new UnknownPropertyData("java.lang.String", "XXXX", false),
 						DiagnosticSeverity.Error));
 	}
 }

@@ -106,15 +106,16 @@ public abstract class MockQuteProject extends QuteProject {
 		return typeInfo;
 	}
 
-	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String typeName, List<ResolvedJavaTypeInfo> cache,
+	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String typeName, List<ResolvedJavaTypeInfo> cache, boolean isSource,
 			ResolvedJavaTypeInfo... extended) {
-		return createResolvedJavaTypeInfo(typeName, null, null, cache, extended);
+		return createResolvedJavaTypeInfo(typeName, null, null, cache, isSource, extended);
 	}
 
 	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String signature, String iterableType,
-			String iterableOf, List<ResolvedJavaTypeInfo> cache, ResolvedJavaTypeInfo... extended) {
+			String iterableOf, List<ResolvedJavaTypeInfo> cache, boolean isSource, ResolvedJavaTypeInfo... extended) {
 		ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
 		resolvedType.setKind(JavaTypeKind.Class);
+		resolvedType.setSource(isSource);
 		resolvedType.setSignature(signature);
 		resolvedType.setIterableType(iterableType);
 		resolvedType.setIterableOf(iterableOf);

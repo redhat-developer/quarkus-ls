@@ -217,12 +217,12 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 	private static ResolvedJavaTypeInfo getResolvedJavaType(List<Object> arguments, String commandId,
 			IProgressMonitor monitor) throws JavaModelException, CoreException {
 		// Create java file information parameter
-		QuteResolvedJavaTypeParams params = createQuteResolvedJavaTyeParams(arguments, commandId);
+		QuteResolvedJavaTypeParams params = createQuteResolvedJavaTypeParams(arguments, commandId);
 		// Return file information from the parameter
 		return QuteSupportForTemplate.getInstance().getResolvedJavaType(params, JDTUtilsLSImpl.getInstance(), monitor);
 	}
 
-	private static QuteResolvedJavaTypeParams createQuteResolvedJavaTyeParams(List<Object> arguments,
+	private static QuteResolvedJavaTypeParams createQuteResolvedJavaTypeParams(List<Object> arguments,
 			String commandId) {
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {

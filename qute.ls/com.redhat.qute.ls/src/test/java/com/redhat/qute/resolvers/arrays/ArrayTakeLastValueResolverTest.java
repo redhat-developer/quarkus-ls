@@ -49,7 +49,7 @@ public class ArrayTakeLastValueResolverTest {
 		testDiagnosticsFor(template, //
 				d(1, 19, 1, 28, QuteErrorCode.UnknownProperty,
 						"`lengthXXX` cannot be resolved or is not a field of `org.acme.Item[]` Java type.",
-						new UnknownPropertyData("org.acme.Item[]", "lengthXXX"),
+						new UnknownPropertyData("org.acme.Item[]", "lengthXXX", false),
 						DiagnosticSeverity.Error));
 	}
 

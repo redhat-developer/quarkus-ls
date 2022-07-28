@@ -104,7 +104,7 @@ public class QuteDiagnosticsInExpressionWithNamespaceTest {
 		testDiagnosticsFor(template,
 				d(0, 13, 0, 17, QuteErrorCode.UnknownProperty,
 						"`XXXX` cannot be resolved or is not a field of `java.lang.String` Java type.",
-						new UnknownPropertyData("java.lang.String", "XXXX"),
+						new UnknownPropertyData("java.lang.String", "XXXX", false),
 						DiagnosticSeverity.Error));
 
 		template = "{inject:bean.XXXX()}";

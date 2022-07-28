@@ -218,6 +218,7 @@ public class CodeActionFactory {
 		CodeAction codeAction = new CodeAction(title);
 		codeAction.setData(data);
 		codeAction.setKind(CodeActionKind.QuickFix);
+		codeAction.setDiagnostics(diagnostics);
 		return codeAction;
 	}
 

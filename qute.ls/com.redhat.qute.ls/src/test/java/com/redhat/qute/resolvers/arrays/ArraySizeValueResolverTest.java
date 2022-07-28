@@ -45,7 +45,7 @@ public class ArraySizeValueResolverTest {
 		testDiagnosticsFor(template, //
 				d(1, 7, 1, 14, QuteErrorCode.UnknownProperty,
 						"`sizeXXX` cannot be resolved or is not a field of `org.acme.Item[]` Java type.",
-						new UnknownPropertyData("org.acme.Item[]", "sizeXXX"),
+						new UnknownPropertyData("org.acme.Item[]", "sizeXXX", false),
 						DiagnosticSeverity.Error));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //

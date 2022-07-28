@@ -63,7 +63,7 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 		testDiagnosticsFor(template, //
 				d(3, 5, 3, 12, QuteErrorCode.UnknownProperty,
 						"`nameXXX` cannot be resolved or is not a field of `org.acme.Item` Java type.",
-						new UnknownPropertyData("org.acme.Item", "nameXXX"),
+						new UnknownPropertyData("org.acme.Item", "nameXXX", true),
 						DiagnosticSeverity.Error));
 	}
 
