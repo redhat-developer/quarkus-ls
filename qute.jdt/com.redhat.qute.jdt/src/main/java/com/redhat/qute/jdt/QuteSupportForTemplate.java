@@ -72,7 +72,7 @@ import com.redhat.qute.jdt.internal.resolver.CompilationUnitTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 import com.redhat.qute.jdt.internal.template.JavaTypesSearch;
 import com.redhat.qute.jdt.internal.template.QuarkusIntegrationForQute;
-import com.redhat.qute.jdt.internal.template.QuteSupportForTemplateGenerateMissingJavaMemberHandler;
+import com.redhat.qute.jdt.internal.template.TemplateGenerateMissingJavaMember;
 import com.redhat.qute.jdt.internal.template.TemplateDataSupport;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
@@ -478,7 +478,7 @@ public class QuteSupportForTemplate {
 	 */
 	public WorkspaceEdit generateMissingJavaMember(GenerateMissingJavaMemberParams params, IJDTUtils utils,
 			IProgressMonitor monitor) {
-		return QuteSupportForTemplateGenerateMissingJavaMemberHandler.handleGenerateMissingJavaMember(params, utils,
+		return TemplateGenerateMissingJavaMember.handleGenerateMissingJavaMember(params, utils,
 				monitor);
 	}
 

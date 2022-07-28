@@ -21,7 +21,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -32,7 +31,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Block;
-import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldAccess;
@@ -46,16 +45,11 @@ import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
-import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import org.eclipse.jdt.core.manipulation.CodeGeneration;
-import org.eclipse.jdt.core.search.IJavaSearchConstants;
-import org.eclipse.jdt.core.search.IJavaSearchScope;
-import org.eclipse.jdt.core.search.SearchEngine;
-import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.manipulation.StubUtility;
 import org.eclipse.jdt.internal.core.manipulation.dom.ASTResolving;
-import org.eclipse.jdt.internal.corext.dom.ASTNodes;
+import org.eclipse.jdt.internal.corext.dom.BodyDeclarationRewrite;
 import org.eclipse.jdt.internal.corext.dom.IASTSharedValues;
 import org.eclipse.lsp4j.CreateFile;
 import org.eclipse.lsp4j.Position;
@@ -77,16 +71,15 @@ import com.redhat.qute.jdt.utils.TextEditConverter;
  *
  * @author datho7561
  */
-public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
+public class TemplateGenerateMissingJavaMember {
 
-	private static final Logger LOGGER = Logger
-			.getLogger(QuteSupportForTemplateGenerateMissingJavaMemberHandler.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(TemplateGenerateMissingJavaMember.class.getName());
 
 	private static final Pattern BROKEN_FILE_PROTOCOL = Pattern.compile("file:/(?!//)");
 
 	private static final Range PREPEND_RANGE = new Range(new Position(0, 0), new Position(0, 0));
 
-	private QuteSupportForTemplateGenerateMissingJavaMemberHandler() {
+	private TemplateGenerateMissingJavaMember() {
 
 	}
 
@@ -141,11 +134,11 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		if (cu == null) {
 			return null;
 		}
-		ASTNode newTypeDecl = cu.findDeclaringNode("L" + params.getJavaType().replace('.', '/') + ";");
-		if (newTypeDecl == null) {
+		ASTNode typeNode = cu.findDeclaringNode("L" + params.getJavaType().replace('.', '/') + ";");
+		if (typeNode == null) {
 			return null;
 		}
-		AST ast = newTypeDecl.getAST();
+		AST ast = typeNode.getAST();
 		var rewrite = ASTRewrite.create(ast);
 
 		VariableDeclarationFragment fragment = ast.newVariableDeclarationFragment();
@@ -157,10 +150,8 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		decl.setType(ast.newSimpleType(ast.newSimpleName("String")));
 		decl.modifiers().add(modifier);
 
-		ChildListPropertyDescriptor property = ASTNodes.getBodyDeclarationsProperty(newTypeDecl);
-		ListRewrite listRewrite = rewrite.getListRewrite(newTypeDecl, property);
+		insertDeclaration(decl, rewrite, typeNode);
 
-		listRewrite.insertAt(decl, 0, null);
 		org.eclipse.text.edits.TextEdit jdtTextEdit;
 		try {
 			jdtTextEdit = rewrite.rewriteAST();
@@ -178,15 +169,15 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		if (cu == null) {
 			return null;
 		}
-		ASTNode newTypeDecl = cu.findDeclaringNode("L" + params.getJavaType().replace('.', '/') + ";");
-		if (newTypeDecl == null) {
+		ASTNode typeNode = cu.findDeclaringNode("L" + params.getJavaType().replace('.', '/') + ";");
+		if (typeNode == null) {
 			return null;
 		}
-		AST ast = newTypeDecl.getAST();
+		AST ast = typeNode.getAST();
 		var rewrite = ASTRewrite.create(ast);
 
 		FieldDeclFinder fieldDeclFinder = new FieldDeclFinder(params.getMissingProperty());
-		newTypeDecl.accept(fieldDeclFinder);
+		typeNode.accept(fieldDeclFinder);
 		if (fieldDeclFinder.getFieldDeclaration() == null) {
 			return null;
 		}
@@ -227,10 +218,7 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 			decl.setType(getCloneOfType(oldFieldDeclaration, ast, rewrite));
 			decl.modifiers().add(modifier);
 
-			ChildListPropertyDescriptor property = ASTNodes.getBodyDeclarationsProperty(newTypeDecl);
-			ListRewrite listRewrite = rewrite.getListRewrite(newTypeDecl, property);
-
-			listRewrite.insertAt(decl, 0, null);
+			insertDeclaration(decl, rewrite, typeNode);
 		} else {
 			Modifier oldModifier = null;
 			for (Object modifierUncast : oldFieldDeclaration.modifiers()) {
@@ -270,11 +258,11 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		if (cu == null) {
 			return null;
 		}
-		ASTNode newTypeDecl = cu.findDeclaringNode("L" + params.getJavaType().replace('.', '/') + ";");
-		if (newTypeDecl == null) {
+		ASTNode typeNode = cu.findDeclaringNode("L" + params.getJavaType().replace('.', '/') + ";");
+		if (typeNode == null) {
 			return null;
 		}
-		AST ast = newTypeDecl.getAST();
+		AST ast = typeNode.getAST();
 		var rewrite = ASTRewrite.create(ast);
 
 		MethodDeclaration methodDeclaration = ast.newMethodDeclaration();
@@ -287,7 +275,7 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		IField field = javaType.getField(params.getMissingProperty());
 		if (field != null && field.exists()) {
 			FieldDeclFinder declFinder = new FieldDeclFinder(params.getMissingProperty());
-			newTypeDecl.accept(declFinder);
+			typeNode.accept(declFinder);
 			FieldDeclaration fieldDeclaration = declFinder.getFieldDeclaration();
 			FieldAccess fieldAccess = ast.newFieldAccess();
 			fieldAccess.setName(ast.newSimpleName(params.getMissingProperty()));
@@ -302,10 +290,8 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		block.statements().add(returnStatement);
 		methodDeclaration.setBody(block);
 
-		ChildListPropertyDescriptor property = ASTNodes.getBodyDeclarationsProperty(newTypeDecl);
-		ListRewrite listRewrite = rewrite.getListRewrite(newTypeDecl, property);
+		insertDeclaration(methodDeclaration, rewrite, typeNode);
 
-		listRewrite.insertAt(methodDeclaration, 0, null);
 		org.eclipse.text.edits.TextEdit jdtTextEdit;
 		try {
 			jdtTextEdit = rewrite.rewriteAST();
@@ -317,6 +303,7 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		return new WorkspaceEdit(Arrays.asList(Either.forLeft(textDocumentEdit)));
 	}
 
+	// TODO: caching scheme
 	private static WorkspaceEdit handleCreateMissingTemplateExtension(GenerateMissingJavaMemberParams params,
 			IJDTUtils utils, IProgressMonitor monitor) {
 
@@ -347,11 +334,11 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 	private static WorkspaceEdit addTemplateExtensionToFile(GenerateMissingJavaMemberParams params, IJDTUtils utils,
 			IJavaProject project, IType templateExtensionType, IProgressMonitor monitor) {
 		CompilationUnit cu = createQuickFixAST(templateExtensionType);
-		ASTNode newTypeDecl = cu.findDeclaringNode(templateExtensionType.getKey());
-		if (newTypeDecl == null) {
+		ASTNode typeNode = cu.findDeclaringNode(templateExtensionType.getKey());
+		if (typeNode == null) {
 			return null;
 		}
-		AST ast = newTypeDecl.getAST();
+		AST ast = typeNode.getAST();
 		var rewrite = ASTRewrite.create(ast);
 
 		MethodDeclaration methodDeclaration = ast.newMethodDeclaration();
@@ -372,10 +359,8 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		block.statements().add(returnStatement);
 		methodDeclaration.setBody(block);
 
-		ChildListPropertyDescriptor property = ASTNodes.getBodyDeclarationsProperty(newTypeDecl);
-		ListRewrite listRewrite = rewrite.getListRewrite(newTypeDecl, property);
+		insertDeclaration(methodDeclaration, rewrite, typeNode);
 
-		listRewrite.insertAt(methodDeclaration, 0, null);
 		org.eclipse.text.edits.TextEdit jdtTextEdit;
 		try {
 			jdtTextEdit = rewrite.rewriteAST();
@@ -510,7 +495,7 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		if (javaType.isBinary()) {
 			return null;
 		}
-		return ASTResolving.createQuickFixAST((ICompilationUnit) javaType.getCompilationUnit(), null);
+		return ASTResolving.createQuickFixAST(javaType.getCompilationUnit(), null);
 	}
 
 	private static IJavaProject getJavaProjectFromProjectUri(String projectName) {
@@ -551,6 +536,11 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 	private static String fixBrokenUri(String uri) {
 		Matcher m = BROKEN_FILE_PROTOCOL.matcher(uri);
 		return m.replaceFirst("file:///");
+	}
+
+	private static void insertDeclaration(BodyDeclaration decl, ASTRewrite rewrite, ASTNode typeNode) {
+		BodyDeclarationRewrite bodyDeclarationRewrite = BodyDeclarationRewrite.create(rewrite, typeNode);
+		bodyDeclarationRewrite.insert(decl, null);
 	}
 
 	/**
