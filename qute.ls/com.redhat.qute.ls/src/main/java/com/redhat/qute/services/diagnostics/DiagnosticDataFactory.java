@@ -11,17 +11,12 @@
 *******************************************************************************/
 package com.redhat.qute.services.diagnostics;
 
-import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_ITERABLE;
-import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_NAME;
-import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_TAG;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.QUTE_SOURCE;
 
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Range;
 
-import com.google.gson.JsonObject;
-import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.utils.JSONUtility;
 
 /**
@@ -32,31 +27,22 @@ import com.redhat.qute.utils.JSONUtility;
  */
 public class DiagnosticDataFactory {
 
-	public static JsonObject createUndefinedObjectData(String partName, boolean iterable) {
-		JsonObject data = new JsonObject();
-		data.addProperty(DIAGNOSTIC_DATA_NAME, partName);
-		data.addProperty(DIAGNOSTIC_DATA_ITERABLE, iterable);
-		return data;
-	}
-
-	public static JsonObject createUndefinedSectionTagData(String tagName) {
-		JsonObject data = new JsonObject();
-		data.addProperty(DIAGNOSTIC_DATA_TAG, tagName);
-		return data;
-	}
-
-
-	public static UnknownPropertyData getMissingMemberData(Diagnostic diagnostic) {
+	/**
+	 * Returns the Java base type (signature) of the covered node by the diagnostic
+	 * error range and null otherwise.
+	 * 
+	 * @param diagnostic the diagnostic.
+	 * 
+	 * @return the Java base type (signature) of the covered node by the diagnostic
+	 *         error range and null otherwise.
+	 */
+	public static JavaBaseTypeOfPartData getJavaBaseTypeOfPartData(Diagnostic diagnostic) {
 		if (diagnostic.getData() == null) {
 			// TODO: the client may not support diagnostic data; resolve the needed
 			// information some other way, such as with the Java cache
 			return null;
 		}
-		return JSONUtility.toModel(diagnostic.getData(), UnknownPropertyData.class);
-	}
-
-	public static UnknownPropertyData getMissingMemberData(JsonObject obj) {
-		return JSONUtility.toModel(obj, UnknownPropertyData.class);
+		return JSONUtility.toModel(diagnostic.getData(), JavaBaseTypeOfPartData.class);
 	}
 
 	public static Diagnostic createDiagnostic(Range range, DiagnosticSeverity severity, IQuteErrorCode errorCode,

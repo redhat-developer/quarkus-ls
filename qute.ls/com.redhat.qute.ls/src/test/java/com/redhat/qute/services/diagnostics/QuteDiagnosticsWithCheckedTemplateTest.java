@@ -18,9 +18,9 @@ public class QuteDiagnosticsWithCheckedTemplateTest {
 	@Test
 	public void noCheckedTemplateMatching() throws Exception {
 		String template = "Item: {items}";
+
 		Diagnostic d = d(0, 7, 0, 12, QuteErrorCode.UndefinedObject, "`items` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("items", false));
 		testDiagnosticsFor(template, d);
 	}
 

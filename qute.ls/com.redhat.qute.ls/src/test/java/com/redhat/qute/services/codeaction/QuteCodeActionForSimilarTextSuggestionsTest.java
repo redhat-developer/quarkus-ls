@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
-import com.redhat.qute.services.diagnostics.DiagnosticDataFactory;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
@@ -42,19 +41,18 @@ public class QuteCodeActionForSimilarTextSuggestionsTest {
 				QuteErrorCode.UndefinedObject, //
 				"`stri` cannot be resolved to an object.", //
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("stri", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
+				ca(d, te(1, 1, 1, 5, "string")), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String stri}\r\n")), //
+				ca(d, te(1, 5, 1, 5, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)), //
-				ca(d, te(1, 5, 1, 5, "??")), //
-				ca(d, te(1, 1, 1, 5, "string")));
+						d)));
 	}
 
 	@Test
@@ -66,19 +64,18 @@ public class QuteCodeActionForSimilarTextSuggestionsTest {
 				QuteErrorCode.UndefinedObject, //
 				"`trin` cannot be resolved to an object.", //
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("trin", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
+				ca(d, te(1, 1, 1, 5, "string")), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String trin}\r\n")), //
+				ca(d, te(1, 5, 1, 5, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)), //
-				ca(d, te(1, 5, 1, 5, "??")), //
-				ca(d, te(1, 1, 1, 5, "string")));
+						d)));
 	}
 
 	@Test
@@ -89,19 +86,18 @@ public class QuteCodeActionForSimilarTextSuggestionsTest {
 				QuteErrorCode.UndefinedObject, //
 				"`abc` cannot be resolved to an object.", //
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("abc", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String abc}" + //
 						System.lineSeparator())), //
+				ca(d, te(0, 4, 0, 4, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)), //
-				ca(d, te(0, 4, 0, 4, "??")));
+						d)));
 	}
 
 	@Test
@@ -114,13 +110,13 @@ public class QuteCodeActionForSimilarTextSuggestionsTest {
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
+				ca(d, te(0, 1, 0, 5, "inject")), //
 				ca(d, c("Ignore `UndefinedNamespace` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedNamespace.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)), //
-				ca(d, te(0, 1, 0, 5, "inject")));
+						d)));
 	}
 
 	@Test
@@ -151,19 +147,18 @@ public class QuteCodeActionForSimilarTextSuggestionsTest {
 				QuteErrorCode.UndefinedObject, //
 				"`ite` cannot be resolved to an object.", //
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("ite", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
+				ca(d, te(2, 2, 2, 5, "item")), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String ite}\r\n")), //
+				ca(d, te(2, 5, 2, 5, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)), //
-				ca(d, te(2, 5, 2, 5, "??")), //
-				ca(d, te(2, 2, 2, 5, "item")));
+						d)));
 	}
 
 	@Test
@@ -177,18 +172,18 @@ public class QuteCodeActionForSimilarTextSuggestionsTest {
 				QuteErrorCode.UndefinedObject, //
 				"`ite` cannot be resolved to an object.", //
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("ite", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
+				ca(d, te(2, 2, 2, 5, "item")), //
+				ca(d, te(2, 2, 2, 5, "items")), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String ite}\r\n")), //
+				ca(d, te(2, 5, 2, 5, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)), //
-				ca(d, te(2, 5, 2, 5, "??")), //
-				ca(d, te(2, 2, 2, 5, "item")), ca(d, te(2, 2, 2, 5, "items")));
+						d)));
 	}
 }

@@ -36,7 +36,6 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 
 		Diagnostic d = d(2, 7, 2, 15, QuteErrorCode.UndefinedObject, //
 				"`itemsXXX` cannot be resolved to an object.", DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("itemsXXX", true));
 
 		testDiagnosticsFor(template, d, //
 				d(3, 2, 3, 4, QuteErrorCode.UnknownType, //
@@ -44,13 +43,13 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 						DiagnosticSeverity.Error));
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.util.List itemsXXX}\r\n")), //
+				ca(d, te(2, 15, 2, 15, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)),
-				ca(d, te(2, 15, 2, 15, "??")));
+						d)));
 	}
 
 	@Test
@@ -63,8 +62,7 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 		testDiagnosticsFor(template, //
 				d(3, 5, 3, 12, QuteErrorCode.UnknownProperty,
 						"`nameXXX` cannot be resolved or is not a field of `org.acme.Item` Java type.",
-						new UnknownPropertyData("org.acme.Item", "nameXXX", true),
-						DiagnosticSeverity.Error));
+						new JavaBaseTypeOfPartData("org.acme.Item"), DiagnosticSeverity.Error));
 	}
 
 	@Test

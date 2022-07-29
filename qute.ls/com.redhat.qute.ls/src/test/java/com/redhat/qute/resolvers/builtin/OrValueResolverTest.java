@@ -22,7 +22,6 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
-import com.redhat.qute.services.diagnostics.DiagnosticDataFactory;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
@@ -56,24 +55,20 @@ public class OrValueResolverTest {
 				"{item ?: bar}";
 		Diagnostic d1 = d(1, 9, 1, 12, QuteErrorCode.UndefinedObject, "`bar` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d1.setData(DiagnosticDataFactory.createUndefinedObjectData("bar", false));
 		testDiagnosticsFor(template, d1);
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"{bar ?: item}";
 		Diagnostic d2 = d(1, 1, 1, 4, QuteErrorCode.UndefinedObject, "`bar` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d2.setData(DiagnosticDataFactory.createUndefinedObjectData("bar", false));
 		testDiagnosticsFor(template, d2);
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"{foo ?: bar}";
 		Diagnostic d3_1 = d(1, 1, 1, 4, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d3_1.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
 		Diagnostic d3_2 = d(1, 8, 1, 11, QuteErrorCode.UndefinedObject, "`bar` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d3_2.setData(DiagnosticDataFactory.createUndefinedObjectData("bar", false));
 		testDiagnosticsFor(template, d3_1, d3_2);
 	}
 
