@@ -34,9 +34,9 @@ public class QuteDiagnosticsUserTagTest {
 	@Test
 	public void undefinedObjectInTemplate() {
 		String template = "{name}";
+
 		Diagnostic d = d(0, 1, 0, 5, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("name", false));
 		testDiagnosticsFor(template, //
 				"src/main/resources/templates/user.html", //
 				"user", //
@@ -54,34 +54,33 @@ public class QuteDiagnosticsUserTagTest {
 	@Test
 	public void undefinedObjectInUserTagCall() {
 		String template = "{#user name=name /}";
+
 		Diagnostic d = d(0, 12, 0, 16, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("name", false));
 		testDiagnosticsFor(template, d);
 	}
 
 	@Test
 	public void undefinedObjectInItUserTagCall() {
 		String template = "{#user name /}";
+
 		Diagnostic d = d(0, 7, 0, 11, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("name", false));
 		testDiagnosticsFor(template, d);
 	}
-	
+
 	@Test
 	public void stringParameterInUserTagCall() {
 		String template = "{#user name=\"User Name\" /}";
 		testDiagnosticsFor(template);
 	}
-	
+
 	@Test
 	public void undefinedSectionTag() throws Exception {
 		String template = "{#undefined /}";
 
 		Diagnostic d = d(0, 1, 0, 11, QuteErrorCode.UndefinedSectionTag, "No section helper found for `undefined`.",
 				DiagnosticSeverity.Error);
-		d.setData(DiagnosticDataFactory.createUndefinedSectionTagData("undefined"));
 		testDiagnosticsFor(template, //
 				d);
 

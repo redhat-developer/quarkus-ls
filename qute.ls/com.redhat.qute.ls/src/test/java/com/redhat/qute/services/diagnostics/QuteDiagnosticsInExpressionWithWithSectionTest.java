@@ -40,18 +40,17 @@ public class QuteDiagnosticsInExpressionWithWithSectionTest {
 
 		Diagnostic d = d(0, 7, 0, 11, QuteErrorCode.UndefinedObject, "`item` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}\r\n")), //
+				ca(d, te(0, 11, 0, 11, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)), //
-				ca(d, te(0, 11, 0, 11, "??")));
+						d)));
 	}
 
 	@Test
@@ -81,18 +80,17 @@ public class QuteDiagnosticsInExpressionWithWithSectionTest {
 
 		Diagnostic d = d(6, 5, 6, 12, QuteErrorCode.UndefinedObject, "`average` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("average", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String average}\r\n")), //
+				ca(d, te(6, 12, 6, 12, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)), //
-				ca(d, te(6, 12, 6, 12, "??")));
+						d)));
 
 	}
 }

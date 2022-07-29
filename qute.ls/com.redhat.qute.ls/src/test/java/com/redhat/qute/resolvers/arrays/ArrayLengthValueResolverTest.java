@@ -21,8 +21,7 @@ import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
-import com.redhat.qute.services.diagnostics.DiagnosticDataFactory;
-import com.redhat.qute.services.diagnostics.UnknownPropertyData;
+import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
@@ -46,7 +45,7 @@ public class ArrayLengthValueResolverTest {
 		testDiagnosticsFor(template, //
 				d(1, 7, 1, 16, QuteErrorCode.UnknownProperty,
 						"`lengthXXX` cannot be resolved or is not a field of `org.acme.Item[]` Java type.",
-						new UnknownPropertyData("org.acme.Item[]", "lengthXXX", false),
+						new JavaBaseTypeOfPartData("org.acme.Item[]"), //
 						DiagnosticSeverity.Error));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
@@ -54,7 +53,7 @@ public class ArrayLengthValueResolverTest {
 		testDiagnosticsFor(template, //
 				d(1, 7, 1, 13, QuteErrorCode.UnknownProperty,
 						"`length` cannot be resolved or is not a field of `java.util.List<E>` Java type.",
-						new UnknownPropertyData("java.util.List<E>", "length", false),
+						new JavaBaseTypeOfPartData("java.util.List<E>"), //
 						DiagnosticSeverity.Error));
 	}
 

@@ -88,7 +88,7 @@ public class QuteDiagnosticsInExpressionWithNamespaceTest {
 		String template = "{inject:foo}";
 		Diagnostic d = d(0, 8, 0, 11, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
+
 		testDiagnosticsFor(template, d);
 
 		template = "{inject:foo()}";
@@ -104,8 +104,7 @@ public class QuteDiagnosticsInExpressionWithNamespaceTest {
 		testDiagnosticsFor(template,
 				d(0, 13, 0, 17, QuteErrorCode.UnknownProperty,
 						"`XXXX` cannot be resolved or is not a field of `java.lang.String` Java type.",
-						new UnknownPropertyData("java.lang.String", "XXXX", false),
-						DiagnosticSeverity.Error));
+						new JavaBaseTypeOfPartData("java.lang.String"), DiagnosticSeverity.Error));
 
 		template = "{inject:bean.XXXX()}";
 		testDiagnosticsFor(template,

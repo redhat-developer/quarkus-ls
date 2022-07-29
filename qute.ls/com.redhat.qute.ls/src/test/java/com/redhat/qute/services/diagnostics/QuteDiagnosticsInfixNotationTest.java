@@ -78,7 +78,8 @@ public class QuteDiagnosticsInfixNotationTest {
 				"{foo getBytes()}";
 		testDiagnosticsFor(template, //
 				d(1, 5, 1, 15, QuteErrorCode.InfixNotationParameterRequired,
-						"A parameter for the infix notation method `getBytes()` is required.", DiagnosticSeverity.Error));
+						"A parameter for the infix notation method `getBytes()` is required.",
+						DiagnosticSeverity.Error));
 
 		template = "{@java.lang.String foo}\r\n" + //
 				"{foo getBytes 1}"; //
@@ -94,11 +95,9 @@ public class QuteDiagnosticsInfixNotationTest {
 		String template = "{mom or dad}"; //
 		Diagnostic d1 = d(0, 1, 0, 4, QuteErrorCode.UndefinedObject, "`mom` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d1.setData(DiagnosticDataFactory.createUndefinedObjectData("mom", false));
 
 		Diagnostic d2 = d(0, 8, 0, 11, QuteErrorCode.UndefinedObject, "`dad` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d2.setData(DiagnosticDataFactory.createUndefinedObjectData("dad", false));
 
 		testDiagnosticsFor(template, //
 				d1, d2);
@@ -107,57 +106,54 @@ public class QuteDiagnosticsInfixNotationTest {
 		template = "{mom.or(dad)}"; //
 		d1 = d(0, 1, 0, 4, QuteErrorCode.UndefinedObject, "`mom` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d1.setData(DiagnosticDataFactory.createUndefinedObjectData("mom", false));
 
 		d2 = d(0, 8, 0, 11, QuteErrorCode.UndefinedObject, "`dad` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d2.setData(DiagnosticDataFactory.createUndefinedObjectData("dad", false));
 
 		testDiagnosticsFor(template, //
 				d1, d2);
 	}
-	
+
 	@Test
 	public void operators() throws Exception {
-		// Even if there are spaces, the operators ||, are not considered as infix notation
+		// Even if there are spaces, the operators ||, are not considered as infix
+		// notation
 		// see https://quarkus.io/guides/qute-reference#built-in-resolvers
 		String template = "{mom || dad}"; //
 		Diagnostic d1 = d(0, 1, 0, 4, QuteErrorCode.UndefinedObject, "`mom` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d1.setData(DiagnosticDataFactory.createUndefinedObjectData("mom", false));
 
 		Diagnostic d2 = d(0, 8, 0, 11, QuteErrorCode.UndefinedObject, "`dad` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d2.setData(DiagnosticDataFactory.createUndefinedObjectData("dad", false));
 
 		testDiagnosticsFor(template, //
 				d1, d2);
 	}
-	
+
 	@Test
 	public void elvisOperator() throws Exception {
 		String template = "{@java.lang.String foo}\r\n" + //
 				"{foo ?: foo : 'word'}"; //
 		testDiagnosticsFor(template);
-		
+
 		template = "{@java.lang.String foo}\r\n" + //
 				"{foo :? foo : }"; //
 		testDiagnosticsFor(template);
 	}
-	
+
 	@Test
 	public void elvisOperatorWithStringSpace() throws Exception {
 		String template = "{@java.lang.String foo}\r\n" + //
 				"{foo ?: foo : 'hello word'}"; //
 		testDiagnosticsFor(template);
 	}
-	
+
 	@Test
 	public void twoParts() throws Exception {
 		String template = "{@java.lang.String foo}\r\n" + //
 				"{foo 'word'}"; //
 		testDiagnosticsFor(template, //
 				d(1, 5, 1, 11, QuteErrorCode.InfixNotationParameterRequired,
-				"A parameter for the infix notation method `'word'` is required.", DiagnosticSeverity.Error));
+						"A parameter for the infix notation method `'word'` is required.", DiagnosticSeverity.Error));
 	}
 }

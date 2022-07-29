@@ -29,7 +29,6 @@ import com.redhat.qute.ls.commons.client.CommandCapabilities;
 import com.redhat.qute.ls.commons.client.CommandKindCapabilities;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
-import com.redhat.qute.services.diagnostics.DiagnosticDataFactory;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.settings.SharedSettings;
 
@@ -49,19 +48,18 @@ public class QuteCodeActionWithSettingsTest {
 				QuteErrorCode.UndefinedObject, //
 				"`item` cannot be resolved to an object.", //
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
 						System.lineSeparator())), //
+				ca(d, te(0, 5, 0, 5, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)), //
-				ca(d, te(0, 5, 0, 5, "??")));
+						d)));
 	}
 
 	@Test
@@ -91,18 +89,20 @@ public class QuteCodeActionWithSettingsTest {
 				QuteErrorCode.UndefinedObject, //
 				"`item` cannot be resolved to an object.", //
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		testDiagnosticsFor(template, d);
 
 		SharedSettings settings = createSharedSettings(QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE);
 		testCodeActionsFor(template, d, //
 				settings, //
-				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
+						System.lineSeparator())), //
+				ca(d, te(0, 5, 0, 5, "??")), //
+				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.enabled", //
+						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
-						ConfigurationItemEditType.update, false, //
+						ConfigurationItemEditType.update, "ignore", //
 						d)), //
 				ca(d, c("Exclude this file from validation.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
@@ -110,15 +110,12 @@ public class QuteCodeActionWithSettingsTest {
 						"test.qute", //
 						ConfigurationItemEditType.add, "test.qute", //
 						d)), //
-				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
-						System.lineSeparator())), //
-				ca(d, c("Ignore `UndefinedObject` problem.", //
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedObject.severity", //
+						"qute.validation.enabled", //
 						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
-						d)), //
-				ca(d, te(0, 5, 0, 5, "??")));
+						ConfigurationItemEditType.update, false, //
+						d)));
 	}
 
 	@Test
@@ -135,11 +132,11 @@ public class QuteCodeActionWithSettingsTest {
 		SharedSettings settings = createSharedSettings(QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE);
 		testCodeActionsFor(template, d, //
 				settings, //
-				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+				ca(d, c("Ignore `UndefinedNamespace` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.enabled", //
+						"qute.validation.undefinedNamespace.severity", //
 						"test.qute", //
-						ConfigurationItemEditType.update, false, //
+						ConfigurationItemEditType.update, "ignore", //
 						d)), //
 				ca(d, c("Exclude this file from validation.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
@@ -147,11 +144,11 @@ public class QuteCodeActionWithSettingsTest {
 						"test.qute", //
 						ConfigurationItemEditType.add, "test.qute", //
 						d)), //
-				ca(d, c("Ignore `UndefinedNamespace` problem.", //
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedNamespace.severity", //
+						"qute.validation.enabled", //
 						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
+						ConfigurationItemEditType.update, false, //
 						d)));
 	}
 

@@ -32,8 +32,6 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.JavaMemberInfo;
@@ -66,8 +64,7 @@ import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.project.indexing.QuteIndex;
 import com.redhat.qute.project.tags.UserTag;
-import com.redhat.qute.services.diagnostics.DiagnosticDataFactory;
-import com.redhat.qute.services.diagnostics.UnknownPropertyData;
+import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
 import com.redhat.qute.services.diagnostics.QuteDiagnosticsForSyntax;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
@@ -363,8 +360,6 @@ class QuteDiagnostics {
 				Range range = QutePositionUtility.selectStartTagName(section);
 				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
 						QuteErrorCode.UndefinedSectionTag, tagName);
-				// Create data information helpful for code action
-				diagnostic.setData(DiagnosticDataFactory.createUndefinedSectionTagData(tagName));
 				diagnostics.add(diagnostic);
 			}
 		}
@@ -604,9 +599,6 @@ class QuteDiagnostics {
 			Range range = QutePositionUtility.createRange(objectPart);
 			Diagnostic diagnostic = createDiagnostic(range, severity, QuteErrorCode.UndefinedObject,
 					objectPart.getPartName());
-			// Create data information helpful for code action
-			diagnostic.setData(DiagnosticDataFactory.createUndefinedObjectData(objectPart.getPartName(),
-					ownerSection != null && ownerSection.isIterable()));
 			diagnostics.add(diagnostic);
 			return null;
 		}
@@ -708,7 +700,7 @@ class QuteDiagnostics {
 			String property = part.getPartName();
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnknownProperty,
 					property, signature);
-			diagnostic.setData(new UnknownPropertyData(signature, property, baseType.isSource()));
+			diagnostic.setData(new JavaBaseTypeOfPartData(signature));
 			diagnostics.add(diagnostic);
 			return null;
 		} else if (canValidateMemberInNativeMode(filter, javaMember)) {

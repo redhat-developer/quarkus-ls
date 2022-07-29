@@ -56,31 +56,29 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 
 		Diagnostic d1 = d(0, 5, 0, 9, QuteErrorCode.UndefinedObject, "`item` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d1.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		Diagnostic d2 = d(0, 24, 0, 28, QuteErrorCode.UndefinedObject, "`item` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d2.setData(DiagnosticDataFactory.createUndefinedObjectData("item", false));
 
 		testDiagnosticsFor(template, d1, d2);
 		testCodeActionsFor(template, d1, //
 				ca(d1, te(0, 0, 0, 0, "{@java.lang.String item}\r\n")), //
+				ca(d1, te(0, 9, 0, 9, "??")), //
 				ca(d1, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d1)), //
-				ca(d1, te(0, 9, 0, 9, "??")));
+						d1)));
 		testCodeActionsFor(template, d2, //
 				ca(d2, te(0, 0, 0, 0, "{@java.lang.String item}\r\n")), //
+				ca(d2, te(0, 28, 0, 28, "??")), //
 				ca(d2, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d2)), //
-				ca(d2, te(0, 28, 0, 28, "??")));
+						d2)));
 	}
 
 	@Test
@@ -117,7 +115,7 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 
 		Diagnostic d = d(0, 6, 0, 9, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
+
 		template = "{#if !foo}NOK{#else}OK{/if}";
 		testDiagnosticsFor(template, d);
 	}
@@ -130,10 +128,8 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 
 		Diagnostic d1 = d(0, 5, 0, 8, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d1.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
 		Diagnostic d2 = d(1, 2, 1, 5, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
-		d2.setData(DiagnosticDataFactory.createUndefinedObjectData("foo", false));
 
 		testDiagnosticsFor(template, d1, d2);
 	}
