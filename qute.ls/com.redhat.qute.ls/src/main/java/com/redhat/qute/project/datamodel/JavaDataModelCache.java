@@ -276,6 +276,16 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 	public Set<String> getAllNamespaces(String projectUri) {
 		return projectRegistry.getAllNamespaces(projectUri);
 	}
+	
+	/**
+	 * Returns a set of the fully qualified names of all classes in the given project that are annotated with {@code TemplateExtension}.
+	 * 
+	 * @param projectUri the URI of the project in which to search for the template extension classes
+	 * @return a set of the fully qualified names of all classes in the given project that are annotated with {@code TemplateExtension}
+	 */
+	public Set<String> getAllTemplateExtensionsClasses(String projectUri) {
+		return projectRegistry.getAllTemplateExtensionsClasses(projectUri);
+	}
 
 	public CompletableFuture<JavaElementInfo> findJavaElementWithNamespace(String namespace, String partName,
 			String projectUri) {

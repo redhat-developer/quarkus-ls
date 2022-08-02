@@ -9,10 +9,8 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.template;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -21,8 +19,6 @@ import java.util.regex.Pattern;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.Flags;
-import org.eclipse.jdt.core.IAnnotatable;
-import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
@@ -55,10 +51,7 @@ import org.eclipse.jdt.core.manipulation.CodeGeneration;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
-import org.eclipse.jdt.core.search.SearchMatch;
-import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
-import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.manipulation.StubUtility;
 import org.eclipse.jdt.internal.core.manipulation.dom.ASTResolving;
@@ -324,77 +317,25 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		return new WorkspaceEdit(Arrays.asList(Either.forLeft(textDocumentEdit)));
 	}
 
-	// TODO: caching scheme
 	private static WorkspaceEdit handleCreateMissingTemplateExtension(GenerateMissingJavaMemberParams params,
 			IJDTUtils utils, IProgressMonitor monitor) {
 
 		IJavaProject project = getJavaProjectFromProjectUri(params.getProjectUri());
-		SearchPattern searchPattern = createTemplateExtensionSearchPattern();
-		SearchEngine searchEngine = new SearchEngine();
-		IJavaSearchScope searchScope = null;
+		IType type = null;
 		try {
-			searchScope = createSearchContext(project);
+			type = project.findType(params.getTemplateClass());
 		} catch (JavaModelException e) {
-			LOGGER.log(Level.SEVERE, "Error while collecting @TemplateExtension references", e);
+			LOGGER.log(Level.SEVERE,
+					String.format("JavaModelException while trying to locate template extension class {0}",
+							params.getTemplateClass()),
+					e);
 		}
-		if (searchScope == null) {
+
+		if (type == null) {
 			return null;
 		}
 
-		List<Object> matches = new ArrayList<>();
-
-		try {
-			searchEngine.search(searchPattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
-					searchScope, new SearchRequestor() {
-						@Override
-						public void acceptSearchMatch(SearchMatch match) throws CoreException {
-							// We collect only references from java code and not from JavaDoc
-
-							// --> In this case @Named will be collected :
-							// @Named
-							// private String foo;
-
-							// --> In this case @Named will not be collected :
-							// /* Demonstrate {@link Named} */
-							// private String foo;
-
-							// Also, ignore annotations on methods, eg:
-							// @TemplateExtension
-							// public static String (Foo foo) {
-							// return foo.value * 5;
-							// }
-							// This syntax is supported, but discouraged,
-							// according to https://quarkus.io/guides/qute#template-extension-methods
-
-							if (!match.isInsideDocComment()
-									&& ((IJavaElement) match.getElement()).getElementType() == IJavaElement.TYPE) {
-								matches.add(match.getElement());
-							}
-						}
-					}, monitor);
-		} catch (CoreException _e) {
-		}
-
-		if (matches.size() == 0) {
-			return createNewTemplateExtensionFile(params, utils, project, monitor);
-		} else {
-			Object match = matches.get(0);
-			IType type = null;
-			if (match instanceof IAnnotatable) {
-				IAnnotatable annotatable = (IAnnotatable) match;
-				type = (IType) annotatable.getAnnotation(QuteJavaConstants.TEMPLATE_EXTENSION_ANNOTATION)
-						.getAncestor(IJavaElement.TYPE);
-			} else if (match instanceof IAnnotation) {
-				IAnnotation annotation = (IAnnotation) match;
-				type = (IType) annotation.getAncestor(IJavaElement.TYPE);
-			}
-			if (type == null) {
-				LOGGER.severe(
-						"Could not locate the underlying type for the @TemplateExtension annotation that was located by the SearchEngine");
-				return null;
-			}
-			return addTemplateExtensionToFile(params, utils, project, type, monitor);
-		}
+		return addTemplateExtensionToFile(params, utils, project, type, monitor);
 	}
 
 	private static WorkspaceEdit createNewTemplateExtensionsFile(GenerateMissingJavaMemberParams params,
@@ -569,7 +510,7 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		if (javaType.isBinary()) {
 			return null;
 		}
-		return ASTResolving.createQuickFixAST((ICompilationUnit)javaType.getCompilationUnit(), null);
+		return ASTResolving.createQuickFixAST((ICompilationUnit) javaType.getCompilationUnit(), null);
 	}
 
 	private static IJavaSearchScope createSearchContext(IJavaProject project) throws JavaModelException {

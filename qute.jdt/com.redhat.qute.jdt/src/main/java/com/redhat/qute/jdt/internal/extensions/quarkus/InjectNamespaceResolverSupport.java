@@ -27,6 +27,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.jdt.QuteSupportForTemplate;
 import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 import com.redhat.qute.jdt.template.datamodel.AbstractAnnotationTypeReferenceDataModelProvider;
@@ -115,6 +116,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 		resolver.setSourceType(type.getFullyQualifiedName());
 		resolver.setSignature(type.getFullyQualifiedName());
 		resolver.setNamespace(INJECT_NAMESPACE);
+		resolver.setKind(ValueResolverKind.InjectedBean);
 		resolvers.add(resolver);
 	}
 
@@ -125,6 +127,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 		resolver.setSourceType(javaMember.getDeclaringType().getFullyQualifiedName());
 		resolver.setSignature(typeResolver.resolveSignature(javaMember));
 		resolver.setNamespace(INJECT_NAMESPACE);
+		resolver.setKind(ValueResolverKind.InjectedBean);
 		resolvers.add(resolver);
 	}
 

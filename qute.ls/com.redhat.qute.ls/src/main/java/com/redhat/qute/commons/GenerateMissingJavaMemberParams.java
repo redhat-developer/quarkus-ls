@@ -46,6 +46,7 @@ public class GenerateMissingJavaMemberParams {
 	private String missingProperty;
 	private String javaType;
 	private String projectUri;
+	private String templateClass;
 
 	public GenerateMissingJavaMemberParams() {
 		this(null, null, null, null);
@@ -59,13 +60,30 @@ public class GenerateMissingJavaMemberParams {
 	 * @param missingProperty the name of the java member that's missing
 	 * @param javaType        the java type to generate the missing member in
 	 * @param projectUri      the uri of the project
+	 * @param templateClass   the template class to generate the member in (when
+	 *                        {@code memberType == MemberType.AppendTemplateExtension})
 	 */
 	public GenerateMissingJavaMemberParams(MemberType memberType, String missingProperty, String javaType,
-			String projectUri) {
+			String projectUri, String templateClass) {
 		this.memberType = memberType;
 		this.missingProperty = missingProperty;
 		this.javaType = javaType;
 		this.projectUri = projectUri;
+		this.templateClass = templateClass;
+	}
+
+	/**
+	 * Returns the parameters for generate a missing java member that is referenced
+	 * in a template but doesn't exist.
+	 * 
+	 * @param memberType      the type of member to generate
+	 * @param missingProperty the name of the java member that's missing
+	 * @param javaType        the java type to generate the missing member in
+	 * @param projectUri      the uri of the project
+	 */
+	public GenerateMissingJavaMemberParams(MemberType memberType, String missingProperty, String javaType,
+			String projectUri) {
+		this(memberType, missingProperty, javaType, projectUri, null);
 	}
 
 	public MemberType getMemberType() {
@@ -100,6 +118,14 @@ public class GenerateMissingJavaMemberParams {
 		this.projectUri = projectUri;
 	}
 
+	public String getTemplateClass() {
+		return this.templateClass;
+	}
+
+	public void setTemplateClass(String templateClass) {
+		this.templateClass = templateClass;
+	}
+
 	@Override
 	public String toString() {
 		ToStringBuilder builder = new ToStringBuilder(this);
@@ -107,6 +133,7 @@ public class GenerateMissingJavaMemberParams {
 		builder.add("missingProperty", missingProperty);
 		builder.add("javaType", javaType);
 		builder.add("projectUri", projectUri);
+		builder.add("templateClass", templateClass);
 		return builder.toString();
 	}
 
@@ -120,7 +147,9 @@ public class GenerateMissingJavaMemberParams {
 				&& ((this.missingProperty == null && that.missingProperty == null)
 						|| this.missingProperty.equals(that.missingProperty)) //
 				&& ((this.javaType == null && that.javaType == null) || this.javaType.equals(that.javaType)) //
-				&& ((this.projectUri == null && that.projectUri == null) || this.projectUri.equals(that.projectUri));
+				&& ((this.projectUri == null && that.projectUri == null) || this.projectUri.equals(that.projectUri)) //
+				&& ((this.templateClass == null && that.templateClass == null)
+						|| this.templateClass.equals(that.templateClass));
 	}
 
 }

@@ -32,6 +32,10 @@ public class ValueResolverInfo {
 	private String signature;
 
 	private String sourceType;
+	
+	private Boolean binary;
+	
+	private ValueResolverKind kind;
 
 	private Boolean globalVariable;
 
@@ -113,6 +117,42 @@ public class ValueResolverInfo {
 	 */
 	public void setSourceType(String sourceType) {
 		this.sourceType = sourceType;
+	}
+	
+	/**
+	 * Returns true if the source type is a source file and false otherwise.
+	 * 
+	 * @return true if the source type is a source file and false otherwise
+	 */
+	public boolean isBinary() {
+		return binary != null && binary.booleanValue();
+	}
+	
+	/**
+	 * Sets if the source type is a binary file.
+	 * 
+	 * @param binary true if the source type is a binary file and false otherwise
+	 */
+	public void setBinary(boolean binary) {
+		this.binary = binary;
+	}
+	
+	/**
+	 * Returns the kind of the value resolver.
+	 * 
+	 * @return the kind of the value resolver
+	 */
+	public ValueResolverKind getKind() {
+		return this.kind;
+	}
+	
+	/**
+	 * Sets the kind of the value resolver.
+	 * 
+	 * @param kind the kind of the value resolver
+	 */
+	public void setKind(ValueResolverKind kind) {
+		this.kind = kind;
 	}
 
 	/**

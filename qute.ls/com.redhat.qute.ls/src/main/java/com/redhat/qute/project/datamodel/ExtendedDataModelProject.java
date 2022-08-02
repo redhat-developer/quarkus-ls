@@ -30,6 +30,7 @@ import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
@@ -39,6 +40,8 @@ import com.redhat.qute.utils.StringUtils;
 public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModelTemplate> {
 
 	private final Set<String> allNamespaces;
+
+	private final Set<String> allTemplateExtensionsClasses;
 
 	private final List<TypeValueResolver> typeValueResolvers;
 
@@ -68,6 +71,7 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 			return 0;
 		});
 		allNamespaces = getAllNamespaces(project);
+		allTemplateExtensionsClasses = getAllTemplateExtensionsClasses(project);
 		similarNamespaces = getSimilarNamespaces(project);
 	}
 
@@ -128,6 +132,16 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 		return allNamespaces;
 	}
 
+	private static Set<String> getAllTemplateExtensionsClasses(
+			DataModelProject<DataModelTemplate<DataModelParameter>> project) {
+		return project.getValueResolvers().stream() //
+				.filter(resolver -> ValueResolverKind.TemplateExtensionOnClass.equals(resolver.getKind())
+						&& !resolver.isBinary()) //
+				.map(resolver -> resolver.getSourceType()) //
+				.distinct() //
+				.collect(Collectors.toSet());
+	}
+
 	private static Map<String, String> getSimilarNamespaces(
 			DataModelProject<DataModelTemplate<DataModelParameter>> project) {
 		Map<String, String> similar = new HashMap<>();
@@ -154,6 +168,10 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 
 	public Set<String> getAllNamespaces() {
 		return allNamespaces;
+	}
+
+	public Set<String> getAllTemplateExtensionsClasses() {
+		return allTemplateExtensionsClasses;
 	}
 
 	public String getSimilarNamespace(String namespace) {
@@ -216,7 +234,7 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 							javaTypesSupportedInNativeMode.add(parameterType.getType());
 						}
 					} else {
-						javaTypesSupportedInNativeMode.add(sourceType);	
+						javaTypesSupportedInNativeMode.add(sourceType);
 					}
 				}
 			}

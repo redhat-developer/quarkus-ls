@@ -841,6 +841,25 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		ExtendedDataModelProject dataModel = project.getDataModelProject().getNow(null);
 		return dataModel != null ? dataModel.getAllNamespaces() : Collections.emptySet();
 	}
+	
+	/**
+	 * Return all template extensions classes from the given Qute project Uri.
+	 *
+	 * @param projectUri the Qute project Uri
+	 *
+	 * @return all template extensions classes from the given Qute project Uri.
+	 */
+	public Set<String> getAllTemplateExtensionsClasses(String projectUri) {
+		if (StringUtils.isEmpty(projectUri)) {
+			return Collections.emptySet();
+		}
+		QuteProject project = getProject(projectUri);
+		if (project == null) {
+			return Collections.emptySet();
+		}
+		ExtendedDataModelProject dataModel = project.getDataModelProject().getNow(null);
+		return dataModel != null ? dataModel.getAllTemplateExtensionsClasses() : Collections.emptySet();
+	}
 
 	public CompletableFuture<JavaElementInfo> findJavaElementWithNamespace(String namespace, String partName,
 			String projectUri) {

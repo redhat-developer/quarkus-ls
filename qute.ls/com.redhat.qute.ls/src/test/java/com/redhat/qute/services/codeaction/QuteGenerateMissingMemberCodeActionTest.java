@@ -47,7 +47,9 @@ public class QuteGenerateMissingMemberCodeActionTest {
 				ca(d, new GenerateMissingJavaMemberParams(MemberType.Getter, "asdf", "org.acme.Item",
 						"qute-quickstart")), //
 				ca(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf", "org.acme.Item",
-						"qute-quickstart")), //
+						"qute-quickstart", "org.acme.TemplateExtensions")), //
+				ca(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf", "org.acme.Item",
+						"qute-quickstart", "org.acme.foo.TemplateExtensions")), //
 				ca(d, new GenerateMissingJavaMemberParams(MemberType.CreateTemplateExtension, "asdf", "org.acme.Item",
 						"qute-quickstart")));
 	}
@@ -66,7 +68,9 @@ public class QuteGenerateMissingMemberCodeActionTest {
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf",
-						"java.lang.String", "qute-quickstart")), //
+						"java.lang.String", "qute-quickstart", "org.acme.TemplateExtensions")), //
+				ca(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf",
+						"java.lang.String", "qute-quickstart", "org.acme.foo.TemplateExtensions")), //
 				ca(d, new GenerateMissingJavaMemberParams(MemberType.CreateTemplateExtension, "asdf",
 						"java.lang.String", "qute-quickstart")));
 	}

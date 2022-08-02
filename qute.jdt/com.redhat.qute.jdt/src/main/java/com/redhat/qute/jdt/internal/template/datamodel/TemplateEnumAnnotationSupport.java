@@ -27,6 +27,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.jdt.QuteSupportForTemplate;
 import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 import com.redhat.qute.jdt.template.datamodel.AbstractAnnotationTypeReferenceDataModelProvider;
@@ -104,6 +105,7 @@ public class TemplateEnumAnnotationSupport extends AbstractAnnotationTypeReferen
 		ValueResolverInfo resolver = new ValueResolverInfo();
 		resolver.setSourceType(field.getDeclaringType().getFullyQualifiedName());
 		resolver.setSignature(typeResolver.resolveFieldSignature(field));
+		resolver.setKind(ValueResolverKind.TemplateEnum);
 		// This annotation is functionally equivalent to @TemplateData(namespace =
 		// TemplateData.SIMPLENAME),
 		// i.e. a namespace resolver is automatically generated for the target enum and
