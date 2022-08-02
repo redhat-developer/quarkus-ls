@@ -29,6 +29,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.jdt.QuteSupportForTemplate;
 import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 import com.redhat.qute.jdt.template.datamodel.AbstractAnnotationTypeReferenceDataModelProvider;
@@ -122,6 +123,7 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 			ValueResolverInfo resolver = new ValueResolverInfo();
 			resolver.setSourceType(sourceType);
 			resolver.setSignature(typeResolver.resolveSignature(member));
+			resolver.setKind(ValueResolverKind.TemplateGlobal);
 			// Constant value for {@link #name()} indicating that the field/method name
 			// should be used
 			try {

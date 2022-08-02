@@ -32,6 +32,7 @@ import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
@@ -106,16 +107,16 @@ public abstract class MockQuteProject extends QuteProject {
 		return typeInfo;
 	}
 
-	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String typeName, List<ResolvedJavaTypeInfo> cache, boolean isSource,
+	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String typeName, List<ResolvedJavaTypeInfo> cache, boolean binary,
 			ResolvedJavaTypeInfo... extended) {
-		return createResolvedJavaTypeInfo(typeName, null, null, cache, isSource, extended);
+		return createResolvedJavaTypeInfo(typeName, null, null, cache, binary, extended);
 	}
 
 	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String signature, String iterableType,
-			String iterableOf, List<ResolvedJavaTypeInfo> cache, boolean isSource, ResolvedJavaTypeInfo... extended) {
+			String iterableOf, List<ResolvedJavaTypeInfo> cache, boolean binary, ResolvedJavaTypeInfo... extended) {
 		ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
 		resolvedType.setKind(JavaTypeKind.Class);
-		resolvedType.setSource(isSource);
+		resolvedType.setBinary(binary);
 		resolvedType.setSignature(signature);
 		resolvedType.setIterableType(iterableType);
 		resolvedType.setIterableOf(iterableOf);
@@ -139,14 +140,19 @@ public abstract class MockQuteProject extends QuteProject {
 		project.setNamespaceResolverInfos(namespaceResolverInfos);
 		return CompletableFuture.completedFuture(new ExtendedDataModelProject(project));
 	}
-
+	
 	protected static ValueResolverInfo createValueResolver(String namespace, String named, String matchName,
-			String sourceType, String signature) {
-		return createValueResolver(namespace, named, matchName, sourceType, signature, false);
+			String sourceType, String signature, ValueResolverKind kind) {
+		return createValueResolver(namespace, named, matchName, sourceType, signature, kind, false);
+	}
+	
+	protected static ValueResolverInfo createValueResolver(String namespace, String named, String matchName,
+			String sourceType, String signature, ValueResolverKind kind, boolean globalVariable) {
+		return createValueResolver(namespace, named, matchName, sourceType, signature, kind, globalVariable, false);
 	}
 
 	protected static ValueResolverInfo createValueResolver(String namespace, String named, String matchName,
-			String sourceType, String signature, boolean globalVariable) {
+			String sourceType, String signature, ValueResolverKind kind, boolean globalVariable, boolean binary) {
 		ValueResolverInfo resolver = new ValueResolverInfo();
 		resolver.setNamespace(namespace);
 		resolver.setNamed(named);
@@ -154,6 +160,8 @@ public abstract class MockQuteProject extends QuteProject {
 		resolver.setSourceType(sourceType);
 		resolver.setSignature(signature);
 		resolver.setGlobalVariable(globalVariable);
+		resolver.setBinary(binary);
+		resolver.setKind(kind);
 		return resolver;
 	}
 

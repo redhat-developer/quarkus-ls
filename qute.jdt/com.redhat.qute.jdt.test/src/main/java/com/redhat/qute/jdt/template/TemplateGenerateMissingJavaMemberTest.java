@@ -187,7 +187,7 @@ public class TemplateGenerateMissingJavaMemberTest {
 		IJavaProject project = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 		GenerateMissingJavaMemberParams params = new GenerateMissingJavaMemberParams(
 				GenerateMissingJavaMemberParams.MemberType.AppendTemplateExtension, "asdf", "org.acme.qute.Item",
-				QuteMavenProjectName.qute_quickstart);
+				QuteMavenProjectName.qute_quickstart, "org.acme.qute.MyTemplateExtensions");
 		WorkspaceEdit actual = QuteSupportForTemplate.getInstance().generateMissingJavaMember(params, getJDTUtils(),
 				new NullProgressMonitor());
 		WorkspaceEdit expected = we(Either.forLeft(tde(project, "src/main/java/org/acme/qute/MyTemplateExtensions.java",

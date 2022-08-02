@@ -370,7 +370,15 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 					commandId));
 		}
 
-		return new GenerateMissingJavaMemberParams(memberType, missingProperty, javaType, projectUri);
+		String templateClass = getString(obj, "templateClass");
+		if (templateClass == null && memberType == GenerateMissingJavaMemberParams.MemberType.AppendTemplateExtension) {
+			throw new UnsupportedOperationException(String.format(
+					"Command '%s' must be called with required GenerateMissingJavaMemberParams.templateClass when memberType == memberType.AppendTemplateExtension !",
+					commandId));
+		}
+
+		
+		return new GenerateMissingJavaMemberParams(memberType, missingProperty, javaType, projectUri, templateClass);
 
 	}
 

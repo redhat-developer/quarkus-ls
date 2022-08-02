@@ -43,7 +43,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
 	private Boolean isIterable;
 
-	private Boolean source;
+	private Boolean binary;
 
 	private RegisterForReflectionAnnotation registerForReflectionAnnotation;
 
@@ -154,23 +154,23 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	}
 
 	/**
-	 * Returns true if this Java type is in a user modifiable source file, and false
+	 * Returns true if this Java type is in a binary file, and false
 	 * otherwise.
 	 * 
-	 * @return true if this Java type is in a user modifiable source file, and false
+	 * @return true if this Java type is in a binary file, and false
 	 *         otherwise
 	 */
-	public boolean isSource() {
-		return source != null && source.booleanValue();
+	public boolean isBinary() {
+		return binary != null && binary.booleanValue();
 	}
 
 	/**
-	 * Set if this type comes from a source file.
+	 * Set if this type comes from a binary file.
 	 * 
-	 * @param source true if the type comes from a source file, false otherwise
+	 * @param binary true if the type comes from a binary file, false otherwise
 	 */
-	public void setSource(Boolean source) {
-		this.source = source;
+	public void setBinary(Boolean binary) {
+		this.binary = binary;
 	}
 
 	/**
@@ -256,7 +256,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("name", this.getName());
 		b.add("signature", this.getSignature());
-		b.add("source", this.isSource() ? "SOURCE" : "BINARY");
+		b.add("binary", this.isBinary() ? "BINARY" : "SOURCE");
 		b.add("iterableOf", this.getIterableOf());
 		b.add("iterableType", this.getIterableType());
 		b.add("templateDataAnnotations", this.getTemplateDataAnnotations());

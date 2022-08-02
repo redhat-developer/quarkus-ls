@@ -29,6 +29,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.jdt.QuteSupportForTemplate;
 import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 import com.redhat.qute.jdt.template.datamodel.AbstractAnnotationTypeReferenceDataModelProvider;
@@ -131,6 +132,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 				resolver.setSourceType(sourceType);
 				resolver.setSignature(typeResolver.resolveSignature(member));
 				resolver.setNamespace(StringUtils.isNotEmpty(namespace) ? namespace : sourceType.replace('.', '_'));
+				resolver.setKind(ValueResolverKind.TemplateData);
 				if (!resolvers.contains(resolver)) {
 					resolvers.add(resolver);
 				}
