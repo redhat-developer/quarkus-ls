@@ -16,7 +16,7 @@
 		<tycho.extras.version>${tycho.version}</tycho.extras.version>
 		<tycho.scmUrl>scm:git:https://github.com/redhat-developer/quarkus-ls</tycho.scmUrl>
 		<tycho.generateSourceReferences>true</tycho.generateSourceReferences>
-		<jdt.ls.version>1.13.0.20220630173130</jdt.ls.version>
+		<jdt.ls.version>1.14.0.20220721170741</jdt.ls.version>
 		<tycho.test.platformArgs />
 		<tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
 
@@ -34,7 +34,7 @@
 		<repository>
 			<id>jdt.ls.p2</id>
 			<layout>p2</layout>
-			<url>https://download.eclipse.org/jdtls/milestones/1.13.0/repository/</url>
+			<url>https://download.eclipse.org/jdtls/milestones/1.14.0/repository/</url>
 		</repository>
 		<repository>
 			<id>jdt.ls.maven</id>
