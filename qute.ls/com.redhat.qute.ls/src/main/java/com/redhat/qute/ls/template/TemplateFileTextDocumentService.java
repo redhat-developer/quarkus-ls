@@ -153,6 +153,9 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 
 	@Override
 	public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActionParams params) {
+		if (validatorDelayer.isRevalidating(params.getTextDocument().getUri())) {
+			return CompletableFuture.completedFuture((List<Either<Command, CodeAction>>) Collections.EMPTY_LIST);
+		}
 		return getTemplateCompose(params.getTextDocument(),
 				(template, cancelChecker) -> {
 					// Cancel checker is not passed to doCodeActions, since code actions don't yet
