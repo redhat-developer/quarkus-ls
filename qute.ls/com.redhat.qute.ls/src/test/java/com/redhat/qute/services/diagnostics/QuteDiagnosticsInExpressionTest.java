@@ -259,6 +259,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(1, 6, 1, 10, QuteErrorCode.UnknownMethod,
 						"`XXXX` cannot be resolved or is not a method of `org.acme.Item` Java type.",
+						new JavaBaseTypeOfPartData("org.acme.Item"), //
 						DiagnosticSeverity.Error));
 
 		template = "{@org.acme.Item item}\r\n" + //
@@ -266,6 +267,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(1, 6, 1, 10, QuteErrorCode.UnknownMethod,
 						"`XXXX` cannot be resolved or is not a method of `org.acme.Item` Java type.",
+						new JavaBaseTypeOfPartData("org.acme.Item"), //
 						DiagnosticSeverity.Error));
 
 		template = "{@org.acme.Item item}\r\n" + //
@@ -273,6 +275,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(1, 11, 1, 15, QuteErrorCode.UnknownMethod,
 						"`YYYY` cannot be resolved or is not a method of `java.lang.String` Java type.",
+						new JavaBaseTypeOfPartData("java.lang.String"), //
 						DiagnosticSeverity.Error));
 	}
 
@@ -339,6 +342,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(1, 7, 1, 14, QuteErrorCode.UnknownMethod,
 						"`sizeXXX` cannot be resolved or is not a method of `java.util.List<E>` Java type.",
+						new JavaBaseTypeOfPartData("java.util.List<E>"), //
 						DiagnosticSeverity.Error));
 	}
 
@@ -420,6 +424,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(2, 8, 2, 16, QuteErrorCode.InvalidMethodVoid,
 						"Invalid `getChars` method of `java.lang.String` : void return is not allowed.",
+						new JavaBaseTypeOfPartData("java.lang.String"), //
 						DiagnosticSeverity.Error));
 	}
 
@@ -432,6 +437,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(2, 6, 2, 18, QuteErrorCode.InvalidMethodStatic,
 						"Invalid `staticMethod` method of `org.acme.Item` : static method is not allowed.",
+						new JavaBaseTypeOfPartData("org.acme.Item"), //
 						DiagnosticSeverity.Error));
 	}
 
