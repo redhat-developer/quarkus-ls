@@ -836,6 +836,7 @@ class QuteDiagnostics {
 				filter.isInNativeMode(), projectUri);
 		JavaMethodInfo method = (JavaMethodInfo) result.getMember();
 		if (method == null) {
+			String signature = null;
 			QuteErrorCode errorCode = QuteErrorCode.UnknownMethod;
 			String arg = null;
 			if (namespace != null) {
@@ -862,10 +863,14 @@ class QuteDiagnostics {
 						default:
 						}
 					}
+					signature = baseType.getSignature();
 				}
 			}
 			Range range = QutePositionUtility.createRange(methodPart);
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode, methodName, arg);
+			if (signature != null) {
+				diagnostic.setData(new JavaBaseTypeOfPartData(signature));
+			}
 			diagnostics.add(diagnostic);
 			return null;
 		} else if (canValidateMemberInNativeMode(filter, method)) {
