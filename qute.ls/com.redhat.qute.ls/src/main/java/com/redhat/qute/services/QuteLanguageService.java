@@ -208,9 +208,9 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	 * @return hover response for the hovered member.
 	 */
 	public CompletableFuture<List<InlayHint>> getInlayHint(Template template, Range range,
-			QuteInlayHintSettings inlayHintSettings, ResolvingJavaTypeContext resolvingJavaTypeContext,
+			SharedSettings sharedSettings, ResolvingJavaTypeContext resolvingJavaTypeContext,
 			CancelChecker cancelChecker) {
-		return inlayHint.getInlayHint(template, range, inlayHintSettings, resolvingJavaTypeContext, cancelChecker);
+		return inlayHint.getInlayHint(template, range, sharedSettings, resolvingJavaTypeContext, cancelChecker);
 	}
 
 	/**

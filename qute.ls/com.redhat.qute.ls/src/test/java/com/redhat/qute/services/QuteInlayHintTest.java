@@ -12,11 +12,15 @@
 package com.redhat.qute.services;
 
 import static com.redhat.qute.QuteAssert.ih;
+import static com.redhat.qute.QuteAssert.ihLabel;
 import static com.redhat.qute.QuteAssert.p;
 import static com.redhat.qute.QuteAssert.testInlayHintFor;
 
+import org.eclipse.lsp4j.Command;
 import org.junit.jupiter.api.Test;
 
+import com.redhat.qute.project.QuteQuickStartProject;
+import com.redhat.qute.services.inlayhint.InlayHintASTVistor;
 import com.redhat.qute.settings.QuteInlayHintSettings;
 
 /**
@@ -34,7 +38,7 @@ public class QuteInlayHintTest {
 				"  {item.name}\r\n" + //
 				"{/for}";
 		testInlayHintFor(template, //
-				ih(p(1, 10), ":Item"));
+				ih(p(1, 10), ihLabel(":"), ihLabel("Item", "Open `org.acme.Item` Java type.", cd("org.acme.Item"))));
 
 		// enabled=false
 		QuteInlayHintSettings settings = new QuteInlayHintSettings();
@@ -59,8 +63,10 @@ public class QuteInlayHintTest {
 				"  \r\n" + //
 				"{/let}";
 		testInlayHintFor(template, //
-				ih(p(1, 10), ":String"), //
-				ih(p(1, 26), ":BigInteger"));
+				ih(p(1, 10), ihLabel(":"),
+						ihLabel("String", "Open `java.lang.String` Java type.", cd("java.lang.String"))), //
+				ih(p(1, 26), ihLabel(":"),
+						ihLabel("BigInteger", "Open `java.math.BigInteger` Java type.", cd("java.math.BigInteger"))));
 
 		// enabled=false
 		QuteInlayHintSettings settings = new QuteInlayHintSettings();
@@ -75,6 +81,10 @@ public class QuteInlayHintTest {
 				settings);
 	}
 
+	private static Command cd(String javaType) {
+		return InlayHintASTVistor.createJavaDefinitionCommand(javaType, QuteQuickStartProject.PROJECT_URI);
+	}
+
 	@Test
 	public void parameterCustomSection() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
@@ -84,8 +94,10 @@ public class QuteInlayHintTest {
 				"  \r\n" + //
 				"{/form}";
 		testInlayHintFor(template, //
-				ih(p(1, 11), ":String"), //
-				ih(p(1, 32), ":BigInteger"));
+				ih(p(1, 11), ihLabel(":"),
+						ihLabel("String", "Open `java.lang.String` Java type.", cd("java.lang.String"))), //
+				ih(p(1, 32), ihLabel(":"),
+						ihLabel("BigInteger", "Open `java.math.BigInteger` Java type.", cd("java.math.BigInteger"))));
 
 		// enabled=false
 		QuteInlayHintSettings settings = new QuteInlayHintSettings();
@@ -108,7 +120,7 @@ public class QuteInlayHintTest {
 				"{/if}";
 		testInlayHintFor(template, //
 				ih(p(1, 10), ":?"), //
-				ih(p(1, 21), ":Item"));
+				ih(p(1, 21), ihLabel(":"), ihLabel("Item", "Open `org.acme.Item` Java type.", cd("org.acme.Item"))));
 
 		// enabled=false
 		QuteInlayHintSettings settings = new QuteInlayHintSettings();
@@ -122,4 +134,5 @@ public class QuteInlayHintTest {
 		testInlayHintFor(template, //
 				settings);
 	}
+
 }
