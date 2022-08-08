@@ -14,6 +14,7 @@ package com.redhat.qute.settings.capabilities;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_CODELENS_OPTIONS;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_COMPLETION_OPTIONS;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_DOCUMENT_LINK_OPTIONS;
+import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_CODE_ACTION_OPTIONS;
 
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
@@ -46,7 +47,9 @@ public class ServerCapabilitiesInitializer {
 		serverCapabilities
 				.setDocumentSymbolProvider(!clientCapabilities.isDocumentSymbolDynamicRegistrationSupported());
 		serverCapabilities.setHoverProvider(!clientCapabilities.isHoverDynamicRegistered());
-		serverCapabilities.setCodeActionProvider(!clientCapabilities.isCodeActionDynamicRegistered());
+		if (!clientCapabilities.isCodeActionDynamicRegistered()) {
+			serverCapabilities.setCodeActionProvider(DEFAULT_CODE_ACTION_OPTIONS);
+		}
 		if (!clientCapabilities.isCompletionDynamicRegistrationSupported()) {
 			serverCapabilities.setCompletionProvider(DEFAULT_COMPLETION_OPTIONS);
 		}

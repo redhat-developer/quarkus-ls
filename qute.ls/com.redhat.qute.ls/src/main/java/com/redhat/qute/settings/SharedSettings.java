@@ -28,6 +28,7 @@ public class SharedSettings extends BaseSettings {
 	private final QuteFormattingSettings formattingSettings;
 	private final QuteHoverSettings hoverSettings;
 	private final QuteCommandCapabilities commandCapabilities;
+	private final QuteCodeActionSettings codeActionSettings;
 
 	private Map<String /* workspace folder Uri */, BaseSettings> workspaceFolders;
 
@@ -37,6 +38,7 @@ public class SharedSettings extends BaseSettings {
 		this.formattingSettings = new QuteFormattingSettings();
 		this.hoverSettings = new QuteHoverSettings();
 		this.commandCapabilities = new QuteCommandCapabilities();
+		this.codeActionSettings = new QuteCodeActionSettings();
 	}
 
 	/**
@@ -84,6 +86,15 @@ public class SharedSettings extends BaseSettings {
 	 */
 	public QuteCommandCapabilities getCommandCapabilities() {
 		return commandCapabilities;
+	}
+	
+	/**
+	 * Returns the CodeAction settings.
+	 * 
+	 * @return the CodeAction settings
+	 */
+	public QuteCodeActionSettings getCodeActionSettings() {
+		return codeActionSettings;
 	}
 
 	/**

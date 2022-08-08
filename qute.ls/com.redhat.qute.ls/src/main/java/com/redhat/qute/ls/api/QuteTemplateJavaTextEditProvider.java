@@ -17,13 +17,22 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 
 /**
- * Request additional information from the associated java language server in
- * order to resolve the workspace edit to create a field, getter, or template
- * extension for a given type.
+ * Provides information from the associated java language server in order to
+ * resolve code actions.
  *
  * @author datho7561
  */
-public interface QuteTemplateGenerateMissingJavaMember {
+public interface QuteTemplateJavaTextEditProvider {
+
+	/**
+	 * Returns the workspace edit to create a field, getter, or template extension
+	 * for a given type.
+	 * 
+	 * @param params the parameters indicating which field, getter, or template
+	 *               extension to create
+	 * @return the workspace edit to create a field, getter, or template extension
+	 *         for a given type
+	 */
 	@JsonRequest("qute/template/generateMissingJavaMember")
 	default CompletableFuture<WorkspaceEdit> generateMissingJavaMember(GenerateMissingJavaMemberParams params) {
 		return CompletableFuture.completedFuture(null);

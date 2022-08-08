@@ -335,7 +335,7 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
 			throw new UnsupportedOperationException(String
-					.format("Command '%s' must be called with one QuteTemplateCodeActionParams argument!", commandId));
+					.format("Command '%s' must be called with one GenerateMissingJavaMemberParams argument!", commandId));
 		}
 
 		MemberType memberType = null;

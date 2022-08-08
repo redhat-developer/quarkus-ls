@@ -293,6 +293,11 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 					return hints;
 				});
 	}
+	
+	@Override
+	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction codeAction) {
+		return getQuteLanguageService().resolveCodeAction(codeAction, getLanguageClient());
+	}
 
 	private QuteLanguageService getQuteLanguageService() {
 		return quteLanguageServer.getQuarkusLanguageService();

@@ -66,7 +66,7 @@ import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.commons.ProjectInfo;
-import com.redhat.qute.ls.api.QuteTemplateGenerateMissingJavaMember;
+import com.redhat.qute.ls.api.QuteTemplateJavaTextEditProvider;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.ls.commons.client.CommandCapabilities;
@@ -692,7 +692,7 @@ public class QuteAssert {
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
 
 		List<CodeAction> actual = languageService
-				.doCodeActions(template, context, new QuteTemplateGenerateMissingJavaMember() {
+				.doCodeActions(template, context, new QuteTemplateJavaTextEditProvider() {
 					// do not attempt to resolve "generate missing java member" code actions in
 					// qute-ls unit tests
 				}, range, settings).get();
