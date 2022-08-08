@@ -26,6 +26,7 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.inlayhint.InlayHintASTVistor;
 import com.redhat.qute.settings.QuteInlayHintSettings;
+import com.redhat.qute.settings.SharedSettings;
 
 /**
  * Qute inlay hint support.
@@ -47,8 +48,9 @@ public class QuteInlayHint {
 	}
 
 	public CompletableFuture<List<InlayHint>> getInlayHint(Template template, Range range,
-			QuteInlayHintSettings inlayHintSettings, ResolvingJavaTypeContext resolvingJavaTypeContext,
+			SharedSettings sharedSettings, ResolvingJavaTypeContext resolvingJavaTypeContext,
 			CancelChecker cancelChecker) {
+		QuteInlayHintSettings inlayHintSettings = sharedSettings.getInlayHintSettings();
 		QuteInlayHintSettings settings = inlayHintSettings != null ? inlayHintSettings : QuteInlayHintSettings.DEFAULT;
 		if (!settings.isEnabled()) {
 			return NO_INLAY_HINT;
@@ -67,8 +69,8 @@ public class QuteInlayHint {
 						}
 					}
 					cancelChecker.checkCanceled();
-					InlayHintASTVistor visitor = new InlayHintASTVistor(javaCache, startOffset, endOffset, settings,
-							resolvingJavaTypeContext, cancelChecker);
+					InlayHintASTVistor visitor = new InlayHintASTVistor(javaCache, startOffset, endOffset,
+							sharedSettings, resolvingJavaTypeContext, cancelChecker);
 					template.accept(visitor);
 					cancelChecker.checkCanceled();
 					return visitor.getInlayHints();

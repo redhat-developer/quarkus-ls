@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.commons;
 
+import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+
 /**
  * Qute Java definition parameters.
  *
@@ -159,4 +161,69 @@ public class QuteJavaDefinitionParams {
 	public void setDataMethodInvocation(boolean dataMethodInvocation) {
 		this.dataMethodInvocation = dataMethodInvocation;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (dataMethodInvocation ? 1231 : 1237);
+		result = prime * result + ((projectUri == null) ? 0 : projectUri.hashCode());
+		result = prime * result + ((sourceField == null) ? 0 : sourceField.hashCode());
+		result = prime * result + ((sourceMethod == null) ? 0 : sourceMethod.hashCode());
+		result = prime * result + ((sourceParameter == null) ? 0 : sourceParameter.hashCode());
+		result = prime * result + ((sourceType == null) ? 0 : sourceType.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		QuteJavaDefinitionParams other = (QuteJavaDefinitionParams) obj;
+		if (dataMethodInvocation != other.dataMethodInvocation)
+			return false;
+		if (projectUri == null) {
+			if (other.projectUri != null)
+				return false;
+		} else if (!projectUri.equals(other.projectUri))
+			return false;
+		if (sourceField == null) {
+			if (other.sourceField != null)
+				return false;
+		} else if (!sourceField.equals(other.sourceField))
+			return false;
+		if (sourceMethod == null) {
+			if (other.sourceMethod != null)
+				return false;
+		} else if (!sourceMethod.equals(other.sourceMethod))
+			return false;
+		if (sourceParameter == null) {
+			if (other.sourceParameter != null)
+				return false;
+		} else if (!sourceParameter.equals(other.sourceParameter))
+			return false;
+		if (sourceType == null) {
+			if (other.sourceType != null)
+				return false;
+		} else if (!sourceType.equals(other.sourceType))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		ToStringBuilder builder = new ToStringBuilder(this);
+		builder.add("projectUri", getProjectUri());
+		builder.add("sourceType", getSourceType());
+		builder.add("sourceField", getSourceField());
+		builder.add("sourceMethod", getSourceMethod());
+		builder.add("sourceParameter", getSourceParameter());
+		builder.add("dataMethodInvocation", isDataMethodInvocation());
+		return builder.toString();
+	}
+
 }

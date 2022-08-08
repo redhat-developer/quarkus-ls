@@ -276,7 +276,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 					ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template,
 							quteLanguageServer.getDataModelCache());
 					CompletableFuture<List<InlayHint>> hints = getQuteLanguageService().getInlayHint(template,
-							params.getRange(), sharedSettings.getInlayHintSettings(), resolvingJavaTypeContext,
+							params.getRange(), sharedSettings, resolvingJavaTypeContext,
 							cancelChecker);
 					if (!resolvingJavaTypeContext.isEmpty()) {
 						// Some Java types was not loaded, wait for that all Java types are resolved to

@@ -13,19 +13,25 @@ package com.redhat.qute.services.inlayhint;
 
 import static com.redhat.qute.services.ResolvingJavaTypeContext.RESOLVING_JAVA_TYPE;
 import static com.redhat.qute.services.ResolvingJavaTypeContext.isResolvingJavaType;
+import static com.redhat.qute.services.commands.QuteClientCommandConstants.COMMAND_JAVA_DEFINITION;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.InlayHint;
 import org.eclipse.lsp4j.InlayHintKind;
+import org.eclipse.lsp4j.InlayHintLabelPart;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
+import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Expression;
@@ -40,6 +46,7 @@ import com.redhat.qute.parser.template.sections.SetSection;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.QuteInlayHintSettings;
+import com.redhat.qute.settings.SharedSettings;
 
 /**
  * AST visitor used to show inferred Java type for section parameter as inlay
@@ -49,6 +56,8 @@ import com.redhat.qute.settings.QuteInlayHintSettings;
  *
  */
 public class InlayHintASTVistor extends ASTVisitor {
+
+	private static final String OPEN_JAVA_TYPE_MESSAGE = "Open `{0}` Java type.";
 
 	private static final Logger LOGGER = Logger.getLogger(InlayHintASTVistor.class.getName());
 
@@ -63,15 +72,17 @@ public class InlayHintASTVistor extends ASTVisitor {
 
 	private final List<InlayHint> inlayHints;
 
-	public InlayHintASTVistor(JavaDataModelCache javaCache, int startOffset, int endOffset,
-			QuteInlayHintSettings inlayHintSettings, ResolvingJavaTypeContext resolvingJavaTypeContext,
-			CancelChecker cancelChecker) {
+	private boolean canSupportJavaDefinition;
+
+	public InlayHintASTVistor(JavaDataModelCache javaCache, int startOffset, int endOffset, SharedSettings settings,
+			ResolvingJavaTypeContext resolvingJavaTypeContext, CancelChecker cancelChecker) {
 		this.javaCache = javaCache;
 		this.startOffset = startOffset;
 		this.endOffset = endOffset;
-		this.inlayHintSettings = inlayHintSettings;
+		this.inlayHintSettings = settings.getInlayHintSettings();
 		this.resolvingJavaTypeContext = resolvingJavaTypeContext;
 		this.inlayHints = new ArrayList<InlayHint>();
+		canSupportJavaDefinition = settings.getCommandCapabilities().isCommandSupported(COMMAND_JAVA_DEFINITION);
 	}
 
 	public List<InlayHint> getInlayHints() {
@@ -196,7 +207,7 @@ public class InlayHintASTVistor extends ASTVisitor {
 			InlayHint hint = new InlayHint();
 			hint.setKind(InlayHintKind.Type);
 			// The Java type is resolved, display it as inlay hint
-			updateJavaType(hint, javaType);
+			updateJavaType(hint, javaType, template.getProjectUri());
 			int end = parameter.hasValueAssigned() ? parameter.getEndName() : parameter.getEnd();
 			Position position = template.positionAt(end);
 			hint.setPosition(position);
@@ -239,8 +250,29 @@ public class InlayHintASTVistor extends ASTVisitor {
 		return javaType;
 	}
 
-	private static void updateJavaType(InlayHint hint, ResolvedJavaTypeInfo javaType) {
-		String type = javaType != null ? javaType.getJavaElementSimpleType() : "?";
-		hint.setLabel(Either.forLeft(":" + type));
+	private void updateJavaType(InlayHint hint, ResolvedJavaTypeInfo javaType, String projectUri) {
+		String type = getLabel(javaType);
+		if (javaType != null && canSupportJavaDefinition) {
+			// first part : ":"
+			InlayHintLabelPart separatorPart = new InlayHintLabelPart(":");
+			// second part label : clickable Java type (ex : String)
+			InlayHintLabelPart javaTypePart = new InlayHintLabelPart(type);
+			Command javaDefCommand = createJavaDefinitionCommand(javaType.getSignature(), projectUri);
+			javaTypePart.setCommand(javaDefCommand);
+			javaTypePart.setTooltip(javaDefCommand.getTitle());
+			hint.setLabel(Either.forRight(Arrays.asList(separatorPart, javaTypePart)));
+		} else {
+			hint.setLabel(Either.forLeft(":" + type));
+		}
+	}
+
+	public static Command createJavaDefinitionCommand(String javaType, String projectUri) {
+		String title = MessageFormat.format(OPEN_JAVA_TYPE_MESSAGE, javaType);
+		return new Command(title, COMMAND_JAVA_DEFINITION,
+				Arrays.asList(new QuteJavaDefinitionParams(javaType, projectUri)));
+	}
+
+	private static String getLabel(ResolvedJavaTypeInfo javaType) {
+		return javaType != null ? javaType.getJavaElementSimpleType() : "?";
 	}
 }

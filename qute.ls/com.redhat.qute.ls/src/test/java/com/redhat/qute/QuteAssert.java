@@ -47,6 +47,7 @@ import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverCapabilities;
 import org.eclipse.lsp4j.InlayHint;
+import org.eclipse.lsp4j.InlayHintLabelPart;
 import org.eclipse.lsp4j.LinkedEditingRanges;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
@@ -377,7 +378,8 @@ public class QuteAssert {
 
 	public static Diagnostic d(int startLine, int startCharacter, int endLine, int endCharacter, IQuteErrorCode code,
 			String message, Object data, DiagnosticSeverity severity) {
-		Diagnostic diagnostic = d(startLine, startCharacter, endLine, endCharacter, code, message, QUTE_SOURCE, severity);
+		Diagnostic diagnostic = d(startLine, startCharacter, endLine, endCharacter, code, message, QUTE_SOURCE,
+				severity);
 		diagnostic.setData(data);
 		return diagnostic;
 	}
@@ -571,12 +573,7 @@ public class QuteAssert {
 		template.setTemplateId(templateId);
 
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
-		SharedSettings sharedSettings = new SharedSettings();
-		CommandCapabilities commandCapabilities = new CommandCapabilities();
-		CommandKindCapabilities kinds = new CommandKindCapabilities(
-				Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION));
-		commandCapabilities.setCommandKind(kinds);
-		sharedSettings.getCommandCapabilities().setCapabilities(commandCapabilities);
+		SharedSettings sharedSettings = createSharedSettings();
 		List<? extends CodeLens> actual = languageService.getCodeLens(template, sharedSettings, () -> {
 		}).get();
 		assertCodeLens(actual, expected);
@@ -617,17 +614,37 @@ public class QuteAssert {
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 		template.setTemplateId(templateId);
 
+		SharedSettings settings = createSharedSettings();
+		if (inlayHintSettings != null) {
+			settings.getInlayHintSettings().update(inlayHintSettings);
+		}
+
 		JavaDataModelCache javaCache = new JavaDataModelCache(projectRegistry);
 		QuteLanguageService languageService = new QuteLanguageService(javaCache);
 		Range range = null;
-		List<InlayHint> actual = languageService.getInlayHint(template, range, inlayHintSettings,
-				new ResolvingJavaTypeContext(template, javaCache), () -> {
+		List<InlayHint> actual = languageService
+				.getInlayHint(template, range, settings, new ResolvingJavaTypeContext(template, javaCache), () -> {
 				}).get();
 		assertInlayHint(actual, expected);
 	}
 
 	public static InlayHint ih(Position position, String label) {
 		return new InlayHint(position, Either.forLeft(label));
+	}
+
+	public static InlayHint ih(Position position, InlayHintLabelPart... parts) {
+		return new InlayHint(position, Either.forRight(Arrays.asList(parts)));
+	}
+
+	public static InlayHintLabelPart ihLabel(String label) {
+		return new InlayHintLabelPart(label);
+	}
+
+	public static InlayHintLabelPart ihLabel(String label, String tooltip, Command command) {
+		InlayHintLabelPart part = ihLabel(label);
+		part.setCommand(command);
+		part.setTooltip(tooltip);
+		return part;
 	}
 
 	public static void assertInlayHint(List<? extends InlayHint> actual, InlayHint... expected) {
@@ -674,9 +691,11 @@ public class QuteAssert {
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
 
-		List<CodeAction> actual = languageService.doCodeActions(template, context, new QuteTemplateGenerateMissingJavaMember() {
-			// do not attempt to resolve "generate missing java member" code actions in qute-ls unit tests
-		}, range, settings).get();
+		List<CodeAction> actual = languageService
+				.doCodeActions(template, context, new QuteTemplateGenerateMissingJavaMember() {
+					// do not attempt to resolve "generate missing java member" code actions in
+					// qute-ls unit tests
+				}, range, settings).get();
 		assertCodeActions(actual, expected);
 	}
 
@@ -924,6 +943,16 @@ public class QuteAssert {
 		projectRegistry.getProject(new ProjectInfo(projectUri, templateBaseDir));
 		template.setProjectRegistry(projectRegistry);
 		return template;
+	}
+
+	private static SharedSettings createSharedSettings() {
+		SharedSettings sharedSettings = new SharedSettings();
+		CommandCapabilities commandCapabilities = new CommandCapabilities();
+		CommandKindCapabilities kinds = new CommandKindCapabilities(
+				Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION));
+		commandCapabilities.setCommandKind(kinds);
+		sharedSettings.getCommandCapabilities().setCapabilities(commandCapabilities);
+		return sharedSettings;
 	}
 
 }
