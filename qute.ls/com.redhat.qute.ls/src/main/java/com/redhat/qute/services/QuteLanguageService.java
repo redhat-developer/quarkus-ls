@@ -34,12 +34,13 @@ import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
-import com.redhat.qute.ls.api.QuteTemplateGenerateMissingJavaMember;
+import com.redhat.qute.ls.api.QuteTemplateJavaTextEditProvider;
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.services.codeactions.QuteTemplateCodeActionResolvers;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.QuteInlayHintSettings;
@@ -68,6 +69,7 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	private final QuteReference reference;
 	private final QuteRename rename;
 	private final QuteSymbolsProvider symbolsProvider;
+	private final QuteTemplateCodeActionResolvers codeActionResolvers;
 
 	private SnippetRegistry<Snippet> coreTagSnippetRegistry;
 
@@ -85,6 +87,7 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 		this.reference = new QuteReference();
 		this.rename = new QuteRename();
 		this.symbolsProvider = new QuteSymbolsProvider();
+		this.codeActionResolvers = new QuteTemplateCodeActionResolvers();
 	}
 
 	/**
@@ -92,13 +95,13 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	 *
 	 * @param template       the Qute template.
 	 * @param context        the Code Action context.
-	 * @param resolver       the generate missing java member resolver
+	 * @param javaTextEditProvider       the generate missing java member resolver
 	 * @param sharedSettings the Qute shared settings.
 	 * @return the CodeAction(s) to be added to the Qute template.
 	 */
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context,
-			QuteTemplateGenerateMissingJavaMember resolver, Range range, SharedSettings sharedSettings) {
-		return codeActions.doCodeActions(template, context, range, resolver, sharedSettings);
+			QuteTemplateJavaTextEditProvider javaTextEditProvider, Range range, SharedSettings sharedSettings) {
+		return codeActions.doCodeActions(template, context, range, javaTextEditProvider, sharedSettings);
 	}
 
 	/**
@@ -273,6 +276,19 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	 */
 	public List<SymbolInformation> findSymbolInformations(Template template, CancelChecker cancelChecker) {
 		return symbolsProvider.findSymbolInformations(template, cancelChecker);
+	}
+
+	/**
+	 * Resolve code action in the given Qute template.
+	 *
+	 * @param unresolved      the unresolved code action
+	 * @param javaTextEditProvider the provider that can resolve code action information
+	 *                        using the associated java language server
+	 * @return the resolved code action
+	 */
+	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction unresolved,
+			QuteTemplateJavaTextEditProvider javaTextEditProvider) {
+		return codeActionResolvers.resolveCodeAction(unresolved, javaTextEditProvider);
 	}
 
 	/**

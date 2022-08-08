@@ -80,7 +80,7 @@ public class QuteCapabilityManager {
 	 */
 	public void initializeCapabilities() {
 		if (this.getClientCapabilities().isCodeActionDynamicRegistered()) {
-			registerCapability(CODE_ACTION_ID, TEXT_DOCUMENT_CODE_ACTION);
+			registerCapability(CODE_ACTION_ID, TEXT_DOCUMENT_CODE_ACTION, ServerCapabilitiesConstants.DEFAULT_CODE_ACTION_OPTIONS);
 		}
 		if (this.getClientCapabilities().isCodeLensDynamicRegistered()) {
 			registerCapability(CODE_LENS_ID, TEXT_DOCUMENT_CODE_LENS, DEFAULT_CODELENS_OPTIONS);

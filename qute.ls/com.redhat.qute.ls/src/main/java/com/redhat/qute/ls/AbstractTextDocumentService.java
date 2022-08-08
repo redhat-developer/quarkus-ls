@@ -168,6 +168,11 @@ public abstract class AbstractTextDocumentService implements TextDocumentService
 	public CompletableFuture<List<InlayHint>> inlayHint(InlayHintParams params) {
 		return CompletableFuture.completedFuture(null);
 	}
+	
+	@Override
+	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction unresolved) {
+		return CompletableFuture.completedFuture(null);
+	}
 
 	@Override
 	public CompletableFuture<WorkspaceEdit> rename(RenameParams params) {

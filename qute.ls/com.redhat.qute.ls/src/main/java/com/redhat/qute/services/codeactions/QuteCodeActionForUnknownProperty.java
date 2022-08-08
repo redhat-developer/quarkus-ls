@@ -27,7 +27,7 @@ import org.eclipse.lsp4j.Diagnostic;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams.MemberType;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.ls.api.QuteTemplateGenerateMissingJavaMember;
+import com.redhat.qute.ls.api.QuteTemplateJavaTextEditProvider;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.template.Node;
@@ -38,7 +38,7 @@ import com.redhat.qute.settings.SharedSettings;
 
 /**
  * Code actions for {@link QuteErrorCode#UnknownProperty}.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -68,7 +68,7 @@ public class QuteCodeActionForUnknownProperty extends AbstractQuteCodeAction {
 			}
 			Template template = request.getTemplate();
 			Diagnostic diagnostic = request.getDiagnostic();
-			QuteTemplateGenerateMissingJavaMember resolver = request.getResolver();
+			QuteTemplateJavaTextEditProvider javaTextEditProvider = request.getTextEditProvider();
 			SharedSettings sharedSettings = request.getSharedSettings();
 			Set<String> namespaces = this.javaCache.getAllTemplateExtensionsClasses(template.getProjectUri());
 
@@ -82,20 +82,20 @@ public class QuteCodeActionForUnknownProperty extends AbstractQuteCodeAction {
 				String projectUri = template.getProjectUri();
 				String propertyCapitalized = missingProperty.substring(0, 1).toUpperCase()
 						+ missingProperty.substring(1);
+				String fileUri = template.getUri();
 
 				if (!baseResolvedType.isBinary()) {
-					doCodeActionToCreateField(missingProperty, resolvedType, projectUri, propertyCapitalized, diagnostic,
-							resolver, sharedSettings, codeActionResolveFutures, codeActions);
-					doCodeActionToCreateGetter(missingProperty, resolvedType, projectUri, propertyCapitalized, diagnostic,
-							resolver, sharedSettings, codeActionResolveFutures, codeActions);
+					doCodeActionToCreateField(missingProperty, resolvedType, projectUri, fileUri, propertyCapitalized,
+							diagnostic, javaTextEditProvider, sharedSettings, codeActionResolveFutures, codeActions);
+					doCodeActionToCreateGetter(missingProperty, resolvedType, projectUri, fileUri, propertyCapitalized,
+							diagnostic, javaTextEditProvider, sharedSettings, codeActionResolveFutures, codeActions);
 				}
 
-				doCodeActionToAddTemplateExtension(missingProperty, resolvedType, projectUri, diagnostic, resolver,
-						namespaces, sharedSettings, codeActionResolveFutures, codeActions);
-				doCodeActionToCreateTemplateExtensionsClass(missingProperty, resolvedType, projectUri,
-						propertyCapitalized, diagnostic, resolver, sharedSettings, codeActionResolveFutures,
+				doCodeActionToAddTemplateExtension(missingProperty, resolvedType, projectUri, fileUri, diagnostic,
+						javaTextEditProvider, namespaces, sharedSettings, codeActionResolveFutures, codeActions);
+				doCodeActionToCreateTemplateExtensionsClass(missingProperty, resolvedType, projectUri, fileUri,
+						propertyCapitalized, diagnostic, javaTextEditProvider, sharedSettings, codeActionResolveFutures,
 						codeActions);
-				;
 			}
 
 		} catch (BadLocationException e) {
@@ -104,45 +104,57 @@ public class QuteCodeActionForUnknownProperty extends AbstractQuteCodeAction {
 	}
 
 	private static void doCodeActionToCreateField(String missingProperty, String resolvedType, String projectUri,
-			String propertyCapitalized, Diagnostic diagnostic, QuteTemplateGenerateMissingJavaMember resolver,
-			SharedSettings settings, List<CompletableFuture<Void>> registrations, List<CodeAction> codeActions) {
+			String fileUri, String propertyCapitalized, Diagnostic diagnostic,
+			QuteTemplateJavaTextEditProvider javaTextEditProvider, SharedSettings settings,
+			List<CompletableFuture<Void>> registrations, List<CodeAction> codeActions) {
 		GenerateMissingJavaMemberParams publicFieldParams = new GenerateMissingJavaMemberParams(MemberType.Field,
 				missingProperty, resolvedType, projectUri);
 		CodeAction createPublicField = createCodeActionWithData(
 				MessageFormat.format(CREATE_PUBLIC_FIELD, missingProperty, resolvedType), publicFieldParams,
 				Collections.singletonList(diagnostic));
 		codeActions.add(createPublicField);
-		registrations.add(resolver.generateMissingJavaMember(publicFieldParams) //
-				.thenAccept((workspaceEdit) -> {
-					if (workspaceEdit == null) {
-						return;
-					}
-					createPublicField.setEdit(workspaceEdit);
-				}));
+		if (settings.getCodeActionSettings().isResolveSupported()) {
+			createPublicField.setData(new CodeActionUnresolvedData(fileUri,
+					CodeActionResolverKind.GenerateMissingMember, publicFieldParams));
+		} else {
+			registrations.add(javaTextEditProvider.generateMissingJavaMember(publicFieldParams) //
+					.thenAccept((workspaceEdit) -> {
+						if (workspaceEdit == null) {
+							return;
+						}
+						createPublicField.setEdit(workspaceEdit);
+					}));
+		}
 	}
 
 	private static void doCodeActionToCreateGetter(String missingProperty, String resolvedType, String projectUri,
-			String propertyCapitalized, Diagnostic diagnostic, QuteTemplateGenerateMissingJavaMember resolver,
-			SharedSettings settings, List<CompletableFuture<Void>> registrations, List<CodeAction> codeActions) {
+			String fileUri, String propertyCapitalized, Diagnostic diagnostic,
+			QuteTemplateJavaTextEditProvider javaTextEditProvider, SharedSettings settings,
+			List<CompletableFuture<Void>> registrations, List<CodeAction> codeActions) {
 		GenerateMissingJavaMemberParams getterParams = new GenerateMissingJavaMemberParams(MemberType.Getter,
 				missingProperty, resolvedType, projectUri);
 		CodeAction createGetter = createCodeActionWithData(
 				MessageFormat.format(CREATE_GETTER, propertyCapitalized, resolvedType), getterParams,
 				Collections.singletonList(diagnostic));
 		codeActions.add(createGetter);
-		registrations.add(resolver.generateMissingJavaMember(getterParams) //
-				.thenAccept((workspaceEdit) -> {
-					if (workspaceEdit == null) {
-						return;
-					}
-					createGetter.setEdit(workspaceEdit);
-				}));
+		if (settings.getCodeActionSettings().isResolveSupported()) {
+			createGetter.setData(
+					new CodeActionUnresolvedData(fileUri, CodeActionResolverKind.GenerateMissingMember, getterParams));
+		} else {
+			registrations.add(javaTextEditProvider.generateMissingJavaMember(getterParams) //
+					.thenAccept((workspaceEdit) -> {
+						if (workspaceEdit == null) {
+							return;
+						}
+						createGetter.setEdit(workspaceEdit);
+					}));
+		}
 	}
 
 	private static void doCodeActionToAddTemplateExtension(String missingProperty, String resolvedType,
-			String projectUri, Diagnostic diagnostic, QuteTemplateGenerateMissingJavaMember resolver,
-			Set<String> templateExtensionsClasses, SharedSettings sharedSettings,
-			List<CompletableFuture<Void>> registrations, List<CodeAction> codeActions) {
+			String projectUri, String fileUri, Diagnostic diagnostic, QuteTemplateJavaTextEditProvider javaTextEditProvider,
+			Set<String> templateExtensionsClasses, SharedSettings settings, List<CompletableFuture<Void>> registrations,
+			List<CodeAction> codeActions) {
 
 		for (String templateExtensionsClass : templateExtensionsClasses) {
 
@@ -153,20 +165,25 @@ public class QuteCodeActionForUnknownProperty extends AbstractQuteCodeAction {
 					MessageFormat.format(APPEND_TO_TEMPLATE_EXTENSIONS, missingProperty, templateExtensionsClass),
 					appendToTemplateExtensionsParams, Collections.singletonList(diagnostic));
 			codeActions.add(appendToTemplateExtensions);
-			registrations.add(resolver.generateMissingJavaMember(appendToTemplateExtensionsParams) //
-					.thenAccept((workspaceEdit) -> {
-						if (workspaceEdit == null) {
-							return;
-						}
-						appendToTemplateExtensions.setEdit(workspaceEdit);
-					}));
-		}
 
+			if (settings.getCodeActionSettings().isResolveSupported()) {
+				appendToTemplateExtensions.setData(new CodeActionUnresolvedData(fileUri,
+						CodeActionResolverKind.GenerateMissingMember, appendToTemplateExtensionsParams));
+			} else {
+				registrations.add(javaTextEditProvider.generateMissingJavaMember(appendToTemplateExtensionsParams) //
+						.thenAccept((workspaceEdit) -> {
+							if (workspaceEdit == null) {
+								return;
+							}
+							appendToTemplateExtensions.setEdit(workspaceEdit);
+						}));
+			}
+		}
 	}
 
 	private static void doCodeActionToCreateTemplateExtensionsClass(String missingProperty, String resolvedType,
-			String projectUri, String propertyCapitalized, Diagnostic diagnostic,
-			QuteTemplateGenerateMissingJavaMember resolver, SharedSettings settings,
+			String projectUri, String fileUri, String propertyCapitalized, Diagnostic diagnostic,
+			QuteTemplateJavaTextEditProvider javaTextEditProvider, SharedSettings settings,
 			List<CompletableFuture<Void>> registrations, List<CodeAction> codeActions) {
 		GenerateMissingJavaMemberParams createTemplateExtensionsParams = new GenerateMissingJavaMemberParams(
 				MemberType.CreateTemplateExtension, missingProperty, resolvedType, projectUri);
@@ -174,13 +191,18 @@ public class QuteCodeActionForUnknownProperty extends AbstractQuteCodeAction {
 				MessageFormat.format(CREATE_TEMPLATE_EXTENSIONS, missingProperty), createTemplateExtensionsParams,
 				Collections.singletonList(diagnostic));
 		codeActions.add(createTemplateExtensions);
-		registrations.add(resolver.generateMissingJavaMember(createTemplateExtensionsParams) //
-				.thenAccept((workspaceEdit) -> {
-					if (workspaceEdit == null) {
-						return;
-					}
-					createTemplateExtensions.setEdit(workspaceEdit);
-				}));
+		if (settings.getCodeActionSettings().isResolveSupported()) {
+			createTemplateExtensions.setData(new CodeActionUnresolvedData(fileUri,
+					CodeActionResolverKind.GenerateMissingMember, createTemplateExtensionsParams));
+		} else {
+			registrations.add(javaTextEditProvider.generateMissingJavaMember(createTemplateExtensionsParams) //
+					.thenAccept((workspaceEdit) -> {
+						if (workspaceEdit == null) {
+							return;
+						}
+						createTemplateExtensions.setEdit(workspaceEdit);
+					}));
+		}
 	}
 
 }

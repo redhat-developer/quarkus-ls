@@ -24,7 +24,7 @@ import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Range;
 
-import com.redhat.qute.ls.api.QuteTemplateGenerateMissingJavaMember;
+import com.redhat.qute.ls.api.QuteTemplateJavaTextEditProvider;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
@@ -75,7 +75,7 @@ class QuteCodeActions {
 	}
 
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
-			QuteTemplateGenerateMissingJavaMember resolver, SharedSettings sharedSettings) {
+			QuteTemplateJavaTextEditProvider javaTextEditProvider, SharedSettings sharedSettings) {
 		List<CodeAction> codeActions = new ArrayList<>();
 		List<Diagnostic> diagnostics = context.getDiagnostics();
 		if (diagnostics == null || diagnostics.isEmpty()) {
@@ -86,7 +86,7 @@ class QuteCodeActions {
 		for (Diagnostic diagnostic : diagnostics) {
 			QuteErrorCode errorCode = QuteErrorCode.getErrorCode(diagnostic.getCode());
 			if (errorCode != null) {
-				CodeActionRequest request = new CodeActionRequest(template, diagnostic, resolver, sharedSettings);
+				CodeActionRequest request = new CodeActionRequest(template, diagnostic, javaTextEditProvider, sharedSettings);
 				switch (errorCode) {
 				case UndefinedObject:
 					// The following Qute template:

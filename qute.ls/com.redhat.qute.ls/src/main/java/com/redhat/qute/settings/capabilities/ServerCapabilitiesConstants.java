@@ -12,8 +12,11 @@
 package com.redhat.qute.settings.capabilities;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
+import org.eclipse.lsp4j.CodeActionKind;
+import org.eclipse.lsp4j.CodeActionOptions;
 import org.eclipse.lsp4j.CodeLensOptions;
 import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.DocumentLinkOptions;
@@ -68,5 +71,10 @@ public class ServerCapabilitiesConstants {
 	public static final CompletionOptions DEFAULT_COMPLETION_OPTIONS = new CompletionOptions(false,
 			Arrays.asList("{", "@", "#", ".", ":"));
 	public static final DocumentLinkOptions DEFAULT_DOCUMENT_LINK_OPTIONS = new DocumentLinkOptions(true);
+	public static final CodeActionOptions DEFAULT_CODE_ACTION_OPTIONS = new CodeActionOptions();
+	static {
+		DEFAULT_CODE_ACTION_OPTIONS.setCodeActionKinds(Arrays.asList(CodeActionKind.QuickFix, CodeActionKind.Empty));
+		DEFAULT_CODE_ACTION_OPTIONS.setResolveProvider(true);
+	}
 
 }

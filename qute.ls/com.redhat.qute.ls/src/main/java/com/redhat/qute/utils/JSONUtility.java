@@ -12,10 +12,12 @@
 package com.redhat.qute.utils;
 
 import org.eclipse.lsp4j.jsonrpc.json.adapters.EitherTypeAdapter;
+import org.eclipse.lsp4j.jsonrpc.json.adapters.EnumTypeAdapter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.internal.LinkedTreeMap;
 import com.redhat.qute.settings.FaultTolerantTypeAdapterFactory;
 
 /**
@@ -37,6 +39,10 @@ public class JSONUtility {
 			Gson gson = getDefaultGsonBuilder().create();
 			return gson.fromJson((JsonElement) object, clazz);
 		}
+		if (object instanceof LinkedTreeMap<?, ?>) {
+			Gson gson = getDefaultGsonBuilder().create();
+			return gson.fromJson(gson.toJson(object), clazz);
+		}
 		if (clazz.isInstance(object)) {
 			return clazz.cast(object);
 		}
@@ -48,6 +54,7 @@ public class JSONUtility {
 				// required to deserialize QuteFormattingOptions which extends FormattingOptions
 				// which uses Either
 				.registerTypeAdapterFactory(new EitherTypeAdapter.Factory()) //
-				.registerTypeAdapterFactory(new FaultTolerantTypeAdapterFactory());
+				.registerTypeAdapterFactory(new FaultTolerantTypeAdapterFactory()) //
+				.registerTypeAdapterFactory(new EnumTypeAdapter.Factory());
 	}
 }

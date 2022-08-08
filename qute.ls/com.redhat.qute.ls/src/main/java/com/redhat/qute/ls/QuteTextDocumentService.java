@@ -60,7 +60,9 @@ import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.qute.ls.java.JavaFileTextDocumentService;
 import com.redhat.qute.ls.template.TemplateFileTextDocumentService;
+import com.redhat.qute.services.codeactions.CodeActionUnresolvedData;
 import com.redhat.qute.settings.SharedSettings;
+import com.redhat.qute.utils.JSONUtility;
 
 /**
  * LSP text document service for Qute template file.
@@ -90,6 +92,7 @@ public class QuteTextDocumentService implements TextDocumentService {
 		TextDocumentClientCapabilities textDocumentClientCapabilities = capabilities.getTextDocument();
 		if (textDocumentClientCapabilities != null) {
 			sharedSettings.getCompletionSettings().setCapabilities(textDocumentClientCapabilities.getCompletion());
+			sharedSettings.getCodeActionSettings().setCapabilities(textDocumentClientCapabilities.getCodeAction());
 		}
 		templateFileTextDocumentService.updateClientCapabilities(capabilities, extendedClientCapabilities);
 		javaFileTextDocumentService.updateClientCapabilities(capabilities);
@@ -251,6 +254,26 @@ public class QuteTextDocumentService implements TextDocumentService {
 		AbstractTextDocumentService service = getTextDocumentService(params.getTextDocument());
 		if (service != null) {
 			return service.inlayHint(params);
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+	
+	@Override
+	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction codeAction) {
+		/*
+		 * {
+		 *   resolverKind: ...,
+		 *   textDocumentUri: ...,
+		 *   resolverData: {
+		 *     ...
+		 *   }
+		 * }
+		 */
+		CodeActionUnresolvedData data = JSONUtility.toModel(codeAction.getData(), CodeActionUnresolvedData.class);
+		TextDocumentIdentifier textDocument = new TextDocumentIdentifier(data.getTextDocumentUri());
+		AbstractTextDocumentService service = getTextDocumentService(textDocument);
+		if (service != null) {
+			return service.resolveCodeAction(codeAction);
 		}
 		return CompletableFuture.completedFuture(null);
 	}
