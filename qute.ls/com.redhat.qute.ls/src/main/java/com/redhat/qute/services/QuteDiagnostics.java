@@ -96,6 +96,8 @@ class QuteDiagnostics {
 
 		private ResolvedJavaTypeInfo withObject;
 
+		private ResolvedJavaTypeInfo whenObject;
+
 		public ResolutionContext() {
 			this(null);
 		}
@@ -110,6 +112,10 @@ class QuteDiagnostics {
 
 		public void setWithObject(ResolvedJavaTypeInfo withObject) {
 			this.withObject = withObject;
+		}
+
+		public void setWhenObject(ResolvedJavaTypeInfo whenObject) {
+			this.whenObject = whenObject;
 		}
 
 		public JavaMemberInfo findMemberWithObject(String property, String projectUri) {
@@ -255,6 +261,10 @@ class QuteDiagnostics {
 							case SET:
 								currentContext.put(parameter.getName(), result);
 								break;
+							case SWITCH:
+							case WHEN:
+								currentContext.setWhenObject(result);
+								break;
 							default:
 							}
 						}
@@ -264,6 +274,27 @@ class QuteDiagnostics {
 				switch (section.getSectionKind()) {
 				case INCLUDE:
 					validateIncludeSection((IncludeSection) section, diagnostics);
+					break;
+				case CASE:
+				case IS:
+					// Ex: {#switch person.name} --> person.name is of type String
+					// {#case 'John'} --> Ensure type of part ('John') inside #case section matches
+					// #switch
+					// {#case 123} --> Report unexpected type here, expected String but was Integer
+					// {/switch}
+					Section parentSection = section.getParentSection();
+					if (!isWhenSection(parentSection)) {
+						Range range = QutePositionUtility.selectStartTagName(section);
+						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+								QuteErrorCode.InvalidParentInCaseSection, section.getTag());
+						diagnostics.add(diagnostic);
+					} else {
+						ResolvedJavaTypeInfo whenJavaType = currentContext.whenObject;
+						if (whenJavaType != null) {
+							validateCaseSectionParameters(section, parentSection, whenJavaType, projectUri,
+									diagnostics);
+						}
+					}
 					break;
 				default:
 					validateSectionTag(section, template, resolvingJavaTypeContext, diagnostics);
@@ -368,7 +399,16 @@ class QuteDiagnostics {
 	private static boolean canChangeContext(Section section) {
 		SectionKind sectionKind = section.getSectionKind();
 		return sectionKind == SectionKind.EACH || sectionKind == SectionKind.FOR || sectionKind == SectionKind.LET
-				|| sectionKind == SectionKind.SET || sectionKind == SectionKind.WITH;
+				|| sectionKind == SectionKind.SET || sectionKind == SectionKind.WITH
+				|| sectionKind == SectionKind.SWITCH || sectionKind == SectionKind.WHEN;
+	}
+
+	private static boolean isWhenSection(Section section) {
+		if (section == null) {
+			return false;
+		}
+		SectionKind sectionKind = section.getSectionKind();
+		return sectionKind == SectionKind.SWITCH || sectionKind == SectionKind.WHEN;
 	}
 
 	/**
@@ -1089,5 +1129,57 @@ class QuteDiagnostics {
 			}
 		}
 		return resolvedJavaType;
+	}
+
+	/**
+	 * Validate the part in a case or in section.
+	 *
+	 * @param caseSection the case or is section.
+	 * @param whenSection the parent switch or when section.
+	 * @param whenType    the type of the switch or when section that is expected in
+	 *                    the case or in section.
+	 * @param projectUri  the project Uri.
+	 * @param diagnostics the diagnostic list.
+	 */
+	private void validateCaseSectionParameters(Section caseSection, Section whenSection, ResolvedJavaTypeInfo whenType,
+			String projectUri, List<Diagnostic> diagnostics) {
+		String expression = whenSection.getExpressionContent();
+		List<Parameter> parameters = caseSection.getParameters();
+		String whenTypeName = whenType.getSignature();
+		// Iterate through children and ensure the type of the #case or #is parts are
+		// the same as the parent section
+		for (int i = 0; i < parameters.size(); i++) {
+			Parameter parameter = parameters.get(i);
+			String parameterName = parameter.getName();
+			if (i == 0 && parameters.size() > 1) {
+				// The first is allowed as an operator so it is skipped for, second must be
+				// checked
+				// Ex: {#is in BROKEN}
+				continue;
+			}
+			String caseJavaType = LiteralSupport.getLiteralJavaType(parameter.getValue());
+			Range range = QutePositionUtility.createRange(parameter);
+			if (caseJavaType == null) {
+				if (javaCache.findMember(whenType, parameterName, projectUri) == null) {
+					// Case of Enum or invalid value since it is not a literal java type
+					// {#when machine.status} --> machine.status is has values ON and OFF
+					// {#is ON} --> valid enum value
+					// {#is in BAD_ENUM_VAUE} --> Error: unexpected enum value
+					// {/when}
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.UnexpectedValueInCaseSection, parameterName, expression, whenTypeName);
+					diagnostics.add(diagnostic);
+				}
+			} else if (!whenTypeName.equals(caseJavaType)) {
+				// Case where the java type of expression of child is different from parent
+				// Ex: {#switch person.name} --> person.name is of type String
+				// {#case 'John'} --> valid expression type of String
+				// {#case 123} --> Error: unexpected type, expected String but was Integer
+				// {/switch}
+				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+						QuteErrorCode.UnexpectedMemberTypeInCaseSection, caseJavaType, expression, whenTypeName);
+				diagnostics.add(diagnostic);
+			}
+		}
 	}
 }

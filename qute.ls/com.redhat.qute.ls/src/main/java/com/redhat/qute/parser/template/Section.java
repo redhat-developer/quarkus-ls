@@ -421,6 +421,16 @@ public abstract class Section extends Node implements ParametersContainer {
 		return new ExpressionParameter(getStartParametersOffset(), getEndParametersOffset(), this);
 	}
 
+	/**
+	 * Returns the text content of the parameters expression section.
+	 *
+	 * @return the text content of the parameters expression section.
+	 */
+	public String getExpressionContent() {
+		String text = getTemplateContent();
+		return text.substring(getStartParametersOffset(), getEndParametersOffset());
+	}
+
 	public ParametersInfo getParametersInfo() {
 		return ParametersInfo.EMPTY;
 	}

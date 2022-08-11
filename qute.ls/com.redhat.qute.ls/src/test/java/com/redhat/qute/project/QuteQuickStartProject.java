@@ -115,6 +115,18 @@ public class QuteQuickStartProject extends MockQuteProject {
 		createResolvedJavaTypeInfo("java.lang.Iterable<org.acme.Item>", "java.lang.Iterable", "org.acme.Item", cache, true);
 		createResolvedJavaTypeInfo("org.acme.Item[]", null, "org.acme.Item", cache, true);
 
+		// org.acme.MachineStatus
+		ResolvedJavaTypeInfo machineStatus = createResolvedJavaTypeInfo("org.acme.MachineStatus", cache, false);
+		registerField("ON : org.acme.MachineStatus", machineStatus);
+		registerField("OFF : org.acme.MachineStatus", machineStatus);
+		registerField("BROKEN : org.acme.MachineStatus", machineStatus);
+
+		// org.acme.Machine
+		ResolvedJavaTypeInfo machine = createResolvedJavaTypeInfo("org.acme.Machine", cache, false);
+		registerField("status : org.acme.MachineStatus", machine);
+		registerMethod("getMachine() : org.acme.MachineStatus", machine);
+		registerMethod("getCount() : java.lang.Integer", machine);
+
 		// @TemplateData
 		// public class ItemWithTemplateData
 		ResolvedJavaTypeInfo itemWithTemplateData = createResolvedJavaTypeInfo("org.acme.ItemWithTemplateData", cache,
