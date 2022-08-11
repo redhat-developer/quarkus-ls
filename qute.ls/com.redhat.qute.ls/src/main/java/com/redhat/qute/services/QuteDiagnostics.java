@@ -57,7 +57,9 @@ import com.redhat.qute.parser.template.RangeOffset;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.IncludeSection;
+import com.redhat.qute.parser.template.sections.IsSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.QuteProject;
@@ -764,6 +766,10 @@ class QuteDiagnostics {
 				default:
 				}
 			}
+		} else if (ownerSection != null && (ownerSection.getSectionKind() == SectionKind.SWITCH
+				|| ownerSection.getSectionKind() == SectionKind.WHEN)) {
+			validateSwitchWhenPart(javaMember, ownerSection, projectUri, resolvingJavaTypeContext, (Part) part,
+					diagnostics);
 		}
 
 		String memberType = javaMember.resolveJavaElementType(iterableOfType);
@@ -932,6 +938,10 @@ class QuteDiagnostics {
 				default:
 				}
 			}
+		} else if (ownerSection != null && (ownerSection.getSectionKind() == SectionKind.SWITCH
+				|| ownerSection.getSectionKind() == SectionKind.WHEN)) {
+			validateSwitchWhenPart(method, ownerSection, projectUri, resolvingJavaTypeContext, (Part) methodPart,
+					diagnostics);
 		}
 
 		boolean matchVirtualMethod = result.isMatchVirtualMethod();
@@ -1089,5 +1099,61 @@ class QuteDiagnostics {
 			}
 		}
 		return resolvedJavaType;
+	}
+
+	private void validateSwitchWhenPart(JavaMemberInfo member, Section ownerSection, String projectUri,
+			ResolvingJavaTypeContext resolvingJavaTypeContext, Part part, List<Diagnostic> diagnostics) {
+		String javaTypeParent = member.getJavaElementType();
+		String partName = part.toString();
+		
+		List<Node> children = ownerSection.getChildren();
+		// Iterate through children and ensure the type of the #case or #is parts are
+		// the same as the parent section
+		for (Node childNode : children) {
+			if (childNode.getKind() == NodeKind.Section) {
+				Section childSection = (Section) childNode;
+				if (!(childSection.getSectionKind() == SectionKind.CASE || childSection.getSectionKind() == SectionKind.IS)) {
+					// the current child section is not a #id or #case, ignore it 
+					continue;
+				}
+				List<Parameter> parameters = childSection.getParameters();
+				for (int i = 0; i < parameters.size(); i++) {
+					Parameter parameter = parameters.get(i);
+					String parameterName = parameter.getName();
+					if (i == 0 && "in".equals(parameterName) && parameters.size() > 1) {
+						// In the of 'in', the first is allowed as a keyword, second must be checked
+						// Ex: {#is in in BROKEN}
+						continue;
+					}
+					String javaTypeChild = LiteralSupport.getLiteralJavaType(parameter.getValue());
+					if (javaTypeChild == null) {
+						// Case of Enum since it is not a literal java type
+						// {#when machine.status} --> machine.status is has values ON and OFF
+						// {#is ON} --> valid enum value
+						// {#is in BAD_ENUM_VAUE} --> Error: unexpected enum value
+						// {/when}
+						ResolvedJavaTypeInfo javaTypeChildInfo = resolveJavaType(javaTypeParent, projectUri,
+								resolvingJavaTypeContext);
+						if (javaCache.findMember(javaTypeChildInfo, parameterName, projectUri) == null) {
+							Range range = QutePositionUtility.createRange(parameter);
+							Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+									QuteErrorCode.UnexpectedEnumValue, parameterName, partName, javaTypeParent);
+							diagnostics.add(diagnostic);
+						}
+					} else if (!javaTypeParent.equals(javaTypeChild)) {
+						// Case where the java type of expression of child is different from parent
+						// Ex: {#switch person.name} --> person.name is of type String
+						// {#case 'John'} --> valid expression type of String
+						// Hey John!
+						// {#case 123} --> Error: unexpected type, expected String but was Integer
+						// {/switch}
+						Range range = QutePositionUtility.createRange(parameter);
+						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+								QuteErrorCode.UnexpectedMemberType, javaTypeChild, partName, javaTypeParent);
+						diagnostics.add(diagnostic);
+					}
+				}
+			}
+		}
 	}
 }

@@ -62,6 +62,10 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	MethodIgnoredByTemplateData(
 			"The method `{0}` of `{1}` Java type cannot be used in native image mode because Java type is annotated with `@TemplateData(ignore = {2})`."), //
 
+	// Error code for expression part
+	UnexpectedMemberType("Unexpected type `{0}` in `{1}`. Expected `{2}`."),
+	UnexpectedEnumValue("Unexpected value `{0}` in `{1}`. Expected value of type `{2}`."),
+
 	// Error code for #for / #each section
 	IterationError("Iteration error: '{'{0}'}' resolved to [{1}] which is not iterable."),
 
