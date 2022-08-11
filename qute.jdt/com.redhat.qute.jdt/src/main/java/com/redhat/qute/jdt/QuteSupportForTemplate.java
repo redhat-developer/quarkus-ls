@@ -366,7 +366,7 @@ public class QuteSupportForTemplate {
 		// Standard fields
 		IField[] fields = type.getFields();
 		for (IField field : fields) {
-			if (isValidField(field)) {
+			if (isValidField(field, type)) {
 				// Only public fields are available
 				JavaFieldInfo info = new JavaFieldInfo();
 				info.setSignature(typeResolver.resolveFieldSignature(field));
@@ -462,7 +462,10 @@ public class QuteSupportForTemplate {
 		return iterable;
 	}
 
-	private static boolean isValidField(IField field) throws JavaModelException {
+	private static boolean isValidField(IField field, IType type) throws JavaModelException {
+		if (type.isEnum()) {
+			return true;
+		}
 		return Flags.isPublic(field.getFlags());
 	}
 

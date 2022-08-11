@@ -27,6 +27,7 @@ import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.jdt.QuteProjectTest.QuteMavenProjectName;
 import com.redhat.qute.jdt.QuteSupportForTemplate;
 
@@ -180,6 +181,29 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertNull(discountedPriceMethod);
 		InvalidMethodReason reason = result.getInvalidMethodReason("staticMethod");
 		Assert.assertEquals(InvalidMethodReason.Static, reason);
+
+	}
+
+	@Test
+	public void statusesEnum() throws Exception {
+
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.StatusesEnum",
+				QuteMavenProjectName.qute_quickstart);
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
+				new NullProgressMonitor());
+		Assert.assertNotNull(result);
+		Assert.assertEquals("org.acme.qute.StatusesEnum", result.getSignature());
+		Assert.assertFalse(result.isIterable());
+
+		// Enum
+		Assert.assertNotNull(result.getFields());
+		Assert.assertEquals(2, result.getFields().size());
+		Assert.assertEquals("ON", result.getFields().get(0).getName());
+		Assert.assertEquals("org.acme.qute.StatusesEnum", result.getFields().get(0).getType());
+		Assert.assertEquals("OFF", result.getFields().get(1).getName());
+		Assert.assertEquals("org.acme.qute.StatusesEnum", result.getFields().get(1).getType());
 
 	}
 
