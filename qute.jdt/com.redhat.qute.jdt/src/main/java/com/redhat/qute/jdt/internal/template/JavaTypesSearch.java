@@ -37,6 +37,7 @@ import org.eclipse.jdt.internal.core.search.BasicSearchEngine;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.jdt.internal.resolver.AbstractTypeResolver;
+import com.redhat.qute.jdt.utils.JDTTypeUtils;
 
 /**
  * Java types search for a given pattern and project Uri.
@@ -114,7 +115,7 @@ public class JavaTypesSearch {
 
 			for (String subPackageName : subPackages) {
 				JavaTypeInfo packageInfo = new JavaTypeInfo();
-				packageInfo.setKind(JavaTypeKind.Package);
+				packageInfo.setJavaTypeKind(JavaTypeKind.Package);
 				packageInfo.setSignature(subPackageName);
 				javaTypes.add(packageInfo);
 			}
@@ -160,7 +161,7 @@ public class JavaTypesSearch {
 						javaTypes.add(classInfo);
 
 						try {
-							classInfo.setKind(type.isInterface() ? JavaTypeKind.Interface : JavaTypeKind.Class);
+							classInfo.setJavaTypeKind(JDTTypeUtils.getJavaTypeKind(type));
 						} catch (JavaModelException e) {
 							LOGGER.log(Level.SEVERE, "Error while collecting Java Types for '" + packageName
 									+ " package and Java type '" + typeName + "'.", e);

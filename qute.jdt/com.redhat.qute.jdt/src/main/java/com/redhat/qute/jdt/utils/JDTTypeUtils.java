@@ -26,6 +26,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 
+import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.jdt.internal.resolver.AbstractTypeResolver;
 
 /**
@@ -144,5 +145,25 @@ public class JDTTypeUtils {
 	 */
 	public static boolean isVoidReturnType(IMethod method) throws JavaModelException {
 		return SIG_VOID.equals(method.getReturnType());
+	}
+
+	/**
+	 * Return the JavaTypeKind of the given IType type
+	 *
+	 * @param the IType of the type to get the JavaTypeKind of
+	 * @return the JavaTypeKind of the given IType type
+	 * @throws JavaModelException
+	 */
+	public static JavaTypeKind getJavaTypeKind(IType type) throws JavaModelException {
+		if (type.isClass()) {
+			return JavaTypeKind.Class;
+		}
+		if (type.isEnum()) {
+			return JavaTypeKind.Enum;
+		}
+		if (type.isInterface()) {
+			return JavaTypeKind.Interface;
+		}
+		return JavaTypeKind.Unknown;
 	}
 }

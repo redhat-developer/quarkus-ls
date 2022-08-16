@@ -264,4 +264,49 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		return b.toString();
 	}
 
+	/**
+	 * Returns true if the java type kind is Unknown
+	 * 
+	 * @return true if the java type kind is Unknown
+	 */
+	public boolean isUnknown() {
+	    return getJavaTypeKind() == JavaTypeKind.Unknown;
+	}
+	
+	/**
+	 * Returns true if the java type kind is Package
+	 * 
+	 * @return true if the java type kind is Package
+	 */
+	public boolean isPackage() {
+	    return getJavaTypeKind() == JavaTypeKind.Package;
+	}
+	
+	/**
+	 * Returns true if the java type kind is Class
+	 * 
+	 * @return true if the java type kind is Class
+	 */
+	public boolean isClass() {
+	    return getJavaTypeKind() == JavaTypeKind.Class;
+	}
+	
+	/**
+	 * Returns true if the java type kind is Interface
+	 * 
+	 * @return true if the java type kind is Interface
+	 */
+	public boolean isInterface() {
+	    return getJavaTypeKind() == JavaTypeKind.Interface;
+	}
+	
+	/**
+	 * Returns true if the java type kind is Enum
+	 * 
+	 * @return true if the java type kind is Enum
+	 */
+	public boolean isEnum() {
+	    return getJavaTypeKind() == JavaTypeKind.Enum;
+	}
+
 }

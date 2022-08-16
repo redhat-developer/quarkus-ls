@@ -35,6 +35,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
+import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.SnippetsBuilder;
 import com.redhat.qute.parser.expression.MethodPart;
@@ -51,6 +52,7 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.BaseWhenSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.parser.template.sections.WithSection;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
@@ -564,21 +566,26 @@ public class QuteCompletionsForExpression {
 		int partEnd = part != null && part.getKind() != NodeKind.Text ? part.getEnd() : offset;
 		Range range = QutePositionUtility.createRange(partStart, partEnd, template);
 		CompletionList list = new CompletionList();
+		boolean isCaseSection = isInCaseSection(expression);
 
-		// Completion with namespace resolver
-		// {data:item}
-		// {inject:bean}
-		doCompleteNamespaceResolvers(namespace, template, range, completionSettings, formattingSettings, list);
+		// Don't complete if in #is or #case section
+		if (!isCaseSection) {
+			// Completion with namespace resolver
+			// {data:item}
+			// {inject:bean}
+			doCompleteNamespaceResolvers(namespace, template, range, completionSettings, formattingSettings, list);
+		}
 
 		if (namespace == null) {
 			// Completion is triggered before the namespace
-
-			// Collect global variable
-			doCompleteExpressionForObjectPartWithGlobalVariables(template, range, list);
-			// Collect alias declared from parameter declaration
-			doCompleteExpressionForObjectPartWithParameterAlias(template, range, list);
-			// Collect parameters from CheckedTemplate method parameters
-			doCompleteExpressionForObjectPartWithCheckedTemplate(template, range, list);
+			if (!isCaseSection) {
+				// Collect global variable
+				doCompleteExpressionForObjectPartWithGlobalVariables(template, range, list);
+				// Collect alias declared from parameter declaration
+				doCompleteExpressionForObjectPartWithParameterAlias(template, range, list);
+				// Collect parameters from CheckedTemplate method parameters
+				doCompleteExpressionForObjectPartWithCheckedTemplate(template, range, list);
+			}
 			// Collect declared model inside section, let, etc
 			Set<String> existingVars = new HashSet<>();
 			doCompleteExpressionForObjectPartWithParentNodes(part, expression != null ? expression : part, range,
@@ -614,6 +621,12 @@ public class QuteCompletionsForExpression {
 			}
 		}
 		return CompletableFuture.completedFuture(list);
+	}
+
+	private boolean isInCaseSection(Expression expression) {
+		return (expression != null && expression.getOwnerSection() != null
+				&& (expression.getOwnerSection().getSectionKind() == SectionKind.IS
+						|| expression.getOwnerSection().getSectionKind() == SectionKind.CASE));
 	}
 
 	private void doCompleteExpressionForObjectPartWithGlobalVariables(Template template, Range range,
@@ -715,12 +728,13 @@ public class QuteCompletionsForExpression {
 		}
 	}
 
-	private void doCompleteExpressionForObjectPartWithParentNodes(Node part, Node node, Range range, int offset,
-			Template template, Set<String> existingVars, QuteCompletionSettings completionSettings,
-			QuteFormattingSettings formattingSettings, QuteNativeSettings nativeImagesSettings, CompletionList list) {
+	private CompletableFuture<CompletionList> doCompleteExpressionForObjectPartWithParentNodes(Node part, Node node,
+			Range range, int offset, Template template, Set<String> existingVars,
+			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
+			QuteNativeSettings nativeImagesSettings, CompletionList list) {
 		Section section = node != null ? node.getParentSection() : null;
 		if (section == null) {
-			return;
+			return EMPTY_FUTURE_COMPLETION;
 		}
 		if (section.getKind() == NodeKind.Section) {
 			boolean collect = true;
@@ -834,12 +848,44 @@ public class QuteCompletionsForExpression {
 							}
 						}
 						break;
+					case WHEN:
+					case SWITCH:
+						// Completion for properties/methods of with object from #switch and #when
+						Parameter value = ((BaseWhenSection) section).getValueParameter();
+						if (value != null) {
+							String projectUri = template.getProjectUri();
+							ResolvedJavaTypeInfo whenSwitchJavaTypeInfo = javaCache.resolveJavaType(value, projectUri)
+									.getNow(null);
+							if (whenSwitchJavaTypeInfo != null && whenSwitchJavaTypeInfo.isEnum()) {
+								JavaTypeFilter filter = javaCache.getJavaTypeFilter(projectUri, nativeImagesSettings);
+								JavaTypeAccessibiltyRule javaTypeAccessibility = filter.getJavaTypeAccessibility(
+										whenSwitchJavaTypeInfo, template.getJavaTypesSupportedInNativeMode());
+								List<Node> children = section.getChildren();
+								for (int i = 0; i < children.size(); i++) {
+									if (children.get(i).getKind() == NodeKind.Section){
+										Section childSection = (Section) children.get(i);
+										// Add existing variables
+										List <Parameter> parameters = childSection.getParameters();
+										for (int j = 0; j < parameters.size(); j++) {
+											existingVars.add(parameters.get(j).getName());
+										}
+										// If there is no operator or an operator that allows only one parameter, don't
+										// complete if there already is one present
+										if (BaseWhenSection.shouldCompleteWhenSection(childSection)) {
+											fillCompletionFields(whenSwitchJavaTypeInfo, javaTypeAccessibility, filter, range,
+													projectUri, existingVars, list);
+										}
+									}
+								}
+							}
+						}
 					default:
 				}
 			}
 		}
 		doCompleteExpressionForObjectPartWithParentNodes(part, section, range, offset, template, existingVars,
 				completionSettings, formattingSettings, nativeImagesSettings, list);
+		return CompletableFuture.completedFuture(list);
 	}
 
 	private void doCompleteExpressionForObjectPartWithParameterAlias(Template template, Range range,
