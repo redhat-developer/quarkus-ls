@@ -102,7 +102,7 @@ public class JavaTypeInfo extends JavaElementInfo {
 	 *
 	 * @param kind the Java type kind (class, interface, package).
 	 */
-	public void setKind(JavaTypeKind kind) {
+	public void setJavaTypeKind(JavaTypeKind kind) {
 		this.typeKind = kind;
 	}
 

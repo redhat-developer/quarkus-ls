@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaMethodInfo;
+import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.jdt.QuteProjectTest.QuteMavenProjectName;
@@ -52,6 +53,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertTrue(result.isIterable());
 		Assert.assertEquals("java.lang.Iterable", result.getIterableType());
 		Assert.assertEquals("java.lang.Object", result.getIterableOf());
+		Assert.assertEquals(JavaTypeKind.Interface, result.getJavaTypeKind());
 
 		params = new QuteResolvedJavaTypeParams("Iterable", QuteMavenProjectName.qute_quickstart);
 		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
@@ -60,6 +62,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertTrue(result.isIterable());
 		Assert.assertEquals("java.lang.Iterable", result.getIterableType());
 		Assert.assertEquals("java.lang.Object", result.getIterableOf());
+		Assert.assertEquals(JavaTypeKind.Interface, result.getJavaTypeKind());
 
 		params = new QuteResolvedJavaTypeParams("Iterable<String>", QuteMavenProjectName.qute_quickstart);
 		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
@@ -100,6 +103,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertTrue(result.isIterable());
 		Assert.assertEquals("java.util.List", result.getIterableType());
 		Assert.assertEquals("java.lang.Object", result.getIterableOf());
+		Assert.assertEquals(JavaTypeKind.Interface, result.getJavaTypeKind());
 
 		// Invalid method void clear();
 		JavaMethodInfo clearMethod = findMethod(result, "clear");
@@ -145,6 +149,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertNotNull(result.getMethods());
 		Assert.assertEquals(1, result.getMethods().size());
 		Assert.assertEquals("getName() : java.lang.String", result.getMethods().get(0).getSignature());
+		Assert.assertEquals(JavaTypeKind.Interface, result.getJavaTypeKind());
 	}
 
 	@Test
@@ -159,6 +164,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertNotNull(result);
 		Assert.assertEquals("org.acme.qute.Item", result.getSignature());
 		Assert.assertFalse(result.isIterable());
+		Assert.assertEquals(JavaTypeKind.Class, result.getJavaTypeKind());
 
 		// Fields
 		Assert.assertNotNull(result.getFields());
@@ -195,6 +201,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertNotNull(result);
 		Assert.assertEquals("org.acme.qute.StatusesEnum", result.getSignature());
 		Assert.assertFalse(result.isIterable());
+		Assert.assertEquals(JavaTypeKind.Enum, result.getJavaTypeKind());
 
 		// Enum
 		Assert.assertNotNull(result.getFields());
@@ -251,6 +258,7 @@ public class TemplateGetResolvedJavaTypeTest {
 				new NullProgressMonitor());
 		Assert.assertEquals("org.acme.qute.RecordItem", result.getSignature());
 		Assert.assertFalse(result.isIterable());
+		Assert.assertEquals(JavaTypeKind.Unknown, result.getJavaTypeKind());
 
 		Assert.assertNotNull(result.getFields());
 		Assert.assertEquals(2, result.getFields().size());
@@ -273,6 +281,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertNotNull(result);
 		Assert.assertEquals("java.lang.Object", result.getSignature());
 		Assert.assertFalse(result.isIterable());
+		Assert.assertEquals(JavaTypeKind.Class, result.getJavaTypeKind());
 
 		// None valid methods
 		Assert.assertNotNull(result.getMethods());
@@ -297,7 +306,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertNotNull(result);
 		Assert.assertEquals("java.lang.String", result.getSignature());
 		Assert.assertFalse(result.isIterable());
-
+		Assert.assertEquals(JavaTypeKind.Class, result.getJavaTypeKind());
 		Assert.assertNotNull(result.getMethods());
 
 		// Valid method isEmpty()
@@ -331,6 +340,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertNotNull(result);
 		Assert.assertEquals("org.acme.qute.ItemWithTemplateData", result.getSignature());
 		Assert.assertFalse(result.isIterable());
+		Assert.assertEquals(JavaTypeKind.Class, result.getJavaTypeKind());
 
 		// @TemplateData
 
@@ -377,6 +387,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertNotNull(result);
 		Assert.assertEquals("org.acme.qute.Statuses", result.getSignature());
 		Assert.assertFalse(result.isIterable());
+		Assert.assertEquals(JavaTypeKind.Class, result.getJavaTypeKind());
 
 		// @TemplateData
 		// @TemplateData(namespace = "FOO")
@@ -416,6 +427,7 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertNotNull(result);
 		Assert.assertEquals("org.acme.qute.ItemWithRegisterForReflection", result.getSignature());
 		Assert.assertFalse(result.isIterable());
+		Assert.assertEquals(JavaTypeKind.Class, result.getJavaTypeKind());
 
 		// @RegisterForReflection
 

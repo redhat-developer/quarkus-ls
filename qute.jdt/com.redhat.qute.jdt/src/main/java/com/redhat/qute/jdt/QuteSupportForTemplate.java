@@ -75,6 +75,7 @@ import com.redhat.qute.jdt.internal.template.QuteSupportForTemplateGenerateMissi
 import com.redhat.qute.jdt.internal.template.TemplateDataSupport;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
+import com.redhat.qute.jdt.utils.JDTTypeUtils;
 import com.redhat.qute.jdt.utils.QuteReflectionAnnotationUtils;
 
 /**
@@ -436,6 +437,7 @@ public class QuteSupportForTemplate {
 		resolvedType.setMethods(methodsInfo);
 		resolvedType.setInvalidMethods(invalidMethods);
 		resolvedType.setExtendedTypes(extendedTypes);
+		resolvedType.setJavaTypeKind(JDTTypeUtils.getJavaTypeKind(type));
 		QuteReflectionAnnotationUtils.collectAnnotations(resolvedType, type, typeResolver);
 		return resolvedType;
 	}

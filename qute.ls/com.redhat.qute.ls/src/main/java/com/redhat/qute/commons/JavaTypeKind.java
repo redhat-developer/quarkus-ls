@@ -21,7 +21,8 @@ public enum JavaTypeKind {
 	Unknown(0), //
 	Package(1), //
 	Class(2), //
-	Interface(3);
+	Interface(3), //
+	Enum(4);
 
 	private final int value;
 

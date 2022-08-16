@@ -54,7 +54,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 	protected List<ResolvedJavaTypeInfo> createResolvedTypes() {
 		List<ResolvedJavaTypeInfo> cache = new ArrayList<>();
 
-		createResolvedJavaTypeInfo("org.acme", cache, true).setKind(JavaTypeKind.Package);
+		createResolvedJavaTypeInfo("org.acme", cache, true).setJavaTypeKind(JavaTypeKind.Package);
 
 		createResolvedJavaTypeInfo("java.lang.Object", cache, true);
 
@@ -117,6 +117,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 
 		// org.acme.MachineStatus
 		ResolvedJavaTypeInfo machineStatus = createResolvedJavaTypeInfo("org.acme.MachineStatus", cache, false);
+		machineStatus.setJavaTypeKind(JavaTypeKind.Enum);
 		registerField("ON : org.acme.MachineStatus", machineStatus);
 		registerField("OFF : org.acme.MachineStatus", machineStatus);
 		registerField("BROKEN : org.acme.MachineStatus", machineStatus);

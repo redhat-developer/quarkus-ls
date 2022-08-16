@@ -102,7 +102,7 @@ public abstract class MockQuteProject extends QuteProject {
 	protected static JavaTypeInfo createJavaTypeInfo(String typeName, JavaTypeKind kind, List<JavaTypeInfo> cache) {
 		JavaTypeInfo typeInfo = new JavaTypeInfo();
 		typeInfo.setSignature(typeName);
-		typeInfo.setKind(kind);
+		typeInfo.setJavaTypeKind(kind);
 		cache.add(typeInfo);
 		return typeInfo;
 	}
@@ -115,7 +115,7 @@ public abstract class MockQuteProject extends QuteProject {
 	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String signature, String iterableType,
 			String iterableOf, List<ResolvedJavaTypeInfo> cache, boolean binary, ResolvedJavaTypeInfo... extended) {
 		ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
-		resolvedType.setKind(JavaTypeKind.Class);
+		resolvedType.setJavaTypeKind(JavaTypeKind.Class);
 		resolvedType.setBinary(binary);
 		resolvedType.setSignature(signature);
 		resolvedType.setIterableType(iterableType);
