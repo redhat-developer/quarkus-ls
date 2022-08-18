@@ -420,6 +420,11 @@ public abstract class Section extends Node implements ParametersContainer {
 		// Try to remove this method
 		return new ExpressionParameter(getStartParametersOffset(), getEndParametersOffset(), this);
 	}
+	
+	public String getExpressionContent() {
+		String text= getTemplateContent();
+		return text.substring(getStartParametersOffset(), getEndParametersOffset());
+	}
 
 	public ParametersInfo getParametersInfo() {
 		return ParametersInfo.EMPTY;

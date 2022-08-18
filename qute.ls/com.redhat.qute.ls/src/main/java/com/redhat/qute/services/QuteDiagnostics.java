@@ -97,6 +97,8 @@ class QuteDiagnostics {
 		private final ResolutionContext parent;
 
 		private ResolvedJavaTypeInfo withObject;
+		
+		private ResolvedJavaTypeInfo switchWhenObject;
 
 		public ResolutionContext() {
 			this(null);
@@ -112,6 +114,14 @@ class QuteDiagnostics {
 
 		public void setWithObject(ResolvedJavaTypeInfo withObject) {
 			this.withObject = withObject;
+		}
+		
+		public void setSwitchWhenObject(ResolvedJavaTypeInfo switchWhenObject) {
+			this.switchWhenObject = switchWhenObject;
+		}
+		
+		public ResolvedJavaTypeInfo getSwitchWhenObject() {
+			return switchWhenObject;
 		}
 
 		public JavaMemberInfo findMemberWithObject(String property, String projectUri) {
@@ -257,6 +267,9 @@ class QuteDiagnostics {
 							case SET:
 								currentContext.put(parameter.getName(), result);
 								break;
+							case SWITCH:
+							case WHEN:
+								currentContext.setSwitchWhenObject(result);
 							default:
 							}
 						}
@@ -266,6 +279,17 @@ class QuteDiagnostics {
 				switch (section.getSectionKind()) {
 				case INCLUDE:
 					validateIncludeSection((IncludeSection) section, diagnostics);
+					break;
+				case CASE:
+				case IS:
+					Section parentSection = section.getParentSection();
+					if (!isSwitchWhenSection(parentSection)) {
+						// TODO : report an error -> #is or #case must be hosted in #swicth or #when
+					} else {
+						ResolvedJavaTypeInfo switchWhenJavaType = currentContext.getSwitchWhenObject();
+						validateCaseIsPart(section, parentSection, switchWhenJavaType, projectUri, resolvingJavaTypeContext,
+								diagnostics);	
+					}
 					break;
 				default:
 					validateSectionTag(section, template, resolvingJavaTypeContext, diagnostics);
@@ -370,7 +394,16 @@ class QuteDiagnostics {
 	private static boolean canChangeContext(Section section) {
 		SectionKind sectionKind = section.getSectionKind();
 		return sectionKind == SectionKind.EACH || sectionKind == SectionKind.FOR || sectionKind == SectionKind.LET
-				|| sectionKind == SectionKind.SET || sectionKind == SectionKind.WITH;
+				|| sectionKind == SectionKind.SET || sectionKind == SectionKind.WITH ||
+						isSwitchWhenSection(section);
+	}
+	
+	private static boolean isSwitchWhenSection(Section section) {
+		if(section == null) {
+			return false;
+		}
+		SectionKind sectionKind = section.getSectionKind();
+		return sectionKind == SectionKind.SWITCH || sectionKind == SectionKind.WHEN;
 	}
 
 	/**
@@ -766,10 +799,6 @@ class QuteDiagnostics {
 				default:
 				}
 			}
-		} else if (ownerSection != null && (ownerSection.getSectionKind() == SectionKind.SWITCH
-				|| ownerSection.getSectionKind() == SectionKind.WHEN)) {
-			validateSwitchWhenPart(javaMember, ownerSection, projectUri, resolvingJavaTypeContext, (Part) part,
-					diagnostics);
 		}
 
 		String memberType = javaMember.resolveJavaElementType(iterableOfType);
@@ -938,10 +967,6 @@ class QuteDiagnostics {
 				default:
 				}
 			}
-		} else if (ownerSection != null && (ownerSection.getSectionKind() == SectionKind.SWITCH
-				|| ownerSection.getSectionKind() == SectionKind.WHEN)) {
-			validateSwitchWhenPart(method, ownerSection, projectUri, resolvingJavaTypeContext, (Part) methodPart,
-					diagnostics);
 		}
 
 		boolean matchVirtualMethod = result.isMatchVirtualMethod();
@@ -1101,6 +1126,50 @@ class QuteDiagnostics {
 		return resolvedJavaType;
 	}
 
+	private void validateCaseIsPart(Section caseIsSection, Section whenSwitchSection, ResolvedJavaTypeInfo javaTypeParent, String projectUri,
+			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
+		String expression = whenSwitchSection.getExpressionContent();
+		List<Parameter> parameters = caseIsSection.getParameters();
+		for (int i = 0; i < parameters.size(); i++) {
+			Parameter parameter = parameters.get(i);
+			String parameterName = parameter.getName();
+			if (i == 0 && "in".equals(parameterName) && parameters.size() > 1) {
+				// In the of 'in', the first is allowed as a keyword, second must be checked
+				// Ex: {#is in in BROKEN}
+				continue;
+			}
+			String partName = expression;
+			String javaTypeChild = LiteralSupport.getLiteralJavaType(parameter.getValue());
+			if (javaTypeChild == null) {
+				// Case of Enum since it is not a literal java type
+				// {#when machine.status} --> machine.status is has values ON and OFF
+				// {#is ON} --> valid enum value
+				// {#is in BAD_ENUM_VAUE} --> Error: unexpected enum value
+				// {/when}
+				ResolvedJavaTypeInfo javaTypeChildInfo = javaTypeParent; 
+				//resolveJavaType(javaTypeParent, projectUri,
+				//		resolvingJavaTypeContext);
+				if (javaCache.findMember(javaTypeChildInfo, parameterName, projectUri) == null) {
+					Range range = QutePositionUtility.createRange(parameter);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.UnexpectedEnumValue, parameterName, partName, javaTypeParent.getSignature());
+					diagnostics.add(diagnostic);
+				}
+			} else if (!javaTypeParent.getSignature().equals(javaTypeChild)) {
+				// Case where the java type of expression of child is different from parent
+				// Ex: {#switch person.name} --> person.name is of type String
+				// {#case 'John'} --> valid expression type of String
+				// Hey John!
+				// {#case 123} --> Error: unexpected type, expected String but was Integer
+				// {/switch}
+				Range range = QutePositionUtility.createRange(parameter);
+				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+						QuteErrorCode.UnexpectedMemberType, javaTypeChild, partName, javaTypeParent.getSignature());
+				diagnostics.add(diagnostic);
+			}
+		}
+	}
+	
 	private void validateSwitchWhenPart(JavaMemberInfo member, Section ownerSection, String projectUri,
 			ResolvingJavaTypeContext resolvingJavaTypeContext, Part part, List<Diagnostic> diagnostics) {
 		String javaTypeParent = member.getJavaElementType();
