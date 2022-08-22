@@ -735,9 +735,14 @@ public class QuteAssert {
 		CodeAction codeAction = new CodeAction();
 		codeAction.setTitle("");
 		codeAction.setDiagnostics(Arrays.asList(d));
-
 		codeAction.setCommand(c);
-
+		return codeAction;
+	}
+	
+	public static CodeAction cad(Diagnostic d, Object data) {
+		CodeAction codeAction = new CodeAction("");
+		codeAction.setDiagnostics(Arrays.asList(d));
+		codeAction.setData(data);
 		return codeAction;
 	}
 

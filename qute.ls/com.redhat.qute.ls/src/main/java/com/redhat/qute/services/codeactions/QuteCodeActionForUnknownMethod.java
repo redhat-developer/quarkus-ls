@@ -11,17 +11,17 @@
 *******************************************************************************/
 package com.redhat.qute.services.codeactions;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.Diagnostic;
 
+import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.parser.expression.MethodPart;
@@ -65,10 +65,11 @@ public class QuteCodeActionForUnknownMethod extends AbstractQuteCodeAction {
 			MethodPart part = (MethodPart) node;
 			Template template = request.getTemplate();
 			Diagnostic diagnostic = request.getDiagnostic();
-
 			QuteNativeSettings nativeImageSettings = request.getSharedSettings().getNativeSettings();
 
-			doCodeActionsForSimilarValues(part, template, diagnostic, baseResolvedType, nativeImageSettings, codeActions);
+			// CodeAction(s) to replace text with similar suggestions for Java methods
+			doCodeActionsForSimilarValues(part, template, diagnostic, baseResolvedType, nativeImageSettings,
+					codeActions);
 
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "Creation of unknown method code action failed", e);
@@ -79,67 +80,49 @@ public class QuteCodeActionForUnknownMethod extends AbstractQuteCodeAction {
 	/**
 	 * Create CodeAction(s) for similar text suggestions for methods
 	 *
-	 * @param part             the method part
-	 * @param template         the Qute template
-	 * @param diagnostic       the UndefinedVariable diagnostic
-	 * @param baseResolvedType the resolved Java type info
-	 * @param codeActions      list of CodeActions
+	 * @param part                the method part
+	 * @param template            the Qute template
+	 * @param diagnostic          the UnknownMethod diagnostic
+	 * @param baseResolvedType    the resolved Java type info
+	 * @param nativeImageSettings the native image settings
+	 * @param codeActions         list of CodeActions
 	 *
 	 * @throws BadLocationException
 	 */
 	private void doCodeActionsForSimilarValues(MethodPart part, Template template, Diagnostic diagnostic,
-			ResolvedJavaTypeInfo baseResolvedType, QuteNativeSettings nativeImageSettings, List<CodeAction> codeActions) throws BadLocationException {
-		Collection<String> availableValues = collectAvailableValuesForMethodPart(part, template, baseResolvedType, nativeImageSettings);
-		doCodeActionsForSimilarValues(part, availableValues, template, diagnostic, codeActions);
-	}
+			ResolvedJavaTypeInfo baseResolvedType, QuteNativeSettings nativeImageSettings,
+			List<CodeAction> codeActions) {
 
-	/**
-	 * Collect similar text suggestions for methods
-	 *
-	 * @param part             the method part
-	 * @param template         the Qute template
-	 * @param baseResolvedType the resolved Java type info
-	 * @param nativeImageSettings   the Qute native settings
-	 *
-	 * @return a list of available methods for the resolved type
-	 */
-	private Collection<String> collectAvailableValuesForMethodPart(MethodPart part, Template template,
-			ResolvedJavaTypeInfo baseResolvedType, QuteNativeSettings nativeImageSettings) {
-		Collection<String> availableValues = new HashSet<>();
 		String projectUri = template.getProjectUri();
-
 		JavaTypeFilter filter = javaCache.getJavaTypeFilter(projectUri, nativeImageSettings);
+		Set<String> existingProperties = new HashSet<>();
 
-		// Resolve methods defined in Java type
-		Collection<String> availableMethodNames = collectJavaTypeMethodNames(part, template, projectUri, baseResolvedType, filter, nativeImageSettings);
-		for (String methodName : availableMethodNames) {
-			availableValues.add(methodName);
-		}
+		// Collect similar code action for methods defined in Java type
+		collectSimilarCodeActionsForJavaMethods(part, template, projectUri, baseResolvedType, filter,
+				existingProperties, diagnostic, codeActions);
 
-		// Resolve methods defined in built-in Qute value resolvers
+		// Collect similar code action for methods defined in built-in Qute value
+		// resolvers
 		List<MethodValueResolver> resolvers = javaCache.getResolversFor(baseResolvedType, template.getProjectUri());
 		for (MethodValueResolver method : resolvers) {
 			if (method.isValidName()) {
-				availableValues.add(method.getMethodName());
+				doCodeActionsForSimilarValue(part, method.getMethodName(), template, existingProperties, diagnostic,
+						codeActions);
 			}
 		}
-
-		return availableValues;
 	}
 
-	private Collection<String> collectJavaTypeMethodNames(MethodPart part, Template template, String projectUri,
-	ResolvedJavaTypeInfo baseResolvedType, JavaTypeFilter filter, QuteNativeSettings nativeImageSettings) {
-		Collection<String> availableMethodNames = new HashSet<>();
-
-		List<String> javaMethodNames = baseResolvedType.getMethods().stream().map(x -> x.getMethodName())
-				.collect(Collectors.toList());
-		for (String methodName : javaMethodNames) {
-			availableMethodNames.add(methodName);
+	private void collectSimilarCodeActionsForJavaMethods(MethodPart part, Template template, String projectUri,
+			ResolvedJavaTypeInfo baseResolvedType, JavaTypeFilter filter, Set<String> existingProperties,
+			Diagnostic diagnostic, List<CodeAction> codeActions) {
+		// Java method similar code actions
+		for (JavaMethodInfo method : baseResolvedType.getMethods()) {
+			doCodeActionsForSimilarValue(part, method.getName(), template, existingProperties, diagnostic, codeActions);
 		}
 
+		// Java super method similar code actions
 		JavaTypeAccessibiltyRule javaTypeAccessibility = filter.getJavaTypeAccessibility(baseResolvedType,
 				template.getJavaTypesSupportedInNativeMode());
-
 		if (!isIgnoreSuperclasses(baseResolvedType, javaTypeAccessibility, filter)) {
 			List<String> extendedTypes = baseResolvedType.getExtendedTypes();
 			if (extendedTypes != null) {
@@ -147,18 +130,12 @@ public class QuteCodeActionForUnknownMethod extends AbstractQuteCodeAction {
 					ResolvedJavaTypeInfo resolvedExtendedType = javaCache.resolveJavaType(extendedType, projectUri)
 							.getNow(null);
 					if (resolvedExtendedType != null) {
-						availableMethodNames.addAll(collectJavaTypeMethodNames(part, template, projectUri, resolvedExtendedType, filter, nativeImageSettings));
+						collectSimilarCodeActionsForJavaMethods(part, template, projectUri, resolvedExtendedType,
+								filter, existingProperties, diagnostic, codeActions);
 					}
 				}
 			}
 		}
-
-		return availableMethodNames;
-	}
-
-	private static boolean isIgnoreSuperclasses(ResolvedJavaTypeInfo baseType,
-	JavaTypeAccessibiltyRule javaTypeAccessibility, JavaTypeFilter filter) {
-		return filter != null && javaTypeAccessibility != null && filter.isIgnoreSuperclasses(baseType, javaTypeAccessibility);
 	}
 
 }

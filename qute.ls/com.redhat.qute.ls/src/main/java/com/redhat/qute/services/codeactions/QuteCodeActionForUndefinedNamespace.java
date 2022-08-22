@@ -11,9 +11,9 @@
 *******************************************************************************/
 package com.redhat.qute.services.codeactions;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,23 +60,21 @@ public class QuteCodeActionForUndefinedNamespace extends AbstractQuteCodeAction 
 			doCodeActionsForSimilarValues(part, template, diagnostic, codeActions);
 
 			// CodeAction to set validation severity to ignore
-			doCodeActionToSetIgnoreSeverity(template, diagnostic,
-					QuteErrorCode.UndefinedNamespace, codeActions, UNDEFINED_NAMESPACE_SEVERITY_SETTING);
+			doCodeActionToSetIgnoreSeverity(template, diagnostic, QuteErrorCode.UndefinedNamespace, codeActions,
+					UNDEFINED_NAMESPACE_SEVERITY_SETTING);
 
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "Creation of undefined namespace code action failed", e);
 		}
 	}
-	
+
 	private void doCodeActionsForSimilarValues(NamespacePart part, Template template, Diagnostic diagnostic,
 			List<CodeAction> codeActions) throws BadLocationException {
-		Collection<String> availableValues = collectAvailableValuesForNamespacePart(part, template);
-		doCodeActionsForSimilarValues(part, availableValues, template, diagnostic, codeActions);
-	}
-
-	private Collection<String> collectAvailableValuesForNamespacePart(NamespacePart node, Template template) {
 		String projectUri = template.getProjectUri();
-		return javaCache.getAllNamespaces(projectUri);
+		Set<String> existingProperties = new HashSet<>();
+		for (String namespace : javaCache.getAllNamespaces(projectUri)) {
+			doCodeActionsForSimilarValue(part, namespace, template, existingProperties, diagnostic, codeActions);
+		}
 	}
 
 }
