@@ -24,14 +24,14 @@ import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
-import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
- * Test code action for similar text suggestions.
+ * Test code action for similar text suggestions for
+ * {@link QuteErrorCode#UndefinedObject}.
  *
  */
-public class QuteCodeActionForSimilarTextSuggestionsTest {
+public class QuteCodeActionForSimilarTextSuggestionsForUndefinedObjectTest {
 
 	@Test
 	public void similarTextSuggestionQuickFixForUndefinedObject() throws Exception {
@@ -128,43 +128,6 @@ public class QuteCodeActionForSimilarTextSuggestionsTest {
 	}
 
 	@Test
-	public void similarTextSuggestionQuickFixForUndefinedNamespace() throws Exception {
-		String template = "{inje:model}";
-		Diagnostic d = d(0, 1, 0, 5, //
-				QuteErrorCode.UndefinedNamespace, //
-				"No namespace resolver found for: `inje`.", //
-				DiagnosticSeverity.Warning);
-
-		testDiagnosticsFor(template, d);
-		testCodeActionsFor(template, d, //
-				ca(d, te(0, 1, 0, 5, "inject")), //
-				ca(d, c("Ignore `UndefinedNamespace` problem.", //
-						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedNamespace.severity", //
-						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
-						d)));
-	}
-
-	@Test
-	public void noSimilarTextSuggestionQuickFixForUndefinedNamespace() throws Exception {
-		String template = "{foo:bar}";
-		Diagnostic d = d(0, 1, 0, 4, //
-				QuteErrorCode.UndefinedNamespace, //
-				"No namespace resolver found for: `foo`.", //
-				DiagnosticSeverity.Warning);
-
-		testDiagnosticsFor(template, d);
-		testCodeActionsFor(template, d, //
-				ca(d, c("Ignore `UndefinedNamespace` problem.", //
-						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedNamespace.severity", //
-						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
-						d)));
-	}
-
-	@Test
 	public void similarTextSuggestionQuickFixForUndefinedObjectUsingLoopSectionMetadataAlias() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> array}\r\n" + //
 				"{#for item in array}\r\n" + //
@@ -212,84 +175,6 @@ public class QuteCodeActionForSimilarTextSuggestionsTest {
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
 						d)));
-	}
-
-	@Test
-	public void similarTextSuggestionQuickFixForUndefinedMethod() throws Exception {
-		String template = "{@java.lang.String string}\r\n" + //
-				"{string.charA()}";
-
-		Diagnostic d = d(1, 8, 1, 13, //
-				QuteErrorCode.UnknownMethod, //
-				"`charA` cannot be resolved or is not a method of `java.lang.String` Java type.", //
-				DiagnosticSeverity.Error);
-		d.setData(new JavaBaseTypeOfPartData("java.lang.String"));
-
-		testDiagnosticsFor(template, d);
-		testCodeActionsFor(template, d, //
-				ca(d, te(1, 8, 1, 13, "charAt")));
-	}
-
-	@Test
-	public void similarTextSuggestionQuickFixForUndefinedMethodWithResolver() throws Exception {
-		String template = "{@java.lang.String string}\r\n" + //
-				"{string.orEmp()}";
-
-		Diagnostic d = d(1, 8, 1, 13, //
-				QuteErrorCode.UnknownMethod, //
-				"`orEmp` cannot be resolved or is not a method of `java.lang.String` Java type.", //
-				DiagnosticSeverity.Error);
-		d.setData(new JavaBaseTypeOfPartData("java.lang.String"));
-
-		testDiagnosticsFor(template, d);
-		testCodeActionsFor(template, d, //
-				ca(d, te(1, 8, 1, 13, "orEmpty")));
-	}
-
-	@Test
-	public void similarTextSuggestionQuickFixForUndefinedMethodFromExtendedType() throws Exception {
-		String template = "{@org.acme.Item item}\r\n" + //
-				"{item.conver()}";
-
-		Diagnostic d = d(1, 6, 1, 12, //
-				QuteErrorCode.UnknownMethod, //
-				"`conver` cannot be resolved or is not a method of `org.acme.Item` Java type.", //
-				DiagnosticSeverity.Error);
-		d.setData(new JavaBaseTypeOfPartData("org.acme.Item"));
-
-		testDiagnosticsFor(template, d);
-		testCodeActionsFor(template, d, //
-				ca(d, te(1, 6, 1, 12, "convert")));
-	}
-
-	@Test
-	public void noSimilarTextSuggestionQuickFixForUndefinedMethod() throws Exception {
-		String template = "{@java.lang.String string}\r\n" + //
-				"{string.noMethod()}";
-
-		Diagnostic d = d(1, 8, 1, 16, //
-				QuteErrorCode.UnknownMethod, //
-				"`noMethod` cannot be resolved or is not a method of `java.lang.String` Java type.", //
-				DiagnosticSeverity.Error);
-		d.setData(new JavaBaseTypeOfPartData("java.lang.String"));
-
-		testDiagnosticsFor(template, d);
-		testCodeActionsFor(template, d);
-	}
-
-	@Test
-	public void similarTextSuggestionQuickFixForUndefinedMethodWithNamespace() throws Exception {
-		String template = "{cdi:bean.charA()}";
-
-		Diagnostic d = d(0, 10, 0, 15, //
-				QuteErrorCode.UnknownMethod, //
-				"`charA` cannot be resolved or is not a method of `java.lang.String` Java type.", //
-				DiagnosticSeverity.Error);
-		d.setData(new JavaBaseTypeOfPartData("java.lang.String"));
-
-		testDiagnosticsFor(template, d);
-		testCodeActionsFor(template, d, //
-				ca(d, te(0, 10, 0, 15, "charAt")));
 	}
 
 }

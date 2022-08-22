@@ -57,7 +57,6 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
-				ca(d, te(4, 2, 4, 6, "item")), //
 				ca(d, te(4, 2, 4, 6, "items")), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}\r\n")), //
 				ca(d, te(4, 6, 4, 6, "??")), //

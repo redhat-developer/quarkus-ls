@@ -15,15 +15,16 @@ import static com.redhat.qute.ls.commons.CodeActionFactory.createCommand;
 import static com.redhat.qute.utils.StringUtils.isSimilar;
 
 import java.text.MessageFormat;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Range;
 
+import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.CodeActionFactory;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEdit;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
@@ -32,6 +33,8 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
+import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
+import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.settings.QuteValidationSettings.Severity;
 import com.redhat.qute.utils.QutePositionUtility;
 
@@ -54,29 +57,24 @@ public abstract class AbstractQuteCodeAction {
 	}
 
 	/**
-	 * Generate code action(s) for similar values (Did you mean ...?)
+	 * Generate code action for similar value (Did you mean ...?)
 	 * 
-	 * @param part            the part node.
-	 * @param availableValues the available values.
-	 * @param template        the Qute template.
-	 * @param diagnostic      the diagnostic.
-	 * @param codeActions     list of CodeActions.
+	 * @param part               the part node.
+	 * @param value              the value.
+	 * @param template           the Qute template.
+	 * @param existingProperties the existing properties.
+	 * @param diagnostic         the diagnostic.
+	 * @param codeActions        list of CodeActions.
 	 */
-	protected void doCodeActionsForSimilarValues(Part part, Collection<String> availableValues, Template template,
-			Diagnostic diagnostic, List<CodeAction> codeActions) {
-		if (availableValues.isEmpty()) {
-			return;
-		}
-
-		Range rangeValue = QutePositionUtility.createRange(part);
+	protected void doCodeActionsForSimilarValue(Part part, String value, Template template,
+			Set<String> existingProperties, Diagnostic diagnostic, List<CodeAction> codeActions) {
 		String partName = part.getPartName();
-		for (String value : availableValues) {
-			if (isSimilar(value, partName)) {
-				CodeAction similarCodeAction = CodeActionFactory.replace(
-						MessageFormat.format(DID_YOU_MEAN_TITLE, value), rangeValue, value, template.getTextDocument(),
-						diagnostic);
-				codeActions.add(similarCodeAction);
-			}
+		if (!existingProperties.contains(value) && isSimilar(value, partName)) {
+			Range rangeValue = QutePositionUtility.createRange(part);
+			CodeAction similarCodeAction = CodeActionFactory.replace(MessageFormat.format(DID_YOU_MEAN_TITLE, value),
+					rangeValue, value, template.getTextDocument(), diagnostic);
+			codeActions.add(similarCodeAction);
+			existingProperties.add(value);
 		}
 	}
 
@@ -115,6 +113,11 @@ public abstract class AbstractQuteCodeAction {
 		configItemEdit.setScopeUri(scopeUri);
 		return createCommand(title, QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE,
 				Collections.singletonList(configItemEdit), diagnostics);
+	}
+
+	protected static boolean isIgnoreSuperclasses(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule rule,
+			JavaTypeFilter filter) {
+		return filter != null && rule != null && filter.isIgnoreSuperclasses(baseType, rule);
 	}
 
 	/**

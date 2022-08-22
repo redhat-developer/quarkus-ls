@@ -11,13 +11,13 @@
 *******************************************************************************/
 package com.redhat.qute.services.codeaction;
 
+import static com.redhat.qute.QuteAssert.cad;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.testCodeActionsFor;
 import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 
 import java.util.Arrays;
 
-import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionCapabilities;
 import org.eclipse.lsp4j.CodeActionResolveSupportCapabilities;
 import org.eclipse.lsp4j.Diagnostic;
@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams.MemberType;
+import com.redhat.qute.project.QuteQuickStartProject;
 import com.redhat.qute.services.codeactions.CodeActionResolverKind;
 import com.redhat.qute.services.codeactions.CodeActionUnresolvedData;
 import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
@@ -47,16 +48,16 @@ public class QuteGenerateMissingMemberCodeActionTest {
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
-				ca(d, new GenerateMissingJavaMemberParams(MemberType.Field, "asdf", "org.acme.Item",
-						"qute-quickstart")), //
-				ca(d, new GenerateMissingJavaMemberParams(MemberType.Getter, "asdf", "org.acme.Item",
-						"qute-quickstart")), //
-				ca(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf", "org.acme.Item",
-						"qute-quickstart", "org.acme.TemplateExtensions")), //
-				ca(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf", "org.acme.Item",
-						"qute-quickstart", "org.acme.foo.TemplateExtensions")), //
-				ca(d, new GenerateMissingJavaMemberParams(MemberType.CreateTemplateExtension, "asdf", "org.acme.Item",
-						"qute-quickstart")));
+				cad(d, new GenerateMissingJavaMemberParams(MemberType.Field, "asdf", "org.acme.Item",
+						QuteQuickStartProject.PROJECT_URI)), //
+				cad(d, new GenerateMissingJavaMemberParams(MemberType.Getter, "asdf", "org.acme.Item",
+						QuteQuickStartProject.PROJECT_URI)), //
+				cad(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf", "org.acme.Item",
+						QuteQuickStartProject.PROJECT_URI, "org.acme.TemplateExtensions")), //
+				cad(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf", "org.acme.Item",
+						QuteQuickStartProject.PROJECT_URI, "org.acme.foo.TemplateExtensions")), //
+				cad(d, new GenerateMissingJavaMemberParams(MemberType.CreateTemplateExtension, "asdf", "org.acme.Item",
+						QuteQuickStartProject.PROJECT_URI)));
 	}
 
 	@Test
@@ -72,19 +73,19 @@ public class QuteGenerateMissingMemberCodeActionTest {
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
-				ca(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf",
-						"java.lang.String", "qute-quickstart", "org.acme.TemplateExtensions")), //
-				ca(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf",
-						"java.lang.String", "qute-quickstart", "org.acme.foo.TemplateExtensions")), //
-				ca(d, new GenerateMissingJavaMemberParams(MemberType.CreateTemplateExtension, "asdf",
-						"java.lang.String", "qute-quickstart")));
+				cad(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf",
+						"java.lang.String", QuteQuickStartProject.PROJECT_URI, "org.acme.TemplateExtensions")), //
+				cad(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf",
+						"java.lang.String", QuteQuickStartProject.PROJECT_URI, "org.acme.foo.TemplateExtensions")), //
+				cad(d, new GenerateMissingJavaMemberParams(MemberType.CreateTemplateExtension, "asdf",
+						"java.lang.String", QuteQuickStartProject.PROJECT_URI)));
 	}
-	
+
 	@Test
 	public void userGeneratedClassResolve() throws Exception {
 		String template = "{@org.acme.Item item}\n" //
 				+ "{item.asdf}\n";
-		
+
 		CodeActionResolveSupportCapabilities resolveCapabilities = new CodeActionResolveSupportCapabilities();
 		resolveCapabilities.setProperties(Arrays.asList("edit"));
 		CodeActionCapabilities codeActionCapabilities = new CodeActionCapabilities();
@@ -101,23 +102,21 @@ public class QuteGenerateMissingMemberCodeActionTest {
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, settings, //
-				ca(d, new CodeActionUnresolvedData("test.qute", CodeActionResolverKind.GenerateMissingMember, new GenerateMissingJavaMemberParams(MemberType.Field, "asdf", "org.acme.Item",
-						"qute-quickstart"))), //
-				ca(d, new CodeActionUnresolvedData("test.qute", CodeActionResolverKind.GenerateMissingMember, new GenerateMissingJavaMemberParams(MemberType.Getter, "asdf", "org.acme.Item",
-						"qute-quickstart"))), //
-				ca(d, new CodeActionUnresolvedData("test.qute", CodeActionResolverKind.GenerateMissingMember, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf", "org.acme.Item",
-						"qute-quickstart", "org.acme.TemplateExtensions"))), //
-				ca(d, new CodeActionUnresolvedData("test.qute", CodeActionResolverKind.GenerateMissingMember, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf", "org.acme.Item",
-						"qute-quickstart", "org.acme.foo.TemplateExtensions"))), //
-				ca(d, new CodeActionUnresolvedData("test.qute", CodeActionResolverKind.GenerateMissingMember, new GenerateMissingJavaMemberParams(MemberType.CreateTemplateExtension, "asdf", "org.acme.Item",
-						"qute-quickstart"))));
-	}
-
-	private static CodeAction ca(Diagnostic d, Object data) {
-		CodeAction codeAction = new CodeAction("");
-		codeAction.setDiagnostics(Arrays.asList(d));
-		codeAction.setData(data);
-		return codeAction;
+				cad(d, new CodeActionUnresolvedData("test.qute", CodeActionResolverKind.GenerateMissingMember,
+						new GenerateMissingJavaMemberParams(MemberType.Field, "asdf", "org.acme.Item",
+								QuteQuickStartProject.PROJECT_URI))), //
+				cad(d, new CodeActionUnresolvedData("test.qute", CodeActionResolverKind.GenerateMissingMember,
+						new GenerateMissingJavaMemberParams(MemberType.Getter, "asdf", "org.acme.Item",
+								QuteQuickStartProject.PROJECT_URI))), //
+				cad(d, new CodeActionUnresolvedData("test.qute", CodeActionResolverKind.GenerateMissingMember,
+						new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf", "org.acme.Item",
+								QuteQuickStartProject.PROJECT_URI, "org.acme.TemplateExtensions"))), //
+				cad(d, new CodeActionUnresolvedData("test.qute", CodeActionResolverKind.GenerateMissingMember,
+						new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "asdf", "org.acme.Item",
+								QuteQuickStartProject.PROJECT_URI, "org.acme.foo.TemplateExtensions"))), //
+				cad(d, new CodeActionUnresolvedData("test.qute", CodeActionResolverKind.GenerateMissingMember,
+						new GenerateMissingJavaMemberParams(MemberType.CreateTemplateExtension, "asdf", "org.acme.Item",
+								QuteQuickStartProject.PROJECT_URI))));
 	}
 
 }
