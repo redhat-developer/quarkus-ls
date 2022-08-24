@@ -13,6 +13,7 @@ package com.redhat.qute.jdt.internal.java;
 
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_CLASS;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -64,8 +65,6 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 			".txt", ".yaml" };
 
 	private static final String PREFERRED_SUFFIX = ".html"; // TODO make it configurable
-
-	private static final String TEMPLATE_TYPE = "Template";
 
 	protected final ITypeRoot typeRoot;
 	protected final IJDTUtils utils;
@@ -256,6 +255,6 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 		if (type == null || !type.isSimpleType()) {
 			return false;
 		}
-		return (TEMPLATE_TYPE.equals(((SimpleType) type).getName().toString()));
+		return (TEMPLATE_CLASS.equals(((SimpleType) type).resolveBinding().getQualifiedName().toString()));
 	}
 }
