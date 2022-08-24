@@ -102,6 +102,32 @@ public class QuteCodeActionForSimilarTextSuggestionsTest {
 	}
 
 	@Test
+	public void smilarTextSuggestionQuickFixForUndefinedObjectInMethodPart() throws Exception {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				"{@java.lang.Integer index}\r\n" + //
+				"{#let name=items.get(inde)}\r\n" + //
+				"	\r\n" + //
+				"{/let}";
+
+		Diagnostic d = d(2, 21, 2, 25, //
+				QuteErrorCode.UndefinedObject, //
+				"`inde` cannot be resolved to an object.", //
+				DiagnosticSeverity.Warning);
+
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(2, 21, 2, 25, "index")), //
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String inde}\r\n")), //
+				ca(d, te(2, 25, 2, 25, "??")), //
+				ca(d, c("Ignore `UndefinedObject` problem.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.undefinedObject.severity", //
+						"test.qute", //
+						ConfigurationItemEditType.update, "ignore", //
+						d)));
+	}
+
+	@Test
 	public void similarTextSuggestionQuickFixForUndefinedNamespace() throws Exception {
 		String template = "{inje:model}";
 		Diagnostic d = d(0, 1, 0, 5, //
@@ -222,18 +248,18 @@ public class QuteCodeActionForSimilarTextSuggestionsTest {
 
 	@Test
 	public void similarTextSuggestionQuickFixForUndefinedMethodFromExtendedType() throws Exception {
-	String template = "{@org.acme.Item item}\r\n" + //
-			"{item.conver()}";
-	
-	Diagnostic d = d(1, 6, 1, 12, //
-			QuteErrorCode.UnknownMethod, //
-			"`conver` cannot be resolved or is not a method of `org.acme.Item` Java type.", //
-			DiagnosticSeverity.Error);
-	d.setData(new JavaBaseTypeOfPartData("org.acme.Item"));
-	
-	testDiagnosticsFor(template, d);
-	testCodeActionsFor(template, d, //
-			ca(d, te(1, 6, 1, 12, "convert")));
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{item.conver()}";
+
+		Diagnostic d = d(1, 6, 1, 12, //
+				QuteErrorCode.UnknownMethod, //
+				"`conver` cannot be resolved or is not a method of `org.acme.Item` Java type.", //
+				DiagnosticSeverity.Error);
+		d.setData(new JavaBaseTypeOfPartData("org.acme.Item"));
+
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(1, 6, 1, 12, "convert")));
 	}
 
 	@Test
