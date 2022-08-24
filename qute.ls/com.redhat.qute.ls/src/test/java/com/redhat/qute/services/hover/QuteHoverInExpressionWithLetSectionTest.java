@@ -55,4 +55,28 @@ public class QuteHoverInExpressionWithLetSectionTest {
 				"```", //
 				r(0, 10, 0, 18));
 	}
+
+	@Test
+	public void hoverMethodPart() throws Exception {
+		String template = "{@java.lang.String string}\r\n" + //
+				"{#let name=string.cha|rAt(0) /}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"char java.lang.String.charAt(int index)" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 18, 1, 24));
+	}
+	
+	@Test
+	public void hoverParameterOfMethodPart() throws Exception {
+		String template = "{@java.lang.String string}\r\n" + //
+				"{#let name=string.charAt(0|) /}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"Integer" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 25, 1, 26));
+	}
 }

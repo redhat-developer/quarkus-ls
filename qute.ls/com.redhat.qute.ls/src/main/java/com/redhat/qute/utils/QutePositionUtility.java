@@ -145,7 +145,7 @@ public class QutePositionUtility {
 					expression = section.getExpressionParameter();
 				}
 				if (expression != null) {
-					Node expressionNode = expression.findNodeExpressionAt(offset);
+					Node expressionNode = findBestNode(expression, offset);
 					if (expressionNode != null) {
 						return expressionNode;
 					}
