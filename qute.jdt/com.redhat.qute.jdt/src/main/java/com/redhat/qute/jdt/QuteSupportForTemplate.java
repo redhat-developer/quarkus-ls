@@ -389,7 +389,7 @@ public class QuteSupportForTemplate {
 		Map<String, InvalidMethodReason> invalidMethods = new HashMap<>();
 		IMethod[] methods = type.getMethods();
 		for (IMethod method : methods) {
-			if (isValidMethod(method, type.isInterface())) {
+			if (isValidMethod(method, type)) {
 				try {
 					InvalidMethodReason invalid = getValidMethodForQute(method, typeName);
 					if (invalid != null) {
@@ -469,12 +469,12 @@ public class QuteSupportForTemplate {
 		return Flags.isPublic(field.getFlags());
 	}
 
-	private static boolean isValidMethod(IMethod method, boolean isInterface) {
+	private static boolean isValidMethod(IMethod method, IType type) {
 		try {
-			if (method.isConstructor() || !method.exists()) {
+			if (method.isConstructor() || !method.exists() || Flags.isSynthetic(method.getFlags())) {
 				return false;
 			}
-			if (!isInterface && !Flags.isPublic(method.getFlags())) {
+			if (!type.isInterface() && !Flags.isPublic(method.getFlags())) {
 				return false;
 			}
 		} catch (Exception e) {
