@@ -27,7 +27,6 @@ import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.jdt.QuteProjectTest.QuteMavenProjectName;
 import com.redhat.qute.jdt.QuteSupportForTemplate;
 
@@ -446,6 +445,22 @@ public class TemplateGetResolvedJavaTypeTest {
 		Assert.assertEquals(InvalidMethodReason.Static, reason);
 	}
 
+	@Test
+	public void ignoreSyntheticMethod() throws CoreException, Exception {
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("java.lang.CharSequence",
+				QuteMavenProjectName.qute_quickstart);
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
+				new NullProgressMonitor());
+		Assert.assertNotNull(result);
+		
+		// lambda$chars$0 should be ignored
+		Assert.assertEquals("java.lang.CharSequence", result.getSignature());
+		JavaMethodInfo syntheticMethod = findMethod(result, "lambda$chars$0");
+		Assert.assertNull(syntheticMethod);
+	}
+	
 	private static void assertExtendedTypes(String type, String extendedType, List<String> extendedTypes) {
 		Assert.assertTrue("The Java type '" + type + "' should extends '" + extendedType + "'.",
 				extendedTypes.contains(extendedType));
