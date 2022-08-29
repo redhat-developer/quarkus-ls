@@ -68,6 +68,11 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 
 			IType type = (IType) javaElement;
 			String named = getNamed(type);
+
+			// Filter any occurrences of @Stereotype usage with @Named
+			if (!CDIUtils.isValidBean(javaElement)) {
+				break;
+			}
 			collectResolversForInject(type, named, context.getDataModelProject().getValueResolvers());
 			break;
 		}

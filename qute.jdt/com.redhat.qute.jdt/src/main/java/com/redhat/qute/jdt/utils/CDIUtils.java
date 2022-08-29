@@ -11,12 +11,18 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.utils;
 
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.JAVAX_DECORATOR_ANNOTATION;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.JAVAX_INJECT_VETOED_ANNOTATION;
+
 import java.beans.Introspector;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jdt.core.Flags;
+import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IType;
 
 /**
  * CDI utilities.
@@ -62,5 +68,37 @@ public class CDIUtils {
 			return javaElementName;
 		}
 		return javaElementName;
+	}
+
+	public static boolean isValidBean(IJavaElement javaElement) {
+		try {
+			IType type = ((IType) javaElement);
+			return (type.getDeclaringType() == null
+					&& !Flags.isAbstract(type.getFlags())
+					&& !AnnotationUtils.hasAnnotation((IAnnotatable) javaElement, JAVAX_DECORATOR_ANNOTATION)
+					&& !AnnotationUtils.hasAnnotation((IAnnotatable) javaElement, JAVAX_INJECT_VETOED_ANNOTATION)
+					&& type.isClass() && hasNoArgConstructor(type));
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	private static boolean hasNoArgConstructor(IType type) {
+		try {
+			boolean hasNoArgConstructor = true;
+			for (IMethod method : type.getMethods()) {
+				if (method.isConstructor()) {
+					int paramCount = method.getNumberOfParameters();
+					if (paramCount > 0) {
+						hasNoArgConstructor = false;
+					} else if (paramCount == 0) {
+						return true;
+					}
+				}
+			}
+			return hasNoArgConstructor;
+		} catch (Exception e) {
+			return true;
+		}
 	}
 }
