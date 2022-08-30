@@ -11,10 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template.sections;
 
-import java.util.List;
-
-import com.redhat.qute.parser.template.ASTVisitor;
-import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.SectionKind;
 
 /**
@@ -36,7 +32,7 @@ import com.redhat.qute.parser.template.SectionKind;
  * @see https://quarkus.io/guides/qute-reference#when_section
  *
  */
-public class IsSection extends AssignSection {
+public class IsSection extends CaseSection {
 
 	public static final String TAG = "is";
 
@@ -47,19 +43,5 @@ public class IsSection extends AssignSection {
 	@Override
 	public SectionKind getSectionKind() {
 		return SectionKind.IS;
-	}
-
-	
-	@Override
-	protected void accept0(ASTVisitor visitor) {
-		boolean visitChildren = visitor.visit(this);
-		if (visitChildren) {
-			List<Parameter> parameters = getParameters();
-			for (Parameter parameter : parameters) {
-				acceptChild(visitor, parameter);
-			}
-			acceptChildren(visitor, getChildren());
-		}
-		visitor.endVisit(this);
 	}
 }

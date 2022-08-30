@@ -33,7 +33,7 @@ import com.redhat.qute.parser.template.RangeOffset;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.parser.template.sections.BaseWhenSection;
+import com.redhat.qute.parser.template.sections.WhenSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.parser.template.sections.WithSection;
 
@@ -297,7 +297,7 @@ public class QuteSearchUtils {
 				}
 				case WHEN:
 				case SWITCH: {
-					Parameter parameter = ((BaseWhenSection) section).getValueParameter();
+					Parameter parameter = ((WhenSection) section).getValueParameter();
 					Expression parameterExpr = parameter.getJavaTypeExpression();
 					tryToCollectObjectPartOrParameter(partName, matcher, parameterExpr, ownerNode, collector);
 					break;

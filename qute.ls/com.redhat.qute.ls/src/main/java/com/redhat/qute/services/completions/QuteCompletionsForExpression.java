@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.parser.template.Section.isCaseSection;
 import static com.redhat.qute.project.datamodel.resolvers.ValueResolver.MATCH_NAME_ANY;
 import static com.redhat.qute.services.QuteCompletions.EMPTY_COMPLETION;
 import static com.redhat.qute.services.QuteCompletions.EMPTY_FUTURE_COMPLETION;
@@ -35,7 +36,6 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
-import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.SnippetsBuilder;
 import com.redhat.qute.parser.expression.MethodPart;
@@ -52,8 +52,9 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.parser.template.sections.BaseWhenSection;
+import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
+import com.redhat.qute.parser.template.sections.WhenSection;
 import com.redhat.qute.parser.template.sections.WithSection;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
@@ -127,8 +128,7 @@ public class QuteCompletionsForExpression {
 				case Object:
 					// ex : { ite|m }
 					return doCompleteExpressionForObjectPart(null, expression, part.getNamespace(), part, offset,
-							template,
-							completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
+							template, completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
 				case Property: {
 					// ex : { item.n| }
 					// ex : { item.n|ame }
@@ -164,8 +164,7 @@ public class QuteCompletionsForExpression {
 					// ex : { data:|name }
 					Parts parts = (Parts) nodeExpression;
 					Part part = parts.getPartAt(offset + 1);
-					return doCompleteExpressionForObjectPart(null, expression, parts.getNamespace(), part, offset,
-							template,
+					return doCompleteExpressionForObjectPart(null, expression, parts.getNamespace(), part, offset, template,
 							completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
 				}
 				case '.': {
@@ -623,10 +622,9 @@ public class QuteCompletionsForExpression {
 		return CompletableFuture.completedFuture(list);
 	}
 
-	private boolean isInCaseSection(Expression expression) {
+	private static boolean isInCaseSection(Expression expression) {
 		return (expression != null && expression.getOwnerSection() != null
-				&& (expression.getOwnerSection().getSectionKind() == SectionKind.IS
-						|| expression.getOwnerSection().getSectionKind() == SectionKind.CASE));
+				&& isCaseSection(expression.getOwnerSection()));
 	}
 
 	private void doCompleteExpressionForObjectPartWithGlobalVariables(Template template, Range range,
@@ -703,8 +701,7 @@ public class QuteCompletionsForExpression {
 				switch (resolver.getJavaElementKind()) {
 					case METHOD: {
 						MethodValueResolver method = (MethodValueResolver) resolver;
-						CompletionItem item = fillCompletionMethod(method, method.getNamespace(),
-								useNamespaceInTextEdit,
+						CompletionItem item = fillCompletionMethod(method, method.getNamespace(), useNamespaceInTextEdit,
 								range, false, completionSettings, formattingSettings, list);
 						item.setKind(CompletionItemKind.Function);
 						// Display namespace resolvers (ex : config:getConfigProperty(...)) after
@@ -841,39 +838,40 @@ public class QuteCompletionsForExpression {
 										withJavaTypeInfo, template.getJavaTypesSupportedInNativeMode());
 								fillCompletionFields(withJavaTypeInfo, javaTypeAccessibility, filter, range, projectUri,
 										existingVars, list);
-								fillCompletionMethods(withJavaTypeInfo, javaTypeAccessibility, filter, range,
-										projectUri,
-										false, completionSettings, formattingSettings, existingVars, new HashSet<>(),
-										list);
+								fillCompletionMethods(withJavaTypeInfo, javaTypeAccessibility, filter, range, projectUri,
+										false, completionSettings, formattingSettings, existingVars, new HashSet<>(), list);
 							}
 						}
 						break;
 					case WHEN:
 					case SWITCH:
 						// Completion for properties/methods of with object from #switch and #when
-						Parameter value = ((BaseWhenSection) section).getValueParameter();
+						Parameter value = ((WhenSection) section).getValueParameter();
 						if (value != null) {
 							String projectUri = template.getProjectUri();
-							ResolvedJavaTypeInfo whenSwitchJavaTypeInfo = javaCache.resolveJavaType(value, projectUri)
+							ResolvedJavaTypeInfo whenJavaType = javaCache.resolveJavaType(value, projectUri)
 									.getNow(null);
-							if (whenSwitchJavaTypeInfo != null && whenSwitchJavaTypeInfo.isEnum()) {
+							if (whenJavaType != null && whenJavaType.isEnum()) {
 								JavaTypeFilter filter = javaCache.getJavaTypeFilter(projectUri, nativeImagesSettings);
 								JavaTypeAccessibiltyRule javaTypeAccessibility = filter.getJavaTypeAccessibility(
-										whenSwitchJavaTypeInfo, template.getJavaTypesSupportedInNativeMode());
+										whenJavaType, template.getJavaTypesSupportedInNativeMode());
 								List<Node> children = section.getChildren();
 								for (int i = 0; i < children.size(); i++) {
-									if (children.get(i).getKind() == NodeKind.Section){
+									if (children.get(i).getKind() == NodeKind.Section) {
 										Section childSection = (Section) children.get(i);
-										// Add existing variables
-										List <Parameter> parameters = childSection.getParameters();
-										for (int j = 0; j < parameters.size(); j++) {
-											existingVars.add(parameters.get(j).getName());
-										}
-										// If there is no operator or an operator that allows only one parameter, don't
-										// complete if there already is one present
-										if (BaseWhenSection.shouldCompleteWhenSection(childSection)) {
-											fillCompletionFields(whenSwitchJavaTypeInfo, javaTypeAccessibility, filter, range,
-													projectUri, existingVars, list);
+										if (isCaseSection(childSection)) {
+											CaseSection caseSection = (CaseSection) childSection;
+											// Add existing variables
+											List<Parameter> parameters = childSection.getParameters();
+											for (int j = 0; j < parameters.size(); j++) {
+												existingVars.add(parameters.get(j).getName());
+											}
+											// If there is no operator or an operator that allows only one parameter, don't
+											// complete if there already is one present
+											if (caseSection.shouldCompleteWhenSection()) {
+												fillCompletionFields(whenJavaType, javaTypeAccessibility, filter,
+														range, projectUri, existingVars, list);
+											}
 										}
 									}
 								}
