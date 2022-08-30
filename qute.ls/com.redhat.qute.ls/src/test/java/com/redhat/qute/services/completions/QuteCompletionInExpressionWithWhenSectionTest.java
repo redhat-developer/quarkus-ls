@@ -29,11 +29,11 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"{#when Machine.status}\r\n" + //
 				"  {#is | }\r\n" + // <-- completion here
 				"{/when}";
-		testCompletionFor(template, 3, //
+		testCompletionFor(template, 4, //
 				c("ON : MachineStatus", "ON", r(2, 7, 2, 7)), //
 				c("OFF : MachineStatus", "OFF", r(2, 7, 2, 7)), //
-				c("BROKEN : MachineStatus", "BROKEN", r(2, 7, 2, 7)));
-	}
+				c("BROKEN : MachineStatus", "BROKEN", r(2, 7, 2, 7)),
+				c("in : MachineStatus", "in", r(2, 7, 2, 7)));	}
 	
 	@Test
 	public void propertyPartSwitchIsNoExisting() throws Exception {
@@ -41,10 +41,11 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"{#switch Machine.status}\r\n" + //
 				"  {#is | }\r\n" + // <-- completion here
 				"{/switch}";
-		testCompletionFor(template, 3, //
+		testCompletionFor(template, 4, //
 				c("ON : MachineStatus", "ON", r(2, 7, 2, 7)), //
 				c("OFF : MachineStatus", "OFF", r(2, 7, 2, 7)), //
-				c("BROKEN : MachineStatus", "BROKEN", r(2, 7, 2, 7)));
+				c("BROKEN : MachineStatus", "BROKEN", r(2, 7, 2, 7)),
+				c("in : MachineStatus", "in", r(2, 7, 2, 7)));
 	}
 
 	@Test
@@ -72,9 +73,10 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"  {#is ON }\r\n" + //
 				"  {#is | }\r\n" + // <-- completion here
 				"{/when}";
-		testCompletionFor(template, 2, //
+		testCompletionFor(template, 3, //
 				c("OFF : MachineStatus", "OFF", r(3, 7, 3, 7)), //
-				c("BROKEN : MachineStatus", "BROKEN", r(3, 7, 3, 7)));
+				c("BROKEN : MachineStatus", "BROKEN", r(3, 7, 3, 7)),
+				c("in : MachineStatus", "in", r(3, 7, 3, 7)));
 	}
 
 	@Test
@@ -94,9 +96,10 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"{#when Machine.status}\r\n" + //
 				"  {#is ni ON |}\r\n" + // <-- completion here
 				"{/when}";
-		testCompletionFor(template, 2, //
+		testCompletionFor(template, 3, //
 				c("OFF : MachineStatus", "OFF", r(2, 13, 2, 13)), //
-				c("BROKEN : MachineStatus", "BROKEN", r(2, 13, 2, 13)));
+				c("BROKEN : MachineStatus", "BROKEN", r(2, 13, 2, 13)),
+				c("in : MachineStatus", "in", r(2, 13, 2, 13)));
 	}
 
 	@Test
@@ -106,9 +109,10 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"  {#is ON }\r\n" + //
 				"  {#is ni |}\r\n" + // <-- completion here
 				"{/when}";
-		testCompletionFor(template, 2, //
-				c("BROKEN : MachineStatus", "BROKEN", r(3, 10, 3, 10)), //
-				c("OFF : MachineStatus", "OFF", r(3, 10, 3, 10)));
+		testCompletionFor(template, 3, //
+				c("OFF : MachineStatus", "OFF", r(3, 10, 3, 10)), //
+				c("BROKEN : MachineStatus", "BROKEN", r(3, 10, 3, 10)),
+				c("in : MachineStatus", "in", r(3, 10, 3, 10)));
 	}
 
 	@Test
@@ -117,10 +121,11 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"{#switch Machine.status}\r\n" + //
 				"  {#case | }\r\n" + // <-- completion here
 				"{/switch}";
-		testCompletionFor(template, 3, //
+		testCompletionFor(template, 4, //
 				c("ON : MachineStatus", "ON", r(2, 9, 2, 9)), //
 				c("OFF : MachineStatus", "OFF", r(2, 9, 2, 9)), //
-				c("BROKEN : MachineStatus", "BROKEN", r(2, 9, 2, 9)));
+				c("BROKEN : MachineStatus", "BROKEN", r(2, 9, 2, 9)),
+				c("in : MachineStatus", "in", r(2, 9, 2, 9)));
 	}
 	
 	@Test
@@ -129,11 +134,11 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"{#when Machine.status}\r\n" + //
 				"  {#case | }\r\n" + // <-- completion here
 				"{/when}";
-		testCompletionFor(template, 3, //
+		testCompletionFor(template, 4, //
 				c("ON : MachineStatus", "ON", r(2, 9, 2, 9)), //
 				c("OFF : MachineStatus", "OFF", r(2, 9, 2, 9)), //
-				c("BROKEN : MachineStatus", "BROKEN", r(2, 9, 2, 9)));
-	}
+				c("BROKEN : MachineStatus", "BROKEN", r(2, 9, 2, 9)),
+				c("in : MachineStatus", "in", r(2, 9, 2, 9)));	}
 
 
 	@Test

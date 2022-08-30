@@ -555,4 +555,35 @@ public abstract class Section extends Node implements ParametersContainer {
 	public Set<String> getAllowedOperators() {
 		return Collections.emptySet();
 	}
+
+	/**
+	 * Returns true if the given section is a #case or #is section.
+	 *
+	 * @param section the section.
+	 *
+	 * @return true if the given section is a #case or #is section.
+	 */
+	public static boolean isCaseSection(Section section) {
+		if (section == null) {
+			return false;
+		}
+		SectionKind sectionKind = section.getSectionKind();
+		return sectionKind == SectionKind.CASE || sectionKind == SectionKind.IS;
+	}
+
+	/**
+	 * Returns true if the given section is a #when or #switch section.
+	 *
+	 * @param section the section.
+	 *
+	 * @return true if the given section is a #when or #switch section.
+	 */
+	public static boolean isWhenSection(Section section) {
+		if (section == null) {
+			return false;
+		}
+		SectionKind sectionKind = section.getSectionKind();
+		return sectionKind == SectionKind.SWITCH || sectionKind == SectionKind.WHEN;
+	}
+
 }
