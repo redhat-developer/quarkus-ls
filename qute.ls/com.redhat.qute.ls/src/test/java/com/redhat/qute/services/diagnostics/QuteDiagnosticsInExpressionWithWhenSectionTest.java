@@ -175,10 +175,7 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 				"		{#is ON}\r\n" + //
 				"		{#is in in}\r\n" + //
 				"		{/when}";
-		testDiagnosticsFor(template, //
-				d(3, 10, 3, 12, QuteErrorCode.UnexpectedValueInCaseSection,
-						"Unexpected value `in` in `Machine.status`. Expected value of type `org.acme.MachineStatus`.",
-						DiagnosticSeverity.Error));
+		testDiagnosticsFor(template);
 	}
 
 	@Test

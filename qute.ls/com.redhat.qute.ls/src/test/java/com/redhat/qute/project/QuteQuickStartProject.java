@@ -121,6 +121,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerField("ON : org.acme.MachineStatus", machineStatus);
 		registerField("OFF : org.acme.MachineStatus", machineStatus);
 		registerField("BROKEN : org.acme.MachineStatus", machineStatus);
+		registerField("in : org.acme.MachineStatus", machineStatus);
 
 		// org.acme.Machine
 		ResolvedJavaTypeInfo machine = createResolvedJavaTypeInfo("org.acme.Machine", cache, false);

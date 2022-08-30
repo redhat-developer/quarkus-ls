@@ -100,4 +100,9 @@ public abstract class BaseWhenSection extends Section {
 		}
 		return true;
 	}
+	
+	@Override
+	public boolean isValidOperator(String partName) {
+		return caseOperators.containsKey(partName);
+	}
 }
