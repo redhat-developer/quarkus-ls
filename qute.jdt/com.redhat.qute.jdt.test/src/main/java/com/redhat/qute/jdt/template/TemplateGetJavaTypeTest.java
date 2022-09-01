@@ -91,6 +91,19 @@ public class TemplateGetJavaTypeTest {
 				t("org.acme.qute.NestedClass.Foo", JavaTypeKind.Class), //
 				t("org.acme.qute.NestedClass.Bar", JavaTypeKind.Class));
 	}
+	
+	@Test
+	public void cyclic() throws Exception {
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
+		
+		QuteJavaTypesParams params = new QuteJavaTypesParams("org.acme.qute.cyclic.", QuteMavenProjectName.qute_quickstart);
+		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, getJDTUtils(),
+				new NullProgressMonitor());
+		assertJavaTypes(actual, //
+				t("org.acme.qute.cyclic.ClassA", JavaTypeKind.Class), //
+				t("org.acme.qute.cyclic.ClassB", JavaTypeKind.Class), //
+				t("org.acme.qute.cyclic.ClassC", JavaTypeKind.Class));
+	}
 
 	public static JavaTypeInfo t(String typeName, JavaTypeKind kind) {
 		JavaTypeInfo javaType = new JavaTypeInfo();

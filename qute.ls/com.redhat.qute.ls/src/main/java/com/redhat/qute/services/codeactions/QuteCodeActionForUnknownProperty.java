@@ -161,6 +161,18 @@ public class QuteCodeActionForUnknownProperty extends AbstractQuteCodeAction {
 	private void collectSimilarCodeActionsForJavaProperties(PropertyPart part, Template template, String projectUri,
 			ResolvedJavaTypeInfo baseResolvedType, JavaTypeFilter filter, Set<String> existingProperties,
 			Diagnostic diagnostic, List<CodeAction> codeActions) {
+		collectSimilarCodeActionsForJavaProperties(part, template, projectUri, baseResolvedType, filter,
+				existingProperties, diagnostic, codeActions, new HashSet<>());
+	}
+
+	private void collectSimilarCodeActionsForJavaProperties(PropertyPart part, Template template, String projectUri,
+			ResolvedJavaTypeInfo baseResolvedType, JavaTypeFilter filter, Set<String> existingProperties,
+			Diagnostic diagnostic, List<CodeAction> codeActions, Set<ResolvedJavaTypeInfo> visited) {
+
+		if (visited.contains(baseResolvedType)) {
+			return;
+		}
+		visited.add(baseResolvedType);
 
 		// Java field similar code actions
 		for (JavaFieldInfo field : baseResolvedType.getFields()) {
@@ -186,7 +198,7 @@ public class QuteCodeActionForUnknownProperty extends AbstractQuteCodeAction {
 							.getNow(null);
 					if (resolvedExtendedType != null) {
 						collectSimilarCodeActionsForJavaProperties(part, template, projectUri, resolvedExtendedType,
-								filter, existingProperties, diagnostic, codeActions);
+								filter, existingProperties, diagnostic, codeActions, visited);
 					}
 				}
 			}

@@ -366,4 +366,12 @@ public class QuteCompletionInExpressionTest {
 				c("getBytes(charsetName : String) : byte[]", "getBytes(${1:charsetName})$0", r(0, 8, 0, 8)),
 				c("charAt(index : int) : char", "charAt(${1:index})$0", r(0, 8, 0, 8)));
 	}
+
+	@Test
+	public void objectWithCyclesObjectPart() throws Exception {
+		String template = "{@org.acme.qute.cyclic.ClassA classA}\n" + //
+				"{classA.|";
+		// Base resolvers for an object, plus a method and a field from ClassA
+		testCompletionFor(template, 7);
+	}
 }
