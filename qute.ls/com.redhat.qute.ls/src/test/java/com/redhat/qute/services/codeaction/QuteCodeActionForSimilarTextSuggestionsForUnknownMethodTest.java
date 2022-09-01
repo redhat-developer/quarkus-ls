@@ -109,4 +109,20 @@ public class QuteCodeActionForSimilarTextSuggestionsForUnknownMethodTest {
 				ca(d, te(0, 10, 0, 15, "charAt")));
 	}
 
+	@Test
+	public void similarTextSuggestionQuickFixForUndefinedMethodFromClassWithCyclicInheritance() throws Exception {
+		String template = "{@org.acme.qute.cyclic.ClassA classA}\r\n" + //
+				"{classA.conver()}";
+
+		Diagnostic d = d(1, 8, 1, 14, //
+				QuteErrorCode.UnknownMethod, //
+				"`conver` cannot be resolved or is not a method of `org.acme.qute.cyclic.ClassA` Java type.", //
+				DiagnosticSeverity.Error);
+		d.setData(new JavaBaseTypeOfPartData("org.acme.qute.cyclic.ClassA"));
+
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(1, 8, 1, 14, "convert")));
+	}
+
 }

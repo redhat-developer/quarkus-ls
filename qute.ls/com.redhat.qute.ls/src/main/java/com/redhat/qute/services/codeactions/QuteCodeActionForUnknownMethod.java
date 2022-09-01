@@ -115,6 +115,18 @@ public class QuteCodeActionForUnknownMethod extends AbstractQuteCodeAction {
 	private void collectSimilarCodeActionsForJavaMethods(MethodPart part, Template template, String projectUri,
 			ResolvedJavaTypeInfo baseResolvedType, JavaTypeFilter filter, Set<String> existingProperties,
 			Diagnostic diagnostic, List<CodeAction> codeActions) {
+		collectSimilarCodeActionsForJavaMethods(part, template, projectUri, baseResolvedType, filter,
+				existingProperties, diagnostic, codeActions, new HashSet<>());
+	}
+
+	private void collectSimilarCodeActionsForJavaMethods(MethodPart part, Template template, String projectUri,
+			ResolvedJavaTypeInfo baseResolvedType, JavaTypeFilter filter, Set<String> existingProperties,
+			Diagnostic diagnostic, List<CodeAction> codeActions, Set<ResolvedJavaTypeInfo> visited) {
+		if (visited.contains(baseResolvedType)) {
+			return;
+		}
+		visited.add(baseResolvedType);
+
 		// Java method similar code actions
 		for (JavaMethodInfo method : baseResolvedType.getMethods()) {
 			doCodeActionsForSimilarValue(part, method.getName(), template, existingProperties, diagnostic, codeActions);
@@ -131,7 +143,7 @@ public class QuteCodeActionForUnknownMethod extends AbstractQuteCodeAction {
 							.getNow(null);
 					if (resolvedExtendedType != null) {
 						collectSimilarCodeActionsForJavaMethods(part, template, projectUri, resolvedExtendedType,
-								filter, existingProperties, diagnostic, codeActions);
+								filter, existingProperties, diagnostic, codeActions, visited);
 					}
 				}
 			}

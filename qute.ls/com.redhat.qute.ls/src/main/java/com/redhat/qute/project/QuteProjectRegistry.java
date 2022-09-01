@@ -22,6 +22,7 @@ import static com.redhat.qute.services.QuteCompletableFutures.VALUE_RESOLVERS_NU
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,7 +75,8 @@ import com.redhat.qute.utils.StringUtils;
  * @author Angelo ZERR
  *
  */
-public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataModelProjectProvider, QuteUserTagProvider {
+public class QuteProjectRegistry
+		implements QuteProjectInfoProvider, QuteDataModelProjectProvider, QuteUserTagProvider {
 
 	private final ValueResolversRegistry valueResolversRegistry;
 
@@ -211,6 +213,17 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	}
 
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String javaTypeName, String projectUri) {
+		return resolveJavaType(javaTypeName, projectUri, new HashSet<>());
+	}
+
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String javaTypeName, String projectUri,
+			Set<String> visited) {
+
+		if (visited.contains(javaTypeName)) {
+			return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
+		}
+		visited.add(javaTypeName);
+
 		CompletableFuture<ResolvedJavaTypeInfo> primitiveType = javaPrimitiveTypes.get(javaTypeName);
 		if (primitiveType != null) {
 			// It's a primitive type like boolean, double, float, etc
@@ -416,6 +429,11 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		return result;
 	}
 
+	private JavaMemberInfo findPropertyWithJavaReflection(ResolvedJavaTypeInfo baseType, String property,
+			String projectUri) {
+		return findPropertyWithJavaReflection(baseType, property, projectUri, new HashSet<>());
+	}
+
 	/**
 	 * Returns the Java member from the given base type wich matches the given
 	 * property by using Java reflection and null otherwise.
@@ -423,12 +441,18 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	 * @param baseType   the Java type.
 	 * @param property   the property member.
 	 * @param projectUri the project Uri.
+	 * @param visited    the java types that have already been visited
 	 *
 	 * @return the Java member from the given base type wich matches the given
 	 *         property by using Java reflection and null otherwise.
 	 */
 	private JavaMemberInfo findPropertyWithJavaReflection(ResolvedJavaTypeInfo baseType, String property,
-			String projectUri) {
+			String projectUri, Set<ResolvedJavaTypeInfo> visited) {
+		if (visited.contains(baseType)) {
+			return null;
+		}
+		visited.add(baseType);
+
 		if (baseType.isIterable() && !baseType.isArray()) {
 			// Expression uses iterable type
 			// {@java.util.List<org.acme.Item items>
@@ -455,7 +479,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaType(superType, projectUri).getNow(null);
 				if (resolvedSuperType != null) {
 					JavaMemberInfo superMemberInfo = findPropertyWithJavaReflection(resolvedSuperType, property,
-							projectUri);
+							projectUri, visited);
 					if (superMemberInfo != null) {
 						return superMemberInfo;
 					}
@@ -581,6 +605,17 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	private boolean findMethod(ResolvedJavaTypeInfo baseType, String methodName,
 			List<ResolvedJavaTypeInfo> parameterTypes, JavaMemberResult result, String projectUri) {
+		return findMethod(baseType, methodName, parameterTypes, result, projectUri, new HashSet<>());
+	}
+
+	private boolean findMethod(ResolvedJavaTypeInfo baseType, String methodName,
+			List<ResolvedJavaTypeInfo> parameterTypes, JavaMemberResult result, String projectUri,
+			Set<ResolvedJavaTypeInfo> visited) {
+		if (visited.contains(baseType)) {
+			return false;
+		}
+		visited.add(baseType);
+
 		if (isEmpty(methodName)) {
 			return false;
 		}
@@ -611,7 +646,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			for (String superType : baseType.getExtendedTypes()) {
 				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaType(superType, projectUri).getNow(null);
 				if (resolvedSuperType != null) {
-					if (findMethod(resolvedSuperType, methodName, parameterTypes, result, projectUri)) {
+					if (findMethod(resolvedSuperType, methodName, parameterTypes, result, projectUri, visited)) {
 						return true;
 					}
 				}
@@ -841,7 +876,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		ExtendedDataModelProject dataModel = project.getDataModelProject().getNow(null);
 		return dataModel != null ? dataModel.getAllNamespaces() : Collections.emptySet();
 	}
-	
+
 	/**
 	 * Return all template extensions classes from the given Qute project Uri.
 	 *
@@ -1034,6 +1069,16 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 	}
 
 	private boolean isMatchType(ResolvedJavaTypeInfo javaType, String parameterType, String projectUri) {
+		return isMatchType(javaType, parameterType, projectUri, new HashSet<>());
+	}
+
+	private boolean isMatchType(ResolvedJavaTypeInfo javaType, String parameterType, String projectUri,
+			Set<ResolvedJavaTypeInfo> visited) {
+		if (visited.contains(javaType)) {
+			return false;
+		}
+		visited.add(javaType);
+
 		String resolvedTypeName = javaType.getName();
 		if ("java.lang.Object".equals(parameterType)) {
 			return true;
@@ -1053,7 +1098,7 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 				// Loop for other levels of super types (ex SmallItem)
 				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaType(superType, projectUri).getNow(null);
 				if (resolvedSuperType != null) {
-					if (isMatchType(resolvedSuperType, parameterType, projectUri)) {
+					if (isMatchType(resolvedSuperType, parameterType, projectUri, visited)) {
 						return true;
 					}
 				}

@@ -120,4 +120,32 @@ public class QuteCodeActionForSimilarTextSuggestionsForUnknownPropertyTest {
 						"org.acme.Item", QuteQuickStartProject.PROJECT_URI)));
 	}
 
+	@Test
+	public void similarWithJavaFieldWithClassWithCyclicInheritance() throws Exception {
+		// Similar with Item.name
+
+		String template = "{@org.acme.qute.cyclic.ClassA classA}\r\n" + //
+				"{classA.nme}";
+
+		Diagnostic d = d(1, 8, 1, 11, //
+				QuteErrorCode.UnknownProperty, //
+				"`nme` cannot be resolved or is not a field of `org.acme.qute.cyclic.ClassA` Java type.", //
+				DiagnosticSeverity.Error);
+		d.setData(new JavaBaseTypeOfPartData("org.acme.qute.cyclic.ClassA"));
+
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(1, 8, 1, 11, "name")), //
+				cad(d, new GenerateMissingJavaMemberParams(MemberType.Field, "nme", "org.acme.qute.cyclic.ClassA",
+						QuteQuickStartProject.PROJECT_URI)), //
+				cad(d, new GenerateMissingJavaMemberParams(MemberType.Getter, "nme", "org.acme.qute.cyclic.ClassA",
+						QuteQuickStartProject.PROJECT_URI)), //
+				cad(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "nme", "org.acme.qute.cyclic.ClassA",
+						QuteQuickStartProject.PROJECT_URI, "org.acme.TemplateExtensions")), //
+				cad(d, new GenerateMissingJavaMemberParams(MemberType.AppendTemplateExtension, "nme", "org.acme.qute.cyclic.ClassA",
+						QuteQuickStartProject.PROJECT_URI, "org.acme.foo.TemplateExtensions")), //
+				cad(d, new GenerateMissingJavaMemberParams(MemberType.CreateTemplateExtension, "nme", "org.acme.qute.cyclic.ClassA",
+						QuteQuickStartProject.PROJECT_URI)));
+	}
+
 }

@@ -164,7 +164,8 @@ public class QuteCompletionsForExpression {
 					// ex : { data:|name }
 					Parts parts = (Parts) nodeExpression;
 					Part part = parts.getPartAt(offset + 1);
-					return doCompleteExpressionForObjectPart(null, expression, parts.getNamespace(), part, offset, template,
+					return doCompleteExpressionForObjectPart(null, expression, parts.getNamespace(), part, offset,
+							template,
 							completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
 				}
 				case '.': {
@@ -288,6 +289,7 @@ public class QuteCompletionsForExpression {
 		JavaTypeAccessibiltyRule javaTypeAccessibility = !filter.isInNativeMode()
 				? JavaTypeAccessibiltyRule.ALLOWED_WITHOUT_RESTRICTION
 				: filter.getJavaTypeAccessibility(baseType, template.getJavaTypesSupportedInNativeMode());
+
 		if (javaTypeAccessibility != null) {
 
 			// Some fields and methods from Java reflection must be shown.
@@ -336,6 +338,31 @@ public class QuteCompletionsForExpression {
 	private void fillCompletionFields(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
 			JavaTypeFilter filter, Range range, String projectUri, Set<String> existingProperties,
 			CompletionList list) {
+		fillCompletionFields(baseType, javaTypeAccessibility, filter, range, projectUri, existingProperties, list,
+				new HashSet<>());
+	}
+
+	/**
+	 * Fill completion list <code>list</code> with the methods of the given Java
+	 * type <code>resolvedType</code>.
+	 *
+	 * @param baseType              the Java type class, interface.
+	 * @param javaTypeAccessibility the Java type accessibility.
+	 * @param filter                the Java type filter.
+	 * @param range                 the range.
+	 * @param projectUri            the project Uri
+	 * @param existingProperties    the existing properties and method, field
+	 *                              signature.
+	 * @param list                  the completion list.
+	 * @param visited               the list of types that have already been visited
+	 */
+	private void fillCompletionFields(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
+			JavaTypeFilter filter, Range range, String projectUri, Set<String> existingProperties, CompletionList list,
+			Set<ResolvedJavaTypeInfo> visited) {
+		if (visited.contains(baseType)) {
+			return;
+		}
+		visited.add(baseType);
 		// Fill completion with Java type fields.
 		for (JavaFieldInfo field : baseType.getFields()) {
 			String fieldName = field.getName();
@@ -359,7 +386,7 @@ public class QuteCompletionsForExpression {
 							.getNow(null);
 					if (resolvedExtendedType != null) {
 						fillCompletionFields(resolvedExtendedType, javaTypeAccessibility, filter, range, projectUri,
-								existingProperties, list);
+								existingProperties, list, visited);
 					}
 				}
 			}
@@ -392,6 +419,15 @@ public class QuteCompletionsForExpression {
 		return item;
 	}
 
+	private void fillCompletionMethods(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
+			JavaTypeFilter filter, Range range, String projectUri, boolean infixNotation,
+			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
+			Set<String> existingProperties, Set<String> existingMethodSignatures, CompletionList list) {
+		fillCompletionMethods(baseType, javaTypeAccessibility, filter, range, projectUri, infixNotation,
+				completionSettings, formattingSettings, existingProperties, existingMethodSignatures, list,
+				new HashSet<>());
+	}
+
 	/**
 	 * Fill completion list <code>list</code> with the methods of the given Java
 	 * type <code>resolvedType</code>.
@@ -408,12 +444,20 @@ public class QuteCompletionsForExpression {
 	 * @param formattingSettings    the formatting settings.
 	 * @param existingProperties    the existing properties and method, field
 	 *                              signature.
+	 * @param visited               the set of types that have already been visited
 	 * @param list                  the completion list.
 	 */
 	private void fillCompletionMethods(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
 			JavaTypeFilter filter, Range range, String projectUri, boolean infixNotation,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
-			Set<String> existingProperties, Set<String> existingMethodSignatures, CompletionList list) {
+			Set<String> existingProperties, Set<String> existingMethodSignatures, CompletionList list,
+			Set<ResolvedJavaTypeInfo> visited) {
+
+		if (visited.contains(baseType)) {
+			return;
+		}
+		visited.add(baseType);
+
 		for (JavaMethodInfo method : baseType.getMethods()) {
 			if (isValidInfixNotation(method, infixNotation)) {
 				String methodSignature = method.getSignature();
@@ -450,7 +494,7 @@ public class QuteCompletionsForExpression {
 					if (resolvedExtendedType != null) {
 						fillCompletionMethods(resolvedExtendedType, javaTypeAccessibility, filter, range, projectUri,
 								infixNotation, completionSettings, formattingSettings, existingProperties,
-								existingMethodSignatures, list);
+								existingMethodSignatures, list, visited);
 					}
 				}
 			}
@@ -701,7 +745,8 @@ public class QuteCompletionsForExpression {
 				switch (resolver.getJavaElementKind()) {
 					case METHOD: {
 						MethodValueResolver method = (MethodValueResolver) resolver;
-						CompletionItem item = fillCompletionMethod(method, method.getNamespace(), useNamespaceInTextEdit,
+						CompletionItem item = fillCompletionMethod(method, method.getNamespace(),
+								useNamespaceInTextEdit,
 								range, false, completionSettings, formattingSettings, list);
 						item.setKind(CompletionItemKind.Function);
 						// Display namespace resolvers (ex : config:getConfigProperty(...)) after
@@ -838,8 +883,9 @@ public class QuteCompletionsForExpression {
 										withJavaTypeInfo, template.getJavaTypesSupportedInNativeMode());
 								fillCompletionFields(withJavaTypeInfo, javaTypeAccessibility, filter, range, projectUri,
 										existingVars, list);
-								fillCompletionMethods(withJavaTypeInfo, javaTypeAccessibility, filter, range, projectUri,
-										false, completionSettings, formattingSettings, existingVars, new HashSet<>(), list);
+								fillCompletionMethods(withJavaTypeInfo, javaTypeAccessibility, filter, range,
+										projectUri, false, completionSettings, formattingSettings, existingVars,
+										new HashSet<>(), list);
 							}
 						}
 						break;
@@ -866,7 +912,8 @@ public class QuteCompletionsForExpression {
 											for (int j = 0; j < parameters.size(); j++) {
 												existingVars.add(parameters.get(j).getName());
 											}
-											// If there is no operator or an operator that allows only one parameter, don't
+											// If there is no operator or an operator that allows only one parameter,
+											// don't
 											// complete if there already is one present
 											if (caseSection.shouldCompleteWhenSection()) {
 												fillCompletionFields(whenJavaType, javaTypeAccessibility, filter,
