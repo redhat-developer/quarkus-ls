@@ -12,6 +12,7 @@
 package com.redhat.qute.project;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,12 +109,12 @@ public abstract class MockQuteProject extends QuteProject {
 	}
 
 	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String typeName, List<ResolvedJavaTypeInfo> cache, boolean binary,
-			ResolvedJavaTypeInfo... extended) {
+			String... extended) {
 		return createResolvedJavaTypeInfo(typeName, null, null, cache, binary, extended);
 	}
-
+	
 	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String signature, String iterableType,
-			String iterableOf, List<ResolvedJavaTypeInfo> cache, boolean binary, ResolvedJavaTypeInfo... extended) {
+			String iterableOf, List<ResolvedJavaTypeInfo> cache, boolean binary, String... extended) {
 		ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
 		resolvedType.setJavaTypeKind(JavaTypeKind.Class);
 		resolvedType.setBinary(binary);
@@ -123,9 +124,7 @@ public abstract class MockQuteProject extends QuteProject {
 		resolvedType.setFields(new ArrayList<>());
 		resolvedType.setMethods(new ArrayList<>());
 		if (extended != null) {
-			List<String> extendedTypes = Stream.of(extended).map(type -> type.getSignature())
-					.collect(Collectors.toList());
-			resolvedType.setExtendedTypes(extendedTypes);
+			resolvedType.setExtendedTypes(Arrays.asList(extended));
 		}
 		resolvedType.setInvalidMethods(new HashMap<>());
 		cache.add(resolvedType);

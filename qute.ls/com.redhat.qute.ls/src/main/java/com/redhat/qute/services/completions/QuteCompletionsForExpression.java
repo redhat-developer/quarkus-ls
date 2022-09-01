@@ -35,7 +35,6 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
-import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.SnippetsBuilder;
 import com.redhat.qute.parser.expression.MethodPart;
@@ -289,7 +288,8 @@ public class QuteCompletionsForExpression {
 		JavaTypeAccessibiltyRule javaTypeAccessibility = !filter.isInNativeMode()
 				? JavaTypeAccessibiltyRule.ALLOWED_WITHOUT_RESTRICTION
 				: filter.getJavaTypeAccessibility(baseType, template.getJavaTypesSupportedInNativeMode());
-		if (javaTypeAccessibility != null) {
+		
+		if (javaTypeAccessibility != null && !TypeCycleUtils.hasCycle(baseType, javaCache, projectUri)) {
 
 			// Some fields and methods from Java reflection must be shown.
 			// - in NO native images mode : all fields and methods must be shown
@@ -359,8 +359,10 @@ public class QuteCompletionsForExpression {
 					ResolvedJavaTypeInfo resolvedExtendedType = javaCache.resolveJavaType(extendedType, projectUri)
 							.getNow(null);
 					if (resolvedExtendedType != null) {
-						fillCompletionFields(resolvedExtendedType, javaTypeAccessibility, filter, range, projectUri,
-								existingProperties, list);
+						if (!TypeCycleUtils.hasCycle(baseType, javaCache, projectUri)) {
+							fillCompletionFields(resolvedExtendedType, javaTypeAccessibility, filter, range, projectUri,
+									existingProperties, list);
+						}
 					}
 				}
 			}
@@ -839,12 +841,15 @@ public class QuteCompletionsForExpression {
 								JavaTypeFilter filter = javaCache.getJavaTypeFilter(projectUri, nativeImagesSettings);
 								JavaTypeAccessibiltyRule javaTypeAccessibility = filter.getJavaTypeAccessibility(
 										withJavaTypeInfo, template.getJavaTypesSupportedInNativeMode());
-								fillCompletionFields(withJavaTypeInfo, javaTypeAccessibility, filter, range, projectUri,
-										existingVars, list);
-								fillCompletionMethods(withJavaTypeInfo, javaTypeAccessibility, filter, range,
-										projectUri,
-										false, completionSettings, formattingSettings, existingVars, new HashSet<>(),
-										list);
+								
+								if (!TypeCycleUtils.hasCycle(withJavaTypeInfo, javaCache, projectUri)) {
+									fillCompletionFields(withJavaTypeInfo, javaTypeAccessibility, filter, range, projectUri,
+											existingVars, list);
+									fillCompletionMethods(withJavaTypeInfo, javaTypeAccessibility, filter, range,
+											projectUri,
+											false, completionSettings, formattingSettings, existingVars, new HashSet<>(),
+											list);
+								}
 							}
 						}
 						break;
@@ -871,7 +876,7 @@ public class QuteCompletionsForExpression {
 										}
 										// If there is no operator or an operator that allows only one parameter, don't
 										// complete if there already is one present
-										if (BaseWhenSection.shouldCompleteWhenSection(childSection)) {
+										if (BaseWhenSection.shouldCompleteWhenSection(childSection) && !TypeCycleUtils.hasCycle(whenSwitchJavaTypeInfo, javaCache, projectUri)) {
 											fillCompletionFields(whenSwitchJavaTypeInfo, javaTypeAccessibility, filter, range,
 													projectUri, existingVars, list);
 										}

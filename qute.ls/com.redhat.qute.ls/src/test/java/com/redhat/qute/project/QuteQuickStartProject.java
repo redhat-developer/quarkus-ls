@@ -91,13 +91,13 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerField("abstractName : java.lang.String", abstractItem);
 		registerMethod("convert(item : org.acme.AbstractItem) : int", abstractItem);
 
-		ResolvedJavaTypeInfo baseItem = createResolvedJavaTypeInfo("org.acme.BaseItem", cache, false, abstractItem);
+		ResolvedJavaTypeInfo baseItem = createResolvedJavaTypeInfo("org.acme.BaseItem", cache, false, abstractItem.getSignature());
 		registerField("base : java.lang.String", baseItem);
 		registerField("name : java.lang.String", baseItem);
 		registerMethod("getReviews() : java.util.List<org.acme.Review>", baseItem);
 
 		// org.acme.Item
-		ResolvedJavaTypeInfo item = createResolvedJavaTypeInfo("org.acme.Item", cache, false, baseItem);
+		ResolvedJavaTypeInfo item = createResolvedJavaTypeInfo("org.acme.Item", cache, false, baseItem.getSignature());
 		registerField("name : java.lang.String", item); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", item);
 		registerField("review : org.acme.Review", item);
@@ -114,6 +114,10 @@ public class QuteQuickStartProject extends MockQuteProject {
 		createResolvedJavaTypeInfo("java.util.List<org.acme.Item>", "java.util.List", "org.acme.Item", cache, true);
 		createResolvedJavaTypeInfo("java.lang.Iterable<org.acme.Item>", "java.lang.Iterable", "org.acme.Item", cache, true);
 		createResolvedJavaTypeInfo("org.acme.Item[]", null, "org.acme.Item", cache, true);
+		
+		createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassA", cache, false, "org.acme.qute.cyclic.ClassC");
+		createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassB", cache, false, "org.acme.qute.cyclic.ClassA");
+		createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassC", cache, false, "org.acme.qute.cyclic.ClassB");
 
 		// org.acme.MachineStatus
 		ResolvedJavaTypeInfo machineStatus = createResolvedJavaTypeInfo("org.acme.MachineStatus", cache, false);
@@ -131,7 +135,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// @TemplateData
 		// public class ItemWithTemplateData
 		ResolvedJavaTypeInfo itemWithTemplateData = createResolvedJavaTypeInfo("org.acme.ItemWithTemplateData", cache,
-				false, baseItem);
+				false, baseItem.getSignature());
 		registerField("name : java.lang.String", itemWithTemplateData); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithTemplateData);
 		registerMethod("getReview2() : org.acme.Review", itemWithTemplateData);
@@ -142,7 +146,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// @TemplateData(target = BigInteger.class)
 		// public class ItemWithTemplateDataWithTarget
 		ResolvedJavaTypeInfo itemWithTemplateDataWithTarget = createResolvedJavaTypeInfo(
-				"org.acme.ItemWithTemplateDataWithTarget", cache, false, baseItem);
+				"org.acme.ItemWithTemplateDataWithTarget", cache, false, baseItem.getSignature());
 		registerField("name : java.lang.String", itemWithTemplateDataWithTarget); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithTemplateDataWithTarget);
 		registerMethod("getReview2() : org.acme.Review", itemWithTemplateDataWithTarget);
@@ -155,7 +159,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// @TemplateData(properties = true)
 		// public class ItemWithTemplateDataProperties
 		ResolvedJavaTypeInfo itemWithTemplateDataProperties = createResolvedJavaTypeInfo(
-				"org.acme.ItemWithTemplateDataProperties", cache, false, baseItem);
+				"org.acme.ItemWithTemplateDataProperties", cache, false, baseItem.getSignature());
 		registerField("name : java.lang.String", itemWithTemplateDataProperties); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithTemplateDataProperties);
 		registerMethod("getReview2() : org.acme.Review", itemWithTemplateDataProperties);
@@ -167,7 +171,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// @TemplateData(ignoreSuperclasses = true)
 		// public class ItemWithTemplateDataIgnoreSubClasses
 		ResolvedJavaTypeInfo itemWithTemplateDataIgnoreSubClasses = createResolvedJavaTypeInfo(
-				"org.acme.ItemWithTemplateDataIgnoreSubClasses", cache, false, baseItem);
+				"org.acme.ItemWithTemplateDataIgnoreSubClasses", cache, false, baseItem.getSignature());
 		registerField("name : java.lang.String", itemWithTemplateDataIgnoreSubClasses); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithTemplateDataIgnoreSubClasses);
 		registerMethod("getReview2() : org.acme.Review", itemWithTemplateDataIgnoreSubClasses);
@@ -179,7 +183,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// @RegisterForReflection
 		// public class ItemWithRegisterForReflection
 		ResolvedJavaTypeInfo itemWithRegisterForReflection = createResolvedJavaTypeInfo(
-				"org.acme.ItemWithRegisterForReflection", cache, false, baseItem);
+				"org.acme.ItemWithRegisterForReflection", cache, false, baseItem.getSignature());
 		registerField("name : java.lang.String", itemWithRegisterForReflection); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithRegisterForReflection);
 		registerMethod("getReview2() : org.acme.Review", itemWithRegisterForReflection);
@@ -189,7 +193,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// @RegisterForReflection(fields = false)
 		// public class ItemWithRegisterForReflectionNoFields
 		ResolvedJavaTypeInfo itemWithRegisterForReflectionNoFields = createResolvedJavaTypeInfo(
-				"org.acme.ItemWithRegisterForReflectionNoFields", cache, false, baseItem);
+				"org.acme.ItemWithRegisterForReflectionNoFields", cache, false, baseItem.getSignature());
 		registerField("name : java.lang.String", itemWithRegisterForReflectionNoFields); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithRegisterForReflectionNoFields);
 		registerMethod("getReview2() : org.acme.Review", itemWithRegisterForReflectionNoFields);
@@ -200,7 +204,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// @RegisterForReflection(methods = false)
 		// public class ItemWithRegisterForReflectionNoMethods
 		ResolvedJavaTypeInfo itemWithRegisterForReflectionNoMethods = createResolvedJavaTypeInfo(
-				"org.acme.ItemWithRegisterForReflectionNoMethods", cache, false, baseItem);
+				"org.acme.ItemWithRegisterForReflectionNoMethods", cache, false, baseItem.getSignature());
 		registerField("name : java.lang.String", itemWithRegisterForReflectionNoMethods); // Override BaseItem#name
 		registerField("price : java.math.BigInteger", itemWithRegisterForReflectionNoMethods);
 		registerMethod("getReview2() : org.acme.Review", itemWithRegisterForReflectionNoMethods);

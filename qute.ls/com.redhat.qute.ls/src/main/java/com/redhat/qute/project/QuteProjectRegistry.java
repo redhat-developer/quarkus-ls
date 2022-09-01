@@ -63,6 +63,7 @@ import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolversRegistry;
+import com.redhat.qute.services.completions.TypeCycleUtils;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.ReflectionJavaTypeFilter;
 import com.redhat.qute.settings.QuteNativeSettings;
@@ -74,7 +75,7 @@ import com.redhat.qute.utils.StringUtils;
  * @author Angelo ZERR
  *
  */
-public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataModelProjectProvider, QuteUserTagProvider {
+public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataModelProjectProvider, QuteUserTagProvider, IJavaTypeResolver {
 
 	private final ValueResolversRegistry valueResolversRegistry;
 
@@ -237,13 +238,19 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 								m.setJavaType(c);
 							});
 							// Load extended Java types
+							
+							// TODO: heck, darn, shoot
+							
 							if (c.getExtendedTypes() != null) {
 								List<CompletableFuture<ResolvedJavaTypeInfo>> resolvingExtendedFutures = new ArrayList<>();
 								for (String extendedType : c.getExtendedTypes()) {
-									CompletableFuture<ResolvedJavaTypeInfo> extendedFuture = resolveJavaType(
-											extendedType, projectUri);
-									if (!extendedFuture.isDone()) {
-										resolvingExtendedFutures.add(extendedFuture);
+									// Prevent collecting the same type twice
+									if (project.getResolvedJavaType(extendedType) != null) {
+										CompletableFuture<ResolvedJavaTypeInfo> extendedFuture = resolveJavaType(
+												extendedType, projectUri);
+										if (!extendedFuture.isDone()) {
+											resolvingExtendedFutures.add(extendedFuture);
+										}
 									}
 								}
 								if (!resolvingExtendedFutures.isEmpty()) {
@@ -1043,6 +1050,11 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 		}
 		// class BigItem <- Item <- SmallItem
 		// javaType = BigItem => javaType.getExtendedTypes() = [Item]
+		
+		if (TypeCycleUtils.hasCycle(javaType, this, projectUri)) {
+			return false;
+		}
+		
 		if (javaType.getExtendedTypes() != null) {
 			// Loop for first level of super types (ex Item)
 			for (String superType : javaType.getExtendedTypes()) {

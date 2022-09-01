@@ -36,6 +36,7 @@ import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.project.IJavaTypeResolver;
 import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
@@ -44,7 +45,7 @@ import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.settings.QuteNativeSettings;
 import com.redhat.qute.utils.StringUtils;
 
-public class JavaDataModelCache implements DataModelTemplateProvider {
+public class JavaDataModelCache implements DataModelTemplateProvider, IJavaTypeResolver {
 
 	private static final CompletableFuture<ResolvedJavaTypeInfo> RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE = CompletableFuture
 			.completedFuture(null);
