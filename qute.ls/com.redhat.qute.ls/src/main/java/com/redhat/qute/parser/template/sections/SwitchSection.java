@@ -34,7 +34,7 @@ import com.redhat.qute.parser.template.SectionKind;
  * @see https://quarkus.io/guides/qute-reference#when_section
  *
  */
-public class SwitchSection extends BaseWhenSection {
+public class SwitchSection extends WhenSection {
 
 	public static final String TAG = "switch";
 
@@ -46,7 +46,7 @@ public class SwitchSection extends BaseWhenSection {
 	public SectionKind getSectionKind() {
 		return SectionKind.SWITCH;
 	}
-	
+
 	@Override
 	protected void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);

@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
+import static com.redhat.qute.parser.template.Section.isWhenSection;
 import static com.redhat.qute.services.ResolvingJavaTypeContext.RESOLVING_JAVA_TYPE;
 import static com.redhat.qute.services.ResolvingJavaTypeContext.isResolvingJavaType;
 import static com.redhat.qute.services.diagnostics.DiagnosticDataFactory.createDiagnostic;
@@ -401,14 +402,6 @@ class QuteDiagnostics {
 		return sectionKind == SectionKind.EACH || sectionKind == SectionKind.FOR || sectionKind == SectionKind.LET
 				|| sectionKind == SectionKind.SET || sectionKind == SectionKind.WITH
 				|| sectionKind == SectionKind.SWITCH || sectionKind == SectionKind.WHEN;
-	}
-
-	private static boolean isWhenSection(Section section) {
-		if (section == null) {
-			return false;
-		}
-		SectionKind sectionKind = section.getSectionKind();
-		return sectionKind == SectionKind.SWITCH || sectionKind == SectionKind.WHEN;
 	}
 
 	/**

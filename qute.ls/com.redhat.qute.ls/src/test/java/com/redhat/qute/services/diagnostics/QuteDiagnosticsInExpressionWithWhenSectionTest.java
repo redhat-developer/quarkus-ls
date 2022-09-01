@@ -173,9 +173,13 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 		String template = "{@org.acme.Machine Machine}\r\n" + //
 				"		{#when Machine.status}\r\n" + //
 				"		{#is ON}\r\n" + //
-				"		{#is in in}\r\n" + //
+				"		{#is ni ni}\r\n" + //
+				"		{#is ni ON}\r\n" + //
 				"		{/when}";
-		testDiagnosticsFor(template);
+		testDiagnosticsFor(template, //
+				d(3, 10, 3, 12, QuteErrorCode.UnexpectedValueInCaseSection,
+						"Unexpected value `ni` in `Machine.status`. Expected value of type `org.acme.MachineStatus`.",
+						DiagnosticSeverity.Error));
 	}
 
 	@Test

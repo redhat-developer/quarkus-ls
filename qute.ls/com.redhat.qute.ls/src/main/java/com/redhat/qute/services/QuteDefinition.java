@@ -11,6 +11,9 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
+import static com.redhat.qute.parser.template.Section.isCaseSection;
+import static com.redhat.qute.parser.template.Section.isWhenSection;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,8 +49,9 @@ import com.redhat.qute.parser.template.RangeOffset;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.parser.template.sections.BaseWhenSection;
+import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.IncludeSection;
+import com.redhat.qute.parser.template.sections.WhenSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.project.indexing.QuteIndex;
@@ -83,24 +87,24 @@ class QuteDefinition {
 			}
 			int offset = definitionRequest.getOffset();
 			switch (node.getKind()) {
-				case Section:
-					// - Start end tag definition
-					// - Java data model definition
-					return findDefinitionFromSection(offset, (Section) node, template, cancelChecker);
-				case ParameterDeclaration:
-					// Return Java class definition
-					return findDefinitionFromParameterDeclaration(offset, (ParameterDeclaration) node, template,
-							cancelChecker);
-				case Expression:
-					return findDefinitionFromExpression(offset, (Expression) node, template, cancelChecker);
-				case ExpressionPart:
-					Part part = (Part) node;
-					return findDefinitionFromPart(part, template, cancelChecker);
-				case Parameter:
-					return findDefinitionFromParameter((Parameter) node, template, cancelChecker);
-				default:
-					// no definitions
-					return NO_DEFINITION;
+			case Section:
+				// - Start end tag definition
+				// - Java data model definition
+				return findDefinitionFromSection(offset, (Section) node, template, cancelChecker);
+			case ParameterDeclaration:
+				// Return Java class definition
+				return findDefinitionFromParameterDeclaration(offset, (ParameterDeclaration) node, template,
+						cancelChecker);
+			case Expression:
+				return findDefinitionFromExpression(offset, (Expression) node, template, cancelChecker);
+			case ExpressionPart:
+				Part part = (Part) node;
+				return findDefinitionFromPart(part, template, cancelChecker);
+			case Parameter:
+				return findDefinitionFromParameter((Parameter) node, template, cancelChecker);
+			default:
+				// no definitions
+				return NO_DEFINITION;
 			}
 
 		} catch (BadLocationException e) {
@@ -261,14 +265,14 @@ class QuteDefinition {
 		}
 
 		switch (part.getPartKind()) {
-			case Object:
-				return findDefinitionFromObjectPart((ObjectPart) part, template, cancelChecker);
-			case Property:
-				return findDefinitionFromPropertyPart((PropertyPart) part, template, cancelChecker);
-			case Method:
-				return findDefinitionFromPropertyPart((MethodPart) part, template, cancelChecker);
-			default:
-				return NO_DEFINITION;
+		case Object:
+			return findDefinitionFromObjectPart((ObjectPart) part, template, cancelChecker);
+		case Property:
+			return findDefinitionFromPropertyPart((PropertyPart) part, template, cancelChecker);
+		case Method:
+			return findDefinitionFromPropertyPart((MethodPart) part, template, cancelChecker);
+		default:
+			return NO_DEFINITION;
 		}
 	}
 
@@ -291,7 +295,7 @@ class QuteDefinition {
 		if (!isWhenSection(whenSection)) {
 			return NO_DEFINITION;
 		}
-		if (whenSection.isValidOperator(parameter.getName()) && isFirstParameter(parameter, caseSection)) {
+		if (((CaseSection) caseSection).isCaseOperator(parameter)) {
 			return NO_DEFINITION;
 		}
 
@@ -300,11 +304,11 @@ class QuteDefinition {
 		// {#is OF|F}
 		// {/when}
 		String projectUri = template.getProjectUri();
-		Parameter value = ((BaseWhenSection) whenSection).getValueParameter();
+		Parameter value = ((WhenSection) whenSection).getValueParameter();
 		if (value != null) {
-			ResolvedJavaTypeInfo whenJavaTypeInfo = javaCache.resolveJavaType(value, projectUri).getNow(null);
-			if (whenJavaTypeInfo != null && whenJavaTypeInfo.isEnum()) {
-				JavaMemberInfo member = javaCache.findMember(whenJavaTypeInfo, parameter.getName(), projectUri);
+			ResolvedJavaTypeInfo whenJavaType = javaCache.resolveJavaType(value, projectUri).getNow(null);
+			if (whenJavaType != null && whenJavaType.isEnum()) {
+				JavaMemberInfo member = javaCache.findMember(whenJavaType, parameter.getName(), projectUri);
 				if (member != null) {
 					QuteJavaDefinitionParams params = new QuteJavaDefinitionParams(member.getSourceType(), projectUri);
 					params.setSourceField(member.getName());
@@ -314,30 +318,6 @@ class QuteDefinition {
 			}
 		}
 		return NO_DEFINITION;
-	}
-
-	private static boolean isFirstParameter(Parameter parameter, Section caseSection) {
-		List<Parameter> parameters = caseSection.getParameters();
-		if (parameters != null) {
-			return parameters.get(0) == parameter;
-		}
-		return false;
-	}
-
-	private static boolean isWhenSection(Section section) {
-		if (section == null) {
-			return false;
-		}
-		SectionKind sectionKind = section.getSectionKind();
-		return sectionKind == SectionKind.SWITCH || sectionKind == SectionKind.WHEN;
-	}
-
-	private static boolean isCaseSection(Section section) {
-		if (section == null) {
-			return false;
-		}
-		SectionKind sectionKind = section.getSectionKind();
-		return sectionKind == SectionKind.CASE || sectionKind == SectionKind.IS;
 	}
 
 	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromPartWithNamespace(String namespace,
@@ -414,8 +394,8 @@ class QuteDefinition {
 				});
 	}
 
-	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromPropertyPart(Part part,
-			Template template, CancelChecker cancelChecker) {
+	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromPropertyPart(Part part, Template template,
+			CancelChecker cancelChecker) {
 		String projectUri = template.getProjectUri();
 		if (projectUri != null) {
 			Parts parts = part.getParent();
@@ -471,13 +451,13 @@ class QuteDefinition {
 		QuteJavaDefinitionParams params = new QuteJavaDefinitionParams(sourceType, projectUri);
 		if (member != null) {
 			switch (member.getJavaElementKind()) {
-				case FIELD:
-					params.setSourceField(member.getName());
-					break;
-				case METHOD:
-					params.setSourceMethod(member.getName());
-					break;
-				default:
+			case FIELD:
+				params.setSourceField(member.getName());
+				break;
+			case METHOD:
+				params.setSourceMethod(member.getName());
+				break;
+			default:
 			}
 		}
 		return findJavaDefinition(params, cancelChecker, () -> QutePositionUtility.createRange(part));

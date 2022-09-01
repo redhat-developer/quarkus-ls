@@ -555,4 +555,21 @@ public abstract class Section extends Node implements ParametersContainer {
 	public Set<String> getAllowedOperators() {
 		return Collections.emptySet();
 	}
+	
+	public static boolean isWhenSection(Section section) {
+		if (section == null) {
+			return false;
+		}
+		SectionKind sectionKind = section.getSectionKind();
+		return sectionKind == SectionKind.SWITCH || sectionKind == SectionKind.WHEN;
+	}
+	
+	public static boolean isCaseSection(Section section) {
+		if (section == null) {
+			return false;
+		}
+		SectionKind sectionKind = section.getSectionKind();
+		return sectionKind == SectionKind.CASE || sectionKind == SectionKind.IS;
+	}
+
 }
