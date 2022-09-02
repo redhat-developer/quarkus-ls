@@ -46,6 +46,7 @@ import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.expression.PropertyPart;
+import com.redhat.qute.parser.template.CaseOperator;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.LiteralSupport;
@@ -58,6 +59,7 @@ import com.redhat.qute.parser.template.RangeOffset;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.project.JavaMemberResult;
@@ -292,8 +294,8 @@ class QuteDiagnostics {
 					} else {
 						ResolvedJavaTypeInfo whenJavaType = currentContext.whenObject;
 						if (whenJavaType != null) {
-							validateCaseSectionParameters(section, parentSection, whenJavaType, projectUri,
-									diagnostics);
+							validateCaseSectionParameters((CaseSection) section, parentSection, template, whenJavaType,
+									projectUri, diagnostics);
 						}
 					}
 					break;
@@ -1134,41 +1136,93 @@ class QuteDiagnostics {
 	 * @param projectUri  the project Uri.
 	 * @param diagnostics the diagnostic list.
 	 */
-	private void validateCaseSectionParameters(Section caseSection, Section whenSection, ResolvedJavaTypeInfo whenType,
-			String projectUri, List<Diagnostic> diagnostics) {
+	private void validateCaseSectionParameters(CaseSection caseSection, Section whenSection, Template template,
+			ResolvedJavaTypeInfo whenType, String projectUri, List<Diagnostic> diagnostics) {
 		String expression = whenSection.getExpressionContent();
 		List<Parameter> parameters = caseSection.getParameters();
 		String whenTypeName = whenType.getSignature();
+		if (parameters.isEmpty()) {
+			// Ex: {#case} --> no parameters or operators
+			Range range = QutePositionUtility.createRange(caseSection.getStartTagNameOpenOffset(),
+					caseSection.getStartTagNameCloseOffset(), template);
+			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+					QuteErrorCode.MissingParameter, caseSection.getTag());
+			diagnostics.add(diagnostic);
+			return;
+		}
+		Parameter firstParameter = parameters.get(0);
 		// Iterate through children and ensure the type of the #case or #is parts are
 		// the same as the parent section
 		for (int i = 0; i < parameters.size(); i++) {
 			Parameter parameter = parameters.get(i);
 			String parameterName = parameter.getName();
-			if (i == 0 && parameters.size() > 1) {
-				// The first is allowed as an operator so it is skipped for, second must be
-				// checked
-				// Ex: {#is in BROKEN}
-				continue;
+			CaseOperator caseOperator = caseSection.getCaseOperator();
+			if (caseOperator == null) {
+				if (i > 0) {
+					// Ex: {#is ON OFF} --> no operator implies only 1 parameter is allowed
+					Range range = QutePositionUtility.createRange(firstParameter);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.InvalidOperator, firstParameter.getName(), caseSection.getTag(),
+							caseSection.getAllowedOperators() //
+									.stream() //
+									.collect(Collectors.joining(", ", "[", "]")));
+					diagnostics.add(diagnostic);
+					return;
+				}
+			} else {
+				if (i == 0) {
+					continue;
+				} else if (i > 1 && !caseOperator.isMulti()) {
+					// Ex: {#is ne ON OFF} --> operator 'ne' only allows 1 parameter
+					Range range = QutePositionUtility.createRange(parameter);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.UnexpectedParameter, parameterName, firstParameter.getName(), caseSection.getTag());
+					diagnostics.add(diagnostic);
+					continue;
+				}
 			}
 			String caseJavaType = LiteralSupport.getLiteralJavaType(parameter.getValue());
-			Range range = QutePositionUtility.createRange(parameter);
-			if (caseJavaType == null) {
-				if (javaCache.findMember(whenType, parameterName, projectUri) == null) {
-					// Case of Enum or invalid value since it is not a literal java type
-					// {#when machine.status} --> machine.status is has values ON and OFF
-					// {#is ON} --> valid enum value
-					// {#is in BAD_ENUM_VAUE} --> Error: unexpected enum value
-					// {/when}
+			if (caseJavaType == null && javaCache.findMember(whenType, parameterName, projectUri) == null) {
+				if (i == 0 && parameters.size() > 1) {
+					// The first parameter is invalid: either invalid Enum value or unknown operator
+					// Ex: {#is XXX ON}
+					Range range = QutePositionUtility.createRange(parameter);
 					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-							QuteErrorCode.UnexpectedValueInCaseSection, parameterName, expression, whenTypeName);
+							QuteErrorCode.InvalidOperator, parameterName, caseSection.getTag(),
+							caseSection.getAllowedOperators() //
+									.stream() //
+									.collect(Collectors.joining(", ", "[", "]")));
 					diagnostics.add(diagnostic);
+					return;
 				}
-			} else if (!whenTypeName.equals(caseJavaType)) {
+				// Case of Enum or invalid value since it is not a literal java type
+				// {#when machine.status} --> machine.status is has values ON and OFF
+				// {#is ON} --> valid enum value
+				// {#is in BAD_ENUM_VAUE} --> Error: unexpected enum value
+				// {/when}
+				Range range = QutePositionUtility.createRange(parameter);
+				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+						QuteErrorCode.UnexpectedValueInCaseSection, parameterName, expression, whenTypeName);
+				diagnostics.add(diagnostic);
+			} else if (caseJavaType != null && !whenTypeName.equals(caseJavaType)) {
+				if (i == 0 && parameters.size() > 1) {
+					// The first parameter is invalid: either unexpected type or unknown operator
+					// Ex: {#is XXX 'John'}
+					Range range = QutePositionUtility.createRange(parameter);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.InvalidOperator, parameterName, caseSection.getTag(),
+							caseSection.getAllowedOperators() //
+									.stream() //
+									.collect(Collectors.joining(", ", "[", "]")));
+					diagnostics.add(diagnostic);
+					return;
+				}
 				// Case where the java type of expression of child is different from parent
 				// Ex: {#switch person.name} --> person.name is of type String
 				// {#case 'John'} --> valid expression type of String
 				// {#case 123} --> Error: unexpected type, expected String but was Integer
 				// {/switch}
+				Range range = QutePositionUtility.createRange(parameter);
 				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
 						QuteErrorCode.UnexpectedMemberTypeInCaseSection, caseJavaType, expression, whenTypeName);
 				diagnostics.add(diagnostic);

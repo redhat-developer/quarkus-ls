@@ -14,6 +14,7 @@ package com.redhat.qute.parser.template.sections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.CaseOperator;
@@ -96,6 +97,11 @@ public class CaseSection extends Section {
 		visitor.endVisit(this);
 	}
 
+	@Override
+	public Set<String> getAllowedOperators() {
+		return caseOperators.keySet();
+	}
+
 	/**
 	 * Returns true if completion should be done in the current case section.
 	 *
@@ -106,7 +112,7 @@ public class CaseSection extends Section {
 		if (paramCount == 0) {
 			return true;
 		}
-		CaseOperator operator = getOperator();
+		CaseOperator operator = getCaseOperator();
 		if (operator == null) {
 			if (paramCount == 1) {
 				// There is only parameter and it is not a operator
@@ -120,11 +126,6 @@ public class CaseSection extends Section {
 			return false;
 		}
 		return true;
-	}
-
-	private CaseOperator getOperator() {
-		Parameter parameter = getValidParameterOperator();
-		return parameter != null ? caseOperators.get(parameter.getName()) : null;
 	}
 
 	/**
@@ -146,6 +147,16 @@ public class CaseSection extends Section {
 	@Override
 	public boolean isValidOperator(String partName) {
 		return caseOperators.containsKey(partName);
+	}
+
+	/**
+	 * Returns the case operator if exists and valid, and null otherwise.
+	 *
+	 * @return the case operator if exists and valid, and null otherwise.
+	 */
+	public CaseOperator getCaseOperator() {
+		Parameter parameter = getValidParameterOperator();
+		return parameter != null ? caseOperators.get(parameter.getName()) : null;
 	}
 
 	/**

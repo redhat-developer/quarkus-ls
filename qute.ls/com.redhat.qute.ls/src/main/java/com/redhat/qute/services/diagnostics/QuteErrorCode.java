@@ -66,6 +66,8 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	UnexpectedMemberTypeInCaseSection("Unexpected type `{0}` in `{1}`. Expected `{2}`."),
 	UnexpectedValueInCaseSection("Unexpected value `{0}` in `{1}`. Expected value of type `{2}`."),
 	InvalidParentInCaseSection("`{0}` section must be hosted in a #switch or #when section."),
+	UnexpectedParameter("Unexpected operand `{0}`. The operator `{1}` in the `#{2}` section expects only one parameter."),
+	MissingParameter("A parameter is required in the `#{0}` section."),
 
 	// Error code for #for / #each section
 	IterationError("Iteration error: '{'{0}'}' resolved to [{1}] which is not iterable."),
