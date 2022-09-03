@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.InsertTextFormat;
+import org.eclipse.lsp4j.InsertTextMode;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.Position;
@@ -230,21 +231,26 @@ public class SnippetRegistry<T extends Snippet> {
 	/**
 	 * Returns the snippet completion items according to the context filter.
 	 * 
-	 * @param replaceRange       the replace range.
-	 * @param lineDelimiter      the line delimiter.
-	 * @param canSupportMarkdown true if markdown is supported to generate
-	 *                           documentation and false otherwise.
-	 * @param contextFilter      the context filter.
-	 * @param suffixToFind       suffix to find, that will be removed when
-	 *                           completion snippet is applied.
-	 * @param suffixProvider     the suffix position provider.
-	 * @param prefixFilter       the prefix filter.
+	 * @param replaceRange          the replace range.
+	 * @param lineDelimiter         the line delimiter.
+	 * @param whitespacesIndent     white spaces indent to use for new lines and
+	 *                              null otherwise.
+	 * @param defaultInsertTextMode the default {@link InsertTextMode} supported by
+	 *                              the client and null otherwise.
+	 * @param canSupportMarkdown    true if markdown is supported to generate
+	 *                              documentation and false otherwise.
+	 * @param contextFilter         the context filter.
+	 * @param suffixToFind          suffix to find, that will be removed when
+	 *                              completion snippet is applied.
+	 * @param suffixProvider        the suffix position provider.
+	 * @param prefixFilter          the prefix filter.
 	 * 
 	 * @return the snippet completion items according to the context filter.
 	 */
-	public List<CompletionItem> getCompletionItems(Range replaceRange, String lineDelimiter, boolean canSupportMarkdown,
-			boolean snippetsSupported, BiPredicate<ISnippetContext<?>, Map<String, String>> contextFilter,
-			ISuffixPositionProvider suffixProvider, String suffixToFind, String prefixFilter) {
+	public List<CompletionItem> getCompletionItems(Range replaceRange, String lineDelimiter, String whitespacesIndent,
+			InsertTextMode defaultInsertTextMode, boolean canSupportMarkdown, boolean snippetsSupported,
+			BiPredicate<ISnippetContext<?>, Map<String, String>> contextFilter, ISuffixPositionProvider suffixProvider,
+			String suffixToFind, String prefixFilter) {
 		if (replaceRange == null) {
 			return Collections.emptyList();
 		}
@@ -254,7 +260,7 @@ public class SnippetRegistry<T extends Snippet> {
 		}).map(snippet -> {
 			CompletionItem item = new CompletionItem();
 			item.setLabel(snippet.getLabel());
-			String insertText = getInsertText(snippet, model, !snippetsSupported, lineDelimiter);
+			String insertText = getInsertText(snippet, model, !snippetsSupported, lineDelimiter, whitespacesIndent);
 			item.setKind(CompletionItemKind.Snippet);
 			item.setDocumentation(
 					Either.forRight(createDocumentation(snippet, model, canSupportMarkdown, lineDelimiter)));
@@ -275,9 +281,19 @@ public class SnippetRegistry<T extends Snippet> {
 			item.setTextEdit(Either.forLeft(new TextEdit(range, insertText)));
 			item.setInsertTextFormat(InsertTextFormat.Snippet);
 			item.setSortText(snippet.getSortText());
+			updateInsertTextMode(item,
+					whitespacesIndent == null ? InsertTextMode.AdjustIndentation : InsertTextMode.AsIs,
+					defaultInsertTextMode);
 			return item;
 
 		}).collect(Collectors.toList());
+	}
+
+	private void updateInsertTextMode(CompletionItem item, InsertTextMode insertTextMode,
+			InsertTextMode defaultInsertTextMode) {
+		if (defaultInsertTextMode != insertTextMode) {
+			item.setInsertTextMode(insertTextMode);
+		}
 	}
 
 	private static MarkupContent createDocumentation(Snippet snippet, Map<String, String> model,
@@ -292,7 +308,7 @@ public class SnippetRegistry<T extends Snippet> {
 			}
 			doc.append(System.lineSeparator());
 		}
-		String insertText = getInsertText(snippet, model, true, lineDelimiter);
+		String insertText = getInsertText(snippet, model, true, lineDelimiter, null);
 		doc.append(insertText);
 		if (canSupportMarkdown) {
 			doc.append(System.lineSeparator());
@@ -303,7 +319,7 @@ public class SnippetRegistry<T extends Snippet> {
 	}
 
 	private static String getInsertText(Snippet snippet, Map<String, String> model, boolean replace,
-			String lineDelimiter) {
+			String lineDelimiter, String whitespacesIndent) {
 		StringBuilder text = new StringBuilder();
 		int i = 0;
 		List<String> body = snippet.getBody();
@@ -311,6 +327,9 @@ public class SnippetRegistry<T extends Snippet> {
 			for (String bodyLine : body) {
 				if (i > 0) {
 					text.append(lineDelimiter);
+					if (whitespacesIndent != null) {
+						text.append(whitespacesIndent);
+					}
 				}
 				bodyLine = merge(bodyLine, model, replace);
 				text.append(bodyLine);

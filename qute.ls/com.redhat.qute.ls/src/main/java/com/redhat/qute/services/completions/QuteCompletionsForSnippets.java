@@ -17,10 +17,12 @@ import java.util.logging.Logger;
 
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.InsertTextMode;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.Range;
 
 import com.redhat.qute.ls.commons.BadLocationException;
+import com.redhat.qute.ls.commons.LineIndentInfo;
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
@@ -79,8 +81,19 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 		int startExpr = getExprStart(text, fromSearchExpr, endExpr);
 		try {
 			Range replaceRange = getReplaceRange(startExpr, endExpr, offset, template);
-			String lineDelimiter = template.lineDelimiter(replaceRange.getStart().getLine());
+			int lineNumber = replaceRange.getStart().getLine();
+			String lineDelimiter = null;
+			String whitespacesIndent = null;
+			if (!completionRequest.isInsertTextModeAdjustIndentationSupported()) {
+				LineIndentInfo indentInfo = template.lineIndentInfo(lineNumber);
+				lineDelimiter = indentInfo.getLineDelimiter();
+				whitespacesIndent = indentInfo.getWhitespacesIndent();
+			} else {
+				lineDelimiter = template.lineDelimiter(lineNumber);
+			}
+			InsertTextMode defaultInsertTextMode = completionRequest.getDefaultInsertTextMode();
 			List<CompletionItem> snippets = getSnippetRegistry().getCompletionItems(replaceRange, lineDelimiter,
+					whitespacesIndent, defaultInsertTextMode,
 					completionRequest.canSupportMarkupKind(MarkupKind.MARKDOWN),
 					completionRequest.isCompletionSnippetsSupported(), (context, model) -> {
 						if (context instanceof AbstractQuteSnippetContext) {

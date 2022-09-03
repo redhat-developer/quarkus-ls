@@ -28,7 +28,7 @@ import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.QuteJavaTypesParams;
-import com.redhat.qute.ls.commons.SnippetsBuilder;
+import com.redhat.qute.ls.commons.snippets.SnippetsBuilder;
 import com.redhat.qute.parser.template.ParameterDeclaration;
 import com.redhat.qute.parser.template.ParameterDeclaration.JavaTypeRangeOffset;
 import com.redhat.qute.parser.template.Template;

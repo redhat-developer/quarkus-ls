@@ -22,6 +22,7 @@ import org.eclipse.lsp4j.Position;
 
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
+import com.redhat.qute.ls.commons.LineIndentInfo;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.parser.CancelChecker;
 import com.redhat.qute.parser.expression.NamespacePart;
@@ -105,6 +106,11 @@ public class Template extends Node {
 		return textDocument.lineDelimiter(lineNumber);
 	}
 
+	public LineIndentInfo lineIndentInfo(int lineNumber) throws BadLocationException {
+		checkCanceled();
+		return textDocument.lineIndentInfo(lineNumber);
+	}
+	
 	public void checkCanceled() {
 		if (cancelChecker != null) {
 			cancelChecker.checkCanceled();

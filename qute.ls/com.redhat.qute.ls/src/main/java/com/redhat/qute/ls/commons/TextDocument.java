@@ -92,6 +92,41 @@ public class TextDocument extends TextDocumentItem {
 		return lineDelimiter;
 	}
 
+	/**
+	 * Returns the line delimiter and whitespace indent of the given line number.
+	 * 
+	 * @param lineNumber the line number.
+	 * 
+	 * @return the line delimiter and whitespace indent of the given line number.
+	 * @throws BadLocationException
+	 */
+	public LineIndentInfo lineIndentInfo(int lineNumber) throws BadLocationException {
+		String lineText = lineText(lineNumber);
+		String lineDelimiter = lineDelimiter(lineNumber);
+		String whitespacesIndent = getStartWhitespaces(lineText);
+		return new LineIndentInfo(lineDelimiter, whitespacesIndent);
+	}
+
+	/**
+	 * Returns the start whitespaces of the given line text.
+	 *
+	 * @param lineText
+	 * @return the start whitespaces of the given line text.
+	 */
+	private static String getStartWhitespaces(String lineText) {
+		StringBuilder whitespaces = new StringBuilder();
+		char[] chars = lineText.toCharArray();
+		for (int i = 0; i < chars.length; i++) {
+			char c = chars[i];
+			if (Character.isWhitespace(c)) {
+				whitespaces.append(c);
+			} else {
+				break;
+			}
+		}
+		return whitespaces.toString();
+	}
+
 	public Range getWordRangeAt(int textOffset, Pattern wordDefinition) {
 		try {
 			Position pos = positionAt(textOffset);

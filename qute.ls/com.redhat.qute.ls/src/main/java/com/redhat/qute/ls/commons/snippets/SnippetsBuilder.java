@@ -10,7 +10,7 @@
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
  */
-package com.redhat.qute.ls.commons;
+package com.redhat.qute.ls.commons.snippets;
 
 import java.util.Collection;
 

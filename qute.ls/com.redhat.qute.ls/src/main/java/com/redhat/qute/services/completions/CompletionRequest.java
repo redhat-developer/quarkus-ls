@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import org.eclipse.lsp4j.InsertTextMode;
 import org.eclipse.lsp4j.Position;
 
 import com.redhat.qute.ls.commons.BadLocationException;
@@ -41,6 +42,14 @@ public class CompletionRequest extends AbstractPositionRequest {
 
 	public boolean isCompletionSnippetsSupported() {
 		return completionSettings.isCompletionSnippetsSupported();
+	}
+
+	public boolean isInsertTextModeAdjustIndentationSupported() {
+		return completionSettings.isInsertTextModeAdjustIndentationSupported();
+	}
+
+	public InsertTextMode getDefaultInsertTextMode() {
+		return completionSettings.getDefaultInsertTextMode();
 	}
 
 }
