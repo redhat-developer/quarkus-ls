@@ -34,6 +34,7 @@ import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionCapabilities;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemCapabilities;
+import org.eclipse.lsp4j.CompletionItemInsertTextModeSupportCapabilities;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CreateFile;
 import org.eclipse.lsp4j.CreateFileOptions;
@@ -48,6 +49,7 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverCapabilities;
 import org.eclipse.lsp4j.InlayHint;
 import org.eclipse.lsp4j.InlayHintLabelPart;
+import org.eclipse.lsp4j.InsertTextMode;
 import org.eclipse.lsp4j.LinkedEditingRanges;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
@@ -158,6 +160,25 @@ public class QuteAssert {
 	public static void testCompletionFor(String value, boolean snippetSupport, String fileUri, String templateId,
 			String projectUri, String templateBaseDir, Integer expectedCount, QuteNativeSettings nativeImagesSettings,
 			CompletionItem... expectedItems) throws Exception {
+
+		// Add snippet support for completion
+		QuteCompletionSettings completionSettings = new QuteCompletionSettings();
+		CompletionItemCapabilities completionItemCapabilities = new CompletionItemCapabilities();
+		completionItemCapabilities.setSnippetSupport(snippetSupport);
+		CompletionItemInsertTextModeSupportCapabilities insertTextModeSupport = new CompletionItemInsertTextModeSupportCapabilities();
+		insertTextModeSupport.setValueSet(Arrays.asList(InsertTextMode.AsIs, InsertTextMode.AdjustIndentation));
+		completionItemCapabilities.setInsertTextModeSupport(insertTextModeSupport);
+		CompletionCapabilities completionCapabilities = new CompletionCapabilities(completionItemCapabilities);
+		completionCapabilities.setInsertTextMode(InsertTextMode.AdjustIndentation);
+		completionSettings.setCapabilities(completionCapabilities);
+		
+		testCompletionFor(value, fileUri, templateId, projectUri, templateBaseDir, expectedCount, nativeImagesSettings,
+				completionSettings, expectedItems);
+	}
+
+	public static void testCompletionFor(String value, String fileUri, String templateId, String projectUri,
+			String templateBaseDir, Integer expectedCount, QuteNativeSettings nativeImagesSettings,
+			QuteCompletionSettings completionSettings, CompletionItem... expectedItems) throws Exception {
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
@@ -166,13 +187,6 @@ public class QuteAssert {
 		template.setTemplateId(templateId);
 
 		Position position = template.positionAt(offset);
-
-		// Add snippet support for completion
-		QuteCompletionSettings completionSettings = new QuteCompletionSettings();
-		CompletionItemCapabilities completionItemCapabilities = new CompletionItemCapabilities();
-		completionItemCapabilities.setSnippetSupport(snippetSupport);
-		CompletionCapabilities completionCapabilities = new CompletionCapabilities(completionItemCapabilities);
-		completionSettings.setCapabilities(completionCapabilities);
 
 		QuteFormattingSettings formattingSettings = new QuteFormattingSettings();
 
@@ -237,6 +251,7 @@ public class QuteAssert {
 		if (expected.getDocumentation() != null) {
 			assertEquals(expected.getDocumentation(), match.getDocumentation());
 		}
+		assertEquals(expected.getInsertTextMode(), match.getInsertTextMode());
 
 	}
 
@@ -738,7 +753,7 @@ public class QuteAssert {
 		codeAction.setCommand(c);
 		return codeAction;
 	}
-	
+
 	public static CodeAction cad(Diagnostic d, Object data) {
 		CodeAction codeAction = new CodeAction("");
 		codeAction.setDiagnostics(Arrays.asList(d));

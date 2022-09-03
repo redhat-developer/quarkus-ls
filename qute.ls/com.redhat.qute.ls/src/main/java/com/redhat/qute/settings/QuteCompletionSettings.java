@@ -12,6 +12,7 @@
 package com.redhat.qute.settings;
 
 import org.eclipse.lsp4j.CompletionCapabilities;
+import org.eclipse.lsp4j.InsertTextMode;
 
 /**
  * A wrapper around LSP {@link CompletionCapabilities}.
@@ -59,5 +60,33 @@ public class QuteCompletionSettings {
 		return getCompletionCapabilities() != null && getCompletionCapabilities().getCompletionItem() != null
 				&& getCompletionCapabilities().getCompletionItem().getDocumentationFormat() != null
 				&& getCompletionCapabilities().getCompletionItem().getDocumentationFormat().contains(kind);
+	}
+
+	/**
+	 * Returns <code>true</code> if the client support
+	 * {@link InsertTextMode#AdjustIndentation} <code>false</code> otherwise.
+	 * 
+	 * @return <code>true</code> if the client support
+	 *         {@link InsertTextMode#AdjustIndentation} <code>false</code>
+	 *         otherwise.
+	 */
+	public boolean isInsertTextModeAdjustIndentationSupported() {
+		return completionCapabilities != null && completionCapabilities.getCompletionItem() != null
+				&& completionCapabilities.getCompletionItem().getInsertTextModeSupport() != null
+				&& completionCapabilities.getCompletionItem().getInsertTextModeSupport().getValueSet() != null
+				&& completionCapabilities.getCompletionItem().getInsertTextModeSupport().getValueSet()
+						.contains(InsertTextMode.AdjustIndentation);
+	}
+
+	/**
+	 * Returns the default {@link InsertTextMode} supported by the client.
+	 * 
+	 * @return the default {@link InsertTextMode} supported by the client.
+	 */
+	public InsertTextMode getDefaultInsertTextMode() {
+		if (completionCapabilities != null && completionCapabilities.getInsertTextMode() != null) {
+			return completionCapabilities.getInsertTextMode();
+		}
+		return InsertTextMode.AsIs;
 	}
 }
