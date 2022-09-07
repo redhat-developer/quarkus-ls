@@ -88,7 +88,7 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 				"{/if}";
 		testDiagnosticsFor(template, //
 				d(1, 15, 1, 17, QuteErrorCode.InvalidOperator,
-						"Invalid `XX` operator for section `#if`. Allowed operators are `[==,&&,||,!,<=,or,lt,is,eq,gt,and,ne,le,<,!=,>,ge,>=]`.",
+						"Invalid `XX` operator for section `#if`. Allowed operators are `[!,gt,>,ge,>=,lt,<,le,<=,eq,==,is,ne,!=,&&,and,||,or]`.",
 						DiagnosticSeverity.Error));
 	}
 

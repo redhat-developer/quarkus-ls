@@ -29,22 +29,51 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"{#when Machine.status}\r\n" + //
 				"  {#is | }\r\n" + // <-- completion here
 				"{/when}";
-		testCompletionFor(template, 4, //
+		testCompletionFor(template, 18, //
+				c("> : Operator", ">", r(2, 7, 2, 7)), //
+				c("gt : Operator", "gt", r(2, 7, 2, 7)), //
+				c(">= : Operator", ">=", r(2, 7, 2, 7)), //
+				c("ge : Operator", "ge", r(2, 7, 2, 7)), //
+				c("< : Operator", "<", r(2, 7, 2, 7)), //
+				c("lt : Operator", "lt", r(2, 7, 2, 7)), //
+				c("<= : Operator", "<=", r(2, 7, 2, 7)), //
+				c("le : Operator", "le", r(2, 7, 2, 7)), //
+				c("!= : Operator", "!=", r(2, 7, 2, 7)), //
+				c("ne : Operator", "ne", r(2, 7, 2, 7)), //
+				c("not : Operator", "not", r(2, 7, 2, 7)), //
+				c("in : Operator", "in", r(2, 7, 2, 7)), //
+				c("!in : Operator", "!in", r(2, 7, 2, 7)), //
+				c("ni : Operator", "ni", r(2, 7, 2, 7)), //
 				c("ON : MachineStatus", "ON", r(2, 7, 2, 7)), //
 				c("OFF : MachineStatus", "OFF", r(2, 7, 2, 7)), //
-				c("BROKEN : MachineStatus", "BROKEN", r(2, 7, 2, 7)),
-				c("in : MachineStatus", "in", r(2, 7, 2, 7)));	}
-	
+				c("BROKEN : MachineStatus", "BROKEN", r(2, 7, 2, 7)), //
+				c("in : MachineStatus", "in", r(2, 7, 2, 7)));
+	}
+
 	@Test
 	public void propertyPartSwitchIsNoExisting() throws Exception {
 		String template = "{@org.acme.Machine Machine}\r\n" + //
 				"{#switch Machine.status}\r\n" + //
 				"  {#is | }\r\n" + // <-- completion here
 				"{/switch}";
-		testCompletionFor(template, 4, //
+		testCompletionFor(template, 18, //
+				c("> : Operator", ">", r(2, 7, 2, 7)), //
+				c("gt : Operator", "gt", r(2, 7, 2, 7)), //
+				c(">= : Operator", ">=", r(2, 7, 2, 7)), //
+				c("ge : Operator", "ge", r(2, 7, 2, 7)), //
+				c("< : Operator", "<", r(2, 7, 2, 7)), //
+				c("lt : Operator", "lt", r(2, 7, 2, 7)), //
+				c("<= : Operator", "<=", r(2, 7, 2, 7)), //
+				c("le : Operator", "le", r(2, 7, 2, 7)), //
+				c("!= : Operator", "!=", r(2, 7, 2, 7)), //
+				c("ne : Operator", "ne", r(2, 7, 2, 7)), //
+				c("not : Operator", "not", r(2, 7, 2, 7)), //
+				c("in : Operator", "in", r(2, 7, 2, 7)), //
+				c("!in : Operator", "!in", r(2, 7, 2, 7)), //
+				c("ni : Operator", "ni", r(2, 7, 2, 7)), //
 				c("ON : MachineStatus", "ON", r(2, 7, 2, 7)), //
 				c("OFF : MachineStatus", "OFF", r(2, 7, 2, 7)), //
-				c("BROKEN : MachineStatus", "BROKEN", r(2, 7, 2, 7)),
+				c("BROKEN : MachineStatus", "BROKEN", r(2, 7, 2, 7)), //
 				c("in : MachineStatus", "in", r(2, 7, 2, 7)));
 	}
 
@@ -56,7 +85,7 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"{/when}";
 		testCompletionFor(template, 0);
 	}
-	
+
 	@Test
 	public void propertyPartWhenAlreadyCompletedNotOperator() throws Exception {
 		String template = "{@org.acme.Machine Machine}\r\n" + //
@@ -73,9 +102,24 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"  {#is ON }\r\n" + //
 				"  {#is | }\r\n" + // <-- completion here
 				"{/when}";
-		testCompletionFor(template, 3, //
+		testCompletionFor(template, 18, //
+				c("> : Operator", ">", r(3, 7, 3, 7)), //
+				c("gt : Operator", "gt", r(3, 7, 3, 7)), //
+				c(">= : Operator", ">=", r(3, 7, 3, 7)), //
+				c("ge : Operator", "ge", r(3, 7, 3, 7)), //
+				c("< : Operator", "<", r(3, 7, 3, 7)), //
+				c("lt : Operator", "lt", r(3, 7, 3, 7)), //
+				c("<= : Operator", "<=", r(3, 7, 3, 7)), //
+				c("le : Operator", "le", r(3, 7, 3, 7)), //
+				c("!= : Operator", "!=", r(3, 7, 3, 7)), //
+				c("ne : Operator", "ne", r(3, 7, 3, 7)), //
+				c("not : Operator", "not", r(3, 7, 3, 7)), //
+				c("in : Operator", "in", r(3, 7, 3, 7)), //
+				c("!in : Operator", "!in", r(3, 7, 3, 7)), //
+				c("ni : Operator", "ni", r(3, 7, 3, 7)), //
+				c("ON : MachineStatus", "ON", r(3, 7, 3, 7)), //
 				c("OFF : MachineStatus", "OFF", r(3, 7, 3, 7)), //
-				c("BROKEN : MachineStatus", "BROKEN", r(3, 7, 3, 7)),
+				c("BROKEN : MachineStatus", "BROKEN", r(3, 7, 3, 7)), //
 				c("in : MachineStatus", "in", r(3, 7, 3, 7)));
 	}
 
@@ -86,10 +130,11 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"  {#is ON }\r\n" + //
 				"  {#is in BROKEN |}\r\n" + // <-- completion here
 				"{/when}";
-		testCompletionFor(template, 1, //
+		testCompletionFor(template, 2, //
+				c("ON : MachineStatus", "ON", r(3, 17, 3, 17)), //
 				c("OFF : MachineStatus", "OFF", r(3, 17, 3, 17)));
 	}
-	
+
 	@Test
 	public void propertyPartWhenWithNotIn() throws Exception {
 		String template = "{@org.acme.Machine Machine}\r\n" + //
@@ -98,7 +143,7 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"{/when}";
 		testCompletionFor(template, 3, //
 				c("OFF : MachineStatus", "OFF", r(2, 13, 2, 13)), //
-				c("BROKEN : MachineStatus", "BROKEN", r(2, 13, 2, 13)),
+				c("BROKEN : MachineStatus", "BROKEN", r(2, 13, 2, 13)), //
 				c("in : MachineStatus", "in", r(2, 13, 2, 13)));
 	}
 
@@ -109,9 +154,10 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"  {#is ON }\r\n" + //
 				"  {#is ni |}\r\n" + // <-- completion here
 				"{/when}";
-		testCompletionFor(template, 3, //
+		testCompletionFor(template, 4, //
+				c("ON : MachineStatus", "ON", r(3, 10, 3, 10)), //
 				c("OFF : MachineStatus", "OFF", r(3, 10, 3, 10)), //
-				c("BROKEN : MachineStatus", "BROKEN", r(3, 10, 3, 10)),
+				c("BROKEN : MachineStatus", "BROKEN", r(3, 10, 3, 10)), //
 				c("in : MachineStatus", "in", r(3, 10, 3, 10)));
 	}
 
@@ -121,25 +167,106 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"{#switch Machine.status}\r\n" + //
 				"  {#case | }\r\n" + // <-- completion here
 				"{/switch}";
-		testCompletionFor(template, 4, //
+		testCompletionFor(template, 18, //
+				c("> : Operator", ">", r(2, 9, 2, 9)), //
+				c("gt : Operator", "gt", r(2, 9, 2, 9)), //
+				c(">= : Operator", ">=", r(2, 9, 2, 9)), //
+				c("ge : Operator", "ge", r(2, 9, 2, 9)), //
+				c("< : Operator", "<", r(2, 9, 2, 9)), //
+				c("lt : Operator", "lt", r(2, 9, 2, 9)), //
+				c("<= : Operator", "<=", r(2, 9, 2, 9)), //
+				c("le : Operator", "le", r(2, 9, 2, 9)), //
+				c("!= : Operator", "!=", r(2, 9, 2, 9)), //
+				c("ne : Operator", "ne", r(2, 9, 2, 9)), //
+				c("not : Operator", "not", r(2, 9, 2, 9)), //
+				c("in : Operator", "in", r(2, 9, 2, 9)), //
+				c("!in : Operator", "!in", r(2, 9, 2, 9)), //
+				c("ni : Operator", "ni", r(2, 9, 2, 9)), //
 				c("ON : MachineStatus", "ON", r(2, 9, 2, 9)), //
 				c("OFF : MachineStatus", "OFF", r(2, 9, 2, 9)), //
-				c("BROKEN : MachineStatus", "BROKEN", r(2, 9, 2, 9)),
+				c("BROKEN : MachineStatus", "BROKEN", r(2, 9, 2, 9)), //
 				c("in : MachineStatus", "in", r(2, 9, 2, 9)));
 	}
-	
+
 	@Test
 	public void propertyPartWhenCaseNoExisting() throws Exception {
 		String template = "{@org.acme.Machine Machine}\r\n" + //
 				"{#when Machine.status}\r\n" + //
 				"  {#case | }\r\n" + // <-- completion here
 				"{/when}";
-		testCompletionFor(template, 4, //
+		testCompletionFor(template, 18, //
+				c("> : Operator", ">", r(2, 9, 2, 9)), //
+				c("gt : Operator", "gt", r(2, 9, 2, 9)), //
+				c(">= : Operator", ">=", r(2, 9, 2, 9)), //
+				c("ge : Operator", "ge", r(2, 9, 2, 9)), //
+				c("< : Operator", "<", r(2, 9, 2, 9)), //
+				c("lt : Operator", "lt", r(2, 9, 2, 9)), //
+				c("<= : Operator", "<=", r(2, 9, 2, 9)), //
+				c("le : Operator", "le", r(2, 9, 2, 9)), //
+				c("!= : Operator", "!=", r(2, 9, 2, 9)), //
+				c("ne : Operator", "ne", r(2, 9, 2, 9)), //
+				c("not : Operator", "not", r(2, 9, 2, 9)), //
+				c("in : Operator", "in", r(2, 9, 2, 9)), //
+				c("!in : Operator", "!in", r(2, 9, 2, 9)), //
+				c("ni : Operator", "ni", r(2, 9, 2, 9)), //
 				c("ON : MachineStatus", "ON", r(2, 9, 2, 9)), //
 				c("OFF : MachineStatus", "OFF", r(2, 9, 2, 9)), //
-				c("BROKEN : MachineStatus", "BROKEN", r(2, 9, 2, 9)),
-				c("in : MachineStatus", "in", r(2, 9, 2, 9)));	}
+				c("BROKEN : MachineStatus", "BROKEN", r(2, 9, 2, 9)), //
+				c("in : MachineStatus", "in", r(2, 9, 2, 9)));
+	}
 
+	@Test
+	public void propertyPartWhenCaseCompleteOperator() throws Exception {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"{#when Machine.status}\r\n" + //
+				"  {#case | ON}\r\n" + // <-- completion here
+				"{/when}";
+		testCompletionFor(template, 14, //
+				c("> : Operator", ">", r(2, 9, 2, 9)), //
+				c("gt : Operator", "gt", r(2, 9, 2, 9)), //
+				c(">= : Operator", ">=", r(2, 9, 2, 9)), //
+				c("ge : Operator", "ge", r(2, 9, 2, 9)), //
+				c("< : Operator", "<", r(2, 9, 2, 9)), //
+				c("lt : Operator", "lt", r(2, 9, 2, 9)), //
+				c("<= : Operator", "<=", r(2, 9, 2, 9)), //
+				c("le : Operator", "le", r(2, 9, 2, 9)), //
+				c("!= : Operator", "!=", r(2, 9, 2, 9)), //
+				c("ne : Operator", "ne", r(2, 9, 2, 9)), //
+				c("not : Operator", "not", r(2, 9, 2, 9)), //
+				c("in : Operator", "in", r(2, 9, 2, 9)), //
+				c("!in : Operator", "!in", r(2, 9, 2, 9)), //
+				c("ni : Operator", "ni", r(2, 9, 2, 9)));
+	}
+
+	@Test
+	public void propertyPartWhenCaseCompleteWithMultiOperator() throws Exception {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"{#when Machine.status}\r\n" + //
+				"  {#case | ON OFF}\r\n" + // <-- completion here
+				"{/when}";
+		testCompletionFor(template, 3, //
+				c("in : Operator", "in", r(2, 9, 2, 9)), //
+				c("ni : Operator", "ni", r(2, 9, 2, 9)), //
+				c("!in : Operator", "!in", r(2, 9, 2, 9)));
+	}
+
+	@Test
+	public void propertyPartWhenCaseCompleteAlreadyDone() throws Exception {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"{#when Machine.status}\r\n" + //
+				"  {#case | lt ON}\r\n" + //
+				"{/when}";
+		testCompletionFor(template, 0);
+	}
+
+	@Test
+	public void propertyPartWhenCaseCompleteAlreadyDoneMulti() throws Exception {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"{#when Machine.status}\r\n" + //
+				"  {#case | ni ON OFF}\r\n" + //
+				"{/when}";
+		testCompletionFor(template, 0);
+	}
 
 	@Test
 	public void propertyPartWhenEmptyWhen() throws Exception {
@@ -165,7 +292,7 @@ public class QuteCompletionInExpressionWithWhenSectionTest {
 				"{/when}";
 		testCompletionFor(template, 0);
 	}
-	
+
 	@Test
 	public void propertyPartWhenObject() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
