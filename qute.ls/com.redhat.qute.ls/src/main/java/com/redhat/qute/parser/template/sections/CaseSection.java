@@ -11,10 +11,10 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template.sections;
 
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.CaseOperator;
@@ -43,25 +43,36 @@ public class CaseSection extends Section {
 
 	public static final String TAG = "case";
 
+	public static enum CompletionCaseResult {
+		ALL_OPERATOR_AND_FIELD, //
+		ALL_OPERATOR, //
+		MULTI_OPERATOR_ONLY, //
+		FIELD_ONLY, //
+		NONE;
+	}
+
 	private static final Map<String, CaseOperator> caseOperators;
 
 	static {
-		caseOperators = new HashMap<>();
-		registerOperator("gt", false, ">"); // greater than
-		registerOperator("ge", false, ">="); // greater than or equal to
-		registerOperator("lt", false, "<"); // less than
-		registerOperator("le", false, "<="); // less than or equal to
-		registerOperator("not", false, "ne", "!="); // not equals
-		registerOperator("in", true); // Is in
-		registerOperator("ni", true, "!in"); // Is not in
+		caseOperators = new LinkedHashMap<>();
+		// https://quarkus.io/guides/qute-reference#when_section
+		registerOperator("gt", "Greater than. Example: {#case gt 10}.", false, ">"); // greater than
+		registerOperator("ge", "Greater than or equal to. Example: {#case >= 10}", false, ">="); // greater than or
+		// equal to
+		registerOperator("lt", "Less than. Example: {#case < 10}.", false, "<"); // less than
+		registerOperator("le", "Less than or equal to. Example: {#case le 10}.", false, "<="); // less than or equal to
+		registerOperator("not", "Not equal. Example: {#is not 10},{#case != 10}.", false, "ne", "!="); // not equals
+		registerOperator("in", "Is in. Example: {#is in 'foo' 'bar' 'baz'}.", true); // Is in
+		registerOperator("ni", "Is not in. Example: {#is !in 1 2 3}.", true, "!in"); // Is not in
 	}
 
-	private static void registerOperator(String name, boolean isMulti, String... aliases) {
-		CaseOperator operator = new CaseOperator(name, isMulti, aliases);
+	private static void registerOperator(String name, String documentation, boolean isMulti, String... aliases) {
+		CaseOperator operator = new CaseOperator(name, documentation, null, isMulti);
 		caseOperators.put(operator.getName(), operator);
 		if (aliases != null) {
 			for (String alias : aliases) {
-				caseOperators.put(alias, operator);
+				CaseOperator aliasOperator = operator = new CaseOperator(alias, documentation, name, isMulti);
+				caseOperators.put(alias, aliasOperator);
 			}
 		}
 	}
@@ -72,6 +83,14 @@ public class CaseSection extends Section {
 
 	CaseSection(String tag, int start, int end) {
 		super(tag, start, end);
+	}
+
+	@Override
+	protected void initializeParameters(List<Parameter> parameters) {
+		// All parameters can have expression (ex : {#case OFF})
+		for (Parameter parameter : parameters) {
+			parameter.setCanHaveExpression(true);
+		}
 	}
 
 	@Override
@@ -97,35 +116,57 @@ public class CaseSection extends Section {
 		visitor.endVisit(this);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Set<String> getAllowedOperators() {
-		return caseOperators.keySet();
+	public Collection<CaseOperator> getAllowedOperators() {
+		return caseOperators.values();
 	}
 
 	/**
-	 * Returns true if completion should be done in the current case section.
+	 * Returns the CompletionCaseResult of the current completion request.
 	 *
-	 * @return true if completion should be done in the current case section.
+	 * @return the CompletionCaseResult of the current completion request.
 	 */
-	public boolean shouldCompleteWhenSection() {
-		int paramCount = getParameters().size();
-		if (paramCount == 0) {
-			return true;
+	public CompletionCaseResult getCompletionCaseResultAt(int offset, Parameter triggeredParameter) {
+		List<Parameter> parameters = super.getParameters();
+		Parameter firstParameter = getParameterAtIndex(0);
+		int increment = triggeredParameter != null ? 1 : 0;
+		if (parameters.size() == (0 + increment)) {
+			// {#case |}
+			// {#case i|n}
+			return CompletionCaseResult.ALL_OPERATOR_AND_FIELD;
 		}
+
+		boolean beforeFirstParam = (offset < firstParameter.getStart() + increment);
 		CaseOperator operator = getCaseOperator();
-		if (operator == null) {
-			if (paramCount == 1) {
-				// There is only parameter and it is not a operator
-				return false;
+		if (parameters.size() == (1 + increment)) {
+			if (beforeFirstParam) {
+				// {#case | ON}
+				// {#case i|n ON}
+				return CompletionCaseResult.ALL_OPERATOR;
 			}
-			return true;
+			if (operator == null) {
+				// {#case ON |}
+				// {#case ON O|FF}
+				return CompletionCaseResult.NONE;
+			}
+			// {#case in |}
+			// {#case in O|N}
+			return CompletionCaseResult.FIELD_ONLY;
 		}
-		if (paramCount == 2 && !operator.isMulti()) {
-			// first parameter is operator that only allows single value, second is the
-			// existing Enum
-			return false;
+		if (parameters.size() >= (2 + increment)) {
+			if (operator == null && beforeFirstParam) {
+				// {#case | ON OFF}
+				return CompletionCaseResult.MULTI_OPERATOR_ONLY;
+			}
+			if (operator == null || !operator.isMulti() || beforeFirstParam) {
+				// {#case BREAK ON OFF |}
+				return CompletionCaseResult.NONE;
+			}
+			// {#case in ON OFF |}
+			return CompletionCaseResult.FIELD_ONLY;
 		}
-		return true;
+		return CompletionCaseResult.NONE;
 	}
 
 	/**

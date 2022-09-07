@@ -11,10 +11,10 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.redhat.qute.parser.CancelChecker;
@@ -552,7 +552,7 @@ public abstract class Section extends Node implements ParametersContainer {
 	 * 
 	 * @return the allowed operators for the expression inside section.
 	 */
-	public Set<String> getAllowedOperators() {
+	public <T extends Operator> Collection<T> getAllowedOperators() {
 		return Collections.emptySet();
 	}
 
