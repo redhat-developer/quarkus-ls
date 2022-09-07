@@ -20,11 +20,14 @@ package com.redhat.qute.parser.template;
 public class Operator {
 
 	private final String name;
-	private final String[] aliases;
+	private final String documentation;
 
-	public Operator(String name, String[] aliases) {
+	private final String aliasFor;
+
+	public Operator(String name, String documentation, String aliasFor) {
 		this.name = name;
-		this.aliases = aliases;
+		this.documentation = documentation + (aliasFor != null ? " (alias for `" + aliasFor + "`)" : "");
+		this.aliasFor = aliasFor;
 	}
 
 	/**
@@ -37,11 +40,21 @@ public class Operator {
 	}
 
 	/**
-	 * Returns the aliases (ex : for "eq", aliases are "==", "is")
+	 * Returns the operator documentation.
 	 * 
-	 * @return the aliases (ex : for "eq", aliases are "==", "is")
+	 * @return the operator documentation.
 	 */
-	public String[] getAliases() {
-		return aliases;
+	public String getDocumentation() {
+		return documentation;
 	}
+
+	/**
+	 * Returns the operator that the current operator is for (ex : for "<", aliasFor is "lt")
+	 * 
+	 * @return the operator that the current operator is for (ex : for "<", aliasFor is "lt")
+	 */
+	public String getAliasFor() {
+		return aliasFor;
+	}
+
 }

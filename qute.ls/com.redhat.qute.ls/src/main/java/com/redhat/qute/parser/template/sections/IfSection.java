@@ -11,11 +11,11 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template.sections;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.redhat.qute.parser.condition.ConditionExpression;
 import com.redhat.qute.parser.condition.ConditionParser;
@@ -45,29 +45,30 @@ public class IfSection extends Section {
 	private static final Map<String, Operator> operators;
 
 	static {
-		operators = new HashMap<>();
+		operators = new LinkedHashMap<>();
 		// https://quarkus.io/guides/qute-reference#if_section
-		registerOperator("!"); // logical complement
-		registerOperator("gt", ">"); // greater than
-		registerOperator("ge", ">="); // greater than or equal to
-		registerOperator("lt", "<"); // less than
-		registerOperator("le", "<="); // less than or equal to
-		registerOperator("eq", "==", "is"); // equals
-		registerOperator("ne", "!="); // not equals
-		registerOperator("&&", "and"); // logical AND (short-circuiting)
-		registerOperator("||", "or"); // logical OR (short-circuiting)
+		registerOperator("!", "Logical complement."); // logical complement
+		registerOperator("gt", "Greater than.", ">"); // greater than
+		registerOperator("ge", "Greater than or equal to.", ">="); // greater than or equal to
+		registerOperator("lt", "Less than.", "<"); // less than
+		registerOperator("le", "Less than or equal to.", "<="); // less than or equal to
+		registerOperator("eq", "Equals.", "==", "is"); // equals
+		registerOperator("ne", "Not equals.", "!="); // not equals
+		registerOperator("&&", "Logical AND (short-circuiting).", "and"); // logical AND (short-circuiting)
+		registerOperator("||", "Logical OR (short-circuiting)", "or"); // logical OR (short-circuiting)
 	}
 
 	public IfSection(int start, int end) {
 		super(TAG, start, end);
 	}
 
-	private static void registerOperator(String name, String... aliases) {
-		Operator operator = new Operator(name, aliases);
+	private static void registerOperator(String name, String documentation, String... aliases) {
+		Operator operator = new Operator(name, documentation, null);
 		operators.put(operator.getName(), operator);
 		if (aliases != null) {
 			for (String alias : aliases) {
-				operators.put(alias, operator);
+				Operator aliasOperator = new Operator(alias, documentation, name);
+				operators.put(alias, aliasOperator);
 			}
 		}
 	}
@@ -117,7 +118,7 @@ public class IfSection extends Section {
 	}
 
 	@Override
-	public Set<String> getAllowedOperators() {
-		return operators.keySet();
+	public Collection<Operator> getAllowedOperators() {
+		return operators.values();
 	}
 }

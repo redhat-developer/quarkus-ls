@@ -11,10 +11,10 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template.sections;
 
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.CaseOperator;
@@ -46,22 +46,24 @@ public class CaseSection extends Section {
 	private static final Map<String, CaseOperator> caseOperators;
 
 	static {
-		caseOperators = new HashMap<>();
-		registerOperator("gt", false, ">"); // greater than
-		registerOperator("ge", false, ">="); // greater than or equal to
-		registerOperator("lt", false, "<"); // less than
-		registerOperator("le", false, "<="); // less than or equal to
-		registerOperator("not", false, "ne", "!="); // not equals
-		registerOperator("in", true); // Is in
-		registerOperator("ni", true, "!in"); // Is not in
+		caseOperators = new LinkedHashMap<>();
+		// https://quarkus.io/guides/qute-reference#when_section
+		registerOperator("gt", "Greater than. Example: {#case gt 10}.", false, ">"); // greater than
+		registerOperator("ge", "Greater than or equal to. Example: {#case >= 10}", false, ">="); // greater than or equal to
+		registerOperator("lt", "Less than. Example: {#case < 10}.", false, "<"); // less than
+		registerOperator("le", "Less than or equal to. Example: {#case le 10}.", false, "<="); // less than or equal to
+		registerOperator("not", "Not equal. Example: {#is not 10},{#case != 10}.", false, "ne", "!="); // not equals
+		registerOperator("in", "Is in. Example: {#is in 'foo' 'bar' 'baz'}.", true); // Is in
+		registerOperator("ni", "Is not in. Example: {#is !in 1 2 3}.", true, "!in"); // Is not in
 	}
 
-	private static void registerOperator(String name, boolean isMulti, String... aliases) {
-		CaseOperator operator = new CaseOperator(name, isMulti, aliases);
+	private static void registerOperator(String name, String documentation, boolean isMulti, String... aliases) {
+		CaseOperator operator = new CaseOperator(name, documentation, null, isMulti);
 		caseOperators.put(operator.getName(), operator);
 		if (aliases != null) {
 			for (String alias : aliases) {
-				caseOperators.put(alias, operator);
+				CaseOperator aliasOperator = operator = new CaseOperator(alias, documentation, name, isMulti);
+				caseOperators.put(alias, aliasOperator);
 			}
 		}
 	}
@@ -97,9 +99,10 @@ public class CaseSection extends Section {
 		visitor.endVisit(this);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Set<String> getAllowedOperators() {
-		return caseOperators.keySet();
+	public Collection<CaseOperator> getAllowedOperators() {
+		return caseOperators.values();
 	}
 
 	/**
@@ -114,13 +117,13 @@ public class CaseSection extends Section {
 		}
 		CaseOperator operator = getCaseOperator();
 		if (operator == null) {
-			if (paramCount == 1) {
-				// There is only parameter and it is not a operator
-				return false;
+			if (paramCount == 0) {
+				// There is more than 1 parameter and it is not a operator
+				return true;
 			}
-			return true;
+			return false;
 		}
-		if (paramCount == 2 && !operator.isMulti()) {
+		if (paramCount >= 2 && !operator.isMulti()) {
 			// first parameter is operator that only allows single value, second is the
 			// existing Enum
 			return false;
@@ -168,6 +171,17 @@ public class CaseSection extends Section {
 	 */
 	public boolean isCaseOperator(Parameter parameter) {
 		return parameter == getValidParameterOperator();
+	}
+
+	/**
+	 * Returns true if the offset is in the expected operator position.
+	 *
+	 * @return true if the offset is in the expected operator position.
+	 */
+	public boolean isInOperatorPosition(int offset) {
+		// Ex:
+		// {#case | ON} --> is in the position where the operator could be
+		return offset >= getStartTagNameCloseOffset() && offset <= getStartParametersOffset();
 	}
 
 }

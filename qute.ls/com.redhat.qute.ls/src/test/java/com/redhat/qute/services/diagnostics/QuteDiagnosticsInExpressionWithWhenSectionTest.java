@@ -214,7 +214,7 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 				"		{/when}";
 		testDiagnosticsFor(template, //
 				d(2, 7, 2, 10, QuteErrorCode.InvalidOperator,
-						"Invalid `XXX` operator for section `#is`. Allowed operators are `[<=, in, !in, lt, gt, not, ne, le, ni, <, !=, >, ge, >=]`.",
+						"Invalid `XXX` operator for section `#is`. Allowed operators are `[gt, >, ge, >=, lt, <, le, <=, not, ne, !=, in, ni, !in]`.",
 						DiagnosticSeverity.Error));
 	}
 
@@ -226,7 +226,7 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 				"		{/switch}";
 		testDiagnosticsFor(template, //
 				d(2, 7, 2, 10, QuteErrorCode.InvalidOperator,
-						"Invalid `XXX` operator for section `#is`. Allowed operators are `[<=, in, !in, lt, gt, not, ne, le, ni, <, !=, >, ge, >=]`.",
+						"Invalid `XXX` operator for section `#is`. Allowed operators are `[gt, >, ge, >=, lt, <, le, <=, not, ne, !=, in, ni, !in]`.",
 						DiagnosticSeverity.Error));
 	}
 
@@ -238,7 +238,7 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 				"		{/when}";
 		testDiagnosticsFor(template, //
 				d(2, 7, 2, 9, QuteErrorCode.InvalidOperator,
-						"Invalid `ON` operator for section `#is`. Allowed operators are `[<=, in, !in, lt, gt, not, ne, le, ni, <, !=, >, ge, >=]`.",
+						"Invalid `ON` operator for section `#is`. Allowed operators are `[gt, >, ge, >=, lt, <, le, <=, not, ne, !=, in, ni, !in]`.",
 						DiagnosticSeverity.Error));
 	}
 

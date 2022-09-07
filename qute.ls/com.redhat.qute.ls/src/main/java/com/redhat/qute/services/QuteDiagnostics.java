@@ -52,6 +52,7 @@ import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
+import com.redhat.qute.parser.template.Operator;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.ParameterDeclaration;
 import com.redhat.qute.parser.template.ParameterDeclaration.JavaTypeRangeOffset;
@@ -242,6 +243,7 @@ class QuteDiagnostics {
 									QuteErrorCode.InvalidOperator, operatorName, section.getTag(),
 									section.getAllowedOperators() //
 											.stream() //
+											.map(Operator::getName) //
 											.collect(Collectors.joining(",", "[", "]")));
 							diagnostics.add(diagnostic);
 						}
@@ -1165,6 +1167,7 @@ class QuteDiagnostics {
 							QuteErrorCode.InvalidOperator, firstParameter.getName(), caseSection.getTag(),
 							caseSection.getAllowedOperators() //
 									.stream() //
+									.map(Operator::getName) //
 									.collect(Collectors.joining(", ", "[", "]")));
 					diagnostics.add(diagnostic);
 					return;
@@ -1191,6 +1194,7 @@ class QuteDiagnostics {
 							QuteErrorCode.InvalidOperator, parameterName, caseSection.getTag(),
 							caseSection.getAllowedOperators() //
 									.stream() //
+									.map(Operator::getName) //
 									.collect(Collectors.joining(", ", "[", "]")));
 					diagnostics.add(diagnostic);
 					return;
@@ -1213,6 +1217,7 @@ class QuteDiagnostics {
 							QuteErrorCode.InvalidOperator, parameterName, caseSection.getTag(),
 							caseSection.getAllowedOperators() //
 									.stream() //
+									.map(Operator::getName) //
 									.collect(Collectors.joining(", ", "[", "]")));
 					diagnostics.add(diagnostic);
 					return;

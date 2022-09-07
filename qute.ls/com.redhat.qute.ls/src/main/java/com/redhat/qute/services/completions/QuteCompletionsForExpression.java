@@ -43,6 +43,7 @@ import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.expression.Parts.PartKind;
+import com.redhat.qute.parser.template.CaseOperator;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
@@ -454,6 +455,35 @@ public class QuteCompletionsForExpression {
 					}
 				}
 			}
+		}
+	}
+
+	/**
+	 * Fill completion list with the case operators.
+	 *
+	 * @param caseSection        the Case Section.
+	 * @param range              the range.
+	 * @param existingParameters the existing parameters.
+	 * @param list               the completion list.
+	 */
+	private void fillCaseOperators(CaseSection caseSection, Range range, Set<String> existingParameters,
+			CompletionList list) {
+		for (CaseOperator operator : caseSection.getAllowedOperators()) {
+			// If there are more than one parameters present, should suggest only operator
+			// allowing multiple parameters
+			if (caseSection.getParameters().size() > 1 && !operator.isMulti()) {
+				continue;
+			}
+			CompletionItem item = new CompletionItem();
+			item.setLabel(operator.getName() + " : Operator");
+			item.setFilterText(operator.getName());
+			item.setKind(CompletionItemKind.Operator);			
+			item.setDocumentation(operator.getDocumentation());
+			TextEdit textEdit = new TextEdit();
+			textEdit.setRange(range);
+			textEdit.setNewText(operator.getName());
+			item.setTextEdit(Either.forLeft(textEdit));
+			list.getItems().add(item);
 		}
 	}
 
@@ -869,8 +899,16 @@ public class QuteCompletionsForExpression {
 											// If there is no operator or an operator that allows only one parameter, don't
 											// complete if there already is one present
 											if (caseSection.shouldCompleteWhenSection()) {
-												fillCompletionFields(whenJavaType, javaTypeAccessibility, filter,
-														range, projectUri, existingVars, list);
+												if ((caseSection.isInOperatorPosition(offset) && parameters.size() > 0)) {
+													continue;
+												}
+												fillCompletionFields(whenJavaType, javaTypeAccessibility, filter, range,
+														projectUri, existingVars, list);
+											}
+											// Complete with operator if there is no exisiting
+											if (caseSection.isInOperatorPosition(offset)
+													&& caseSection.getValidParameterOperator() == null) {
+												fillCaseOperators(caseSection, range, existingVars, list);
 											}
 										}
 									}
