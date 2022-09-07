@@ -457,6 +457,34 @@ public class QuteCompletionsForExpression {
 		}
 	}
 
+	/**
+	 * Fill completion list with the case operators.
+	 *
+	 * @param caseSection        the Case Section.
+	 * @param range              the range.
+	 * @param existingParameters the existing parameters.
+	 * @param list               the completion list.
+	 */
+	private void fillCaseOperators(CaseSection caseSection, Range range, Set<String> existingParameters,
+			CompletionList list) {
+		for (String operator : CaseSection.getCompletionOperators()) {
+			// If there are more than one parameters present, should suggest only operator
+			// allowing multiple parameters
+			if (caseSection.getParameters().size() > 1 && !CaseSection.isMulti(operator)) {
+				continue;
+			}
+			CompletionItem item = new CompletionItem();
+			item.setLabel(operator + " : Operator");
+			item.setFilterText(operator);
+			item.setKind(CompletionItemKind.Operator);
+			TextEdit textEdit = new TextEdit();
+			textEdit.setRange(range);
+			textEdit.setNewText(operator);
+			item.setTextEdit(Either.forLeft(textEdit));
+			list.getItems().add(item);
+		}
+	}
+
 	private static boolean isIgnoreSuperclasses(ResolvedJavaTypeInfo baseType,
 			JavaTypeAccessibiltyRule javaTypeAccessibility, JavaTypeFilter filter) {
 		return filter != null && filter.isIgnoreSuperclasses(baseType, javaTypeAccessibility);
@@ -869,8 +897,16 @@ public class QuteCompletionsForExpression {
 											// If there is no operator or an operator that allows only one parameter, don't
 											// complete if there already is one present
 											if (caseSection.shouldCompleteWhenSection()) {
-												fillCompletionFields(whenJavaType, javaTypeAccessibility, filter,
-														range, projectUri, existingVars, list);
+												if ((caseSection.isInOperatorPosition(offset) && parameters.size() > 0)) {
+													continue;
+												}
+												fillCompletionFields(whenJavaType, javaTypeAccessibility, filter, range,
+														projectUri, existingVars, list);
+											}
+											// Complete with operator if there is no exisiting
+											if (caseSection.isInOperatorPosition(offset)
+													&& caseSection.getValidParameterOperator() == null) {
+												fillCaseOperators(caseSection, range, existingVars, list);
 											}
 										}
 									}

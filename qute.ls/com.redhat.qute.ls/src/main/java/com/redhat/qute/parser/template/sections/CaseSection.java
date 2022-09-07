@@ -12,8 +12,10 @@
 package com.redhat.qute.parser.template.sections;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.CaseOperator;
@@ -44,6 +46,8 @@ public class CaseSection extends Section {
 
 	private static final Map<String, CaseOperator> caseOperators;
 
+	private static final Set<String> completionOperators;
+
 	static {
 		caseOperators = new HashMap<>();
 		registerOperator("gt", false, ">"); // greater than
@@ -53,6 +57,21 @@ public class CaseSection extends Section {
 		registerOperator("not", false, "ne", "!="); // not equals
 		registerOperator("in", true); // Is in
 		registerOperator("ni", true, "!in"); // Is not in
+	}
+
+	static {
+		completionOperators = new HashSet<String>();
+		completionOperators.add(">");
+		completionOperators.add(">=");
+		completionOperators.add("<");
+		completionOperators.add("<=");
+		completionOperators.add("!=");
+		completionOperators.add("in");
+		completionOperators.add("!in");
+	}
+
+	public static Set<String> getCompletionOperators() {
+		return completionOperators;
 	}
 
 	private static void registerOperator(String name, boolean isMulti, String... aliases) {
@@ -108,13 +127,13 @@ public class CaseSection extends Section {
 		}
 		CaseOperator operator = getOperator();
 		if (operator == null) {
-			if (paramCount == 1) {
-				// There is only parameter and it is not a operator
-				return false;
+			if (paramCount == 0) {
+				// There is more than 1 parameter and it is not a operator
+				return true;
 			}
-			return true;
+			return false;
 		}
-		if (paramCount == 2 && !operator.isMulti()) {
+		if (paramCount >= 2 && !operator.isMulti()) {
 			// first parameter is operator that only allows single value, second is the
 			// existing Enum
 			return false;
@@ -157,6 +176,26 @@ public class CaseSection extends Section {
 	 */
 	public boolean isCaseOperator(Parameter parameter) {
 		return parameter == getValidParameterOperator();
+	}
+
+	/**
+	 * Returns true if the offset is in the expected operator position.
+	 *
+	 * @return true if the offset is in the expected operator position.
+	 */
+	public boolean isInOperatorPosition(int offset) {
+		// Ex:
+		// {#case | ON} --> is in the position where the operator could be
+		return offset >= getStartTagNameCloseOffset() && offset <= getStartParametersOffset();
+	}
+
+	/**
+	 * Returns true if the given operator expects mutiple parameters.
+	 *
+	 * @return true if the given operator expects mutiple parameters.
+	 */
+	public static boolean isMulti(String operator) {
+		return caseOperators.get(operator).isMulti();
 	}
 
 }
