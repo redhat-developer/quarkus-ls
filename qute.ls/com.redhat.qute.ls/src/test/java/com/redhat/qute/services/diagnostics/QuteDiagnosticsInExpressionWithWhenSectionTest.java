@@ -36,7 +36,7 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 						"Unexpected type `java.lang.Integer` in `item.name`. Expected `java.lang.String`.",
 						DiagnosticSeverity.Error));
 	}
-	
+
 	@Test
 	public void switchExpressionTypeMismatchObjectPart() {
 		String template = "{@java.lang.String name}\r\n" + //
@@ -49,7 +49,7 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 						"Unexpected type `java.lang.Integer` in `name`. Expected `java.lang.String`.",
 						DiagnosticSeverity.Error));
 	}
-	
+
 	@Test
 	public void switchExpressionTypeMismatchObjectPartInvalidPart() {
 		String template = "{@java.lang.String name}\r\n" + //
@@ -62,7 +62,7 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 						"Unexpected value `XXX` in `name`. Expected value of type `java.lang.String`.",
 						DiagnosticSeverity.Error));
 	}
-	
+
 	@Test
 	public void switchExpressionTypeMismatchSectionSwitch() {
 		String template = "{@java.lang.String name}\r\n" + //
@@ -71,7 +71,7 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 				"		{/switch}";
 		testDiagnosticsFor(template);
 	}
-	
+
 	@Test
 	public void switchExpressionTypeMismatchSectionWhen() {
 		String template = "{@java.lang.String name}\r\n" + //
@@ -80,17 +80,16 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 				"		{/when}";
 		testDiagnosticsFor(template);
 	}
-	
+
 	@Test
 	public void switchExpressionTypeNoParent() {
 		String template = "{@java.lang.String name}\r\n" + //
 				"		{#case \"Apple\"}";
 		testDiagnosticsFor(template, //
 				d(1, 3, 1, 8, QuteErrorCode.InvalidParentInCaseSection,
-						"`case` section must be hosted in a #switch or #when section.",
-						DiagnosticSeverity.Error));
+						"`case` section must be hosted in a #switch or #when section.", DiagnosticSeverity.Error));
 	}
-	
+
 	@Test
 	public void switchExpressionTypeMismatchSectionIf() {
 		String template = "{@java.lang.String name}\r\n" + //
@@ -99,10 +98,9 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 				"		{/if}";
 		testDiagnosticsFor(template, //
 				d(2, 3, 2, 8, QuteErrorCode.InvalidParentInCaseSection,
-						"`case` section must be hosted in a #switch or #when section.",
-						DiagnosticSeverity.Error));
+						"`case` section must be hosted in a #switch or #when section.", DiagnosticSeverity.Error));
 	}
-	
+
 	@Test
 	public void switchExpressionTypeMismatchInvalidSection() {
 		String template = "{@java.lang.String name}\r\n" + //
@@ -110,11 +108,10 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 				"		{#XXX \"Apple\"}\r\n" + //
 				"		{/switch}";
 		testDiagnosticsFor(template, //
-				d(2, 3, 2, 7, QuteErrorCode.UndefinedSectionTag,
-						"No section helper found for `XXX`.",
+				d(2, 3, 2, 7, QuteErrorCode.UndefinedSectionTag, "No section helper found for `XXX`.",
 						DiagnosticSeverity.Error));
 	}
-	
+
 	@Test
 	public void switchExpressionTypeMismatchInvalidParent() {
 		String template = "{@java.lang.String name}\r\n" + //
@@ -123,8 +120,7 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 				"		{#case 123}\r\n" + //
 				"		{/switch}";
 		testDiagnosticsFor(template, //
-				d(1, 11, 1, 14, QuteErrorCode.UndefinedObject,
-						"`XXX` cannot be resolved to an object.",
+				d(1, 11, 1, 14, QuteErrorCode.UndefinedObject, "`XXX` cannot be resolved to an object.",
 						DiagnosticSeverity.Warning));
 	}
 
@@ -207,6 +203,101 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 		testDiagnosticsFor(template, //
 				d(4, 7, 4, 21, QuteErrorCode.UnexpectedValueInCaseSection,
 						"Unexpected value `BAD_ENUM_VALUE` in `Machine.getMachine()`. Expected value of type `org.acme.MachineStatus`.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void whenExpressionOperatorInvalidOperatorEnum() {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"		{#when Machine.status}\r\n" + //
+				"		{#is XXX ON}\r\n" + //
+				"		{/when}";
+		testDiagnosticsFor(template, //
+				d(2, 7, 2, 10, QuteErrorCode.InvalidOperator,
+						"Invalid `XXX` operator for section `#is`. Allowed operators are `[<=, in, !in, lt, gt, not, ne, le, ni, <, !=, >, ge, >=]`.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void whenExpressionOperatorInvalidOperator() {
+		String template = "{@java.lang.String name}\r\n" + //
+				"		{#switch name}\r\n" + //
+				"		{#is XXX \"Apple\"}\r\n" + //
+				"		{/switch}";
+		testDiagnosticsFor(template, //
+				d(2, 7, 2, 10, QuteErrorCode.InvalidOperator,
+						"Invalid `XXX` operator for section `#is`. Allowed operators are `[<=, in, !in, lt, gt, not, ne, le, ni, <, !=, >, ge, >=]`.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void whenExpressionOperatorTooManyParamNoOperator() {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"		{#when Machine.getMachine()}\r\n" + //
+				"		{#is ON OFF}\r\n" + //
+				"		{/when}";
+		testDiagnosticsFor(template, //
+				d(2, 7, 2, 9, QuteErrorCode.InvalidOperator,
+						"Invalid `ON` operator for section `#is`. Allowed operators are `[<=, in, !in, lt, gt, not, ne, le, ni, <, !=, >, ge, >=]`.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void whenExpressionOperatorTooManyParamSingleOperator() {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"		{#when Machine.getMachine()}\r\n" + //
+				"		{#is ne ON OFF}\r\n" + //
+				"		{/when}";
+		testDiagnosticsFor(template, //
+				d(2, 13, 2, 16, QuteErrorCode.UnexpectedParameter,
+						"Unexpected operand `OFF`. The operator `ne` in the `#is` section expects only one parameter.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void whenExpressionOperatorTooManyParamSingleOperatorMulti() {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"		{#when Machine.getMachine()}\r\n" + //
+				"		{#is ne ON OFF BROKEN}\r\n" + //
+				"		{/when}";
+		testDiagnosticsFor(template, //
+				d(2, 13, 2, 16, QuteErrorCode.UnexpectedParameter,
+						"Unexpected operand `OFF`. The operator `ne` in the `#is` section expects only one parameter.",
+						DiagnosticSeverity.Error),
+				d(2, 17, 2, 23, QuteErrorCode.UnexpectedParameter,
+						"Unexpected operand `BROKEN`. The operator `ne` in the `#is` section expects only one parameter.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void whenExpressionOperatorTooManyParamSameNameAsOperator() {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"		{#when Machine.status}\r\n" + //
+				"		{#is ne in in}\r\n" + //
+				"		{/when}";
+		testDiagnosticsFor(template, //
+				d(2, 13, 2, 15, QuteErrorCode.UnexpectedParameter,
+						"Unexpected operand `in`. The operator `ne` in the `#is` section expects only one parameter.",
+						DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void whenExpressionOperatorExpectedParam() {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"		{#when Machine.getMachine()}\r\n" + //
+				"		{#is in ON OFF}\r\n" + //
+				"		{/when}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void whenExpressionOperatorNoParameters() {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"		{#when Machine.status}\r\n" + //
+				"		{#case}\r\n" + //
+				"		{/when}";
+		testDiagnosticsFor(template, //
+				d(2, 3, 2, 8, QuteErrorCode.MissingParameter, "A parameter is required in the `#case` section.",
 						DiagnosticSeverity.Error));
 	}
 }
