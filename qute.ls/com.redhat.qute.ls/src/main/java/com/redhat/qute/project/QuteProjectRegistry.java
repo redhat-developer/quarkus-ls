@@ -39,6 +39,7 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
+import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
@@ -52,6 +53,7 @@ import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteJavaDefinitionProvider;
 import com.redhat.qute.ls.api.QuteJavaTypesProvider;
+import com.redhat.qute.ls.api.QuteJavadocProvider;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
@@ -67,6 +69,7 @@ import com.redhat.qute.project.datamodel.resolvers.ValueResolversRegistry;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.ReflectionJavaTypeFilter;
 import com.redhat.qute.settings.QuteNativeSettings;
+import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.StringUtils;
 
 /**
@@ -75,7 +78,8 @@ import com.redhat.qute.utils.StringUtils;
  * @author Angelo ZERR
  *
  */
-public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataModelProjectProvider, QuteUserTagProvider {
+public class QuteProjectRegistry
+		implements QuteProjectInfoProvider, QuteDataModelProjectProvider, QuteUserTagProvider, QuteJavadocProvider {
 
 	private final ValueResolversRegistry valueResolversRegistry;
 
@@ -121,15 +125,18 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 
 	private final QuteJavaDefinitionProvider definitionProvider;
 
+	private final QuteJavadocProvider javadocProvider;
+
 	public QuteProjectRegistry(QuteJavaTypesProvider classProvider, QuteJavaDefinitionProvider definitionProvider,
 			QuteResolvedJavaTypeProvider resolvedClassProvider, QuteDataModelProjectProvider dataModelProvider,
-			QuteUserTagProvider userTagsProvider) {
+			QuteUserTagProvider userTagsProvider, QuteJavadocProvider javadocProvider) {
 		this.javaTypeProvider = classProvider;
 		this.definitionProvider = definitionProvider;
 		this.projects = new HashMap<>();
 		this.resolvedTypeProvider = resolvedClassProvider;
 		this.dataModelProvider = dataModelProvider;
 		this.userTagProvider = userTagsProvider;
+		this.javadocProvider = javadocProvider;
 		this.valueResolversRegistry = new ValueResolversRegistry();
 	}
 
@@ -827,20 +834,28 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			JavaParameterInfo parameterInfo = method.getParameters().get(i + (virtualMethod ? 1 : 0));
 			ResolvedJavaTypeInfo result = parameterTypes.get(i);
 
-			String parameterType = parameterInfo.getType();
-			if (!isMatchType(result, parameterType, projectUri)) {
-				return false;
+			// If the type info isn't available, assume the type matches.
+			// This is helpful eg. when getting the docs for a method whose
+			// parameters haven't been input correctly yet.
+			if (result != null) {
+				String parameterType = parameterInfo.getType();
+				if (!isMatchType(result, parameterType, projectUri)) {
+					return false;
+				}
 			}
 		}
 
 		if (varargs) {
 			// Validate varargs parameters
 			for (int i = nbParameters - 1; i < declaredNbParameters; i++) {
-				ResolvedJavaTypeInfo result = parameterTypes.get(i);
-
 				String parameterType = lastParameter.getVarArgType();
-				if (!isMatchType(result, parameterType, projectUri)) {
-					return false;
+				ResolvedJavaTypeInfo result = parameterTypes.get(i);
+				// If the type info isn't available, assume the type matches
+				// (see note above)
+				if (result != null) {
+					if (!isMatchType(result, parameterType, projectUri)) {
+						return false;
+					}
 				}
 			}
 		}
@@ -1294,5 +1309,10 @@ public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataMod
 			}
 		}
 		return ReflectionJavaTypeFilter.INSTANCE;
+	}
+
+	@Override
+	public CompletableFuture<String> getJavadoc(QuteJavadocParams params) {
+		return javadocProvider.getJavadoc(params);
 	}
 }

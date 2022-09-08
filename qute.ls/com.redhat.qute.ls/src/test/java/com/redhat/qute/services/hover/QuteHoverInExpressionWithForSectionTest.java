@@ -102,7 +102,9 @@ public class QuteHoverInExpressionWithForSectionTest {
 				System.lineSeparator() + //
 				"String org.acme.Item.name" + //
 				System.lineSeparator() + //
-				"```", //
+				"```" + System.lineSeparator() + //
+				"---" + System.lineSeparator() + //
+				"The name of the item", //
 				r(2, 8, 2, 12));
 	}
 

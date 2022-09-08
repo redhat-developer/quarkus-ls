@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -29,6 +30,7 @@ import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
+import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
@@ -44,10 +46,13 @@ import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
+import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.services.hover.HoverRequest;
+import com.redhat.qute.settings.QuteNativeSettings;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.DocumentationUtils;
 import com.redhat.qute.utils.QutePositionUtility;
@@ -77,6 +82,7 @@ public class QuteHover {
 	public CompletableFuture<Hover> doHover(Template template, Position position, SharedSettings settings,
 			CancelChecker cancelChecker) {
 		cancelChecker.checkCanceled();
+		QuteNativeSettings nativeSettings = settings.getNativeSettings();
 		HoverRequest hoverRequest = null;
 		try {
 			hoverRequest = new HoverRequest(template, position, settings);
@@ -98,7 +104,7 @@ public class QuteHover {
 			return doHoverForParameterDeclaration(parameterDeclaration, template, hoverRequest, cancelChecker);
 		case ExpressionPart:
 			Part part = (Part) node;
-			return doHoverForExpressionPart(part, template, hoverRequest, cancelChecker);
+			return doHoverForExpressionPart(part, template, hoverRequest, nativeSettings, cancelChecker);
 		case Parameter:
 			Parameter parameter = (Parameter) node;
 			return doHoverForParameter(parameter, template, hoverRequest);
@@ -183,7 +189,7 @@ public class QuteHover {
 	}
 
 	private CompletableFuture<Hover> doHoverForExpressionPart(Part part, Template template, HoverRequest hoverRequest,
-			CancelChecker cancelChecker) {
+			QuteNativeSettings nativeSettings, CancelChecker cancelChecker) {
 		String projectUri = template.getProjectUri();
 		String namespace = part.getNamespace();
 		if (namespace != null) {
@@ -197,6 +203,7 @@ public class QuteHover {
 		case Object:
 			return doHoverForObjectPart(part, projectUri, hoverRequest, cancelChecker);
 		case Method:
+			return doHoverForMethodInvocation((MethodPart)part, projectUri, hoverRequest, nativeSettings, cancelChecker);
 		case Property:
 			return doHoverForPropertyPart(part, projectUri, hoverRequest, cancelChecker);
 		default:
@@ -346,6 +353,79 @@ public class QuteHover {
 		return (SectionMetadata) section.getMetadata(part.getPartName());
 	}
 
+	private CompletableFuture<Hover> doHoverForMethodInvocation(MethodPart part, String projectUri,
+			HoverRequest hoverRequest, QuteNativeSettings nativeSettings, CancelChecker cancelChecker) {
+		Parts parts = part.getParent();
+		Part previousPart = parts.getPreviousPart(part);
+		return javaCache.resolveJavaType(previousPart, projectUri) //
+				.thenCompose(resolvedJavaType -> {
+					cancelChecker.checkCanceled();
+					if (resolvedJavaType != null) {
+						ResolvedJavaTypeInfo iterableOfResolvedType = resolvedJavaType.isArray() ? null : resolvedJavaType;
+						return doHoverForMethodInvocation(part, projectUri, resolvedJavaType, iterableOfResolvedType, hoverRequest, nativeSettings, cancelChecker);
+					}
+					return NO_HOVER;
+				});
+	}
+
+	private CompletableFuture<Hover> doHoverForMethodInvocation(MethodPart part, String projectUri,
+			ResolvedJavaTypeInfo resolvedType, ResolvedJavaTypeInfo iterableOfResolvedType, HoverRequest hoverRequest,
+			QuteNativeSettings nativeSettings, CancelChecker cancelChecker) {
+		// The Java class type from the previous part had been resolved,
+		// resolve the method
+
+		final ResolvedJavaTypeInfo[] parameterTypes = new ResolvedJavaTypeInfo[part.getParameters().size()];
+		final CompletableFuture<Void>[] paramResolveFutures = new CompletableFuture[part.getParameters().size()];
+
+		for (int i = 0; i < part.getParameters().size(); i++) {
+			final int index = i;
+			CompletableFuture<Void> paramResolveFuture = javaCache
+					.resolveJavaType(part.getParameters().get(i), projectUri) //
+					.thenAccept(resolvedJavaType -> parameterTypes[index] = resolvedJavaType);
+			paramResolveFutures[i] = paramResolveFuture;
+		}
+
+		return CompletableFuture.allOf(paramResolveFutures) //
+				.thenCompose((unused) -> {
+					cancelChecker.checkCanceled();
+					boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+					JavaMemberResult memberResult = javaCache.findMethod(resolvedType, part.getPartName(),
+							Arrays.asList(parameterTypes), nativeSettings.isEnabled(), projectUri);
+
+					if (memberResult == null || !memberResult.isMatchParameters() || memberResult.getMember() == null) {
+						// check if it's a value resolver
+						MethodValueResolver member = javaCache.findValueResolver(resolvedType, part.getPartName(),
+								projectUri);
+						if (member == null) {
+							return NO_HOVER;
+						}
+						MarkupContent content = DocumentationUtils.getDocumentation(member, iterableOfResolvedType,
+								hasMarkdown);
+						Range range = QutePositionUtility.createRange(part);
+						return CompletableFuture.completedFuture(new Hover(content, range));
+					}
+
+					if (memberResult.getMember().getDocumentation() == null && resolvedType != null) {
+						CompletableFuture<Void> javadocFetchFuture = javaCache
+								.getJavadoc(memberResult.getMember(), resolvedType, projectUri, hasMarkdown) //
+								.thenAccept(documentation -> memberResult.getMember()
+										.setDocumentation(documentation == null ? "" : documentation));
+						return javadocFetchFuture.thenApply(alsoUnused -> {
+							MarkupContent content = DocumentationUtils.getDocumentation(memberResult.getMember(),
+									iterableOfResolvedType,
+									hasMarkdown);
+							Range range = QutePositionUtility.createRange(part);
+							return new Hover(content, range);
+						});
+					}
+					MarkupContent content = DocumentationUtils.getDocumentation(memberResult.getMember(),
+							iterableOfResolvedType,
+							hasMarkdown);
+					Range range = QutePositionUtility.createRange(part);
+					return CompletableFuture.completedFuture(new Hover(content, range));
+				});
+	}
+
 	private CompletableFuture<Hover> doHoverForPropertyPart(Part part, String projectUri, HoverRequest hoverRequest,
 			CancelChecker cancelChecker) {
 		Parts parts = part.getParent();
@@ -354,28 +434,37 @@ public class QuteHover {
 				.thenCompose(resolvedJavaType -> {
 					cancelChecker.checkCanceled();
 					if (resolvedJavaType != null) {
-						ResolvedJavaTypeInfo iterableOfResolvedType = resolvedJavaType.isArray() ? null
-								: resolvedJavaType;
-						Hover hover = doHoverForPropertyPart(part, projectUri, resolvedJavaType, iterableOfResolvedType,
-								hoverRequest);
-						return CompletableFuture.completedFuture(hover);
+						ResolvedJavaTypeInfo iterableOfResolvedType = resolvedJavaType.isArray() ? null : resolvedJavaType;
+						return doHoverForPropertyPart(part, projectUri, resolvedJavaType, iterableOfResolvedType, hoverRequest);
 					}
 					return NO_HOVER;
 				});
 	}
 
-	private Hover doHoverForPropertyPart(Part part, String projectUri, ResolvedJavaTypeInfo resolvedType,
+	private CompletableFuture<Hover> doHoverForPropertyPart(Part part, String projectUri,
+			ResolvedJavaTypeInfo resolvedType,
 			ResolvedJavaTypeInfo iterableOfResolvedType, HoverRequest hoverRequest) {
 		// The Java class type from the previous part had been resolved, resolve the
 		// property
 		JavaMemberInfo member = javaCache.findMember(part, resolvedType, projectUri);
 		if (member == null) {
-			return null;
+			return NO_HOVER;
 		}
 		boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+		if (member.getDocumentation() == null) {
+			CompletableFuture<Void> fetchDocsFuture = javaCache
+					.getJavadoc(member, resolvedType, projectUri, hasMarkdown) //
+					.thenAccept(documentation -> member.setDocumentation(documentation == null ? "" : documentation));
+			return fetchDocsFuture.thenApply((unusedNull) -> {
+				MarkupContent content = DocumentationUtils.getDocumentation(member, iterableOfResolvedType,
+						hasMarkdown);
+				Range range = QutePositionUtility.createRange(part);
+				return new Hover(content, range);
+			});
+		}
 		MarkupContent content = DocumentationUtils.getDocumentation(member, iterableOfResolvedType, hasMarkdown);
 		Range range = QutePositionUtility.createRange(part);
-		return new Hover(content, range);
+		return CompletableFuture.completedFuture(new Hover(content, range));
 	}
 
 	private CompletableFuture<Hover> doHoverForParameter(Parameter parameter, Template template,

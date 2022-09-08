@@ -88,7 +88,9 @@ public class ArrayGetValueResolverTest {
 				System.lineSeparator() + //
 				"String org.acme.Item.name" + //
 				System.lineSeparator() + //
-				"```", //
+				"```" + System.lineSeparator() + //
+				"---" + System.lineSeparator() + //
+				"The name of the item", //
 				r(1, 20, 1, 24));
 	}
 }

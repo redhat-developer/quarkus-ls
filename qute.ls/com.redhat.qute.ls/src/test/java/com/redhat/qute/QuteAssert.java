@@ -444,7 +444,7 @@ public class QuteAssert {
 
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
 		Hover hover = languageService.doHover(template, position, sharedSettings, () -> {
-		}).get();
+			}).get();
 		if (expectedHoverLabel == null) {
 			assertNull(hover);
 		} else {

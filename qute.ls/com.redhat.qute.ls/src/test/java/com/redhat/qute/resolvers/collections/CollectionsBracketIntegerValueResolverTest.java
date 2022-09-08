@@ -95,7 +95,9 @@ public class CollectionsBracketIntegerValueResolverTest {
 				System.lineSeparator() + //
 				"String org.acme.Item.name" + //
 				System.lineSeparator() + //
-				"```", //
+				"```" + System.lineSeparator() + //
+				"---" + System.lineSeparator() + //
+				"The name of the item", //
 				r(1, 16, 1, 20));
 	}
 }

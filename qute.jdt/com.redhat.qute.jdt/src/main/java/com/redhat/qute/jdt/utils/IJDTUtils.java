@@ -12,17 +12,19 @@
 package com.redhat.qute.jdt.utils;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
+
+import com.redhat.qute.commons.DocumentFormat;
 
 /**
  * JDT LS utils provides some helpful utilities. To avoid having a strong
@@ -85,5 +87,5 @@ public interface IJDTUtils {
 
 	Location toLocation(IJavaElement element) throws JavaModelException;
 
-	//String getJavadoc(IMember member, DocumentFormat documentFormat) throws JavaModelException;
+	String getJavadoc(IMember member, DocumentFormat documentFormat) throws JavaModelException;
 }

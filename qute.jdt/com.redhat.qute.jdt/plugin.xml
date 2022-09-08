@@ -15,6 +15,7 @@
             <command id="qute/template/javaTypes"/>
             <command id="qute/template/resolvedJavaType"/>
             <command id="qute/template/javaDefinition"/>
+            <command id="qute/template/javadoc"/>
             <command id="qute/template/generateMissingJavaMember"/>
        </delegateCommandHandler>
    </extension>

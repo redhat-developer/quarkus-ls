@@ -179,7 +179,9 @@ public class QuteHoverInExpressionTest {
 				System.lineSeparator() + //
 				"String org.acme.Item.name" + //
 				System.lineSeparator() + //
-				"```", //
+				"```" + System.lineSeparator() + //
+				"---" + System.lineSeparator() + //
+				"The name of the item", //
 				r(1, 6, 1, 10));
 
 		template = "{@org.acme.Item item}\r\n" + //
@@ -188,7 +190,9 @@ public class QuteHoverInExpressionTest {
 				System.lineSeparator() + //
 				"String org.acme.Item.name" + //
 				System.lineSeparator() + //
-				"```", //
+				"```" + System.lineSeparator() + //
+				"---" + System.lineSeparator() + //
+				"The name of the item", //
 				r(1, 6, 1, 10));
 	}
 

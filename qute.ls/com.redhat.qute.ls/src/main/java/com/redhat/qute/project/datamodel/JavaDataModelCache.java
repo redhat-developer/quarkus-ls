@@ -17,18 +17,21 @@ import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.Location;
 
+import com.redhat.qute.commons.DocumentFormat;
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaElementInfo;
 import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
+import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.template.Expression;
+import com.redhat.qute.parser.template.ExpressionParameter;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
@@ -76,6 +79,12 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Parameter parameter, String projectUri) {
 		Expression expression = parameter.getJavaTypeExpression();
+		if (expression instanceof ExpressionParameter) {
+			ExpressionParameter expressionParameter = (ExpressionParameter) expression;
+			if (!StringUtils.isEmpty(expressionParameter.getLiteralJavaType())) {
+				return resolveJavaType(expressionParameter.getLiteralJavaType(), projectUri);
+			}
+		}
 		if (expression != null) {
 			Part lastPart = expression.getLastPart();
 			if (lastPart != null) {
@@ -268,6 +277,15 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return projectRegistry.findMember(baseType, property, projectUri);
 	}
 
+	public JavaMemberResult findMethod(ResolvedJavaTypeInfo baseType, String methodName,
+			List<ResolvedJavaTypeInfo> parameterTypes, boolean nativeMode, String projectUri) {
+		return projectRegistry.findMethod(baseType, null, methodName, parameterTypes, nativeMode, projectUri);
+	}
+
+	public MethodValueResolver findValueResolver(ResolvedJavaTypeInfo baseType, String methodName, String projectUri) {
+		return projectRegistry.findValueResolver(baseType, methodName, projectUri);
+	}
+
 	public JavaMemberResult findProperty(Part part, ResolvedJavaTypeInfo baseType, boolean nativeMode,
 			String projectUri) {
 		return projectRegistry.findProperty(baseType, part.getPartName(), nativeMode, projectUri);
@@ -328,5 +346,22 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 	 */
 	public JavaTypeFilter getJavaTypeFilter(String projectUri, QuteNativeSettings nativeImagesSettings) {
 		return projectRegistry.getJavaTypeFilter(projectUri, nativeImagesSettings);
+	}
+
+	/**
+	 * Returns the documentation for the given member as a completable future.
+	 * 
+	 * @param javaMemberInfo the member to get the documentation for
+	 * @param javaTypeInfo   the type that the member belongs to
+	 * @param projectUri     the project that the member is in
+	 * @return the documentation for the given member as a completable future
+	 */
+	public CompletableFuture<String> getJavadoc(JavaMemberInfo javaMemberInfo, JavaTypeInfo javaTypeInfo,
+			String projectUri, boolean hasMarkdown) {
+		String typeName = javaMemberInfo.getJavaTypeInfo() != null ? javaMemberInfo.getJavaTypeInfo().getName()
+				: javaTypeInfo.getName();
+		String signature = javaMemberInfo.getGenericMember() == null ? javaMemberInfo.getSignature() : javaMemberInfo.getGenericMember().getSignature();
+		return projectRegistry.getJavadoc(new QuteJavadocParams(typeName, projectUri, javaMemberInfo.getName(),
+				signature, hasMarkdown ? DocumentFormat.Markdown : DocumentFormat.PlainText));
 	}
 }

@@ -36,6 +36,7 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
+import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
@@ -49,6 +50,7 @@ import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteJavaDefinitionProvider;
 import com.redhat.qute.ls.api.QuteJavaTypesProvider;
+import com.redhat.qute.ls.api.QuteJavadocProvider;
 import com.redhat.qute.ls.api.QuteLanguageClientAPI;
 import com.redhat.qute.ls.api.QuteLanguageServerAPI;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
@@ -75,7 +77,7 @@ import com.redhat.qute.settings.capabilities.ServerCapabilitiesInitializer;
  */
 public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer, QuteLanguageServerAPI,
 		QuteProjectInfoProvider, QuteJavaTypesProvider, QuteResolvedJavaTypeProvider, QuteJavaDefinitionProvider,
-		QuteDataModelProjectProvider, QuteUserTagProvider, QuteTemplateJavaTextEditProvider {
+		QuteDataModelProjectProvider, QuteUserTagProvider, QuteTemplateJavaTextEditProvider, QuteJavadocProvider {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteLanguageServer.class.getName());
 
@@ -99,7 +101,7 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 
 	public QuteLanguageServer() {
 		this.sharedSettings = new SharedSettings();
-		this.projectRegistry = new QuteProjectRegistry(this, this, this, this, this);
+		this.projectRegistry = new QuteProjectRegistry(this, this, this, this, this, this);
 		this.dataModelCache = new JavaDataModelCache(projectRegistry);
 		this.quteLanguageService = new QuteLanguageService(dataModelCache);
 		this.textDocumentService = new QuteTextDocumentService(this);
@@ -245,6 +247,11 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	@Override
 	public CompletableFuture<ProjectInfo> getProjectInfo(QuteProjectParams params) {
 		return getLanguageClient().getProjectInfo(params);
+	}
+	
+	@Override
+	public CompletableFuture<String> getJavadoc(QuteJavadocParams params) {
+		return getLanguageClient().getJavadoc(params);
 	}
 
 	@Override

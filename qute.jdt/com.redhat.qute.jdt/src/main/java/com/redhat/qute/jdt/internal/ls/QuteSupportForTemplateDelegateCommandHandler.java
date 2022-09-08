@@ -28,12 +28,14 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.WorkspaceEdit;
 
+import com.redhat.qute.commons.DocumentFormat;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams.MemberType;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
+import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
@@ -82,6 +84,8 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 	private static final String QUTE_TEMPLATE_JAVA_DEFINITION_COMMAND_ID = "qute/template/javaDefinition";
 
 	private static final String QUTE_TEMPLATE_RESOLVED_JAVA_TYPE_COMMAND_ID = "qute/template/resolvedJavaType";
+	
+	private static final String QUTE_JAVADOC_RESOLVE_COMMAND_ID = "qute/template/javadoc";
 
 	private static final String QUTE_TEMPLATE_GENERATE_MISSING_JAVA_MEMBER = "qute/template/generateMissingJavaMember";
 
@@ -100,6 +104,8 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 				return getResolvedJavaType(arguments, commandId, monitor);
 			case QUTE_TEMPLATE_JAVA_DEFINITION_COMMAND_ID:
 				return getJavaDefinition(arguments, commandId, monitor);
+			case QUTE_JAVADOC_RESOLVE_COMMAND_ID:
+				return getJavadoc(arguments, commandId, monitor);
 			case QUTE_TEMPLATE_GENERATE_MISSING_JAVA_MEMBER:
 				return generateMissingJavaMember(arguments, commandId, monitor);
 		}
@@ -380,6 +386,57 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 		
 		return new GenerateMissingJavaMemberParams(memberType, missingProperty, javaType, projectUri, templateClass);
 
+	}
+	
+	private static String getJavadoc(List<Object> arguments, String commandId, IProgressMonitor monitor) {
+		QuteJavadocParams quteJavadocParams = createQuteJavadocParams(arguments, commandId);
+		return QuteSupportForTemplate.getInstance().getJavadoc(quteJavadocParams, JDTUtilsLSImpl.getInstance(),
+				monitor);
+	}
+	
+	private static QuteJavadocParams createQuteJavadocParams(List<Object> arguments, String commandId) {
+		Map<String, Object> obj = getFirst(arguments);
+		if (obj == null) {
+			throw new UnsupportedOperationException(
+					String.format("Command '%s' must be called with one QuteJavadocParams argument!", commandId));
+		}
+
+		String sourceType = getString(obj, "sourceType");
+		if (sourceType == null) {
+			throw new UnsupportedOperationException(String
+					.format("Command '%s' must be called with required QuteJavadocParams.sourceType !", commandId));
+		}
+
+		String projectUri = getString(obj, "projectUri");
+		if (projectUri == null) {
+			throw new UnsupportedOperationException(String
+					.format("Command '%s' must be called with required QuteJavadocParams.projectUri !", commandId));
+		}
+
+		String memberName = getString(obj, "memberName");
+		if (memberName == null) {
+			throw new UnsupportedOperationException(String
+					.format("Command '%s' must be called with required QuteJavadocParams.memberName !", commandId));
+		}
+
+		String signature = getString(obj, "signature");
+		if (signature == null) {
+			throw new UnsupportedOperationException(String
+					.format("Command '%s' must be called with required QuteJavadocParams.signature !", commandId));
+		}
+
+		DocumentFormat documentFormat = null;
+		try {
+			documentFormat = DocumentFormat.forValue(ArgumentUtils.getInt(obj, "documentFormat"));
+		} catch (IllegalArgumentException e) {
+			// ignored
+		}
+		if (documentFormat == null) {
+			throw new UnsupportedOperationException(String
+					.format("Command '%s' must be called with required QuteJavadocParams.documentFormat !", commandId));
+		}
+
+		return new QuteJavadocParams(sourceType, projectUri, memberName, signature, documentFormat);
 	}
 
 }

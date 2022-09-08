@@ -448,6 +448,7 @@ public class JavaMethodInfo extends JavaMemberInfo {
 			JavaTypeInfo.applyGenericTypeInvocation(returnType, genericMap, newSignature);
 		}
 		newMethod.setSignature(newSignature.toString());
+		newMethod.setGenericMember(method);
 		return newMethod;
 	}
 

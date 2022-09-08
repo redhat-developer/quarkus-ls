@@ -164,8 +164,12 @@ public class DocumentationUtils {
 			documentation.append("```");
 		}
 
-		if (member.getDocumentation() != null) {
+		if (!StringUtils.isEmpty(member.getDocumentation())) {
 			documentation.append(System.lineSeparator());
+			if (markdown) {
+				documentation.append("---");
+				documentation.append(System.lineSeparator());
+			}
 			documentation.append(member.getDocumentation());
 		}
 		return documentation;
