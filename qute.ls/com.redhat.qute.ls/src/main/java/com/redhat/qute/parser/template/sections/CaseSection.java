@@ -11,8 +11,9 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template.sections;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,40 +47,24 @@ public class CaseSection extends Section {
 
 	private static final Map<String, CaseOperator> caseOperators;
 
-	private static final Set<String> completionOperators;
-
 	static {
-		caseOperators = new HashMap<>();
-		registerOperator("gt", false, ">"); // greater than
-		registerOperator("ge", false, ">="); // greater than or equal to
-		registerOperator("lt", false, "<"); // less than
-		registerOperator("le", false, "<="); // less than or equal to
-		registerOperator("not", false, "ne", "!="); // not equals
-		registerOperator("in", true); // Is in
-		registerOperator("ni", true, "!in"); // Is not in
+		caseOperators = new LinkedHashMap<>();
+		registerOperator("gt", "TODO DOC", false, ">"); // greater than
+		registerOperator("ge", "TODO DOC", false, ">="); // greater than or equal to
+		registerOperator("lt", "TODO DOC", false, "<"); // less than
+		registerOperator("le", "TODO DOC", false, "<="); // less than or equal to
+		registerOperator("not", "TODO DOC", false, "ne", "!="); // not equals
+		registerOperator("in", "TODO DOC", true); // Is in
+		registerOperator("ni", "TODO DOC", true, "!in"); // Is not in
 	}
 
-	static {
-		completionOperators = new HashSet<String>();
-		completionOperators.add(">");
-		completionOperators.add(">=");
-		completionOperators.add("<");
-		completionOperators.add("<=");
-		completionOperators.add("!=");
-		completionOperators.add("in");
-		completionOperators.add("!in");
-	}
-
-	public static Set<String> getCompletionOperators() {
-		return completionOperators;
-	}
-
-	private static void registerOperator(String name, boolean isMulti, String... aliases) {
-		CaseOperator operator = new CaseOperator(name, isMulti, aliases);
+	private static void registerOperator(String name, String documentation, boolean isMulti, String... aliases) {
+		CaseOperator operator = new CaseOperator(name, documentation, null, isMulti);
 		caseOperators.put(operator.getName(), operator);
 		if (aliases != null) {
 			for (String alias : aliases) {
-				caseOperators.put(alias, operator);
+				CaseOperator aliasOperator = operator = new CaseOperator(name, documentation, null, isMulti);
+				caseOperators.put(alias, aliasOperator);
 			}
 		}
 	}
@@ -115,9 +100,10 @@ public class CaseSection extends Section {
 		visitor.endVisit(this);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Set<String> getAllowedOperators() {
-		return caseOperators.keySet();
+	public Collection<CaseOperator> getAllowedOperators() {
+		return caseOperators.values();
 	}
 
 	/**
@@ -198,14 +184,4 @@ public class CaseSection extends Section {
 		// {#case | ON} --> is in the position where the operator could be
 		return offset >= getStartTagNameCloseOffset() && offset <= getStartParametersOffset();
 	}
-
-	/**
-	 * Returns true if the given operator expects mutiple parameters.
-	 *
-	 * @return true if the given operator expects mutiple parameters.
-	 */
-	public static boolean isMulti(String operator) {
-		return caseOperators.get(operator).isMulti();
-	}
-
 }

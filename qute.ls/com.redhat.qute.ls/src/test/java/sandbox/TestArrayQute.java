@@ -28,6 +28,7 @@ public class TestArrayQute {
 		Map<String, Object> data = new HashMap<>();
 		data.put("myArray", items.toArray());
 		data.put("myList", items);
+		data.put("status", Status.ON);
 		
 		Engine engine = Engine.builder().addDefaults().addValueResolver(new ReflectionValueResolver()).build();
 		

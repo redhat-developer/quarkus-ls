@@ -28,6 +28,8 @@ import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.InsertTextFormat;
+import org.eclipse.lsp4j.MarkupContent;
+import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
@@ -43,6 +45,7 @@ import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.expression.Parts.PartKind;
+import com.redhat.qute.parser.template.CaseOperator;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
@@ -68,6 +71,7 @@ import com.redhat.qute.services.nativemode.JavaTypeFilter.JavaMemberAccessibilit
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.QuteNativeSettings;
+import com.redhat.qute.utils.DocumentationUtils;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.StringUtils;
 import com.redhat.qute.utils.UserTagUtils;
@@ -467,19 +471,20 @@ public class QuteCompletionsForExpression {
 	 */
 	private void fillCaseOperators(CaseSection caseSection, Range range, Set<String> existingParameters,
 			CompletionList list) {
-		for (String operator : CaseSection.getCompletionOperators()) {
+		for (CaseOperator operator : caseSection.getAllowedOperators()) {
 			// If there are more than one parameters present, should suggest only operator
 			// allowing multiple parameters
-			if (caseSection.getParameters().size() > 1 && !CaseSection.isMulti(operator)) {
+			if (caseSection.getParameters().size() > 1 && !operator.isMulti()) {
 				continue;
 			}
 			CompletionItem item = new CompletionItem();
-			item.setLabel(operator + " : Operator");
-			item.setFilterText(operator);
-			item.setKind(CompletionItemKind.Operator);
+			item.setLabel(operator.getName() + " : Operator");
+			item.setFilterText(operator.getName());
+			item.setKind(CompletionItemKind.Operator);			
+			item.setDocumentation(operator.getDocumentation());
 			TextEdit textEdit = new TextEdit();
 			textEdit.setRange(range);
-			textEdit.setNewText(operator);
+			textEdit.setNewText(operator.getName());
 			item.setTextEdit(Either.forLeft(textEdit));
 			list.getItems().add(item);
 		}

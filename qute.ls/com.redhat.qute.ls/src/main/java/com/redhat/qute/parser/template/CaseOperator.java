@@ -23,8 +23,8 @@ public class CaseOperator extends Operator {
 
 	private final boolean multi;
 
-	public CaseOperator(String name, boolean multi, String[] aliases) {
-		super(name, aliases);
+	public CaseOperator(String name, String documentation, String aliasFor, boolean multi) {
+		super(name, documentation, aliasFor);
 		this.multi = multi;
 	}
 

@@ -1,27 +1,4 @@
-<h1>Array of length: {myArray.length}</h1>
- 
-<h1>Array of length(): {myArray.length()}</h1>
-<ul>
-  <li>First: {myArray.0}</li> 
-  <li>Second: {myArray[1]}</li> 
-  <li>Third: {myArray.get(2)}</li> 
-</ul>
-<ol>
- {#for element in myArray}
- <li>{element}</li>
- {/for}
-</ol>
-First two elements: {#each myArray.take(2)}{it}{/each} 
- 
-<h1>Array of size(): {myList.size()}</h1>
-<ul>
-  <li>First: {myList.get(0)}</li> 
-  <li>Second: {myList.get(1)}</li> 
-  <li>Third: {myList.get(2)}</li> 
-</ul>
-<ol>
- {#for element in myList}
- <li>{element}</li>
- {/for}
-</ol>
-First two elements: {#each myList.take(2)}{it}{/each} 
+{#switch status}
+    {#case in}
+    	XXXX
+{/switch}
