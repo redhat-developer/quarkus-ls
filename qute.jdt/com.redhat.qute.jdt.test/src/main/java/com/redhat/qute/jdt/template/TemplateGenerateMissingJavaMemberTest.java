@@ -90,7 +90,7 @@ public class TemplateGenerateMissingJavaMemberTest {
 		WorkspaceEdit actual = QuteSupportForTemplate.getInstance().generateMissingJavaMember(params, getJDTUtils(),
 				new NullProgressMonitor());
 		WorkspaceEdit expected = we(
-				Either.forLeft(tde(project, "src/main/java/org/acme/qute/Item.java", te(12, 1, 12, 8, "public"))));
+				Either.forLeft(tde(project, "src/main/java/org/acme/qute/Item.java", te(15, 1, 15, 8, "public"))));
 		assertWorkspaceEdit(expected, actual);
 
 	}
@@ -105,9 +105,12 @@ public class TemplateGenerateMissingJavaMemberTest {
 		WorkspaceEdit actual = QuteSupportForTemplate.getInstance().generateMissingJavaMember(params, getJDTUtils(),
 				new NullProgressMonitor());
 		WorkspaceEdit expected = we(Either.forLeft(tde(project, "src/main/java/org/acme/qute/Item.java",
-				te(6, 1, 10, 35, //
+				te(6, 1, 13, 35, //
 						"public int identifier = 0;\r\n" //
 								+ "\r\n" //
+								+ "\t/**\r\n" //
+								+ "\t * The name of the item\r\n" //
+								+ "\t */\r\n" //
 								+ "\tpublic final String name;\r\n" //
 								+ "\r\n" //
 								+ "\tpublic final BigDecimal price;\r\n" //
@@ -142,10 +145,13 @@ public class TemplateGenerateMissingJavaMemberTest {
 		WorkspaceEdit actual = QuteSupportForTemplate.getInstance().generateMissingJavaMember(params, getJDTUtils(),
 				new NullProgressMonitor());
 		WorkspaceEdit expected = we(Either.forLeft(tde(project, "src/main/java/org/acme/qute/Item.java",
-				te(6, 1, 10, 18, //
+				te(6, 1, 13, 18, //
 						"public int getIdentifier() {\r\n" //
 								+ "\t\treturn this.identifier;\r\n" //
 								+ "\t}\r\n\r\n" //
+								+ "\t/**\r\n" //
+								+ "\t * The name of the item\r\n" //
+								+ "\t */\r\n" //
 								+ "\tpublic final String name;\r\n\r\n" //
 								+ "\tpublic final BigDecimal price;\r\n" //
 								+ "\r\n" //

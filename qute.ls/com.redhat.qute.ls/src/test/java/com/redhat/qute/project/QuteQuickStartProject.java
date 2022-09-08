@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.redhat.qute.commons.InvalidMethodReason;
+import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ProjectInfo;
@@ -44,7 +45,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 
 	public static final String ITEMRESOURCE_ITEMS_TEMPLATE_URI = "src/main/resources/templates/ItemResource/items";
 	public static final String NATIVEITEMRESOURCE_ITEMS_TEMPLATE_URI = "src/main/resources/templates/NativeItemResource/items";
-
+	
 	public QuteQuickStartProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider,
 			QuteUserTagProvider tagProvider) {
 		super(projectInfo, dataModelProvider, tagProvider);
@@ -155,10 +156,14 @@ public class QuteQuickStartProject extends MockQuteProject {
 
 		// org.acme.Item
 		ResolvedJavaTypeInfo item = createResolvedJavaTypeInfo("org.acme.Item", cache, false, baseItem.getSignature());
-		registerField("name : java.lang.String", item); // Override BaseItem#name
+		JavaMemberInfo itemNameField = registerField("name : java.lang.String", item); // Override BaseItem#name
+		itemNameField.setDocumentation("The name of the item");
 		registerField("price : java.math.BigInteger", item);
 		registerField("review : org.acme.Review", item);
-		registerMethod("isAvailable() : java.lang.Boolean", item);
+		JavaMemberInfo itemIsAvailableMethod = registerMethod("isAvailable() : java.lang.Boolean", item);
+		itemIsAvailableMethod.setDocumentation("Returns true if the item is available and false otherwise");
+		JavaMemberInfo itemIsAvailableMethodOverload = registerMethod("isAvailable(index : int) : java.lang.Boolean", item);
+		itemIsAvailableMethodOverload.setDocumentation("Returns true if the item at the given index is available and false otherwise");
 		registerMethod("getReview2() : org.acme.Review", item);
 		// Override BaseItem#getReviews()
 		registerMethod("getReviews() : java.util.List<org.acme.Review>", item);

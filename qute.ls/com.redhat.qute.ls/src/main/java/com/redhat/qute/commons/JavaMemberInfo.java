@@ -23,6 +23,8 @@ public abstract class JavaMemberInfo extends JavaElementInfo {
 
 	private transient JavaTypeInfo javaType;
 
+	private transient JavaMemberInfo genericMember;
+
 	/**
 	 * Returns the owner Java type and null otherwise.
 	 * 
@@ -71,6 +73,21 @@ public abstract class JavaMemberInfo extends JavaElementInfo {
 	 */
 	public String resolveJavaElementType(ResolvedJavaTypeInfo argType) {
 		return getJavaElementType();
+	}
+
+	/**
+	 * Returns the generic version of this member, or null in the case that there is
+	 * no generic version or this is already the generic version.
+	 * 
+	 * @return the generic version of this member, or null in the case that there is
+	 *         no generic version or this is already the generic version.
+	 */
+	public JavaMemberInfo getGenericMember() {
+		return genericMember;
+	}
+
+	protected void setGenericMember(JavaMemberInfo genericMember) {
+		this.genericMember = genericMember;
 	}
 
 }

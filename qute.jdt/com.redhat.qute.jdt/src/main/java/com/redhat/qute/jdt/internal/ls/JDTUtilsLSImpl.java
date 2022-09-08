@@ -22,6 +22,7 @@ import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
@@ -30,9 +31,12 @@ import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JsonRpcHelpers;
+import org.eclipse.jdt.ls.core.internal.javadoc.JavadocContentAccess;
+import org.eclipse.jdt.ls.core.internal.javadoc.JavadocContentAccess2;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
 
+import com.redhat.qute.commons.DocumentFormat;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 
 /**
@@ -106,6 +110,14 @@ public class JDTUtilsLSImpl implements IJDTUtils {
 	@Override
 	public Location toLocation(IJavaElement element) throws JavaModelException {
 		return JDTUtils.toLocation(element);
+	}
+
+	@Override
+	public String getJavadoc(IMember member, DocumentFormat documentFormat) throws JavaModelException {
+		boolean markdown = DocumentFormat.Markdown.equals(documentFormat);
+		Reader reader = markdown ? JavadocContentAccess2.getMarkdownContentReader(member)
+				: JavadocContentAccess.getPlainTextContentReader(member);
+		return reader != null ? toString(reader) : null;
 	}
 
 	private static String toString(Reader reader) {

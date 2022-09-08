@@ -26,6 +26,7 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
+import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
@@ -46,7 +47,7 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	public static final Range JAVA_STATIC_METHOD_RANGE = new Range(new Position(3, 3), new Position(3, 3));
 
 	public MockQuteProjectRegistry() {
-		super(null, null, null, null, null);
+		super(null, null, null, null, null, null);
 	}
 
 	@Override
@@ -152,6 +153,11 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	@Override
 	public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
 		return CompletableFuture.completedFuture(Collections.emptyList());
+	}
+	
+	@Override
+	public CompletableFuture<String> getJavadoc(QuteJavadocParams params) {
+		return CompletableFuture.completedFuture(null);
 	}
 
 }

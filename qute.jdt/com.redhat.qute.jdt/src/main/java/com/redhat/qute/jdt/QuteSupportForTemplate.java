@@ -14,9 +14,12 @@ package com.redhat.qute.jdt;
 import static com.redhat.qute.jdt.utils.JDTTypeUtils.findType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,6 +37,7 @@ import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
@@ -43,6 +47,7 @@ import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.WorkspaceEdit;
 
+import com.redhat.qute.commons.DocumentFormat;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaFieldInfo;
@@ -51,6 +56,7 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
+import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
@@ -197,14 +203,7 @@ public class QuteSupportForTemplate {
 	 */
 	public Location getJavaDefinition(QuteJavaDefinitionParams params, IJDTUtils utils, IProgressMonitor monitor)
 			throws CoreException {
-		String projectUri = params.getProjectUri();
-		IJavaProject javaProject = getJavaProjectFromProjectUri(projectUri);
-		if (javaProject == null) {
-			return null;
-		}
-
-		String sourceType = params.getSourceType();
-		IType type = findType(sourceType, javaProject, monitor);
+		IType type = getTypeFromParams(params.getSourceType(), params.getProjectUri(), monitor);
 		if (type == null) {
 			return null;
 		}
@@ -454,6 +453,12 @@ public class QuteSupportForTemplate {
 		return JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
 	}
 
+	private static IType[] findImplementedInterfaces(IType type, IProgressMonitor progressMonitor)
+			throws JavaModelException {
+		ITypeHierarchy typeHierarchy = type.newSupertypeHierarchy(progressMonitor);
+		return typeHierarchy.getRootInterfaces();
+	}
+
 	public static ITypeResolver createTypeResolver(IMember member) {
 		ITypeResolver typeResolver = !member.isBinary()
 				? new CompilationUnitTypeResolver((ICompilationUnit) member.getAncestor(IJavaElement.COMPILATION_UNIT))
@@ -475,6 +480,128 @@ public class QuteSupportForTemplate {
 			IProgressMonitor monitor) {
 		return QuteSupportForTemplateGenerateMissingJavaMemberHandler.handleGenerateMissingJavaMember(params, utils,
 				monitor);
+	}
+
+	/**
+	 * Returns the formatted Javadoc for the member specified in the parameters.
+	 *
+	 * @param params  the parameters used to specify the member whose documentation
+	 *                should be found
+	 * @param utils   the JDT utils
+	 * @param monitor the progress monitor
+	 * @return the formatted Javadoc for the member specified in the parameters
+	 */
+	public String getJavadoc(QuteJavadocParams params, IJDTUtils utils, IProgressMonitor monitor) {
+		try {
+			IType type = getTypeFromParams(params.getSourceType(), params.getProjectUri(), monitor);
+			if (type == null) {
+				return null;
+			}
+			return getJavadoc(type, params.getDocumentFormat(), params.getMemberName(), params.getSignature(), utils,
+					monitor, new HashSet<>());
+		} catch (JavaModelException e) {
+			LOGGER.log(Level.SEVERE,
+					"Error while collecting Javadoc for " + params.getSourceType() + "#" + params.getMemberName(), e);
+			return null;
+		}
+	}
+
+	private String getJavadoc(IType type, DocumentFormat documentFormat, String memberName, String signature, IJDTUtils utils, IProgressMonitor monitor, Set<IType> visited) throws JavaModelException {
+		if (visited.contains(type)) {
+			return null;
+		}
+		visited.add(type);
+		if (monitor.isCanceled()) {
+			throw new OperationCanceledException();
+		}
+
+		ITypeResolver typeResolver = createTypeResolver(type);
+
+		// 1) Check the fields for the member
+
+		// Standard fields
+		IField[] fields = type.getFields();
+		for (IField field : fields) {
+			if (isValidField(field, type)
+					&& memberName.equals(field.getElementName())
+					&& signature.equals(typeResolver.resolveFieldSignature(field))) {
+				String javadoc = utils.getJavadoc(field, documentFormat);
+				if (javadoc != null) {
+					return javadoc;
+				}
+			}
+		}
+
+		// Record fields
+		if (type.isRecord()) {
+			for (IField field : type.getRecordComponents()) {
+				// All record components are valid
+				if (memberName.equals(field.getElementName())
+						&& signature.equals(typeResolver.resolveFieldSignature(field))) {
+					String javadoc = utils.getJavadoc(field, documentFormat);
+					if (javadoc != null) {
+						return javadoc;
+					}
+				}
+			}
+		}
+
+		// 2) Check the methods for the member
+		IMethod[] methods = type.getMethods();
+		for (IMethod method : methods) {
+			if (isValidMethod(method, type)) {
+				try {
+					InvalidMethodReason invalid = getValidMethodForQute(method, type.getFullyQualifiedName());
+					if (invalid == null && (signature.equals(typeResolver.resolveMethodSignature(method)))) {
+						String javadoc = utils.getJavadoc(method, documentFormat);
+						if (javadoc != null) {
+							return javadoc;
+						}
+						// otherwise, maybe a supertype has it
+					}
+				} catch (Exception e) {
+					LOGGER.log(Level.SEVERE,
+							"Error while getting method signature of '" + method.getElementName() + "'.", e);
+				}
+			}
+		}
+
+		// 3) Check the superclasses for the member
+
+		// Collect type extensions
+		List<IType> extendedTypes = null;
+		if (type.isInterface()) {
+			IType[] interfaces = findImplementedInterfaces(type, monitor);
+			if (interfaces != null && interfaces.length > 0) {
+				extendedTypes = Arrays.asList(interfaces);
+			}
+		} else {
+			// ex : String implements CharSequence, ....
+			ITypeHierarchy typeHierarchy = type.newSupertypeHierarchy(monitor);
+			IType[] allSuperTypes = typeHierarchy.getSupertypes(type);
+			extendedTypes = Arrays.asList(allSuperTypes);
+		}
+
+		if (extendedTypes != null) {
+			for (IType extendedType : extendedTypes) {
+				String javadoc = getJavadoc(extendedType, documentFormat, memberName, signature, utils, monitor, visited);
+				if (javadoc != null) {
+					return javadoc;
+				}
+			}
+		}
+
+		return null;
+
+	}
+
+	private IType getTypeFromParams(String typeName, String projectUri, IProgressMonitor monitor) throws JavaModelException {
+		IJavaProject javaProject = getJavaProjectFromProjectUri(projectUri);
+		if (javaProject == null) {
+			return null;
+		}
+		IType type = findType(typeName, javaProject, monitor);
+		return type;
 	}
 
 }

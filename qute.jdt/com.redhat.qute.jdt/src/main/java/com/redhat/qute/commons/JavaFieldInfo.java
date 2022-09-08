@@ -159,6 +159,7 @@ public class JavaFieldInfo extends JavaMemberInfo {
 		newSignature.append(" : ");
 		JavaTypeInfo.applyGenericTypeInvocation(field.getType(), genericMap, newSignature);
 		newField.setSignature(newSignature.toString());
+		newField.setGenericMember(field);
 		return newField;
 	}
 
