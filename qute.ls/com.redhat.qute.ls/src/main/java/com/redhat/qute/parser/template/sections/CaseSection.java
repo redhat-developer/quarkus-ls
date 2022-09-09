@@ -43,13 +43,22 @@ public class CaseSection extends Section {
 
 	public static final String TAG = "case";
 
+	public static enum CompletionCaseResult {
+		ALL_OPERATOR_AND_FIELD, //
+		ALL_OPERATOR, //
+		MULTI_OPERATOR_ONLY, //
+		FIELD_ONLY, //
+		NONE;
+	}
+
 	private static final Map<String, CaseOperator> caseOperators;
 
 	static {
 		caseOperators = new LinkedHashMap<>();
 		// https://quarkus.io/guides/qute-reference#when_section
 		registerOperator("gt", "Greater than. Example: {#case gt 10}.", false, ">"); // greater than
-		registerOperator("ge", "Greater than or equal to. Example: {#case >= 10}", false, ">="); // greater than or equal to
+		registerOperator("ge", "Greater than or equal to. Example: {#case >= 10}", false, ">="); // greater than or
+																									// equal to
 		registerOperator("lt", "Less than. Example: {#case < 10}.", false, "<"); // less than
 		registerOperator("le", "Less than or equal to. Example: {#case le 10}.", false, "<="); // less than or equal to
 		registerOperator("not", "Not equal. Example: {#is not 10},{#case != 10}.", false, "ne", "!="); // not equals
@@ -74,6 +83,15 @@ public class CaseSection extends Section {
 
 	CaseSection(String tag, int start, int end) {
 		super(tag, start, end);
+	}
+
+	@Override
+	protected void initializeParameters(List<Parameter> parameters) {
+		// All parameters can have expression (ex : {#if age=10} except operators
+		// if (parameters.size() > 1) {
+		for (Parameter parameter : parameters) {
+			parameter.setCanHaveExpression(true);
+		}
 	}
 
 	@Override
@@ -103,32 +121,6 @@ public class CaseSection extends Section {
 	@Override
 	public Collection<CaseOperator> getAllowedOperators() {
 		return caseOperators.values();
-	}
-
-	/**
-	 * Returns true if completion should be done in the current case section.
-	 *
-	 * @return true if completion should be done in the current case section.
-	 */
-	public boolean shouldCompleteWhenSection() {
-		int paramCount = getParameters().size();
-		if (paramCount == 0) {
-			return true;
-		}
-		CaseOperator operator = getCaseOperator();
-		if (operator == null) {
-			if (paramCount == 0) {
-				// There is more than 1 parameter and it is not a operator
-				return true;
-			}
-			return false;
-		}
-		if (paramCount >= 2 && !operator.isMulti()) {
-			// first parameter is operator that only allows single value, second is the
-			// existing Enum
-			return false;
-		}
-		return true;
 	}
 
 	/**
@@ -173,15 +165,45 @@ public class CaseSection extends Section {
 		return parameter == getValidParameterOperator();
 	}
 
-	/**
-	 * Returns true if the offset is in the expected operator position.
-	 *
-	 * @return true if the offset is in the expected operator position.
-	 */
-	public boolean isInOperatorPosition(int offset) {
-		// Ex:
-		// {#case | ON} --> is in the position where the operator could be
-		return offset >= getStartTagNameCloseOffset() && offset <= getStartParametersOffset();
+	public CompletionCaseResult getCompletionCaseResultAt(int offset, Parameter triggeredParameter) {
+		List<Parameter> parameters = super.getParameters();
+		Parameter firstParameter = getParameterAtIndex(0);
+		int increment = triggeredParameter != null ? 1 : 0;
+		if (parameters.size() == (0 + increment)) {
+			// {#case |}
+			// {#case i|n}
+			return CompletionCaseResult.ALL_OPERATOR_AND_FIELD;
+		}
+		
+		boolean beforeFirstParam = (offset < firstParameter.getStart() + increment);	
+		CaseOperator operator = getCaseOperator();
+		if (parameters.size() == (1 + increment)) {
+			if (beforeFirstParam) {
+				// {#case | ON}
+				// {#case i|n ON}
+				return CompletionCaseResult.ALL_OPERATOR;
+			}
+			if (operator == null) {
+				// {#case ON |}
+				// {#case ON O|FF}
+				return CompletionCaseResult.NONE;
+			}
+			// {#case in |}
+			// {#case in O|N}
+			return CompletionCaseResult.FIELD_ONLY;
+		}
+		if (parameters.size() >= (2 + increment)) {
+			if (beforeFirstParam) {
+				// {#case | ON OFF}
+				return CompletionCaseResult.MULTI_OPERATOR_ONLY;
+			}
+			if (operator == null || !operator.isMulti()) {
+				// {#case BREAK ON OFF |}
+				return CompletionCaseResult.NONE;
+			}
+			// {#case in ON OFF |}
+			return CompletionCaseResult.FIELD_ONLY;
+		}
+		return CompletionCaseResult.NONE;
 	}
-
 }

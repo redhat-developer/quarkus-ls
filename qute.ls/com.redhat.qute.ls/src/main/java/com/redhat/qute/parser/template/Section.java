@@ -318,7 +318,7 @@ public abstract class Section extends Node implements ParametersContainer {
 		return (Parameter) Node.findNodeAt(parameters.stream().map(param -> (Node) param).collect(Collectors.toList()),
 				offset);
 	}
-
+	
 	private synchronized List<Parameter> parseParameters() {
 		if (parameters != null) {
 			return parameters;

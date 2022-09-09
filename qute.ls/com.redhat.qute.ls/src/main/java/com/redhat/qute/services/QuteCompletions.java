@@ -164,7 +164,7 @@ public class QuteCompletions {
 					formattingSettings, cancelChecker);
 		} else if (node.getKind() == NodeKind.Parameter) {
 			Parameter parameter = (Parameter) node;
-			if (parameter.isAfterAssign(offset)) {
+			if (isCompletionAllowed(parameter, offset)) {
 				// {# let name=|
 				return completionForExpression.doCompleteExpression(completionRequest, null, null, template, offset,
 						completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
@@ -172,6 +172,18 @@ public class QuteCompletions {
 		}
 		return collectSnippetSuggestions(completionRequest);
 	}
+
+	public boolean isCompletionAllowed(Parameter parameter, int offset) {
+		if (Section.isCaseSection(parameter.getOwnerSection())) {
+			return true;
+		}
+		if (parameter.isAfterAssign(offset)) {
+			return true;
+		}		
+		return false;
+	}
+	
+	
 
 	private CompletableFuture<CompletionList> collectSnippetSuggestions(CompletionRequest completionRequest) {
 		CompletionList list = new CompletionList();
