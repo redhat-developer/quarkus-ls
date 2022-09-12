@@ -72,7 +72,7 @@ public class QuteDefinitionInWhenSectionTest {
 				"  {#is O|N }";
 		testDefinitionFor(template);
 	}
-	
+
 	@Test
 	public void definitionInEnumNoEnum() throws Exception {
 		String template = "{@org.acme.Machine Machine}\r\n" + //
@@ -122,6 +122,16 @@ public class QuteDefinitionInWhenSectionTest {
 	}
 
 	@Test
+	public void definitionInEnumOnOperatorAsEnumOnly() throws Exception {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"{#when Machine.status}\r\n" + //
+				"  {#is i|n}\r\n" + //
+				"{/when}";
+		testDefinitionFor(template, //
+				ll("org/acme/MachineStatus.java", r(2, 7, 2, 9), MockQuteProjectRegistry.JAVA_FIELD_RANGE));
+	}
+
+	@Test
 	public void definitionInEnumOnOperatorAsEnum() throws Exception {
 		String template = "{@org.acme.Machine Machine}\r\n" + //
 				"{#when Machine.status}\r\n" + //
@@ -132,6 +142,15 @@ public class QuteDefinitionInWhenSectionTest {
 	}
 
 	@Test
+	public void definitionInEnumOnOperatorAsEnumOnOperator() throws Exception {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"{#when Machine.status}\r\n" + //
+				"  {#is i|n in}\r\n" + //
+				"{/when}";
+		testDefinitionFor(template);
+	}
+
+	@Test
 	public void definitionInEnumString() throws Exception {
 		String template = "{@java.lang.String string}\r\n" + //
 				"{#switch string}\r\n" + //
@@ -139,7 +158,7 @@ public class QuteDefinitionInWhenSectionTest {
 				"{/switch}";
 		testDefinitionFor(template);
 	}
-	
+
 	@Test
 	public void definitionInEnumNullValueParameter() throws Exception {
 		String template = "{@org.acme.Machine Machine}\r\n" + //

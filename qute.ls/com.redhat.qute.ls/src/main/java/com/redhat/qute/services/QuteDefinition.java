@@ -350,7 +350,7 @@ class QuteDefinition {
 		if (!isWhenSection(whenSection)) {
 			return NO_DEFINITION;
 		}
-		if (((CaseSection) caseSection).isCaseOperator(parameter)) {
+		if (((CaseSection) caseSection).isCaseOperator(parameter) && caseSection.getParameters().size() > 1) {
 			return NO_DEFINITION;
 		}
 
