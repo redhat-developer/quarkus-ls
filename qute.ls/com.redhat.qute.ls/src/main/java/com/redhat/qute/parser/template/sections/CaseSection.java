@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template.sections;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,22 +58,26 @@ public class CaseSection extends Section {
 	static {
 		caseOperators = new LinkedHashMap<>();
 		// https://quarkus.io/guides/qute-reference#when_section
-		registerOperator("gt", "Greater than. Example: {#case gt 10}.", false, ">"); // greater than
-		registerOperator("ge", "Greater than or equal to. Example: {#case >= 10}", false, ">="); // greater than or
-		// equal to
-		registerOperator("lt", "Less than. Example: {#case < 10}.", false, "<"); // less than
-		registerOperator("le", "Less than or equal to. Example: {#case le 10}.", false, "<="); // less than or equal to
-		registerOperator("not", "Not equal. Example: {#is not 10},{#case != 10}.", false, "ne", "!="); // not equals
-		registerOperator("in", "Is in. Example: {#is in 'foo' 'bar' 'baz'}.", true); // Is in
-		registerOperator("ni", "Is not in. Example: {#is !in 1 2 3}.", true, "!in"); // Is not in
+		registerOperator("gt", "Greater than.", Arrays.asList("{#case gt 10}"), false, ">");
+		registerOperator("ge", "Greater than or equal to.", Arrays.asList("{#case >= 10}"), false, ">=");
+		registerOperator("lt", "Less than.", Arrays.asList("{#case < 10}"), false, "<");
+		registerOperator("le", "Less than or equal to.", Arrays.asList("{#case le 10}"), false, "<=");
+		registerOperator("not", "Not equal.", Arrays.asList("{#is not 10}", "{#case != 10}"), false, "ne", "!=");
+		registerOperator("in", "Is in.", Arrays.asList("{#is in 'foo' 'bar' 'baz'}"), true);
+		registerOperator("ni", "Is not in.", Arrays.asList("{#is !in 1 2 3}"), true, "!in");
 	}
 
-	private static void registerOperator(String name, String documentation, boolean isMulti, String... aliases) {
+	private static void registerOperator(String name, String documentation, List<String> sample, boolean isMulti,
+			String... aliases) {
 		CaseOperator operator = new CaseOperator(name, documentation, null, isMulti);
 		caseOperators.put(operator.getName(), operator);
+		operator.setUrl("https://quarkus.io/guides/qute-reference#when_operators");
+		operator.setSample(sample);
 		if (aliases != null) {
 			for (String alias : aliases) {
 				CaseOperator aliasOperator = operator = new CaseOperator(alias, documentation, name, isMulti);
+				aliasOperator.setUrl("https://quarkus.io/guides/qute-reference#when_operators");
+				aliasOperator.setSample(sample);
 				caseOperators.put(alias, aliasOperator);
 			}
 		}

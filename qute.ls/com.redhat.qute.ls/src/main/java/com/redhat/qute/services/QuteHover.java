@@ -32,6 +32,7 @@ import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
+import com.redhat.qute.parser.template.CaseOperator;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Parameter;
@@ -41,6 +42,7 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
@@ -279,8 +281,23 @@ public class QuteHover {
 			}
 		}
 
-		// Check if part is a literal (ex: true, null, 123, 'abc', etc)
 		Expression expression = part.getParent().getParent();
+		if (CaseSection.isCaseSection(expression.getOwnerSection())) {
+			// It's an operator in the #case section
+			// Ex: {#case <|= 10}
+			CaseSection caseSection = (CaseSection) expression.getOwnerSection();
+			Parameter operatorParam = caseSection.getParameterAtOffset(part.getStart());
+			if (caseSection.isCaseOperator(operatorParam)) {
+				CaseOperator operator = caseSection.getCaseOperator();
+				boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+				MarkupContent content = DocumentationUtils.getDocumentation(operator, hasMarkdown);
+				Range range = QutePositionUtility.createRange(operatorParam);
+				Hover hover = new Hover(content, range);
+				return CompletableFuture.completedFuture(hover);
+			}
+		}
+
+		// Check if part is a literal (ex: true, null, 123, 'abc', etc)
 		String literalJavaType = expression.getLiteralJavaType();
 		if (literalJavaType != null) {
 			return doHoverForJavaType(part, literalJavaType, projectUri, hoverRequest, cancelChecker);

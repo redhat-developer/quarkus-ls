@@ -28,6 +28,7 @@ import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.InsertTextFormat;
+import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
@@ -70,6 +71,7 @@ import com.redhat.qute.services.nativemode.JavaTypeFilter.JavaMemberAccessibilit
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.QuteNativeSettings;
+import com.redhat.qute.utils.DocumentationUtils;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.StringUtils;
 import com.redhat.qute.utils.UserTagUtils;
@@ -512,14 +514,14 @@ public class QuteCompletionsForExpression {
 	 * @param list               the completion list.
 	 */
 	private void fillCaseOperators(CaseSection caseSection, boolean onlyMulti, Range range,
-			Set<String> existingParameters, CompletionList list) {
+			Set<String> existingParameters, CompletionList list, boolean canSupportMarkdown) {
 		for (CaseOperator operator : caseSection.getAllowedOperators()) {
 			if (!onlyMulti || (onlyMulti && operator.isMulti())) {
 				CompletionItem item = new CompletionItem();
 				item.setLabel(operator.getName() + " : Operator");
 				item.setFilterText(operator.getName());
 				item.setKind(CompletionItemKind.Operator);
-				item.setDocumentation(operator.getDocumentation());
+				item.setDocumentation(DocumentationUtils.getDocumentation(operator, canSupportMarkdown));
 				TextEdit textEdit = new TextEdit();
 				textEdit.setRange(range);
 				textEdit.setNewText(operator.getName());
@@ -944,22 +946,23 @@ public class QuteCompletionsForExpression {
 										for (Parameter parameter : caseSection.getParameters()) {
 											caseExistingVars.add(parameter.getName());
 										}
+										boolean canSupportMarkdown = completionSettings.canSupportMarkupKind(MarkupKind.MARKDOWN);
 										// Complete operator and/or field according to result
 										switch (result) {
 											case ALL_OPERATOR_AND_FIELD:
-												fillCaseOperators(caseSection, false, range, caseExistingVars, list);
+												fillCaseOperators(caseSection, false, range, caseExistingVars, list, canSupportMarkdown);
 												fillCompletionFields(whenJavaType, javaTypeAccessibility, filter, range,
 														projectUri, caseExistingVars, list);
 												break;
 											case ALL_OPERATOR:
-												fillCaseOperators(caseSection, false, range, caseExistingVars, list);
+												fillCaseOperators(caseSection, false, range, caseExistingVars, list, canSupportMarkdown);
 												break;
 											case FIELD_ONLY:
 												fillCompletionFields(whenJavaType, javaTypeAccessibility, filter, range,
 														projectUri, caseExistingVars, list);
 												break;
 											case MULTI_OPERATOR_ONLY:
-												fillCaseOperators(caseSection, true, range, caseExistingVars, list);
+												fillCaseOperators(caseSection, true, range, caseExistingVars, list, canSupportMarkdown);
 												break;
 											case NONE:
 												break;

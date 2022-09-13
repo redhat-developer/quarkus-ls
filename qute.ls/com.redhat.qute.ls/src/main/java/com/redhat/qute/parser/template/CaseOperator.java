@@ -15,7 +15,7 @@ package com.redhat.qute.parser.template;
  * Operators to be used in #case or #is section within a #switch or #when
  * section
  *
- * @see https://quarkus.io/guides/qute-reference#when_section
+ * @see https://quarkus.io/guides/qute-reference#when_operators
  *
  */
 
