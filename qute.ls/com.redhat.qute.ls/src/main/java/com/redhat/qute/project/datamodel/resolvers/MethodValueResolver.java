@@ -19,6 +19,7 @@ import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.parser.template.DocumentableItem;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Node;
 
@@ -28,7 +29,7 @@ import com.redhat.qute.parser.template.Node;
  * @author Angelo ZERR
  *
  */
-public class MethodValueResolver extends JavaMethodInfo implements ValueResolver, JavaTypeInfoProvider {
+public class MethodValueResolver extends JavaMethodInfo implements ValueResolver, JavaTypeInfoProvider, DocumentableItem {
 
 	private String named;
 

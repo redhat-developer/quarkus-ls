@@ -27,6 +27,7 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.ls.commons.snippets.Snippet;
+import com.redhat.qute.parser.template.CaseOperator;
 import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.tags.UserTag;
@@ -196,6 +197,65 @@ public class DocumentationUtils {
 		} else {
 			documentation.append(uri.getPath());
 		}
+
+		return createMarkupContent(documentation, markdown);
+	}
+
+	/**
+	 * Returns the markup content for operators in the #case section.
+	 *
+	 * @param operator the case operator.
+	 * @param markdown true if has markdown.
+	 *
+	 * @return the markup content for operators in the #case section.
+	 */
+	public static MarkupContent getDocumentation(CaseOperator operator, boolean markdown) {
+		StringBuilder documentation = new StringBuilder();
+
+		if (markdown) {
+			documentation.append("**");
+		}
+		documentation.append("Operator");
+		if (markdown) {
+			documentation.append("**");
+		}
+		documentation.append(" for #case/#is section.");
+		documentation.append(System.lineSeparator());
+		documentation.append(System.lineSeparator());
+
+		if (operator.getDescription() != null) {
+			documentation.append(operator.getDescription());
+		}
+		if (operator.getSample() != null) {
+			documentation.append(System.lineSeparator());
+			documentation.append(System.lineSeparator());
+			if (markdown) {
+				documentation.append("`");
+			}
+			documentation.append("Sample");
+			if (markdown) {
+				documentation.append("`");
+			}
+			documentation.append(":");
+			documentation.append(System.lineSeparator());
+			if (markdown) {
+				documentation.append("```qute-html");
+				documentation.append(System.lineSeparator());
+			}
+			for (int i = 0; i < operator.getSample().size(); i++) {
+				String line = operator.getSample().get(i);
+				if (i > 0) {
+					documentation.append(System.lineSeparator());
+				}
+				documentation.append(line);
+			}
+			documentation.append(System.lineSeparator());
+			if (markdown) {
+				documentation.append("```");
+			}
+		}
+		String url = operator.getUrl();
+		addUrl(url, documentation, markdown);
 
 		return createMarkupContent(documentation, markdown);
 	}
