@@ -291,6 +291,26 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 	}
 
 	@Test
+	public void whenExpressionOperatorWhichContainsEquals() {
+		String template = "{@org.acme.Machine Machine}\r\n" + //
+				"		{#when Machine.getMachine()}\r\n" + //
+				"		{#is != ON}\r\n" + //
+				"		{#is <= ON}\r\n" + //
+				"		{/when}";
+		testDiagnosticsFor(template);
+		
+		template = "{@org.acme.Machine Machine}\r\n" + //
+				"		{#when Machine.getMachine()}\r\n" + //
+				"		{#is != ON OFF}\r\n" + //
+				"		{#is <= ON}\r\n" + //
+				"		{/when}";
+		testDiagnosticsFor(template, //
+				d(2, 13, 2, 16, QuteErrorCode.UnexpectedParameter,
+						"Unexpected operand `OFF`. The operator `!=` in the `#is` section expects only one parameter.",
+						DiagnosticSeverity.Error));
+	}
+	
+	@Test
 	public void whenExpressionOperatorNoParameters() {
 		String template = "{@org.acme.Machine Machine}\r\n" + //
 				"		{#when Machine.status}\r\n" + //
