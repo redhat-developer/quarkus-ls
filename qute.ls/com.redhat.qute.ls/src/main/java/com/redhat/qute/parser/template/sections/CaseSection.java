@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.redhat.qute.parser.parameter.ParameterParser;
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.CaseOperator;
 import com.redhat.qute.parser.template.Parameter;
@@ -87,10 +88,28 @@ public class CaseSection extends Section {
 
 	@Override
 	protected void initializeParameters(List<Parameter> parameters) {
-		// All parameters can have expression (ex : {#case OFF})
+		// All parameters can have expression.
+		// Ex :
+		// - {#case OFF}
+		// - {#case in ON OFF}
 		for (Parameter parameter : parameters) {
+			// Force the compute of parameter name here to support '=' in the name for some
+			// operator like:
+			// - !=
+			// - >=
+			parameter.setStartValue(parameter.getEnd());
+			parameter.getName();
+			parameter.setStartValue(NULL_VALUE);
 			parameter.setCanHaveExpression(true);
 		}
+	}
+
+	protected List<Parameter> collectParameters() {
+		// Don't split parameters with '=' to support operator like
+		// - !=
+		// - >=
+		boolean splitWithEquals = false;
+		return ParameterParser.parse(this, false, splitWithEquals);
 	}
 
 	@Override

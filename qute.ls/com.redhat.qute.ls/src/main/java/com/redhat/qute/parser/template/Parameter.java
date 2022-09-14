@@ -96,6 +96,9 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 	 * @return the parameter name.
 	 */
 	public String getName() {
+		if (name != null) {
+			return name;
+		}
 		if (!hasValueAssigned()) {
 			// ex : {#if foo?? }
 			Expression expression = getJavaTypeExpression();
