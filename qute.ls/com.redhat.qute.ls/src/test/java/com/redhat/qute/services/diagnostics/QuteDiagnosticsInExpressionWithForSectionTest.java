@@ -251,4 +251,24 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 		testDiagnosticsFor(template);
 	}
 
+	@Test
+	public void forOfFor() {
+		String template = "{@java.util.List<java.util.Set<java.lang.String>> items}\r\n" + //
+				"\r\n" + //
+				"		{#for item in items}\r\n" + //
+				"			{#for innerItem in item}\r\n" + //
+				"				{innerItem.isEmpty()}\r\n" + //
+				"			{/for}\r\n" + //
+				"		{/for}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void twoManyTypeParameter() {
+		String template = "{@java.util.List<java.lang.String,org.acme.Item> items}\r\n" + //
+				"{#for item in items}\r\n" + //
+				"	{item}	\r\n" + //
+				"{/for}";
+		testDiagnosticsFor(template);
+	}
 }

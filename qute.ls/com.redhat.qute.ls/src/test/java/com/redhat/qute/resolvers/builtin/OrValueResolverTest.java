@@ -96,7 +96,7 @@ public class OrValueResolverTest {
 				"{item.name.o|r('John')}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"T or(Object arg)" + //
+				"String or(Object arg)" + //
 				System.lineSeparator() + //
 				"```" + //
 				System.lineSeparator() + //
@@ -126,7 +126,7 @@ public class OrValueResolverTest {
 				"{item.name o|r 'John'}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"T or(Object arg)" + //
+				"String or(Object arg)" + //
 				System.lineSeparator() + //
 				"```" + //
 				System.lineSeparator() + //

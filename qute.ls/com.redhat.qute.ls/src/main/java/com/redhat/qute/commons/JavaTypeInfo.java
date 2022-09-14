@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -172,16 +173,29 @@ public class JavaTypeInfo extends JavaElementInfo {
 
 	private static List<JavaParameterInfo> parseTypeParameters(String signature, int start) {
 		List<JavaParameterInfo> parameters = new ArrayList<>();
-		int end = signature.indexOf('>', start - 1);
+		int end = signature.lastIndexOf('>');
 		// ex : java.util.Map<K,V> will return an array of K,V
 		StringBuilder paramName = new StringBuilder();
+		boolean ignore = false;
 		for (int i = start + 1; i < end; i++) {
 			char c = signature.charAt(i);
 			// ex query :
 			switch (c) {
+			case '<':
+				ignore = true;
+				paramName.append(c);
+				break;
+			case '>':
+				ignore = false;
+				paramName.append(c);
+				break;
 			case ',':
-				parameters.add(new JavaParameterInfo(null, paramName.toString()));
-				paramName.setLength(0);
+				if (ignore) {
+					paramName.append(c);
+				} else {
+					parameters.add(new JavaParameterInfo(null, paramName.toString()));
+					paramName.setLength(0);
+				}
 				break;
 			default:
 				paramName.append(c);
@@ -257,12 +271,143 @@ public class JavaTypeInfo extends JavaElementInfo {
 	/**
 	 * Returns true if the Java type is an array (ex : java.lang.String[]) and false
 	 * otherwise.
-	 * 
+	 *
 	 * @return true if the Java type is an array (ex : java.lang.String[]) and false
 	 *         otherwise.
 	 */
 	public boolean isArray() {
 		return getName().endsWith("[]");
+	}
+
+	/**
+	 * Returns the result of apply generic type invocation for the given
+	 * <code>javaType</code> with the given <code>genericMap</code>.
+	 * 
+	 * @param javaType   the Java type.
+	 * @param genericMap the generic Map.
+	 * 
+	 * @return the result of apply generic type invocation for the given
+	 *         <code>javaType</code> with the given <code>genericMap</code>.
+	 */
+	public static String applyGenericTypeInvocation(JavaTypeInfo javaType, Map<String, String> genericMap) {
+		StringBuilder result = new StringBuilder();
+		applyGenericTypeInvocation(javaType, genericMap, result);
+		return result.toString();
+	}
+
+	/**
+	 * Apply generic type invocation for the JavaType with the given given
+	 * <code>genericMap</code>.
+	 * 
+	 * @param javaType   the Java type.
+	 * @param genericMap the generic Map.
+	 * @param result     the result.
+	 */
+	public static void applyGenericTypeInvocation(JavaTypeInfo javaType, Map<String, String> genericMap,
+			StringBuilder result) {
+		List<JavaParameterInfo> parameters = javaType.getTypeParameters();
+		if (!parameters.isEmpty()) {
+			// - org.acme.A<B,C,D>
+			// - java.util.Collection<E>
+			result.append(javaType.getName());
+			result.append("<");
+			for (int i = 0; i < parameters.size(); i++) {
+				if (i > 0) {
+					result.append(",");
+				}
+				JavaParameterInfo parameter = parameters.get(i);
+				String type = parameter.getType();
+				applyGenericTypeInvocation(type, genericMap, result);
+			}
+			result.append(">");
+		} else {
+			// - int
+			// - T
+			applyGenericTypeInvocation(javaType.getName(), genericMap, result);
+		}
+	}
+
+	/**
+	 * Returns the result of apply generic type invocation for the given
+	 * <code>javaType</code> with the given <code>genericMap</code>.
+	 * 
+	 * @param javaType   the Java type.
+	 * @param genericMap the generic Map.
+	 * 
+	 * @return the result of apply generic type invocation for the given
+	 *         <code>javaType</code> with the given <code>genericMap</code>.
+	 */
+	public static String applyGenericTypeInvocation(String javaType, Map<String, String> genericMap) {
+		StringBuilder result = new StringBuilder();
+		applyGenericTypeInvocation(javaType, genericMap, result);
+		return result.toString();
+	}
+
+	/**
+	 * Apply generic type invocation for the given <code>javaType</code> with the
+	 * given given <code>genericMap</code>.
+	 * 
+	 * @param javaType   the Java type.
+	 * @param genericMap the generic Map.
+	 * @param result     the result.
+	 */
+	public static void applyGenericTypeInvocation(String javaType, Map<String, String> genericMap,
+			StringBuilder result) {
+		String paramType = genericMap.getOrDefault(javaType, javaType);
+		if (containsGenericParameter(paramType)) {
+			JavaTypeInfo subType = new JavaTypeInfo();
+			subType.setSignature(paramType);
+			JavaTypeInfo.applyGenericTypeInvocation(subType, genericMap, result);
+		} else {
+			result.append(paramType);
+		}
+	}
+
+	/**
+	 * Returns true if the given <code>javaType</code> defines some generic type
+	 * parameters (ex : java.util.List<E>) and false otherwise.
+	 * 
+	 * @param javaType the Java type.
+	 * 
+	 * @return true if the given <code>javaType</code> defines some generic type
+	 *         parameters (ex : java.util.List<E>) and false otherwise.
+	 */
+	private static boolean containsGenericParameter(String javaType) {
+		return javaType != null && javaType.indexOf('<') != -1;
+	}
+
+	/**
+	 * Returns a Map which contains the generic name of the Java type (ex : <T>) and
+	 * the concrete type <code>javaTypeName</code> (ex : <java.lang.String>).
+	 * 
+	 * <code>
+	 *  ResolvedJavaTypeInfo map = new ResolvedJavaTypeInfo();
+	 *  map.setSignature("java.util.Map<K,V>"); 
+	 *  
+	 *  // Here the createGenericMap will return a map like:
+	 *  // -  K = java.lang.String
+	 *  // -  V = java.lang.Integer
+	 *  map.createGenericMap(java.util.Map<java.lang.String,java.lang.Integer>);
+	 * </code>
+	 * 
+	 * @param javaType the concrete java type (ex :
+	 *                 Map<java.lang.String,org.acme.Item>).
+	 * 
+	 * @return
+	 */
+	public Map<String, String> createGenericMap(String javaType) {
+		if (javaType.indexOf('<') == -1) {
+			return null;
+		}
+		JavaTypeInfo typeInfo = new JavaTypeInfo();
+		typeInfo.setSignature(javaType);
+		Map<String, String> generics = new LinkedHashMap<>();
+		List<JavaParameterInfo> typeParameters = typeInfo.getTypeParameters();
+		int size = Math.min(typeParameters.size(), getTypeParameters().size());
+		for (int i = 0; i < size; i++) {
+			generics.put(getTypeParameters().get(i).getType(), typeParameters.get(i).getType());
+		}
+		return generics;
 	}
 
 	@Override

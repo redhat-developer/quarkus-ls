@@ -14,7 +14,6 @@ package com.redhat.qute.project.datamodel;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 import org.eclipse.lsp4j.Location;
 
@@ -99,13 +98,18 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 			case Property:
 			case Method:
 				if (future != null) {
-					future = future //
-							.thenCompose(resolvedType -> {
-								if (resolvedType == null) {
-									return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
-								}
-								return resolveJavaType(current, projectUri, resolvedType);
-							});
+					ResolvedJavaTypeInfo actualResolvedType = future.getNow(null);
+					if (actualResolvedType != null) {
+						future = resolveJavaType(current, projectUri, actualResolvedType);
+					} else {
+						future = future //
+								.thenCompose(resolvedType -> {
+									if (resolvedType == null) {
+										return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+									}
+									return resolveJavaType(current, projectUri, resolvedType);
+								});
+					}
 				}
 				break;
 			default:
@@ -114,7 +118,7 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return future != null ? future : RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 	}
 
-	private CompletionStage<ResolvedJavaTypeInfo> resolveJavaType(Part part, String projectUri,
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Part part, String projectUri,
 			ResolvedJavaTypeInfo resolvedType) {
 		JavaMemberInfo member = findMember(part, resolvedType, projectUri);
 		if (member == null) {
@@ -276,12 +280,15 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 	public Set<String> getAllNamespaces(String projectUri) {
 		return projectRegistry.getAllNamespaces(projectUri);
 	}
-	
+
 	/**
-	 * Returns a set of the fully qualified names of all classes in the given project that are annotated with {@code TemplateExtension}.
+	 * Returns a set of the fully qualified names of all classes in the given
+	 * project that are annotated with {@code TemplateExtension}.
 	 * 
-	 * @param projectUri the URI of the project in which to search for the template extension classes
-	 * @return a set of the fully qualified names of all classes in the given project that are annotated with {@code TemplateExtension}
+	 * @param projectUri the URI of the project in which to search for the template
+	 *                   extension classes
+	 * @return a set of the fully qualified names of all classes in the given
+	 *         project that are annotated with {@code TemplateExtension}
 	 */
 	public Set<String> getAllTemplateExtensionsClasses(String projectUri) {
 		return projectRegistry.getAllTemplateExtensionsClasses(projectUri);

@@ -68,7 +68,7 @@ public class IfTruthyValueResolverTest {
 				"{item.name.i|fTruthy(item)}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"T ifTruthy(Object arg)" + //
+				"String ifTruthy(Object arg)" + //
 				System.lineSeparator() + //
 				"```" + //
 				System.lineSeparator() + //

@@ -11,8 +11,11 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.resolver;
 
+import java.util.List;
+
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMethod;
 
 /**
@@ -40,6 +43,26 @@ public interface ITypeResolver {
 			throw new UnsupportedOperationException("Unsupported java element type: " + javaElement.getElementType());
 		}
 	}
+
+	/**
+	 * Returns the extended types of the Java type.
+	 * 
+	 * * Example:
+	 * 
+	 * <code>
+	 * public interface List<E> extends Collection<E>
+	 * </code>
+	 * 
+	 * will returns:
+	 * 
+	 * <code>
+	 * java.lang.Object
+	 * java.util.Collection<E>
+	 * </code>
+	 * 
+	 * @return the extended types of the Java type.
+	 */
+	List<String> resolveExtendedType();
 
 	/**
 	 * Returns the resolved Java type signature from the given String
@@ -94,4 +117,20 @@ public interface ITypeResolver {
 	 */
 	String resolveMethodSignature(IMethod method);
 
+	/**
+	 * Returns the Java local variable signature from the given JDT
+	 * <code>parameter</code>.
+	 * 
+	 * Example:
+	 * 
+	 * <code>
+	 * query : java.lang.String
+	 * </code>
+	 * 
+	 * @param parameter the JDT local variable
+	 * @param varargs   true if the parameter is a varargs.
+	 * 
+	 * @return the Java local variable signature.
+	 */
+	String resolveLocalVariableSignature(ILocalVariable parameter, boolean varargs);
 }

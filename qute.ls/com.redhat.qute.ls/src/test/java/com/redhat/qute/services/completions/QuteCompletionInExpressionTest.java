@@ -125,6 +125,30 @@ public class QuteCompletionInExpressionTest {
 	}
 
 	@Test
+	public void listOfListGeneric() throws Exception {
+		String template = "{@java.util.List<java.util.List<org.acme.Item>> items}\r\n" + //
+				"{items.getByIndex(0).getByIndex(0).|}";
+		testCompletionFor(template, c("base : String", "base", r(1, 35, 1, 35)), // comes from BaseItem extended by Item
+				c("name : String", "name", r(1, 35, 1, 35)), //
+				c("price : BigInteger", "price", r(1, 35, 1, 35)), //
+				c("review : Review", "review", r(1, 35, 1, 35)), //
+				c("review2 : Review", "review2", r(1, 35, 1, 35)), //
+				c("getReview2() : Review", "getReview2", r(1, 35, 1, 35)));
+	}
+
+	@Test
+	public void listOfListOfListGeneric() throws Exception {
+		String template = "{@java.util.List<java.util.List<java.util.List<org.acme.Item>>> items}\r\n" + //
+				"{items.getByIndex(0).getByIndex(0).getByIndex(0).|}";
+		testCompletionFor(template, c("base : String", "base", r(1, 49, 1, 49)), // comes from BaseItem extended by Item
+				c("name : String", "name", r(1, 49, 1, 49)), //
+				c("price : BigInteger", "price", r(1, 49, 1, 49)), //
+				c("review : Review", "review", r(1, 49, 1, 49)), //
+				c("review2 : Review", "review2", r(1, 49, 1, 49)), //
+				c("getReview2() : Review", "getReview2", r(1, 49, 1, 49)));
+	}
+
+	@Test
 	public void completionInExpressionNotClosedForPropertyPart() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item.|";
@@ -370,6 +394,14 @@ public class QuteCompletionInExpressionTest {
 	@Test
 	public void objectWithCyclesObjectPart() throws Exception {
 		String template = "{@org.acme.qute.cyclic.ClassA classA}\n" + //
+				"{classA.|";
+		// Base resolvers for an object, plus a method and a field from ClassA
+		testCompletionFor(template, 7);
+	}
+
+	@Test
+	public void objectWithGenericAndCyclesObjectPart() throws Exception {
+		String template = "{@org.acme.qute.cyclic.ClassAWithGeneric<java.lang.String> classA}\n" + //
 				"{classA.|";
 		// Base resolvers for an object, plus a method and a field from ClassA
 		testCompletionFor(template, 7);

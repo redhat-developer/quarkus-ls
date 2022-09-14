@@ -13,10 +13,11 @@ package com.redhat.qute.jdt.internal.resolver;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IImportDeclaration;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
 /**
@@ -27,12 +28,13 @@ import org.eclipse.jdt.core.JavaModelException;
  */
 public class CompilationUnitTypeResolver extends AbstractTypeResolver {
 
+	private static final Logger LOGGER = Logger.getLogger(CompilationUnitTypeResolver.class.getName());
+
 	private final Map<String, String> packages;
-	private final IType primaryType;
 
 	public CompilationUnitTypeResolver(ICompilationUnit compilationUnit) {
+		super(compilationUnit.findPrimaryType());
 		this.packages = new HashMap<>();
-		this.primaryType = compilationUnit.findPrimaryType();
 		try {
 			IImportDeclaration[] imports = compilationUnit.getImports();
 			if (imports != null) {
@@ -44,25 +46,37 @@ public class CompilationUnitTypeResolver extends AbstractTypeResolver {
 				}
 			}
 		} catch (JavaModelException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE,
+					"Error while creating packages cache for '" + compilationUnit.getElementName() + "'.", e);
 
 		}
 	}
 
 	@Override
 	protected String resolveSimpleType(String type) {
-		String resolvedType = packages.get(type);
-		if (resolvedType == null) {
-			try {
-				String[][] resolvedNames = primaryType.resolveType(type);
-				if (resolvedNames != null && resolvedNames.length > 0) {
-					return resolvedNames[0][0] + '.' + resolvedNames[0][1];
+		try {
+			if (type.indexOf('.') == -1) {
+				// ex: Item
+				String resolvedType = packages.get(type);
+				if (resolvedType != null) {
+					// Item is found as import packages. Ex:
+					// import org.acme.Item;
+					return resolvedType;
 				}
-			} catch (JavaModelException e) {
-				e.printStackTrace();
-
 			}
+			String[][] resolvedNames = primaryType.resolveType(type);
+			if (resolvedNames != null && resolvedNames.length > 0) {
+				String packageName = resolvedNames[0][0];
+				String className = resolvedNames[0][1];
+				if (className.indexOf('.') != -1) {
+					// Ex : Map.Entry should be updated to Map$Entry
+					className = className.replace('.', '$');
+				}
+				return packageName + '.' + className;
+			}
+		} catch (JavaModelException e) {
+			LOGGER.log(Level.SEVERE, "Error while resolving simple type '" + type + "'.", e);
 		}
-		return resolvedType != null ? resolvedType : type;
+		return type;
 	}
 }

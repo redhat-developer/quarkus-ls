@@ -52,8 +52,8 @@ public class ArrayLengthValueResolverTest {
 				"{items.length}";
 		testDiagnosticsFor(template, //
 				d(1, 7, 1, 13, QuteErrorCode.UnknownProperty,
-						"`length` cannot be resolved or is not a field of `java.util.List<E>` Java type.",
-						new JavaBaseTypeOfPartData("java.util.List<E>"), //
+						"`length` cannot be resolved or is not a field of `java.util.List<org.acme.Item>` Java type.",
+						new JavaBaseTypeOfPartData("java.util.List<org.acme.Item>"), //
 						DiagnosticSeverity.Error));
 	}
 

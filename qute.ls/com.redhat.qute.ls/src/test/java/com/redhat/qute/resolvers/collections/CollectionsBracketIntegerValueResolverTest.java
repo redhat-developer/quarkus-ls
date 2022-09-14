@@ -47,9 +47,10 @@ public class CollectionsBracketIntegerValueResolverTest {
 		// test to check @java.lang.Integer(base : T[]) : T is not returned by the
 		// completion
 		testCompletionFor(template, //
-				10, //				
+				11, //				
+				c("iterator() : Iterator<Item>", "iterator", r(1, 13, 1, 13)), //
 				c("size() : int", "size", r(1, 13, 1, 13)), //
-				c("get(index : int) : E", "get(${1:index})$0", r(1, 13, 1, 13)), //
+				c("get(index : int) : Item", "get(${1:index})$0", r(1, 13, 1, 13)), //
 				c("raw(base : Object) : RawString", "raw", r(1, 13, 1, 13)), //
 				c("safe(base : Object) : RawString", "safe", r(1, 13, 1, 13)));
 

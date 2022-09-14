@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.commons;
 
+import java.util.Map;
+
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
 /**
@@ -124,6 +126,42 @@ public class JavaFieldInfo extends JavaMemberInfo {
 		return getType();
 	}
 
+	/**
+	 * Returns a new field with the generic type information applied to the
+	 * signature.
+	 * 
+	 * <code>
+	 *    field : T
+	 * </code>
+	 * 
+	 * becomes:
+	 * 
+	 * <code>
+	 *    field : java.lang.String
+	 * </code>
+	 * 
+	 * where 'T' is filled in the generic Map with the 'java.lang.String' value.
+	 * 
+	 * @param field      the Java field.
+	 * @param genericMap the generic Map
+	 * 
+	 * @return a new field with the generic type information applied to the
+	 *         signature.
+	 */
+	public static JavaFieldInfo applyGenericTypeInvocation(JavaFieldInfo field, Map<String, String> genericMap) {
+		// ex :
+		// - field : java.lang.String
+		// - field : T
+		// - field : java.util.List<T>
+		JavaFieldInfo newField = new JavaFieldInfo();
+		StringBuilder newSignature = new StringBuilder();
+		newSignature.append(field.getName());
+		newSignature.append(" : ");
+		JavaTypeInfo.applyGenericTypeInvocation(field.getType(), genericMap, newSignature);
+		newField.setSignature(newSignature.toString());
+		return newField;
+	}
+
 	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
@@ -132,4 +170,5 @@ public class JavaFieldInfo extends JavaMemberInfo {
 		b.add("signature", this.getSignature());
 		return b.toString();
 	}
+
 }

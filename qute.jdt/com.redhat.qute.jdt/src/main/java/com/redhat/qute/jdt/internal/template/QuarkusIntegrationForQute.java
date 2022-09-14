@@ -26,16 +26,11 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJarEntryResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.JavaProject;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 
-import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.QuteProjectScope;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
@@ -72,45 +67,6 @@ public class QuarkusIntegrationForQute {
 			IProgressMonitor monitor) throws CoreException {
 		return DataModelProviderRegistry.getInstance().getDataModelProject(javaProject,
 				QuteProjectScope.SOURCES_AND_DEPENDENCIES, monitor);
-	}
-
-	public static String resolveSignature(ILocalVariable methodParameter, IType type) {
-		return resolveSignature(methodParameter.getTypeSignature(), type);
-	}
-
-	private static String resolveSignature(String signature, IType type) {
-		if (signature.charAt(0) == '[') {
-			// It's an array object
-			// [QItem; --> org.acme.Item[]
-			return resolveSignature2(signature.substring(1), type) + "[]";
-		}
-		int start = signature.indexOf('<');
-		if (start == -1) {
-			// No generic
-			return resolveSignature2(signature, type);
-		}
-
-		String mainSignature = resolveSignature2(signature, type);
-		int end = signature.indexOf('>', start);
-		String genericSignature = resolveSignature2(signature.substring(start + 1, end), type);
-		return mainSignature + "<" + genericSignature + ">";
-	}
-
-	private static String resolveSignature2(String signature, IType type) {
-		String resolvedSignatureWithoutPackage = Signature.toString(signature);
-		if (JavaTypeInfo.PRIMITIVE_TYPES.contains(resolvedSignatureWithoutPackage)) {
-			return resolvedSignatureWithoutPackage;
-		}
-
-		try {
-			String[][] resolvedSignature = type.resolveType(resolvedSignatureWithoutPackage);
-			if (resolvedSignature != null) {
-				return resolvedSignature[0][0] + "." + resolvedSignature[0][1];
-			}
-		} catch (JavaModelException e) {
-			LOGGER.log(Level.SEVERE, "Error while resolving signature '" + resolvedSignatureWithoutPackage + "'.", e);
-		}
-		return resolvedSignatureWithoutPackage;
 	}
 
 	/**
@@ -211,7 +167,7 @@ public class QuarkusIntegrationForQute {
 			return new URI(JDT_SCHEME, CONTENTS_AUTHORITY, jarEntryFile.getFullPath().toPortableString(),
 					fragmentRoot.getHandleIdentifier(), null).toASCIIString();
 		} catch (URISyntaxException e) {
-			JavaLanguageServerPlugin.logException("Error generating URI for jarentryfile ", e);
+			LOGGER.log(Level.SEVERE, "Error while generating URI for jarentryfile ", e);
 			return null;
 		}
 	}

@@ -12,7 +12,6 @@
 package com.redhat.qute.settings.capabilities;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 import org.eclipse.lsp4j.CodeActionKind;
@@ -69,7 +68,7 @@ public class ServerCapabilitiesConstants {
 	/* Default Options */
 	public static final CodeLensOptions DEFAULT_CODELENS_OPTIONS = new CodeLensOptions();
 	public static final CompletionOptions DEFAULT_COMPLETION_OPTIONS = new CompletionOptions(false,
-			Arrays.asList("{", "@", "#", ".", ":"));
+			Arrays.asList("{", "@", "#", ".", ":", "$"));
 	public static final DocumentLinkOptions DEFAULT_DOCUMENT_LINK_OPTIONS = new DocumentLinkOptions(true);
 	public static final CodeActionOptions DEFAULT_CODE_ACTION_OPTIONS = new CodeActionOptions();
 	static {

@@ -165,6 +165,9 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	 * @return the Java type parameter.
 	 */
 	public JavaTypeInfo getJavaReturnType() {
+		if (getReturnType() == null) {
+			return null;
+		}
 		if (javaReturnType == null) {
 			javaReturnType = new JavaTypeInfo();
 			javaReturnType.setSignature(getReturnType());
@@ -239,7 +242,7 @@ public class JavaMethodInfo extends JavaMemberInfo {
 		}
 		return parameters;
 	}
-	
+
 	/**
 	 * Returns the parameters length of the method.
 	 * 
@@ -399,6 +402,53 @@ public class JavaMethodInfo extends JavaMemberInfo {
 		resolved.append('>');
 
 		return resolved.toString();
+	}
+
+	/**
+	 * Returns a new method with the generic type information applied to the
+	 * signature.
+	 * 
+	 * <code>
+	 *    get(key : K) : V
+	 * </code>
+	 * 
+	 * becomes:
+	 * 
+	 * <code>
+	 *    get(key : java.lang.String) : java.lang.Integer
+	 * </code>
+	 * 
+	 * where 'K' is filled in the generic Map with the 'java.lang.String' value and
+	 * 'V' is filled in the generic Map with the 'java.lang.Integer' value.
+	 * 
+	 * @param method     the Java method.
+	 * @param genericMap the generic Map
+	 * 
+	 * @return a new method with the generic type information applied to the
+	 *         signature.
+	 */
+	public static JavaMethodInfo applyGenericTypeInvocation(JavaMethodInfo method, Map<String, String> genericMap) {
+		JavaMethodInfo newMethod = new JavaMethodInfo();
+		StringBuilder newSignature = new StringBuilder(method.getMethodName());
+		newSignature.append("(");
+		List<JavaParameterInfo> parameters = method.getParameters();
+		for (int i = 0; i < parameters.size(); i++) {
+			JavaParameterInfo parameter = parameters.get(i);
+			if (i > 0) {
+				newSignature.append(", ");
+			}
+			newSignature.append(parameter.getName());
+			newSignature.append(" : ");
+			JavaTypeInfo.applyGenericTypeInvocation(parameter.getJavaType(), genericMap, newSignature);
+		}
+		newSignature.append(")");
+		JavaTypeInfo returnType = method.getJavaReturnType();
+		if (returnType != null) {
+			newSignature.append(" : ");
+			JavaTypeInfo.applyGenericTypeInvocation(returnType, genericMap, newSignature);
+		}
+		newMethod.setSignature(newSignature.toString());
+		return newMethod;
 	}
 
 	@Override
