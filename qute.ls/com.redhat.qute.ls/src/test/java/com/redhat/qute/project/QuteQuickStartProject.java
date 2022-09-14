@@ -27,8 +27,8 @@ import com.redhat.qute.commons.annotations.TemplateDataAnnotation;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
-import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
 
@@ -53,11 +53,22 @@ public class QuteQuickStartProject extends MockQuteProject {
 	@Override
 	protected List<ResolvedJavaTypeInfo> createResolvedTypes() {
 		List<ResolvedJavaTypeInfo> cache = new ArrayList<>();
+		createBinaryTypes(cache);
+		createSourceTypes(cache);
+		return cache;
+	}
 
-		createResolvedJavaTypeInfo("org.acme", cache, true).setJavaTypeKind(JavaTypeKind.Package);
-
+	private void createBinaryTypes(List<ResolvedJavaTypeInfo> cache) {
+		// Java type primitives
 		createResolvedJavaTypeInfo("java.lang.Object", cache, true);
+		createResolvedJavaTypeInfo("java.lang.Boolean", cache, true);
+		createResolvedJavaTypeInfo("java.lang.Integer", cache, true);
+		createResolvedJavaTypeInfo("java.lang.Double", cache, true);
+		createResolvedJavaTypeInfo("java.lang.Long", cache, true);
+		createResolvedJavaTypeInfo("java.lang.Float", cache, true);
+		createResolvedJavaTypeInfo("java.math.BigDecimal", cache, true);
 
+		// String
 		ResolvedJavaTypeInfo string = createResolvedJavaTypeInfo("java.lang.String", cache, true);
 		registerField("UTF16 : byte", string);
 		registerMethod("isEmpty() : boolean", string);
@@ -68,15 +79,60 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerMethod("getBytes(charsetName : java.lang.String) : byte[]", string);
 		registerMethod("getBytes() : byte[]", string);
 
-		createResolvedJavaTypeInfo("java.lang.Boolean", cache, true);
-		createResolvedJavaTypeInfo("java.lang.Integer", cache, true);
-		createResolvedJavaTypeInfo("java.lang.Double", cache, true);
-		createResolvedJavaTypeInfo("java.lang.Long", cache, true);
-		createResolvedJavaTypeInfo("java.lang.Float", cache, true);
-		createResolvedJavaTypeInfo("java.math.BigDecimal", cache, true);
-
+		// BigInteger
 		ResolvedJavaTypeInfo bigInteger = createResolvedJavaTypeInfo("java.math.BigInteger", cache, true);
 		registerMethod("divide(val : java.math.BigInteger) : java.math.BigInteger", bigInteger);
+
+		// Iterator
+		ResolvedJavaTypeInfo iterator = createResolvedJavaTypeInfo("java.util.Iterator<E>", cache, true);
+		registerMethod("hasNext() : boolean", iterator);
+		registerMethod("next() : E", iterator);
+
+		// Iterable
+		ResolvedJavaTypeInfo iterable = createResolvedJavaTypeInfo("java.lang.Iterable<T>", cache, true);
+		registerMethod("iterator() : java.util.Iterator<T>", iterable);
+
+		// Collection
+		ResolvedJavaTypeInfo collection = createResolvedJavaTypeInfo("java.util.Collection<E>", cache, true);
+		collection.setExtendedTypes(Arrays.asList("java.lang.Iterable<E>"));
+
+		// List
+		ResolvedJavaTypeInfo list = createResolvedJavaTypeInfo("java.util.List<E>", cache, true);
+		list.setExtendedTypes(Arrays.asList("java.util.Collection<E>"));
+		registerMethod("size() : int", list);
+		registerMethod("get(index : int) : E", list);
+
+		// Set
+		ResolvedJavaTypeInfo set = createResolvedJavaTypeInfo("java.util.Set<E>", cache, true);
+		set.setExtendedTypes(Arrays.asList("java.lang.Iterable<E>"));
+
+		// Map
+		ResolvedJavaTypeInfo map = createResolvedJavaTypeInfo("java.util.Map<K,V>", cache, true);
+		registerMethod("keySet() : java.util.Set<K>", map);
+		registerMethod("values() : java.util.Collection<V>", map);
+		registerMethod("entrySet() : java.util.Set<java.util.Map$Entry<K,V>>", map);
+
+		// Map.Entry
+		ResolvedJavaTypeInfo mapEntry = createResolvedJavaTypeInfo("java.util.Map$Entry<K,V>", cache, true);
+		registerMethod("getKey() : K", mapEntry);
+		registerMethod("getValue() : V", mapEntry);
+
+		// AbstractMap
+		ResolvedJavaTypeInfo abstractMap = createResolvedJavaTypeInfo("java.util.AbstractMap<K,V>", cache, true);
+		abstractMap.setExtendedTypes(Arrays.asList("java.util.Map<K,V>"));
+
+		// HashMap
+		ResolvedJavaTypeInfo hashMap = createResolvedJavaTypeInfo("java.util.HashMap<K,V>", cache, true);
+		hashMap.setExtendedTypes(Arrays.asList("java.util.AbstractMap<K,V>", "java.util.Map<K,V>"));
+
+		// RawString for raw and safe resolver tests
+		ResolvedJavaTypeInfo rawString = createResolvedJavaTypeInfo("io.quarkus.qute.RawString", cache, true);
+		registerMethod("getValue() : java.lang.String", rawString);
+		registerMethod("toString() : java.lang.String", rawString);
+	}
+
+	private void createSourceTypes(List<ResolvedJavaTypeInfo> cache) {
+		createResolvedJavaTypeInfo("org.acme", cache, true).setJavaTypeKind(JavaTypeKind.Package);
 
 		ResolvedJavaTypeInfo bean = createResolvedJavaTypeInfo("org.acme.Bean", cache, false);
 		registerField("bean : java.lang.String", bean);
@@ -91,7 +147,8 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerField("abstractName : java.lang.String", abstractItem);
 		registerMethod("convert(item : org.acme.AbstractItem) : int", abstractItem);
 
-		ResolvedJavaTypeInfo baseItem = createResolvedJavaTypeInfo("org.acme.BaseItem", cache, false, abstractItem.getSignature());
+		ResolvedJavaTypeInfo baseItem = createResolvedJavaTypeInfo("org.acme.BaseItem", cache, false,
+				abstractItem.getSignature());
 		registerField("base : java.lang.String", baseItem);
 		registerField("name : java.lang.String", baseItem);
 		registerMethod("getReviews() : java.util.List<org.acme.Review>", baseItem);
@@ -105,22 +162,26 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerMethod("getReview2() : org.acme.Review", item);
 		// Override BaseItem#getReviews()
 		registerMethod("getReviews() : java.util.List<org.acme.Review>", item);
-		createResolvedJavaTypeInfo("java.util.List<org.acme.Review>", "java.util.List", "org.acme.Review", cache, true, null);
+
 		registerField("derivedItems : java.util.List<org.acme.Item>", item);
 		registerField("derivedItemArray : org.acme.Item[]", item);
 		item.setInvalidMethod("staticMethod", InvalidMethodReason.Static); // public static BigDecimal
 																			// staticMethod(Item item)
 
-		createResolvedJavaTypeInfo("java.util.List<org.acme.Item>", "java.util.List", "org.acme.Item", cache, true);
-		createResolvedJavaTypeInfo("java.lang.Iterable<org.acme.Item>", "java.lang.Iterable", "org.acme.Item", cache, true);
-		createResolvedJavaTypeInfo("org.acme.Item[]", null, "org.acme.Item", cache, true);
-
-		ResolvedJavaTypeInfo classA = createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassA", cache, false, "org.acme.qute.cyclic.ClassC");
+		ResolvedJavaTypeInfo classA = createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassA", cache, false,
+				"org.acme.qute.cyclic.ClassC");
 		createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassB", cache, false, "org.acme.qute.cyclic.ClassA");
 		createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassC", cache, false, "org.acme.qute.cyclic.ClassB");
 		registerMethod("convert() : java.lang.String", classA);
 		registerField("name : java.lang.String", classA);
 
+		ResolvedJavaTypeInfo classAWithGeneric = createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassAWithGeneric<T>", cache, false,
+				"org.acme.qute.cyclic.ClassCWithGeneric<T>");
+		createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassBWithGeneric<T>", cache, false, "org.acme.qute.cyclic.ClassAWithGeneric<T>");
+		createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassCWithGeneric<T>", cache, false, "org.acme.qute.cyclic.ClassBWithGeneric<T>");
+		registerMethod("convert() : java.lang.String", classAWithGeneric);
+		registerField("name : java.lang.String", classAWithGeneric);
+		
 		// org.acme.MachineStatus
 		ResolvedJavaTypeInfo machineStatus = createResolvedJavaTypeInfo("org.acme.MachineStatus", cache, false);
 		machineStatus.setJavaTypeKind(JavaTypeKind.Enum);
@@ -214,23 +275,6 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerForReflectionAnnotation = new RegisterForReflectionAnnotation();
 		registerForReflectionAnnotation.setMethods(false);
 		itemWithRegisterForReflectionNoMethods.setRegisterForReflectionAnnotation(registerForReflectionAnnotation);
-
-		ResolvedJavaTypeInfo iterable = createResolvedJavaTypeInfo("java.lang.Iterable<T>", "java.lang.Iterable", "T",
-				cache, true);
-
-		ResolvedJavaTypeInfo list = createResolvedJavaTypeInfo("java.util.List<E>", "java.util.List", "E", cache, true);
-		list.setExtendedTypes(Arrays.asList("java.lang.Iterable"));
-		registerMethod("size() : int", list);
-		registerMethod("get(index : int) : E", list);
-
-		ResolvedJavaTypeInfo map = createResolvedJavaTypeInfo("java.util.Map", cache, true);
-
-		// RawString for raw and safe resolver tests
-		ResolvedJavaTypeInfo rawString = createResolvedJavaTypeInfo("io.quarkus.qute.RawString", cache, true);
-		registerMethod("getValue() : java.lang.String", rawString);
-		registerMethod("toString() : java.lang.String", rawString);
-
-		return cache;
 	}
 
 	@Override
@@ -319,41 +363,52 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// Type value resolvers
 		resolvers.add(createValueResolver("inject", "plexux", null,
 				"org.eclipse.aether.internal.transport.wagon.PlexusWagonConfigurator",
-				"org.eclipse.aether.internal.transport.wagon.PlexusWagonConfigurator", ValueResolverKind.InjectedBean, false, true));
+				"org.eclipse.aether.internal.transport.wagon.PlexusWagonConfigurator", ValueResolverKind.InjectedBean,
+				false, true));
 		resolvers.add(createValueResolver("inject", "plexux", null,
 				"org.eclipse.aether.internal.transport.wagon.PlexusWagonProvider",
-				"org.eclipse.aether.internal.transport.wagon.PlexusWagonProvider", ValueResolverKind.InjectedBean, false, true));
+				"org.eclipse.aether.internal.transport.wagon.PlexusWagonProvider", ValueResolverKind.InjectedBean,
+				false, true));
 
 		// Method value resolvers
 		// No namespace
 		resolvers.add(createValueResolver(null, null, null, "org.acme.ItemResource",
-				"discountedPrice(item : org.acme.Item) : java.math.BigDecimal", ValueResolverKind.TemplateExtensionOnMethod, false, false));
+				"discountedPrice(item : org.acme.Item) : java.math.BigDecimal",
+				ValueResolverKind.TemplateExtensionOnMethod, false, false));
 		resolvers.add(
 				createValueResolver(null, null, null, "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
-						"getByIndex(list : java.util.List<T>, index : int) : T", ValueResolverKind.TemplateExtensionOnClass, false, true));
+						"getByIndex(list : java.util.List<T>, index : int) : T",
+						ValueResolverKind.TemplateExtensionOnClass, false, true));
 		resolvers.add(createValueResolver(null, null, null, "org.acme.ItemResource",
-				"pretty(item : org.acme.Item, elements : java.lang.String...) : java.lang.String", ValueResolverKind.TemplateExtensionOnMethod, false, false));
+				"pretty(item : org.acme.Item, elements : java.lang.String...) : java.lang.String",
+				ValueResolverKind.TemplateExtensionOnMethod, false, false));
 
 		// @TemplateExtension
 		// org.acme.TemplateExtensions
-		resolvers.add(createValueResolver(null, null, null, "org.acme.TemplateExtensions", "", ValueResolverKind.TemplateExtensionOnClass, false, false));
+		resolvers.add(createValueResolver(null, null, null, "org.acme.TemplateExtensions", "",
+				ValueResolverKind.TemplateExtensionOnClass, false, false));
 		// @TemplateExtension
 		// org.acme.foo.TemplateExtensions
-		resolvers.add(createValueResolver(null, null, null, "org.acme.foo.TemplateExtensions", "", ValueResolverKind.TemplateExtensionOnClass, false, false));
+		resolvers.add(createValueResolver(null, null, null, "org.acme.foo.TemplateExtensions", "",
+				ValueResolverKind.TemplateExtensionOnClass, false, false));
 
 		// 'config' namespace
 		resolvers.add(
 				createValueResolver("config", null, "*", "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
-						"getConfigProperty(propertyName : java.lang.String) : java.lang.Object", ValueResolverKind.TemplateExtensionOnMethod, false, true));
+						"getConfigProperty(propertyName : java.lang.String) : java.lang.Object",
+						ValueResolverKind.TemplateExtensionOnMethod, false, true));
 		resolvers.add(
 				createValueResolver("config", null, null, "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
-						"property(propertyName : java.lang.String) : java.lang.Object", ValueResolverKind.TemplateExtensionOnMethod, false, true));
+						"property(propertyName : java.lang.String) : java.lang.Object",
+						ValueResolverKind.TemplateExtensionOnMethod, false, true));
 
 		// Field value resolvers
-		resolvers.add(createValueResolver("inject", "bean", null, "org.acme.Bean", "bean : java.lang.String", ValueResolverKind.InjectedBean));
+		resolvers.add(createValueResolver("inject", "bean", null, "org.acme.Bean", "bean : java.lang.String",
+				ValueResolverKind.InjectedBean));
 
 		// Static field value resolvers
-		resolvers.add(createValueResolver(null, "GLOBAL", null, "org.acme.Bean", "bean : java.lang.String", ValueResolverKind.TemplateGlobal, true));
+		resolvers.add(createValueResolver(null, "GLOBAL", null, "org.acme.Bean", "bean : java.lang.String",
+				ValueResolverKind.TemplateGlobal, true));
 
 		return resolvers;
 	}

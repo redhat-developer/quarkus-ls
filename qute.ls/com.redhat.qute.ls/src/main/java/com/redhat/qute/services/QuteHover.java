@@ -89,21 +89,21 @@ public class QuteHover {
 			return NO_HOVER;
 		}
 		switch (node.getKind()) {
-			case Section:
-				// - Start end tag definition
-				Section section = (Section) node;
-				return doHoverForSection(section, template, hoverRequest, cancelChecker);
-			case ParameterDeclaration:
-				ParameterDeclaration parameterDeclaration = (ParameterDeclaration) node;
-				return doHoverForParameterDeclaration(parameterDeclaration, template, hoverRequest, cancelChecker);
-			case ExpressionPart:
-				Part part = (Part) node;
-				return doHoverForExpressionPart(part, template, hoverRequest, cancelChecker);
-			case Parameter:
-				Parameter parameter = (Parameter) node;
-				return doHoverForParameter(parameter, template, hoverRequest);
-			default:
-				return NO_HOVER;
+		case Section:
+			// - Start end tag definition
+			Section section = (Section) node;
+			return doHoverForSection(section, template, hoverRequest, cancelChecker);
+		case ParameterDeclaration:
+			ParameterDeclaration parameterDeclaration = (ParameterDeclaration) node;
+			return doHoverForParameterDeclaration(parameterDeclaration, template, hoverRequest, cancelChecker);
+		case ExpressionPart:
+			Part part = (Part) node;
+			return doHoverForExpressionPart(part, template, hoverRequest, cancelChecker);
+		case Parameter:
+			Parameter parameter = (Parameter) node;
+			return doHoverForParameter(parameter, template, hoverRequest);
+		default:
+			return NO_HOVER;
 		}
 	}
 
@@ -188,18 +188,19 @@ public class QuteHover {
 		String namespace = part.getNamespace();
 		if (namespace != null) {
 			// {inject:bea|n}
-			return doHoverForExpressionPartWithNamespace(namespace, part, template, projectUri, hoverRequest, cancelChecker);
+			return doHoverForExpressionPartWithNamespace(namespace, part, template, projectUri, hoverRequest,
+					cancelChecker);
 		}
 		switch (part.getPartKind()) {
-			case Namespace:
-				return doHoverForNamespacePart(part, projectUri, hoverRequest, cancelChecker);
-			case Object:
-				return doHoverForObjectPart(part, projectUri, hoverRequest, cancelChecker);
-			case Method:
-			case Property:
-				return doHoverForPropertyPart(part, projectUri, hoverRequest, cancelChecker);
-			default:
-				return NO_HOVER;
+		case Namespace:
+			return doHoverForNamespacePart(part, projectUri, hoverRequest, cancelChecker);
+		case Object:
+			return doHoverForObjectPart(part, projectUri, hoverRequest, cancelChecker);
+		case Method:
+		case Property:
+			return doHoverForPropertyPart(part, projectUri, hoverRequest, cancelChecker);
+		default:
+			return NO_HOVER;
 		}
 	}
 
@@ -248,7 +249,8 @@ public class QuteHover {
 		return NO_HOVER;
 	}
 
-	private CompletableFuture<Hover> doHoverForNamespacePart(Part part, String projectUri, HoverRequest hoverRequest, CancelChecker cancelChecker) {
+	private CompletableFuture<Hover> doHoverForNamespacePart(Part part, String projectUri, HoverRequest hoverRequest,
+			CancelChecker cancelChecker) {
 		String namespace = part.getPartName();
 		return javaCache.getNamespaceResolverInfo(namespace, projectUri) //
 				.thenCompose(namespaceInfo -> {
@@ -344,30 +346,18 @@ public class QuteHover {
 		return (SectionMetadata) section.getMetadata(part.getPartName());
 	}
 
-	private CompletableFuture<Hover> doHoverForPropertyPart(Part part, String projectUri, HoverRequest hoverRequest, CancelChecker cancelChecker) {
+	private CompletableFuture<Hover> doHoverForPropertyPart(Part part, String projectUri, HoverRequest hoverRequest,
+			CancelChecker cancelChecker) {
 		Parts parts = part.getParent();
 		Part previousPart = parts.getPreviousPart(part);
 		return javaCache.resolveJavaType(previousPart, projectUri) //
 				.thenCompose(resolvedJavaType -> {
 					cancelChecker.checkCanceled();
 					if (resolvedJavaType != null) {
-						if (resolvedJavaType.isIterable() && !resolvedJavaType.isArray()) {
-							// Expression uses iterable type
-							// {@java.util.List<org.acme.Item items>
-							// {items.si|ze()}
-							// Property, method to find as hover must be done for iterable type (ex :
-							// java.util.List>
-							String iterableType = resolvedJavaType.getIterableType();
-							CompletableFuture<ResolvedJavaTypeInfo> iterableResolvedTypeFuture = javaCache
-									.resolveJavaType(iterableType, projectUri);
-							return iterableResolvedTypeFuture.thenApply((iterableResolvedType) -> {
-								cancelChecker.checkCanceled();
-								return doHoverForPropertyPart(part, projectUri, iterableResolvedType, resolvedJavaType,
-										hoverRequest);
-							});
-						}
-
-						Hover hover = doHoverForPropertyPart(part, projectUri, resolvedJavaType, null, hoverRequest);
+						ResolvedJavaTypeInfo iterableOfResolvedType = resolvedJavaType.isArray() ? null
+								: resolvedJavaType;
+						Hover hover = doHoverForPropertyPart(part, projectUri, resolvedJavaType, iterableOfResolvedType,
+								hoverRequest);
 						return CompletableFuture.completedFuture(hover);
 					}
 					return NO_HOVER;

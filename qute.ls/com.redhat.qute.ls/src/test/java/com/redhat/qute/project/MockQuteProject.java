@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.JavaMemberInfo;
@@ -33,8 +32,8 @@ import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
-import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
@@ -68,9 +67,11 @@ public abstract class MockQuteProject extends QuteProject {
 		for (ResolvedJavaTypeInfo resolvedJavaType : resolvedTypesCache) {
 			if (typeName.equals(resolvedJavaType.getSignature())) {
 				return resolvedJavaType;
-			} else if (typeName.equals(resolvedJavaType.getIterableType())
-					&& resolvedJavaType.getIterableOf().indexOf('.') == -1) {
-				// ex : java.util.List<T>
+			}
+		}
+		for (ResolvedJavaTypeInfo resolvedJavaType : resolvedTypesCache) {
+			if (resolvedJavaType.getSignature().startsWith(typeName + "<")) {
+				// ex : java.util.Map<K,V>
 				return resolvedJavaType;
 			}
 		}
@@ -108,18 +109,17 @@ public abstract class MockQuteProject extends QuteProject {
 		return typeInfo;
 	}
 
-	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String typeName, List<ResolvedJavaTypeInfo> cache, boolean binary,
-			String... extended) {
+	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String typeName, List<ResolvedJavaTypeInfo> cache,
+			boolean binary, String... extended) {
 		return createResolvedJavaTypeInfo(typeName, null, null, cache, binary, extended);
 	}
-	
+
 	protected static ResolvedJavaTypeInfo createResolvedJavaTypeInfo(String signature, String iterableType,
 			String iterableOf, List<ResolvedJavaTypeInfo> cache, boolean binary, String... extended) {
 		ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
 		resolvedType.setJavaTypeKind(JavaTypeKind.Class);
 		resolvedType.setBinary(binary);
 		resolvedType.setSignature(signature);
-		resolvedType.setIterableType(iterableType);
 		resolvedType.setIterableOf(iterableOf);
 		resolvedType.setFields(new ArrayList<>());
 		resolvedType.setMethods(new ArrayList<>());
@@ -139,12 +139,12 @@ public abstract class MockQuteProject extends QuteProject {
 		project.setNamespaceResolverInfos(namespaceResolverInfos);
 		return CompletableFuture.completedFuture(new ExtendedDataModelProject(project));
 	}
-	
+
 	protected static ValueResolverInfo createValueResolver(String namespace, String named, String matchName,
 			String sourceType, String signature, ValueResolverKind kind) {
 		return createValueResolver(namespace, named, matchName, sourceType, signature, kind, false);
 	}
-	
+
 	protected static ValueResolverInfo createValueResolver(String namespace, String named, String matchName,
 			String sourceType, String signature, ValueResolverKind kind, boolean globalVariable) {
 		return createValueResolver(namespace, named, matchName, sourceType, signature, kind, globalVariable, false);

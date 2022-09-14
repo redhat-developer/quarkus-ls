@@ -57,7 +57,7 @@ public class JavaTypeInfoTest {
 	}
 
 	@Test
-	public void listOItem() {
+	public void listOfItem() {
 		String signature = "java.util.List<org.acme.Item>";
 		JavaTypeInfo type = new JavaTypeInfo();
 		type.setSignature(signature);

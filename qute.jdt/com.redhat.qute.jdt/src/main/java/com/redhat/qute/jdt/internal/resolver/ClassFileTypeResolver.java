@@ -22,6 +22,7 @@ import org.eclipse.jdt.core.IClassFile;
 public class ClassFileTypeResolver extends AbstractTypeResolver {
 
 	public ClassFileTypeResolver(IClassFile classFile) {
+		super(classFile.findPrimaryType());
 	}
 
 	@Override

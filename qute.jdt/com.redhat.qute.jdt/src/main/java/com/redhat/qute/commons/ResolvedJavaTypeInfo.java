@@ -37,17 +37,15 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
 	private List<JavaMethodInfo> methods;
 
-	private String iterableType;
-
-	private String iterableOf;
-
-	private Boolean isIterable;
-
 	private Boolean binary;
 
 	private RegisterForReflectionAnnotation registerForReflectionAnnotation;
 
 	private List<TemplateDataAnnotation> templateDataAnnotations;
+
+	private transient String iterableOf;
+
+	private transient Boolean isIterable;
 
 	/**
 	 * Returns list of extended types.
@@ -75,6 +73,10 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	public List<JavaFieldInfo> getFields() {
 		return fields != null ? fields : Collections.emptyList();
 	}
+	
+	protected boolean isFieldsInitialized() {
+		return fields != null;
+	}
 
 	/**
 	 * Set member fields.
@@ -94,6 +96,10 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		return methods != null ? methods : Collections.emptyList();
 	}
 
+	protected boolean isMethodsInitialized() {
+		return methods != null;
+	}
+	
 	/**
 	 * Set member methods.
 	 * 
@@ -101,24 +107,6 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	 */
 	public void setMethods(List<JavaMethodInfo> methods) {
 		this.methods = methods;
-	}
-
-	/**
-	 * Returns iterable type and null otherwise.
-	 * 
-	 * @return iterable type and null otherwise.
-	 */
-	public String getIterableType() {
-		return iterableType;
-	}
-
-	/**
-	 * Set iterable type.
-	 * 
-	 * @param iterableType iterable type.
-	 */
-	public void setIterableType(String iterableType) {
-		this.iterableType = iterableType;
 	}
 
 	/**
@@ -136,6 +124,9 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	 * @return iterable of.
 	 */
 	public String getIterableOf() {
+		if (iterableOf == null && isArray()) {
+			iterableOf = getName().substring(0, getName().length() - 2);
+		}
 		return iterableOf;
 	}
 
@@ -146,6 +137,9 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	 * @return true if the Java type is iterable and false otherwise.
 	 */
 	public boolean isIterable() {
+		if (isArray()) {
+			return true;
+		}
 		if (isIterable != null) {
 			return isIterable.booleanValue();
 		}
@@ -154,11 +148,9 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	}
 
 	/**
-	 * Returns true if this Java type is in a binary file, and false
-	 * otherwise.
+	 * Returns true if this Java type is in a binary file, and false otherwise.
 	 * 
-	 * @return true if this Java type is in a binary file, and false
-	 *         otherwise
+	 * @return true if this Java type is in a binary file, and false otherwise
 	 */
 	public boolean isBinary() {
 		return binary != null && binary.booleanValue();
@@ -201,8 +193,12 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		}
 
 		if (iterable) {
-			this.iterableOf = "java.lang.Object";
-			this.iterableType = getName();
+			List<JavaParameterInfo> typeParameters = getTypeParameters();
+			if (!typeParameters.isEmpty()) {
+				this.iterableOf = typeParameters.get(0).getType();
+			} else {
+				this.iterableOf = "java.lang.Object";
+			}
 		}
 		return iterable;
 	}
@@ -258,55 +254,54 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		b.add("signature", this.getSignature());
 		b.add("binary", this.isBinary() ? "BINARY" : "SOURCE");
 		b.add("iterableOf", this.getIterableOf());
-		b.add("iterableType", this.getIterableType());
 		b.add("templateDataAnnotations", this.getTemplateDataAnnotations());
 		b.add("registerForReflectionAnnotation", this.getRegisterForReflectionAnnotation());
 		return b.toString();
 	}
-	
+
 	/**
 	 * Returns true if the java type kind is Unknown
 	 * 
 	 * @return true if the java type kind is Unknown
 	 */
 	public boolean isUnknown() {
-	    return getJavaTypeKind() == JavaTypeKind.Unknown;
+		return getJavaTypeKind() == JavaTypeKind.Unknown;
 	}
-	
+
 	/**
 	 * Returns true if the java type kind is Package
 	 * 
 	 * @return true if the java type kind is Package
 	 */
 	public boolean isPackage() {
-	    return getJavaTypeKind() == JavaTypeKind.Package;
+		return getJavaTypeKind() == JavaTypeKind.Package;
 	}
-	
+
 	/**
 	 * Returns true if the java type kind is Class
 	 * 
 	 * @return true if the java type kind is Class
 	 */
 	public boolean isClass() {
-	    return getJavaTypeKind() == JavaTypeKind.Class;
+		return getJavaTypeKind() == JavaTypeKind.Class;
 	}
-	
+
 	/**
 	 * Returns true if the java type kind is Interface
 	 * 
 	 * @return true if the java type kind is Interface
 	 */
 	public boolean isInterface() {
-	    return getJavaTypeKind() == JavaTypeKind.Interface;
+		return getJavaTypeKind() == JavaTypeKind.Interface;
 	}
-	
+
 	/**
 	 * Returns true if the java type kind is Enum
 	 * 
 	 * @return true if the java type kind is Enum
 	 */
 	public boolean isEnum() {
-	    return getJavaTypeKind() == JavaTypeKind.Enum;
+		return getJavaTypeKind() == JavaTypeKind.Enum;
 	}
 
 }

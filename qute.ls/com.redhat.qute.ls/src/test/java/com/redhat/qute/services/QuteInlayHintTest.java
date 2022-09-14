@@ -135,4 +135,31 @@ public class QuteInlayHintTest {
 				settings);
 	}
 
+	@Test
+	public void forOfFor() throws Exception {
+		String template = "{@java.util.List<java.util.Set<java.lang.String>> items}\r\n" + //
+				"		{#for item in items}\r\n" + //
+				"			{#for innerItem in item}\r\n" + //
+				"				{innerItem.isEmpty()}\r\n" + //
+				"			{/for}\r\n" + //
+				"		{/for}";
+		testInlayHintFor(template, //
+				ih(p(1, 12), ihLabel(":"),
+						ihLabel("Set<String>", "Open `java.util.Set` Java type.", cd("java.util.Set"))), //
+				ih(p(2, 18), ihLabel(":"),
+						ihLabel("String", "Open `java.lang.String` Java type.", cd("java.lang.String"))));
+	}
+
+	@Test
+	public void forWithMapEntrySet() throws Exception {
+		String template = "{@java.util.Map<java.lang.String,org.acme.Item> map}\r\n" + //
+				"	{#for item in map.entrySet()}\r\n" + //
+				"		{item.getKey()}\r\n" + //
+				"	{/for}";
+		testInlayHintFor(template, //
+				ih(p(1, 11), ihLabel(":"),
+						ihLabel("Map$Entry<String,Item>", "Open `java.util.Map$Entry` Java type.",
+								cd("java.util.Map$Entry"))));
+	}
+
 }

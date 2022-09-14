@@ -225,4 +225,27 @@ public class QuteCompletionInExpressionWithForSectionTest {
 						r(4, 2, 4, 2)), //
 				c("GLOBAL", "GLOBAL", r(4, 2, 4, 2)));
 	}
+
+	@Test
+	public void forOfFor() throws Exception {
+		String template = "{@java.util.List<java.util.Set<java.lang.String>> items}\r\n" + //
+				"\r\n" + //
+				"		{#for item in items}\r\n" + //
+				"			{#for innerItem in item}\r\n" + //
+				"				{innerItem.|}\r\n" + // <-- completion here where innerItem is a String
+				"			{/for}\r\n" + //
+				"		{/for}";
+		testCompletionFor(template, //
+				13, //
+				// - resolvers
+				c("orEmpty(base : T) : List<T>", "orEmpty", r(4, 15, 4, 15)),
+				c("ifTruthy(base : T, arg : Object) : T", "ifTruthy(${1:arg})$0", r(4, 15, 4, 15)),
+				c("or(base : T, arg : Object) : T", "or(${1:arg})$0", r(4, 15, 4, 15)),
+				// - String Java fields
+				c("UTF16 : byte", "UTF16", r(4, 15, 4, 15)),
+				// - String Java methods
+				c("getBytes() : byte[]", "getBytes", r(4, 15, 4, 15)),
+				c("getBytes(charsetName : String) : byte[]", "getBytes(${1:charsetName})$0", r(4, 15, 4, 15)),
+				c("charAt(index : int) : char", "charAt(${1:index})$0", r(4, 15, 4, 15)));
+	}
 }

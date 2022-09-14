@@ -12,6 +12,7 @@
 package com.redhat.qute.commons;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -49,6 +50,21 @@ public class JavaMethodInfoTest {
 	}
 
 	@Test
+	public void mapEntry() {
+		String signature = "entrySet() : java.util.Set<java.util.Map$Entry<K,V>>";
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature(signature);
+		assertEquals("entrySet", method.getName());
+
+		assertFalse(method.hasParameters());
+		
+		assertEquals("java.util.Set<java.util.Map$Entry<K,V>>", method.getReturnType());
+		assertEquals("entrySet() : Set<Map$Entry<K,V>>",
+				method.getSimpleSignature());
+
+	}
+
+	@Test
 	public void list() {
 		ResolvedJavaTypeInfo list = new ResolvedJavaTypeInfo();
 		list.setSignature("java.util.List<E>");
@@ -71,21 +87,29 @@ public class JavaMethodInfoTest {
 		JavaMethodInfo getFooMethod = new JavaMethodInfo();
 		getFooMethod.setSignature("getFoo() : int");
 		assertEquals("foo", getFooMethod.getGetterName());
+		assertEquals("int", getFooMethod.getReturnType());
+		assertEquals("getFoo() : int", getFooMethod.getSimpleSignature());
 
 		// get()
 		JavaMethodInfo getMethod = new JavaMethodInfo();
 		getMethod.setSignature("get() : int");
 		assertNull(getMethod.getGetterName());
+		assertEquals("int", getMethod.getReturnType());
+		assertEquals("get() : int", getMethod.getSimpleSignature());
 
 		// isFoo()
 		JavaMethodInfo isFooMethod = new JavaMethodInfo();
 		isFooMethod.setSignature("isFoo() : boolean");
 		assertEquals("foo", isFooMethod.getGetterName());
+		assertEquals("boolean", isFooMethod.getReturnType());
+		assertEquals("isFoo() : boolean", isFooMethod.getSimpleSignature());
 
 		// is()
 		JavaMethodInfo isMethod = new JavaMethodInfo();
 		isMethod.setSignature("is() : boolean");
 		assertNull(isMethod.getGetterName());
+		assertEquals("boolean", isMethod.getReturnType());
+		assertEquals("is() : boolean", isMethod.getSimpleSignature());
 	}
 
 	@Test
@@ -93,7 +117,7 @@ public class JavaMethodInfoTest {
 		JavaMethodInfo method = new JavaMethodInfo();
 		method.setSignature("pretty(item : org.acme.Item, elements : java.lang.String...) : java.lang.String");
 		assertEquals("pretty", method.getName());
-		
+
 		assertTrue(method.hasParameters());
 		assertEquals(2, method.getParameters().size());
 
@@ -104,6 +128,8 @@ public class JavaMethodInfoTest {
 		parameter = method.getParameters().get(1);
 		assertEquals("elements", parameter.getName());
 		assertEquals("java.lang.String...", parameter.getType());
-		//assertTrue(parameter.isVararg());
+
+		assertEquals("java.lang.String", method.getReturnType());
+		assertEquals("pretty(item : Item, elements : String...) : String", method.getSimpleSignature());
 	}
 }

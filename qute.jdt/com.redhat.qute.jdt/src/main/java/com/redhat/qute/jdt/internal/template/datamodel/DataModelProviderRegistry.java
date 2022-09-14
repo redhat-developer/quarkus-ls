@@ -159,7 +159,7 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
 			IJavaSearchScope scope = createSearchScope(javaProject, scopes, excludeTestCode, subMonitor);
 
 			// Execute the search
-			SearchContext context = new SearchContext(javaProject, project, null, scopes);
+			SearchContext context = new SearchContext(javaProject, project, scopes);
 			beginSearch(context, subMonitor);
 			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
 					new SearchRequestor() {

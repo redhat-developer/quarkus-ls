@@ -45,7 +45,7 @@ public class TemplateGetDataModelProjectTest {
 
 		QuteDataModelProjectParams params = new QuteDataModelProjectParams(QuteMavenProjectName.qute_quickstart);
 		DataModelProject<DataModelTemplate<DataModelParameter>> project = QuteSupportForTemplate.getInstance()
-			.getDataModelProject(params, getJDTUtils(), new NullProgressMonitor());
+				.getDataModelProject(params, getJDTUtils(), new NullProgressMonitor());
 		Assert.assertNotNull(project);
 
 		// Test templates
@@ -77,7 +77,7 @@ public class TemplateGetDataModelProjectTest {
 		// Template hello;
 
 		DataModelTemplate<DataModelParameter> helloTemplate = project
-			.findDataModelTemplate("src/main/resources/templates/hello");
+				.findDataModelTemplate("src/main/resources/templates/hello");
 		Assert.assertNotNull(helloTemplate);
 		Assert.assertEquals("src/main/resources/templates/hello", helloTemplate.getTemplateUri());
 		Assert.assertEquals("org.acme.qute.HelloResource", helloTemplate.getSourceType());
@@ -99,7 +99,7 @@ public class TemplateGetDataModelProjectTest {
 		// Template goodbye;
 
 		DataModelTemplate<DataModelParameter> goodbyeTemplate = project
-			.findDataModelTemplate("src/main/resources/templates/goodbye");
+				.findDataModelTemplate("src/main/resources/templates/goodbye");
 		Assert.assertNotNull(goodbyeTemplate);
 		Assert.assertEquals("src/main/resources/templates/goodbye", goodbyeTemplate.getTemplateUri());
 		Assert.assertEquals("org.acme.qute.HelloResource", goodbyeTemplate.getSourceType());
@@ -118,7 +118,7 @@ public class TemplateGetDataModelProjectTest {
 		// Template hallo;
 
 		DataModelTemplate<DataModelParameter> halloTemplate = project
-			.findDataModelTemplate("src/main/resources/templates/detail/items2_v1.html");
+				.findDataModelTemplate("src/main/resources/templates/detail/items2_v1.html");
 		Assert.assertNotNull(halloTemplate);
 		Assert.assertEquals("src/main/resources/templates/detail/items2_v1.html", halloTemplate.getTemplateUri());
 		Assert.assertEquals("org.acme.qute.HelloResource", halloTemplate.getSourceType());
@@ -137,26 +137,44 @@ public class TemplateGetDataModelProjectTest {
 	}
 
 	private static void checkedTemplateInnerClass(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
-		DataModelTemplate<DataModelParameter> itemResourceTemplate = project
-			.findDataModelTemplate("src/main/resources/templates/ItemResource/items");
-		Assert.assertNotNull(itemResourceTemplate);
-		Assert.assertEquals("src/main/resources/templates/ItemResource/items", itemResourceTemplate.getTemplateUri());
-		Assert.assertEquals("org.acme.qute.ItemResource$Templates", itemResourceTemplate.getSourceType());
-		Assert.assertEquals("items", itemResourceTemplate.getSourceMethod());
-
-		List<DataModelParameter> parameters = itemResourceTemplate.getParameters();
-		Assert.assertNotNull(parameters);
 
 		// static native TemplateInstance items(List<Item> items);
+		DataModelTemplate<DataModelParameter> items = project
+				.findDataModelTemplate("src/main/resources/templates/ItemResource/items");
+		Assert.assertNotNull(items);
+		Assert.assertEquals("src/main/resources/templates/ItemResource/items", items.getTemplateUri());
+		Assert.assertEquals("org.acme.qute.ItemResource$Templates", items.getSourceType());
+		Assert.assertEquals("items", items.getSourceMethod());
+
+		List<DataModelParameter> parameters = items.getParameters();
+		Assert.assertNotNull(parameters);
 
 		Assert.assertEquals(1, parameters.size());
 		assertParameter("items", "java.util.List<org.acme.qute.Item>", false, parameters, 0);
+
+		// static native TemplateInstance map(Map<String, List<Item>> items,
+		// Map.Entry<String, Integer> entry);
+
+		DataModelTemplate<DataModelParameter> map = project
+				.findDataModelTemplate("src/main/resources/templates/ItemResource/map");
+		Assert.assertNotNull(map);
+		Assert.assertEquals("src/main/resources/templates/ItemResource/map", map.getTemplateUri());
+		Assert.assertEquals("org.acme.qute.ItemResource$Templates", map.getSourceType());
+		Assert.assertEquals("map", map.getSourceMethod());
+
+		parameters = map.getParameters();
+		Assert.assertNotNull(parameters);
+
+		Assert.assertEquals(2, parameters.size());
+		assertParameter("items", "java.util.Map<java.lang.String,java.util.List<org.acme.qute.Item>>", false,
+				parameters, 0);
+		assertParameter("entry", "java.util.Map$Entry<java.lang.String,java.lang.Integer>", false, parameters, 1);
 	}
 
 	private static void checkedTemplate(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
 		// hello2
 		DataModelTemplate<DataModelParameter> hello2Template = project
-			.findDataModelTemplate("src/main/resources/templates/hello2");
+				.findDataModelTemplate("src/main/resources/templates/hello2");
 		Assert.assertNotNull(hello2Template);
 		Assert.assertEquals("src/main/resources/templates/hello2", hello2Template.getTemplateUri());
 		Assert.assertEquals("org.acme.qute.Templates", hello2Template.getSourceType());
@@ -172,7 +190,7 @@ public class TemplateGetDataModelProjectTest {
 
 		// hello3
 		DataModelTemplate<DataModelParameter> hello3Template = project
-			.findDataModelTemplate("src/main/resources/templates/hello3");
+				.findDataModelTemplate("src/main/resources/templates/hello3");
 		Assert.assertNotNull(hello3Template);
 		Assert.assertEquals("src/main/resources/templates/hello3", hello3Template.getTemplateUri());
 		Assert.assertEquals("org.acme.qute.Templates", hello3Template.getSourceType());
@@ -191,43 +209,43 @@ public class TemplateGetDataModelProjectTest {
 
 		// Resolver from Java sources
 		assertValueResolver(null, "discountedPrice(item : org.acme.qute.Item) : java.math.BigDecimal",
-			"org.acme.qute.ItemResource", resolvers);
+				"org.acme.qute.ItemResource", resolvers);
 		// Resolver from Java binaries
 		// from io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions
 		assertValueResolver(null, "get(list : java.util.List<T>, index : int) : T",
-			"io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions", resolvers);
+				"io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions", resolvers);
 		assertValueResolver(null, "getByIndex(list : java.util.List<T>, index : java.lang.String) : T",
-			"io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions", resolvers);
+				"io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions", resolvers);
 
 		// from io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions
 		assertValueResolver("config", "getConfigProperty(propertyName : java.lang.String) : java.lang.Object",
-			"io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions", resolvers);
+				"io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions", resolvers);
 
 		// from io.quarkus.qute.runtime.extensions.MapTemplateExtensions
 		assertValueResolver(null, "map(arg0 : java.util.Map, arg1 : java.lang.String) : java.lang.Object",
-			"io.quarkus.qute.runtime.extensions.MapTemplateExtensions", resolvers);
+				"io.quarkus.qute.runtime.extensions.MapTemplateExtensions", resolvers);
 		assertValueResolver(null, "get(map : java.util.Map<?,V>, key : java.lang.Object) : V",
-			"io.quarkus.qute.runtime.extensions.MapTemplateExtensions", resolvers);
+				"io.quarkus.qute.runtime.extensions.MapTemplateExtensions", resolvers);
 
 		// from io.quarkus.qute.runtime.extensions.StringTemplateExtensions
 		assertValueResolver(null, "mod(number : java.lang.Integer, mod : java.lang.Integer) : java.lang.Integer",
-			"io.quarkus.qute.runtime.extensions.NumberTemplateExtensions", resolvers);
+				"io.quarkus.qute.runtime.extensions.NumberTemplateExtensions", resolvers);
 
 		// from io.quarkus.qute.runtime.extensions.StringTemplateExtensions
 		assertValueResolver(null,
-			"fmtInstance(format : java.lang.String, ignoredPropertyName : java.lang.String, args : java.lang.Object...) : java.lang.String",
-			"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", resolvers);
+				"fmtInstance(format : java.lang.String, ignoredPropertyName : java.lang.String, args : java.lang.Object...) : java.lang.String",
+				"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", resolvers);
 		assertValueResolver("str",
-			"fmt(ignoredPropertyName : java.lang.String, format : java.lang.String, args : java.lang.Object...) : java.lang.String",
-			"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", resolvers);
+				"fmt(ignoredPropertyName : java.lang.String, format : java.lang.String, args : java.lang.Object...) : java.lang.String",
+				"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", resolvers);
 
 		// from io.quarkus.qute.runtime.extensions.TimeTemplateExtensions
 		assertValueResolver(null,
-			"format(temporal : java.time.temporal.TemporalAccessor, pattern : java.lang.String) : java.lang.String",
-			"io.quarkus.qute.runtime.extensions.TimeTemplateExtensions", resolvers);
+				"format(temporal : java.time.temporal.TemporalAccessor, pattern : java.lang.String) : java.lang.String",
+				"io.quarkus.qute.runtime.extensions.TimeTemplateExtensions", resolvers);
 		assertValueResolver("time",
-			"format(dateTimeObject : java.lang.Object, pattern : java.lang.String) : java.lang.String",
-			"io.quarkus.qute.runtime.extensions.TimeTemplateExtensions", resolvers);
+				"format(dateTimeObject : java.lang.Object, pattern : java.lang.String) : java.lang.String",
+				"io.quarkus.qute.runtime.extensions.TimeTemplateExtensions", resolvers);
 
 	}
 
@@ -240,38 +258,38 @@ public class TemplateGetDataModelProjectTest {
 		// @Named
 		// public class InjectedData;
 		assertValueResolver("inject", "org.acme.qute.InjectedData", "org.acme.qute.InjectedData", //
-			"injectedData", resolvers);
+				"injectedData", resolvers);
 
 		// @Named
 		// private String foo;
 		assertValueResolver("inject", "foo : java.lang.String", "org.acme.qute.InjectedData", //
-			"foo", resolvers);
+				"foo", resolvers);
 
 		// @Named("bar")
 		// private String aBar;
 		assertValueResolver("inject", "aBar : java.lang.String", "org.acme.qute.InjectedData", //
-			"bar", resolvers);
+				"bar", resolvers);
 
 		// @Named("user")
 		// private String getUser() {...
 		assertValueResolver("inject", "getUser() : java.lang.String", "org.acme.qute.InjectedData", //
-			"user", resolvers);
+				"user", resolvers);
 
 		// @Named
 		// private String getSystemUser() {...
 		assertValueResolver("inject", "getSystemUser() : java.lang.String", "org.acme.qute.InjectedData", //
-			"systemUser", resolvers);
+				"systemUser", resolvers);
 
 		// from io.quarkus.vertx.http.runtime.CurrentRequestProducer
 		assertValueResolver("inject",
-			"getCurrentRequest(rc : io.vertx.ext.web.RoutingContext) : io.vertx.core.http.HttpServerRequest",
-			"io.quarkus.vertx.http.runtime.CurrentRequestProducer", //
-			"vertxRequest", resolvers);
+				"getCurrentRequest(rc : io.vertx.ext.web.RoutingContext) : io.vertx.core.http.HttpServerRequest",
+				"io.quarkus.vertx.http.runtime.CurrentRequestProducer", //
+				"vertxRequest", resolvers);
 
 		// @Named
 		// public @interface IgnoreInjectAnnotation
 		assertNotValueResolver("inject", "org.acme.qute.IgnoreInjectAnnotation", "org.acme.qute.IgnoreInjectAnnotation", //
-			"ignoreInjectAnnotation", resolvers);
+				"ignoreInjectAnnotation", resolvers);
 
 	}
 
@@ -283,12 +301,12 @@ public class TemplateGetDataModelProjectTest {
 
 		// public static BigDecimal staticMethod(Item item) {
 		assertValueResolver("org_acme_qute_ItemWithTemplateData",
-			"staticMethod(item : org.acme.qute.Item) : java.math.BigDecimal", "org.acme.qute.ItemWithTemplateData",
-			resolvers);
+				"staticMethod(item : org.acme.qute.Item) : java.math.BigDecimal", "org.acme.qute.ItemWithTemplateData",
+				resolvers);
 
 		// public static String count;
 		assertValueResolver("org_acme_qute_ItemWithTemplateData", "count : java.lang.String",
-			"org.acme.qute.ItemWithTemplateData", resolvers);
+				"org.acme.qute.ItemWithTemplateData", resolvers);
 
 		// @TemplateData
 		// @TemplateData(namespace = "FOO")
@@ -303,7 +321,7 @@ public class TemplateGetDataModelProjectTest {
 
 		// public static String staticMethod(String state) {
 		assertValueResolver("FOO", "staticMethod(state : java.lang.String) : java.lang.String",
-			"org.acme.qute.Statuses", resolvers);
+				"org.acme.qute.Statuses", resolvers);
 	}
 
 	private static void testValueResolversFromTemplateEnum(List<ValueResolverInfo> resolvers) {
@@ -315,7 +333,7 @@ public class TemplateGetDataModelProjectTest {
 		assertValueResolver("StatusesEnum", "ON : org.acme.qute.StatusesEnum", "org.acme.qute.StatusesEnum", resolvers);
 		// OFF
 		assertValueResolver("StatusesEnum", "OFF : org.acme.qute.StatusesEnum", "org.acme.qute.StatusesEnum",
-			resolvers);
+				resolvers);
 	}
 
 	private static void testValueResolversFromTemplateGlobal(List<ValueResolverInfo> resolvers) {
@@ -343,19 +361,19 @@ public class TemplateGetDataModelProjectTest {
 	}
 
 	private static void assertValueResolver(String namespace, String signature, String sourceType,
-		List<ValueResolverInfo> resolvers) {
+			List<ValueResolverInfo> resolvers) {
 		assertValueResolver(namespace, signature, sourceType, null, resolvers);
 	}
 
 	private static void assertValueResolver(String namespace, String signature, String sourceType, String named,
-		List<ValueResolverInfo> resolvers) {
+			List<ValueResolverInfo> resolvers) {
 		assertValueResolver(namespace, signature, sourceType, named, false, resolvers);
 	}
 
 	private static void assertValueResolver(String namespace, String signature, String sourceType, String named,
-		boolean globalVariable, List<ValueResolverInfo> resolvers) {
+			boolean globalVariable, List<ValueResolverInfo> resolvers) {
 		Optional<ValueResolverInfo> result = resolvers.stream().filter(r -> signature.equals(r.getSignature()))
-			.findFirst();
+				.findFirst();
 		Assert.assertFalse("Find '" + signature + "' value resolver.", result.isEmpty());
 		ValueResolverInfo resolver = result.get();
 		Assert.assertEquals(namespace, resolver.getNamespace());
@@ -363,21 +381,21 @@ public class TemplateGetDataModelProjectTest {
 		Assert.assertEquals(sourceType, resolver.getSourceType());
 		Assert.assertEquals(globalVariable, resolver.isGlobalVariable());
 	}
-	
+
 	private static void assertNotValueResolver(String namespace, String signature, String sourceType, String named,
 			List<ValueResolverInfo> resolvers) {
-			assertNotValueResolver(namespace, signature, sourceType, named, false, resolvers);
+		assertNotValueResolver(namespace, signature, sourceType, named, false, resolvers);
 	}
-	
+
 	private static void assertNotValueResolver(String namespace, String signature, String sourceType, String named,
 			boolean globalVariable, List<ValueResolverInfo> resolvers) {
-			Optional<ValueResolverInfo> result = resolvers.stream().filter(r -> signature.equals(r.getSignature()))
+		Optional<ValueResolverInfo> result = resolvers.stream().filter(r -> signature.equals(r.getSignature()))
 				.findFirst();
-			Assert.assertTrue("Find '" + signature + "' value resolver.", result.isEmpty());
-		}
+		Assert.assertTrue("Find '" + signature + "' value resolver.", result.isEmpty());
+	}
 
 	private static void assertParameter(String key, String sourceType, boolean dataMethodInvocation,
-		List<DataModelParameter> parameters, int index) {
+			List<DataModelParameter> parameters, int index) {
 		DataModelParameter parameter = parameters.get(index);
 		Assert.assertEquals(key, parameter.getKey());
 		Assert.assertEquals(sourceType, parameter.getSourceType());

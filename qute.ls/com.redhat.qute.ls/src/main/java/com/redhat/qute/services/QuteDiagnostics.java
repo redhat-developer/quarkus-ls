@@ -124,21 +124,9 @@ class QuteDiagnostics {
 
 		public JavaMemberInfo findMemberWithObject(String property, String projectUri) {
 			if (withObject != null) {
-				if (withObject.isIterable() && projectUri != null) {
-					String iterableType = withObject.getIterableType();
-					ResolvedJavaTypeInfo resolvedIterableType = javaCache.resolveJavaType(iterableType, projectUri)
-							.getNow(null);
-					if (resolvedIterableType != null) {
-						JavaMemberInfo member = javaCache.findMember(resolvedIterableType, property, projectUri);
-						if (member != null) {
-							return member;
-						}
-					}
-				} else {
-					JavaMemberInfo member = javaCache.findMember(withObject, property, projectUri);
-					if (member != null) {
-						return member;
-					}
+				JavaMemberInfo member = javaCache.findMember(withObject, property, projectUri);
+				if (member != null) {
+					return member;
 				}
 			}
 			// Search in parent context
@@ -519,28 +507,22 @@ class QuteDiagnostics {
 				ObjectPart objectPart = (ObjectPart) current;
 				baseType = validateObjectPart(namespace, objectPart, ownerSection, template, projectUri,
 						validationSettings, resolutionContext, diagnostics, resolvingJavaTypeContext);
+				if (isResolvingJavaType(baseType)) {
+					// The java type is resolving, stop the validation
+					return RESOLVING_JAVA_TYPE;
+				}
 				break;
 			}
 
 			case Method:
 			case Property: {
 				// java.util.List<org.acme.Item>
-				ResolvedJavaTypeInfo iter = baseType;
-				if (baseType != null && baseType.isIterable() && !baseType.isArray()) {
-					// Expression uses iterable type
-					// {@java.util.List<org.acme.Item items>
-					// {items.size()}
-					// Property, method to validate must be done for iterable type (ex :
-					// java.util.List
-					String iterableType = baseType.getIterableType();
-					baseType = resolveJavaType(iterableType, projectUri, resolvingJavaTypeContext);
-					if (baseType == null || isResolvingJavaType(baseType)) {
-						// The java type doesn't exists or it is resolving, stop the validation
-						return null;
-					}
+				if (isResolvingJavaType(baseType)) {
+					// The java type is resolving, stop the validation
+					return RESOLVING_JAVA_TYPE;
 				}
 				baseType = validateMemberPart(current, ownerSection, template, projectUri, validationSettings, filter,
-						resolutionContext, baseType, iter, diagnostics, resolvingJavaTypeContext);
+						resolutionContext, baseType, baseType, diagnostics, resolvingJavaTypeContext);
 				break;
 			}
 			}
@@ -599,9 +581,7 @@ class QuteDiagnostics {
 		if (javaMember != null) {
 			ResolvedJavaTypeInfo resolvedJavaType = resolveJavaType(javaMember.getJavaElementType(), projectUri,
 					resolvingJavaTypeContext);
-			if (isResolvingJavaType(resolvedJavaType)) {
-				return null;
-			}
+			// returns the java type or the resolving java type
 			return resolvedJavaType;
 		}
 
@@ -660,7 +640,8 @@ class QuteDiagnostics {
 						ResolvedJavaTypeInfo alias = javaCache.resolveJavaType(lastPart, projectUri)
 								.getNow(RESOLVING_JAVA_TYPE);
 						if (isResolvingJavaType(alias)) {
-							return null;
+							// The java type is resolving, stop the validation
+							return RESOLVING_JAVA_TYPE;
 						}
 						if (alias == null) {
 							if (!resolvingJavaTypeContext.isDataModelTemplateResolved()) {
@@ -1097,7 +1078,7 @@ class QuteDiagnostics {
 			// Java type must be loaded.
 			LOGGER.log(Level.INFO, QuteErrorCode.ResolvingJavaType.getMessage(javaTypeToResolve));
 			resolvingJavaTypeContext.add(resolvingJavaTypeFuture);
-			return null;
+			return RESOLVING_JAVA_TYPE;
 		}
 
 		if (resolvedJavaType == null) {
@@ -1152,8 +1133,8 @@ class QuteDiagnostics {
 			// Ex: {#case} --> no parameters or operators
 			Range range = QutePositionUtility.createRange(caseSection.getStartTagNameOpenOffset(),
 					caseSection.getStartTagNameCloseOffset(), template);
-			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-					QuteErrorCode.MissingParameter, caseSection.getTag());
+			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.MissingParameter,
+					caseSection.getTag());
 			diagnostics.add(diagnostic);
 			return;
 		}
@@ -1184,7 +1165,8 @@ class QuteDiagnostics {
 					// Ex: {#is ne ON OFF} --> operator 'ne' only allows 1 parameter
 					Range range = QutePositionUtility.createRange(parameter);
 					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-							QuteErrorCode.UnexpectedParameter, parameterName, firstParameter.getName(), caseSection.getTag());
+							QuteErrorCode.UnexpectedParameter, parameterName, firstParameter.getName(),
+							caseSection.getTag());
 					diagnostics.add(diagnostic);
 					continue;
 				}

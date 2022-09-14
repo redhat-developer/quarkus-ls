@@ -12,17 +12,13 @@
 package com.redhat.qute.jdt;
 
 import static com.redhat.qute.jdt.utils.JDTTypeUtils.findType;
-import static com.redhat.qute.jdt.utils.JDTTypeUtils.getFullQualifiedName;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -38,7 +34,6 @@ import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
@@ -89,12 +84,7 @@ public class QuteSupportForTemplate {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteSupportForTemplate.class.getName());
 
-	private static final String JAVA_LANG_ITERABLE = "java.lang.Iterable";
-
 	private static final String JAVA_LANG_OBJECT = "java.lang.Object";
-
-	private static final List<String> COMMONS_ITERABLE_TYPES = Arrays.asList("Iterable", JAVA_LANG_ITERABLE,
-			"java.util.List", "java.util.Set");
 
 	private static final QuteSupportForTemplate INSTANCE = new QuteSupportForTemplate();
 
@@ -322,36 +312,6 @@ public class QuteSupportForTemplate {
 			return null;
 		}
 		String typeName = params.getClassName();
-		int index = typeName.indexOf('<');
-		if (index != -1) {
-			// ex : java.util.List<org.acme.Item>
-			String iterableClassName = typeName.substring(0, index);
-			IType iterableType = findType(iterableClassName, javaProject, monitor);
-			if (iterableType == null) {
-				return null;
-			}
-
-			boolean iterable = isIterable(iterableType, monitor);
-			if (!iterable) {
-				return null;
-			}
-
-			String iterableOf = typeName.substring(index + 1, typeName.length() - 1);
-			iterableOf = getFullQualifiedName(iterableOf, javaProject, monitor);
-			iterableClassName = iterableType.getFullyQualifiedName('.');
-			typeName = iterableClassName + "<" + iterableOf + ">";
-			return createIterableType(typeName, iterableClassName, iterableOf);
-		} else if (typeName.endsWith("[]")) {
-			// ex : org.acme.Item[]
-			String iterableOf = typeName.substring(0, typeName.length() - 2);
-			IType iterableOfType = findType(iterableOf, javaProject, monitor);
-			if (iterableOfType == null) {
-				return null;
-			}
-			iterableOf = getFullQualifiedName(iterableOf, javaProject, monitor);
-			typeName = iterableOf + "[]";
-			return createIterableType(typeName, null, iterableOf);
-		}
 
 		// ex : org.acme.Item, java.util.List, ...
 		IType type = findType(typeName, javaProject, monitor);
@@ -407,28 +367,6 @@ public class QuteSupportForTemplate {
 			}
 		}
 
-		// Collect type extensions
-		List<String> extendedTypes = null;
-		if (type.isInterface()) {
-			IType[] interfaces = findImplementedInterfaces(type, monitor);
-			if (interfaces != null && interfaces.length > 0) {
-				extendedTypes = Stream.of(interfaces) //
-						.map(interfaceType -> interfaceType.getFullyQualifiedName()) //
-						.collect(Collectors.toList());
-			}
-		} else {
-			// ex : String implements CharSequence, ....
-			ITypeHierarchy typeHierarchy = type.newSupertypeHierarchy(monitor);
-			IType[] allSuperTypes = typeHierarchy.getSupertypes(type);
-			extendedTypes = Stream.of(allSuperTypes) //
-					.map(superType -> superType.getFullyQualifiedName()) //
-					.collect(Collectors.toList());
-		}
-
-		if (extendedTypes != null) {
-			extendedTypes.remove(typeName);
-		}
-
 		ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
 		String typeSignature = AbstractTypeResolver.resolveJavaTypeSignature(type);
 		resolvedType.setBinary(type.isBinary());
@@ -436,32 +374,10 @@ public class QuteSupportForTemplate {
 		resolvedType.setFields(fieldsInfo);
 		resolvedType.setMethods(methodsInfo);
 		resolvedType.setInvalidMethods(invalidMethods);
-		resolvedType.setExtendedTypes(extendedTypes);
+		resolvedType.setExtendedTypes(typeResolver.resolveExtendedType());
 		resolvedType.setJavaTypeKind(JDTTypeUtils.getJavaTypeKind(type));
 		QuteReflectionAnnotationUtils.collectAnnotations(resolvedType, type, typeResolver);
 		return resolvedType;
-	}
-
-	private ResolvedJavaTypeInfo createIterableType(String className, String iterableClassName, String iterableOf) {
-		ResolvedJavaTypeInfo resolvedClass = new ResolvedJavaTypeInfo();
-		resolvedClass.setSignature(className);
-		resolvedClass.setIterableType(iterableClassName);
-		resolvedClass.setIterableOf(iterableOf);
-		return resolvedClass;
-	}
-
-	private static boolean isIterable(IType iterableType, IProgressMonitor monitor) throws CoreException {
-		String iterableClassName = iterableType.getFullyQualifiedName();
-		// Fast test
-		if (COMMONS_ITERABLE_TYPES.contains(iterableClassName)) {
-			return true;
-		}
-		// Check if type implements "java.lang.Iterable"
-		IType[] interfaces = findImplementedInterfaces(iterableType, monitor);
-		boolean iterable = interfaces == null ? false
-				: Stream.of(interfaces)
-						.anyMatch(interfaceType -> JAVA_LANG_ITERABLE.equals(interfaceType.getFullyQualifiedName()));
-		return iterable;
 	}
 
 	private static boolean isValidField(IField field, IType type) throws JavaModelException {
@@ -536,12 +452,6 @@ public class QuteSupportForTemplate {
 
 		String projectName = file.getProject().getName();
 		return JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
-	}
-
-	private static IType[] findImplementedInterfaces(IType type, IProgressMonitor progressMonitor)
-			throws CoreException {
-		ITypeHierarchy typeHierarchy = type.newSupertypeHierarchy(progressMonitor);
-		return typeHierarchy.getRootInterfaces();
 	}
 
 	public static ITypeResolver createTypeResolver(IMember member) {

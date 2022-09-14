@@ -75,8 +75,7 @@ import com.redhat.qute.utils.StringUtils;
  * @author Angelo ZERR
  *
  */
-public class QuteProjectRegistry
-		implements QuteProjectInfoProvider, QuteDataModelProjectProvider, QuteUserTagProvider {
+public class QuteProjectRegistry implements QuteProjectInfoProvider, QuteDataModelProjectProvider, QuteUserTagProvider {
 
 	private final ValueResolversRegistry valueResolversRegistry;
 
@@ -213,12 +212,23 @@ public class QuteProjectRegistry
 	}
 
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String javaTypeName, String projectUri) {
-		return resolveJavaType(javaTypeName, projectUri, new HashSet<>());
+		QuteProject project = StringUtils.isEmpty(projectUri) ? null : getProject(projectUri);
+		if (project == null) {
+			return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
+		}
+		CompletableFuture<ResolvedJavaTypeInfo> future = getValidResolvedJavaTypeInCache(javaTypeName, project);
+		if (future != null) {
+			return future;
+		}
+		return resolveJavaType(javaTypeName, project, new HashSet<>());
 	}
 
-	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String javaTypeName, String projectUri,
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String javaTypeName, QuteProject project,
 			Set<String> visited) {
 
+		if (StringUtils.isEmpty(javaTypeName)) {
+			return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
+		}
 		if (visited.contains(javaTypeName)) {
 			return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
 		}
@@ -229,48 +239,148 @@ public class QuteProjectRegistry
 			// It's a primitive type like boolean, double, float, etc
 			return primitiveType;
 		}
-		if (StringUtils.isEmpty(javaTypeName) || StringUtils.isEmpty(projectUri)) {
-			return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
-		}
-		QuteProject project = getProject(projectUri);
-		if (project == null) {
-			return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
-		}
-		CompletableFuture<ResolvedJavaTypeInfo> future = project.getResolvedJavaType(javaTypeName);
-		if (future == null || future.isCancelled() || future.isCompletedExceptionally()) {
-			QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams(javaTypeName, projectUri);
-			future = getResolvedJavaType(params) //
-					.thenCompose(c -> {
-						if (c != null) {
-							// Update members with the resolved class
-							c.getFields().forEach(f -> {
-								f.setJavaType(c);
-							});
-							c.getMethods().forEach(m -> {
-								m.setJavaType(c);
-							});
-							// Load extended Java types
-							if (c.getExtendedTypes() != null) {
-								List<CompletableFuture<ResolvedJavaTypeInfo>> resolvingExtendedFutures = new ArrayList<>();
-								for (String extendedType : c.getExtendedTypes()) {
-									CompletableFuture<ResolvedJavaTypeInfo> extendedFuture = resolveJavaType(
-											extendedType, projectUri);
-									if (!extendedFuture.isDone()) {
-										resolvingExtendedFutures.add(extendedFuture);
+
+		String projectUri = project.getUri();
+		// Try to get the Java type from the cache
+		CompletableFuture<ResolvedJavaTypeInfo> future = getValidResolvedJavaTypeInCache(javaTypeName, project);
+		if (future == null) {
+			// The Java type needs to be loaded.
+			if (javaTypeName.endsWith("[]")) {
+				// Array case (ex : org.acme.Item[]), try to to get the, get the item type (ex :
+				// org.acme.Item)
+				future = resolveJavaType(javaTypeName.substring(0, javaTypeName.length() - 2), projectUri) //
+						.thenApply(item -> {
+							ResolvedJavaTypeInfo array = new ResolvedJavaTypeInfo();
+							array.setSignature(javaTypeName);
+							return array;
+						});
+			} else {
+				// Resolve Java type without generic.
+				// ex :
+				// - java.util.List<java.lang.String> -> java.util.List
+				// - java.lang.String -> java.lang.String
+				CompletableFuture<ResolvedJavaTypeInfo> loadResolveJavaTypeFuture = resolveJavaTypeWithoutGeneric(
+						javaTypeName, project);
+				future = loadResolveJavaTypeFuture //
+						.thenCompose(resolvedJavaType -> {
+							if (resolvedJavaType != null) {
+
+								// Create generic Map if the given Java type name declares some generic.
+								Map<String, String> generics = resolvedJavaType.createGenericMap(javaTypeName);
+								// Update the Java type (apply generic + update references of this Java type for
+								// fields / methods).
+								resolvedJavaType = updateJavaType(resolvedJavaType, generics);
+								visited.add(resolvedJavaType.getSignature());
+
+								final ResolvedJavaTypeInfo resolvedJavaTypeWithLoadedDeps = resolvedJavaType;
+								// Load extended Java types
+								if (resolvedJavaType.getExtendedTypes() != null) {
+									Set<CompletableFuture<ResolvedJavaTypeInfo>> resolvingExtendedFutures = new HashSet<>();
+									for (String extendedType : resolvedJavaType.getExtendedTypes()) {
+										resolvingExtendedFutures.add(resolveJavaType(extendedType, project, visited));
+									}
+									if (!resolvingExtendedFutures.isEmpty()) {
+										CompletableFuture<Void> allFutures = CompletableFuture
+												.allOf(resolvingExtendedFutures.toArray(
+														new CompletableFuture[resolvingExtendedFutures.size()]));
+										return allFutures //
+												.thenApply(all -> {
+													updateIterable(resolvedJavaTypeWithLoadedDeps,
+															resolvingExtendedFutures);
+													return resolvedJavaTypeWithLoadedDeps;
+												});
 									}
 								}
-								if (!resolvingExtendedFutures.isEmpty()) {
-									CompletableFuture<Void> allFutures = CompletableFuture
-											.allOf(resolvingExtendedFutures
-													.toArray(new CompletableFuture[resolvingExtendedFutures.size()]));
-									return allFutures //
-											.thenApply(a -> c);
-								}
 							}
-						}
-						return CompletableFuture.completedFuture(c);
-					});
+							return CompletableFuture.completedFuture(resolvedJavaType);
+						});
+			}
 			project.registerResolvedJavaType(javaTypeName, future);
+		}
+		return future;
+	}
+
+	public static ResolvedJavaTypeInfo updateJavaType(ResolvedJavaTypeInfo simpleOrGenericType,
+			Map<String, String> genericMap) {
+		boolean hasGeneric = genericMap != null;
+		ResolvedJavaTypeInfo javaType = simpleOrGenericType;
+		if (hasGeneric) {
+			// Create a new instance of ResolvedJavaTypeInfo with apply of generic.
+			javaType = new ResolvedGenericJavaTypeInfo(simpleOrGenericType, genericMap);
+		} else {
+			// Update Java fields
+			for (JavaFieldInfo field : simpleOrGenericType.getFields()) {
+				// Reference the Java type for the current field
+				field.setJavaType(javaType);
+			}
+
+			// Update Java methods
+			for (JavaMethodInfo method : simpleOrGenericType.getMethods()) {
+				// Reference the Java type for the current method
+				method.setJavaType(javaType);
+			}
+		}
+		return javaType;
+	}
+
+	public void updateIterable(final ResolvedJavaTypeInfo resolvedJavaType,
+			Set<CompletableFuture<ResolvedJavaTypeInfo>> resolvingExtendedFutures) {
+		String iterableOf = null;
+		for (CompletableFuture<ResolvedJavaTypeInfo> g : resolvingExtendedFutures) {
+			// Update the iterable of the loaded Java type
+			ResolvedJavaTypeInfo extendedType = g.getNow(null);
+			if (extendedType != null) {
+				if ("java.lang.Iterable".equals(extendedType.getName())) {
+					extendedType.isIterable();
+					iterableOf = extendedType.getIterableOf();
+					break;
+				} else if (extendedType.getIterableOf() != null) {
+					iterableOf = extendedType.getIterableOf();
+					break;
+				}
+			}
+		}
+
+		if (iterableOf != null) {
+			resolvedJavaType.setIterableOf(iterableOf);
+		}
+	}
+
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaTypeWithoutGeneric(String javaTypeName,
+			QuteProject project) {
+		String javaTypeWithoutGeneric = javaTypeName;
+		int genericIndex = javaTypeName.indexOf('<');
+		if (genericIndex != -1) {
+			// Get the resolved Java type without generic
+			// ex : for javaTypeName=java.util.List<E>, we search from the cache the Java
+			// type java.util.List.
+			javaTypeWithoutGeneric = javaTypeName.substring(0, genericIndex);
+			CompletableFuture<ResolvedJavaTypeInfo> future = getValidResolvedJavaTypeInCache(javaTypeWithoutGeneric,
+					project);
+			if (future != null) {
+				return future;
+			}
+		}
+		// The Java type (without generic) is not loaded from JDT / IJ side, load it.
+		String projectUri = project.getUri();
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams(javaTypeWithoutGeneric, projectUri);
+		return getResolvedJavaType(params);
+	}
+
+	private CompletableFuture<ResolvedJavaTypeInfo> getValidResolvedJavaTypeInCache(String javaTypeName,
+			QuteProject project) {
+		CompletableFuture<ResolvedJavaTypeInfo> primitiveType = javaPrimitiveTypes.get(javaTypeName);
+		if (primitiveType != null) {
+			// It's a primitive type like boolean, double, float, etc
+			return primitiveType;
+		}
+		if (StringUtils.isEmpty(javaTypeName)) {
+			return RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
+		}
+
+		CompletableFuture<ResolvedJavaTypeInfo> future = project.getResolvedJavaType(javaTypeName);
+		if (future == null || future.isCancelled() || future.isCompletedExceptionally()) {
+			return null;
 		}
 		return future;
 	}
@@ -453,19 +563,6 @@ public class QuteProjectRegistry
 		}
 		visited.add(baseType);
 
-		if (baseType.isIterable() && !baseType.isArray()) {
-			// Expression uses iterable type
-			// {@java.util.List<org.acme.Item items>
-			// {items.size()}
-			// Property, method to validate must be done for iterable type (ex :
-			// java.util.List
-			String iterableType = baseType.getIterableType();
-			baseType = resolveJavaType(iterableType, projectUri).getNow(null);
-			if (baseType == null) {
-				// The java type doesn't exists or it is resolving, stop the validation
-				return null;
-			}
-		}
 		// Search in the java root type
 		String getterMethodName = computeGetterName(property);
 		String booleanGetterName = computeBooleanGetterName(property);
@@ -674,6 +771,9 @@ public class QuteProjectRegistry
 						return true;
 					}
 				} else {
+					if (baseType == null) {
+						return false;
+					}
 					// Check if the baseType matches the type of the first parameter of the current
 					// resolver.
 					boolean matchVirtualMethod = matchResolver(baseType, resolver, methodName);

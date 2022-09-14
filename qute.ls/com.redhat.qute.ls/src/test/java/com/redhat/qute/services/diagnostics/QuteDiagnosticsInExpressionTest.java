@@ -334,15 +334,15 @@ public class QuteDiagnosticsInExpressionTest {
 				"{items.sizeXXX}";
 		testDiagnosticsFor(template, //
 				d(1, 7, 1, 14, QuteErrorCode.UnknownProperty,
-						"`sizeXXX` cannot be resolved or is not a field of `java.util.List<E>` Java type.",
-						new JavaBaseTypeOfPartData("java.util.List<E>"), DiagnosticSeverity.Error));
+						"`sizeXXX` cannot be resolved or is not a field of `java.util.List<org.acme.Item>` Java type.",
+						new JavaBaseTypeOfPartData("java.util.List<org.acme.Item>"), DiagnosticSeverity.Error));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				"{items.sizeXXX()}";
 		testDiagnosticsFor(template, //
 				d(1, 7, 1, 14, QuteErrorCode.UnknownMethod,
-						"`sizeXXX` cannot be resolved or is not a method of `java.util.List<E>` Java type.",
-						new JavaBaseTypeOfPartData("java.util.List<E>"), //
+						"`sizeXXX` cannot be resolved or is not a method of `java.util.List<org.acme.Item>` Java type.",
+						new JavaBaseTypeOfPartData("java.util.List<org.acme.Item>"), //
 						DiagnosticSeverity.Error));
 	}
 
@@ -725,5 +725,15 @@ public class QuteDiagnosticsInExpressionTest {
 				d(0, 8, 0, 12, QuteErrorCode.UnknownProperty,
 						"`XXXX` cannot be resolved or is not a field of `java.lang.String` Java type.",
 						new JavaBaseTypeOfPartData("java.lang.String"), DiagnosticSeverity.Error));
+	}
+
+	@Test
+	public void undefinedObjectPartWithKwownMethodResolver() throws Exception {
+		String template = "{items.getByIndex(0)}";
+		testDiagnosticsFor(template, //
+				d(0, 1, 0, 6, QuteErrorCode.UndefinedObject, "`items` cannot be resolved to an object.",
+						DiagnosticSeverity.Warning),
+				d(0, 7, 0, 17, QuteErrorCode.UnknownMethod, "`getByIndex` cannot be resolved or is not a method of `null` Java type.",
+						DiagnosticSeverity.Error));
 	}
 }

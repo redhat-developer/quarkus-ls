@@ -11,8 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.commons;
 
-import java.util.StringJoiner;
-
 /**
  * Base class for Java element (Java types, methods, fields, parameters)
  *
@@ -112,33 +110,29 @@ public abstract class JavaElementInfo {
 	 * @return the simple type of the given type.
 	 */
 	public static String getSimpleType(String type) {
-		if (type == null) {
-			return null;
+		if (type == null || type.indexOf('.') == -1) {
+			// ex: List
+			return type;
 		}
-		int startBracketIndex = type.indexOf('<');
-		if (startBracketIndex != -1) {
-			int endBracketIndex = type.indexOf('>', startBracketIndex);
-			// Main type
-			StringBuilder simpleType = new StringBuilder(
-					getSimpleTypeWithoutGeneric(type.substring(0, startBracketIndex)));
-			// Generic type
-			simpleType.append('<');
-			String[] generics = type.substring(startBracketIndex + 1, endBracketIndex).split(",");
-			StringJoiner commaJoiner = new StringJoiner(",");
-			for (String generic : generics) {
-				commaJoiner.add(getSimpleTypeWithoutGeneric(generic));
-			}
-			simpleType.append(commaJoiner.toString());
-			simpleType.append('>');
-
-			return simpleType.toString();
+		int lastIndex = 0;
+		StringBuilder result = new StringBuilder();
+		for (int i = 0; i < type.length(); i++) {
+			char c = type.charAt(i);
+			switch(c) {
+			case '.':
+				lastIndex = i;
+				break;
+			case '<':
+			case ',':
+				result.append(type.substring(lastIndex + 1, i + 1));
+				lastIndex = i;
+				break;
+			}			
 		}
-		return getSimpleTypeWithoutGeneric(type);
-	}
-
-	private static String getSimpleTypeWithoutGeneric(String type) {
-		int index = type.lastIndexOf('.');
-		return index != -1 ? type.substring(index + 1, type.length()) : type;
+		if (lastIndex != type.length()) {
+			result.append(type.substring(lastIndex + 1, type.length()));
+		}
+		return result.toString();
 	}
 
 }

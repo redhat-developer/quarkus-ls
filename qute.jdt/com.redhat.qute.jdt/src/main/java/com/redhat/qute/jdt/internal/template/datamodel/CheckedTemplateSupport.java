@@ -13,7 +13,6 @@ package com.redhat.qute.jdt.internal.template.datamodel;
 
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
-import static com.redhat.qute.jdt.internal.template.QuarkusIntegrationForQute.resolveSignature;
 import static com.redhat.qute.jdt.utils.JDTQuteProjectUtils.getTemplatePath;
 
 import java.util.ArrayList;
@@ -22,6 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ILocalVariable;
@@ -31,6 +31,7 @@ import org.eclipse.jdt.core.JavaModelException;
 
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 import com.redhat.qute.jdt.internal.template.TemplateDataSupport;
 import com.redhat.qute.jdt.template.datamodel.AbstractAnnotationTypeReferenceDataModelProvider;
 import com.redhat.qute.jdt.template.datamodel.SearchContext;
@@ -78,19 +79,22 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 			SearchContext context, IProgressMonitor monitor) throws JavaModelException {
 		if (javaElement instanceof IType) {
 			IType type = (IType) javaElement;
-			collectDataModelTemplateForCheckedTemplate(type, context.getDataModelProject().getTemplates(), monitor);
+			collectDataModelTemplateForCheckedTemplate(type, context.getTypeResolver(type),
+					context.getDataModelProject().getTemplates(), monitor);
 		}
 	}
 
 	/**
 	 * Collect data model template from @CheckedTemplate.
 	 * 
-	 * @param type      the Java type.
-	 * @param templates the data model templates to update with collect of template.
-	 * @param monitor   the progress monitor.
+	 * @param type         the Java type.
+	 * @param typeResolver the Java type resolver.
+	 * @param templates    the data model templates to update with collect of
+	 *                     template.
+	 * @param monitor      the progress monitor.
 	 * @throws JavaModelException
 	 */
-	private static void collectDataModelTemplateForCheckedTemplate(IType type,
+	private static void collectDataModelTemplateForCheckedTemplate(IType type, ITypeResolver typeResolver,
 			List<DataModelTemplate<DataModelParameter>> templates, IProgressMonitor monitor) throws JavaModelException {
 		boolean innerClass = type.getParent() != null && type.getParent().getElementType() == IJavaElement.TYPE;
 		String className = !innerClass ? null
@@ -102,13 +106,14 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 		// method.
 		IMethod[] methods = type.getMethods();
 		for (IMethod method : methods) {
-			DataModelTemplate<DataModelParameter> template = createTemplateDataModel(method, className, type, monitor);
+			DataModelTemplate<DataModelParameter> template = createTemplateDataModel(method, className, type,
+					typeResolver, monitor);
 			templates.add(template);
 		}
 	}
 
 	private static DataModelTemplate<DataModelParameter> createTemplateDataModel(IMethod method, String className,
-			IType type, IProgressMonitor monitor) {
+			IType type, ITypeResolver typeResolver, IProgressMonitor monitor) {
 		String methodName = method.getElementName();
 		// src/main/resources/templates/${className}/${methodName}.qute.html
 		String templateUri = getTemplatePath(className, methodName);
@@ -124,9 +129,14 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 		template.setSourceMethod(methodName);
 
 		try {
-			for (ILocalVariable methodParameter : method.getParameters()) {
-				DataModelParameter parameter = createParameterDataModel(methodParameter, type);
-				template.getParameters().add(parameter);
+			ILocalVariable[] parameters = method.getParameters();
+			if (parameters.length > 0) {
+				boolean varargs = Flags.isVarargs(method.getFlags());
+				for (int i = 0; i < parameters.length; i++) {
+					DataModelParameter parameter = createParameterDataModel(parameters[i],
+							varargs && i == parameters.length - 1, typeResolver);
+					template.getParameters().add(parameter);
+				}
 			}
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE,
@@ -137,10 +147,10 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 		return template;
 	}
 
-	private static DataModelParameter createParameterDataModel(ILocalVariable methodParameter, IType type)
-			throws JavaModelException {
+	private static DataModelParameter createParameterDataModel(ILocalVariable methodParameter, boolean varags,
+			ITypeResolver typeResolver) throws JavaModelException {
 		String parameterName = methodParameter.getElementName();
-		String parameterType = resolveSignature(methodParameter, type);
+		String parameterType = typeResolver.resolveLocalVariableSignature(methodParameter, varags);
 
 		DataModelParameter parameter = new DataModelParameter();
 		parameter.setKey(parameterName);

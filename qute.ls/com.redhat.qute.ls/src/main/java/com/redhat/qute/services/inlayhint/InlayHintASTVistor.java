@@ -158,10 +158,16 @@ public class InlayHintASTVistor extends ASTVisitor {
 	}
 
 	private boolean isAfterStartParameterVisible(Section node) {
+		if (startOffset == -1) {
+			return true;
+		}
 		return node.getStart() >= startOffset;
 	}
 
 	private boolean isAfterEndParameterVisible(Section node) {
+		if (endOffset == -1) {
+			return true;
+		}
 		return node.getEndParametersOffset() < endOffset;
 	}
 
@@ -257,7 +263,7 @@ public class InlayHintASTVistor extends ASTVisitor {
 			InlayHintLabelPart separatorPart = new InlayHintLabelPart(":");
 			// second part label : clickable Java type (ex : String)
 			InlayHintLabelPart javaTypePart = new InlayHintLabelPart(type);
-			Command javaDefCommand = createJavaDefinitionCommand(javaType.getSignature(), projectUri);
+			Command javaDefCommand = createJavaDefinitionCommand(javaType.getName(), projectUri);
 			javaTypePart.setCommand(javaDefCommand);
 			javaTypePart.setTooltip(javaDefCommand.getTitle());
 			hint.setLabel(Either.forRight(Arrays.asList(separatorPart, javaTypePart)));

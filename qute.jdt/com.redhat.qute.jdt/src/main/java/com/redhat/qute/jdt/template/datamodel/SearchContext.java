@@ -13,15 +13,19 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.template.datamodel;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IType;
 
 import com.redhat.qute.commons.QuteProjectScope;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
-import com.redhat.qute.jdt.utils.IJDTUtils;
+import com.redhat.qute.jdt.QuteSupportForTemplate;
+import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 
 /**
  * The search context used to collect properties.
@@ -31,14 +35,13 @@ import com.redhat.qute.jdt.utils.IJDTUtils;
  */
 public class SearchContext extends BaseContext {
 	private final DataModelProject<DataModelTemplate<DataModelParameter>> dataModelProject;
-	private final IJDTUtils utils;
+
+	private Map<IType, ITypeResolver> typeResolvers;
 
 	public SearchContext(IJavaProject javaProject,
-			DataModelProject<DataModelTemplate<DataModelParameter>> dataModelProject, IJDTUtils utils,
-			List<QuteProjectScope> scopes) {
+			DataModelProject<DataModelTemplate<DataModelParameter>> dataModelProject, List<QuteProjectScope> scopes) {
 		super(javaProject, scopes);
 		this.dataModelProject = dataModelProject;
-		this.utils = utils;
 	}
 
 	public DataModelProject<DataModelTemplate<DataModelParameter>> getDataModelProject() {
@@ -46,12 +49,22 @@ public class SearchContext extends BaseContext {
 	}
 
 	/**
-	 * Returns the JDT utilities.
-	 *
-	 * @return the JDT utilities.
+	 * Returns the {@link ITypeResolver} of the given Java type <code>type</code>.
+	 * 
+	 * @param type the Java type.
+	 * 
+	 * @return the {@link ITypeResolver} of the given Java type <code>type</code>.
 	 */
-	public IJDTUtils getUtils() {
-		return utils;
+	public ITypeResolver getTypeResolver(IType type) {
+		if (typeResolvers == null) {
+			typeResolvers = new HashMap<IType, ITypeResolver>();
+		}
+		ITypeResolver typeResolver = typeResolvers.get(type);
+		if (typeResolver == null) {
+			typeResolver = QuteSupportForTemplate.createTypeResolver(type);
+			typeResolvers.put(type, typeResolver);
+		}
+		return typeResolver;
 	}
 
 }

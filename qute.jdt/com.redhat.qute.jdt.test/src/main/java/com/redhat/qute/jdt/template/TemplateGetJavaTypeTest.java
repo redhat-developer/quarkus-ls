@@ -88,8 +88,8 @@ public class TemplateGetJavaTypeTest {
 				new NullProgressMonitor());
 
 		assertJavaTypes(actual, //
-				t("org.acme.qute.NestedClass.Foo", JavaTypeKind.Class), //
-				t("org.acme.qute.NestedClass.Bar", JavaTypeKind.Class));
+				t("org.acme.qute.NestedClass$Foo", JavaTypeKind.Class), //
+				t("org.acme.qute.NestedClass$Bar", JavaTypeKind.Class));
 	}
 	
 	@Test
