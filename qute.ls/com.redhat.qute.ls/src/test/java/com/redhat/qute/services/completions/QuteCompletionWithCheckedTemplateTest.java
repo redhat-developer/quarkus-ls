@@ -38,4 +38,13 @@ public class QuteCompletionWithCheckedTemplateTest {
 				"src/main/resources/templates/ItemResource/items.qute.html", //
 				c("items", "items", r(0, 7, 0, 7)));
 	}
+
+	@Test
+	public void checkedTemplateWithOverlappingTemplateParam() throws Exception {
+		String template = "{@java.lang.List<java.lang.String> items}\n" + //
+				"Item: {|";
+		testCompletionFor(template, //
+				"src/main/resources/templates/ItemResource/items.qute.html", //
+				"ItemResource/Items", 6, c("items", "items", r(1, 7, 1, 7)));
+	}
 }

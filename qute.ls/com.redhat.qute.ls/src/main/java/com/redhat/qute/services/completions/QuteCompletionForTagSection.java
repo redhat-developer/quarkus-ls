@@ -11,8 +11,12 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
+import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
@@ -44,22 +48,24 @@ public class QuteCompletionForTagSection {
 
 	public void doCompleteTagSection(CompletionRequest completionRequest, String filterPrefix,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
-			CancelChecker cancelChecker, CompletionList list) {
+			CancelChecker cancelChecker, Set<CompletionItem> completionItems) {
 		// Completion for user tags
 		Template template = completionRequest.getTemplate();
 		QuteProject project = template.getProject();
 		if (project != null) {
-			project.collectUserTagSuggestions(completionRequest, filterPrefix, "}", list);
+			project.collectUserTagSuggestions(completionRequest, filterPrefix, "}", completionItems);
 		}
 		// Completion for #for, #if, etc
-		completionsForSnippets.collectSnippetSuggestions(completionRequest, filterPrefix, "}", list);
+		completionsForSnippets.collectSnippetSuggestions(completionRequest, filterPrefix, "}", completionItems);
 	}
 
 	public CompletableFuture<CompletionList> doCompleteTagSection(CompletionRequest completionRequest,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
 			CancelChecker cancelChecker) {
+		Set<CompletionItem> completionItems = new HashSet<>();
+		doCompleteTagSection(completionRequest, "{#", completionSettings, formattingSettings, cancelChecker, completionItems);
 		CompletionList list = new CompletionList();
-		doCompleteTagSection(completionRequest, "{#", completionSettings, formattingSettings, cancelChecker, list);
+		list.setItems(completionItems.stream().collect(Collectors.toList()));
 		return CompletableFuture.completedFuture(list);
 	}
 

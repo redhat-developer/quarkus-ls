@@ -12,11 +12,11 @@
 package com.redhat.qute.services.completions;
 
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.InsertTextMode;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.Range;
@@ -66,10 +66,10 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 	 * @param prefixFilter      prefix filter.
 	 * @param suffixToFind      suffix to found to eat it when completion snippet is
 	 *                          applied.
-	 * @param list              completion list to update.
+	 * @param completionItems   set of completion items to update
 	 */
 	public void collectSnippetSuggestions(CompletionRequest completionRequest, String prefixFilter, String suffixToFind,
-			CompletionList list) {
+			Set<CompletionItem> completionItems) {
 		Node node = completionRequest.getNode();
 		int offset = completionRequest.getOffset();
 		Template template = node.getOwnerTemplate();
@@ -122,10 +122,8 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 						}
 						return null;
 					}, suffixToFind, prefixFilter);
-			for (CompletionItem completionItem : snippets) {
-				list.getItems().add(completionItem);
-			}
 
+			completionItems.addAll(snippets);
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In QuteCompletions, collectSnippetSuggestions position error", e);
 		}
