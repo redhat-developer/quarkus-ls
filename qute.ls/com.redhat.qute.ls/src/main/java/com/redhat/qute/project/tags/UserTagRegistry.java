@@ -15,10 +15,11 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.CompletionItem;
 
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
@@ -82,15 +83,15 @@ public class UserTagRegistry {
 	 * @param prefixFilter      prefix filter.
 	 * @param suffixToFind      suffix to found to eat it when completion snippet is
 	 *                          applied.
-	 * @param list              completion list to update.
+	 * @param completionItems   set of completion items to update
 	 */
 	public void collectUserTagSuggestions(CompletionRequest completionRequest, String prefixFilter, String suffixToFind,
-			CompletionList list) {
+			Set<CompletionItem> completionItems) {
 		// Completion for sources user tags (from src/main/resources/templates/tags)
 		refresh();
-		completionsSourceUserTag.collectSnippetSuggestions(completionRequest, prefixFilter, suffixToFind, list);
+		completionsSourceUserTag.collectSnippetSuggestions(completionRequest, prefixFilter, suffixToFind, completionItems);
 		// Completion for binaries user tags
-		completionsBinaryUserTag.collectSnippetSuggestions(completionRequest, prefixFilter, suffixToFind, list);
+		completionsBinaryUserTag.collectSnippetSuggestions(completionRequest, prefixFilter, suffixToFind, completionItems);
 	}
 
 	/**

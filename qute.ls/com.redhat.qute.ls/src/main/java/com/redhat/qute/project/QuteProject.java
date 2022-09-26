@@ -20,9 +20,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.Position;
 
 import com.redhat.qute.commons.ProjectInfo;
@@ -307,11 +308,11 @@ public class QuteProject {
 	 * @param prefixFilter      prefix filter.
 	 * @param suffixToFind      suffix to found to eat it when completion snippet is
 	 *                          applied.
-	 * @param list              completion list to update.
+	 * @param completionItems   set of completion items to update
 	 */
 	public void collectUserTagSuggestions(CompletionRequest completionRequest, String prefixFilter, String suffixToFind,
-			CompletionList list) {
-		tagRegistry.collectUserTagSuggestions(completionRequest, prefixFilter, suffixToFind, list);
+			Set<CompletionItem> completionItems) {
+		tagRegistry.collectUserTagSuggestions(completionRequest, prefixFilter, suffixToFind, completionItems);
 	}
 
 	/**

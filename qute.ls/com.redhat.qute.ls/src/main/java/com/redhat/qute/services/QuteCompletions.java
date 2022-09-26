@@ -11,10 +11,14 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
+import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
@@ -194,13 +198,15 @@ public class QuteCompletions {
 	}
 
 	private CompletableFuture<CompletionList> collectSnippetSuggestions(CompletionRequest completionRequest) {
-		CompletionList list = new CompletionList();
 		Template template = completionRequest.getTemplate();
 		QuteProject project = template.getProject();
+		Set<CompletionItem> completionItems = new HashSet<>();
 		if (project != null) {
-			project.collectUserTagSuggestions(completionRequest, "", null, list);
+			project.collectUserTagSuggestions(completionRequest, "", null, completionItems);
 		}
-		completionsForSnippets.collectSnippetSuggestions(completionRequest, "", null, list);
+		completionsForSnippets.collectSnippetSuggestions(completionRequest, "", null, completionItems);
+		CompletionList list = new CompletionList();
+		list.setItems(completionItems.stream().collect(Collectors.toList()));
 		return CompletableFuture.completedFuture(list);
 	}
 

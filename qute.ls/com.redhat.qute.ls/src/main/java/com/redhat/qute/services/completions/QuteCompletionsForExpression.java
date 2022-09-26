@@ -15,7 +15,6 @@ import static com.redhat.qute.parser.template.Section.isCaseSection;
 import static com.redhat.qute.project.datamodel.resolvers.ValueResolver.MATCH_NAME_ANY;
 import static com.redhat.qute.services.QuteCompletions.EMPTY_FUTURE_COMPLETION;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -97,6 +96,7 @@ public class QuteCompletionsForExpression {
 	 * Returns the completion result of the given offset inside the given
 	 * expression.
 	 *
+	 * @param completionRequest    the completion request
 	 * @param expression           the expression where the completion has been
 	 *                             triggered and null otherwise.
 	 * @param nodeExpression       the node expression where the completion has been
@@ -265,8 +265,7 @@ public class QuteCompletionsForExpression {
 	private CompletionList doCompleteForJavaTypeMembers(ResolvedJavaTypeInfo baseType, int start, int end,
 			Template template, boolean infixNotation, QuteCompletionSettings completionSettings,
 			QuteFormattingSettings formattingSettings, QuteNativeSettings nativeImagesSettings) {
-		CompletionList list = new CompletionList();
-		list.setItems(new ArrayList<>());
+		Set<CompletionItem> completionItems = new HashSet<>();
 		Range range = QutePositionUtility.createRange(start, end, template);
 		String projectUri = template.getProjectUri();
 
@@ -287,12 +286,13 @@ public class QuteCompletionsForExpression {
 			if (!infixNotation) {
 				// Completion for Java fields
 				fillCompletionFields(baseType, javaTypeAccessibility, filter, range, projectUri, existingProperties,
-						list);
+						completionItems);
 			}
 
 			// Completion for Java methods
 			fillCompletionMethods(baseType, javaTypeAccessibility, filter, range, projectUri, infixNotation,
-					completionSettings, formattingSettings, existingProperties, existingMethodSignatures, list);
+					completionSettings, formattingSettings, existingProperties, existingMethodSignatures,
+					completionItems);
 		}
 
 		// Completion for virtual methods (from value resolvers)
@@ -303,15 +303,17 @@ public class QuteCompletionsForExpression {
 		for (MethodValueResolver method : resolvers) {
 			if (method.isValidName() && isValidInfixNotation(method, infixNotation)) {
 				fillCompletionMethod(method, javaTypeAccessibility, null, range, infixNotation, completionSettings,
-						formattingSettings, list);
+						formattingSettings, completionItems);
 			}
 		}
+		CompletionList list = new CompletionList();
+		list.setItems(completionItems.stream().collect(Collectors.toList()));
 		return list;
 	}
 
 	/**
-	 * Fill completion list <code>list</code> with the methods of the given Java
-	 * type <code>resolvedType</code>.
+	 * Make completion items for the fields of the given Java type
+	 * <code>resolvedType</code>, then add them to <code>completionItems</code>.
 	 *
 	 * @param baseType              the Java type class, interface.
 	 * @param javaTypeAccessibility the Java type accessibility.
@@ -320,18 +322,18 @@ public class QuteCompletionsForExpression {
 	 * @param projectUri            the project Uri
 	 * @param existingProperties    the existing properties and method, field
 	 *                              signature.
-	 * @param list                  the completion list.
+	 * @param completionItems       the set of completion items to add to
 	 */
 	private void fillCompletionFields(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
 			JavaTypeFilter filter, Range range, String projectUri, Set<String> existingProperties,
-			CompletionList list) {
-		fillCompletionFields(baseType, javaTypeAccessibility, filter, range, projectUri, existingProperties, list,
-				new HashSet<>());
+			Set<CompletionItem> completionItems) {
+		fillCompletionFields(baseType, javaTypeAccessibility, filter, range, projectUri, existingProperties,
+				completionItems, new HashSet<>());
 	}
 
 	/**
-	 * Fill completion list <code>list</code> with the methods of the given Java
-	 * type <code>resolvedType</code>.
+	 * Make completion items for the fields of the given Java type
+	 * <code>resolvedType</code>, then add them to <code>completionItems</code>.
 	 *
 	 * @param baseType              the Java type class, interface.
 	 * @param javaTypeAccessibility the Java type accessibility.
@@ -340,12 +342,12 @@ public class QuteCompletionsForExpression {
 	 * @param projectUri            the project Uri
 	 * @param existingProperties    the existing properties and method, field
 	 *                              signature.
-	 * @param list                  the completion list.
+	 * @param completionItems       the set of completion items to add to
 	 * @param visited               the list of types that have already been visited
 	 */
 	private void fillCompletionFields(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
-			JavaTypeFilter filter, Range range, String projectUri, Set<String> existingProperties, CompletionList list,
-			Set<ResolvedJavaTypeInfo> visited) {
+			JavaTypeFilter filter, Range range, String projectUri, Set<String> existingProperties,
+			Set<CompletionItem> completionItems, Set<ResolvedJavaTypeInfo> visited) {
 		if (visited.contains(baseType)) {
 			return;
 		}
@@ -360,7 +362,7 @@ public class QuteCompletionsForExpression {
 			// class A extends B {String foo;}
 			// class B {String foo;}
 			if (!existingProperties.contains(fieldName)) {
-				fillCompletionField(field, javaTypeAccessibility, filter, range, list);
+				fillCompletionField(field, javaTypeAccessibility, filter, range, completionItems);
 				existingProperties.add(fieldName);
 			}
 		}
@@ -373,7 +375,7 @@ public class QuteCompletionsForExpression {
 							.getNow(null);
 					if (resolvedExtendedType != null) {
 						fillCompletionFields(resolvedExtendedType, javaTypeAccessibility, filter, range, projectUri,
-								existingProperties, list, visited);
+								existingProperties, completionItems, visited);
 					}
 				}
 			}
@@ -381,16 +383,16 @@ public class QuteCompletionsForExpression {
 	}
 
 	private static void fillCompletionField(JavaFieldInfo field, JavaTypeAccessibiltyRule javaTypeAccessibility,
-			JavaTypeFilter filter, Range range, CompletionList list) {
+			JavaTypeFilter filter, Range range, Set<CompletionItem> completionItems) {
 		if (!JavaTypeAccessibiltyRule.ALLOWED_WITHOUT_RESTRICTION.equals(javaTypeAccessibility) && filter != null
 				&& filter.getJavaMemberAccessibility(field, javaTypeAccessibility) != JavaMemberAccessibility.ALLOWED) {
 			return;
 		}
-		fillCompletionField(field, null, false, range, list);
+		fillCompletionField(field, null, false, range, completionItems);
 	}
 
 	private static CompletionItem fillCompletionField(JavaFieldInfo field, String namespace,
-			boolean useNamespaceInTextEdit, Range range, CompletionList list) {
+			boolean useNamespaceInTextEdit, Range range, Set<CompletionItem> completionItems) {
 		String label = namespace != null ? namespace + ':' + field.getSimpleSignature() : field.getSimpleSignature();
 		String insertText = useNamespaceInTextEdit && namespace != null ? namespace + ':' + field.getName()
 				: field.getName();
@@ -402,22 +404,22 @@ public class QuteCompletionsForExpression {
 		textEdit.setRange(range);
 		textEdit.setNewText(insertText);
 		item.setTextEdit(Either.forLeft(textEdit));
-		list.getItems().add(item);
+		completionItems.add(item);
 		return item;
 	}
 
 	private void fillCompletionMethods(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
 			JavaTypeFilter filter, Range range, String projectUri, boolean infixNotation,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
-			Set<String> existingProperties, Set<String> existingMethodSignatures, CompletionList list) {
+			Set<String> existingProperties, Set<String> existingMethodSignatures, Set<CompletionItem> completionItems) {
 		fillCompletionMethods(baseType, javaTypeAccessibility, filter, range, projectUri, infixNotation,
-				completionSettings, formattingSettings, existingProperties, existingMethodSignatures, list,
+				completionSettings, formattingSettings, existingProperties, existingMethodSignatures, completionItems,
 				new HashSet<>());
 	}
 
 	/**
-	 * Fill completion list <code>list</code> with the methods of the given Java
-	 * type <code>resolvedType</code>.
+	 * Make completion items for the methods of the given Java type
+	 * <code>resolvedType</code> and add them to <code>completionItems</code>.
 	 *
 	 * @param baseType              the Java type class, interface.
 	 * @param javaTypeAccessibility the Java type accessibility.
@@ -431,13 +433,13 @@ public class QuteCompletionsForExpression {
 	 * @param formattingSettings    the formatting settings.
 	 * @param existingProperties    the existing properties and method, field
 	 *                              signature.
+	 * @param completionItems       the set of completion items to add to
 	 * @param visited               the set of types that have already been visited
-	 * @param list                  the completion list.
 	 */
 	private void fillCompletionMethods(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
 			JavaTypeFilter filter, Range range, String projectUri, boolean infixNotation,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
-			Set<String> existingProperties, Set<String> existingMethodSignatures, CompletionList list,
+			Set<String> existingProperties, Set<String> existingMethodSignatures, Set<CompletionItem> completionItems,
 			Set<ResolvedJavaTypeInfo> visited) {
 
 		if (visited.contains(baseType)) {
@@ -462,12 +464,12 @@ public class QuteCompletionsForExpression {
 						textEdit.setRange(range);
 						textEdit.setNewText(property);
 						item.setTextEdit(Either.forLeft(textEdit));
-						list.getItems().add(item);
+						completionItems.add(item);
 					}
 
 					// Completion for method name (getValue)
 					fillCompletionMethod(method, javaTypeAccessibility, filter, range, infixNotation,
-							completionSettings, formattingSettings, list);
+							completionSettings, formattingSettings, completionItems);
 				}
 			}
 		}
@@ -481,7 +483,7 @@ public class QuteCompletionsForExpression {
 					if (resolvedExtendedType != null) {
 						fillCompletionMethods(resolvedExtendedType, javaTypeAccessibility, filter, range, projectUri,
 								infixNotation, completionSettings, formattingSettings, existingProperties,
-								existingMethodSignatures, list, visited);
+								existingMethodSignatures, completionItems, visited);
 					}
 				}
 			}
@@ -489,17 +491,21 @@ public class QuteCompletionsForExpression {
 	}
 
 	/**
-	 * Fill completion list with the case operators.
+	 * Make completion items for relevant case operators and add them to
+	 * <code>completionItems</code>.
 	 *
 	 * @param caseSection        the Case Section.
+	 * @param onlyMulti          if true, only operators that work with multi case
+	 *                           matches will be suggested for completion
 	 * @param range              the range.
 	 * @param existingParameters the existing parameters.
-	 * @param list               the completion list.
+	 * @param completionItems    the set of completion items to update
+	 * @param canSupportMarkdown whether the client supports rendering markdown
 	 */
 	private void fillCaseOperators(CaseSection caseSection, boolean onlyMulti, Range range,
-			Set<String> existingParameters, CompletionList list, boolean canSupportMarkdown) {
+			Set<String> existingParameters, Set<CompletionItem> completionItems, boolean canSupportMarkdown) {
 		for (CaseOperator operator : caseSection.getAllowedOperators()) {
-			if (!onlyMulti || (onlyMulti && operator.isMulti())) {
+			if (!onlyMulti || operator.isMulti()) {
 				CompletionItem item = new CompletionItem();
 				item.setLabel(operator.getName() + " : Operator");
 				item.setFilterText(operator.getName());
@@ -509,7 +515,7 @@ public class QuteCompletionsForExpression {
 				textEdit.setRange(range);
 				textEdit.setNewText(operator.getName());
 				item.setTextEdit(Either.forLeft(textEdit));
-				list.getItems().add(item);
+				completionItems.add(item);
 			}
 		}
 	}
@@ -529,18 +535,20 @@ public class QuteCompletionsForExpression {
 
 	private static void fillCompletionMethod(JavaMethodInfo method, JavaTypeAccessibiltyRule javaTypeAccessibility,
 			JavaTypeFilter filter, Range range, boolean infixNotation, QuteCompletionSettings completionSettings,
-			QuteFormattingSettings formattingSettings, CompletionList list) {
+			QuteFormattingSettings formattingSettings, Set<CompletionItem> completionItems) {
 		if (!JavaTypeAccessibiltyRule.ALLOWED_WITHOUT_RESTRICTION.equals(javaTypeAccessibility) && filter != null
 				&& filter.getJavaMemberAccessibility(method,
 						javaTypeAccessibility) != JavaMemberAccessibility.ALLOWED) {
 			return;
 		}
-		fillCompletionMethod(method, null, false, range, infixNotation, completionSettings, formattingSettings, list);
+		fillCompletionMethod(method, null, false, range, infixNotation, completionSettings, formattingSettings,
+				completionItems);
 	}
 
 	private static CompletionItem fillCompletionMethod(JavaMethodInfo method, String namespace,
 			boolean useNamespaceInTextEdit, Range range, boolean infixNotation,
-			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings, CompletionList list) {
+			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
+			Set<CompletionItem> completionItems) {
 		String label = namespace != null ? namespace + ':' + method.getSimpleSignature() : method.getSimpleSignature();
 		String filterText = namespace != null ? namespace + ':' + method.getMethodName() : method.getMethodName();
 		CompletionItem item = new CompletionItem();
@@ -557,7 +565,7 @@ public class QuteCompletionsForExpression {
 		}
 		textEdit.setNewText(insertText);
 		item.setTextEdit(Either.forLeft(textEdit));
-		list.getItems().add(item);
+		completionItems.add(item);
 		return item;
 	}
 
@@ -621,38 +629,40 @@ public class QuteCompletionsForExpression {
 		int partStart = part != null && part.getKind() != NodeKind.Text ? part.getStart() : offset;
 		int partEnd = part != null && part.getKind() != NodeKind.Text ? part.getEnd() : offset;
 		Range range = QutePositionUtility.createRange(partStart, partEnd, template);
-		CompletionList list = new CompletionList();
 		boolean isCaseSection = isInCaseSection(expression);
+		Set<CompletionItem> completionItems = new HashSet<>();
 
 		// Don't complete if in #is or #case section
 		if (!isCaseSection) {
 			// Completion with namespace resolver
 			// {data:item}
 			// {inject:bean}
-			doCompleteNamespaceResolvers(namespace, template, range, completionSettings, formattingSettings, list);
+			doCompleteNamespaceResolvers(namespace, template, range, completionSettings, formattingSettings,
+					completionItems);
 		}
 
 		if (namespace == null) {
 			// Completion is triggered before the namespace
 			if (!isCaseSection) {
 				// Collect global variable
-				doCompleteExpressionForObjectPartWithGlobalVariables(template, range, list);
+				doCompleteExpressionForObjectPartWithGlobalVariables(template, range, completionItems);
 				// Collect alias declared from parameter declaration
-				doCompleteExpressionForObjectPartWithParameterAlias(template, range, list);
+				doCompleteExpressionForObjectPartWithParameterAlias(template, range, completionItems);
 				// Collect parameters from CheckedTemplate method parameters
-				doCompleteExpressionForObjectPartWithCheckedTemplate(template, range, list);
+				doCompleteExpressionForObjectPartWithCheckedTemplate(template, range, completionItems);
 			}
 			// Collect declared model inside section, let, etc
 			Set<String> existingVars = new HashSet<>();
 			doCompleteExpressionForObjectPartWithParentNodes(part, expression != null ? expression : part, range,
-					offset, template, existingVars, completionSettings, formattingSettings, nativeImagesSettings, list);
+					offset, template, existingVars, completionSettings, formattingSettings, nativeImagesSettings,
+					completionItems);
 
 			// Section tag
 			if (completionRequest != null) {
 				char previous = template.getText().charAt(offset - 1);
 				if (previous == '#') {
 					completionForTagSection.doCompleteTagSection(completionRequest, "#", completionSettings,
-							formattingSettings, cancelChecker, list);
+							formattingSettings, cancelChecker, completionItems);
 				}
 			}
 
@@ -671,11 +681,14 @@ public class QuteCompletionsForExpression {
 						TextEdit textEdit = new TextEdit(range, name);
 						item.setTextEdit(Either.forLeft(textEdit));
 						item.setDetail(metadata.getDescription());
-						list.getItems().add(item);
+						completionItems.add(item);
 					}
 				}
 			}
 		}
+
+		CompletionList list = new CompletionList();
+		list.setItems(completionItems.stream().collect(Collectors.toList()));
 		return CompletableFuture.completedFuture(list);
 	}
 
@@ -685,7 +698,7 @@ public class QuteCompletionsForExpression {
 	}
 
 	private void doCompleteExpressionForObjectPartWithGlobalVariables(Template template, Range range,
-			CompletionList list) {
+			Set<CompletionItem> completionItems) {
 		List<ValueResolver> globalVariables = javaCache.getGlobalVariables(template.getProjectUri());
 		if (globalVariables != null) {
 			for (ValueResolver globalVariable : globalVariables) {
@@ -698,7 +711,7 @@ public class QuteCompletionsForExpression {
 				item.setKind(getCompletionKind(globalVariable));
 				TextEdit textEdit = new TextEdit(range, name);
 				item.setTextEdit(Either.forLeft(textEdit));
-				list.getItems().add(item);
+				completionItems.add(item);
 			}
 		}
 	}
@@ -718,13 +731,14 @@ public class QuteCompletionsForExpression {
 	}
 
 	public void doCompleteNamespaceResolvers(String namespace, Template template, Range range,
-			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings, CompletionList list) {
+			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
+			Set<CompletionItem> completionItems) {
 		if (NamespacePart.DATA_NAMESPACE.equals(namespace)) {
 			// {data:|}
 			// Collect alias declared from parameter declaration
-			doCompleteExpressionForObjectPartWithParameterAlias(template, range, list);
+			doCompleteExpressionForObjectPartWithParameterAlias(template, range, completionItems);
 			// Collect parameters from CheckedTemplate method parameters
-			doCompleteExpressionForObjectPartWithCheckedTemplate(template, range, list);
+			doCompleteExpressionForObjectPartWithCheckedTemplate(template, range, completionItems);
 			return;
 		}
 
@@ -752,14 +766,14 @@ public class QuteCompletionsForExpression {
 					textEdit.setNewText(label);
 					item.setTextEdit(Either.forLeft(textEdit));
 					item.setSortText("Zb" + item.getLabel());
-					list.getItems().add(item);
+					completionItems.add(item);
 				}
 			} else {
 				switch (resolver.getJavaElementKind()) {
 				case METHOD: {
 					MethodValueResolver method = (MethodValueResolver) resolver;
 					CompletionItem item = fillCompletionMethod(method, method.getNamespace(), useNamespaceInTextEdit,
-							range, false, completionSettings, formattingSettings, list);
+							range, false, completionSettings, formattingSettings, completionItems);
 					item.setKind(CompletionItemKind.Function);
 					// Display namespace resolvers (ex : config:getConfigProperty(...)) after
 					// declared objects
@@ -769,7 +783,7 @@ public class QuteCompletionsForExpression {
 				case FIELD: {
 					FieldValueResolver field = (FieldValueResolver) resolver;
 					CompletionItem item = fillCompletionField(field, field.getNamespace(), namespace == null, range,
-							list);
+							completionItems);
 					item.setKind(CompletionItemKind.Field);
 					// Display namespace resolvers (ex : inject:bean) after
 					// declared objects
@@ -782,13 +796,13 @@ public class QuteCompletionsForExpression {
 		}
 	}
 
-	private CompletableFuture<CompletionList> doCompleteExpressionForObjectPartWithParentNodes(Node part, Node node,
-			Range range, int offset, Template template, Set<String> existingVars,
-			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
-			QuteNativeSettings nativeImagesSettings, CompletionList list) {
+	private CompletableFuture<Void> doCompleteExpressionForObjectPartWithParentNodes(Node part, Node node, Range range,
+			int offset, Template template, Set<String> existingVars, QuteCompletionSettings completionSettings,
+			QuteFormattingSettings formattingSettings, QuteNativeSettings nativeImagesSettings,
+			Set<CompletionItem> completionItems) {
 		Section parentSection = node != null ? node.getParentSection() : null;
 		if (parentSection == null) {
-			return EMPTY_FUTURE_COMPLETION;
+			return CompletableFuture.completedFuture(null);
 		}
 		if (parentSection.getKind() == NodeKind.Section) {
 			boolean collect = true;
@@ -818,7 +832,7 @@ public class QuteCompletionsForExpression {
 						TextEdit textEdit = new TextEdit(range, name);
 						item.setTextEdit(Either.forLeft(textEdit));
 						item.setDetail(metadata.getDescription());
-						list.getItems().add(item);
+						completionItems.add(item);
 					}
 				}
 
@@ -837,7 +851,7 @@ public class QuteCompletionsForExpression {
 							item.setKind(CompletionItemKind.Reference);
 							TextEdit textEdit = new TextEdit(range, alias);
 							item.setTextEdit(Either.forLeft(textEdit));
-							list.getItems().add(item);
+							completionItems.add(item);
 						}
 					}
 					break;
@@ -855,7 +869,7 @@ public class QuteCompletionsForExpression {
 								item.setKind(CompletionItemKind.Reference);
 								TextEdit textEdit = new TextEdit(range, parameterName);
 								item.setTextEdit(Either.forLeft(textEdit));
-								list.getItems().add(item);
+								completionItems.add(item);
 							}
 						}
 					}
@@ -876,14 +890,13 @@ public class QuteCompletionsForExpression {
 									item.setKind(CompletionItemKind.Reference);
 									TextEdit textEdit = new TextEdit(range, parameterName);
 									item.setTextEdit(Either.forLeft(textEdit));
-									list.getItems().add(item);
+									completionItems.add(item);
 								}
 							}
 						}
 					}
 					break;
 				}
-
 				case WITH:
 					// Completion for properties/methods of with object from #with
 					Parameter object = ((WithSection) parentSection).getObjectParameter();
@@ -896,9 +909,10 @@ public class QuteCompletionsForExpression {
 							JavaTypeAccessibiltyRule javaTypeAccessibility = filter.getJavaTypeAccessibility(
 									withJavaTypeInfo, template.getJavaTypesSupportedInNativeMode());
 							fillCompletionFields(withJavaTypeInfo, javaTypeAccessibility, filter, range, projectUri,
-									existingVars, list);
+									existingVars, completionItems);
 							fillCompletionMethods(withJavaTypeInfo, javaTypeAccessibility, filter, range, projectUri,
-									false, completionSettings, formattingSettings, existingVars, new HashSet<>(), list);
+									false, completionSettings, formattingSettings, existingVars, new HashSet<>(),
+									completionItems);
 						}
 					}
 					break;
@@ -933,21 +947,21 @@ public class QuteCompletionsForExpression {
 									// Complete operator and/or field according to result
 									switch (result) {
 									case ALL_OPERATOR_AND_FIELD:
-										fillCaseOperators(caseSection, false, range, caseExistingVars, list,
+										fillCaseOperators(caseSection, false, range, caseExistingVars, completionItems,
 												canSupportMarkdown);
 										fillCompletionFields(whenJavaType, javaTypeAccessibility, filter, range,
-												projectUri, caseExistingVars, list);
+												projectUri, caseExistingVars, completionItems);
 										break;
 									case ALL_OPERATOR:
-										fillCaseOperators(caseSection, false, range, caseExistingVars, list,
+										fillCaseOperators(caseSection, false, range, caseExistingVars, completionItems,
 												canSupportMarkdown);
 										break;
 									case FIELD_ONLY:
 										fillCompletionFields(whenJavaType, javaTypeAccessibility, filter, range,
-												projectUri, caseExistingVars, list);
+												projectUri, caseExistingVars, completionItems);
 										break;
 									case MULTI_OPERATOR_ONLY:
-										fillCaseOperators(caseSection, true, range, caseExistingVars, list,
+										fillCaseOperators(caseSection, true, range, caseExistingVars, completionItems,
 												canSupportMarkdown);
 										break;
 									case NONE:
@@ -962,29 +976,28 @@ public class QuteCompletionsForExpression {
 			}
 		}
 		doCompleteExpressionForObjectPartWithParentNodes(part, parentSection, range, offset, template, existingVars,
-				completionSettings, formattingSettings, nativeImagesSettings, list);
-		return CompletableFuture.completedFuture(list);
+				completionSettings, formattingSettings, nativeImagesSettings, completionItems);
+		return CompletableFuture.completedFuture(null);
 	}
 
 	private void doCompleteExpressionForObjectPartWithParameterAlias(Template template, Range range,
-			CompletionList list) {
-		List<String> aliases = template.getChildren().stream() //
+			Set<CompletionItem> completionItems) {
+		template.getChildren().stream() //
 				.filter(n -> n.getKind() == NodeKind.ParameterDeclaration) //
 				.map(n -> ((ParameterDeclaration) n).getAlias()) //
 				.filter(alias -> alias != null) //
-				.collect(Collectors.toList());
-		for (String alias : aliases) {
-			CompletionItem item = new CompletionItem();
-			item.setLabel(alias);
-			item.setKind(CompletionItemKind.Reference);
-			TextEdit textEdit = new TextEdit(range, alias);
-			item.setTextEdit(Either.forLeft(textEdit));
-			list.getItems().add(item);
-		}
+				.forEach(alias -> {
+					CompletionItem item = new CompletionItem();
+					item.setLabel(alias);
+					item.setKind(CompletionItemKind.Reference);
+					TextEdit textEdit = new TextEdit(range, alias);
+					item.setTextEdit(Either.forLeft(textEdit));
+					completionItems.add(item);
+				});
 	}
 
 	private void doCompleteExpressionForObjectPartWithCheckedTemplate(Template template, Range range,
-			CompletionList list) {
+			Set<CompletionItem> completionItems) {
 		ExtendedDataModelTemplate dataModel = javaCache.getDataModelTemplate(template).getNow(null);
 		if (dataModel == null || dataModel.getParameters() == null) {
 			return;
@@ -995,7 +1008,7 @@ public class QuteCompletionsForExpression {
 			item.setKind(CompletionItemKind.Reference);
 			TextEdit textEdit = new TextEdit(range, parameter.getKey());
 			item.setTextEdit(Either.forLeft(textEdit));
-			list.getItems().add(item);
+			completionItems.add(item);
 		}
 	}
 }

@@ -406,4 +406,15 @@ public class QuteCompletionInExpressionTest {
 		// Base resolvers for an object, plus a method and a field from ClassA
 		testCompletionFor(template, 7);
 	}
+
+	public void multipleDeclarationsOfSameParameter() throws Exception {
+		String template = "{@java.lang.String name}\n" + //
+				"{@java.lang.String name}\n" + //
+				"{@java.lang.String name}\n" + //
+				"{@java.lang.String name}\n" + //
+				"{na|}";
+		// Base resolvers, plus one instance of "name"
+		testCompletionFor(template, 6);
+	}
+
 }
