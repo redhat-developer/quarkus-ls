@@ -26,5 +26,9 @@ Require-Bundle: org.junit,
  com.redhat.microprofile.jdt.quarkus
 Import-Package: com.google.gson
 Export-Package: com.redhat.microprofile.jdt.quarkus,
+ com.redhat.microprofile.jdt.quarkus.cache,
+ com.redhat.microprofile.jdt.quarkus.config,
+ com.redhat.microprofile.jdt.quarkus.configmapping,
  com.redhat.microprofile.jdt.quarkus.containerimages,
- com.redhat.microprofile.jdt.quarkus.jaxrs
+ com.redhat.microprofile.jdt.quarkus.jaxrs,
+ com.redhat.microprofile.jdt.quarkus.scheduler
