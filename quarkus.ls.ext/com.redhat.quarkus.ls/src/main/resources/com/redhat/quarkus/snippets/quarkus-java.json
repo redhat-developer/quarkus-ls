@@ -46,5 +46,23 @@
 		"context": {
 			"type": "io.quarkus.test.junit.SubstrateTest"
 		}
+	},
+	"Quarkus - new integration test resource class": {
+		"prefix": "qitrc",
+		"body": [
+			"package ${1:packagename};",
+			"",
+			"import io.quarkus.test.junit.QuarkusIntegrationTest;",
+			"",
+			"@QuarkusIntegrationTest",
+			"public class ${TM_FILENAME_BASE} extends ${2:${TM_FILENAME_BASE/^(.*)IT/$1/}Test} {",
+			"",
+			"\t// Execute the same tests, but with the built application.",
+			"}"
+		],
+		"description": "Quarkus integration test resource class",
+		"context": {
+			"type": "io.quarkus.test.junit.QuarkusIntegrationTest"
+		}
 	}
 }

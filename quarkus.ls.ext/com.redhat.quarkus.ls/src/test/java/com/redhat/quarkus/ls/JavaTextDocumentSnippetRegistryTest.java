@@ -40,6 +40,9 @@ public class JavaTextDocumentSnippetRegistryTest {
 
     Optional<Snippet> qrtcSnippet = findByPrefix("qtrc", registry);
     Assert.assertTrue("Tests has Quarkus - new test resource class (qtrc) snippets", qrtcSnippet.isPresent());
+    
+    Optional<Snippet> qitrcSnippet = findByPrefix("qitrc", registry);
+    Assert.assertTrue("Tests has Quarkus - new integration test resource class (qitrc) snippet", qrtcSnippet.isPresent());
 
     ISnippetContext<?> context = qrtcSnippet.get().getContext();
     Assert.assertNotNull("Quarkus - new test resource class (qtrc) snippet has context", context);
