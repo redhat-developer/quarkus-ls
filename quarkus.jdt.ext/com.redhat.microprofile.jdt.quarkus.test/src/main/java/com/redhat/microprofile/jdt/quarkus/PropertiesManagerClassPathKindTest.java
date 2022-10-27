@@ -68,7 +68,8 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
     Assert.assertEquals(ClasspathKind.SRC, infoFromSrc.getClasspathKind());
     assertProperties(infoFromSrc, 181 /* properties from JAR */ + //
         3 /* properties from Java sources */ + //
-        7 /* static properties from microprofile-context-propagation-api */,
+        7 /* static properties from microprofile-context-propagation-api */ + //
+        1 /* static property from mp-config-metadata */,
 
         // quarkus-resteasy JAR
         p("quarkus-resteasy-common", "quarkus.resteasy.gzip.enabled", "boolean", "If gzip is enabled", true,
@@ -107,7 +108,8 @@ public class PropertiesManagerClassPathKindTest extends BasePropertiesManagerTes
         3 /* properties from JAR (test) */ + //
         3 /* properties from (src) Java sources */ + //
         3 /* properties from (test) Java sources */ + //
-        7 /* static properties from microprofile-context-propagation-api */,
+        7 /* static properties from microprofile-context-propagation-api */ + //
+        1 /* static property from mp-config-metadata */,
 
         // quarkus-resteasy JAR
         p("quarkus-resteasy-common", "quarkus.resteasy.gzip.enabled", "boolean", "If gzip is enabled", true,
