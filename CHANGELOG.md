@@ -1,5 +1,43 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## 0.13.0 (December 1, 2022)
+
+### Enhancements
+
+ * Add new snippet for `@QuarkusIntegrationTest`. See [#754](https://github.com/redhat-developer/quarkus-ls/issues/754).
+ * Generic support for Java data model in Qute templates. See [#503](https://github.com/redhat-developer/quarkus-ls/issues/503).
+ * Show documentation on hover of operator for `#case`, `#is`. See [#716](https://github.com/redhat-developer/quarkus-ls/issues/716).
+ * Clickable inlay hint for Java type in Qute templates. See [#702](https://github.com/redhat-developer/quarkus-ls/issues/702).
+ * Validation, completion & definition support for enum in `#switch` section. See [#689](https://github.com/redhat-developer/quarkus-ls/issues/689), [#690](https://github.com/redhat-developer/quarkus-ls/issues/690), [#691](https://github.com/redhat-developer/quarkus-ls/issues/691).
+ * Create a code action class per error code. See [#688](https://github.com/redhat-developer/quarkus-ls/pull/688).
+ * Added Qute code actions for similar text suggestions. See [#602](https://github.com/redhat-developer/quarkus-ls/issues/602), [#685](https://github.com/redhat-developer/quarkus-ls/issues/685) .
+ * Use `resolve` for code action in Qute templates. See [#604](https://github.com/redhat-developer/quarkus-ls/issues/604).
+ * Code actions to create Java field / getter method / template extension. See [#536](https://github.com/redhat-developer/quarkus-ls/issues/536), [#676](https://github.com/redhat-developer/quarkus-ls/issues/676), [#677](https://github.com/redhat-developer/quarkus-ls/issues/677).
+ * Display Javadoc on hover for property/method . See [#452](https://github.com/redhat-developer/quarkus-ls/issues/452).
+
+### Bug Fixes
+
+ * Prevent duplicate template data when using type safe expressions. See [#750](https://github.com/redhat-developer/quarkus-ls/issues/750).
+ * NPE when validating Qute template where a method is invoked. See [#748](https://github.com/redhat-developer/quarkus-ls/issues/748).
+ * Qute parser does not parse operator parameters with '=' correctly. See [#742](https://github.com/redhat-developer/quarkus-ls/issues/742).
+ * Indent snippet new line if LSP client doesn't support `InsertTextMode#AdjustIndentation`. See [#727](https://github.com/redhat-developer/quarkus-ls/issues/727).
+ * Detect cyclical class hierarchy when calculating all fields and methods of an object. See [#725](https://github.com/redhat-developer/quarkus-ls/issues/725).
+ * Ignore synthetic methods in Qute templates. See [#723](https://github.com/redhat-developer/quarkus-ls/issues/723).
+ * `ClassCastException` with code action and method part. See [#717](https://github.com/redhat-developer/quarkus-ls/issues/717).
+ * `JavaFileTextDocumentService` doesn't gracefully handle lack of rename support. See [#700](https://github.com/redhat-developer/quarkus-ls/issues/700).
+ * Do not give code actions for stale diagnostics. See [#694](https://github.com/redhat-developer/quarkus-ls/pull/694).
+ * `AbstractQuteTemplateLinkCollector` wrongly identifies template fields. See [#683](https://github.com/redhat-developer/quarkus-ls/issues/683).
+ * Fix cancel support with `CompletableFuture` compose. See [#679](https://github.com/redhat-developer/quarkus-ls/pull/679).
+ * Completion proposes invalid `{inject:*}` items. See [#590](https://github.com/redhat-developer/quarkus-ls/issues/590).
+
+### Build
+
+ * Exports missing from Quarkus test bundle. See [#752](https://github.com/redhat-developer/quarkus-ls/issues/752).
+ * Update Target Platform to 1.16.0-SNAPSHOT version of JDT-LS target. See [#746](https://github.com/redhat-developer/quarkus-ls/pull/746).
+ * Update dependencies to latest versions. See [#695](https://github.com/redhat-developer/quarkus-ls/pull/695).
+ * Fix tests by taking into account new property from LSP4MP. See [#757](https://github.com/redhat-developer/quarkus-ls/pull/757).
+ * Fix test failures due to new JAX-RS code lenses. See [#760](https://github.com/redhat-developer/quarkus-ls/issues/760).
+
 ## 0.12.0 (July 25, 2022)
 
 ### Enhancements
@@ -14,6 +52,7 @@
  * Completion for nested block section. See [#497](https://github.com/redhat-developer/quarkus-ls/issues/497).
 
 ### Performance
+
  * Delay revalidation of Java files, Qute template files, and improve cancel checking. See [#659](https://github.com/redhat-developer/quarkus-ls/pull/659), [#666](https://github.com/redhat-developer/quarkus-ls/pull/666).
  * Improve memory and performance of Qute language server. See [#654](https://github.com/redhat-developer/quarkus-ls/issues/654).
 
