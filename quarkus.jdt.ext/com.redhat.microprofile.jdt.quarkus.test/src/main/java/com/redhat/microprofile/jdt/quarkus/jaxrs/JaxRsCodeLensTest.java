@@ -141,7 +141,7 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 			IJDTUtils utils) throws JavaModelException {
 		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils,
 				new NullProgressMonitor());
-		Assert.assertEquals(2, lenses.size());
+		Assert.assertEquals(5, lenses.size());
 
 		// @GET
 		// public Fruit[] get() {
@@ -156,6 +156,33 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 		Assert.assertNotNull(lensForGetSingle.getCommand());
 		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits/{id}",
 				lensForGetSingle.getCommand().getTitle());
+
+		// @POST
+		// @Transactional
+		// public Response create(Fruit fruit) {
+		CodeLens lensForPost = lenses.get(2);
+		Assert.assertNotNull(lensForPost.getCommand());
+		Assert.assertEquals("", lensForPost.getCommand().getCommand());
+		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits", lensForPost.getCommand().getTitle());
+
+		// @PUT
+		// @Path("{id}")
+		// @Transactional
+		// public Fruit update(@PathParam Integer id, Fruit fruit) {
+		CodeLens lensForPut = lenses.get(3);
+		Assert.assertNotNull(lensForPut.getCommand());
+		Assert.assertEquals("", lensForPut.getCommand().getCommand());
+		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits/{id}", lensForPut.getCommand().getTitle());
+
+		// @DELETE
+		// @Path("{id}")
+		// @Transactional
+		// public Response delete(@PathParam Integer id) {
+		CodeLens lensForDelete = lenses.get(4);
+		Assert.assertNotNull(lensForDelete.getCommand());
+		Assert.assertEquals("", lensForDelete.getCommand().getCommand());
+		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits/{id}",
+				lensForDelete.getCommand().getTitle());
 	}
 
 }
