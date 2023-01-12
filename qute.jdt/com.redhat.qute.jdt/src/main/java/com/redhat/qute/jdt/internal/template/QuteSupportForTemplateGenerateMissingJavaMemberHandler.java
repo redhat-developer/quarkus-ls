@@ -513,17 +513,6 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		return ASTResolving.createQuickFixAST((ICompilationUnit) javaType.getCompilationUnit(), null);
 	}
 
-	private static IJavaSearchScope createSearchContext(IJavaProject project) throws JavaModelException {
-		int searchScope = IJavaSearchScope.SOURCES;
-		return SearchEngine.createJavaSearchScope(true, new IJavaElement[] { project }, searchScope);
-	}
-
-	private static SearchPattern createTemplateExtensionSearchPattern() {
-		return SearchPattern.createPattern(QuteJavaConstants.TEMPLATE_EXTENSION_ANNOTATION,
-				IJavaSearchConstants.ANNOTATION_TYPE, IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE,
-				SearchPattern.R_EXACT_MATCH);
-	}
-
 	private static IJavaProject getJavaProjectFromProjectUri(String projectName) {
 		if (projectName == null) {
 			return null;
