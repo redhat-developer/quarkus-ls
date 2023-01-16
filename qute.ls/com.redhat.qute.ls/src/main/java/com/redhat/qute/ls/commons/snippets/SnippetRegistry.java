@@ -315,7 +315,41 @@ public class SnippetRegistry<T extends Snippet> {
 			doc.append("```");
 			doc.append(System.lineSeparator());
 		}
+		addLinks(snippet.getLinks(), doc, canSupportMarkdown);
 		return new MarkupContent(canSupportMarkdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT, doc.toString());
+	}
+
+	public static void addLinks(List<Link> links, StringBuilder documentation, boolean canSupportMarkdown) {
+		if (links != null && !links.isEmpty()) {
+			documentation.append(System.lineSeparator());
+			documentation.append(System.lineSeparator());
+			documentation.append("See ");
+			if (links.size() == 1) {
+				Link link = links.get(0);
+				addLink(link.getUrl(), link.getLabel(), documentation, canSupportMarkdown);
+				documentation.append(" for more information.");
+			} else {
+				documentation.append("for more information:");
+				for (int i = 0; i < links.size(); i++) {
+					Link link = links.get(i);
+					documentation.append(System.lineSeparator());
+					documentation.append(" * ");
+					addLink(link.getUrl(), link.getLabel(), documentation, canSupportMarkdown);
+				}
+			}
+		}
+	}
+
+	public static void addLink(String url, String label, StringBuilder documentation, boolean canSupportMarkdown) {
+		if (canSupportMarkdown) {
+			documentation.append("[");
+			documentation.append(label);
+			documentation.append("](");
+			documentation.append(url);
+			documentation.append(")");
+		} else {
+			documentation.append(url);
+		}
 	}
 
 	private static String getInsertText(Snippet snippet, Map<String, String> model, boolean replace,

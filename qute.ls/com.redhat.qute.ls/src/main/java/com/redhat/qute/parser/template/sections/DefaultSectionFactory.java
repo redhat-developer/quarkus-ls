@@ -24,6 +24,7 @@ public class DefaultSectionFactory implements SectionFactory {
 		factoryByTag = new HashMap<>();
 		factoryByTag.put(EachSection.TAG, (tag, start, end) -> new EachSection(start, end));
 		factoryByTag.put(ForSection.TAG, (tag, start, end) -> new ForSection(start, end));
+		factoryByTag.put(FragmentSection.TAG, (tag, start, end) -> new FragmentSection(start, end));
 		factoryByTag.put(IfSection.TAG, (tag, start, end) -> new IfSection(start, end));
 		factoryByTag.put(ElseSection.TAG, (tag, start, end) -> new ElseSection(start, end));
 		factoryByTag.put(IncludeSection.TAG, (tag, start, end) -> new IncludeSection(start, end));

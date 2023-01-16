@@ -39,6 +39,8 @@ public class Snippet {
 
 	private ISnippetContext<?> context;
 
+	private List<Link> links;
+
 	public String getLabel() {
 		return label;
 	}
@@ -93,6 +95,14 @@ public class Snippet {
 
 	public void setSortText(String sortText) {
 		this.sortText = sortText;
+	}
+
+	public List<Link> getLinks() {
+		return links;
+	}
+
+	public void setLinks(List<Link> links) {
+		this.links = links;
 	}
 
 	public ISnippetContext<?> getContext() {

@@ -1,18 +1,49 @@
-{	"#each": {
-		"prefix": ["each", "{#"],
+{
+	"#each": {
+		"prefix": [
+			"each",
+			"{#"
+		],
 		"body": [
 			"{#each ${1:items}}",
 			"\t{it.${2:name}}$0",
 			"{/each}"
 		],
-		"description": "Loop section with implicit alias"
+		"description": "Loop section with implicit alias",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#loop_section",
+			"label": "Loop section"
+		}
 	},
 	"#eval": {
 		"prefix": "eval",
 		"body": [
 			"{#eval ${1:content} /}$0"
 		],
-		"description": "Parse and evaluate a template dynamically"
+		"description": "Parse and evaluate a template dynamically",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#eval_section",
+			"label": "Eval section"
+		}
+	},
+	"#fragment": {
+		"prefix": "fragment",
+		"body": [
+			"{#fragment id=${1:fragment_id}}",
+			"\t$0",
+			"{/fragment}"
+		],
+		"description": "A fragment represents a part of the template that can be treated as a separate template, i.e. rendered separately.",
+		"link": [
+			{
+				"url": "https://quarkus.io/guides/qute-reference#fragments",
+				"label": "Fragments"
+			},
+			{
+				"url": "https://quarkus.io/guides/qute-reference#type_safe_fragments",
+				"label": "Type-safe Fragments"
+			}
+		]
 	},
 	"#for": {
 		"prefix": "for",
@@ -21,7 +52,11 @@
 			"\t{${1:item}.${3:name}}$0",
 			"{/for}"
 		],
-		"description": "Loop section with alias"
+		"description": "Loop section with alias",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#loop_section",
+			"label": "Loop section"
+		}
 	},
 	"#if": {
 		"prefix": "if",
@@ -30,7 +65,11 @@
 			"\t$0",
 			"{/if}"
 		],
-		"description": "If section"
+		"description": "If section",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#if_section",
+			"label": "If section"
+		}
 	},
 	"#else": {
 		"prefix": "if-else",
@@ -41,7 +80,11 @@
 			"\t$0",
 			"{/if}"
 		],
-		"description": "Else section"
+		"description": "Else section",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#if_section",
+			"label": "If section"
+		}
 	},
 	"#elseif": {
 		"prefix": "if-elseif",
@@ -54,7 +97,11 @@
 			"\t$0",
 			"{/if}"
 		],
-		"description": "Else If section"
+		"description": "Else If section",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#if_section",
+			"label": "If section"
+		}
 	},
 	"#include": {
 		"prefix": "include",
@@ -63,7 +110,11 @@
 			"\t$0",
 			"{/include}"
 		],
-		"description": "Include section"
+		"description": "Include section",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#include_helper",
+			"label": "Include section"
+		}
 	},
 	"#insert": {
 		"prefix": "insert",
@@ -72,7 +123,11 @@
 			"\t$0",
 			"{/insert}"
 		],
-		"description": "Insert section"
+		"description": "Insert section",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#include_helper",
+			"label": "Include section"
+		}
 	},
 	"#let": {
 		"prefix": "let",
@@ -81,14 +136,22 @@
 			"\t$0",
 			"{/let}"
 		],
-		"description": "Let section"
+		"description": "Let section",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#let_section",
+			"label": "Let section"
+		}
 	},
 	"#parameter": {
 		"prefix": "parameter",
 		"body": [
 			"{@${1:class} ${2:alias}}$0"
 		],
-		"description": "Insert parameter declaration"
+		"description": "Insert parameter declaration",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#typesafe_expressions",
+			"label": "Typesafe expressions"
+		}
 	},
 	"#set": {
 		"prefix": "set",
@@ -97,7 +160,11 @@
 			"\t$0",
 			"{/set}"
 		],
-		"description": "Let section"
+		"description": "Set section",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#let_section",
+			"label": "Let section"
+		}
 	},
 	"#switch": {
 		"prefix": "switch",
@@ -106,7 +173,11 @@
 			"\t{#case ${2:case}}$0",
 			"{/switch}"
 		],
-		"description": "Switch section"
+		"description": "Switch section",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#when_section",
+			"label": "When section"
+		}
 	},
 	"#with": {
 		"prefix": "with",
@@ -115,7 +186,11 @@
 			"\t{${2:name}}$0",
 			"{/with}"
 		],
-		"description": "With section"
+		"description": "With section",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#with_section",
+			"label": "With section"
+		}
 	},
 	"#when": {
 		"prefix": "when",
@@ -124,6 +199,10 @@
 			"\t{#is ${2:case}}$0",
 			"{/when}"
 		],
-		"description": "When section"
+		"description": "When section",
+		"link": {
+			"url": "https://quarkus.io/guides/qute-reference#when_section",
+			"label": "When section"
+		}
 	}
 }

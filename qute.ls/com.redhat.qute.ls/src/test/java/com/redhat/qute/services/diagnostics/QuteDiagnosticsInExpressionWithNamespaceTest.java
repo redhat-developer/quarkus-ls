@@ -130,7 +130,7 @@ public class QuteDiagnosticsInExpressionWithNamespaceTest {
 		Diagnostic d = d(0, 1, 0, 2, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `X`.",
 				DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template,
-				d(0, 0, 0, 3, QuteErrorCode.SyntaxError, "Parser error on line 1: empty expression found {X:}",
+				d(0, 0, 0, 3, QuteErrorCode.SyntaxError, "Parser error: empty expression found {X:}",
 						DiagnosticSeverity.Error), //
 				d);
 

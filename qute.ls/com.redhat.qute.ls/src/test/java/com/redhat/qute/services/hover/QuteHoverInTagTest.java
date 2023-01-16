@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
  * @author Angelo ZERR
  *
  */
-public class QuteHoverInTag {
+public class QuteHoverInTagTest {
 
 	@Test
 	public void noHover() throws Exception {
@@ -33,15 +33,35 @@ public class QuteHoverInTag {
 	}
 
 	@Test
-	public void coreTag() throws Exception {
+	public void coreForTag() throws Exception {
 		String template = "{#fo|r}";
 		assertHover(template, "**#for** section tag " + //
 				System.lineSeparator() + //
 				System.lineSeparator() + //
-				"Loop section with alias", //
+				"Loop section with alias" + //
+				System.lineSeparator() + //
+				System.lineSeparator() + //
+				"See [Loop section](https://quarkus.io/guides/qute-reference#loop_section) for more information.", //
 				r(0, 1, 0, 5));
 	}
 
+	@Test
+	public void coreFragmentTag() throws Exception {
+		String template = "{#fr|agment}";
+		assertHover(template, "**#fragment** section tag " + //
+				System.lineSeparator() + //
+				System.lineSeparator() + //
+				"A fragment represents a part of the template that can be treated as a separate template, i.e. rendered separately." + //
+				System.lineSeparator() + //
+				System.lineSeparator() + //
+				"See for more information:" +  //
+				System.lineSeparator() + //
+				" * [Fragments](https://quarkus.io/guides/qute-reference#fragments)" +  //
+				System.lineSeparator() + //
+				" * [Type-safe Fragments](https://quarkus.io/guides/qute-reference#type_safe_fragments)", //
+				r(0, 1, 0, 10));
+	}
+	
 	@Test
 	public void userTag() throws Exception {
 		String userTagUri = Paths.get("src/test/resources/templates/tags/formElement.html").toUri().toString();

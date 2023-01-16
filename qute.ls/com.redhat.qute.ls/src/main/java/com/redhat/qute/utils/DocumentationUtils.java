@@ -12,6 +12,8 @@
 package com.redhat.qute.utils;
 
 import static com.redhat.qute.commons.JavaElementInfo.getSimpleType;
+import static com.redhat.qute.ls.commons.snippets.SnippetRegistry.addLink;
+import static com.redhat.qute.ls.commons.snippets.SnippetRegistry.addLinks;
 
 import java.net.URI;
 import java.util.List;
@@ -282,6 +284,8 @@ public class DocumentationUtils {
 			documentation.append(snippet.getDescription());
 		}
 
+		addLinks(snippet.getLinks(), documentation, markdown);
+
 		return createMarkupContent(documentation, markdown);
 	}
 
@@ -340,14 +344,9 @@ public class DocumentationUtils {
 		if (!StringUtils.isEmpty(url)) {
 			documentation.append(System.lineSeparator());
 			documentation.append("See ");
-			if (markdown) {
-				documentation.append("[here](");
-				documentation.append(url);
-				documentation.append(")");
-			} else {
-				documentation.append(url);
-			}
+			addLink(url, "here", documentation, markdown);
 			documentation.append(" for more informations.");
 		}
 	}
+
 }
