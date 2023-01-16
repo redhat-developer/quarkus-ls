@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
  * @author Angelo ZERR
  *
  */
-public class QuteHoverInUserTag {
+public class QuteHoverInUserTagTest {
 
 	@Test
 	public void parameterObjectPart() throws Exception {
@@ -44,7 +44,11 @@ public class QuteHoverInUserTag {
 				System.lineSeparator() + //
 				"String org.acme.Item.name" + //
 				System.lineSeparator() + //
-				"```", //
+				"```" + //
+				System.lineSeparator() + //
+				"---" + //
+				System.lineSeparator() + //
+				"The name of the item", //
 				r(1, 17, 1, 21));
 	}
 
@@ -68,7 +72,11 @@ public class QuteHoverInUserTag {
 				System.lineSeparator() + //
 				"String org.acme.Item.name" + //
 				System.lineSeparator() + //
-				"```", //
+				"```" + //
+				System.lineSeparator() + //
+				"---" + //
+				System.lineSeparator() + //
+				"The name of the item", //
 				r(1, 12, 1, 16));
 	}
 

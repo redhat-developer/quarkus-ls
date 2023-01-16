@@ -511,7 +511,7 @@ public class QuteDiagnosticsInExpressionTest {
 				"{foo.getBytes('abcd)}";
 		testDiagnosticsFor(template, //
 				d(1, 22, 1, 22, QuteErrorCode.SyntaxError,
-						"Parser error on line 2: unexpected non-text buffer at the end of the template - unterminated string literal: foo.getBytes('abcd)}",
+						"Parser error: unexpected non-text buffer at the end of the template - unterminated string literal: foo.getBytes('abcd)}",
 						DiagnosticSeverity.Error));
 
 	}

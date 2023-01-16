@@ -39,7 +39,7 @@
 		<maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
 		<dev.build.timestamp>${maven.build.timestamp}</dev.build.timestamp>
 		<lsp4j.version>0.14.0</lsp4j.version>
-		<qute.version>2.7.0.Final</qute.version>
+		<qute.version>2.15.3.Final</qute.version>
 		<junit.version>5.6.1</junit.version>
 		<jboss.releases.repo.id>jboss-releases-repository</jboss.releases.repo.id>
 		<jboss.releases.repo.url>https://repository.jboss.org/nexus/service/local/staging/deploy/maven2/</jboss.releases.repo.url>

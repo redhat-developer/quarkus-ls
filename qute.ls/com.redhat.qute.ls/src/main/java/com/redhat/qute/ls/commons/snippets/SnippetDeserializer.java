@@ -40,6 +40,9 @@ class SnippetDeserializer implements JsonDeserializer<Snippet> {
 	private static final String SORTTEXT_ELT = "sortText";
 	private static final String BODY_ELT = "body";
 	private static final String CONTEXT_ELT = "context";
+	private static final String LINK_ELT = "link";
+	private static final String LINK_URL_ELT = "url";
+	private static final String LINK_LABEL_ELT = "label";
 
 	private final TypeAdapter<? extends ISnippetContext<?>> contextDeserializer;
 
@@ -139,7 +142,43 @@ class SnippetDeserializer implements JsonDeserializer<Snippet> {
 			}
 		}
 
+		// link
+		List<Link> links = new ArrayList<>();
+		JsonElement linkElt = snippetObj.get(LINK_ELT);
+		if (linkElt != null) {
+			if (linkElt.isJsonArray()) {
+				JsonArray urlArray = (JsonArray) linkElt;
+				urlArray.forEach(elt -> {
+					Link link = createLink(elt);
+					if (link != null) {
+						links.add(link);
+					}
+				});
+			} else if (linkElt.isJsonObject()) {
+				Link link = createLink(linkElt);
+				if (link != null) {
+					links.add(link);
+				}
+			}
+		}
+		snippet.setLinks(links);
+
 		return snippet;
+	}
+
+	private static Link createLink(JsonElement elt) {
+		if (!elt.isJsonObject()) {
+			return null;
+		}
+		JsonObject linkObj = elt.getAsJsonObject();
+		JsonElement urlElt = linkObj.get(LINK_URL_ELT);
+		if (urlElt == null) {
+			return null;
+		}
+		String url = urlElt.getAsString();
+		JsonElement labelElt = linkObj.get(LINK_LABEL_ELT);
+		String label = labelElt != null ? labelElt.getAsString() : null;
+		return new Link(url, label);
 	}
 
 }
