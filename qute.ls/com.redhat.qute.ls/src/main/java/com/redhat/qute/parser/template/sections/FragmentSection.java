@@ -60,6 +60,33 @@ public class FragmentSection extends Section {
 		return SectionKind.FRAGMENT;
 	}
 
+	/**
+	 * Returns the fragment id and null otherwise.
+	 * 
+	 * @return the fragment id and null otherwise.
+	 */
+	public String getId() {
+		Parameter id = getIdParameter();
+		if (id != null) {
+			return id.getValue();
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the AST fragment id parameter and null otherwise.
+	 * 
+	 * @return the AST fragment id parameter and null otherwise.
+	 */
+	public Parameter getIdParameter() {
+		for (Parameter parameter : getParameters()) {
+			if (ID.equals(parameter.getName())) {
+				return parameter;
+			}
+		}
+		return null;
+	}
+
 	@Override
 	public ParametersInfo getParametersInfo() {
 		return PARAMETER_INFOS;

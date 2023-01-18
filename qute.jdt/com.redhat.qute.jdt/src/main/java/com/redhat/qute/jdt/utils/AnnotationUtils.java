@@ -192,6 +192,24 @@ public class AnnotationUtils {
 		return null;
 	}
 
+	/**
+	 * Returns the value of the given member name of the given annotation.
+	 *
+	 * @param annotation the annotation.
+	 * @param memberName the member name.
+	 * @return the value of the given member name of the given annotation.
+	 * @throws JavaModelException
+	 */
+	public static Boolean getAnnotationMemberValueAsBoolean(IAnnotation annotation, String memberName)
+			throws JavaModelException {
+		for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+			if (memberName.equals(pair.getMemberName())) {
+				return getValueAsBoolean(pair);
+			}
+		}
+		return null;
+	}
+
 	public static String getValueAsString(IMemberValuePair pair) {
 		return pair.getValue() != null ? pair.getValue().toString() : null;
 	}
@@ -246,4 +264,14 @@ public class AnnotationUtils {
 		return null;
 	}
 
+	public static Boolean getBoolean(Expression expression) {
+		if (expression == null) {
+			return null;
+		}
+		Object expressionValue = expression.resolveConstantExpressionValue();
+		if (expressionValue instanceof Boolean) {
+			return (Boolean) expressionValue;
+		}
+		return null;
+	}
 }

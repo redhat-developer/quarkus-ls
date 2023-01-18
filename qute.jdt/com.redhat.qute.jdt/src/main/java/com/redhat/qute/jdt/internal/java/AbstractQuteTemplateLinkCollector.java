@@ -12,6 +12,7 @@
 package com.redhat.qute.jdt.internal.java;
 
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_CLASS;
 
@@ -28,6 +29,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SimpleName;
@@ -44,6 +46,7 @@ import com.redhat.qute.jdt.utils.AnnotationUtils;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
 import com.redhat.qute.jdt.utils.JDTTypeUtils;
+import com.redhat.qute.jdt.utils.TemplatePathInfo;
 
 /**
  * Abstract class which collects {@link MethodDeclaration} or
@@ -118,7 +121,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 							.getLocationExpressionFromConstructorParameter(variable.getName().getIdentifier());
 				}
 				String fieldName = variable.getName().getIdentifier();
-				collectTemplateLink(node, locationExpression, getTypeDeclaration(node), null, fieldName);
+				collectTemplateLink(node, locationExpression, getTypeDeclaration(node), null, fieldName, false);
 			}
 		}
 		return super.visit(node);
@@ -151,16 +154,42 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 					// @CheckedTemplate
 					// public static class Templates {
 					// public static native TemplateInstance book(Book book);
+					boolean ignoreFragments = isIgnoreFragments(annotation);
 					List body = node.bodyDeclarations();
 					for (Object declaration : body) {
 						if (declaration instanceof MethodDeclaration) {
-							collectTemplateLink((MethodDeclaration) declaration, node);
+							collectTemplateLink((MethodDeclaration) declaration, node, ignoreFragments);
 						}
 					}
 				}
 			}
 		}
 		return super.visit(node);
+	}
+
+	/**
+	 * Returns true if @CheckedTemplate annotation declares that fragment must be
+	 * ignored and false otherwise.
+	 * 
+	 * <code>
+	 * @CheckedTemplate(ignoreFragments=true)
+	 * </code>
+	 * 
+	 * @param checkedTemplateAnnotation the CheckedTemplate annotation.
+	 * 
+	 * @return true if @CheckedTemplate annotation declares that fragment must be
+	 *         ignored and false otherwise.
+	 */
+	private static boolean isIgnoreFragments(Annotation checkedTemplateAnnotation) {
+		Boolean ignoreFragment = null;
+		try {
+			Expression ignoreFragmentExpr = AnnotationUtils.getAnnotationMemberValueExpression(
+					checkedTemplateAnnotation, CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS);
+			ignoreFragment = AnnotationUtils.getBoolean(ignoreFragmentExpr);
+		} catch (Exception e) {
+			// Do nothing
+		}
+		return ignoreFragment != null ? ignoreFragment.booleanValue() : false;
 	}
 
 	@Override
@@ -177,32 +206,36 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 		return parent != null && parent.getNodeType() == ASTNode.TYPE_DECLARATION ? (TypeDeclaration) parent : null;
 	}
 
-	private void collectTemplateLink(MethodDeclaration methodDeclaration, TypeDeclaration type) {
+	private void collectTemplateLink(MethodDeclaration methodDeclaration, TypeDeclaration type,
+			boolean ignoreFragment) {
 		String className = null;
 		boolean innerClass = levelTypeDecl > 1;
 		if (innerClass) {
 			className = JDTTypeUtils.getSimpleClassName(typeRoot.getElementName());
 		}
 		String methodName = methodDeclaration.getName().getIdentifier();
-		collectTemplateLink(methodDeclaration, null, type, className, methodName);
+		collectTemplateLink(methodDeclaration, null, type, className, methodName, ignoreFragment);
 	}
 
 	private void collectTemplateLink(ASTNode fieldOrMethod, StringLiteral locationAnnotation, TypeDeclaration type,
-			String className, String fieldOrMethodName) {
+			String className, String fieldOrMethodName, boolean ignoreFragment) {
 		try {
 			String location = locationAnnotation != null ? locationAnnotation.getLiteralValue() : null;
 			IProject project = typeRoot.getJavaProject().getProject();
-			String templateFilePath = location != null ? JDTQuteProjectUtils.getTemplatePath(null, location)
-					: JDTQuteProjectUtils.getTemplatePath(className, fieldOrMethodName);
+			TemplatePathInfo templatePathInfo = location != null
+					? JDTQuteProjectUtils.getTemplatePath(null, location, ignoreFragment)
+					: JDTQuteProjectUtils.getTemplatePath(className, fieldOrMethodName, ignoreFragment);
 			IFile templateFile = null;
 			if (location == null) {
-				templateFile = getTemplateFile(project, templateFilePath);
-				templateFilePath = templateFile.getLocation().makeRelativeTo(project.getLocation()).toString();
+				templateFile = getTemplateFile(project, templatePathInfo.getTemplateUri());
+				templatePathInfo = new TemplatePathInfo(
+						templateFile.getLocation().makeRelativeTo(project.getLocation()).toString(),
+						templatePathInfo.getFragmentId());
 			} else {
-				templateFile = project.getFile(templateFilePath);
+				templateFile = project.getFile(templatePathInfo.getTemplateUri());
 			}
 			collectTemplateLink(fieldOrMethod, locationAnnotation, type, className, fieldOrMethodName, location,
-					templateFile, templateFilePath);
+					templateFile, templatePathInfo);
 		} catch (JavaModelException e) {
 			LOGGER.log(Level.SEVERE, "Error while creating Qute CodeLens for Java file.", e);
 		}
@@ -229,8 +262,8 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 	}
 
 	protected abstract void collectTemplateLink(ASTNode node, ASTNode locationAnnotation, TypeDeclaration type,
-			String className, String fieldOrMethodName, String location, IFile templateFile, String templateFilePath)
-			throws JavaModelException;
+			String className, String fieldOrMethodName, String location, IFile templateFile,
+			TemplatePathInfo templatePathInfo) throws JavaModelException;
 
 	private static IFile getTemplateFile(IProject project, String templateFilePathWithoutExtension) {
 		for (String suffix : suffixes) {

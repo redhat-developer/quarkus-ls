@@ -25,6 +25,7 @@ import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.annotations.RegisterForReflectionAnnotation;
 import com.redhat.qute.commons.annotations.TemplateDataAnnotation;
+import com.redhat.qute.commons.datamodel.DataModelFragment;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
@@ -44,8 +45,9 @@ public class QuteQuickStartProject extends MockQuteProject {
 	public final static String PROJECT_URI = "qute-quickstart";
 
 	public static final String ITEMRESOURCE_ITEMS_TEMPLATE_URI = "src/main/resources/templates/ItemResource/items";
+	public static final String ITEMRESOURCE_ITEMS_WITH_FRAGMENTS_TEMPLATE_URI = "src/main/resources/templates/ItemResourceWithFragments/items";
 	public static final String NATIVEITEMRESOURCE_ITEMS_TEMPLATE_URI = "src/main/resources/templates/NativeItemResource/items";
-	
+
 	public QuteQuickStartProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider,
 			QuteUserTagProvider tagProvider) {
 		super(projectInfo, dataModelProvider, tagProvider);
@@ -162,8 +164,10 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerField("review : org.acme.Review", item);
 		JavaMemberInfo itemIsAvailableMethod = registerMethod("isAvailable() : java.lang.Boolean", item);
 		itemIsAvailableMethod.setDocumentation("Returns true if the item is available and false otherwise");
-		JavaMemberInfo itemIsAvailableMethodOverload = registerMethod("isAvailable(index : int) : java.lang.Boolean", item);
-		itemIsAvailableMethodOverload.setDocumentation("Returns true if the item at the given index is available and false otherwise");
+		JavaMemberInfo itemIsAvailableMethodOverload = registerMethod("isAvailable(index : int) : java.lang.Boolean",
+				item);
+		itemIsAvailableMethodOverload
+				.setDocumentation("Returns true if the item at the given index is available and false otherwise");
 		registerMethod("getReview2() : org.acme.Review", item);
 		// Override BaseItem#getReviews()
 		registerMethod("getReviews() : java.util.List<org.acme.Review>", item);
@@ -180,13 +184,16 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerMethod("convert() : java.lang.String", classA);
 		registerField("name : java.lang.String", classA);
 
-		ResolvedJavaTypeInfo classAWithGeneric = createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassAWithGeneric<T>", cache, false,
+		ResolvedJavaTypeInfo classAWithGeneric = createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassAWithGeneric<T>",
+				cache, false,
 				"org.acme.qute.cyclic.ClassCWithGeneric<T>");
-		createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassBWithGeneric<T>", cache, false, "org.acme.qute.cyclic.ClassAWithGeneric<T>");
-		createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassCWithGeneric<T>", cache, false, "org.acme.qute.cyclic.ClassBWithGeneric<T>");
+		createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassBWithGeneric<T>", cache, false,
+				"org.acme.qute.cyclic.ClassAWithGeneric<T>");
+		createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassCWithGeneric<T>", cache, false,
+				"org.acme.qute.cyclic.ClassBWithGeneric<T>");
 		registerMethod("convert() : java.lang.String", classAWithGeneric);
 		registerField("name : java.lang.String", classAWithGeneric);
-		
+
 		// org.acme.MachineStatus
 		ResolvedJavaTypeInfo machineStatus = createResolvedJavaTypeInfo("org.acme.MachineStatus", cache, false);
 		machineStatus.setJavaTypeKind(JavaTypeKind.Enum);
@@ -291,6 +298,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 	}
 
 	private static void createItemsTemplate(List<DataModelTemplate<DataModelParameter>> templates) {
+		// Simple template
 		DataModelTemplate<DataModelParameter> template = new DataModelTemplate<DataModelParameter>();
 		template.setTemplateUri(ITEMRESOURCE_ITEMS_TEMPLATE_URI);
 		template.setSourceType("org.acme.qute.ItemResource$Templates");
@@ -302,6 +310,23 @@ public class QuteQuickStartProject extends MockQuteProject {
 		parameter.setKey("items");
 		parameter.setSourceType("java.util.List<org.acme.Item>");
 		template.addParameter(parameter);
+
+		// Template with fragments
+		DataModelTemplate<DataModelParameter> templateWithFragment = new DataModelTemplate<DataModelParameter>();
+		templateWithFragment.setTemplateUri(ITEMRESOURCE_ITEMS_WITH_FRAGMENTS_TEMPLATE_URI);
+		templateWithFragment.setSourceType("org.acme.qute.ItemResourceWithFragments$Templates");
+		templateWithFragment.setSourceMethod("items");
+		templates.add(templateWithFragment);
+
+		DataModelFragment<DataModelParameter> fragment = new DataModelFragment<>();
+		fragment.setId("id2");
+		fragment.setSourceType("org.acme.qute.ItemResourceWithFragments$Templates");
+		fragment.setSourceMethod("items$id2");
+		fragment.addParameter(parameter);
+		templateWithFragment.setFragments(Arrays.asList(fragment));
+
+		// ItemResource$Templates#items(Item item)
+		templateWithFragment.addParameter(parameter);
 	}
 
 	private static void createItemsNativeTemplate(List<DataModelTemplate<DataModelParameter>> templates) {

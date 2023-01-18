@@ -17,6 +17,7 @@ import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.StringLiteral;
 
 import com.redhat.qute.commons.datamodel.DataModelParameter;
+import com.redhat.qute.commons.datamodel.DataModelBaseTemplate;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 
 /**
@@ -47,9 +48,9 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
  */
 public class TemplateDataCollector extends TemplateDataVisitor {
 
-	private final DataModelTemplate<DataModelParameter> template;
+	private final DataModelBaseTemplate<DataModelParameter> template;
 
-	public TemplateDataCollector(DataModelTemplate<DataModelParameter> template, IProgressMonitor monitor) {
+	public TemplateDataCollector(DataModelBaseTemplate<DataModelParameter> template, IProgressMonitor monitor) {
 		this.template = template;
 	}
 

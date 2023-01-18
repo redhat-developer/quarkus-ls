@@ -198,6 +198,58 @@ public class JavaCodeLensTest {
 						"qute.command.generate.template.file", Arrays.asList(items2Uri)));
 	}
 
+	@Test
+	public void checkedTemplateWithFragment() throws CoreException, Exception {
+
+		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
+		IFile javaFile = javaProject.getProject()
+				.getFile(new Path("src/main/java/org/acme/qute/ItemResourceWithFragment.java"));
+		params.setUri(javaFile.getLocation().toFile().toURI().toString());
+
+		List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, getJDTUtils(),
+				new NullProgressMonitor());
+		assertEquals(6, lenses.size());
+
+		String itemsUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResourceWithFragment/items.html").getLocationURI()
+				.toString();
+		String items3Uri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResourceWithFragment/items3.html").getLocationURI()
+				.toString();
+		String items2Uri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResourceWithFragment/items2.html").getLocationURI()
+				.toString();
+		String items2Uri_id1 = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResourceWithFragment/items2$id1.html").getLocationURI()
+				.toString();
+		String items2Uri_id2 = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResourceWithFragment/items2$id2.html").getLocationURI()
+				.toString();
+
+		assertCodeLens(lenses, //
+				cl(r(21, 2, 21, 57), //
+						"Open `src/main/resources/templates/ItemResourceWithFragment/items.html`", //
+						"qute.command.open.uri", Arrays.asList(itemsUri)), //
+				cl(r(22, 2, 22, 61), //
+						"Open `id1` fragment of `src/main/resources/templates/ItemResourceWithFragment/items.html`", //
+						"qute.command.open.uri", Arrays.asList(itemsUri, "id1")), //
+				cl(r(23, 2, 23, 62), //
+						"Create `src/main/resources/templates/ItemResourceWithFragment/items3.html`", //
+						"qute.command.generate.template.file", Arrays.asList(items3Uri)), //
+
+				cl(r(29, 2, 29, 58), //
+						"Open `src/main/resources/templates/ItemResourceWithFragment/items2.html`", //
+						"qute.command.open.uri", Arrays.asList(items2Uri)), //
+				cl(r(30, 2, 30, 62), //
+						"Open `src/main/resources/templates/ItemResourceWithFragment/items2$id1.html`", //
+						"qute.command.open.uri", Arrays.asList(items2Uri_id1)), //
+				cl(r(31, 2, 31, 62), //
+						"Create `src/main/resources/templates/ItemResourceWithFragment/items2$id2.html`", //
+						"qute.command.generate.template.file", Arrays.asList(items2Uri_id2)));
+	}
+
 	public static Range r(int line, int startChar, int endChar) {
 		return r(line, startChar, line, endChar);
 	}

@@ -113,13 +113,14 @@ public class TemplateFieldSupport extends AbstractFieldDeclarationTypeReferenceD
 		templates.add(template);
 	}
 
-	private static DataModelTemplate<DataModelParameter> createTemplateDataModel(IField field, String locationFromConstructorParameter,
-			IProgressMonitor monitor) {
+	private static DataModelTemplate<DataModelParameter> createTemplateDataModel(IField field,
+			String locationFromConstructorParameter, IProgressMonitor monitor) {
 
-		String location = locationFromConstructorParameter != null ? locationFromConstructorParameter : getLocation(field);
+		String location = locationFromConstructorParameter != null ? locationFromConstructorParameter
+				: getLocation(field);
 		String fieldName = field.getElementName();
 		// src/main/resources/templates/${methodName}.qute.html
-		String templateUri = getTemplatePath(null, location != null ? location : fieldName);
+		String templateUri = getTemplatePath(null, location != null ? location : fieldName, true).getTemplateUri();
 
 		// Create template data model with:
 		// - template uri : Qute template file which must be bind with data model.
