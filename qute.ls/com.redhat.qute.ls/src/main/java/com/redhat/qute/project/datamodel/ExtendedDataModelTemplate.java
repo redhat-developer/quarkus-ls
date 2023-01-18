@@ -16,10 +16,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
+import com.redhat.qute.commons.datamodel.DataModelFragment;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 
-public class ExtendedDataModelTemplate extends DataModelTemplate<ExtendedDataModelParameter> {
+public class ExtendedDataModelTemplate extends DataModelTemplate<ExtendedDataModelParameter>
+		implements DataModelSourceProvider {
 
 	public ExtendedDataModelTemplate(DataModelTemplate<DataModelParameter> template) {
 		super.setTemplateUri(template.getTemplateUri());
@@ -27,10 +29,22 @@ public class ExtendedDataModelTemplate extends DataModelTemplate<ExtendedDataMod
 		super.setSourceMethod(template.getSourceMethod());
 		super.setSourceField(template.getSourceField());
 		super.setParameters(createParameters(template.getParameters(), this));
+		super.setFragments(createFragments(template.getFragments(), this));
 	}
 
-	private List<ExtendedDataModelParameter> createParameters(List<DataModelParameter> parameters,
+	private List<DataModelFragment<ExtendedDataModelParameter>> createFragments(
+			List<DataModelFragment<DataModelParameter>> fragments,
 			ExtendedDataModelTemplate template) {
+		if (fragments == null) {
+			return Collections.emptyList();
+		}
+		return fragments.stream() //
+				.map(fragment -> new ExtendedDataModelFragment(fragment)) //
+				.collect(Collectors.toList());
+	}
+
+	protected static List<ExtendedDataModelParameter> createParameters(List<DataModelParameter> parameters,
+			DataModelSourceProvider template) {
 		if (parameters == null) {
 			return Collections.emptyList();
 		}
@@ -39,6 +53,7 @@ public class ExtendedDataModelTemplate extends DataModelTemplate<ExtendedDataMod
 				.collect(Collectors.toList());
 	}
 
+	@Override
 	public QuteJavaDefinitionParams toJavaDefinitionParams(String projectUri) {
 		String sourceType = getSourceType();
 		String sourceField = getSourceField();

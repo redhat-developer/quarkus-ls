@@ -20,12 +20,12 @@ import org.junit.jupiter.api.Test;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 
 /**
- * Tests for Qute code lens and data model.
+ * Tests for Qute code lens and data model for template.
  * 
  * @author Angelo ZERR
  *
  */
-public class QuteCodeLensForDataModelTest {
+public class QuteCodeLensForDataModelTemplateTest {
 
 	@Test
 	public void noCheckedTemplateMatching() throws Exception {

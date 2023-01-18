@@ -13,9 +13,6 @@ package com.redhat.qute.commons.datamodel;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
@@ -23,23 +20,17 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
  * Data model template host informations about the expected data model
  * (parameters) for a given template.
  * 
- * @author Angelo ZERR
- *
  * @param <T> data model parameter.
+ * 
+ * @author Angelo ZERR
  */
-public class DataModelTemplate<T extends DataModelParameter> {
+public class DataModelTemplate<T extends DataModelParameter> extends DataModelBaseTemplate<T> {
 
 	private String templateUri;
 
-	private String sourceType;
-
-	private String sourceMethod;
-
 	private String sourceField;
-	
-	private List<T> parameters;
 
-	private transient Map<String, T> parametersMap;
+	private List<DataModelFragment<T>> fragments;
 
 	/**
 	 * Returns the template Uri.
@@ -57,47 +48,6 @@ public class DataModelTemplate<T extends DataModelParameter> {
 	 */
 	public void setTemplateUri(String templateUri) {
 		this.templateUri = templateUri;
-	}
-
-	/**
-	 * Returns the Java source type where this data model template is defined.
-	 * 
-	 * @return the Java source type where this data model template is defined.
-	 */
-	public String getSourceType() {
-		return sourceType;
-	}
-
-	/**
-	 * Set the Java source type where this data model template is defined.
-	 * 
-	 * @param sourceType the Java source type where this data model template is
-	 *                   defined.
-	 */
-	public void setSourceType(String sourceType) {
-		this.sourceType = sourceType;
-	}
-
-	/**
-	 * Returns the Java source method where this data model template is defined and
-	 * null otherwise.
-	 * 
-	 * @return the Java source method where this data model template is defined and
-	 *         null otherwise.
-	 */
-	public String getSourceMethod() {
-		return sourceMethod;
-	}
-
-	/**
-	 * Set the Java source method where this data model template is defined and null
-	 * otherwise.
-	 * 
-	 * @param sourceMethod the Java source method where this data model template is
-	 *                     defined and null otherwise.
-	 */
-	public void setSourceMethod(String sourceMethod) {
-		this.sourceMethod = sourceMethod;
 	}
 
 	/**
@@ -123,62 +73,69 @@ public class DataModelTemplate<T extends DataModelParameter> {
 	}
 
 	/**
-	 * Returns the list of data model parameters.
+	 * Add the given fragment.
 	 * 
-	 * @return the list of data model parameters.
+	 * @param fragment the fragment to add.
 	 */
-	public List<T> getParameters() {
-		return parameters;
+	public void addFragment(DataModelFragment<T> fragment) {
+		if (fragments == null) {
+			fragments = new ArrayList<>();
+		}
+		fragments.add(fragment);
 	}
 
 	/**
-	 * Set the list of data model parameters.
+	 * Returns list of fragments and null otherwise.
 	 * 
-	 * @param parameters the list of data model parameters.
+	 * @return list of fragments and null otherwise.
 	 */
-	public void setParameters(List<T> parameters) {
-		this.parameters = parameters;
+	public List<DataModelFragment<T>> getFragments() {
+		return fragments;
 	}
 
 	/**
-	 * Returns the parameter from the given key and null otherwise.
+	 * Set the fragment list.
 	 * 
-	 * @param key the parameter key.
-	 * 
-	 * @return the parameter from the given key and null otherwise.
+	 * @param fragments the fragment list.
 	 */
-	public T getParameter(String key) {
-		List<T> parameters = getParameters();
-		if (parameters == null) {
+	public void setFragments(List<DataModelFragment<T>> fragments) {
+		this.fragments = fragments;
+	}
+
+	/**
+	 * Returns the fragment identified by the given id <code>fragmentId</code> and
+	 * null otherwise.
+	 * 
+	 * @param fragmentId the fragment id.
+	 * 
+	 * @return the fragment identified by the given id <code>fragmentId</code> and
+	 *         null otherwise.
+	 */
+	public DataModelFragment<T> getFragment(String fragmentId) {
+		if (fragmentId == null) {
 			return null;
 		}
-		return getParametersMap().get(key);
-	}
-
-	public void addParameter(T parameter) {
-		if (parameters == null) {
-			parameters = new ArrayList<>();
+		List<DataModelFragment<T>> fragments = getFragments();
+		if (fragments == null || fragments.isEmpty()) {
+			return null;
 		}
-		parameters.add(parameter);
-		getParametersMap().put(parameter.getKey(), parameter);
-	}
-
-	private Map<String, T> getParametersMap() {
-		if (parametersMap == null) {
-			parametersMap = parameters.stream()
-					.collect(Collectors.toMap(DataModelParameter::getKey, Function.identity()));
+		for (DataModelFragment<T> fragment : fragments) {
+			if (fragmentId.equals(fragment.getId())) {
+				return fragment;
+			}
 		}
-		return parametersMap;
+		return null;
 	}
 
 	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("templateUri", this.templateUri);
-		b.add("sourceType", this.sourceType);
-		b.add("sourceMethod", this.sourceMethod);
+		b.add("sourceType", this.getSourceType());
+		b.add("sourceMethod", this.getSourceMethod());
 		b.add("sourceField", this.sourceField);
-		b.add("parameters", this.parameters);
+		b.add("parameters", this.getParameters());
+		b.add("fragments", this.getFragments());
 		return b.toString();
 	}
 }

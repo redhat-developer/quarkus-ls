@@ -18,9 +18,9 @@ import com.redhat.qute.parser.template.Node;
 
 public class ExtendedDataModelParameter extends DataModelParameter implements JavaTypeInfoProvider {
 
-	private final ExtendedDataModelTemplate template;
+	private final DataModelSourceProvider template;
 
-	public ExtendedDataModelParameter(DataModelParameter parameter, ExtendedDataModelTemplate template) {
+	public ExtendedDataModelParameter(DataModelParameter parameter, DataModelSourceProvider template) {
 		super.setKey(parameter.getKey());
 		super.setSourceType(parameter.getSourceType());
 		super.setDataMethodInvocation(parameter.isDataMethodInvocation());
@@ -37,12 +37,12 @@ public class ExtendedDataModelParameter extends DataModelParameter implements Ja
 		return null;
 	}
 
-	public ExtendedDataModelTemplate getTemplate() {
+	private DataModelSourceProvider getTemplate() {
 		return template;
 	}
 
 	public QuteJavaDefinitionParams toJavaDefinitionParams(String projectUri) {
-		ExtendedDataModelTemplate dataModelTemplate = getTemplate();
+		DataModelSourceProvider dataModelTemplate = getTemplate();
 		String sourceType = dataModelTemplate.getSourceType();
 		String sourceField = dataModelTemplate.getSourceField();
 		String sourceMethod = dataModelTemplate.getSourceMethod();

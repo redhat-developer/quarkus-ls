@@ -140,8 +140,9 @@ public class JavaDiagnosticsTest {
 		// static class Templates {
 		// [Open `src/main/resources/templates/ItemResource/items.qute.html`]
 		// static native TemplateInstance items(List<Item> items);
-		// [Create `src/main/resources/templates/ItemResource/map.qute.html`]		
-		// static native TemplateInstance map(Map<String, List<Item>> items, Map.Entry<String, Integer> entry);
+		// [Create `src/main/resources/templates/ItemResource/map.qute.html`]
+		// static native TemplateInstance map(Map<String, List<Item>> items,
+		// Map.Entry<String, Integer> entry);
 
 		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
@@ -162,6 +163,35 @@ public class JavaDiagnosticsTest {
 						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
 				new Diagnostic(r(28, 33, 28, 39),
 						"No template matching the path ItemResource/items2 could be found for: org.acme.qute.ItemResource$Templates2",
+						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
+	}
+
+	@Test
+	public void checkedTemplateInWithFragment() throws CoreException, Exception {
+
+		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
+		IFile javaFile = javaProject.getProject()
+				.getFile(new Path("src/main/java/org/acme/qute/ItemResourceWithFragment.java"));
+		params.setUris(Arrays.asList(javaFile.getLocation().toFile().toURI().toString()));
+
+		List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
+				getJDTUtils(), new NullProgressMonitor());
+		assertEquals(1, publishDiagnostics.size());
+
+		List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
+		assertEquals(3, diagnostics.size());
+
+		assertDiagnostic(diagnostics, //
+				new Diagnostic(r(23, 33, 23, 43),
+						"No template matching the path ItemResourceWithFragment/items3 could be found for: org.acme.qute.ItemResourceWithFragment$Templates",
+						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
+				new Diagnostic(r(24, 33, 24, 40),
+						"Fragment [] not defined in template ItemResourceWithFragment/items3$",
+						DiagnosticSeverity.Error, "qute", QuteErrorCode.FragmentNotDefined.name()), //
+				new Diagnostic(r(31, 33, 31, 43),
+						"No template matching the path ItemResourceWithFragment/items2$id2 could be found for: org.acme.qute.ItemResourceWithFragment$Templates2",
 						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
 	}
 

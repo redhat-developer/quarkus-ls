@@ -22,7 +22,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
@@ -37,6 +36,7 @@ import com.redhat.qute.commons.datamodel.GenerateTemplateInfo;
 import com.redhat.qute.jdt.QuteCommandConstants;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
+import com.redhat.qute.jdt.utils.TemplatePathInfo;
 
 /**
  * Report codelens for opening/creating Qute template for:
@@ -53,6 +53,8 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
 
 	private static final String QUTE_COMMAND_OPEN_URI_MESSAGE = "Open `{0}`";
 
+	private static final String QUTE_COMMAND_OPEN_URI_WITH_FRAGMENT_MESSAGE = "Open `{0}` fragment of `{1}`";
+
 	private static final String QUTE_COMMAND_GENERATE_TEMPLATE_MESSAGE = "Create `{0}`";
 
 	private final List<CodeLens> lenses;
@@ -64,21 +66,31 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
 	}
 
 	@Override
-	protected void collectTemplateLink(ASTNode fieldOrMethod, ASTNode locationAnnotation, TypeDeclaration type, String className, String fieldOrMethodName,
-			String location, IFile templateFile, String templateFilePath) throws JavaModelException {
+	protected void collectTemplateLink(ASTNode fieldOrMethod, ASTNode locationAnnotation, TypeDeclaration type,
+			String className, String fieldOrMethodName, String location, IFile templateFile,
+			TemplatePathInfo templatePathInfo) throws JavaModelException {
+		if (!templatePathInfo.isValid()) {
+			// It is an empty fragment which is not valid, don't generate a codelens.
+			return;
+		}
 		Command command = null;
+		String templateUri = templatePathInfo.getTemplateUri();
+		String fragmentId = templatePathInfo.getFragmentId();
 		if (templateFile.exists()) {
-			command = new Command(MessageFormat.format(QUTE_COMMAND_OPEN_URI_MESSAGE, templateFilePath), //
+			String title = templatePathInfo.hasFragment()
+					? MessageFormat.format(QUTE_COMMAND_OPEN_URI_WITH_FRAGMENT_MESSAGE, fragmentId, templateUri)
+					: MessageFormat.format(QUTE_COMMAND_OPEN_URI_MESSAGE, templateUri);
+			command = new Command(title, //
 					QuteCommandConstants.QUTE_COMMAND_OPEN_URI,
-					Arrays.asList(templateFile.getLocationURI().toString()));
+					Arrays.asList(templateFile.getLocationURI().toString(), fragmentId));
 		} else {
 			List<DataModelParameter> parameters = createParameters(fieldOrMethod);
 			GenerateTemplateInfo info = new GenerateTemplateInfo();
 			info.setParameters(parameters);
 			info.setProjectUri(JDTQuteProjectUtils.getProjectUri(typeRoot.getJavaProject()));
 			info.setTemplateFileUri(templateFile.getLocationURI().toString());
-			info.setTemplateFilePath(templateFilePath);
-			command = new Command(MessageFormat.format(QUTE_COMMAND_GENERATE_TEMPLATE_MESSAGE, templateFilePath), //
+			info.setTemplateFilePath(templateUri);
+			command = new Command(MessageFormat.format(QUTE_COMMAND_GENERATE_TEMPLATE_MESSAGE, templateUri), //
 					QuteCommandConstants.QUTE_COMMAND_GENERATE_TEMPLATE_FILE, Arrays.asList(info));
 		}
 		Range range = utils.toRange(typeRoot, fieldOrMethod.getStartPosition(), fieldOrMethod.getLength());
@@ -91,11 +103,6 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
 			return createParameter((MethodDeclaration) node);
 		}
 		return Collections.emptyList();
-	}
-
-	private static List<DataModelParameter> createParameter(FieldDeclaration node) {
-		List<DataModelParameter> parameters = new ArrayList<>();
-		return parameters;
 	}
 
 	private static List<DataModelParameter> createParameter(MethodDeclaration method) {

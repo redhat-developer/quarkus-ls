@@ -25,19 +25,21 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.commons.JavaElementInfo;
-import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
-import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.datamodel.DataModelSourceProvider;
+import com.redhat.qute.project.datamodel.ExtendedDataModelFragment;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
+import com.redhat.qute.utils.StringUtils;
 import com.redhat.qute.utils.UserTagUtils;
 
 /**
@@ -62,12 +64,15 @@ class QuteCodeLens {
 					cancelChecker.checkCanceled();
 					List<CodeLens> lenses = new ArrayList<>();
 
-					// #insert code lens references
-					QuteProject project = template.getProject();
-					collectInsertCodeLenses(template, template, project, lenses, cancelChecker);
+					// Collect checked template code lenses at the root of the template
+					collectDataModelFoTemplateCodeLenses(templateDataModel, template, settings, lenses, cancelChecker);
 
-					// checked template code lenses
-					collectDataModelCodeLenses(templateDataModel, template, settings, lenses, cancelChecker);
+					// Visit AST template to collect codelenses:
+					// * for #insert
+					// * for #fragment
+					QuteProject project = template.getProject();
+					collectCodeLenses(templateDataModel, template, template, settings, project, lenses,
+							cancelChecker);
 
 					if (UserTagUtils.isUserTag(template)) {
 						// Template is an user tag
@@ -77,7 +82,15 @@ class QuteCodeLens {
 				});
 	}
 
-	private static void collectDataModelCodeLenses(ExtendedDataModelTemplate templateDataModel, Template template,
+	private static void collectDataModelFoTemplateCodeLenses(DataModelSourceProvider templateDataModel,
+			Template template,
+			SharedSettings settings, List<CodeLens> lenses, CancelChecker cancelChecker) {
+		collectDataModelCodeLenses(LEFT_TOP_RANGE, templateDataModel, template.getProjectUri(), settings, lenses,
+				cancelChecker);
+	}
+
+	private static void collectDataModelCodeLenses(Range range, DataModelSourceProvider templateDataModel,
+			String projectUri,
 			SharedSettings settings, List<CodeLens> lenses, CancelChecker cancelChecker) {
 		if (templateDataModel == null || templateDataModel.getSourceType() == null) {
 			return;
@@ -85,14 +98,11 @@ class QuteCodeLens {
 
 		cancelChecker.checkCanceled();
 
-		String projectUri = template.getProjectUri();
-
 		boolean canSupportJavaDefinition = settings.getCommandCapabilities()
 				.isCommandSupported(COMMAND_JAVA_DEFINITION);
 
 		// Method/Field which is bound with the template
 		String title = createCheckedTemplateTitle(templateDataModel);
-		Range range = LEFT_TOP_RANGE;
 		Command command = !canSupportJavaDefinition ? new Command(title, "")
 				: new Command(title, COMMAND_JAVA_DEFINITION,
 						Arrays.asList(templateDataModel.toJavaDefinitionParams(projectUri)));
@@ -121,7 +131,7 @@ class QuteCodeLens {
 		return title.toString();
 	}
 
-	private static String createCheckedTemplateTitle(DataModelTemplate<?> dataModel) {
+	private static String createCheckedTemplateTitle(DataModelSourceProvider dataModel) {
 		String className = dataModel.getSourceType();
 		int index = className.lastIndexOf('.');
 		className = className.substring(index + 1, className.length());
@@ -136,35 +146,63 @@ class QuteCodeLens {
 		return title.toString();
 	}
 
-	private static void collectInsertCodeLenses(Node parent, Template template, QuteProject project,
+	private static void collectCodeLenses(ExtendedDataModelTemplate templateDataModel, Node parent,
+			Template template, SharedSettings settings, QuteProject project,
 			List<CodeLens> lenses, CancelChecker cancelChecker) {
 		cancelChecker.checkCanceled();
 		if (parent.getKind() == NodeKind.Section) {
 			Section section = (Section) parent;
-			if (section.getSectionKind() == SectionKind.INSERT) {
-
-				if (project != null) {
-					Parameter parameter = section.getParameterAtIndex(0);
-					if (parameter != null) {
-						String tag = parameter.getValue();
-						// TODO : implement findNbreferencesOfInsertTag correctly
-						int nbReferences = 0; // project.findNbreferencesOfInsertTag(template.getTemplateId(), tag);
-						if (nbReferences > 0) {
-							String title = nbReferences == 1 ? "1 reference" : nbReferences + " references";
-							Range range = QutePositionUtility.createRange(parameter);
-							Command command = new Command(title, "");
-							CodeLens codeLens = new CodeLens(range, command, null);
-							lenses.add(codeLens);
-						}
-					}
-				}
-
+			switch (section.getSectionKind()) {
+				case INSERT:
+					collectInsertCodeLens(project, section, lenses);
+					break;
+				case FRAGMENT:
+					collectFragmentCodeLens(templateDataModel, section, settings, project, lenses, cancelChecker);
+					break;
+				default:
 			}
-
 		}
 		List<Node> children = parent.getChildren();
 		for (Node node : children) {
-			collectInsertCodeLenses(node, template, project, lenses, cancelChecker);
+			collectCodeLenses(templateDataModel, node, template, settings, project, lenses, cancelChecker);
+		}
+	}
+
+	private static void collectFragmentCodeLens(ExtendedDataModelTemplate templateDataModel, Section section,
+			SharedSettings settings, QuteProject project, List<CodeLens> lenses, CancelChecker cancelChecker) {
+		if (templateDataModel == null) {
+			return;
+		}
+		FragmentSection fragment = (FragmentSection) section;
+		String fragmentId = fragment.getId();
+		if (StringUtils.isEmpty(fragmentId)) {
+			return;
+		}
+		ExtendedDataModelFragment fragmentDataModel = (ExtendedDataModelFragment) templateDataModel
+				.getFragment(fragmentId);
+		if (fragmentDataModel == null) {
+			return;
+		}
+		Range range = QutePositionUtility.selectStartTagName(section);
+		collectDataModelCodeLenses(range, fragmentDataModel, project.getUri(), settings, lenses,
+				cancelChecker);
+	}
+
+	public static void collectInsertCodeLens(QuteProject project, Section section, List<CodeLens> lenses) {
+		if (project != null) {
+			Parameter parameter = section.getParameterAtIndex(0);
+			if (parameter != null) {
+				String tag = parameter.getValue();
+				// TODO : implement findNbreferencesOfInsertTag correctly
+				int nbReferences = 0; // project.findNbreferencesOfInsertTag(template.getTemplateId(), tag);
+				if (nbReferences > 0) {
+					String title = nbReferences == 1 ? "1 reference" : nbReferences + " references";
+					Range range = QutePositionUtility.createRange(parameter);
+					Command command = new Command(title, "");
+					CodeLens codeLens = new CodeLens(range, command, null);
+					lenses.add(codeLens);
+				}
+			}
 		}
 	}
 

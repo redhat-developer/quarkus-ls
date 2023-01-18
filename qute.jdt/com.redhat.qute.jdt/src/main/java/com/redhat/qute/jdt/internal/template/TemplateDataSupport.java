@@ -25,7 +25,7 @@ import org.eclipse.jdt.internal.core.manipulation.dom.ASTResolving;
 import org.eclipse.lsp4j.Location;
 
 import com.redhat.qute.commons.datamodel.DataModelParameter;
-import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import com.redhat.qute.commons.datamodel.DataModelBaseTemplate;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 
 /**
@@ -49,7 +49,7 @@ public class TemplateDataSupport {
 	 * @param monitor       the progress monitor.
 	 */
 	public static void collectParametersFromDataMethodInvocation(IMember fieldOrMethod,
-			DataModelTemplate<DataModelParameter> template, IProgressMonitor monitor) {
+			DataModelBaseTemplate<DataModelParameter> template, IProgressMonitor monitor) {
 		try {
 			search(fieldOrMethod, new TemplateDataCollector(template, monitor), monitor);
 		} catch (CoreException e) {

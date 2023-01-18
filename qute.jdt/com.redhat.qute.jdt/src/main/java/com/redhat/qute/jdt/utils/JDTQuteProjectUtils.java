@@ -84,13 +84,22 @@ public class JDTQuteProjectUtils {
 		return JDTTypeUtils.findType(javaProject, QuteJavaConstants.ENGINE_BUILDER_CLASS) != null;
 	}
 
-	public static String getTemplatePath(String className, String methodOrFieldName) {
-		StringBuilder path = new StringBuilder(TEMPLATES_BASE_DIR);
+	public static TemplatePathInfo getTemplatePath(String className, String methodOrFieldName, boolean ignoreFragments) {
+		String fragmentId = null;
+		StringBuilder templateUri = new StringBuilder(TEMPLATES_BASE_DIR);
 		if (className != null) {
-			path.append(className);
-			path.append('/');
+			templateUri.append(className);
+			templateUri.append('/');
+			if (!ignoreFragments) {
+				int fragmentIndex = methodOrFieldName != null ? methodOrFieldName.lastIndexOf('$') : -1;
+				if (fragmentIndex != -1) {
+					fragmentId = methodOrFieldName.substring(fragmentIndex + 1, methodOrFieldName.length());
+					methodOrFieldName = methodOrFieldName.substring(0, fragmentIndex);
+				}
+			}
 		}
-		return path.append(methodOrFieldName).toString();
+		templateUri.append(methodOrFieldName);
+		return new TemplatePathInfo(templateUri.toString(), fragmentId);
 	}
 
 	public static CompilationUnit getASTRoot(ITypeRoot typeRoot) {

@@ -24,6 +24,7 @@ import org.eclipse.lsp4j.DocumentLink;
 import org.eclipse.lsp4j.Range;
 
 import com.redhat.qute.jdt.utils.IJDTUtils;
+import com.redhat.qute.jdt.utils.TemplatePathInfo;
 
 /**
  * Report document link for opening/creating Qute template for:
@@ -52,10 +53,14 @@ public class QuteJavaDocumentLinkCollector extends AbstractQuteTemplateLinkColle
 
 	@Override
 	protected void collectTemplateLink(ASTNode fieldOrMethod, ASTNode locationAnnotation, TypeDeclaration type,
-			String className, String fieldOrMethodName, String location, IFile templateFile, String templateFilePath)
-			throws JavaModelException {
+			String className, String fieldOrMethodName, String location, IFile templateFile,
+			TemplatePathInfo templatePathInfo) throws JavaModelException {
+		if (!templatePathInfo.isValid()) {
+			// It is an empty fragment which is not valid, don't generate a document link.
+			return;
+		}
 		String templateUri = templateFile.getLocationURI().toString();
-		String tooltip = getTooltip(templateFile, templateFilePath);
+		String tooltip = getTooltip(templateFile, templatePathInfo.getTemplateUri());
 		Range range = createRange(locationAnnotation != null ? locationAnnotation : fieldOrMethod);
 		DocumentLink link = new DocumentLink(range, templateUri, null, tooltip);
 		links.add(link);

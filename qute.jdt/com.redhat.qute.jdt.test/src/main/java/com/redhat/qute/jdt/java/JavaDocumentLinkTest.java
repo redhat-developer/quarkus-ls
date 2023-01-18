@@ -165,6 +165,41 @@ public class JavaDocumentLinkTest {
 						templateFileUri, "Create `src/main/resources/templates/ItemResource/items2.qute.html`"));
 	}
 
+	@Test
+	public void checkedTemplateWithFragment() throws CoreException, Exception {
+
+		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
+		IFile javaFile = javaProject.getProject()
+				.getFile(new Path("src/main/java/org/acme/qute/ItemResourceWithFragment.java"));
+		params.setUri(javaFile.getLocation().toFile().toURI().toString());
+
+		List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, getJDTUtils(),
+				new NullProgressMonitor());
+		assertEquals(6, links.size());
+
+		String templateFileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResourceWithFragment/items.html").getLocationURI()
+				.toString();
+
+		assertDocumentLink(links, //
+				dl(r(21, 33, 21, 38), //
+						templateFileUri, "Open `src/main/resources/templates/ItemResourceWithFragment/items.html`"), //
+				dl(r(22, 33, 22, 42), //
+						templateFileUri, "Open `src/main/resources/templates/ItemResourceWithFragment/items.html`"), //
+				dl(r(23, 33, 23, 43), //
+						templateFileUri, "Create `src/main/resources/templates/ItemResourceWithFragment/items3.html`"), //
+				dl(r(29, 33, 29, 39), //
+						templateFileUri, "Open `src/main/resources/templates/ItemResourceWithFragment/items2.html`"), //
+				dl(r(30, 33, 30, 43), //
+						templateFileUri,
+						"Open `src/main/resources/templates/ItemResourceWithFragment/items2$id1.html`"), //
+				dl(r(31, 33, 31, 43), //
+						templateFileUri,
+						"Open `src/main/resources/templates/ItemResourceWithFragment/items2$id2.html`"));
+	}
+
 	public static Range r(int line, int startChar, int endChar) {
 		return r(line, startChar, line, endChar);
 	}
