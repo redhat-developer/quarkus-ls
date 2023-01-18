@@ -41,7 +41,7 @@
 		<lsp4j.version>0.14.0</lsp4j.version>
 		<microprofile.ls.version>0.7.0-SNAPSHOT</microprofile.ls.version>
 		<jboss.releases.repo.id>jboss-releases-repository</jboss.releases.repo.id>
-		<jboss.releases.repo.url>https://repository.jboss.org/nexus/service/local/staging/deploy/maven2/</jboss.releases.repo.url>
+		<jboss.releases.repo.url>https://repository.jboss.org/nexus/content/repositories/releases/</jboss.releases.repo.url>
 		<jboss.snapshots.repo.id>jboss-snapshots-repository</jboss.snapshots.repo.id>
 		<jboss.snapshots.repo.url>https://repository.jboss.org/nexus/content/repositories/snapshots/</jboss.snapshots.repo.url>
 		<jbossNexus>https://repository.jboss.org</jbossNexus>
