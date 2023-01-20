@@ -409,7 +409,7 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		ICompilationUnit cu = destPackage.getCompilationUnit(baseName + ".java");
 		int i = 0;
 		while (cu.exists()) {
-			name = baseName + i;
+			name = baseName + ++i;
 			cu = destPackage.getCompilationUnit(name + ".java");
 		}
 
