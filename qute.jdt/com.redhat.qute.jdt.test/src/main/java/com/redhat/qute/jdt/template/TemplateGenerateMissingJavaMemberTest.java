@@ -19,7 +19,10 @@ import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.CreateFile;
@@ -44,10 +47,10 @@ import com.redhat.qute.jdt.QuteSupportForTemplate;
 
 /**
  * Integration tests for QuteSupportForTemplateGenerateMissingJavaMember
- * 
+ *
  * Invokes the code in JDT to generate the WorkspaceEditd for the CodeActions
  * directly instead of going through the Qute language server.
- * 
+ *
  * @author datho7561
  */
 public class TemplateGenerateMissingJavaMemberTest {
@@ -202,6 +205,66 @@ public class TemplateGenerateMissingJavaMemberTest {
 								+ "\t\treturn null;\n" //
 								+ "\t}"))));
 		assertWorkspaceEdit(expected, actual);
+	}
+
+	@Test
+	public void generateTemplateExtensionInNewClassWithExisting() throws Exception {
+
+		String sep = System.lineSeparator();
+		IJavaProject project = loadMavenProject(QuteMavenProjectName.qute_quickstart);
+		IPackageFragmentRoot root = project.findPackageFragmentRoot(project.getPath().append("src/main/java"));
+		IPackageFragment defaultPackageFragment = root.createPackageFragment("", false, null);
+		ICompilationUnit existingTemplateExtensions = defaultPackageFragment.createCompilationUnit("TemplateExtensions.java", "public class TemplateExtensions {}\n", false, null);
+
+		try {
+			GenerateMissingJavaMemberParams params = new GenerateMissingJavaMemberParams(
+					GenerateMissingJavaMemberParams.MemberType.CreateTemplateExtension, "asdf", "org.acme.qute.Item",
+					QuteMavenProjectName.qute_quickstart);
+			WorkspaceEdit actual = QuteSupportForTemplate.getInstance().generateMissingJavaMember(params, getJDTUtils(),
+					new NullProgressMonitor());
+			WorkspaceEdit expected = we(Either.forRight(createOp(project, "src/main/java/TemplateExtensions1.java")),
+					Either.forLeft(tde(project, "src/main/java/TemplateExtensions1.java", te(0, 0, 0, 0, //
+							sep //
+							+ "/**" + sep //
+							+ " * " + sep //
+							+ " */" + sep //
+							+ sep //
+							+ "@io.quarkus.qute.TemplateExtension" + sep //
+							+ "public class TemplateExtensions1 {" + sep //
+							+ "\tpublic static String asdf(org.acme.qute.Item item) {" + sep //
+							+ "\t\treturn null;" + sep //
+							+ "\t}" + sep //
+							+ "}" + sep))));
+			assertWorkspaceEdit(expected, actual);
+
+			ICompilationUnit anotherTemplateExtensions = defaultPackageFragment.createCompilationUnit("TemplateExtensions1.java", "public class TemplateExtensions1 {}\n", false, null);
+
+			try {
+				params = new GenerateMissingJavaMemberParams(
+						GenerateMissingJavaMemberParams.MemberType.CreateTemplateExtension, "asdf", "org.acme.qute.Item",
+						QuteMavenProjectName.qute_quickstart);
+				actual = QuteSupportForTemplate.getInstance().generateMissingJavaMember(params, getJDTUtils(),
+						new NullProgressMonitor());
+				expected = we(Either.forRight(createOp(project, "src/main/java/TemplateExtensions2.java")),
+						Either.forLeft(tde(project, "src/main/java/TemplateExtensions2.java", te(0, 0, 0, 0, //
+								sep //
+								+ "/**" + sep //
+								+ " * " + sep //
+								+ " */" + sep //
+								+ sep //
+								+ "@io.quarkus.qute.TemplateExtension" + sep //
+								+ "public class TemplateExtensions2 {" + sep //
+								+ "\tpublic static String asdf(org.acme.qute.Item item) {" + sep //
+								+ "\t\treturn null;" + sep //
+								+ "\t}" + sep //
+								+ "}" + sep))));
+				assertWorkspaceEdit(expected, actual);
+			} finally {
+				anotherTemplateExtensions.delete(true, null);
+			}
+		} finally {
+			existingTemplateExtensions.delete(true, null);
+		}
 	}
 
 	// ------------------- WorkspaceEdit assert
