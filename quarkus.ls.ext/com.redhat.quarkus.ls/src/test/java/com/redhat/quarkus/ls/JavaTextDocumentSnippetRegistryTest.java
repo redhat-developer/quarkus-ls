@@ -19,6 +19,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import org.eclipse.lsp4mp.ls.java.JavaTextDocumentSnippetRegistry;
+import org.eclipse.lsp4mp.commons.JavaCursorContextKind;
+import org.eclipse.lsp4mp.commons.JavaCursorContextResult;
 import org.eclipse.lsp4mp.commons.ProjectLabelInfoEntry;
 import org.eclipse.lsp4mp.ls.commons.snippets.ISnippetContext;
 import org.eclipse.lsp4mp.ls.commons.snippets.Snippet;
@@ -60,6 +62,12 @@ public class JavaTextDocumentSnippetRegistryTest {
 				Arrays.asList("io.quarkus.test.junit.QuarkusTest"));
 		boolean match2 = ((SnippetContextForJava) context).isMatch(new JavaSnippetCompletionContext(projectInfo2, null));
 		Assert.assertTrue("Project has io.quarkus.test.junit.QuarkusTest type", match2);
+
+		boolean match3 = ((SnippetContextForJava) context).isMatch(new JavaSnippetCompletionContext(projectInfo2, new JavaCursorContextResult(JavaCursorContextKind.BEFORE_CLASS, "aaaa")));
+		Assert.assertFalse("Cursor is not in an empty file", match3);
+
+		boolean match4 = ((SnippetContextForJava) context).isMatch(new JavaSnippetCompletionContext(projectInfo2, new JavaCursorContextResult(JavaCursorContextKind.IN_EMPTY_FILE, "aaaa")));
+		Assert.assertTrue("Cursor is in an empty file", match4);
 	}
 
 	private static Optional<Snippet> findByPrefix(String prefix, SnippetRegistry registry) {

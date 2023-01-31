@@ -26,7 +26,8 @@
 		],
 		"description": "Quarkus test resource class",
 		"context": {
-			"type": "io.quarkus.test.junit.QuarkusTest"
+			"type": "io.quarkus.test.junit.QuarkusTest",
+			"contentType": "class"
 		}
 	},
 	"Quarkus - new native test resource class": {
@@ -44,7 +45,8 @@
 		],
 		"description": "Quarkus native test resource class",
 		"context": {
-			"type": "io.quarkus.test.junit.SubstrateTest"
+			"type": "io.quarkus.test.junit.SubstrateTest",
+			"contentType": "class"
 		}
 	},
 	"Quarkus - new integration test resource class": {
@@ -62,7 +64,8 @@
 		],
 		"description": "Quarkus integration test resource class",
 		"context": {
-			"type": "io.quarkus.test.junit.QuarkusIntegrationTest"
+			"type": "io.quarkus.test.junit.QuarkusIntegrationTest",
+			"contentType": "class"
 		}
 	}
 }
