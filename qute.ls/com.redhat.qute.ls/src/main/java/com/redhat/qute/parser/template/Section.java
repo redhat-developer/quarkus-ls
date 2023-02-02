@@ -319,6 +319,37 @@ public abstract class Section extends Node implements ParametersContainer {
 				offset);
 	}
 
+	/**
+	 * Returns the parameter which have the given name <code>parameterName</code>
+	 * and null otherwise.
+	 * 
+	 * @param parameterName the parameter name.
+	 * 
+	 * @return the parameter which have the given name <code>parameterName</code>
+	 *         and null otherwise.
+	 */
+	public Parameter findParameter(String parameterName) {
+		for (Parameter parameter : getParameters()) {
+			if (parameterName.equals(parameter.getName())) {
+				return parameter;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Returns true if section has the given parameter name
+	 * <code>parameterName</code> and false otherwise.
+	 * 
+	 * @param parameterName the parameter name.
+	 * 
+	 * @return true if section has the given parameter name
+	 *         <code>parameterName</code> and false otherwise.
+	 */
+	public boolean hasParameter(String parameterName) {
+		return findParameter(parameterName) != null;
+	}
+
 	private synchronized List<Parameter> parseParameters() {
 		if (parameters != null) {
 			return parameters;

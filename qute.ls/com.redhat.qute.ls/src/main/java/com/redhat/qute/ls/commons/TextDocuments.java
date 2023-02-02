@@ -19,6 +19,7 @@ import java.util.Map;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
+import org.eclipse.lsp4j.DidSaveTextDocumentParams;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentItem;
 
@@ -29,7 +30,7 @@ public class TextDocuments<T extends TextDocument> {
 
 	private final Map<String, T> documents;
 
-	private boolean incremental = true; //default on
+	private boolean incremental = true; // default on
 
 	public TextDocuments() {
 		documents = new HashMap<>();
@@ -105,6 +106,12 @@ public class TextDocuments<T extends TextDocument> {
 				documents.remove(params.getTextDocument().getUri());
 			}
 			return document;
+		}
+	}
+
+	public T onDidSaveTextDocument(DidSaveTextDocumentParams params) {
+		synchronized (documents) {
+			return getDocument(params.getTextDocument());
 		}
 	}
 

@@ -216,7 +216,7 @@ public class QuteCompletionInExpressionWithForSectionTest {
 				"{#else}\r\n" + //
 				"	{|}    \r\n" + // <-- here items is only available because it is on #else block
 				"{/for}";
-		testCompletionFor(template, 7, //
+		testCompletionFor(template, 8, //
 				c("items", "items", r(4, 2, 4, 2)), //
 				c("inject:bean", "inject:bean", r(4, 2, 4, 2)), //
 				c("inject:plexux", "inject:plexux", r(4, 2, 4, 2)), //
@@ -224,6 +224,7 @@ public class QuteCompletionInExpressionWithForSectionTest {
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
 						r(4, 2, 4, 2)), //
 				c("GLOBAL", "GLOBAL", r(4, 2, 4, 2)), //
+				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(4, 2, 4, 2)), //
 				c("uri:Login", "uri:Login", r(4, 2, 4, 2)));
 	}
 

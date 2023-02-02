@@ -15,6 +15,7 @@ import java.util.function.BiFunction;
 
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
+import org.eclipse.lsp4j.DidSaveTextDocumentParams;
 import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
@@ -56,6 +57,12 @@ public class QuteTextDocuments extends ModelTextDocuments<Template> {
 	public ModelTextDocument<Template> onDidCloseTextDocument(DidCloseTextDocumentParams params) {
 		QuteTextDocument document = (QuteTextDocument) super.onDidCloseTextDocument(params);
 		projectRegistry.onDidCloseTextDocument(document);
+		return document;
+	}
+
+	public ModelTextDocument<Template> onDidSaveTextDocument(DidSaveTextDocumentParams params) {
+		QuteTextDocument document = (QuteTextDocument) super.onDidSaveTextDocument(params);
+		projectRegistry.onDidSaveTextDocument(document);
 		return document;
 	}
 }

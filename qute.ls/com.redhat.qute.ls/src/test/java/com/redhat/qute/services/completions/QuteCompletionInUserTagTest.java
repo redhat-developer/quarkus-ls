@@ -15,6 +15,7 @@ import static com.redhat.qute.QuteAssert.SECTION_SNIPPET_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
 import static com.redhat.qute.QuteAssert.testCompletionFor;
+import static java.lang.System.lineSeparator;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,22 +28,207 @@ import org.junit.jupiter.api.Test;
 public class QuteCompletionInUserTagTest {
 
 	@Test
-	public void userTag() throws Exception {
+	public void input() throws Exception {
 		String template = "{#|";
 
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
 				SECTION_SNIPPET_SIZE, //
-				c("formElement", "{#formElement /}", //
+				c("input", "{#input name=\"name\" /}", r(0, 0, 0, 2)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("input", "{#input name=\"${1:name}\" /}$0", r(0, 0, 0, 2)));
+	}
+
+	@Test
+	public void form() throws Exception {
+		String template = "{#|";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("form", //
+						"{#form it }" + lineSeparator() + //
+								"	" + lineSeparator() + //
+								"{/form}",
 						r(0, 0, 0, 2)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
 				SECTION_SNIPPET_SIZE, //
-				c("formElement", "{#formElement /}$0", //
+				c("form", //
+						"{#form ${1:it} }" + lineSeparator() + //
+								"	$2" + lineSeparator() + //
+								"{/form}$0",
 						r(0, 0, 0, 2)));
+	}
+
+	@Test
+	public void formAndParameters() throws Exception {
+		String template = "{#form |";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				7 + 3, //
+				c("method", "method=\"method\"", r(0, 7, 0, 7)), //
+				c("class", "class=\"class\"", r(0, 7, 0, 7)), //
+				c("id", "id=\"id\"", r(0, 7, 0, 7)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				7 + 3, //
+				c("method", "method=\"${1:method}\"$0", r(0, 7, 0, 7)), //
+				c("class", "class=\"${1:class}\"$0", r(0, 7, 0, 7)), //
+				c("id", "id=\"${1:id}\"$0", r(0, 7, 0, 7)));
+	}
+
+	@Test
+	public void formElement() throws Exception {
+		String template = "{#|";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("formElement", //
+						"{#formElement name=\"name\" label=\"label\" }" + lineSeparator() + //
+								"	" + lineSeparator() + //
+								"{/formElement}", //
+						r(0, 0, 0, 2)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("formElement", //
+						"{#formElement name=\"${1:name}\" label=\"${2:label}\" }" + lineSeparator() + //
+								"	$3" + lineSeparator() + //
+								"{/formElement}$0", //
+						r(0, 0, 0, 2)));
+	}
+
+	@Test
+	public void formElementAndParameters() throws Exception {
+		String template = "{#formElement |";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				7 + 3, //
+				c("name", "name=\"name\"", r(0, 14, 0, 14)), //
+				c("label", "label=\"label\"", r(0, 14, 0, 14)), //
+				c("class", "class=\"class\"", r(0, 14, 0, 14)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				7 + 3, //
+				c("name", "name=\"${1:name}\"$0", r(0, 14, 0, 14)), //
+				c("label", "label=\"${1:label}\"$0", r(0, 14, 0, 14)), //
+				c("class", "class=\"${1:class}\"$0", r(0, 14, 0, 14)));
+	}
+
+	@Test
+	public void formElementAndParametersInParamName() throws Exception {
+		String template = "{#formElement cl|";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				7 + 3, //
+				c("name", "name=\"name\"", r(0, 14, 0, 16)), //
+				c("label", "label=\"label\"", r(0, 14, 0, 16)), //
+				c("class", "class=\"class\"", r(0, 14, 0, 16)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				7 + 3, //
+				c("name", "name=\"${1:name}\"$0", r(0, 14, 0, 16)), //
+				c("label", "label=\"${1:label}\"$0", r(0, 14, 0, 16)), //
+				c("class", "class=\"${1:class}\"$0", r(0, 14, 0, 16)));
+	}
+
+	@Test
+	public void formElementAndParametersInParamValue() throws Exception {
+		String template = "{#formElement class=|";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				7);
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				7);
+	}
+
+	@Test
+	public void simpleTitle() throws Exception {
+		String template = "{#|";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("simpleTitle", //
+						"{#simpleTitle title=\"title\" }" + lineSeparator() + //
+								"	" + lineSeparator() + //
+								"{/simpleTitle}",
+						r(0, 0, 0, 2)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("simpleTitle", //
+						"{#simpleTitle title=\"${1:title}\" }" + lineSeparator() + //
+								"	$2" + lineSeparator() + //
+								"{/simpleTitle}$0",
+						r(0, 0, 0, 2)));
+	}
+
+	@Test
+	public void simpleTitleAndParameters() throws Exception {
+		String template = "{#simpleTitle |";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				7 + 1, //
+				c("title", "title=\"title\"", r(0, 14, 0, 14)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				7 + 1, //
+				c("title", "title=\"${1:title}\"$0", r(0, 14, 0, 14)));
+	}
+
+	@Test
+	public void titleAndParameters() throws Exception {
+		String template = "{#title |";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				7 + 1, //
+				c("titularTitle", "titularTitle=\"titularTitle\"", r(0, 8, 0, 8)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				7 + 1, //
+				c("titularTitle", "titularTitle=\"${1:titularTitle}\"$0", r(0, 8, 0, 8)));
 	}
 
 	@Test
@@ -53,14 +239,20 @@ public class QuteCompletionInUserTagTest {
 		testCompletionFor(template, //
 				false, // no snippet support
 				SECTION_SNIPPET_SIZE, //
-				c("formElement", "{#formElement /}", //
+				c("formElement", //
+						"{#formElement name=\"name\" label=\"label\" }" + lineSeparator() + //
+								"	" + lineSeparator() + //
+								"{/formElement}", //
 						r(0, 0, 0, 3)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
 				SECTION_SNIPPET_SIZE, //
-				c("formElement", "{#formElement /}$0", //
+				c("formElement", //
+						"{#formElement name=\"${1:name}\" label=\"${2:label}\" }" + lineSeparator() + //
+								"	$3" + lineSeparator() + //
+								"{/formElement}$0", //
 						r(0, 0, 0, 3)));
 	}
 
@@ -89,7 +281,7 @@ public class QuteCompletionInUserTagTest {
 
 		// In qute template
 		testCompletionFor(template, //
-				7, //
+				8, //
 				c("item", "item", r(1, 1, 1, 1)), //
 				c("inject:bean", "inject:bean", r(1, 1, 1, 1)), //
 				c("inject:plexux", "inject:plexux", r(1, 1, 1, 1)), //
@@ -97,13 +289,14 @@ public class QuteCompletionInUserTagTest {
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
 						r(1, 1, 1, 1)), //
 				c("GLOBAL", "GLOBAL", r(1, 1, 1, 1)), //
+				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 1, 1, 1)), //
 				c("uri:Login", "uri:Login", r(1, 1, 1, 1)));
 
 		// In user tag
 		testCompletionFor(template, //
 				"src/main/resources/templates/tags/form.html", //
 				"tags/form", //
-				6 /* item, inject:bean, config:getConfigProperty */ + 2 /* it, nested-content */ + 1 /*
+				7 /* item, inject:bean, config:getConfigProperty */ + 2 /* it, nested-content */ + 1 /*
 																										 * global
 																										 * variables
 																										 */, //
@@ -113,6 +306,7 @@ public class QuteCompletionInUserTagTest {
 				c("config:*(propertyName : String) : Object", "config:propertyName", r(1, 1, 1, 1)),
 				c("config:property(propertyName : String) : Object", "config:property(propertyName)", r(1, 1, 1, 1)), //
 				c("GLOBAL", "GLOBAL", r(1, 1, 1, 1)), //
+				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 1, 1, 1)), //
 				c("it", "it", r(1, 1, 1, 1)), //
 				c("nested-content", "nested-content", r(1, 1, 1, 1)), //
 				c("uri:Login", "uri:Login", r(1, 1, 1, 1)));

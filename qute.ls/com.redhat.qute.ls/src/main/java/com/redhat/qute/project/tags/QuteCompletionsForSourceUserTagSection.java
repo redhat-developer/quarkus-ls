@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
+import com.redhat.qute.project.QuteProject;
 
 /**
  * User tag completion based on source 'sr/main/resources/templates/tags'
@@ -38,8 +39,9 @@ public class QuteCompletionsForSourceUserTagSection extends QuteCompletionsForUs
 	 * Loop for files from src/main/resources/tags to update list of user tags.
 	 * 
 	 * @param tagsDir the src/main/resources/tags directory.
+	 * @param project
 	 */
-	public void refresh(Path tagsDir) {
+	public void refresh(Path tagsDir, QuteProject project) {
 		if (!Files.exists(tagsDir)) {
 			return;
 		}
@@ -50,7 +52,7 @@ public class QuteCompletionsForSourceUserTagSection extends QuteCompletionsForUs
 				// create all user tags
 				Files.list(tagsDir) //
 						.forEach(path -> {
-							snippetRegistry.registerSnippet(createUserTag(path, tagsDir));
+							snippetRegistry.registerSnippet(createUserTag(path, tagsDir, project));
 						});
 			} else {
 				// Remove all user tags which doesn't exist anymore
@@ -68,7 +70,7 @@ public class QuteCompletionsForSourceUserTagSection extends QuteCompletionsForUs
 				Files.list(tagsDir) //
 						.forEach(path -> {
 							if (!existingSnippetPaths.contains(path)) {
-								snippetRegistry.registerSnippet(createUserTag(path, tagsDir));
+								snippetRegistry.registerSnippet(createUserTag(path, tagsDir, project));
 							}
 						});
 			}
@@ -78,8 +80,19 @@ public class QuteCompletionsForSourceUserTagSection extends QuteCompletionsForUs
 
 	}
 
-	private static UserTag createUserTag(Path path, Path tagsDir) {
+	private static UserTag createUserTag(Path path, Path tagsDir, QuteProject project) {
 		String fileName = path.getName(path.getNameCount() - 1).toString();
-		return new SourceUserTag(fileName, path);
+		return new SourceUserTag(fileName, path, project);
+	}
+
+	/**
+	 * Clear cache of all user tag.
+	 */
+	public void clear() {
+		SnippetRegistry<UserTag> snippetRegistry = super.getSnippetRegistry();
+		List<UserTag> snippets = snippetRegistry.getSnippets();
+		for (UserTag userTag : snippets) {
+			userTag.clear();
+		}
 	}
 }

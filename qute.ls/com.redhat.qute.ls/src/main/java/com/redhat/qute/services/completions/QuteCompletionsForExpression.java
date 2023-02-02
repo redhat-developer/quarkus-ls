@@ -16,6 +16,7 @@ import static com.redhat.qute.project.datamodel.resolvers.ValueResolver.MATCH_NA
 import static com.redhat.qute.services.QuteCompletions.EMPTY_FUTURE_COMPLETION;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,12 +60,15 @@ import com.redhat.qute.parser.template.sections.CaseSection.CompletionCaseResult
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.parser.template.sections.WhenSection;
 import com.redhat.qute.parser.template.sections.WithSection;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
+import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.tags.UserTagParameter;
 import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.JavaTypeFilter.JavaMemberAccessibility;
@@ -691,6 +695,45 @@ public class QuteCompletionsForExpression {
 				}
 			}
 
+			// Check if it is user tag section
+			Section section = getUserTagSection(expression);
+			if (section != null) {
+				QuteProject project = template.getProject();
+				if (project != null) {
+					String tagName = section.getTag();
+					UserTag userTag = project.findUserTag(tagName);
+					if (userTag != null) {
+						Collection<UserTagParameter> parameters = userTag.getParameters();
+						List<String> globalVariables = null;
+						for (UserTagParameter parameter : parameters) {
+							String paramName = parameter.getPartName();
+							if (!UserTagUtils.IT_OBJECT_PART_NAME.equals(paramName)
+									&& !UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME.equals(paramName)) {
+								if (globalVariables == null) {
+									List<ValueResolver> resolvers = javaCache
+											.getGlobalVariables(template.getProjectUri());
+									globalVariables = resolvers != null ? resolvers.stream()
+											.map(ValueResolver::getName).collect(Collectors.toList())
+											: Collections.emptyList();
+								}
+								if (!section.hasParameter(paramName) && !globalVariables.contains(paramName)) {
+									CompletionItem item = new CompletionItem();
+									item.setLabel(paramName);
+									item.setKind(CompletionItemKind.Property);
+									TextEdit textEdit = new TextEdit(range,
+											createUserTagParameterSnippet(parameter, completionSettings));
+									item.setTextEdit(Either.forLeft(textEdit));
+									item.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported()
+											? InsertTextFormat.Snippet
+											: InsertTextFormat.PlainText);
+									completionItems.add(item);
+								}
+							}
+						}
+					}
+				}
+			}
+
 			if (UserTagUtils.isUserTag(template)) {
 				// provide completion for 'it' and 'nested-content'
 				Collection<SectionMetadata> metadatas = UserTagUtils.getSpecialKeys();
@@ -715,6 +758,28 @@ public class QuteCompletionsForExpression {
 		CompletionList list = new CompletionList();
 		list.setItems(completionItems.stream().collect(Collectors.toList()));
 		return CompletableFuture.completedFuture(list);
+	}
+
+	private static String createUserTagParameterSnippet(UserTagParameter parameter,
+			QuteCompletionSettings completionSettings) {
+		StringBuilder snippet = new StringBuilder();
+		boolean completionSnippetsSupported = completionSettings.isCompletionSnippetsSupported();
+		UserTag.generateUserTagParameter(parameter, completionSnippetsSupported, 1, snippet);
+		if (completionSnippetsSupported) {
+			SnippetsBuilder.tabstops(0, snippet);
+		}
+		return snippet.toString();
+	}
+
+	private static Section getUserTagSection(Expression expression) {
+		if (expression == null) {
+			return null;
+		}
+		Section section = expression.getOwnerSection();
+		if (section != null && section.getSectionKind() == SectionKind.CUSTOM) {
+			return section;
+		}
+		return null;
 	}
 
 	private static boolean isInCaseSection(Expression expression) {

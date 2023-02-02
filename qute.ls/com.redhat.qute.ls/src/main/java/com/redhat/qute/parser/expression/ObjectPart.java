@@ -11,8 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.parser.expression;
 
-import java.util.List;
-
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Expression;
@@ -91,40 +89,35 @@ public class ObjectPart extends Part {
 		Section section = super.getParentSection();
 		while (section != null) {
 			switch (section.getSectionKind()) {
-			case EACH:
-			case FOR:
-				LoopSection iterableSection = (LoopSection) section;
-				if (!iterableSection.isInElseBlock(getStart())) {
-					String alias = iterableSection.getAlias();
-					if (partName.equals(alias)) {
-						return iterableSection.getIterableParameter();
+				case EACH:
+				case FOR:
+					LoopSection iterableSection = (LoopSection) section;
+					if (!iterableSection.isInElseBlock(getStart())) {
+						String alias = iterableSection.getAlias();
+						if (partName.equals(alias)) {
+							return iterableSection.getIterableParameter();
+						}
 					}
-				}
-				break;
-			case LET:
-			case SET: {
-				List<Parameter> parameters = section.getParameters();
-				for (Parameter parameter : parameters) {
-					if (partName.equals(parameter.getName())) {
+					break;
+				case LET:
+				case SET: {
+					Parameter parameter = section.findParameter(partName);
+					if (parameter != null) {
 						return parameter;
 					}
+					break;
 				}
-				break;
-			}
-			case IF: {
-				if (matchedOptionalParameter == null) {
-					List<Parameter> parameters = section.getParameters();
-					for (Parameter parameter : parameters) {
-						if (partName.equals(parameter.getName()) && parameter.isOptional()) {
+				case IF: {
+					if (matchedOptionalParameter == null) {
+						Parameter parameter = section.findParameter(partName);
+						if (parameter != null && parameter.isOptional()) {
 							// here {foo} is inside an #if block which matches {#if foo?? }
 							matchedOptionalParameter = parameter;
 						}
-						break;
 					}
+					break;
 				}
-				break;
-			}
-			default:
+				default:
 			}
 			// ex : count for #each
 			JavaTypeInfoProvider metadata = section.getMetadata(partName);

@@ -24,6 +24,7 @@ import org.eclipse.lsp4j.CompletionItem;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.utils.UserTagUtils;
 
@@ -37,7 +38,7 @@ import com.redhat.qute.utils.UserTagUtils;
  */
 public class UserTagRegistry {
 
-	private final String projectUri;
+	private final QuteProject project;
 
 	private final Path tagsDir;
 
@@ -48,8 +49,8 @@ public class UserTagRegistry {
 
 	private CompletableFuture<List<UserTag>> userTagFuture;
 
-	public UserTagRegistry(String projectUri, Path templateBaseDir, QuteUserTagProvider userTagProvider) {
-		this.projectUri = projectUri;
+	public UserTagRegistry(QuteProject project, Path templateBaseDir, QuteUserTagProvider userTagProvider) {
+		this.project = project;
 		this.tagsDir = templateBaseDir.resolve(UserTagUtils.TAGS_DIR);
 		this.userTagProvider = userTagProvider;
 		this.completionsSourceUserTag = new QuteCompletionsForSourceUserTagSection();
@@ -71,7 +72,7 @@ public class UserTagRegistry {
 	 */
 	private void refresh() {
 		// Loop for files from src/main/resources/tags to update list of user tags.
-		completionsSourceUserTag.refresh(getTagsDir());
+		completionsSourceUserTag.refresh(getTagsDir(), project);
 		// Update from the 'templates.tags' entries of JARs of the classpath
 		completionsBinaryUserTag.refresh(getBinaryUserTags());
 	}
@@ -89,9 +90,11 @@ public class UserTagRegistry {
 			Set<CompletionItem> completionItems) {
 		// Completion for sources user tags (from src/main/resources/templates/tags)
 		refresh();
-		completionsSourceUserTag.collectSnippetSuggestions(completionRequest, prefixFilter, suffixToFind, completionItems);
+		completionsSourceUserTag.collectSnippetSuggestions(completionRequest, prefixFilter, suffixToFind,
+				completionItems);
 		// Completion for binaries user tags
-		completionsBinaryUserTag.collectSnippetSuggestions(completionRequest, prefixFilter, suffixToFind, completionItems);
+		completionsBinaryUserTag.collectSnippetSuggestions(completionRequest, prefixFilter, suffixToFind,
+				completionItems);
 	}
 
 	/**
@@ -112,7 +115,7 @@ public class UserTagRegistry {
 			return userTagFuture;
 		}
 		QuteUserTagParams params = new QuteUserTagParams();
-		params.setProjectUri(projectUri);
+		params.setProjectUri(project.getUri());
 		return getBinaryUserTags(params) //
 				.thenApply(tagInfos -> {
 					if (tagInfos == null) {
@@ -120,7 +123,7 @@ public class UserTagRegistry {
 					}
 					return tagInfos //
 							.stream() //
-							.map(info -> new BinaryUserTag(info)) //
+							.map(info -> new BinaryUserTag(info, project)) //
 							.collect(Collectors.toList());
 				});
 	}
@@ -136,5 +139,9 @@ public class UserTagRegistry {
 	 */
 	public Path getTagsDir() {
 		return tagsDir;
+	}
+
+	public void refreshDataModel() {
+		completionsSourceUserTag.clear();
 	}
 }

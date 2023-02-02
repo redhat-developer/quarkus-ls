@@ -193,7 +193,7 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#each |}";
-		testCompletionFor(template, 7, //
+		testCompletionFor(template, 8, //
 				c("items", "items", r(2, 7, 2, 7)), //
 				c("inject:bean", "inject:bean", r(2, 7, 2, 7)), //
 				c("inject:plexux", "inject:plexux", r(2, 7, 2, 7)), //
@@ -201,12 +201,13 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
 						r(2, 7, 2, 7)), //
 				c("GLOBAL", "GLOBAL", r(2, 7, 2, 7)), //
+				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(2, 7, 2, 7)), //
 				c("uri:Login", "uri:Login", r(2, 7, 2, 7)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#each |";
-		testCompletionFor(template, 7, //
+		testCompletionFor(template, 8, //
 				c("items", "items", r(2, 7, 2, 7)), //
 				c("inject:bean", "inject:bean", r(2, 7, 2, 7)), //
 				c("inject:plexux", "inject:plexux", r(2, 7, 2, 7)), //
@@ -214,6 +215,7 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
 						r(2, 7, 2, 7)), //
 				c("GLOBAL", "GLOBAL", r(2, 7, 2, 7)), //
+				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(2, 7, 2, 7)), //
 				c("uri:Login", "uri:Login", r(2, 7, 2, 7)));
 
 	}

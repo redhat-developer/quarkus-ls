@@ -12,6 +12,7 @@
 package com.redhat.qute.project.tags;
 
 import com.redhat.qute.commons.usertags.UserTagInfo;
+import com.redhat.qute.project.QuteProject;
 
 /**
  * Binary user tag.
@@ -24,8 +25,8 @@ public class BinaryUserTag extends UserTag {
 	private final String uri;
 	private final String content;
 
-	public BinaryUserTag(UserTagInfo tagInfo) {
-		super(tagInfo.getFileName());
+	public BinaryUserTag(UserTagInfo tagInfo, QuteProject project) {
+		super(tagInfo.getFileName(), project);
 		this.uri = tagInfo.getUri();
 		this.content = tagInfo.getContent();
 	}
@@ -35,4 +36,8 @@ public class BinaryUserTag extends UserTag {
 		return uri;
 	}
 
+	@Override
+	public String getContent() {
+		return content;
+	}
 }
