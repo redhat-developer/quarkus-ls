@@ -39,14 +39,16 @@ import com.redhat.qute.parser.template.Template;
  *
  */
 public class UserTagUtils {
-
+	public static final String IT_OBJECT_PART_NAME = "it";
+	public static final String NESTED_CONTENT_OBJECT_PART_NAME = "nested-content";
+	
 	private static final Map<String, SectionMetadata> SPECIAL_KEYS;
 
 	static {
 		SPECIAL_KEYS = new HashMap<String, SectionMetadata>();
-		register(new SectionMetadata("it", Object.class.getName(),
+		register(new SectionMetadata(IT_OBJECT_PART_NAME, Object.class.getName(),
 				"`it` is a special key that is replaced with the first unnamed parameter of the tag."));
-		register(new SectionMetadata("nested-content", Object.class.getName(),
+		register(new SectionMetadata(NESTED_CONTENT_OBJECT_PART_NAME, Object.class.getName(),
 				"`nested-content` is a special key that will be replaced by the content of the tag"));
 	}
 

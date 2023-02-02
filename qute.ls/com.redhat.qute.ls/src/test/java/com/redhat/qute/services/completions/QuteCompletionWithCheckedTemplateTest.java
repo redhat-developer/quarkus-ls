@@ -45,6 +45,6 @@ public class QuteCompletionWithCheckedTemplateTest {
 				"Item: {|";
 		testCompletionFor(template, //
 				"src/main/resources/templates/ItemResource/items.qute.html", //
-				"ItemResource/Items", 7, c("items", "items", r(1, 7, 1, 7)));
+				"ItemResource/Items", 8, c("items", "items", r(1, 7, 1, 7)));
 	}
 }

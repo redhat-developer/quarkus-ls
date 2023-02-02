@@ -461,6 +461,10 @@ public class QuteQuickStartProject extends MockQuteProject {
 						"property(propertyName : java.lang.String) : java.lang.Object",
 						ValueResolverKind.TemplateExtensionOnMethod, false, true));
 
+		// Static meythod value resolvers
+		resolvers.add(createValueResolver(null, "VARCHAR_SIZE", null, "util.Globals", "VARCHAR_SIZE() : int",
+				ValueResolverKind.TemplateGlobal, true));
+
 		// Field value resolvers
 		resolvers.add(createValueResolver("inject", "bean", null, "org.acme.Bean", "bean : java.lang.String",
 				ValueResolverKind.InjectedBean));

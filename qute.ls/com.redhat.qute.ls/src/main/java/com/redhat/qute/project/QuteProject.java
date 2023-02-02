@@ -36,6 +36,7 @@ import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.ls.commons.BadLocationException;
+import com.redhat.qute.ls.template.QuteTextDocument;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
@@ -54,6 +55,7 @@ import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.NativeModeJavaTypeFilter;
 import com.redhat.qute.utils.StringUtils;
+import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * A Qute project.
@@ -91,7 +93,7 @@ public class QuteProject {
 		this.openedDocuments = new HashMap<>();
 		this.dataModelProvider = dataModelProvider;
 		this.resolvedJavaTypes = new HashMap<>();
-		this.tagRegistry = new UserTagRegistry(uri, templateBaseDir, userTagProvider);
+		this.tagRegistry = new UserTagRegistry(this, templateBaseDir, userTagProvider);
 		this.filterInNativeMode = new NativeModeJavaTypeFilter(this);
 	}
 
@@ -166,6 +168,14 @@ public class QuteProject {
 		indexer.scanAsync(true);
 	}
 
+	public void onDidSaveTextDocument(QuteTextDocument document) {
+		UserTag userTag = getUserTag(document.getTemplate());
+		if (userTag != null) {
+			// The user tag has been saved, refresh it.
+			userTag.clear();
+		}
+	}
+
 	private void collectInsert(String insertParamater, Node parent, Template template, List<QuteIndex> indexes) {
 		if (parent.getKind() == NodeKind.Section) {
 			Section section = (Section) parent;
@@ -231,6 +241,10 @@ public class QuteProject {
 						return null;
 					}
 					return new ExtendedDataModelProject(project);
+				})
+				.thenApply(p -> {
+					tagRegistry.refreshDataModel();
+					return p;
 				});
 	}
 
@@ -295,6 +309,30 @@ public class QuteProject {
 		tags = getBinaryUserTags().getNow(Collections.emptyList());
 		for (UserTag userTag : tags) {
 			if (tagName.equals(userTag.getName())) {
+				return userTag;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the user tag from the given template and null otherwise.
+	 * 
+	 * @param template the Qute template.
+	 * 
+	 * @return the user tag from the given template and null otherwise.
+	 */
+	public UserTag getUserTag(Template template) {
+		if (!UserTagUtils.isUserTag(template)) {
+			return null;
+		}
+		String templateId = template.getTemplateId();
+		int index = templateId.indexOf('.');
+		if (index != -1) {
+			templateId = templateId.substring(0, index);
+		}
+		for (UserTag userTag : getSourceUserTags()) {
+			if (userTag.getTemplateId().equals(templateId)) {
 				return userTag;
 			}
 		}

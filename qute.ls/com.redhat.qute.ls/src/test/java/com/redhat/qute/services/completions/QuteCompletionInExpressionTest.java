@@ -300,7 +300,7 @@ public class QuteCompletionInExpressionTest {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"Item: {|";
 		testCompletionFor(template, //
-				7, //
+				8, //
 				c("item", "item", r(1, 7, 1, 7)), //
 				c("inject:bean", "inject:bean", r(1, 7, 1, 7)), //
 				c("inject:plexux", "inject:plexux", r(1, 7, 1, 7)), //
@@ -308,8 +308,8 @@ public class QuteCompletionInExpressionTest {
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
 						r(1, 7, 1, 7)), //
 				c("GLOBAL", "GLOBAL", r(1, 7, 1, 7)), //
+				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 7, 1, 7)), //
 				c("uri:Login", "uri:Login", r(1, 7, 1, 7)));
-
 	}
 
 	@Test
@@ -329,7 +329,7 @@ public class QuteCompletionInExpressionTest {
 		// three brackets -> expression
 		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {{{|";
-		testCompletionFor(template, 7, //
+		testCompletionFor(template, 8, //
 				c("item", "item", r(1, 9, 1, 9)), //
 				c("inject:bean", "inject:bean", r(1, 9, 1, 9)), //
 				c("inject:plexux", "inject:plexux", r(1, 9, 1, 9)), //
@@ -337,6 +337,7 @@ public class QuteCompletionInExpressionTest {
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
 						r(1, 9, 1, 9)), //
 				c("GLOBAL", "GLOBAL", r(1, 9, 1, 9)), //
+				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 9, 1, 9)), //
 				c("uri:Login", "uri:Login", r(1, 9, 1, 9)));
 	}
 
@@ -366,13 +367,14 @@ public class QuteCompletionInExpressionTest {
 	public void globalVariablesObjectPart() throws Exception {
 		String template = "{|";
 		testCompletionFor(template, //
-				6, //
+				7, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 1, 0, 1)),
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
 						r(0, 1, 0, 1)), //
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
+				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
 				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
 
 	}

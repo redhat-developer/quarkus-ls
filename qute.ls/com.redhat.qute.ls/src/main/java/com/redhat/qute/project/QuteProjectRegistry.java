@@ -60,6 +60,7 @@ import com.redhat.qute.ls.api.QuteJavadocProvider;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
+import com.redhat.qute.ls.template.QuteTextDocument;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Template;
@@ -217,6 +218,16 @@ public class QuteProjectRegistry
 			QuteProject project = getProject(projectUri);
 			if (project != null) {
 				project.onDidCloseTextDocument(document);
+			}
+		}
+	}
+	
+	public void onDidSaveTextDocument(QuteTextDocument document) {
+		String projectUri = document.getProjectUri();
+		if (projectUri != null) {
+			QuteProject project = getProject(projectUri);
+			if (project != null) {
+				project.onDidSaveTextDocument(document);
 			}
 		}
 	}
@@ -1308,6 +1319,10 @@ public class QuteProjectRegistry
 		if (project == null) {
 			return VALUE_RESOLVERS_NULL_FUTURE;
 		}
+		return getGlobalVariables(project);
+	}
+
+	public static CompletableFuture<List<ValueResolver>> getGlobalVariables(QuteProject project) {
 		return project.getDataModelProject() //
 				.thenApply(dataModel -> {
 					if (dataModel == null) {
@@ -1359,4 +1374,5 @@ public class QuteProjectRegistry
 	public CompletableFuture<String> getJavadoc(QuteJavadocParams params) {
 		return javadocProvider.getJavadoc(params);
 	}
+
 }

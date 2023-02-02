@@ -106,7 +106,7 @@ public class QuteAssert {
 
 	private static final String FILE_URI = "test.qute";
 
-	public static final int SECTION_SNIPPET_SIZE = 15 /* #each, #for, ... #fragment ... */ + 3 /* #user, #formElement */;
+	public static final int SECTION_SNIPPET_SIZE = 15 /* #each, #for, ... #fragment ... */ + 6 /* #input, #form, #title, #simpleTitle, #user, #formElement */;
 
 	public static String getFileUri(String templateFile) {
 		return Paths.get(TEMPLATE_BASE_DIR + templateFile).toUri().toString();

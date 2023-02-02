@@ -22,7 +22,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.redhat.qute.commons.JavaFieldInfo;
-import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;

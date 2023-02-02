@@ -122,7 +122,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 
 	@Override
 	public void didSave(DidSaveTextDocumentParams params) {
-
+		documents.onDidSaveTextDocument(params);
 	}
 
 	@Override
@@ -161,7 +161,8 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 					// Cancel checker is not passed to doCodeActions, since code actions don't yet
 					// need to interact with JDT/editor
 					return getQuteLanguageService()
-							.doCodeActions(template, params.getContext(), getLanguageClient(), params.getRange(), sharedSettings) //
+							.doCodeActions(template, params.getContext(), getLanguageClient(), params.getRange(),
+									sharedSettings) //
 							.thenApply(codeActions -> {
 								cancelChecker.checkCanceled();
 								return codeActions.stream() //
@@ -293,7 +294,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 					return hints;
 				});
 	}
-	
+
 	@Override
 	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction codeAction) {
 		return getQuteLanguageService().resolveCodeAction(codeAction, getLanguageClient());

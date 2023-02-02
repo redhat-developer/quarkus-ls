@@ -11,7 +11,12 @@
 *******************************************************************************/
 package com.redhat.qute.project.tags;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.file.Path;
+
+import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.utils.IOUtils;
 
 /**
  * Source user tag.
@@ -23,8 +28,8 @@ public class SourceUserTag extends UserTag {
 
 	private final Path path;
 
-	public SourceUserTag(String fileName, Path path) {
-		super(fileName);
+	public SourceUserTag(String fileName, Path path, QuteProject project) {
+		super(fileName, project);
 		this.path = path;
 	}
 
@@ -40,5 +45,16 @@ public class SourceUserTag extends UserTag {
 	 */
 	public Path getPath() {
 		return path;
+	}
+
+	@Override
+	public String getContent() {
+		try (InputStream input = new FileInputStream(path.toFile())) {
+			return IOUtils.convertStreamToString(input);
+
+		} catch (Exception e) {
+
+		}
+		return null;
 	}
 }
