@@ -12,6 +12,7 @@
 package com.redhat.qute.services.codeactions;
 
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.Position;
 
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.api.QuteTemplateJavaTextEditProvider;
@@ -19,6 +20,7 @@ import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.services.AbstractPositionRequest;
 import com.redhat.qute.services.diagnostics.DiagnosticDataFactory;
 import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
 import com.redhat.qute.settings.SharedSettings;
@@ -30,7 +32,7 @@ import com.redhat.qute.utils.QutePositionUtility;
  * @author Angelo ZERR
  *
  */
-public class CodeActionRequest {
+public class CodeActionRequest extends AbstractPositionRequest {
 
 	private final Template template;
 
@@ -43,8 +45,10 @@ public class CodeActionRequest {
 
 	private ResolvedJavaTypeInfo resolvedType;
 
-	public CodeActionRequest(Template template, Diagnostic diagnostic, QuteTemplateJavaTextEditProvider javaTextEditProvider,
-			SharedSettings sharedSettings) {
+	public CodeActionRequest(Template template, Position position, Diagnostic diagnostic,
+			QuteTemplateJavaTextEditProvider javaTextEditProvider,
+			SharedSettings sharedSettings) throws BadLocationException {
+		super(template, position);
 		this.template = template;
 		this.diagnostic = diagnostic;
 		this.javaTextEditProvider = javaTextEditProvider;
@@ -105,6 +109,16 @@ public class CodeActionRequest {
 			resolvedType = javaCache.resolveJavaType(signature, projectUri).getNow(null);
 		}
 		return resolvedType;
+	}
+
+	@Override
+	protected Node doFindNodeAt(Template template, int offset) {
+		Node node = template.findNodeBefore(offset);
+		if (node == null) {
+			return null;
+		}
+		Node coveredNodeAtOffset = QutePositionUtility.findBestNode(offset, node);
+		return coveredNodeAtOffset;
 	}
 
 }

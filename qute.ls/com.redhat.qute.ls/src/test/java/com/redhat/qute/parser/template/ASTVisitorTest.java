@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.parser.template.sections.LetSection;
+import com.redhat.qute.services.diagnostics.CollectHtmlInputNamesVisitor;
 
 /**
  * AST visitor tests
@@ -42,7 +43,7 @@ public class ASTVisitorTest {
 				visitor.getObjectPartNames().toArray());
 
 	}
-	
+
 	@Test
 	public void visitFromLet() {
 		String content = "{item.name}\r\n" + //
@@ -54,14 +55,29 @@ public class ASTVisitorTest {
 				"{\\let}  \r\n" + "";
 		Template template = TemplateParser.parse(content, "test.qute");
 		LetSection section = (LetSection) template.findNodeAt(33);
-		
-		
+
 		CollectObjectPartNameASTVisitor visitor = new CollectObjectPartNameASTVisitor();
 		section.accept(visitor);
 
 		Assertions.assertArrayEquals(new String[] { "bar", "root", "value" },
 				visitor.getObjectPartNames().toArray());
 
+	}
+
+	@Test
+	public void visitFromInput() {
+		String content = "{#form uri:Login.manualLogin() id=\"login\"}\r\n" + //
+				"  <input name=\"userName\" >\r\n" + //
+				"  <input name=\"password\" >\r\n" + //
+				"{/form}";
+		Template template = TemplateParser.parse(content, "test.qute");
+		Section section = (Section) template.findNodeAt(5);
+
+		CollectHtmlInputNamesVisitor visitor = new CollectHtmlInputNamesVisitor();
+		section.accept(visitor);
+
+		Assertions.assertArrayEquals(new String[] { "userName", "password" },
+				visitor.getHtmlInputNames().toArray());
 	}
 
 }

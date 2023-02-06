@@ -306,7 +306,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 				renardeLogin);
 		manualLoginMethod.setJaxRsMethodKind(JaxRsMethodKind.POST);
 		Map<String, RestParam> restParameters = new HashMap<>();
-		restParameters.put("userName", new RestParam("userName", JaxRsParamKind.FORM, false));
+		restParameters.put("userName", new RestParam("userName", JaxRsParamKind.FORM, true));
 		restParameters.put("password", new RestParam("password", JaxRsParamKind.FORM, false));
 		manualLoginMethod.setRestParameters(restParameters);
 
