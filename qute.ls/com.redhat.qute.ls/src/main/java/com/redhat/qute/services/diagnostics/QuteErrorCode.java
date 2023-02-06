@@ -84,6 +84,9 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	
 	MissingRequiredParameter("Missing required parameter `{0}` of `{1}` user tag."), //
 	
+	// Error code for #form section
+	MissingExpectedInput("Missing expected input(s) `{0}`."), //
+
 	SyntaxError("Syntax error: `{0}`.");
 
 	private final String rawMessage;

@@ -21,6 +21,7 @@ import static com.redhat.qute.utils.UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +42,8 @@ import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
+import com.redhat.qute.commons.jaxrs.RestParam;
 import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
@@ -71,6 +74,7 @@ import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.project.indexing.QuteIndex;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
+import com.redhat.qute.services.diagnostics.CollectHtmlInputNamesVisitor;
 import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
 import com.redhat.qute.services.diagnostics.QuteDiagnosticsForSyntax;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
@@ -90,6 +94,8 @@ import com.redhat.qute.utils.UserTagUtils;
 class QuteDiagnostics {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteDiagnostics.class.getName());
+
+	private static final String FORM_SECTION_TAG = "form";
 
 	private final JavaDataModelCache javaCache;
 
@@ -391,7 +397,7 @@ class QuteDiagnostics {
 							}
 						}
 					}
-					
+
 					// Check if all required parameters are declared
 					for (UserTagParameter parameter : userTag.getParameters()) {
 						String paramName = parameter.getName();
@@ -465,6 +471,54 @@ class QuteDiagnostics {
 			Range range = QutePositionUtility.selectStartTagName(includeSection);
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.TemplateNotDefined);
 			diagnostics.add(diagnostic);
+		}
+	}
+
+	/**
+	 * Validate Renarde #form section.
+	 *
+	 * @param section           the form section
+	 * @param javaMemberInfo    the information on the method referenced in the form
+	 *                          section.
+	 * @param baseTypeSignature the base type of the method referenced in the form
+	 *                          section.
+	 * @param diagnostics       the diagnostics.
+	 */
+	private static void validateRenardeFormSectionParameters(Section section, JavaMemberInfo javaMemberInfo,
+			String baseTypeSignature, List<Diagnostic> diagnostics) {
+		if (javaMemberInfo == null) {
+			return;
+		}
+		JavaMethodInfo method = (JavaMethodInfo) javaMemberInfo;
+
+		Collection<RestParam> restParams = method.getRestParameters();
+		if (restParams.isEmpty()) {
+			return;
+		}
+		// Collect the @RestForm parameters
+		List<RestParam> formParams = restParams.stream()
+				.filter(p -> p.getParameterKind() == JaxRsParamKind.FORM)
+				.collect(Collectors.toList());
+		if (formParams.isEmpty()) {
+			return;
+		}
+
+		// Collect all html input elements from the text nodes inside #form section
+		CollectHtmlInputNamesVisitor visitor = new CollectHtmlInputNamesVisitor();
+		section.accept(visitor);
+		List<String> existingInputNames = visitor.getHtmlInputNames();
+
+		// Validate @RestForm parameters
+		for (RestParam param : formParams) {
+			if (param.isRequired()) {
+				if (existingInputNames == null || !existingInputNames.contains(param.getName())) {
+					Range range = QutePositionUtility.selectStartTagName(section);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
+							QuteErrorCode.MissingExpectedInput, param.getName());
+					diagnostic.setData(new JavaBaseTypeOfPartData(baseTypeSignature));
+					diagnostics.add(diagnostic);
+				}
+			}
 		}
 	}
 
@@ -1072,6 +1126,10 @@ class QuteDiagnostics {
 
 		if (method.isVoidMethod()) {
 			return null;
+		}
+		if (ownerSection != null && FORM_SECTION_TAG.equals(ownerSection.getTag())) {
+			validateRenardeFormSectionParameters(ownerSection, result.getMember(), baseType.getSignature(),
+					diagnostics);
 		}
 		String memberType = method.resolveJavaElementType(iterableOfType);
 		return validateJavaTypePart(methodPart, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext,

@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
@@ -25,10 +27,12 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Range;
 
 import com.redhat.qute.ls.api.QuteTemplateJavaTextEditProvider;
+import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.codeactions.CodeActionRequest;
+import com.redhat.qute.services.codeactions.QuteCodeActionForMissingInputs;
 import com.redhat.qute.services.codeactions.QuteCodeActionForUndefinedNamespace;
 import com.redhat.qute.services.codeactions.QuteCodeActionForUndefinedObject;
 import com.redhat.qute.services.codeactions.QuteCodeActionForUndefinedSectionTag;
@@ -45,6 +49,11 @@ import com.redhat.qute.settings.SharedSettings;
  *
  */
 class QuteCodeActions {
+
+	private static final Logger LOGGER = Logger.getLogger(QuteCodeActions.class.getName());
+
+	private static CompletableFuture<List<CodeAction>> NO_CODEACTION = CompletableFuture
+			.completedFuture(Collections.emptyList());
 
 	// Enable/Disable Qute validation
 
@@ -66,12 +75,15 @@ class QuteCodeActions {
 
 	private final QuteCodeActionForUndefinedSectionTag codeActionForUndefinedSectionTag;
 
+	private final QuteCodeActionForMissingInputs codeActionForMissingInputs;
+
 	public QuteCodeActions(JavaDataModelCache javaCache) {
 		this.codeActionForUndefinedObject = new QuteCodeActionForUndefinedObject(javaCache);
 		this.codeActionForUndefinedNamespace = new QuteCodeActionForUndefinedNamespace(javaCache);
 		this.codeActionForUnknownProperty = new QuteCodeActionForUnknownProperty(javaCache);
 		this.codeActionForUnknownMethod = new QuteCodeActionForUnknownMethod(javaCache);
 		this.codeActionForUndefinedSectionTag = new QuteCodeActionForUndefinedSectionTag(javaCache);
+		this.codeActionForMissingInputs = new QuteCodeActionForMissingInputs(javaCache);
 	}
 
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
@@ -86,39 +98,60 @@ class QuteCodeActions {
 		for (Diagnostic diagnostic : diagnostics) {
 			QuteErrorCode errorCode = QuteErrorCode.getErrorCode(diagnostic.getCode());
 			if (errorCode != null) {
-				CodeActionRequest request = new CodeActionRequest(template, diagnostic, javaTextEditProvider, sharedSettings);
-				switch (errorCode) {
-				case UndefinedObject:
-					// The following Qute template:
-					// {undefinedObject}
-					//
-					// will provide a quickfix like:
-					//
-					// Declare `undefinedObject` with parameter declaration."
-					codeActionForUndefinedObject.doCodeActions(request, codeActionResolveFutures, codeActions);
-					break;
-				case UndefinedNamespace:
-					// The following Qute template:
-					// {undefinedNamespace:xyz}
-					codeActionForUndefinedNamespace.doCodeActions(request, codeActionResolveFutures, codeActions);
-					break;
-				case UnknownProperty:
-					codeActionForUnknownProperty.doCodeActions(request, codeActionResolveFutures, codeActions);
-					break;
-				case UnknownMethod:
-					codeActionForUnknownMethod.doCodeActions(request, codeActionResolveFutures, codeActions);
-					break;
-				case UndefinedSectionTag:
-					// The following Qute template:
-					// {#undefinedTag }
-					//
-					// will provide a quickfix like:
-					//
-					// Create `undefinedTag`"
-					codeActionForUndefinedSectionTag.doCodeActions(request, codeActionResolveFutures, codeActions);
-					break;
-				default:
-					break;
+				try {
+					CodeActionRequest request = new CodeActionRequest(template, range.getEnd(), diagnostic,
+							javaTextEditProvider, sharedSettings);
+					switch (errorCode) {
+					case UndefinedObject:
+						// The following Qute template:
+						// {undefinedObject}
+						//
+						// will provide a quickfix like:
+						//
+						// Declare `undefinedObject` with parameter declaration."
+						codeActionForUndefinedObject.doCodeActions(request, codeActionResolveFutures, codeActions);
+						break;
+					case UndefinedNamespace:
+						// The following Qute template:
+						// {undefinedNamespace:xyz}
+						codeActionForUndefinedNamespace.doCodeActions(request, codeActionResolveFutures,
+								codeActions);
+						break;
+					case UnknownProperty:
+						codeActionForUnknownProperty.doCodeActions(request, codeActionResolveFutures, codeActions);
+						break;
+					case UnknownMethod:
+						codeActionForUnknownMethod.doCodeActions(request, codeActionResolveFutures, codeActions);
+						break;
+					case UndefinedSectionTag:
+						// The following Qute template:
+						// {#undefinedTag }
+						//
+						// will provide a quickfix like:
+						//
+						// Create `undefinedTag`"
+						codeActionForUndefinedSectionTag.doCodeActions(request, codeActionResolveFutures,
+								codeActions);
+						break;
+					case MissingExpectedInput:
+						// The following Qute template:
+						// {#form uri:Login.manualLogin() id="login"}
+						//
+						// {/form}
+						// with some required inputs to be defined within the form section
+						// will provide 2 quickfixs:
+						//
+						// Insert required input forms
+						// Insert all input forms
+						codeActionForMissingInputs.doCodeActions(request, codeActionResolveFutures, codeActions);
+						break;
+					default:
+						break;
+					}
+				} catch (BadLocationException e) {
+					LOGGER.log(Level.SEVERE, "Failed creating CodeAction Request", e);
+					return NO_CODEACTION;
+					// Do nothing
 				}
 			}
 		}
