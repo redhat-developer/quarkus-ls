@@ -14,9 +14,10 @@ package com.redhat.qute.services.completions;
 import static com.redhat.qute.parser.template.Section.isCaseSection;
 import static com.redhat.qute.project.datamodel.resolvers.ValueResolver.MATCH_NAME_ANY;
 import static com.redhat.qute.services.QuteCompletions.EMPTY_FUTURE_COMPLETION;
+import static com.redhat.qute.utils.UserTagUtils.IT_OBJECT_PART_NAME;
+import static com.redhat.qute.utils.UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -658,11 +659,38 @@ public class QuteCompletionsForExpression {
 		int partStart = part != null && part.getKind() != NodeKind.Text ? part.getStart() : offset;
 		int partEnd = part != null && part.getKind() != NodeKind.Text ? part.getEnd() : offset;
 		Range range = QutePositionUtility.createRange(partStart, partEnd, template);
-		boolean isCaseSection = isInCaseSection(expression);
+
+		Section userTagSection = null;
+		UserTag userTag = null;
+
+		// Completion on data model is available if
+		// - 1) section is not a #case
+		// - 2) section is a user tag and completion is triggered on 'it' parameter
+		// - 3) other section
+
+		// Check 1) section is not a #case
+		boolean completionOnDataModel = !isInCaseSection(expression);
+		if (completionOnDataModel) {
+			// Check 2) section is a user tag and completion is triggered on 'it' parameter
+			userTagSection = getUserTagSection(expression);
+			if (userTagSection != null) {
+				// for user tag, completion on data model is available only if completion is
+				// triggered on 'it' parameter
+				QuteProject project = template.getProject();
+				if (project != null) {
+					String tagName = userTagSection.getTag();
+					userTag = project.findUserTag(tagName);
+				}
+				completionOnDataModel = isInUserTagItParameter(userTagSection, userTag, completionRequest);
+			} else {
+				// 3) other section
+				completionOnDataModel = true;
+			}
+		}
+
 		Set<CompletionItem> completionItems = new HashSet<>();
 
-		// Don't complete if in #is or #case section
-		if (!isCaseSection) {
+		if (completionOnDataModel) {
 			// Completion with namespace resolver
 			// {data:item}
 			// {inject:bean}
@@ -672,7 +700,7 @@ public class QuteCompletionsForExpression {
 
 		if (namespace == null) {
 			// Completion is triggered before the namespace
-			if (!isCaseSection) {
+			if (completionOnDataModel) {
 				// Collect global variable
 				doCompleteExpressionForObjectPartWithGlobalVariables(template, range, completionItems);
 				// Collect alias declared from parameter declaration
@@ -696,39 +724,32 @@ public class QuteCompletionsForExpression {
 			}
 
 			// Check if it is user tag section
-			Section section = getUserTagSection(expression);
-			if (section != null) {
-				QuteProject project = template.getProject();
-				if (project != null) {
-					String tagName = section.getTag();
-					UserTag userTag = project.findUserTag(tagName);
-					if (userTag != null) {
-						Collection<UserTagParameter> parameters = userTag.getParameters();
-						List<String> globalVariables = null;
-						for (UserTagParameter parameter : parameters) {
-							String paramName = parameter.getPartName();
-							if (!UserTagUtils.IT_OBJECT_PART_NAME.equals(paramName)
-									&& !UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME.equals(paramName)) {
-								if (globalVariables == null) {
-									List<ValueResolver> resolvers = javaCache
-											.getGlobalVariables(template.getProjectUri());
-									globalVariables = resolvers != null ? resolvers.stream()
-											.map(ValueResolver::getName).collect(Collectors.toList())
-											: Collections.emptyList();
-								}
-								if (!section.hasParameter(paramName) && !globalVariables.contains(paramName)) {
-									CompletionItem item = new CompletionItem();
-									item.setLabel(paramName);
-									item.setKind(CompletionItemKind.Property);
-									TextEdit textEdit = new TextEdit(range,
-											createUserTagParameterSnippet(parameter, completionSettings));
-									item.setTextEdit(Either.forLeft(textEdit));
-									item.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported()
-											? InsertTextFormat.Snippet
-											: InsertTextFormat.PlainText);
-									completionItems.add(item);
-								}
-							}
+			if (userTag != null && userTagSection != null) {
+				// Completion for user tag parameters
+				// {#input |
+				// should return all parameter names declared in input.html file as object part
+				Collection<UserTagParameter> parameters = userTag.getParameters();
+
+				// Loop for allowed user tag parameters
+				for (UserTagParameter parameter : parameters) {
+					String paramName = parameter.getName();
+					if (!IT_OBJECT_PART_NAME.equals(paramName)
+							&& !NESTED_CONTENT_OBJECT_PART_NAME.equals(paramName)) {
+						// The parameter is different from 'it' and 'nested-content'.
+
+						// Show the user tag parameter only if the section has not already declared the
+						// parameter
+						if (!userTagSection.hasParameter(paramName)) {
+							CompletionItem item = new CompletionItem();
+							item.setLabel(paramName);
+							item.setKind(CompletionItemKind.Property);
+							TextEdit textEdit = new TextEdit(range,
+									createUserTagParameterSnippet(parameter, completionSettings));
+							item.setTextEdit(Either.forLeft(textEdit));
+							item.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported()
+									? InsertTextFormat.Snippet
+									: InsertTextFormat.PlainText);
+							completionItems.add(item);
 						}
 					}
 				}
@@ -780,6 +801,41 @@ public class QuteCompletionsForExpression {
 			return section;
 		}
 		return null;
+	}
+
+	/**
+	 * Returns true if the completion is triggered in a parameter of the given user
+	 * tag which have no value and false otherwise.
+	 * 
+	 * <code>
+	 *    {#form uri:| }
+	 *  </code>
+	 * 
+	 * @param userTagSection    the user tag section.
+	 * @param userTag           the user tag.
+	 * @param completionRequest the completion request.
+	 * @return true if the completion is triggered in a parameter of the given user
+	 *         tag which have no value and false otherwise.
+	 */
+	private static boolean isInUserTagItParameter(Section userTagSection, UserTag userTag,
+			CompletionRequest completionRequest) {
+		if (userTag == null) {
+			return false;
+		}
+		UserTagParameter it = userTag.findParameter(IT_OBJECT_PART_NAME);
+		if (it == null) {
+			// The user tag doesn't define 'it' parameter
+			return false;
+		}
+		List<Parameter> parameters = userTagSection.getParameters();
+		for (Parameter parameter : parameters) {
+			if (!parameter.hasValueAssigned()) {
+				// Return true if the offset is in the it parameter and false otherwise.
+				// {#form uri:| }
+				return completionRequest == null || parameter.isInName(completionRequest.getOffset());
+			}
+		}
+		return true;
 	}
 
 	private static boolean isInCaseSection(Expression expression) {

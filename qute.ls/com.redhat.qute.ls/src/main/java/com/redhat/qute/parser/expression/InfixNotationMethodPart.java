@@ -29,6 +29,9 @@ import java.util.Map;
  */
 public class InfixNotationMethodPart extends MethodPart {
 
+	private static final String ELVIS_OPERATOR = "?:";
+	private static final String OR_OPERATOR = "or";
+
 	private static final Map<String, String> operators;
 
 	static {
@@ -36,7 +39,7 @@ public class InfixNotationMethodPart extends MethodPart {
 		operators = new HashMap<>();
 		// Elvis Operator: {person.name ?: 'John'}, {person.name or 'John'},
 		// {person.name.or('John')}
-		operators.put("?:", "or");
+		operators.put(ELVIS_OPERATOR, OR_OPERATOR);
 		// Ternary Operator: {item.isActive ? item.name : 'Inactive item'} outputs the
 		// value of item.name if item.isActive resolves to true.
 		operators.put("?", "ifTruthy");
@@ -87,5 +90,11 @@ public class InfixNotationMethodPart extends MethodPart {
 	@Override
 	public boolean isOperator() {
 		return operators.containsKey(getPartName());
+	}
+
+	@Override
+	public boolean isOrOperator() {
+		String partName = getPartName();
+		return ELVIS_OPERATOR.equals(partName) || OR_OPERATOR.equals(partName);
 	}
 }

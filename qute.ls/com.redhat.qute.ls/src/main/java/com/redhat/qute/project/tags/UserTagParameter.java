@@ -11,8 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.project.tags;
 
-import com.redhat.qute.parser.expression.ObjectPart;
-
 /**
  * User tag parameter information.
  * 
@@ -21,21 +19,12 @@ import com.redhat.qute.parser.expression.ObjectPart;
  */
 public class UserTagParameter {
 
-	private final ObjectPart part;
+	private final String name;
 
 	private boolean required;
 
-	public UserTagParameter(ObjectPart part) {
-		this.part = part;
-	}
-
-	/**
-	 * Returns the object part where the user tag parameter is declared.
-	 * 
-	 * @return the object part where the user tag parameter is declared.
-	 */
-	public ObjectPart getPart() {
-		return part;
+	public UserTagParameter(String name) {
+		this.name = name;
 	}
 
 	/**
@@ -61,7 +50,7 @@ public class UserTagParameter {
 	 * 
 	 * @return the user tag parameter name.
 	 */
-	public String getPartName() {
-		return part.getPartName();
+	public String getName() {
+		return name;
 	}
 }
