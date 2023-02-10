@@ -236,6 +236,15 @@ public class MethodPart extends MemberPart implements ParametersContainer {
 		return false;
 	}
 
+	/**
+	 * Returns true if the method part is an or operator and false otherwise.
+	 * 
+	 * @return true if the method part is an or operator and false otherwise.
+	 */
+	public boolean isOrOperator() {
+		return false;
+	}
+	
 	@Override
 	public String getTemplateContent() {
 		return getOwnerTemplate().getText();

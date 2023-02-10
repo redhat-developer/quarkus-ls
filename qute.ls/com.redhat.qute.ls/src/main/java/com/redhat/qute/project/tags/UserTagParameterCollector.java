@@ -24,6 +24,8 @@ import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.ASTVisitor;
+import com.redhat.qute.parser.template.Expression;
+import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.sections.IfSection;
@@ -133,6 +135,17 @@ public class UserTagParameterCollector extends ASTVisitor {
 	}
 
 	@Override
+	public boolean visit(MethodPart node) {
+		for (Parameter parameter : node.getParameters()) {
+			Expression expression = parameter.getJavaTypeExpression();
+			if (expression != null) {
+				expression.accept(this);
+			}
+		}
+		return super.visit(node);
+	}
+
+	@Override
 	public boolean visit(ObjectPart node) {
 		if (isValid(node)) {
 			String partName = node.getPartName();
@@ -146,7 +159,7 @@ public class UserTagParameterCollector extends ASTVisitor {
 			// Get or create the user tag parameter
 			UserTagParameter parameter = parameters.get(partName);
 			if (parameter == null) {
-				parameter = new UserTagParameter(node);
+				parameter = new UserTagParameter(partName);
 				parameters.put(partName, parameter);
 			}
 			// Compute required flag if needed
@@ -165,7 +178,7 @@ public class UserTagParameterCollector extends ASTVisitor {
 						Part next = parts.getChild(index + 1);
 						if (next != null && next.getPartKind() == PartKind.Method) {
 							MethodPart methodPart = (MethodPart) next;
-							if (("?:".equals(methodPart.getPartName()) || "or".equals(methodPart.getPartName()))) {
+							if (methodPart.isOrOperator()) {
 								required = false;
 							}
 						}
@@ -184,7 +197,7 @@ public class UserTagParameterCollector extends ASTVisitor {
 			// ex : {uri:Login....}
 			// The object part have a namespace,ignore it
 			return false;
-		}
+		}		
 		if (globalVariables == null) {
 			List<ValueResolver> resolvers = QuteProjectRegistry.getGlobalVariables(project).getNow(null);
 			globalVariables = resolvers != null ? resolvers.stream()
@@ -194,6 +207,10 @@ public class UserTagParameterCollector extends ASTVisitor {
 		if (globalVariables.contains(node.getPartName())) {
 			// The object part is a global variable declared in Java with @TemplateGlobal,
 			// ignore it
+			return false;
+		}
+		if (LiteralSupport.getLiteralJavaType(node.getPartName()) != null) {
+			// The part is a number, boolean, etc, ignore it
 			return false;
 		}
 		return true;

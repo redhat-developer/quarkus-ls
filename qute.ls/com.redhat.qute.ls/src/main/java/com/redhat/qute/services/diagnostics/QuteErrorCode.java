@@ -78,6 +78,12 @@ public enum QuteErrorCode implements IQuteErrorCode {
 
 	UndefinedSectionTag("No section helper found for `{0}`."), //
 
+	UndefinedUserTagParameter("No parameter `{0}` found for `{1}` user tag."), //
+	
+	TooManyUserTagItParameter("Too many `it` parameter declared in `{0}` user tag."), //
+	
+	RequiredUserTagParameter("Missing required parameter `{0}` of `{1}` user tag."), //
+	
 	SyntaxError("Syntax error: `{0}`.");
 
 	private final String rawMessage;

@@ -15,6 +15,8 @@ import static com.redhat.qute.parser.template.Section.isWhenSection;
 import static com.redhat.qute.services.ResolvingJavaTypeContext.RESOLVING_JAVA_TYPE;
 import static com.redhat.qute.services.ResolvingJavaTypeContext.isResolvingJavaType;
 import static com.redhat.qute.services.diagnostics.DiagnosticDataFactory.createDiagnostic;
+import static com.redhat.qute.utils.UserTagUtils.IT_OBJECT_PART_NAME;
+import static com.redhat.qute.utils.UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,6 +70,7 @@ import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.project.indexing.QuteIndex;
 import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.tags.UserTagParameter;
 import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
 import com.redhat.qute.services.diagnostics.QuteDiagnosticsForSyntax;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
@@ -206,100 +209,103 @@ class QuteDiagnostics {
 		List<Node> children = parent.getChildren();
 		for (Node node : children) {
 			switch (node.getKind()) {
-			case ParameterDeclaration: {
-				ParameterDeclaration parameter = (ParameterDeclaration) node;
-				validateParameterDeclaration(parameter, template, projectUri, resolvingJavaTypeContext, currentContext,
-						diagnostics);
-				break;
-			}
-			case Section: {
-				Section section = (Section) node;
-				if (canChangeContext(section)) {
-					currentContext = new ResolutionContext(currentContext);
+				case ParameterDeclaration: {
+					ParameterDeclaration parameter = (ParameterDeclaration) node;
+					validateParameterDeclaration(parameter, template, projectUri, resolvingJavaTypeContext,
+							currentContext,
+							diagnostics);
+					break;
 				}
-				List<Parameter> parameters = section.getParameters();
-				// validate expression parameters
-				boolean checkValidOperator = section.getSectionKind() == SectionKind.IF;
-				boolean shouldBeAnOperator = false;
-				for (Parameter parameter : parameters) {
-					if (shouldBeAnOperator) {
-						// #if section, the current parameter name must be an operator
-						String operatorName = parameter.getName();
-						if (!section.isValidOperator(operatorName)) {
-							Range range = QutePositionUtility.createRange(parameter);
-							Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-									QuteErrorCode.InvalidOperator, operatorName, section.getTag(),
-									section.getAllowedOperators() //
-											.stream() //
-											.map(Operator::getName) //
-											.collect(Collectors.joining(",", "[", "]")));
-							diagnostics.add(diagnostic);
-						}
-					} else {
-						Expression expression = parameter.getJavaTypeExpression();
-						if (expression != null) {
-							// Validate object, property, method parts from the expression
-							ResolvedJavaTypeInfo result = validateExpression(expression, section, template,
-									validationSettings, filter, previousContext, resolvingJavaTypeContext, diagnostics);
-							switch (section.getSectionKind()) {
-							case FOR:
-							case EACH:
-								String alias = ((LoopSection) section).getAlias();
-								currentContext.put(alias, result);
-								break;
-							case WITH:
-								currentContext.setWithObject(result);
-								break;
-							case LET:
-							case SET:
-								currentContext.put(parameter.getName(), result);
-								break;
-							case SWITCH:
-							case WHEN:
-								currentContext.setWhenObject(result);
-								break;
-							default:
+				case Section: {
+					Section section = (Section) node;
+					if (canChangeContext(section)) {
+						currentContext = new ResolutionContext(currentContext);
+					}
+					List<Parameter> parameters = section.getParameters();
+					// validate expression parameters
+					boolean checkValidOperator = section.getSectionKind() == SectionKind.IF;
+					boolean shouldBeAnOperator = false;
+					for (Parameter parameter : parameters) {
+						if (shouldBeAnOperator) {
+							// #if section, the current parameter name must be an operator
+							String operatorName = parameter.getName();
+							if (!section.isValidOperator(operatorName)) {
+								Range range = QutePositionUtility.createRange(parameter);
+								Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+										QuteErrorCode.InvalidOperator, operatorName, section.getTag(),
+										section.getAllowedOperators() //
+												.stream() //
+												.map(Operator::getName) //
+												.collect(Collectors.joining(",", "[", "]")));
+								diagnostics.add(diagnostic);
+							}
+						} else {
+							Expression expression = parameter.getJavaTypeExpression();
+							if (expression != null) {
+								// Validate object, property, method parts from the expression
+								ResolvedJavaTypeInfo result = validateExpression(expression, section, template,
+										validationSettings, filter, previousContext, resolvingJavaTypeContext,
+										diagnostics);
+								switch (section.getSectionKind()) {
+									case FOR:
+									case EACH:
+										String alias = ((LoopSection) section).getAlias();
+										currentContext.put(alias, result);
+										break;
+									case WITH:
+										currentContext.setWithObject(result);
+										break;
+									case LET:
+									case SET:
+										currentContext.put(parameter.getName(), result);
+										break;
+									case SWITCH:
+									case WHEN:
+										currentContext.setWhenObject(result);
+										break;
+									default:
+								}
 							}
 						}
+						shouldBeAnOperator = checkValidOperator && !shouldBeAnOperator;
 					}
-					shouldBeAnOperator = checkValidOperator && !shouldBeAnOperator;
+					switch (section.getSectionKind()) {
+						case INCLUDE:
+							validateIncludeSection((IncludeSection) section, diagnostics);
+							break;
+						case CASE:
+						case IS:
+							// Ex: {#switch person.name} --> person.name is of type String
+							// {#case 'John'} --> Ensure type of part ('John') inside #case section matches
+							// #switch
+							// {#case 123} --> Report unexpected type here, expected String but was Integer
+							// {/switch}
+							Section parentSection = section.getParentSection();
+							if (!isWhenSection(parentSection)) {
+								Range range = QutePositionUtility.selectStartTagName(section);
+								Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+										QuteErrorCode.InvalidParentInCaseSection, section.getTag());
+								diagnostics.add(diagnostic);
+							} else {
+								ResolvedJavaTypeInfo whenJavaType = currentContext.whenObject;
+								if (whenJavaType != null) {
+									validateCaseSectionParameters((CaseSection) section, parentSection, template,
+											whenJavaType,
+											projectUri, diagnostics);
+								}
+							}
+							break;
+						default:
+							validateSectionTag(section, template, resolvingJavaTypeContext, diagnostics);
+					}
+					break;
 				}
-				switch (section.getSectionKind()) {
-				case INCLUDE:
-					validateIncludeSection((IncludeSection) section, diagnostics);
+				case Expression: {
+					validateExpression((Expression) node, null, template, validationSettings, filter, previousContext,
+							resolvingJavaTypeContext, diagnostics);
 					break;
-				case CASE:
-				case IS:
-					// Ex: {#switch person.name} --> person.name is of type String
-					// {#case 'John'} --> Ensure type of part ('John') inside #case section matches
-					// #switch
-					// {#case 123} --> Report unexpected type here, expected String but was Integer
-					// {/switch}
-					Section parentSection = section.getParentSection();
-					if (!isWhenSection(parentSection)) {
-						Range range = QutePositionUtility.selectStartTagName(section);
-						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-								QuteErrorCode.InvalidParentInCaseSection, section.getTag());
-						diagnostics.add(diagnostic);
-					} else {
-						ResolvedJavaTypeInfo whenJavaType = currentContext.whenObject;
-						if (whenJavaType != null) {
-							validateCaseSectionParameters((CaseSection) section, parentSection, template, whenJavaType,
-									projectUri, diagnostics);
-						}
-					}
-					break;
+				}
 				default:
-					validateSectionTag(section, template, resolvingJavaTypeContext, diagnostics);
-				}
-				break;
-			}
-			case Expression: {
-				validateExpression((Expression) node, null, template, validationSettings, filter, previousContext,
-						resolvingJavaTypeContext, diagnostics);
-				break;
-			}
-			default:
 			}
 			validateDataModel(node, template, validationSettings, nativeImagesSettings, resolvingJavaTypeContext,
 					currentContext, diagnostics);
@@ -361,6 +367,59 @@ class QuteDiagnostics {
 				// Check if section tag is an user tag
 				UserTag userTag = project.findUserTag(tagName);
 				if (userTag != null) {
+					// Validate parameters of user tag
+
+					boolean hasIt = userTag.findParameter(IT_OBJECT_PART_NAME) != null;
+					boolean declaredIt = false;
+					// Check if the parameter exists
+					for (Parameter parameter : section.getParameters()) {
+						if (!parameter.hasValueAssigned()) {
+							// it validation
+							if (!hasIt) {
+								Range range = QutePositionUtility.selectParameterName(parameter);
+								Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
+										QuteErrorCode.UndefinedUserTagParameter, IT_OBJECT_PART_NAME, tagName);
+								diagnostics.add(diagnostic);
+							} else {
+								if (declaredIt) {
+									Range range = QutePositionUtility.selectParameterName(parameter);
+									Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
+											QuteErrorCode.TooManyUserTagItParameter, tagName);
+									diagnostics.add(diagnostic);
+								} else {
+									declaredIt = true;
+								}
+							}
+						} else {
+							String paramName = parameter.getName();
+							UserTagParameter userTagParameter = userTag.findParameter(paramName);
+							if (userTagParameter == null) {
+								Range range = QutePositionUtility.selectParameterName(parameter);
+								Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
+										QuteErrorCode.UndefinedUserTagParameter, paramName, tagName);
+								diagnostics.add(diagnostic);
+							}
+						}
+					}
+					// Check if all required parameters are declared
+					for (UserTagParameter parameter : userTag.getParameters()) {
+						String paramName = parameter.getName();
+						if (IT_OBJECT_PART_NAME.equals(paramName)) {
+							if (parameter.isRequired() && !declaredIt) {
+								Range range = QutePositionUtility.selectStartTagName(section);
+								Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
+										QuteErrorCode.RequiredUserTagParameter, paramName, tagName);
+								diagnostics.add(diagnostic);
+							}
+						} else if (NESTED_CONTENT_OBJECT_PART_NAME.equals(paramName)) {
+							// Do nothing
+						} else if (parameter.isRequired() && !section.hasParameter(paramName)) {
+							Range range = QutePositionUtility.selectStartTagName(section);
+							Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
+									QuteErrorCode.RequiredUserTagParameter, paramName, tagName);
+							diagnostics.add(diagnostic);
+						}
+					}
 					return;
 				}
 
@@ -387,6 +446,7 @@ class QuteDiagnostics {
 				diagnostics.add(diagnostic);
 			}
 		}
+
 	}
 
 	private static boolean canChangeContext(Section section) {
@@ -492,39 +552,41 @@ class QuteDiagnostics {
 
 			switch (current.getPartKind()) {
 
-			case Namespace: {
-				NamespacePart namespacePart = (NamespacePart) current;
-				namespace = validateNamespace(namespacePart, projectUri, validationSettings, resolvingJavaTypeContext,
-						diagnostics);
-				if (namespace == null) {
-					// Invalid namespace
-					return null;
+				case Namespace: {
+					NamespacePart namespacePart = (NamespacePart) current;
+					namespace = validateNamespace(namespacePart, projectUri, validationSettings,
+							resolvingJavaTypeContext,
+							diagnostics);
+					if (namespace == null) {
+						// Invalid namespace
+						return null;
+					}
+					break;
 				}
-				break;
-			}
 
-			case Object: {
-				ObjectPart objectPart = (ObjectPart) current;
-				baseType = validateObjectPart(namespace, objectPart, ownerSection, template, projectUri,
-						validationSettings, resolutionContext, diagnostics, resolvingJavaTypeContext);
-				if (isResolvingJavaType(baseType)) {
-					// The java type is resolving, stop the validation
-					return RESOLVING_JAVA_TYPE;
+				case Object: {
+					ObjectPart objectPart = (ObjectPart) current;
+					baseType = validateObjectPart(namespace, objectPart, ownerSection, template, projectUri,
+							validationSettings, resolutionContext, diagnostics, resolvingJavaTypeContext);
+					if (isResolvingJavaType(baseType)) {
+						// The java type is resolving, stop the validation
+						return RESOLVING_JAVA_TYPE;
+					}
+					break;
 				}
-				break;
-			}
 
-			case Method:
-			case Property: {
-				// java.util.List<org.acme.Item>
-				if (isResolvingJavaType(baseType)) {
-					// The java type is resolving, stop the validation
-					return RESOLVING_JAVA_TYPE;
+				case Method:
+				case Property: {
+					// java.util.List<org.acme.Item>
+					if (isResolvingJavaType(baseType)) {
+						// The java type is resolving, stop the validation
+						return RESOLVING_JAVA_TYPE;
+					}
+					baseType = validateMemberPart(current, ownerSection, template, projectUri, validationSettings,
+							filter,
+							resolutionContext, baseType, baseType, diagnostics, resolvingJavaTypeContext);
+					break;
 				}
-				baseType = validateMemberPart(current, ownerSection, template, projectUri, validationSettings, filter,
-						resolutionContext, baseType, baseType, diagnostics, resolvingJavaTypeContext);
-				break;
-			}
 			}
 		}
 		return baseType;
@@ -753,38 +815,39 @@ class QuteDiagnostics {
 				JavaMemberAccessibility javaMemberAccessibility = filter.getJavaMemberAccessibility(javaMember,
 						javaTypeAccessibility);
 				switch (javaMemberAccessibility.getKind()) {
-				case FORBIDDEN_BY_TEMPLATE_DATA_IGNORE: {
-					Range range = QutePositionUtility.createRange(part);
-					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-							QuteErrorCode.MethodIgnoredByTemplateData, part.getPartName(), baseType.getSignature(),
-							javaMemberAccessibility.getIgnore());
-					diagnostics.add(diagnostic);
-					return null;
-				}
+					case FORBIDDEN_BY_TEMPLATE_DATA_IGNORE: {
+						Range range = QutePositionUtility.createRange(part);
+						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+								QuteErrorCode.MethodIgnoredByTemplateData, part.getPartName(), baseType.getSignature(),
+								javaMemberAccessibility.getIgnore());
+						diagnostics.add(diagnostic);
+						return null;
+					}
 
-				case FORBIDDEN_BY_TEMPLATE_DATA_PROPERTIES: {
-					JavaMethodInfo method = (JavaMethodInfo) javaMember;
-					Range range = QutePositionUtility.createRange(part);
-					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-							QuteErrorCode.ForbiddenByTemplateDataProperties, method.getName(), baseType.getSignature(),
-							method.getParameters().size());
-					diagnostics.add(diagnostic);
-					return null;
-				}
+					case FORBIDDEN_BY_TEMPLATE_DATA_PROPERTIES: {
+						JavaMethodInfo method = (JavaMethodInfo) javaMember;
+						Range range = QutePositionUtility.createRange(part);
+						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+								QuteErrorCode.ForbiddenByTemplateDataProperties, method.getName(),
+								baseType.getSignature(),
+								method.getParameters().size());
+						diagnostics.add(diagnostic);
+						return null;
+					}
 
-				case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_FIELDS:
-				case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_METHODS: {
-					Range range = QutePositionUtility.createRange(part);
-					QuteErrorCode errorCode = javaMember.getJavaElementKind() == JavaElementKind.METHOD
-							? QuteErrorCode.ForbiddenByRegisterForReflectionMethods
-							: QuteErrorCode.ForbiddenByRegisterForReflectionFields;
-					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode,
-							part.getPartName(), baseType.getSignature());
-					diagnostics.add(diagnostic);
-					return null;
-				}
+					case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_FIELDS:
+					case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_METHODS: {
+						Range range = QutePositionUtility.createRange(part);
+						QuteErrorCode errorCode = javaMember.getJavaElementKind() == JavaElementKind.METHOD
+								? QuteErrorCode.ForbiddenByRegisterForReflectionMethods
+								: QuteErrorCode.ForbiddenByRegisterForReflectionFields;
+						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode,
+								part.getPartName(), baseType.getSignature());
+						diagnostics.add(diagnostic);
+						return null;
+					}
 
-				default:
+					default:
 				}
 			}
 		}
@@ -874,16 +937,16 @@ class QuteDiagnostics {
 					InvalidMethodReason reason = javaCache.getInvalidMethodReason(methodName, baseType, projectUri);
 					if (reason != null) {
 						switch (reason) {
-						case VoidReturn:
-							errorCode = QuteErrorCode.InvalidMethodVoid;
-							break;
-						case Static:
-							errorCode = QuteErrorCode.InvalidMethodStatic;
-							break;
-						case FromObject:
-							errorCode = QuteErrorCode.InvalidMethodFromObject;
-							break;
-						default:
+							case VoidReturn:
+								errorCode = QuteErrorCode.InvalidMethodVoid;
+								break;
+							case Static:
+								errorCode = QuteErrorCode.InvalidMethodStatic;
+								break;
+							case FromObject:
+								errorCode = QuteErrorCode.InvalidMethodFromObject;
+								break;
+							default:
 						}
 					}
 					signature = baseType.getSignature();
@@ -923,36 +986,37 @@ class QuteDiagnostics {
 						javaTypeAccessibility);
 				switch (javaMemberAccessibility.getKind()) {
 
-				case FORBIDDEN_BY_TEMPLATE_DATA_IGNORE: {
-					Range range = QutePositionUtility.createRange(methodPart);
-					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-							QuteErrorCode.MethodIgnoredByTemplateData, method.getName(), baseType.getSignature(),
-							javaMemberAccessibility.getIgnore());
-					diagnostics.add(diagnostic);
-					return null;
-				}
+					case FORBIDDEN_BY_TEMPLATE_DATA_IGNORE: {
+						Range range = QutePositionUtility.createRange(methodPart);
+						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+								QuteErrorCode.MethodIgnoredByTemplateData, method.getName(), baseType.getSignature(),
+								javaMemberAccessibility.getIgnore());
+						diagnostics.add(diagnostic);
+						return null;
+					}
 
-				case FORBIDDEN_BY_TEMPLATE_DATA_PROPERTIES: {
-					Range range = QutePositionUtility.createRange(methodPart);
-					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-							QuteErrorCode.ForbiddenByTemplateDataProperties, method.getName(), baseType.getSignature(),
-							method.getParameters().size());
-					diagnostics.add(diagnostic);
-					return null;
-				}
+					case FORBIDDEN_BY_TEMPLATE_DATA_PROPERTIES: {
+						Range range = QutePositionUtility.createRange(methodPart);
+						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+								QuteErrorCode.ForbiddenByTemplateDataProperties, method.getName(),
+								baseType.getSignature(),
+								method.getParameters().size());
+						diagnostics.add(diagnostic);
+						return null;
+					}
 
-				case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_FIELDS:
-				case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_METHODS: {
-					Range range = QutePositionUtility.createRange(methodPart);
-					QuteErrorCode errorCode = method.getJavaElementKind() == JavaElementKind.METHOD
-							? QuteErrorCode.ForbiddenByRegisterForReflectionMethods
-							: QuteErrorCode.ForbiddenByRegisterForReflectionFields;
-					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode,
-							method.getName(), baseType.getSignature());
-					diagnostics.add(diagnostic);
-					return null;
-				}
-				default:
+					case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_FIELDS:
+					case FORBIDDEN_BY_REGISTER_FOR_REFLECTION_METHODS: {
+						Range range = QutePositionUtility.createRange(methodPart);
+						QuteErrorCode errorCode = method.getJavaElementKind() == JavaElementKind.METHOD
+								? QuteErrorCode.ForbiddenByRegisterForReflectionMethods
+								: QuteErrorCode.ForbiddenByRegisterForReflectionFields;
+						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode,
+								method.getName(), baseType.getSignature());
+						diagnostics.add(diagnostic);
+						return null;
+					}
+					default:
 				}
 			}
 		}
