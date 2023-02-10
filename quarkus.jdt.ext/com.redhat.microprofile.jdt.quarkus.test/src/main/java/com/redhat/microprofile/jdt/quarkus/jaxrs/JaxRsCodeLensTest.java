@@ -11,20 +11,18 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.quarkus.jaxrs;
 
-import java.util.List;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileForJavaAssert.assertCodeLens;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileForJavaAssert.cl;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileForJavaAssert.r;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
-import org.eclipse.lsp4mp.jdt.core.PropertiesManagerForJava;
 import org.eclipse.lsp4mp.jdt.core.utils.IJDTUtils;
 import org.eclipse.lsp4mp.jdt.internal.core.providers.MicroProfileConfigSourceProvider;
-import org.junit.Assert;
 import org.junit.Test;
 
 import com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigSourceProvider;
@@ -137,52 +135,13 @@ public class JaxRsCodeLensTest extends BasePropertiesManagerTest {
 
 	}
 
-	private static void assertCodeLenses(int port, String rootPath, MicroProfileJavaCodeLensParams params,
-			IJDTUtils utils) throws JavaModelException {
-		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils,
-				new NullProgressMonitor());
-		Assert.assertEquals(5, lenses.size());
-
-		// @GET
-		// public Fruit[] get() {
-		CodeLens lensForGet = lenses.get(0);
-		Assert.assertNotNull(lensForGet.getCommand());
-		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits", lensForGet.getCommand().getTitle());
-
-		// @GET
-		// @Path("{id}")
-		// public Fruit getSingle(@PathParam Integer id) {
-		CodeLens lensForGetSingle = lenses.get(1);
-		Assert.assertNotNull(lensForGetSingle.getCommand());
-		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits/{id}",
-				lensForGetSingle.getCommand().getTitle());
-
-		// @POST
-		// @Transactional
-		// public Response create(Fruit fruit) {
-		CodeLens lensForPost = lenses.get(2);
-		Assert.assertNotNull(lensForPost.getCommand());
-		Assert.assertEquals("", lensForPost.getCommand().getCommand());
-		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits", lensForPost.getCommand().getTitle());
-
-		// @PUT
-		// @Path("{id}")
-		// @Transactional
-		// public Fruit update(@PathParam Integer id, Fruit fruit) {
-		CodeLens lensForPut = lenses.get(3);
-		Assert.assertNotNull(lensForPut.getCommand());
-		Assert.assertEquals("", lensForPut.getCommand().getCommand());
-		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits/{id}", lensForPut.getCommand().getTitle());
-
-		// @DELETE
-		// @Path("{id}")
-		// @Transactional
-		// public Response delete(@PathParam Integer id) {
-		CodeLens lensForDelete = lenses.get(4);
-		Assert.assertNotNull(lensForDelete.getCommand());
-		Assert.assertEquals("", lensForDelete.getCommand().getCommand());
-		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits/{id}",
-				lensForDelete.getCommand().getTitle());
+	private static void assertCodeLenses(int port, String rootPath, MicroProfileJavaCodeLensParams params, IJDTUtils utils) throws JavaModelException {
+		assertCodeLens(params, utils, //
+				cl("http://localhost:" + port + rootPath + "/fruits", "", r(31, 8, 8)), //
+				cl("http://localhost:" + port + rootPath + "/fruits/{id}", "", r(38, 17, 17)), //
+				cl("http://localhost:" + port + rootPath + "/fruits", "", r(48, 18, 18)), //
+				cl("http://localhost:" + port + rootPath + "/fruits/{id}", "", r(60, 18, 18)), //
+				cl("http://localhost:" + port + rootPath + "/fruits/{id}", "", r(79, 18, 18)));
 	}
 
 }

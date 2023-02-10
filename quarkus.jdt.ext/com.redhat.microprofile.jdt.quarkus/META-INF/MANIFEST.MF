@@ -14,11 +14,12 @@ Require-Bundle: org.eclipse.lsp4mp.jdt.core,
  org.apache.commons.lang3
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
-Export-Package: com.redhat.microprofile.jdt.quarkus,
+Export-Package: com.redhat.microprofile.jdt.internal.quarkus;x-friends:="com.redhat.microprofile.jdt.quarkus.test",
  com.redhat.microprofile.jdt.internal.quarkus.providers;x-friends:="com.redhat.microprofile.jdt.quarkus.test",
+ com.redhat.microprofile.jdt.internal.quarkus.renarde.java;x-friends:="com.redhat.microprofile.jdt.quarkus.test",
  com.redhat.microprofile.jdt.internal.quarkus.scheduler;x-friends:="com.redhat.microprofile.jdt.quarkus.test",
  com.redhat.microprofile.jdt.internal.quarkus.utils;x-friends:="com.redhat.microprofile.jdt.quarkus.test",
- com.redhat.microprofile.jdt.internal.quarkus;x-friends:="com.redhat.microprofile.jdt.quarkus.test",
+ com.redhat.microprofile.jdt.quarkus,
  org.yaml.snakeyaml;x-friends:="com.redhat.microprofile.jdt.quarkus.test"
 Bundle-ClassPath: lib/snakeyaml-1.25.jar,
  .
