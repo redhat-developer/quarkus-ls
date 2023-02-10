@@ -165,6 +165,24 @@ public abstract class UserTag extends Snippet {
 	}
 
 	/**
+	 * Returns the parameter which have the given name <code>parameterName</code>
+	 * and null otherwise.
+	 * 
+	 * @param parameterName the parameter name.
+	 * 
+	 * @return the parameter which have the given name <code>parameterName</code>
+	 *         and null otherwise.
+	 */
+	public UserTagParameter findParameter(String parameterName) {
+		for (UserTagParameter parameter : getParameters()) {
+			if (parameterName.equals(parameter.getPartName())) {
+				return parameter;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Returns parameters of the user tag.
 	 * 
 	 * @return parameters of the user tag.
@@ -189,7 +207,7 @@ public abstract class UserTag extends Snippet {
 		if (content == null) {
 			return null;
 		}
-		return TemplateParser.parse(content, getFileName());
+		return TemplateParser.parse(content, getUri());
 	}
 
 	/**

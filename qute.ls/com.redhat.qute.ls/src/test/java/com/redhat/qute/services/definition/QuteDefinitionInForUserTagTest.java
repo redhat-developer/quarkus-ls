@@ -15,6 +15,8 @@ import static com.redhat.qute.QuteAssert.ll;
 import static com.redhat.qute.QuteAssert.r;
 import static com.redhat.qute.QuteAssert.testDefinitionFor;
 
+import java.nio.file.Paths;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -51,4 +53,21 @@ public class QuteDefinitionInForUserTagTest {
 		testDefinitionFor(template);
 	}
 
+	@Test
+	public void inputName() throws Exception {
+		String inputUri = getUserTagUri("input");
+		String template = "{#input na|me=\"name\"}";
+		testDefinitionFor(template, "test.html", //
+				ll(inputUri, r(0, 8, 0, 12), r(0, 14, 0, 18)));
+	}
+
+	@Test
+	public void inputNoDef() throws Exception {
+		String template = "{#input na|me2=\"name\"}";
+		testDefinitionFor(template);
+	}
+	
+	private static String getUserTagUri(String name) {
+		return Paths.get("src/test/resources/templates/tags/" + name + ".html").toUri().toString();
+	}
 }

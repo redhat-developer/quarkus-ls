@@ -55,6 +55,7 @@ import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.project.indexing.QuteIndex;
 import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.tags.UserTagParameter;
 import com.redhat.qute.services.definition.DefinitionRequest;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.QuteSearchUtils;
@@ -86,22 +87,24 @@ class QuteDefinition {
 			}
 			int offset = definitionRequest.getOffset();
 			switch (node.getKind()) {
-			case Section:
-				// - Start end tag definition
-				// - Java data model definition
-				return findDefinitionFromSection(offset, (Section) node, template, cancelChecker);
-			case ParameterDeclaration:
-				// Return Java class definition
-				return findDefinitionFromParameterDeclaration(offset, (ParameterDeclaration) node, template,
-						cancelChecker);
-			case Expression:
-				return findDefinitionFromExpression(offset, (Expression) node, template, cancelChecker);
-			case ExpressionPart:
-				Part part = (Part) node;
-				return findDefinitionFromPart(part, template, cancelChecker);
-			default:
-				// no definitions
-				return NO_DEFINITION;
+				case Section:
+					// - Start end tag definition
+					// - Java data model definition
+					return findDefinitionFromSection(offset, (Section) node, template, cancelChecker);
+				case ParameterDeclaration:
+					// Return Java class definition
+					return findDefinitionFromParameterDeclaration(offset, (ParameterDeclaration) node, template,
+							cancelChecker);
+				case Expression:
+					return findDefinitionFromExpression(offset, (Expression) node, template, cancelChecker);
+				case ExpressionPart:
+					Part part = (Part) node;
+					return findDefinitionFromPart(part, template, cancelChecker);
+				case Parameter:
+					return findDefinitionFromParameter(offset, (Parameter) node, template, cancelChecker);
+				default:
+					// no definitions
+					return NO_DEFINITION;
 			}
 
 		} catch (BadLocationException e) {
@@ -262,14 +265,14 @@ class QuteDefinition {
 		}
 
 		switch (part.getPartKind()) {
-		case Object:
-			return findDefinitionFromObjectPart((ObjectPart) part, template, cancelChecker);
-		case Property:
-			return findDefinitionFromPropertyPart((PropertyPart) part, template, cancelChecker);
-		case Method:
-			return findDefinitionFromPropertyPart((MethodPart) part, template, cancelChecker);
-		default:
-			return NO_DEFINITION;
+			case Object:
+				return findDefinitionFromObjectPart((ObjectPart) part, template, cancelChecker);
+			case Property:
+				return findDefinitionFromPropertyPart((PropertyPart) part, template, cancelChecker);
+			case Method:
+				return findDefinitionFromPropertyPart((MethodPart) part, template, cancelChecker);
+			default:
+				return NO_DEFINITION;
 		}
 	}
 
@@ -435,16 +438,59 @@ class QuteDefinition {
 		QuteJavaDefinitionParams params = new QuteJavaDefinitionParams(sourceType, projectUri);
 		if (member != null) {
 			switch (member.getJavaElementKind()) {
-			case FIELD:
-				params.setSourceField(member.getName());
-				break;
-			case METHOD:
-				params.setSourceMethod(member.getName());
-				break;
-			default:
+				case FIELD:
+					params.setSourceField(member.getName());
+					break;
+				case METHOD:
+					params.setSourceMethod(member.getName());
+					break;
+				default:
 			}
 		}
 		return findJavaDefinition(params, cancelChecker, () -> QutePositionUtility.createRange(part));
 	}
 
+	/**
+	 * Find definition from parameter name of user tag section.
+	 * 
+	 * @param offset        the offset where definition is done.
+	 * @param parameter     the parameter where definition is done.
+	 * @param template      the template.
+	 * @param cancelChecker the cancel checker.
+	 * 
+	 * @return the defintion of the parameter name and no definition otherwise.
+	 */
+	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameter(int offset, Parameter parameter,
+			Template template, CancelChecker cancelChecker) {
+		if (!parameter.isInName(offset)) {
+			return NO_DEFINITION;
+		}
+		Section section = parameter.getOwnerSection();
+		if (section == null || section.getSectionKind() != SectionKind.CUSTOM) {
+			return NO_DEFINITION;
+		}
+		QuteProject project = template.getProject();
+		if (project == null) {
+			return NO_DEFINITION;
+		}
+		UserTag userTag = project.findUserTag(section.getTag());
+		if (userTag == null) {
+			return NO_DEFINITION;
+		}
+		UserTagParameter userTagParameter = userTag.findParameter(parameter.getName());
+		if (userTagParameter == null) {
+			return NO_DEFINITION;
+		}
+		// Ex: {#input na|me="" /}
+		// will open the src/main/resources/templates/tags/input.html and select where
+		// {name} is declared
+		ObjectPart part = userTagParameter.getPart();
+		List<LocationLink> locations = new ArrayList<>();
+		String targetUri = part.getOwnerTemplate().getUri();
+		Range targetRange = QutePositionUtility.createRange(part);
+		Range originSelectionRange = QutePositionUtility.selectParameterName(parameter);
+		LocationLink locationLink = new LocationLink(targetUri, targetRange, targetRange, originSelectionRange);
+		locations.add(locationLink);
+		return CompletableFuture.completedFuture(locations);
+	}
 }
