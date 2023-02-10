@@ -16,7 +16,7 @@
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.core.properties.QuarkusCoreProvider" />
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.core.properties.QuarkusConfigRootProvider" />
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.core.properties.QuarkusConfigPropertiesProvider" />
-      <provider class="com.redhat.microprofile.jdt.internal.quarkus.core.properties.QuarkusConfigMappingProvider" />      
+      <provider class="com.redhat.microprofile.jdt.internal.quarkus.core.properties.QuarkusConfigMappingProvider" />
    </extension>
 
    <extension point="org.eclipse.lsp4mp.jdt.core.javaASTValidators">
@@ -28,7 +28,7 @@
    
    <extension point="org.eclipse.lsp4mp.jdt.core.javaFeatureParticipants">
        <!-- Quarkus Java URL codeLens for JAX-RS -->
-      <codeLens class="com.redhat.microprofile.jdt.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant" />   
+      <codeLens class="com.redhat.microprofile.jdt.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant" />
    </extension>
    
    <!-- Quarkus @Scheduled annotation support -->
@@ -37,7 +37,7 @@
          <!-- Java definition for the Quarkus @Scheduled annotation -->
       <definition class="com.redhat.microprofile.jdt.internal.quarkus.scheduler.java.QuarkusScheduledDefinitionParticipant" />
        <!-- Java hover for the Quarkus @Scheduled annotation -->
-      <hover class="com.redhat.microprofile.jdt.internal.quarkus.scheduler.java.QuarkusScheduledHoverParticipant" />   
+      <hover class="com.redhat.microprofile.jdt.internal.quarkus.scheduler.java.QuarkusScheduledHoverParticipant" />
    </extension>
    
    <extension point="org.eclipse.lsp4mp.jdt.core.propertiesProviders">
@@ -67,7 +67,13 @@
    <extension point="org.eclipse.lsp4mp.jdt.core.propertiesProviders">
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.cache.properties.QuarkusCacheResultProvider" />
    </extension>
-   
+
+   <!-- Quarkus Renarde support -->
+
+   <extension point="org.eclipse.lsp4mp.jdt.core.javaFeatureParticipants">
+      <jaxrs class="com.redhat.microprofile.jdt.internal.quarkus.renarde.java.RenardeJaxRsInfoProvider"/>
+   </extension>
+
    <!-- Quarkus Scheduled annotation -->
    
    <extension point="org.eclipse.lsp4mp.jdt.core.javaASTValidators">

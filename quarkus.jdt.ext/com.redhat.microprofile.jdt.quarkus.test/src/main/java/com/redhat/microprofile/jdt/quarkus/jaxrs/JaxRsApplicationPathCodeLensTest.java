@@ -13,19 +13,17 @@
 *******************************************************************************/
 package com.redhat.microprofile.jdt.quarkus.jaxrs;
 
-import java.util.List;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileForJavaAssert.assertCodeLens;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileForJavaAssert.cl;
+import static org.eclipse.lsp4mp.jdt.core.MicroProfileForJavaAssert.r;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
-import org.eclipse.lsp4mp.jdt.core.PropertiesManagerForJava;
 import org.eclipse.lsp4mp.jdt.core.utils.IJDTUtils;
-import org.junit.Assert;
 import org.junit.Test;
 
 import com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusConfigSourceProvider;
@@ -52,21 +50,17 @@ public class JaxRsApplicationPathCodeLensTest extends BasePropertiesManagerTest 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.root-path=/root", javaProject);
 
 		// Default port
-		assertCodeLense(8080, params, utils, "/root/api/path");
+		assertCodeLenses(8080, params, utils, "/root/api/path");
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
 
-		assertCodeLense(8080, params, utils, "/api/path");
+		assertCodeLenses(8080, params, utils, "/api/path");
 	}
 
-	private static void assertCodeLense(int port, MicroProfileJavaCodeLensParams params, IJDTUtils utils,
+	private static void assertCodeLenses(int port, MicroProfileJavaCodeLensParams params, IJDTUtils utils,
 			String testPath) throws JavaModelException {
-		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils,
-				new NullProgressMonitor());
-
-		CodeLens lenseForEndpoint = lenses.get(0);
-		Assert.assertNotNull(lenseForEndpoint.getCommand());
-		Assert.assertEquals("http://localhost:" + port + testPath, lenseForEndpoint.getCommand().getTitle());
+		assertCodeLens(params, utils, //
+				cl("http://localhost:" + port + testPath, "", r(12, 35, 35)));
 	}
 
 }
