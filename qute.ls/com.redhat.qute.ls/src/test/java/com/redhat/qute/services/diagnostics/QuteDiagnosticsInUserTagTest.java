@@ -24,12 +24,12 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
 /**
- * User tag diagnostics.
+ * Qute diagnostics in user tags.
  *
  * @author Angelo ZERR
  *
  */
-public class QuteDiagnosticsUserTagTest {
+public class QuteDiagnosticsInUserTagTest {
 
 	@Test
 	public void undefinedObjectInTemplate() {
@@ -53,16 +53,16 @@ public class QuteDiagnosticsUserTagTest {
 
 	@Test
 	public void undefinedObjectInUserTagCall() {
-		String template = "{#user name=name /}";
+		String template = "{#input name=name /}";
 
-		Diagnostic d = d(0, 12, 0, 16, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
+		Diagnostic d = d(0, 13, 0, 17, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 	}
 
 	@Test
 	public void undefinedObjectInItUserTagCall() {
-		String template = "{#user name /}";
+		String template = "{#user name size=5/}";
 
 		Diagnostic d = d(0, 7, 0, 11, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
 				DiagnosticSeverity.Warning);
@@ -71,7 +71,7 @@ public class QuteDiagnosticsUserTagTest {
 
 	@Test
 	public void stringParameterInUserTagCall() {
-		String template = "{#user name=\"User Name\" /}";
+		String template = "{#input name=\"User Name\" /}";
 		testDiagnosticsFor(template);
 	}
 

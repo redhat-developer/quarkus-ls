@@ -71,10 +71,10 @@ public abstract class UserTag extends Snippet {
 		startSection.append(name);
 		for (UserTagParameter parameter : parameters) {
 			if (parameter.isRequired()) {
-				switch (parameter.getPartName()) {
+				switch (parameter.getName()) {
 					case UserTagUtils.IT_OBJECT_PART_NAME:
 						startSection.append(" ");
-						SnippetsBuilder.placeholders(index++, parameter.getPartName(), startSection);
+						SnippetsBuilder.placeholders(index++, parameter.getName(), startSection);
 						break;
 					case UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME:
 						hasNestedContent = true;
@@ -114,13 +114,13 @@ public abstract class UserTag extends Snippet {
 	 */
 	public static void generateUserTagParameter(UserTagParameter parameter, boolean snippetsSupported, int index,
 			StringBuilder snippet) {
-		snippet.append(parameter.getPartName());
+		snippet.append(parameter.getName());
 		snippet.append("=");
 		snippet.append("\"");
 		if (snippetsSupported) {
-			SnippetsBuilder.placeholders(index, parameter.getPartName(), snippet);
+			SnippetsBuilder.placeholders(index, parameter.getName(), snippet);
 		} else {
-			snippet.append(parameter.getPartName());
+			snippet.append(parameter.getName());
 		}
 		snippet.append("\"");
 
@@ -162,6 +162,24 @@ public abstract class UserTag extends Snippet {
 			parameters = collectParameters();
 		}
 		return parameters.values();
+	}
+
+	/**
+	 * Returns the parameter which have the given name <code>parameterName</code>
+	 * and null otherwise.
+	 * 
+	 * @param parameterName the parameter name.
+	 * 
+	 * @return the parameter which have the given name <code>parameterName</code>
+	 *         and null otherwise.
+	 */
+	public UserTagParameter findParameter(String parameterName) {
+		for (UserTagParameter parameter : getParameters()) {
+			if (parameterName.equals(parameter.getName())) {
+				return parameter;
+			}
+		}
+		return null;
 	}
 
 	/**
