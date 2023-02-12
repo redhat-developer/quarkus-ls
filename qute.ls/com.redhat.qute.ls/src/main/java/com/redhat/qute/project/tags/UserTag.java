@@ -202,12 +202,12 @@ public abstract class UserTag extends Snippet {
 	 * 
 	 * @return the template.
 	 */
-	private Template getTemplate() {
+	public Template getTemplate() {
 		String content = getContent();
 		if (content == null) {
 			return null;
 		}
-		return TemplateParser.parse(content, getFileName());
+		return TemplateParser.parse(content, getUri());
 	}
 
 	/**
