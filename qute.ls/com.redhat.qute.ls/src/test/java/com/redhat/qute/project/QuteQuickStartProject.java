@@ -316,6 +316,19 @@ public class QuteQuickStartProject extends MockQuteProject {
 		restParameters.put("confirmationCode", new RestParam("confirmationCode", JaxRsParamKind.PATH, false));
 		confirmMethod.setJaxRsMethodKind(JaxRsMethodKind.GET);
 		confirmMethod.setRestParameters(restParameters);
+
+		JavaMethodInfo completeMethod = registerMethod(
+				"complete(confirmationCode : java.lang.String, userName : java.lang.String, password : java.lang.String, password2 : java.lang.String, webAuthnResponse : io.quarkus.security.webauthn.WebAuthnRegisterResponse, firstName : java.lang.String, lastName : java.lang.String, ctx : io.vertx.ext.web.RoutingContext) : javax.ws.rs.core.Response",
+				renardeLogin);
+		completeMethod.setJaxRsMethodKind(JaxRsMethodKind.POST);
+		restParameters = new HashMap<>();
+		restParameters.put("confirmationCode", new RestParam("confirmationCode", JaxRsParamKind.QUERY, false));
+		restParameters.put("userName", new RestParam("userName", JaxRsParamKind.FORM, true));
+		restParameters.put("password", new RestParam("password", JaxRsParamKind.FORM, false));
+		restParameters.put("password2", new RestParam("password2", JaxRsParamKind.FORM, false));
+		restParameters.put("firstName", new RestParam("firstName", JaxRsParamKind.FORM, true));
+		restParameters.put("lastName", new RestParam("lastName", JaxRsParamKind.FORM, true));
+		completeMethod.setRestParameters(restParameters);
 	}
 
 	@Override

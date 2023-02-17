@@ -509,16 +509,24 @@ class QuteDiagnostics {
 		List<String> existingInputNames = visitor.getHtmlInputNames();
 
 		// Validate @RestForm parameters
+		List<String> missingRequiredInputNames = new ArrayList<>();
 		for (RestParam param : formParams) {
 			if (param.isRequired()) {
 				if (existingInputNames == null || !existingInputNames.contains(param.getName())) {
-					Range range = QutePositionUtility.selectStartTagName(section);
-					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
-							QuteErrorCode.MissingExpectedInput, param.getName());
-					diagnostic.setData(new JavaBaseTypeOfPartData(baseTypeSignature));
-					diagnostics.add(diagnostic);
+					missingRequiredInputNames.add(param.getName());
 				}
 			}
+		}
+		if (!missingRequiredInputNames.isEmpty()) {
+			String diagnosticMessageArg;
+			diagnosticMessageArg = missingRequiredInputNames //
+					.stream() //
+					.collect(Collectors.joining("`, `", "`", "`"));
+			Range range = QutePositionUtility.selectStartTagName(section);
+			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
+					QuteErrorCode.MissingExpectedInput, diagnosticMessageArg);
+			diagnostic.setData(new JavaBaseTypeOfPartData(baseTypeSignature));
+			diagnostics.add(diagnostic);
 		}
 	}
 

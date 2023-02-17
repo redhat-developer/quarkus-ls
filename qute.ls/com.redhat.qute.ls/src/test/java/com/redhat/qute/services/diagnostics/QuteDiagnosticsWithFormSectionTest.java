@@ -32,7 +32,7 @@ public class QuteDiagnosticsWithFormSectionTest {
 		String template = "{#form uri:Login.manualLogin() id=\"login\"}\r\n" + //
 				"{/form}";
 		Diagnostic d = d(0, 1, 0, 6, QuteErrorCode.MissingExpectedInput,
-				"Missing expected input(s) `userName`.", DiagnosticSeverity.Warning);
+				"Missing expected input(s): `userName`.", DiagnosticSeverity.Warning);
 		d.setData(new JavaBaseTypeOfPartData("rest.Login"));
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
@@ -48,7 +48,7 @@ public class QuteDiagnosticsWithFormSectionTest {
 		String template = "  {#form uri:Login.manualLogin() id=\"login\"}\r\n" + //
 				"  {/form}";
 		Diagnostic d = d(0, 3, 0, 8, QuteErrorCode.MissingExpectedInput,
-				"Missing expected input(s) `userName`.", DiagnosticSeverity.Warning);
+				"Missing expected input(s): `userName`.", DiagnosticSeverity.Warning);
 		d.setData(new JavaBaseTypeOfPartData("rest.Login"));
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
@@ -59,13 +59,13 @@ public class QuteDiagnosticsWithFormSectionTest {
 								"    <input name=\"userName\" >\r\n  ")));
 	}
 
-  @Test
+	@Test
 	public void missingInputsWithTab() throws Exception {
 		String template = "{#form uri:Login.manualLogin() id=\"login\"}\r\n" + //
-    "\t<input name=\"password\" >\r\n" + //
+				"\t<input name=\"password\" >\r\n" + //
 				"{/form}";
-        Diagnostic d = d(0, 1, 0, 6, QuteErrorCode.MissingExpectedInput,
-				"Missing expected input(s) `userName`.", DiagnosticSeverity.Warning);
+		Diagnostic d = d(0, 1, 0, 6, QuteErrorCode.MissingExpectedInput,
+				"Missing expected input(s): `userName`.", DiagnosticSeverity.Warning);
 		d.setData(new JavaBaseTypeOfPartData("rest.Login"));
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
@@ -82,7 +82,7 @@ public class QuteDiagnosticsWithFormSectionTest {
 				"  <input name=\"password\" >\r\n" + //
 				"{/form}";
 		Diagnostic d = d(0, 1, 0, 6, QuteErrorCode.MissingExpectedInput,
-				"Missing expected input(s) `userName`.", DiagnosticSeverity.Warning);
+				"Missing expected input(s): `userName`.", DiagnosticSeverity.Warning);
 		d.setData(new JavaBaseTypeOfPartData("rest.Login"));
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
@@ -99,6 +99,28 @@ public class QuteDiagnosticsWithFormSectionTest {
 				"  <input name=\"userName\" >" + //
 				"{/form}";
 		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void noMissingRequiredInputsComplete() throws Exception {
+		String template = "{#form uri:Login.complete()}\r\n" + //
+				"{/form}";
+		Diagnostic d = d(0, 1, 0, 6, QuteErrorCode.MissingExpectedInput,
+				"Missing expected input(s): `firstName`, `lastName`, `userName`.", DiagnosticSeverity.Warning);
+		d.setData(new JavaBaseTypeOfPartData("rest.Login"));
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(0, 28, 1, 0, //
+						"\r\n  <input name=\"firstName\" >\r\n" + //
+								"  <input name=\"lastName\" >\r\n" + //
+								"  <input name=\"userName\" >\r\n")), //
+				ca(d, te(0, 28, 1, 0, //
+						"\r\n  <input name=\"confirmationCode\" >\r\n" + //
+								"  <input name=\"firstName\" >\r\n" + //
+								"  <input name=\"lastName\" >\r\n" + //
+								"  <input name=\"password\" >\r\n" + //
+								"  <input name=\"password2\" >\r\n" + //
+								"  <input name=\"userName\" >\r\n")));
 	}
 
 }
