@@ -45,6 +45,7 @@ import org.eclipse.lsp4j.DocumentHighlight;
 import org.eclipse.lsp4j.DocumentHighlightKind;
 import org.eclipse.lsp4j.DocumentLink;
 import org.eclipse.lsp4j.DocumentSymbol;
+import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverCapabilities;
 import org.eclipse.lsp4j.InlayHint;
@@ -62,12 +63,14 @@ import org.eclipse.lsp4j.ReferenceContext;
 import org.eclipse.lsp4j.ResourceOperation;
 import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.TextDocumentEdit;
+import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.commons.ProjectInfo;
+import com.redhat.qute.ls.QuteTextDocumentService;
 import com.redhat.qute.ls.api.QuteTemplateJavaTextEditProvider;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.TextDocument;
@@ -77,12 +80,16 @@ import com.redhat.qute.ls.commons.client.ConfigurationItemEdit;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
+import com.redhat.qute.project.MockQuteLanguageServer;
 import com.redhat.qute.project.MockQuteProjectRegistry;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.QuteLanguageService;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
+import com.redhat.qute.services.commands.QuteSurroundWithCommandHandler;
+import com.redhat.qute.services.commands.QuteSurroundWithCommandHandler.SurroundWithKind;
+import com.redhat.qute.services.commands.QuteSurroundWithCommandHandler.SurroundWithResponse;
 import com.redhat.qute.services.diagnostics.IQuteErrorCode;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
@@ -938,6 +945,45 @@ public class QuteAssert {
 	public static void assertDocumentSymbols(List<DocumentSymbol> actual, DocumentSymbol... expected) {
 		assertEquals(expected.length, actual.size());
 		assertArrayEquals(expected, actual.toArray());
+	}
+
+	// Surround With Assert
+	public static void assertSurroundWith(String template, SurroundWithKind kind, boolean snippetsSupported,
+			TextEdit... te) throws Exception {
+		assertSurroundWith(template, kind, snippetsSupported, TEMPLATE_BASE_DIR + "/" + FILE_URI, Arrays.asList(te));
+	}
+
+	public static void assertSurroundWith(String template, SurroundWithKind kind, boolean snippetsSupported,
+			String uri, List<TextEdit> expected) throws Exception {
+		MockQuteLanguageServer languageServer = new MockQuteLanguageServer();
+		int rangeStart = template.indexOf('|');
+		int rangeEnd = template.lastIndexOf('|');
+		// remove '|'
+		StringBuilder x = new StringBuilder(template.substring(0, rangeStart));
+		if (rangeEnd > rangeStart) {
+			x.append(template.substring(rangeStart + 1, rangeEnd));
+		}
+		x.append(template.substring(Math.min(rangeEnd + 1, template.length())));
+
+		TextDocument document = new TextDocument(x.toString(), "");
+		Position startPos = document.positionAt(rangeStart);
+		Position endPos = rangeStart == rangeEnd ? startPos : document.positionAt(rangeEnd - 1);
+		Range selection = new Range(startPos, endPos);
+
+		TextDocumentIdentifier templateIdentifier = languageServer.didOpen(uri, template);
+
+		QuteSurroundWithCommandHandler command = new QuteSurroundWithCommandHandler(languageServer);
+
+		// Execute surround with tags command
+		ExecuteCommandParams params = new ExecuteCommandParams(QuteSurroundWithCommandHandler.COMMAND_ID,
+				Arrays.asList(templateIdentifier, selection, kind.name(),
+						snippetsSupported));
+		SurroundWithResponse response = (SurroundWithResponse) command.executeCommand(params, new SharedSettings(), //
+				() -> {
+				}).get();
+		List<TextEdit> actual = Arrays.asList(response.getStart(), response.getEnd());
+		assertEquals(expected.size(), actual.size());
+		assertArrayEquals(expected.toArray(), actual.toArray());
 	}
 
 	// ------------------- Utilities

@@ -72,6 +72,12 @@ public abstract class AbstractTextDocumentService implements TextDocumentService
 
 	private boolean codeActionLiteralSupport;
 
+	public enum FileType {
+
+		TEMPLATE,
+		JAVA;
+	}
+
 	public AbstractTextDocumentService(QuteLanguageServer quteLanguageServer, SharedSettings sharedSettings) {
 		this.quteLanguageServer = quteLanguageServer;
 		this.sharedSettings = sharedSettings;
@@ -101,6 +107,13 @@ public abstract class AbstractTextDocumentService implements TextDocumentService
 			sharedSettings.getCommandCapabilities().setCapabilities(extendedClientCapabilities.getCommands());
 		}
 	}
+
+	/**
+	 * Returns the type of the text document
+	 * 
+	 * @return the type of the text document
+	 */
+	public abstract FileType getFileType();
 
 	@Override
 	public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams position) {
