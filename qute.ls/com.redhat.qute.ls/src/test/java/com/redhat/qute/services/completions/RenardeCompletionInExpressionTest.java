@@ -36,10 +36,12 @@ public class RenardeCompletionInExpressionTest {
 	public void methodsOfController() throws Exception {
 		String template = "{uri:Login.|}";
 		testCompletionFor(template, //
-				8, //
+				9, //
 				c("login() : TemplateInstance", "login", r(0, 11, 0, 11)), //
 				c("manualLogin(userName : String, password : String, webAuthnResponse : WebAuthnLoginResponse, ctx : RoutingContext) : Response",
 						"manualLogin()$0", r(0, 11, 0, 11)), //
+				c("complete(confirmationCode : String, userName : String, password : String, password2 : String, webAuthnResponse : WebAuthnRegisterResponse, firstName : String, lastName : String, ctx : RoutingContext) : Response",
+						"complete()$0", r(0, 11, 0, 11)), //
 				c("confirm(confirmationCode : String) : void", "confirm(${1:confirmationCode})$0", r(0, 11, 0, 11)), //
 				c("orEmpty(base : T) : List<T>", "orEmpty", r(0, 11, 0, 11)), //
 				c("safe(base : Object) : RawString", "safe", r(0, 11, 0, 11)), //
