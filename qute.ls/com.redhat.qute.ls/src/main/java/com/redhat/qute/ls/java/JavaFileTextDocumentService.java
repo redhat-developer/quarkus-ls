@@ -139,4 +139,9 @@ public class JavaFileTextDocumentService extends AbstractTextDocumentService {
 					return null;
 				});
 	}
+
+	@Override
+	public FileType getFileType() {
+		return FileType.JAVA;
+	}
 }

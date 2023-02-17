@@ -257,7 +257,7 @@ public class QuteTextDocumentService implements TextDocumentService {
 		}
 		return CompletableFuture.completedFuture(null);
 	}
-	
+
 	@Override
 	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction codeAction) {
 		/*
@@ -278,32 +278,27 @@ public class QuteTextDocumentService implements TextDocumentService {
 		return CompletableFuture.completedFuture(null);
 	}
 
-	private AbstractTextDocumentService getTextDocumentService(TextDocumentIdentifier document) {
-		String fileExtension = getFileExtension(document);
-		if ("java".equals(fileExtension) || "class".equals(fileExtension)) {
-			return javaFileTextDocumentService;
-		}
-		return templateFileTextDocumentService;
+	public AbstractTextDocumentService getTextDocumentService(TextDocumentIdentifier document) {
+		return getTextDocumentService(document.getUri());
 	}
 
 	private TextDocumentService getTextDocumentService(TextDocumentItem document) {
-		String fileExtension = getFileExtension(document);
+		return getTextDocumentService(document.getUri());
+	}
+
+	public AbstractTextDocumentService getTextDocumentService(String uri) {
+		String fileExtension = getFileExtension(uri);
 		if ("java".equals(fileExtension) || "class".equals(fileExtension)) {
 			return javaFileTextDocumentService;
 		}
 		return templateFileTextDocumentService;
 	}
 
-	private static String getFileExtension(TextDocumentIdentifier document) {
-		return getFileExtension(document.getUri());
-	}
-
-	private static String getFileExtension(TextDocumentItem document) {
-		return getFileExtension(document.getUri());
-	}
-
 	private static String getFileExtension(String uri) {
-		int index = uri != null ? uri.lastIndexOf('.') : -1;
+		if (uri == null) {
+			return null;
+		}
+		int index = uri.lastIndexOf('.');
 		return index != -1 ? uri.substring(index + 1, uri.length()) : null;
 	}
 

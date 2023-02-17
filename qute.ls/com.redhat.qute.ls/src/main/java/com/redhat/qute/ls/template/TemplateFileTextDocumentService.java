@@ -60,6 +60,7 @@ import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.ls.AbstractTextDocumentService;
 import com.redhat.qute.ls.QuteLanguageServer;
 import com.redhat.qute.ls.api.QuteLanguageClientAPI;
+import com.redhat.qute.ls.api.QuteTemplateProvider;
 import com.redhat.qute.ls.commons.ModelTextDocument;
 import com.redhat.qute.ls.commons.ValidatorDelayer;
 import com.redhat.qute.parser.template.Template;
@@ -73,7 +74,7 @@ import com.redhat.qute.utils.QutePositionUtility;
  * LSP text document service for Qute template file.
  *
  */
-public class TemplateFileTextDocumentService extends AbstractTextDocumentService {
+public class TemplateFileTextDocumentService extends AbstractTextDocumentService implements QuteTemplateProvider{
 
 	private final QuteTextDocuments documents;
 	private ValidatorDelayer<ModelTextDocument<Template>> validatorDelayer;
@@ -417,6 +418,17 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 
 	private QuteLanguageClientAPI getLanguageClient() {
 		return languageServer.getLanguageClient();
+	}
+
+	@Override
+	public FileType getFileType() {
+		return FileType.TEMPLATE;
+	}
+
+	@Override
+	public Template getTemplate(String uri) {
+		QuteTextDocument document = getDocument(uri);
+		return document != null ? document.getModel() : null;
 	}
 
 }

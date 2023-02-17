@@ -230,6 +230,17 @@ public abstract class Section extends Node implements ParametersContainer {
 	}
 
 	/**
+	 * Returns true if the end tag section is closed and false otherwise.
+	 * 
+	 * @return true if the end tag section is closed and false otherwise.
+	 */
+	public boolean isEndTagClosed() {
+		// {/let} -> will returns true
+		// {/let -> will returns false
+		return endTagCloseOffset != NULL_VALUE;
+	}
+
+	/**
 	 * Returns true if the given offset is in the end tag section name (ex : in
 	 * \each) and false otherwise.
 	 * 

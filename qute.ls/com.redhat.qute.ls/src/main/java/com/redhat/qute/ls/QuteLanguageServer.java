@@ -56,10 +56,13 @@ import com.redhat.qute.ls.api.QuteLanguageServerAPI;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
 import com.redhat.qute.ls.api.QuteTemplateJavaTextEditProvider;
+import com.redhat.qute.ls.api.QuteTemplateProvider;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.ls.commons.ParentProcessWatcher.ProcessLanguageServer;
 import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.qute.ls.commons.client.InitializationOptionsExtendedClientCapabilities;
+import com.redhat.qute.ls.template.TemplateFileTextDocumentService;
+import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.QuteLanguageService;
@@ -77,7 +80,8 @@ import com.redhat.qute.settings.capabilities.ServerCapabilitiesInitializer;
  */
 public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer, QuteLanguageServerAPI,
 		QuteProjectInfoProvider, QuteJavaTypesProvider, QuteResolvedJavaTypeProvider, QuteJavaDefinitionProvider,
-		QuteDataModelProjectProvider, QuteUserTagProvider, QuteTemplateJavaTextEditProvider, QuteJavadocProvider {
+		QuteDataModelProjectProvider, QuteUserTagProvider, QuteTemplateJavaTextEditProvider, QuteJavadocProvider,
+		QuteTemplateProvider {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteLanguageServer.class.getName());
 
@@ -248,7 +252,7 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	public CompletableFuture<ProjectInfo> getProjectInfo(QuteProjectParams params) {
 		return getLanguageClient().getProjectInfo(params);
 	}
-	
+
 	@Override
 	public CompletableFuture<String> getJavadoc(QuteJavadocParams params) {
 		return getLanguageClient().getJavadoc(params);
@@ -287,5 +291,10 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	public void setTrace(SetTraceParams params) {
 		// to avoid having error in vscode, the method is implemented
 		// FIXME : implement the behavior of this method.
+	}
+
+	@Override
+	public Template getTemplate(String uri) {
+		return ((TemplateFileTextDocumentService) textDocumentService.getTextDocumentService(uri)).getTemplate(uri);
 	}
 }
