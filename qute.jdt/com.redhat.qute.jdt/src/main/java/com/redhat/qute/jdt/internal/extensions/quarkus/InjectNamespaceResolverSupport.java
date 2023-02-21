@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.extensions.quarkus;
 
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.JAKARTA_INJECT_NAMED_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.JAVAX_INJECT_NAMED_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.VALUE_ANNOTATION_NAME;
 
@@ -37,9 +38,9 @@ import com.redhat.qute.jdt.utils.CDIUtils;
 
 /**
  * Injecting Beans Directly In Templates support.
- * 
+ *
  * @author Angelo ZERR
- * 
+ *
  * @see https://quarkus.io/guides/qute-reference#injecting-beans-directly-in-templates
  *
  */
@@ -49,7 +50,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 
 	private static final String INJECT_NAMESPACE = "inject";
 
-	private static final String[] ANNOTATION_NAMES = { JAVAX_INJECT_NAMED_ANNOTATION };
+	private static final String[] ANNOTATION_NAMES = { JAVAX_INJECT_NAMED_ANNOTATION, JAKARTA_INJECT_NAMED_ANNOTATION };
 
 	@Override
 	protected String[] getAnnotationNames() {
@@ -104,7 +105,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 	private static String getAnnotationNamedValue(IJavaElement javaElement) {
 		try {
 			IAnnotation namedAnnotation = AnnotationUtils.getAnnotation((IAnnotatable) javaElement,
-					JAVAX_INJECT_NAMED_ANNOTATION);
+					JAVAX_INJECT_NAMED_ANNOTATION, JAKARTA_INJECT_NAMED_ANNOTATION);
 			if (namedAnnotation != null) {
 				return AnnotationUtils.getAnnotationMemberValue(namedAnnotation, VALUE_ANNOTATION_NAME);
 			}

@@ -20,8 +20,9 @@ package com.redhat.qute.jdt.internal;
 public class QuteJavaConstants {
 
 	public static final String JAVA_LANG_OBJECT_TYPE = "java.lang.Object";
-	
+
 	public static final String JAVAX_INJECT_NAMED_ANNOTATION = "javax.inject.Named";
+	public static final String JAKARTA_INJECT_NAMED_ANNOTATION = "jakarta.inject.Named";
 
 	public static final String LOCATION_ANNOTATION = "io.quarkus.qute.Location";
 
@@ -30,12 +31,14 @@ public class QuteJavaConstants {
 	public static final String ENGINE_BUILDER_CLASS = "io.quarkus.qute.EngineBuilder";
 
 	public static final String VALUE_ANNOTATION_NAME = "value";
-	
-	// @Decorator 
+
+	// @Decorator
 	public static final String JAVAX_DECORATOR_ANNOTATION = "javax.decorator.Decorator";
-	
+	public static final String JAKARTA_DECORATOR_ANNOTATION = "jakarta.decorator.Decorator";
+
 	// @Vetoed
 	public static final String JAVAX_INJECT_VETOED_ANNOTATION = "javax.enterprise.inject.Vetoed";
+	public static final String JAKARTA_INJECT_VETOED_ANNOTATION = "jakarta.enterprise.inject.Vetoed";
 
 	// @CheckedTemplate
 
@@ -44,7 +47,7 @@ public class QuteJavaConstants {
 	public static final String OLD_CHECKED_TEMPLATE_ANNOTATION = "io.quarkus.qute.api.CheckedTemplate";
 
 	public static final String CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS = "ignoreFragments";
-	
+
 	// @TemplateExtension
 
 	public static final String TEMPLATE_EXTENSION_ANNOTATION = "io.quarkus.qute.TemplateExtension";

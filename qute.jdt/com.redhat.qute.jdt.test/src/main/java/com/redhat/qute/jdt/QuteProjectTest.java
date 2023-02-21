@@ -63,6 +63,8 @@ public class QuteProjectTest {
 		public static String qute_java17 = "qute-java17";
 
 		public static String quarkus_renarde_todo = "quarkus-renarde-todo";
+
+		public static String quarkus3 = "quarkus3";
 	}
 
 	@BeforeClass
@@ -112,12 +114,7 @@ public class QuteProjectTest {
 
 			// We need to call waitForBackgroundJobs with a Job which does nothing to have a
 			// resolved classpath (IJavaProject#getResolvedClasspath) when search is done.
-			IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
-				@Override
-				public void run(IProgressMonitor monitor) throws CoreException {
-					monitor.done();
-				}
-			};
+			IWorkspaceRunnable runnable = monitor -> monitor.done();
 			IProgressMonitor monitor = new NullProgressMonitor();
 			JavaCore.run(runnable, null, monitor);
 			waitForBackgroundJobs(monitor);
