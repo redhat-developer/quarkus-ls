@@ -19,6 +19,7 @@ import static com.redhat.qute.jdt.QuteProjectTest.loadMavenProject;
 
 import java.util.List;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.junit.Assert;
 import org.junit.Test;
@@ -360,6 +361,22 @@ public class TemplateGetDataModelProjectTest {
 		// }
 		assertValueResolver(null, "user() : java.lang.String", "org.acme.qute.Globals", "currentUser", true, resolvers);
 		// }
+	}
+
+	@Test
+	public void quarkus3() throws Exception {
+		loadMavenProject(QuteMavenProjectName.quarkus3);
+
+		QuteDataModelProjectParams params = new QuteDataModelProjectParams(QuteMavenProjectName.quarkus3);
+		DataModelProject<DataModelTemplate<DataModelParameter>> project = QuteSupportForTemplate.getInstance()
+				.getDataModelProject(params, getJDTUtils(), new NullProgressMonitor());
+		Assert.assertNotNull(project);
+
+		// Test value resolvers
+		List<ValueResolverInfo> resolvers = project.getValueResolvers();
+
+		// should pick up the named bean
+		assertValueResolver("inject", "org.acme.Bean2", "org.acme.Bean2", resolvers);
 	}
 
 }

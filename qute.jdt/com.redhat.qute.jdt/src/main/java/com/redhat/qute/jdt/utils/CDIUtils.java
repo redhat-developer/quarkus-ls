@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.utils;
 
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.JAKARTA_DECORATOR_ANNOTATION;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.JAKARTA_INJECT_VETOED_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.JAVAX_DECORATOR_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.JAVAX_INJECT_VETOED_ANNOTATION;
 
@@ -26,9 +28,9 @@ import org.eclipse.jdt.core.IType;
 
 /**
  * CDI utilities.
- * 
+ *
  * @author Angelo ZERR
- * 
+ *
  * @see https://github.com/jbosstools/jbosstools-javaee/blob/8fc233ad8d90dbf44fc2f5475e45393fb9f9f4b1/cdi/plugins/org.jboss.tools.cdi.seam.solder.core/src/org/jboss/tools/cdi/seam/solder/core/CDISeamSolderCoreExtension.java#L261
  */
 public class CDIUtils {
@@ -75,8 +77,8 @@ public class CDIUtils {
 			IType type = ((IType) javaElement);
 			return (type.getDeclaringType() == null
 					&& !Flags.isAbstract(type.getFlags())
-					&& !AnnotationUtils.hasAnnotation((IAnnotatable) javaElement, JAVAX_DECORATOR_ANNOTATION)
-					&& !AnnotationUtils.hasAnnotation((IAnnotatable) javaElement, JAVAX_INJECT_VETOED_ANNOTATION)
+					&& !AnnotationUtils.hasAnnotation((IAnnotatable) javaElement, JAVAX_DECORATOR_ANNOTATION, JAKARTA_DECORATOR_ANNOTATION)
+					&& !AnnotationUtils.hasAnnotation((IAnnotatable) javaElement, JAVAX_INJECT_VETOED_ANNOTATION, JAKARTA_INJECT_VETOED_ANNOTATION)
 					&& type.isClass() && hasNoArgConstructor(type));
 		} catch (Exception e) {
 			return false;

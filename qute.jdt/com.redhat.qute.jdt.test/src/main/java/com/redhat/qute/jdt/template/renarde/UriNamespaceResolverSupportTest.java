@@ -31,7 +31,7 @@ import com.redhat.qute.jdt.QuteSupportForTemplate;
 
 /**
  * Renarde uri/uriabs namespace resolver support tests.
- * 
+ *
  * @author Angelo ZERR
  *
  */
