@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2021 Red Hat Inc. and others.
+* Copyright (c) 2023 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
@@ -9,11 +9,12 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.ls.template;
+package com.redhat.qute.project.documents;
 
 import static com.redhat.qute.utils.FileUtils.createPath;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
@@ -25,12 +26,13 @@ import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.commons.ModelTextDocument;
 import com.redhat.qute.ls.commons.TextDocument;
+import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
-import com.redhat.qute.project.TemplateInfoProvider;
+import com.redhat.qute.project.QuteTextDocument;
 
-public class QuteTextDocument extends ModelTextDocument<Template> implements TemplateInfoProvider {
+public class QuteOpenedTextDocument extends ModelTextDocument<Template> implements QuteTextDocument {
 
 	private CompletableFuture<ProjectInfo> projectInfoFuture;
 
@@ -44,7 +46,7 @@ public class QuteTextDocument extends ModelTextDocument<Template> implements Tem
 
 	private String templateId;
 
-	public QuteTextDocument(TextDocumentItem document, BiFunction<TextDocument, CancelChecker, Template> parse,
+	public QuteOpenedTextDocument(TextDocumentItem document, BiFunction<TextDocument, CancelChecker, Template> parse,
 			QuteProjectInfoProvider projectInfoProvider, QuteProjectRegistry projectRegistry) {
 		super(document, parse);
 		this.projectInfoProvider = projectInfoProvider;
@@ -102,12 +104,25 @@ public class QuteTextDocument extends ModelTextDocument<Template> implements Tem
 	}
 
 	@Override
-	public String getProjectUri() {
+	public QuteProject getProject() {
 		if (projectUri != null) {
-			return projectUri;
+			return projectRegistry.getProject(projectUri);
 		}
 		getProjectInfoFuture().getNow(null);
 		return null;
 	}
 
+	@Override
+	public List<Parameter> findInsertTagParameter(String insertParameter) {
+		SearchInfoQuery query = new SearchInfoQuery();
+		query.setInsertParameter(insertParameter);
+		TemplateInfoCollector collector = new TemplateInfoCollector(query);
+		getTemplate().accept(collector);
+		return collector.getInsertParameters();
+	}
+
+	@Override
+	public boolean isOpened() {
+		return true;
+	}
 }

@@ -144,4 +144,9 @@ public class JavaFileTextDocumentService extends AbstractTextDocumentService {
 	public FileType getFileType() {
 		return FileType.JAVA;
 	}
+
+	public void dispose() {
+		validatorDelayer.dispose();
+	}
+
 }

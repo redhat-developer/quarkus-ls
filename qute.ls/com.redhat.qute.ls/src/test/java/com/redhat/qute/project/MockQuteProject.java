@@ -33,8 +33,6 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
-import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
-import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 
@@ -52,9 +50,8 @@ public abstract class MockQuteProject extends QuteProject {
 
 	private final Map<String, NamespaceResolverInfo> namespaceResolverInfos;
 
-	public MockQuteProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider,
-			QuteUserTagProvider tagProvider) {
-		super(projectInfo, dataModelProvider, tagProvider);
+	public MockQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
+		super(projectInfo, projectRegistry, null);
 		this.typesCache = createTypes();
 		this.resolvedTypesCache = createResolvedTypes();
 		this.templates = createTemplates();

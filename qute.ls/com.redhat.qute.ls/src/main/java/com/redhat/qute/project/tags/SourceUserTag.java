@@ -11,8 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.project.tags;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.nio.file.Path;
 
 import com.redhat.qute.project.QuteProject;
@@ -49,11 +47,10 @@ public class SourceUserTag extends UserTag {
 
 	@Override
 	public String getContent() {
-		try (InputStream input = new FileInputStream(path.toFile())) {
-			return IOUtils.convertStreamToString(input);
-
+		try  {
+			return IOUtils.getContent(path);
 		} catch (Exception e) {
-
+			// Do nothing
 		}
 		return null;
 	}

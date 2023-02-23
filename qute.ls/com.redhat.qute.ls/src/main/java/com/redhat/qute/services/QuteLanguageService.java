@@ -43,7 +43,6 @@ import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.codeactions.QuteTemplateCodeActionResolvers;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
-import com.redhat.qute.settings.QuteInlayHintSettings;
 import com.redhat.qute.settings.QuteNativeSettings;
 import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.settings.SharedSettings;
@@ -93,10 +92,10 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	/**
 	 * Create CodeAction(s) in the given Qute <code>template</code>.
 	 *
-	 * @param template       the Qute template.
-	 * @param context        the Code Action context.
-	 * @param javaTextEditProvider       the generate missing java member resolver
-	 * @param sharedSettings the Qute shared settings.
+	 * @param template             the Qute template.
+	 * @param context              the Code Action context.
+	 * @param javaTextEditProvider the generate missing java member resolver
+	 * @param sharedSettings       the Qute shared settings.
 	 * @return the CodeAction(s) to be added to the Qute template.
 	 */
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context,
@@ -166,11 +165,12 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	/**
 	 * Document links in the given Qute <code>template</code>.
 	 *
-	 * @param template the Qute template.
+	 * @param template      the Qute template.
+	 * @param cancelChecker the cancel checker
 	 * @return link range(s) of the document(s).
 	 */
-	public List<DocumentLink> findDocumentLinks(Template template) {
-		return documentLink.findDocumentLinks(template);
+	public CompletableFuture<List<DocumentLink>> findDocumentLinks(Template template, CancelChecker cancelChecker) {
+		return documentLink.findDocumentLinks(template, cancelChecker);
 	}
 
 	/**
@@ -281,9 +281,10 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	/**
 	 * Resolve code action in the given Qute template.
 	 *
-	 * @param unresolved      the unresolved code action
-	 * @param javaTextEditProvider the provider that can resolve code action information
-	 *                        using the associated java language server
+	 * @param unresolved           the unresolved code action
+	 * @param javaTextEditProvider the provider that can resolve code action
+	 *                             information
+	 *                             using the associated java language server
 	 * @return the resolved code action
 	 */
 	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction unresolved,

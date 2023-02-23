@@ -313,9 +313,7 @@ public class SnippetRegistry<T extends Snippet> {
 			}
 			item.setInsertTextFormat(InsertTextFormat.Snippet);
 			item.setSortText(snippet.getSortText());
-			updateInsertTextMode(item,
-					whitespacesIndent == null ? InsertTextMode.AdjustIndentation : InsertTextMode.AsIs,
-					defaultInsertTextMode);
+			updateInsertTextMode(item, whitespacesIndent, defaultInsertTextMode);
 			String insertText = contentProvider.getInsertText(snippet, model, !snippetsSupported, lineDelimiter,
 					whitespacesIndent);
 			item.setTextEdit(Either.forLeft(new TextEdit(range, insertText)));
@@ -324,7 +322,14 @@ public class SnippetRegistry<T extends Snippet> {
 		}).collect(Collectors.toList());
 	}
 
-	private void updateInsertTextMode(CompletionItem item, InsertTextMode insertTextMode,
+	public static void updateInsertTextMode(CompletionItem item, String whitespacesIndent,
+			InsertTextMode defaultInsertTextMode) {
+		updateInsertTextMode(item,
+				whitespacesIndent == null ? InsertTextMode.AdjustIndentation : InsertTextMode.AsIs,
+				defaultInsertTextMode);
+	}
+
+	private static void updateInsertTextMode(CompletionItem item, InsertTextMode insertTextMode,
 			InsertTextMode defaultInsertTextMode) {
 		if (defaultInsertTextMode != insertTextMode) {
 			item.setInsertTextMode(insertTextMode);

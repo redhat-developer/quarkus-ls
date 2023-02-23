@@ -34,7 +34,7 @@ public class QuteDocumentLinkTest {
 				"  </div>\r\n" + //
 				"{/include}";
 		testDocumentLinkFor(template, "src/test/resources/detail", //
-				dl(r(0,10,0,14), "src/test/resources/templates/base.qute.html"));
+				dl(r(0,10,0,14), "src/test/resources/templates/base.html"));
 	}
 	
 	@Test
@@ -46,6 +46,6 @@ public class QuteDocumentLinkTest {
 				"  </div>\r\n" + //
 				"{/include}";
 		testDocumentLinkFor(template, "src/test/resources/detail", //
-				dl(r(0,10,0,14), "src/test/resources/templates/XXXX.qute.html"));
+				dl(r(0,10,0,14), "src/test/resources/templates/XXXX.html"));
 	}
 }

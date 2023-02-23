@@ -30,6 +30,7 @@ public class MockQuteLanguageServer extends QuteLanguageServer {
 
 	public MockQuteLanguageServer() {
 		super.setClient(new MockQuteLanguageClient());
+		super.getProjectRegistry().setDidChangeWatchedFilesSupported(true);
 	}
 
 	public List<PublishDiagnosticsParams> getPublishDiagnostics() {
@@ -45,7 +46,7 @@ public class MockQuteLanguageServer extends QuteLanguageServer {
 		TextDocumentIdentifier quteIdentifier = new TextDocumentIdentifier(fileURI);
 		DidOpenTextDocumentParams params = new DidOpenTextDocumentParams(
 				new TextDocumentItem(quteIdentifier.getUri(), "qute", 1, template));
-	    QuteTextDocumentService textDocumentService = (QuteTextDocumentService) super.getTextDocumentService();
+		QuteTextDocumentService textDocumentService = (QuteTextDocumentService) super.getTextDocumentService();
 		textDocumentService.didOpen(params);
 		return quteIdentifier;
 	}

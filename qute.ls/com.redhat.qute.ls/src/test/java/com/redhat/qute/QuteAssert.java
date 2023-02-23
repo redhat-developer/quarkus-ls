@@ -70,7 +70,6 @@ import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.commons.ProjectInfo;
-import com.redhat.qute.ls.QuteTextDocumentService;
 import com.redhat.qute.ls.api.QuteTemplateJavaTextEditProvider;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.TextDocument;
@@ -113,7 +112,12 @@ public class QuteAssert {
 
 	private static final String FILE_URI = "test.qute";
 
-	public static final int SECTION_SNIPPET_SIZE = 15 /* #each, #for, ... #fragment ... */ + 7 /* #input, #form, #title, #simpleTitle, #user, #formElement, #inputRequired */;
+	public static final int USER_TAG_SIZE = 7 /*
+												 * #input, #form, #title, #simpleTitle, #user, #formElement,
+												 * #inputRequired
+												 */;
+
+	public static final int SECTION_SNIPPET_SIZE = 15 /* #each, #for, ... #fragment ... */ + USER_TAG_SIZE;
 
 	public static String getFileUri(String templateFile) {
 		return Paths.get(TEMPLATE_BASE_DIR + templateFile).toUri().toString();
@@ -142,6 +146,12 @@ public class QuteAssert {
 	public static void testCompletionFor(String value, boolean snippetSupport, Integer expectedCount,
 			CompletionItem... expectedItems) throws Exception {
 		testCompletionFor(value, snippetSupport, FILE_URI, PROJECT_URI, TEMPLATE_BASE_DIR, expectedCount,
+				expectedItems);
+	}
+
+	public static void testCompletionFor(String value, String fileUri, boolean snippetSupport, Integer expectedCount,
+			CompletionItem... expectedItems) throws Exception {
+		testCompletionFor(value, snippetSupport, fileUri, PROJECT_URI, TEMPLATE_BASE_DIR, expectedCount,
 				expectedItems);
 	}
 
@@ -178,7 +188,7 @@ public class QuteAssert {
 		CompletionCapabilities completionCapabilities = new CompletionCapabilities(completionItemCapabilities);
 		completionCapabilities.setInsertTextMode(InsertTextMode.AdjustIndentation);
 		completionSettings.setCapabilities(completionCapabilities);
-		
+
 		testCompletionFor(value, fileUri, templateId, projectUri, templateBaseDir, expectedCount, nativeImagesSettings,
 				completionSettings, expectedItems);
 	}
@@ -451,7 +461,7 @@ public class QuteAssert {
 
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
 		Hover hover = languageService.doHover(template, position, sharedSettings, () -> {
-			}).get();
+		}).get();
 		if (expectedHoverLabel == null) {
 			assertNull(hover);
 		} else {
@@ -519,13 +529,14 @@ public class QuteAssert {
 	}
 
 	public static void testDocumentLinkFor(String value, String fileUri, String projectUri, String templateBaseDir,
-			DocumentLink... expected) {
+			DocumentLink... expected) throws Exception {
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
 
-		List<DocumentLink> actual = languageService.findDocumentLinks(template);
+		List<DocumentLink> actual = languageService.findDocumentLinks(template, () -> {
+		}).get();
 		assertDocumentLinks(actual, expected);
 	}
 

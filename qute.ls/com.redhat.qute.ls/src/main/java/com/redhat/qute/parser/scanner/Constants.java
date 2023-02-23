@@ -11,8 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.parser.scanner;
 
-import java.util.regex.Pattern;
-
 public class Constants {
 
 	public final static int _EXL = "!".codePointAt(0);

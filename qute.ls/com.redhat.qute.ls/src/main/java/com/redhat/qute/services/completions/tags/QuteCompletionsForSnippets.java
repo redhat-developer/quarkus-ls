@@ -11,25 +11,38 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions.tags;
 
+import static com.redhat.qute.ls.commons.snippets.SnippetRegistry.updateInsertTextMode;
+
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionItemKind;
+import org.eclipse.lsp4j.InsertTextFormat;
 import org.eclipse.lsp4j.InsertTextMode;
 import org.eclipse.lsp4j.MarkupKind;
+import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.LineIndentInfo;
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
+import com.redhat.qute.ls.commons.snippets.SnippetsBuilder;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
+import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
+import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.IncludeSection;
+import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.documents.SearchInfoQuery;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.snippets.AbstractQuteSnippetContext;
 
@@ -83,7 +96,9 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 		}
 
 		try {
-			QuteSnippetContentProvider contentProvider = new QuteSnippetContentProvider(node, section, offset, template);
+			QuteSnippetContentProvider contentProvider = new QuteSnippetContentProvider(node, section, offset,
+					template);
+
 			Range replaceRange = contentProvider.getReplaceRange();
 			int lineNumber = replaceRange.getStart().getLine();
 			String lineDelimiter = null;
@@ -109,9 +124,72 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 					contentProvider);
 
 			completionItems.addAll(snippets);
+
+			Range range = replaceRange;
+			Position end = contentProvider.findSuffixPosition(suffixToFind);
+			if (end != null) {
+				range = new Range(replaceRange.getStart(), end);
+			}
+			collectInsertParameterSuggestions(completionRequest, range, prefixFilter, suffixToFind,
+					whitespacesIndent, defaultInsertTextMode, completionItems);
+
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In QuteCompletions, collectSnippetSuggestions position error", e);
 		}
+	}
+
+	private void collectInsertParameterSuggestions(CompletionRequest completionRequest, Range replaceRange,
+			String prefixFilter, String suffixToFind,
+			String whitespacesIndent, InsertTextMode defaultInsertTextMode, Set<CompletionItem> completionItems) {
+		Node node = completionRequest.getNode();
+		if (node == null) {
+			return;
+		}
+		QuteProject project = completionRequest.getTemplate().getProject();
+		if (project == null) {
+			return;
+		}
+		Node parent = node.getParent();
+		while (parent != null) {
+			if (parent.getKind() == NodeKind.Section) {
+				Section parentSection = (Section) parent;
+				if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
+					IncludeSection includeSection = (IncludeSection) parentSection;
+					List<Parameter> parameters = project
+							.findInsertTagParameter(includeSection.getReferencedTemplateId(), SearchInfoQuery.ALL);
+					if (parameters != null) {
+						for (Parameter parameter : parameters) {
+							String tagName = parameter.getName();
+							CompletionItem item = new CompletionItem();
+							item.setKind(CompletionItemKind.Reference);
+							item.setLabel(tagName);
+							item.setInsertTextFormat(
+									completionRequest.isCompletionSnippetsSupported() ? InsertTextFormat.Snippet
+											: InsertTextFormat.PlainText);
+							updateInsertTextMode(item, whitespacesIndent, defaultInsertTextMode);
+							item.setFilterText(prefixFilter + tagName);
+
+							StringBuilder insertText = new StringBuilder("{#");
+							insertText.append(parameter.getName());
+							insertText.append("}");
+							if (completionRequest.isCompletionSnippetsSupported()) {
+								SnippetsBuilder.tabstops(1, insertText);
+							}
+							insertText.append("{/");
+							insertText.append(parameter.getName());
+							insertText.append("}");
+							if (completionRequest.isCompletionSnippetsSupported()) {
+								SnippetsBuilder.tabstops(0, insertText);
+							}
+							item.setTextEdit(Either.forLeft(new TextEdit(replaceRange, insertText.toString())));
+							completionItems.add(item);
+						}
+					}
+				}
+			}
+			parent = parent.getParent();
+		}
+
 	}
 
 	/**

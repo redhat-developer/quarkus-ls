@@ -38,6 +38,7 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.completions.CompletionRequest;
+import com.redhat.qute.services.completions.QuteCompletionForTemplateIds;
 import com.redhat.qute.services.completions.QuteCompletionsForExpression;
 import com.redhat.qute.services.completions.QuteCompletionsForParameterDeclaration;
 import com.redhat.qute.services.completions.tags.QuteCompletionForTagSection;
@@ -69,11 +70,14 @@ public class QuteCompletions {
 
 	private final QuteCompletionForTagSection completionForTagSection;
 
+	private final QuteCompletionForTemplateIds completionForTemplateIds;
+
 	public QuteCompletions(JavaDataModelCache javaCache, SnippetRegistryProvider<Snippet> snippetRegistryProvider) {
 		this.completionsForParameterDeclaration = new QuteCompletionsForParameterDeclaration(javaCache);
 		this.completionsForSnippets = new QuteCompletionsForSnippets<Snippet>(snippetRegistryProvider);
 		this.completionForTagSection = new QuteCompletionForTagSection(completionsForSnippets);
 		this.completionForExpression = new QuteCompletionsForExpression(completionForTagSection, javaCache);
+		this.completionForTemplateIds = new QuteCompletionForTemplateIds();
 	}
 
 	/**
@@ -116,6 +120,11 @@ public class QuteCompletions {
 			} else if (node.getKind() == NodeKind.ExpressionPart) {
 				nodeExpression = node;
 				expression = ((Part) node).getParent().getParent();
+			}
+			if (expression != null && Section.isIncludeSection(expression.getOwnerSection())) {
+				// {#include | }
+				return completionForTemplateIds.doCompleteTemplateId(completionRequest,
+						completionSettings, formattingSettings, cancelChecker); 
 			}
 			return completionForExpression.doCompleteExpression(completionRequest, expression, nodeExpression, template,
 					offset, completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
@@ -168,10 +177,14 @@ public class QuteCompletions {
 					formattingSettings, cancelChecker);
 		} else if (node.getKind() == NodeKind.Parameter) {
 			Parameter parameter = (Parameter) node;
-			if (isCompletionAllowed(parameter, offset)) {
+			if (isJavaModelCompletionAllowed(parameter, offset)) {
 				// {# let name=|
 				return completionForExpression.doCompleteExpression(completionRequest, null, null, template, offset,
 						completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
+			} else if (Section.isIncludeSection(parameter.getOwnerSection())) {
+				// {#include ba|se }
+				return completionForTemplateIds.doCompleteTemplateId(completionRequest,
+						completionSettings, formattingSettings, cancelChecker);
 			}
 		}
 		return collectSnippetSuggestions(completionRequest);
@@ -185,7 +198,7 @@ public class QuteCompletions {
 	 *
 	 * @return true if completion is allowed at the current offset and section.
 	 */
-	public boolean isCompletionAllowed(Parameter parameter, int offset) {
+	public boolean isJavaModelCompletionAllowed(Parameter parameter, int offset) {
 		if (Section.isCaseSection(parameter.getOwnerSection())) {
 			// {#case O|FF}
 			return true;

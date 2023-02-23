@@ -11,7 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.ls.template;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -65,6 +65,11 @@ import com.redhat.qute.ls.commons.ModelTextDocument;
 import com.redhat.qute.ls.commons.ValidatorDelayer;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
+import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.QuteTextDocument;
+import com.redhat.qute.project.documents.QuteOpenedTextDocument;
+import com.redhat.qute.project.documents.QuteOpenedTextDocuments;
+import com.redhat.qute.project.documents.TemplateValidator;
 import com.redhat.qute.services.QuteLanguageService;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.SharedSettings;
@@ -74,51 +79,57 @@ import com.redhat.qute.utils.QutePositionUtility;
  * LSP text document service for Qute template file.
  *
  */
-public class TemplateFileTextDocumentService extends AbstractTextDocumentService implements QuteTemplateProvider{
+public class TemplateFileTextDocumentService extends AbstractTextDocumentService
+		implements QuteTemplateProvider, TemplateValidator {
 
-	private final QuteTextDocuments documents;
+	private final QuteOpenedTextDocuments documents;
 	private ValidatorDelayer<ModelTextDocument<Template>> validatorDelayer;
 	private final QuteLanguageServer languageServer;
 
 	public TemplateFileTextDocumentService(QuteLanguageServer quteLanguageServer, SharedSettings sharedSettings) {
 		super(quteLanguageServer, sharedSettings);
-		this.documents = new QuteTextDocuments((document, cancelChecker) -> {
+		this.documents = new QuteOpenedTextDocuments((document, cancelChecker) -> {
 			return TemplateParser.parse(document, () -> cancelChecker.checkCanceled());
 		}, quteLanguageServer, quteLanguageServer.getProjectRegistry());
 		this.validatorDelayer = new ValidatorDelayer<ModelTextDocument<Template>>((template) -> {
-			validate((QuteTextDocument) template);
+			triggerValidationFor((QuteTextDocument) template);
 		});
 		this.languageServer = quteLanguageServer;
 	}
 
 	@Override
 	public void didOpen(DidOpenTextDocumentParams params) {
-		QuteTextDocument document = (QuteTextDocument) documents.onDidOpenTextDocument(params);
-		document.getProjectInfoFuture() //
-				.thenAccept(projectInfo -> {
-					if (projectInfo != null) {
-						// At this step we get informations about the Java project (used to collect Java
-						// classes available for the given Qute template)
-						// We retrigger the validation to validate data model.
-						triggerValidationFor(document, false);
-					}
-				});
-		triggerValidationFor(document, false);
+		QuteOpenedTextDocument document = (QuteOpenedTextDocument) documents.onDidOpenTextDocument(params);
+		// The qute template is opened, trigger the validation
+		QuteProject project = document.getProject();
+		if (project != null) {
+			// The project has been already loaded, trigger the validation
+			triggerValidationFor(document);
+		} else {
+			document.getProjectInfoFuture() //
+					.thenAccept(projectInfo -> {
+						if (projectInfo != null) {
+							// At this step we get informations about the Java project (used to collect Java
+							// classes available for the given Qute template)
+							// We retrigger the validation to validate data model.
+							triggerValidationFor(document);
+						}
+					});
+		}
 	}
 
 	@Override
 	public void didChange(DidChangeTextDocumentParams params) {
-		QuteTextDocument document = (QuteTextDocument) documents.onDidChangeTextDocument(params);
-		triggerValidationFor(document, true);
+		QuteOpenedTextDocument document = (QuteOpenedTextDocument) documents.onDidChangeTextDocument(params);
+		// The qute template has changed, trigger the validation
+		validatorDelayer.validateWithDelay(document);
 	}
 
 	@Override
 	public void didClose(DidCloseTextDocumentParams params) {
 		documents.onDidCloseTextDocument(params);
-		TextDocumentIdentifier document = params.getTextDocument();
-		String uri = document.getUri();
-		quteLanguageServer.getLanguageClient()
-				.publishDiagnostics(new PublishDiagnosticsParams(uri, new ArrayList<Diagnostic>()));
+		// Since closed document is managed, we don't publish empty diagnostics, because
+		// closed document can report errors.
 	}
 
 	@Override
@@ -216,8 +227,8 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 
 	@Override
 	public CompletableFuture<List<DocumentLink>> documentLink(DocumentLinkParams params) {
-		return getTemplate(params.getTextDocument(), (template, cancelChecker) -> {
-			return getQuteLanguageService().findDocumentLinks(template);
+		return getTemplateCompose(params.getTextDocument(), (template, cancelChecker) -> {
+			return getQuteLanguageService().findDocumentLinks(template, cancelChecker);
 		});
 	}
 
@@ -302,47 +313,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 	}
 
 	private QuteLanguageService getQuteLanguageService() {
-		return quteLanguageServer.getQuarkusLanguageService();
-	}
-
-	private void triggerValidationFor(QuteTextDocument document, boolean delayed) {
-		if (delayed) {
-			validatorDelayer.validateWithDelay(document);
-		} else {
-			CompletableFuture.runAsync(() -> {
-				validate(document);
-			});
-		}
-	}
-
-	private void validate(QuteTextDocument document) {
-		var template = document.getModel();
-
-		// Collect diagnostics
-		ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template,
-				quteLanguageServer.getDataModelCache());
-		List<Diagnostic> diagnostics = getQuteLanguageService().doDiagnostics(template,
-				getSharedSettings().getValidationSettings(template.getUri()),
-				getSharedSettings().getNativeSettings(), resolvingJavaTypeContext,
-				() -> template.checkCanceled());
-
-		// Diagnostics has been collected, before diagnostics publishing, check if the
-		// document has changed since diagnostics collect.
-		template.checkCanceled();
-
-		// Publish diagnostics
-		quteLanguageServer.getLanguageClient()
-				.publishDiagnostics(new PublishDiagnosticsParams(template.getUri(), diagnostics));
-
-		if (!resolvingJavaTypeContext.isEmpty()) {
-			// Some Java types was not loaded, wait for that all Java types are resolved to
-			// retrigger the validation.
-			CompletableFuture<Void> allFutures = CompletableFuture.allOf(resolvingJavaTypeContext
-					.toArray(new CompletableFuture[resolvingJavaTypeContext.size()]));
-			allFutures.thenAccept(Void -> {
-				triggerValidationFor(document, false);
-			});
-		}
+		return quteLanguageServer.getQuteLanguageService();
 	}
 
 	/**
@@ -351,8 +322,8 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 	 * @param uri the uri
 	 * @return the text document from the given uri.
 	 */
-	public QuteTextDocument getDocument(String uri) {
-		return (QuteTextDocument) documents.get(uri);
+	public QuteOpenedTextDocument getDocument(String uri) {
+		return (QuteOpenedTextDocument) documents.get(uri);
 	}
 
 	/**
@@ -396,24 +367,80 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 	}
 
 	public void validationSettingsChanged() {
-		// trigger validation for all opened Qute template files
-		documents.all().stream().forEach(document -> {
-			triggerValidationFor((QuteTextDocument) document, false);
-		});
+		validateAllTemplates();
 	}
 
 	public void dataModelChanged(JavaDataModelChangeEvent event) {
-		// trigger validation for all opened Qute template files
-		documents.all().stream().forEach(document -> {
-			triggerValidationFor((QuteTextDocument) document, false);
-		});
+		validateAllTemplates();
 	}
 
 	public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
-		// trigger validation for all opened Qute template files
-		documents.all().stream().forEach(document -> {
-			triggerValidationFor((QuteTextDocument) document, true);
-		});
+		languageServer.getProjectRegistry().didChangeWatchedFiles(params);
+	}
+
+	// ----------------------- validation
+
+	@Override
+	public void triggerValidationFor(QuteTextDocument document) {
+		var template = document.getTemplate();
+
+		// Collect diagnostics
+		ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template,
+				quteLanguageServer.getDataModelCache());
+		List<Diagnostic> diagnostics = getQuteLanguageService().doDiagnostics(template,
+				getSharedSettings().getValidationSettings(template.getUri()),
+				getSharedSettings().getNativeSettings(), resolvingJavaTypeContext,
+				() -> template.checkCanceled());
+
+		// Diagnostics has been collected, before diagnostics publishing, check if the
+		// document has changed since diagnostics collect.
+		template.checkCanceled();
+
+		// Publish diagnostics for the given template
+		quteLanguageServer.getLanguageClient()
+				.publishDiagnostics(new PublishDiagnosticsParams(template.getUri(), diagnostics));
+
+		if (!resolvingJavaTypeContext.isEmpty()) {
+			// Some Java types was not loaded, wait for that all Java types are resolved to
+			// retrigger the validation.
+			CompletableFuture<Void> allFutures = CompletableFuture.allOf(resolvingJavaTypeContext
+					.toArray(new CompletableFuture[resolvingJavaTypeContext.size()]));
+			allFutures.thenAccept(Void -> {
+				triggerValidationFor(document);
+			});
+		}
+	}
+
+	@Override
+	public void clearDiagnosticsFor(String fileUri) {
+		quteLanguageServer.getLanguageClient()
+				.publishDiagnostics(new PublishDiagnosticsParams(fileUri,
+						Collections.emptyList()));
+	}
+
+	private void validateAllTemplates() {
+		Collection<QuteProject> projects = languageServer.getProjectRegistry().getProjects();
+		if (projects.isEmpty()) {
+			// trigger validation for all opened Qute template files
+			documents.all().stream().forEach(document -> {
+				triggerValidationFor((QuteOpenedTextDocument) document);
+			});
+		} else {
+			triggerValidationFor(projects);
+		}
+	}
+
+	@Override
+	public void triggerValidationFor(Collection<QuteProject> projects) {
+		for (QuteProject project : projects) {
+			documents.all().stream().forEach(document -> {
+				QuteProject documentProject = document.getModel().getProject();
+				if (project.equals(documentProject)) {
+					triggerValidationFor((QuteOpenedTextDocument) document);
+				}
+			});
+			project.validateClosedTemplates();
+		}
 	}
 
 	private QuteLanguageClientAPI getLanguageClient() {
@@ -427,8 +454,12 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 
 	@Override
 	public Template getTemplate(String uri) {
-		QuteTextDocument document = getDocument(uri);
+		QuteOpenedTextDocument document = getDocument(uri);
 		return document != null ? document.getModel() : null;
+	}
+
+	public void dispose() {
+		validatorDelayer.dispose();
 	}
 
 }

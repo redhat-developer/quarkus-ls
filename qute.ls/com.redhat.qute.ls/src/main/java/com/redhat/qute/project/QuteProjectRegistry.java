@@ -19,7 +19,9 @@ import static com.redhat.qute.services.QuteCompletableFutures.NAMESPACE_RESOLVER
 import static com.redhat.qute.services.QuteCompletableFutures.RESOLVED_JAVA_CLASSINFO_NULL_FUTURE;
 import static com.redhat.qute.services.QuteCompletableFutures.VALUE_RESOLVERS_NULL_FUTURE;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
+import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.Location;
 
 import com.redhat.qute.commons.JavaElementInfo;
@@ -60,7 +64,6 @@ import com.redhat.qute.ls.api.QuteJavadocProvider;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
-import com.redhat.qute.ls.template.QuteTextDocument;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Template;
@@ -71,9 +74,12 @@ import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolversRegistry;
+import com.redhat.qute.project.documents.QuteOpenedTextDocument;
+import com.redhat.qute.project.documents.TemplateValidator;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.ReflectionJavaTypeFilter;
 import com.redhat.qute.settings.QuteNativeSettings;
+import com.redhat.qute.utils.FileUtils;
 import com.redhat.qute.utils.StringUtils;
 
 /**
@@ -131,9 +137,14 @@ public class QuteProjectRegistry
 
 	private final QuteJavadocProvider javadocProvider;
 
+	private final TemplateValidator validator;
+
+	private boolean didChangeWatchedFilesSupported;
+
 	public QuteProjectRegistry(QuteJavaTypesProvider classProvider, QuteJavaDefinitionProvider definitionProvider,
 			QuteResolvedJavaTypeProvider resolvedClassProvider, QuteDataModelProjectProvider dataModelProvider,
-			QuteUserTagProvider userTagsProvider, QuteJavadocProvider javadocProvider) {
+			QuteUserTagProvider userTagsProvider, QuteJavadocProvider javadocProvider,
+			TemplateValidator validator) {
 		this.javaTypeProvider = classProvider;
 		this.definitionProvider = definitionProvider;
 		this.projects = new HashMap<>();
@@ -142,6 +153,28 @@ public class QuteProjectRegistry
 		this.userTagProvider = userTagsProvider;
 		this.javadocProvider = javadocProvider;
 		this.valueResolversRegistry = new ValueResolversRegistry();
+		this.validator = validator;
+	}
+
+	/**
+	 * Enable/disable did change watched file support.
+	 * 
+	 * @param didChangeWatchedFilesSupported true if did changed file is supported
+	 *                                       by the LSP client and false otherwise.
+	 */
+	public void setDidChangeWatchedFilesSupported(boolean didChangeWatchedFilesSupported) {
+		this.didChangeWatchedFilesSupported = didChangeWatchedFilesSupported;
+	}
+
+	/**
+	 * Returns true if did changed file is supported by the LSP client and false
+	 * otherwise.
+	 * 
+	 * @return true if did changed file is supported by the LSP client and false
+	 *         otherwise.
+	 */
+	public boolean isDidChangeWatchedFilesSupported() {
+		return didChangeWatchedFilesSupported;
 	}
 
 	/**
@@ -169,6 +202,11 @@ public class QuteProjectRegistry
 		QuteProject project = getProject(projectUri);
 		if (project == null) {
 			project = registerProjectSync(projectInfo);
+			if (validator != null) {
+				QuteProject newProject = project;
+				// Validate closed Qute template on project load.
+				CompletableFuture.runAsync(() -> newProject.validateClosedTemplates());
+			}
 		}
 		return project;
 	}
@@ -185,7 +223,7 @@ public class QuteProjectRegistry
 	}
 
 	protected QuteProject createProject(ProjectInfo projectInfo) {
-		return new QuteProject(projectInfo, this, this);
+		return new QuteProject(projectInfo, this, validator);
 	}
 
 	protected void registerProject(QuteProject project) {
@@ -197,13 +235,10 @@ public class QuteProjectRegistry
 	 *
 	 * @param document the Qute template.
 	 */
-	public void onDidOpenTextDocument(TemplateInfoProvider document) {
-		String projectUri = document.getProjectUri();
-		if (projectUri != null) {
-			QuteProject project = getProject(projectUri);
-			if (project != null) {
-				project.onDidOpenTextDocument(document);
-			}
+	public void onDidOpenTextDocument(QuteTextDocument document) {
+		QuteProject project = document.getProject();
+		if (project != null) {
+			project.onDidOpenTextDocument(document);
 		}
 	}
 
@@ -212,23 +247,17 @@ public class QuteProjectRegistry
 	 *
 	 * @param document the Qute template.
 	 */
-	public void onDidCloseTextDocument(TemplateInfoProvider document) {
-		String projectUri = document.getProjectUri();
-		if (projectUri != null) {
-			QuteProject project = getProject(projectUri);
-			if (project != null) {
-				project.onDidCloseTextDocument(document);
-			}
+	public void onDidCloseTextDocument(QuteTextDocument document) {
+		QuteProject project = document.getProject();
+		if (project != null) {
+			project.onDidCloseTextDocument(document);
 		}
 	}
-	
-	public void onDidSaveTextDocument(QuteTextDocument document) {
-		String projectUri = document.getProjectUri();
-		if (projectUri != null) {
-			QuteProject project = getProject(projectUri);
-			if (project != null) {
-				project.onDidSaveTextDocument(document);
-			}
+
+	public void onDidSaveTextDocument(QuteOpenedTextDocument document) {
+		QuteProject project = document.getProject();
+		if (project != null) {
+			project.onDidSaveTextDocument(document);
 		}
 	}
 
@@ -1375,4 +1404,80 @@ public class QuteProjectRegistry
 		return javadocProvider.getJavadoc(params);
 	}
 
+	private QuteProject findProjectFor(Path path) {
+		for (QuteProject project : projects.values()) {
+			if (isBelongToProject(path, project)) {
+				return project;
+			}
+		}
+		return null;
+	}
+
+	private static boolean isBelongToProject(Path path, QuteProject project) {
+		return path.startsWith(project.getTemplateBaseDir());
+	}
+
+	public Collection<QuteProject> getProjects() {
+		return projects.values();
+	}
+
+	public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
+		Set<QuteProject> projects = new HashSet<>();
+		List<FileEvent> changes = params.getChanges();
+		// Some qute templates are deleted, created, or changed
+		// Collect impacted Qute projects
+		for (FileEvent fileEvent : changes) {
+			String fileUri = fileEvent.getUri();
+			Path templatePath = FileUtils.createPath(fileUri);
+			QuteProject project = findProjectFor(templatePath);
+			if (project != null) {
+				String templateId = project.getTemplateId(templatePath);
+				if (project.isTemplateOpened(templateId)) {
+					projects.add(project);
+				} else {
+					// In case of closed document, we collect the project and update the cache
+					switch (fileEvent.getType()) {
+						case Changed:
+						case Created: {
+							// The template is created, update the cache and collect the project
+							QuteTextDocument closedTemplate = project
+									.onDidCreateTemplate(templatePath);
+							if (closedTemplate != null) {
+								projects.add(closedTemplate.getProject());
+							}
+							break;
+						}
+						case Deleted: {
+							// The template is deleted, update the cache, collect the project and publish
+							// empty diagnostics for this file
+							QuteTextDocument closedTemplate = project.onDidDeleteTemplate(templatePath);
+							if (closedTemplate != null) {
+								projects.add(closedTemplate.getProject());
+								if (validator != null) {
+									validator.clearDiagnosticsFor(fileUri);
+								}
+							}
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if (projects.isEmpty()) {
+			return;
+		}
+
+		// trigger validation for all opened and closed Qute template files which belong
+		// to the project list.
+		if (validator != null) {
+			validator.triggerValidationFor(projects);
+		}
+	}
+
+	public void dispose() {
+		for (QuteProject project : projects.values()) {
+			project.dispose();
+		}
+	}
 }

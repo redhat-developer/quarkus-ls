@@ -14,6 +14,7 @@ package com.redhat.qute.ls;
 import static com.redhat.qute.utils.VersionHelper.getVersion;
 import static org.eclipse.lsp4j.jsonrpc.CompletableFutures.computeAsync;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -63,8 +64,11 @@ import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.qute.ls.commons.client.InitializationOptionsExtendedClientCapabilities;
 import com.redhat.qute.ls.template.TemplateFileTextDocumentService;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
+import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.documents.TemplateValidator;
 import com.redhat.qute.services.QuteLanguageService;
 import com.redhat.qute.settings.AllQuteSettings;
 import com.redhat.qute.settings.InitializationOptionsSettings;
@@ -81,7 +85,7 @@ import com.redhat.qute.settings.capabilities.ServerCapabilitiesInitializer;
 public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer, QuteLanguageServerAPI,
 		QuteProjectInfoProvider, QuteJavaTypesProvider, QuteResolvedJavaTypeProvider, QuteJavaDefinitionProvider,
 		QuteDataModelProjectProvider, QuteUserTagProvider, QuteTemplateJavaTextEditProvider, QuteJavadocProvider,
-		QuteTemplateProvider {
+		QuteTemplateProvider, TemplateValidator {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteLanguageServer.class.getName());
 
@@ -105,7 +109,7 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 
 	public QuteLanguageServer() {
 		this.sharedSettings = new SharedSettings();
-		this.projectRegistry = new QuteProjectRegistry(this, this, this, this, this, this);
+		this.projectRegistry = new QuteProjectRegistry(this, this, this, this, this, this, this);
 		this.dataModelCache = new JavaDataModelCache(projectRegistry);
 		this.quteLanguageService = new QuteLanguageService(dataModelCache);
 		this.textDocumentService = new QuteTextDocumentService(this);
@@ -126,6 +130,9 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 		textDocumentService.updateClientCapabilities(params.getCapabilities(), extendedClientCapabilities);
 		ServerCapabilities serverCapabilities = ServerCapabilitiesInitializer
 				.getNonDynamicServerCapabilities(capabilityManager.getClientCapabilities());
+
+		projectRegistry.setDidChangeWatchedFilesSupported(
+				capabilityManager.getClientCapabilities().isDidChangeWatchedFilesRegistered());
 
 		InitializeResult initializeResult = new InitializeResult(serverCapabilities);
 		return CompletableFuture.completedFuture(initializeResult);
@@ -184,6 +191,8 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 			ScheduledExecutorService delayer = Executors.newScheduledThreadPool(1);
 			delayer.schedule(() -> exit(0), 1, TimeUnit.SECONDS);
 		}
+		textDocumentService.dispose();
+		projectRegistry.dispose();
 		return computeAsync(cc -> new Object());
 	}
 
@@ -225,7 +234,7 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 		return parentProcessId != null ? parentProcessId : 0;
 	}
 
-	public QuteLanguageService getQuarkusLanguageService() {
+	public QuteLanguageService getQuteLanguageService() {
 		return quteLanguageService;
 	}
 
@@ -296,5 +305,20 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	@Override
 	public Template getTemplate(String uri) {
 		return ((TemplateFileTextDocumentService) textDocumentService.getTextDocumentService(uri)).getTemplate(uri);
+	}
+
+	@Override
+	public void triggerValidationFor(QuteTextDocument document) {
+		textDocumentService.triggerValidationFor(document);
+	}
+
+	@Override
+	public void clearDiagnosticsFor(String fileUri) {
+		textDocumentService.clearDiagnosticsFor(fileUri);
+	}
+
+	@Override
+	public void triggerValidationFor(Collection<QuteProject> projects) {
+		textDocumentService.triggerValidationFor(projects);
 	}
 }
