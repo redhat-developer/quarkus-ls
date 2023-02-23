@@ -30,6 +30,12 @@ import com.redhat.qute.parser.parameter.ParameterParser;
  */
 public abstract class Section extends Node implements ParametersContainer {
 
+	private static final SectionKind[] INCLUDE_SECTION_KIND = new SectionKind[] { SectionKind.INCLUDE };
+
+	private static final SectionKind[] WHEN_SECTION_KIND = new SectionKind[] { SectionKind.WHEN, SectionKind.SWITCH };
+
+	private static final SectionKind[] CASE_SECTION_KIND = new SectionKind[] { SectionKind.CASE, SectionKind.IS };
+
 	private final String tag;
 
 	private int startTagOpenOffset;
@@ -616,11 +622,7 @@ public abstract class Section extends Node implements ParametersContainer {
 	 * @return true if the given section is a #case or #is section.
 	 */
 	public static boolean isCaseSection(Section section) {
-		if (section == null) {
-			return false;
-		}
-		SectionKind sectionKind = section.getSectionKind();
-		return sectionKind == SectionKind.CASE || sectionKind == SectionKind.IS;
+		return isSectionKind(section, CASE_SECTION_KIND);
 	}
 
 	/**
@@ -631,11 +633,31 @@ public abstract class Section extends Node implements ParametersContainer {
 	 * @return true if the given section is a #when or #switch section.
 	 */
 	public static boolean isWhenSection(Section section) {
+		return isSectionKind(section, WHEN_SECTION_KIND);
+	}
+
+	/**
+	 * Returns true if the given section is a #include section.
+	 *
+	 * @param section the section.
+	 *
+	 * @return true if the given section is a #include section.
+	 */
+	public static boolean isIncludeSection(Section section) {
+		return isSectionKind(section, INCLUDE_SECTION_KIND);
+	}
+
+	private static boolean isSectionKind(Section section, SectionKind[] expectedKinds) {
 		if (section == null) {
 			return false;
 		}
-		SectionKind sectionKind = section.getSectionKind();
-		return sectionKind == SectionKind.SWITCH || sectionKind == SectionKind.WHEN;
+		SectionKind actualKind = section.getSectionKind();
+		for (SectionKind expectedKind : expectedKinds) {
+			if (actualKind == expectedKind) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

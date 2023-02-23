@@ -71,7 +71,6 @@ import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
-import com.redhat.qute.project.indexing.QuteIndex;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
 import com.redhat.qute.services.diagnostics.CollectHtmlInputNamesVisitor;
@@ -427,9 +426,10 @@ class QuteDiagnostics {
 						Section parentSection = (Section) parent;
 						if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
 							IncludeSection includeSection = (IncludeSection) parentSection;
-							List<QuteIndex> indexes = project
+							List<Parameter> parameters = project
 									.findInsertTagParameter(includeSection.getReferencedTemplateId(), tagName);
-							if (indexes != null) {
+							if (parameters != null) {
+								// The parameter exists
 								return;
 							}
 						}
@@ -462,15 +462,19 @@ class QuteDiagnostics {
 	private static void validateIncludeSection(IncludeSection includeSection, List<Diagnostic> diagnostics) {
 		Parameter templateParameter = includeSection.getTemplateParameter();
 		if (templateParameter != null) {
-			// include defines a template to include
-			// ex : {#include base}
-			Path templateFile = includeSection.getReferencedTemplateFile();
-			if (templateFile == null || Files.notExists(templateFile)) {
-				// It doesn't exists a file named base, base.qute.html, base.html, etc
-				Range range = QutePositionUtility.createRange(templateParameter);
-				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-						QuteErrorCode.TemplateNotFound, templateParameter.getValue());
-				diagnostics.add(diagnostic);
+			// Validate template id, only if project exists.
+			QuteProject project = includeSection.getOwnerTemplate().getProject();
+			if (project != null) {
+				// include defines a template to include
+				// ex : {#include base}
+				Path templateFile = includeSection.getReferencedTemplateFile();
+				if (templateFile == null || Files.notExists(templateFile)) {
+					// It doesn't exists a file named base, base.qute.html, base.html, etc
+					Range range = QutePositionUtility.createRange(templateParameter);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.TemplateNotFound, templateParameter.getValue());
+					diagnostics.add(diagnostic);
+				}
 			}
 		} else {
 			// #include doesn't define a template id
@@ -953,7 +957,8 @@ class QuteDiagnostics {
 				result = validateExpression(expression, ownerSection, template, validationSettings, filter,
 						resolutionContext, resolvingJavaTypeContext, diagnostics);
 			}
-			if (result == null) {
+			if (result == null || RESOLVING_JAVA_TYPE == result) {
+				// The resolved type cannot be resolved or it is resolving.
 				undefinedType = true;
 			}
 			parameterTypes.add(result);

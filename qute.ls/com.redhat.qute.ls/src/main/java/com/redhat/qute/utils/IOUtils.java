@@ -11,7 +11,10 @@
 *******************************************************************************/
 package com.redhat.qute.utils;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Scanner;
 
 /**
@@ -21,6 +24,12 @@ import java.util.Scanner;
  *
  */
 public class IOUtils {
+
+	public static String getContent(Path path) throws IOException {
+		try (InputStream input = new FileInputStream(path.toFile())) {
+			return IOUtils.convertStreamToString(input);
+		}
+	}
 
 	/**
 	 * Convert the given {@link InputStream} into a String. The source InputStream

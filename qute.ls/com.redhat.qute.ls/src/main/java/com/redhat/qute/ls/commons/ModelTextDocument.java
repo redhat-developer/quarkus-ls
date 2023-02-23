@@ -12,13 +12,11 @@
 package com.redhat.qute.ls.commons;
 
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.logging.Logger;
 
 import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
-import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
 
 /**
  * A {@link TextDocument} which is associate to a model loaded in async.

@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.ls;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -60,6 +61,9 @@ import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.qute.ls.java.JavaFileTextDocumentService;
 import com.redhat.qute.ls.template.TemplateFileTextDocumentService;
+import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.QuteTextDocument;
+import com.redhat.qute.project.documents.TemplateValidator;
 import com.redhat.qute.services.codeactions.CodeActionUnresolvedData;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.JSONUtility;
@@ -68,7 +72,7 @@ import com.redhat.qute.utils.JSONUtility;
  * LSP text document service for Qute template file.
  *
  */
-public class QuteTextDocumentService implements TextDocumentService {
+public class QuteTextDocumentService implements TextDocumentService, TemplateValidator {
 
 	private final SharedSettings sharedSettings;
 
@@ -262,11 +266,11 @@ public class QuteTextDocumentService implements TextDocumentService {
 	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction codeAction) {
 		/*
 		 * {
-		 *   resolverKind: ...,
-		 *   textDocumentUri: ...,
-		 *   resolverData: {
-		 *     ...
-		 *   }
+		 * resolverKind: ...,
+		 * textDocumentUri: ...,
+		 * resolverData: {
+		 * ...
+		 * }
 		 * }
 		 */
 		CodeActionUnresolvedData data = JSONUtility.toModel(codeAction.getData(), CodeActionUnresolvedData.class);
@@ -312,5 +316,25 @@ public class QuteTextDocumentService implements TextDocumentService {
 
 	public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
 		templateFileTextDocumentService.didChangeWatchedFiles(params);
+	}
+
+	@Override
+	public void triggerValidationFor(QuteTextDocument document) {
+		templateFileTextDocumentService.triggerValidationFor(document);
+	}
+
+	@Override
+	public void clearDiagnosticsFor(String fileUri) {
+		templateFileTextDocumentService.clearDiagnosticsFor(fileUri);
+	}
+
+	@Override
+	public void triggerValidationFor(Collection<QuteProject> projects) {
+		templateFileTextDocumentService.triggerValidationFor(projects);
+	}
+
+	public void dispose() {
+		templateFileTextDocumentService.dispose();
+		javaFileTextDocumentService.dispose();
 	}
 }

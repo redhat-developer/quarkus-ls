@@ -32,9 +32,10 @@ import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.ParameterDeclaration.JavaTypeRangeOffset;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
-import com.redhat.qute.project.TemplateInfoProvider;
+import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
+import com.redhat.qute.utils.FileUtils;
 
 public class Template extends Node {
 
@@ -48,9 +49,9 @@ public class Template extends Node {
 
 	private String templateId;
 
-	private TemplateInfoProvider templateInfoProvider;
+	private QuteTextDocument templateInfoProvider;
 
-	Template(TextDocument textDocument) {
+	public Template(TextDocument textDocument) {
 		super(0, textDocument.getText().length());
 		this.textDocument = textDocument;
 		super.setClosed(true);
@@ -94,6 +95,14 @@ public class Template extends Node {
 	}
 
 	public String getTemplateId() {
+		if (templateId == null) {
+			QuteProject project =  getProject();
+			if (project == null) {
+				return null;
+			}
+			Path path = FileUtils.createPath(getUri());
+			templateId = project.getTemplateId(path);
+		}
 		return templateId;
 	}
 
@@ -294,7 +303,7 @@ public class Template extends Node {
 		visitor.endVisit(this);
 	}
 
-	public void setTemplateInfoProvider(TemplateInfoProvider templateInfoProvider) {
+	public void setTemplateInfoProvider(QuteTextDocument templateInfoProvider) {
 		this.templateInfoProvider = templateInfoProvider;
 	}
 

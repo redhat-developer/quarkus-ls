@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2021 Red Hat Inc. and others.
+* Copyright (c) 2023 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.ls.template;
+package com.redhat.qute.project.documents;
 
 import java.util.function.BiFunction;
 
@@ -26,13 +26,13 @@ import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProjectRegistry;
 
-public class QuteTextDocuments extends ModelTextDocuments<Template> {
+public class QuteOpenedTextDocuments extends ModelTextDocuments<Template> {
 
 	private final QuteProjectInfoProvider projectInfoProvider;
 
 	private final QuteProjectRegistry projectRegistry;
 
-	public QuteTextDocuments(BiFunction<TextDocument, CancelChecker, Template> parse,
+	public QuteOpenedTextDocuments(BiFunction<TextDocument, CancelChecker, Template> parse,
 			QuteProjectInfoProvider projectInfoProvider, QuteProjectRegistry projectRegistry) {
 		super(parse);
 		this.projectInfoProvider = projectInfoProvider;
@@ -40,28 +40,28 @@ public class QuteTextDocuments extends ModelTextDocuments<Template> {
 	}
 
 	@Override
-	public QuteTextDocument createDocument(TextDocumentItem document) {
-		QuteTextDocument doc = new QuteTextDocument(document, parse, projectInfoProvider, projectRegistry);
+	public QuteOpenedTextDocument createDocument(TextDocumentItem document) {
+		QuteOpenedTextDocument doc = new QuteOpenedTextDocument(document, parse, projectInfoProvider, projectRegistry);
 		doc.setIncremental(isIncremental());
 		return doc;
 	}
 
 	@Override
 	public ModelTextDocument<Template> onDidOpenTextDocument(DidOpenTextDocumentParams params) {
-		QuteTextDocument document = (QuteTextDocument) super.onDidOpenTextDocument(params);
+		QuteOpenedTextDocument document = (QuteOpenedTextDocument) super.onDidOpenTextDocument(params);
 		projectRegistry.onDidOpenTextDocument(document);
 		return document;
 	}
 
 	@Override
 	public ModelTextDocument<Template> onDidCloseTextDocument(DidCloseTextDocumentParams params) {
-		QuteTextDocument document = (QuteTextDocument) super.onDidCloseTextDocument(params);
+		QuteOpenedTextDocument document = (QuteOpenedTextDocument) super.onDidCloseTextDocument(params);
 		projectRegistry.onDidCloseTextDocument(document);
 		return document;
 	}
 
 	public ModelTextDocument<Template> onDidSaveTextDocument(DidSaveTextDocumentParams params) {
-		QuteTextDocument document = (QuteTextDocument) super.onDidSaveTextDocument(params);
+		QuteOpenedTextDocument document = (QuteOpenedTextDocument) super.onDidSaveTextDocument(params);
 		projectRegistry.onDidSaveTextDocument(document);
 		return document;
 	}

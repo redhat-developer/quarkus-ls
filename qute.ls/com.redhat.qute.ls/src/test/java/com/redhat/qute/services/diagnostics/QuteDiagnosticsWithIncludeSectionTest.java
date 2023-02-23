@@ -50,4 +50,20 @@ public class QuteDiagnosticsWithIncludeSectionTest {
 				d(0, 10, 0, 14, QuteErrorCode.TemplateNotFound, "Template not found: `XXXX`.",
 						DiagnosticSeverity.Error));
 	}
+
+	@Test
+	public void templateFound() throws Exception {
+		String template = "{#include base.html }\r\n" +
+				"	{#body}ABCD{/body}\r\n" +
+				"{/include}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void templateFoundWithShortSyntax() throws Exception {
+		String template = "{#include base }\r\n" +
+				"	{#body}ABCD{/body}\r\n" +
+				"{/include}";
+		testDiagnosticsFor(template);
+	}
 }

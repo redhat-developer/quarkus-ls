@@ -53,7 +53,6 @@ import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.WhenSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
-import com.redhat.qute.project.indexing.QuteIndex;
 import com.redhat.qute.project.tags.ObjectPartCollector;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
@@ -171,12 +170,12 @@ class QuteDefinition {
 								Section parentSection = (Section) parent;
 								if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
 									IncludeSection includeSection = (IncludeSection) parentSection;
-									List<QuteIndex> indexes = project
+									List<Parameter> parameters = project
 											.findInsertTagParameter(includeSection.getReferencedTemplateId(), tagName);
-									if (indexes != null) {
-										for (QuteIndex index : indexes) {
-											String linkedTemplateUri = index.getTemplatePath().toUri().toString();
-											Range linkedTargetRange = index.getRange();
+									if (parameters != null) {
+										for (Parameter index : parameters) {
+											String linkedTemplateUri = index.getOwnerTemplate().getUri();
+											Range linkedTargetRange = QutePositionUtility.selectParameterName(index);
 											if (originRange == null) {
 												originRange = QutePositionUtility.selectStartTagName(section);
 											}

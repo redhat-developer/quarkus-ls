@@ -13,6 +13,7 @@ package com.redhat.qute.services.diagnostics;
 
 import static com.redhat.qute.services.diagnostics.DiagnosticDataFactory.createDiagnostic;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -58,7 +59,7 @@ public class QuteDiagnosticsForSyntax {
 				// To avoid having error with the real Qute parser, we will section helper with
 				// user tags:
 				// - Source tags
-				Collection<UserTag> sourceTags = project.getSourceUserTags();
+				Collection<UserTag> sourceTags = new ArrayList<>(project.getSourceUserTags());
 				addUserTag(sourceTags, engineBuilder);
 				// - Binary tags
 				Collection<UserTag> binaryTags = project.getBinaryUserTags().getNow(Collections.emptyList());

@@ -95,4 +95,8 @@ public class ValidatorDelayer<T extends TextDocument> {
 			return pendingValidationRequests.containsKey(uri);
 		}
 	}
+
+	public void dispose() {
+		executorService.shutdownNow();
+	}
 }

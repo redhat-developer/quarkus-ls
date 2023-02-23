@@ -19,6 +19,7 @@ import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
+import com.redhat.qute.project.QuteProject;
 
 /**
  * Include section.
@@ -30,9 +31,6 @@ import com.redhat.qute.parser.template.SectionKind;
 public class IncludeSection extends Section {
 
 	public static final String TAG = "include";
-
-	private static String[] suffixes = { "", ".html", ".qute.html", ".json", ".qute.json", ".txt", ".qute.txt", ".yaml",
-			".qute.yaml" };
 
 	public IncludeSection(int start, int end) {
 		super(TAG, start, end);
@@ -56,11 +54,17 @@ public class IncludeSection extends Section {
 			return null;
 		}
 
-		Path templateBaseDir = getOwnerTemplate().getTemplateBaseDir();
+		QuteProject project = getOwnerTemplate().getProject();
+		if (project == null) {
+			return null;
+		}
+
+		Path templateBaseDir = project.getTemplateBaseDir();
 		if (templateBaseDir == null) {
 			return null;
 		}
-		for (String suffix : suffixes) {
+
+		for (String suffix : project.getTemplateVariants()) {
 			Path referencedTemplateFile = templateBaseDir.resolve(referencedTemplateId + suffix);
 			if (Files.exists(referencedTemplateFile)) {
 				// The template file exists
@@ -68,8 +72,8 @@ public class IncludeSection extends Section {
 			}
 		}
 		// The template file doesn't exists, we return a file to create it if user wants
-		// to do that (only available on vscode when Ctrl+Click is processed).
-		return templateBaseDir.resolve(referencedTemplateId + ".qute.html");
+		// to do that (available when Ctrl+Click is processed).
+		return templateBaseDir.resolve(referencedTemplateId + ".html");
 	}
 
 	/**
@@ -95,7 +99,7 @@ public class IncludeSection extends Section {
 	public Parameter getTemplateParameter() {
 		return super.getParameterAtIndex(0);
 	}
-	
+
 	@Override
 	protected void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);

@@ -13,10 +13,13 @@ package com.redhat.qute.services;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.DocumentLink;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
@@ -25,6 +28,7 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.IncludeSection;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.utils.QutePositionUtility;
 
 /**
@@ -35,15 +39,31 @@ import com.redhat.qute.utils.QutePositionUtility;
  */
 public class QuteDocumentLink {
 
-	public List<DocumentLink> findDocumentLinks(Template template) {
+	public CompletableFuture<List<DocumentLink>> findDocumentLinks(Template template, CancelChecker cancelChecker) {
+		QuteProject project = template.getProject();
+		if (project != null) {
+			return CompletableFuture.completedFuture(findDocumentLinksSync(template, cancelChecker));
+		}
+		return template.getProjectFuture()
+				.thenApply(p -> {
+					if (p == null) {
+						return Collections.emptyList();
+					}
+					return findDocumentLinksSync(template, cancelChecker);
+				});
+	}
+
+	public List<DocumentLink> findDocumentLinksSync(Template template, CancelChecker cancelChecker) {
 		List<DocumentLink> links = new ArrayList<>();
-		findDocumentLinks(template, template, links);
+		findDocumentLinks(template, template, links, cancelChecker);
 		return links;
 	}
 
-	private void findDocumentLinks(Node node, Template template, List<DocumentLink> links) {
+	private void findDocumentLinks(Node node, Template template, List<DocumentLink> links,
+			CancelChecker cancelChecker) {
 		List<Node> children = node.getChildren();
 		for (Node child : children) {
+			cancelChecker.checkCanceled();
 			if (child.getKind() == NodeKind.Section) {
 				Section section = (Section) child;
 				if (section.getSectionKind() == SectionKind.INCLUDE) {
@@ -65,7 +85,7 @@ public class QuteDocumentLink {
 					}
 				}
 			}
-			findDocumentLinks(child, template, links);
+			findDocumentLinks(child, template, links, cancelChecker);
 		}
 	}
 }

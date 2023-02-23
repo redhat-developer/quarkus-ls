@@ -13,8 +13,8 @@ package com.redhat.qute.project;
 
 import static com.redhat.qute.utils.FileUtils.createPath;
 
+import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.Position;
 
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
@@ -33,27 +32,20 @@ import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
-import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
-import com.redhat.qute.ls.api.QuteUserTagProvider;
-import com.redhat.qute.ls.commons.BadLocationException;
-import com.redhat.qute.ls.template.QuteTextDocument;
-import com.redhat.qute.parser.template.Node;
-import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
-import com.redhat.qute.parser.template.Section;
-import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateConfiguration;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
-import com.redhat.qute.project.indexing.QuteIndex;
-import com.redhat.qute.project.indexing.QuteIndexer;
-import com.redhat.qute.project.indexing.QuteTemplateIndex;
+import com.redhat.qute.project.documents.QuteClosedTextDocuments;
+import com.redhat.qute.project.documents.SearchInfoQuery;
+import com.redhat.qute.project.documents.TemplateValidator;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagRegistry;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.NativeModeJavaTypeFilter;
+import com.redhat.qute.utils.FileUtils;
 import com.redhat.qute.utils.StringUtils;
 import com.redhat.qute.utils.UserTagUtils;
 
@@ -65,13 +57,20 @@ import com.redhat.qute.utils.UserTagUtils;
  */
 public class QuteProject {
 
+	private static String[] TEMPLATE_VARIANTS = { "",
+			".html", ".qute.html",
+			".json", ".qute.json",
+			".txt", ".qute.txt",
+			".yaml", ".qute.yaml", ".yml", ".qute.yml" };
+
 	private final String uri;
 
 	private final Path templateBaseDir;
 
-	private final QuteIndexer indexer;
+	private final QuteClosedTextDocuments closedDocuments;
 
-	private final Map<String /* template id */, TemplateInfoProvider> openedDocuments;
+	// Map which stores opened/closed documents identified by template id.
+	private final Map<String /* template id */, QuteTextDocument> documents;
 
 	private final Map<String /* Full qualified name of Java class */, CompletableFuture<ResolvedJavaTypeInfo>> resolvedJavaTypes;
 
@@ -79,22 +78,55 @@ public class QuteProject {
 
 	private CompletableFuture<ExtendedDataModelProject> dataModelProjectFuture;
 
-	private final QuteDataModelProjectProvider dataModelProvider;
+	private final QuteProjectRegistry projectRegistry;
 
 	private final UserTagRegistry tagRegistry;
 
 	private final NativeModeJavaTypeFilter filterInNativeMode;
 
-	public QuteProject(ProjectInfo projectInfo, QuteDataModelProjectProvider dataModelProvider,
-			QuteUserTagProvider userTagProvider) {
+	private final TemplateValidator validator;
+
+	private final QuteProjectFilesWatcher watcher;
+
+	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry,
+			TemplateValidator validator) {
 		this.uri = projectInfo.getUri();
 		this.templateBaseDir = createPath(projectInfo.getTemplateBaseDir());
-		this.indexer = new QuteIndexer(this);
-		this.openedDocuments = new HashMap<>();
-		this.dataModelProvider = dataModelProvider;
+		this.documents = new HashMap<>();
+		this.closedDocuments = new QuteClosedTextDocuments(this, documents);
+		this.projectRegistry = projectRegistry;
 		this.resolvedJavaTypes = new HashMap<>();
-		this.tagRegistry = new UserTagRegistry(this, templateBaseDir, userTagProvider);
+		this.tagRegistry = new UserTagRegistry(this, templateBaseDir, projectRegistry);
 		this.filterInNativeMode = new NativeModeJavaTypeFilter(this);
+		this.validator = validator;
+		// Create a Java file watcher to track create/delete Qute file in
+		// src/main/resources/templates to update cache of closed documents
+		// ONLY if LSP client cannot support DidChangeWatchedFiles.
+		this.watcher = !projectRegistry.isDidChangeWatchedFilesSupported() ? createFilesWatcher(this) : null;
+	}
+
+	private static QuteProjectFilesWatcher createFilesWatcher(QuteProject project) {
+		try {
+			return new QuteProjectFilesWatcher(project);
+		} catch (IOException e) {
+			return null;
+		}
+	}
+
+	public void validateClosedTemplates() {
+		if (validator != null) {
+			// Load closed document if needed and validate all closed documents.
+			closedDocuments.loadClosedTemplatesIfNeeded();
+			for (QuteTextDocument document : documents.values()) {
+				if (!document.isOpened()) {
+					validator.triggerValidationFor(document);
+				}
+			}
+		}
+	}
+
+	public QuteProjectRegistry getProjectRegistry() {
+		return projectRegistry;
 	}
 
 	/**
@@ -108,15 +140,36 @@ public class QuteProject {
 		return templateBaseDir;
 	}
 
-	public String getTemplateId(Path templatePath) {
-		if (templatePath == null || templateBaseDir == null) {
+	/**
+	 * Returns the template id of the given template file path.
+	 * 
+	 * @param templateFilePath the Qute template file path.
+	 * 
+	 * @return the template id of the given template file path.
+	 */
+	public String getTemplateId(Path templateFilePath) {
+		if (templateFilePath == null || templateBaseDir == null) {
 			return null;
 		}
 		try {
-			return templateBaseDir.relativize(templatePath).toString().replace('\\', '/');
+			return templateBaseDir.relativize(templateFilePath).toString().replace('\\', '/');
 		} catch (Exception e) {
-			return templatePath.getFileName().toString();
+			return templateFilePath.getFileName().toString();
 		}
+	}
+
+	/**
+	 * Returns true if the document retrieved by template id is opened and false
+	 * otherwise.
+	 * 
+	 * @param templateId the template id.
+	 * 
+	 * @return true if the document retrieved by template id is opened and false
+	 *         otherwise.
+	 */
+	public boolean isTemplateOpened(String templateId) {
+		QuteTextDocument document = findDocumentByTemplateId(templateId);
+		return document != null && document.isOpened();
 	}
 
 	/**
@@ -128,25 +181,43 @@ public class QuteProject {
 		return uri;
 	}
 
-	public int findNbreferencesOfInsertTag(String templateId, String tag) {
-		indexer.scanAsync();
-		List<QuteIndex> indexes = indexer.find(null, tag, null);
-		return indexes.size();
+	/**
+	 * Returns the insert parameter list with the given name
+	 * <code>insertParamater</code> ({#insert name}) declared in the template
+	 * identified by the given template id and null otherwise.
+	 * 
+	 * @param templateId      the template id.
+	 * @param insertParamater the name of the insert parameter. If the name is
+	 *                        equals to {@link SearchInfoQuery#ALL}, the methods
+	 *                        will returns all declared insert parameters.
+	 * @return the insert parameter list with the given name
+	 *         <code>insertParamater</code> ({#insert name}) declared in the
+	 *         template
+	 *         identified by the given template id and null otherwise.
+	 */
+	public List<Parameter> findInsertTagParameter(String templateId, String insertParamater) {
+		closedDocuments.loadClosedTemplatesIfNeeded();
+		QuteTextDocument document = findDocumentByTemplateId(templateId);
+		if (document != null) {
+			return document.findInsertTagParameter(insertParamater);
+		}
+		return null;
 	}
 
-	public List<QuteIndex> findInsertTagParameter(String templateId, String insertParamater) {
-		TemplateInfoProvider provider = openedDocuments.get(templateId);
-		if (provider != null) {
-			Template template = provider.getTemplate();
-			if (template != null) {
-				List<QuteIndex> indexes = new ArrayList<>();
-				collectInsert(insertParamater, template, template, indexes);
-				return indexes;
-			}
-			return Collections.emptyList();
+	private QuteTextDocument findDocumentByTemplateId(String templateId) {
+		if (templateId.indexOf('.') != -1) {
+			// ex: base.html
+			return documents.get(templateId);
 		}
-		indexer.scanAsync();
-		return indexer.find(templateId, "insert", insertParamater);
+		// ex : base
+		for (String variant : getTemplateVariants()) {
+			String id = templateId + variant;
+			QuteTextDocument document = documents.get(id);
+			if (document != null) {
+				return document;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -154,8 +225,8 @@ public class QuteProject {
 	 *
 	 * @param document the Qute template.
 	 */
-	public void onDidOpenTextDocument(TemplateInfoProvider document) {
-		openedDocuments.put(document.getTemplateId(), document);
+	public void onDidOpenTextDocument(QuteTextDocument document) {
+		documents.put(document.getTemplateId(), document);
 	}
 
 	/**
@@ -163,11 +234,16 @@ public class QuteProject {
 	 *
 	 * @param document the Qute template.
 	 */
-	public void onDidCloseTextDocument(TemplateInfoProvider document) {
-		openedDocuments.remove(document.getTemplateId());
-		indexer.scanAsync(true);
+	public void onDidCloseTextDocument(QuteTextDocument document) {
+		Path path = FileUtils.createPath(document.getUri());
+		closedDocuments.onDidCloseTemplate(path);
 	}
 
+	/**
+	 * Save a Qute template.
+	 *
+	 * @param document the Qute template.
+	 */
 	public void onDidSaveTextDocument(QuteTextDocument document) {
 		UserTag userTag = getUserTag(document.getTemplate());
 		if (userTag != null) {
@@ -176,32 +252,32 @@ public class QuteProject {
 		}
 	}
 
-	private void collectInsert(String insertParamater, Node parent, Template template, List<QuteIndex> indexes) {
-		if (parent.getKind() == NodeKind.Section) {
-			Section section = (Section) parent;
-			if (section.getSectionKind() == SectionKind.INSERT) {
-				Parameter parameter = section.getParameterAtIndex(0);
-				if (parameter != null) {
-					try {
-						if (insertParamater == null || insertParamater.equals(parameter.getValue())) {
-							Position position = template.positionAt(parameter.getStart());
-							Path path = createPath(template.getUri());
-							QuteTemplateIndex templateIndex = new QuteTemplateIndex(path, template.getTemplateId());
-							QuteIndex index = new QuteIndex("insert", parameter.getValue(), position,
-									SectionKind.INSERT, templateIndex);
-							indexes.add(index);
-						}
-					} catch (BadLocationException e) {
-						e.printStackTrace();
-					}
-				}
-			}
+	/**
+	 * Delete a Qute template file.
+	 *
+	 * @param templateFilePath the Qute template file path.
+	 */
+	public QuteTextDocument onDidDeleteTemplate(Path templateFilePath) {
+		return closedDocuments.onDidDeleteTemplate(templateFilePath);
+	}
 
-		}
-		List<Node> children = parent.getChildren();
-		for (Node node : children) {
-			collectInsert(insertParamater, node, template, indexes);
-		}
+	/**
+	 * Create a Qute template file.
+	 *
+	 * @param templateFilePath the Qute template file path.
+	 */
+	public QuteTextDocument onDidCreateTemplate(Path templateFilePath) {
+		return closedDocuments.onDidCreateTemplate(templateFilePath);
+	}
+
+	/**
+	 * Returns list of all opened/closed Qute template document of the project.
+	 * 
+	 * @return list of all opened/closed Qute template document of the project.
+	 */
+	public Collection<QuteTextDocument> getDocuments() {
+		closedDocuments.loadClosedTemplatesIfNeeded();
+		return documents.values();
 	}
 
 	public CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaType(String typeName) {
@@ -250,7 +326,7 @@ public class QuteProject {
 
 	protected CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
 			QuteDataModelProjectParams params) {
-		return dataModelProvider.getDataModelProject(params);
+		return projectRegistry.getDataModelProject(params);
 	}
 
 	public void resetJavaTypes() {
@@ -317,9 +393,9 @@ public class QuteProject {
 
 	/**
 	 * Returns the user tag from the given template and null otherwise.
-	 * 
+	 *
 	 * @param template the Qute template.
-	 * 
+	 *
 	 * @return the user tag from the given template and null otherwise.
 	 */
 	public UserTag getUserTag(Template template) {
@@ -461,4 +537,20 @@ public class QuteProject {
 		return dataModel.getJavaTypesSupportedInNativeMode();
 	}
 
+	public void dispose() {
+		if (watcher != null) {
+			watcher.stop();
+		}
+	}
+
+	/**
+	 * Returns all supported file extension for a Qute template (*.html, *.txt,
+	 * etc).
+	 * 
+	 * @return all supported file extension for a Qute template (*.html, *.txt,
+	 *         etc).
+	 */
+	public String[] getTemplateVariants() {
+		return TEMPLATE_VARIANTS;
+	}
 }
