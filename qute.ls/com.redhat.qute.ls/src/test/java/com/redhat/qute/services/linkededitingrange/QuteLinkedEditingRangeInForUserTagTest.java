@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import com.redhat.qute.ls.commons.BadLocationException;
 
 /**
- * Tests for Qute linked editing range.
+ * Tests for Qute linked editing range with object part in user tag section.
  * 
  * @author Angelo ZERR
  *

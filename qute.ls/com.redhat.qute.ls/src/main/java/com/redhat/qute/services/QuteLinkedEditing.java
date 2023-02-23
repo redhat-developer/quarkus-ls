@@ -12,6 +12,7 @@
 package com.redhat.qute.services;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,6 +24,8 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.parser.template.Node;
+import com.redhat.qute.parser.template.NodeKind;
+import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.QuteSearchUtils;
@@ -44,6 +47,28 @@ class QuteLinkedEditing {
 				return null;
 			}
 			node = QutePositionUtility.findBestNode(offset, node);
+			if (node.getKind() == NodeKind.Section) {
+				Section section = (Section) node;
+				if (section.isInStartTagName(offset)
+						|| section.isInEndTagName(offset)) {
+					// - {#us|er}
+					// - {/us|er}
+					if (section.hasStartTag() && section.hasEndTag()) {
+						Range startTagRange = QutePositionUtility.selectStartTagName(section);
+						// Adjust the start position to start after # ({#|user|}
+						Position start = startTagRange.getStart();
+						start.setCharacter(start.getCharacter() + 1);
+
+						Range endTagRange = QutePositionUtility.selectEndTagName(section);
+						// Adjust the end position to start after \ ({\|user|}
+						Position end = endTagRange.getStart();
+						end.setCharacter(end.getCharacter() + 1);
+
+						return new LinkedEditingRanges(Arrays.asList(startTagRange, endTagRange));
+					}
+					return null;
+				}
+			}
 
 			List<Range> ranges = new ArrayList<>();
 			QuteSearchUtils.searchReferencedObjects(node, offset, //
