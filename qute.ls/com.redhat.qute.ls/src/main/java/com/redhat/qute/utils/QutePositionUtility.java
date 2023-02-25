@@ -38,15 +38,23 @@ public class QutePositionUtility {
 	}
 
 	public static Range selectStartTagName(Section section) {
+		return selectStartTagName(section, false);
+	}
+
+	public static Range selectStartTagName(Section section, boolean includeCurly) {
 		Template template = section.getOwnerTemplate();
-		int startOffset = section.getStartTagNameOpenOffset(); // {|#each
+		int startOffset = section.getStartTagNameOpenOffset() - (includeCurly ? 1 : 0); // {|#each
 		int endOffset = section.getStartTagNameCloseOffset(); // {#each|
 		return createRange(startOffset, endOffset, template);
 	}
 
 	public static Range selectEndTagName(Section sectionTag) {
+		return selectEndTagName(sectionTag, true);
+	}
+
+	public static Range selectEndTagName(Section sectionTag, boolean includeSlash) {
 		Template template = sectionTag.getOwnerTemplate();
-		int startOffset = sectionTag.getEndTagNameOpenOffset(); // {|\each
+		int startOffset = sectionTag.getEndTagNameOpenOffset() + (includeSlash ? 0 : 1); // {|\each
 		int endOffset = sectionTag.getEndTagCloseOffset(); // // {\each|
 		return createRange(startOffset, endOffset, template);
 	}
@@ -119,50 +127,50 @@ public class QutePositionUtility {
 	 */
 	public static Node findBestNode(int offset, Node node, boolean includeAfterStartExpression) {
 		switch (node.getKind()) {
-		case Section: {
-			Section section = (Section) node;
-			if (section.isInParameters(offset)) {
-				Expression expression = null;
-				Parameter parameter = section.getParameterAtOffset(offset);
-				if (parameter != null) {
-					if (parameter.isAfterAssign(offset)) {
-						// ex : {#let name=| }
-						return parameter;
+			case Section: {
+				Section section = (Section) node;
+				if (section.isInParameters(offset)) {
+					Expression expression = null;
+					Parameter parameter = section.getParameterAtOffset(offset);
+					if (parameter != null) {
+						if (parameter.isAfterAssign(offset)) {
+							// ex : {#let name=| }
+							return parameter;
+						}
+						if (parameter.hasValueAssigned() && !parameter.isInValue(offset)) {
+							// ex : {#let nam|e=value }
+							return parameter;
+						}
+						if (!parameter.hasValueAssigned() && !parameter.canHaveExpression()) {
+							// ex : {#for it|em in items }
+							return parameter;
+						}
+						// ex : {#let name=va|lue }
+						// ex : {#for item in ite|ms }
+						expression = parameter.getJavaTypeExpression();
 					}
-					if (parameter.hasValueAssigned() && !parameter.isInValue(offset)) {
-						// ex : {#let nam|e=value }
-						return parameter;
+					if (expression == null) {
+						expression = section.getExpressionParameter();
 					}
-					if (!parameter.hasValueAssigned() && !parameter.canHaveExpression()) {
-						// ex : {#for it|em in items }
-						return parameter;
+					if (expression != null) {
+						Node expressionNode = findBestNode(expression, offset);
+						if (expressionNode != null) {
+							return expressionNode;
+						}
+						return expression;
 					}
-					// ex : {#let name=va|lue }
-					// ex : {#for item in ite|ms }
-					expression = parameter.getJavaTypeExpression();
-				}
-				if (expression == null) {
-					expression = section.getExpressionParameter();
-				}
-				if (expression != null) {
-					Node expressionNode = findBestNode(expression, offset);
-					if (expressionNode != null) {
-						return expressionNode;
-					}
-					return expression;
 				}
 			}
-		}
-			break;
-		case Expression: {
-			Expression expression = (Expression) node;
-			boolean adjust = includeAfterStartExpression && expression.getStartContentOffset() == offset;
-			// When offset is before start content (ex : {|item}), we adjust the offset to
-			// select the first part.
-			return findBestNode(expression, offset + (adjust ? 1 : 0));
-		}
-		default:
-			return node;
+				break;
+			case Expression: {
+				Expression expression = (Expression) node;
+				boolean adjust = includeAfterStartExpression && expression.getStartContentOffset() == offset;
+				// When offset is before start content (ex : {|item}), we adjust the offset to
+				// select the first part.
+				return findBestNode(expression, offset + (adjust ? 1 : 0));
+			}
+			default:
+				return node;
 		}
 		return node;
 	}

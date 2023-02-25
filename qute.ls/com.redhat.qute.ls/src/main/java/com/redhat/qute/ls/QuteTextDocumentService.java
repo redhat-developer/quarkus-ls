@@ -61,6 +61,7 @@ import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.qute.ls.java.JavaFileTextDocumentService;
 import com.redhat.qute.ls.template.TemplateFileTextDocumentService;
 import com.redhat.qute.services.codeactions.CodeActionUnresolvedData;
+import com.redhat.qute.services.completions.CompletionItemUnresolvedData;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.JSONUtility;
 
@@ -135,6 +136,19 @@ public class QuteTextDocumentService implements TextDocumentService {
 		TextDocumentService service = getTextDocumentService(position.getTextDocument());
 		if (service != null) {
 			return service.completion(position);
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved) {
+		CompletionItemUnresolvedData data = JSONUtility.toModel(unresolved.getData(),
+				CompletionItemUnresolvedData.class);
+		if (data != null) {
+			AbstractTextDocumentService service = getTextDocumentService(data.getTextDocumentUri());
+			if (service != null) {
+				return service.resolveCompletionItem(unresolved, data);
+			}
 		}
 		return CompletableFuture.completedFuture(null);
 	}
@@ -257,21 +271,20 @@ public class QuteTextDocumentService implements TextDocumentService {
 		}
 		return CompletableFuture.completedFuture(null);
 	}
-	
+
 	@Override
 	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction codeAction) {
 		/*
 		 * {
-		 *   resolverKind: ...,
-		 *   textDocumentUri: ...,
-		 *   resolverData: {
-		 *     ...
-		 *   }
+		 * resolverKind: ...,
+		 * textDocumentUri: ...,
+		 * resolverData: {
+		 * ...
+		 * }
 		 * }
 		 */
 		CodeActionUnresolvedData data = JSONUtility.toModel(codeAction.getData(), CodeActionUnresolvedData.class);
-		TextDocumentIdentifier textDocument = new TextDocumentIdentifier(data.getTextDocumentUri());
-		AbstractTextDocumentService service = getTextDocumentService(textDocument);
+		AbstractTextDocumentService service = getTextDocumentService(data.getTextDocumentUri());
 		if (service != null) {
 			return service.resolveCodeAction(codeAction);
 		}
@@ -279,31 +292,26 @@ public class QuteTextDocumentService implements TextDocumentService {
 	}
 
 	private AbstractTextDocumentService getTextDocumentService(TextDocumentIdentifier document) {
-		String fileExtension = getFileExtension(document);
-		if ("java".equals(fileExtension) || "class".equals(fileExtension)) {
-			return javaFileTextDocumentService;
-		}
-		return templateFileTextDocumentService;
+		return getTextDocumentService(document.getUri());
 	}
 
 	private TextDocumentService getTextDocumentService(TextDocumentItem document) {
-		String fileExtension = getFileExtension(document);
+		return getTextDocumentService(document.getUri());
+	}
+
+	private AbstractTextDocumentService getTextDocumentService(String uri) {
+		String fileExtension = getFileExtension(uri);
 		if ("java".equals(fileExtension) || "class".equals(fileExtension)) {
 			return javaFileTextDocumentService;
 		}
 		return templateFileTextDocumentService;
 	}
 
-	private static String getFileExtension(TextDocumentIdentifier document) {
-		return getFileExtension(document.getUri());
-	}
-
-	private static String getFileExtension(TextDocumentItem document) {
-		return getFileExtension(document.getUri());
-	}
-
 	private static String getFileExtension(String uri) {
-		int index = uri != null ? uri.lastIndexOf('.') : -1;
+		if (uri == null) {
+			return null;
+		}
+		int index = uri.lastIndexOf('.');
 		return index != -1 ? uri.substring(index + 1, uri.length()) : null;
 	}
 

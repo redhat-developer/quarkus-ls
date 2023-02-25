@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.services.completions;
+package com.redhat.qute.services.completions.tags;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -23,6 +23,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 

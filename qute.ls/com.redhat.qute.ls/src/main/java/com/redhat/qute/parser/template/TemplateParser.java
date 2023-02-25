@@ -104,7 +104,7 @@ public class TemplateParser {
 					section.setStartTagCloseOffset(scanner.getTokenOffset());
 
 					// never enters isEmptyElement() is always false
-					if (section.getTag() != null && isEmptyElement(section.getTag()) && curr.getParent() != null) {
+					if (section.getTag() != null && isEmptySection(section.getTag()) && curr.getParent() != null) {
 						curr.setClosed(true);
 						curr = curr.getParent();
 					}
@@ -137,7 +137,7 @@ public class TemplateParser {
 					}
 					curr.setEnd(scanner.getTokenEnd());
 				} else {
-					// element open tag not found (ex: <root>) add a fake element which only has an
+					// section open tag not found (ex: {#for}) add an orphan section which only has an
 					// end tag (no start tag).
 					Section element = sectionFactory.createSection(closeTag, scanner.getTokenOffset() - 2,
 							scanner.getTokenEnd());
@@ -341,7 +341,7 @@ public class TemplateParser {
 		return curr;
 	}
 
-	private static boolean isEmptyElement(String tag) {
+	private static boolean isEmptySection(String tag) {
 		return CaseSection.TAG.equals(tag) || ElseSection.TAG.equals(tag) || IsSection.TAG.equals(tag);
 	}
 }

@@ -44,12 +44,14 @@ import org.eclipse.lsp4j.ReferenceParams;
 import org.eclipse.lsp4j.RenameParams;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
+import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
 import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
+import com.redhat.qute.services.completions.CompletionItemUnresolvedData;
 import com.redhat.qute.settings.SharedSettings;
 
 /**
@@ -168,7 +170,7 @@ public abstract class AbstractTextDocumentService implements TextDocumentService
 	public CompletableFuture<List<InlayHint>> inlayHint(InlayHintParams params) {
 		return CompletableFuture.completedFuture(null);
 	}
-	
+
 	@Override
 	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction unresolved) {
 		return CompletableFuture.completedFuture(null);
@@ -178,7 +180,12 @@ public abstract class AbstractTextDocumentService implements TextDocumentService
 	public CompletableFuture<WorkspaceEdit> rename(RenameParams params) {
 		return CompletableFuture.completedFuture(null);
 	}
-	
+
+	public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved,
+			CompletionItemUnresolvedData data) {
+		return CompletableFuture.completedFuture(null);
+	}
+
 	public boolean isHierarchicalDocumentSymbolSupport() {
 		return hierarchicalDocumentSymbolSupport;
 	}

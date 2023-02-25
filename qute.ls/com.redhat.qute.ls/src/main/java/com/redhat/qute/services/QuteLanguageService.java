@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DocumentHighlight;
@@ -41,9 +42,9 @@ import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.codeactions.QuteTemplateCodeActionResolvers;
+import com.redhat.qute.services.completions.CompletionItemUnresolvedData;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
-import com.redhat.qute.settings.QuteInlayHintSettings;
 import com.redhat.qute.settings.QuteNativeSettings;
 import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.settings.SharedSettings;
@@ -93,10 +94,10 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	/**
 	 * Create CodeAction(s) in the given Qute <code>template</code>.
 	 *
-	 * @param template       the Qute template.
-	 * @param context        the Code Action context.
-	 * @param javaTextEditProvider       the generate missing java member resolver
-	 * @param sharedSettings the Qute shared settings.
+	 * @param template             the Qute template.
+	 * @param context              the Code Action context.
+	 * @param javaTextEditProvider the generate missing java member resolver
+	 * @param sharedSettings       the Qute shared settings.
 	 * @return the CodeAction(s) to be added to the Qute template.
 	 */
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context,
@@ -281,9 +282,10 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	/**
 	 * Resolve code action in the given Qute template.
 	 *
-	 * @param unresolved      the unresolved code action
-	 * @param javaTextEditProvider the provider that can resolve code action information
-	 *                        using the associated java language server
+	 * @param unresolved           the unresolved code action
+	 * @param javaTextEditProvider the provider that can resolve code action
+	 *                             information
+	 *                             using the associated java language server
 	 * @return the resolved code action
 	 */
 	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction unresolved,
@@ -309,6 +311,12 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 			return;
 		}
 		coreTagSnippetRegistry = new SnippetRegistry<Snippet>();
+	}
+
+	public CompletionItem resolveCompletionItem(CompletionItem unresolved,
+			CompletionItemUnresolvedData data, Template template,
+			SharedSettings sharedSettings, CancelChecker cancelChecker) {
+		return completions.resolveCompletionItem(unresolved, data, template, sharedSettings, cancelChecker);
 	}
 
 }

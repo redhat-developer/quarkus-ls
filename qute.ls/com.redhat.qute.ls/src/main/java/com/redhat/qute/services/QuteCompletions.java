@@ -37,14 +37,16 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.services.completions.CompletionItemUnresolvedData;
 import com.redhat.qute.services.completions.CompletionRequest;
-import com.redhat.qute.services.completions.QuteCompletionForTagSection;
 import com.redhat.qute.services.completions.QuteCompletionsForExpression;
 import com.redhat.qute.services.completions.QuteCompletionsForParameterDeclaration;
-import com.redhat.qute.services.completions.QuteCompletionsForSnippets;
+import com.redhat.qute.services.completions.tags.QuteCompletionForTagSection;
+import com.redhat.qute.services.completions.tags.QuteCompletionsForSnippets;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.QuteNativeSettings;
+import com.redhat.qute.settings.SharedSettings;
 
 /**
  * The Qute completions
@@ -208,6 +210,17 @@ public class QuteCompletions {
 		CompletionList list = new CompletionList();
 		list.setItems(completionItems.stream().collect(Collectors.toList()));
 		return CompletableFuture.completedFuture(list);
+	}
+
+	public CompletionItem resolveCompletionItem(CompletionItem unresolved,
+			CompletionItemUnresolvedData data, Template template,
+			SharedSettings sharedSettings, CancelChecker cancelChecker) {
+		switch (data.getResolverKind()) {
+			case UpdateOrphanEndTagSection:
+				return completionsForSnippets.resolveCompletionItem(unresolved, data, template, sharedSettings,
+						cancelChecker);
+		}
+		return null;
 	}
 
 }

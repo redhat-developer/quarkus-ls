@@ -67,7 +67,7 @@ public class ServerCapabilitiesConstants {
 
 	/* Default Options */
 	public static final CodeLensOptions DEFAULT_CODELENS_OPTIONS = new CodeLensOptions();
-	public static final CompletionOptions DEFAULT_COMPLETION_OPTIONS = new CompletionOptions(false,
+	public static final CompletionOptions DEFAULT_COMPLETION_OPTIONS = new CompletionOptions(true,
 			Arrays.asList("{", "@", "#", ".", ":", "$"));
 	public static final DocumentLinkOptions DEFAULT_DOCUMENT_LINK_OPTIONS = new DocumentLinkOptions(true);
 	public static final CodeActionOptions DEFAULT_CODE_ACTION_OPTIONS = new CodeActionOptions();

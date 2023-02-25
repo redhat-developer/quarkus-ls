@@ -46,7 +46,7 @@ public class QuteDiagnosticsWithUserTagTest {
 				DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 	}
-	
+
 	@Test
 	public void duplicateNameParameter() {
 		String template = "{#input name='' name='' /}";
@@ -88,4 +88,19 @@ public class QuteDiagnosticsWithUserTagTest {
 				DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 	}
+
+	@Test
+	public void noMatchBetweenStartEndSection() {
+		String template = "{#form }\r\n"
+				+ "	\r\n"
+				+ "	{/for}";
+		testDiagnosticsFor(template,
+				d(2, 7, 2, 7, QuteErrorCode.SyntaxError,
+						"Parser error: section end tag [for] does not match the start tag [form]",
+						DiagnosticSeverity.Error), //
+				d(0, 1, 0, 6, QuteErrorCode.MissingRequiredParameter,
+						"Missing required parameter `it` of `form` user tag.",
+						DiagnosticSeverity.Warning));
+	}
+
 }

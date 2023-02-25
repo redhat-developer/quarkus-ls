@@ -13,10 +13,15 @@ package com.redhat.qute.services.completions;
 
 import static com.redhat.qute.QuteAssert.SECTION_SNIPPET_SIZE;
 import static com.redhat.qute.QuteAssert.c;
+import static com.redhat.qute.QuteAssert.findItemByLabel;
 import static com.redhat.qute.QuteAssert.r;
+import static com.redhat.qute.QuteAssert.resolveCompletionItem;
+import static com.redhat.qute.QuteAssert.testCompletionApply;
 import static com.redhat.qute.QuteAssert.testCompletionFor;
 import static java.lang.System.lineSeparator;
 
+import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionList;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -307,7 +312,7 @@ public class QuteCompletionWithUserTagTest {
 						"{#formElement name=\"name\" label=\"label\" }" + lineSeparator() + //
 								"	" + lineSeparator() + //
 								"{/formElement}", //
-						r(0, 0, 0, 3)));
+						r(0, 0, 0, 9)));
 
 		// With snippet support
 		testCompletionFor(template, //
@@ -317,7 +322,7 @@ public class QuteCompletionWithUserTagTest {
 						"{#formElement name=\"${1:name}\" label=\"${2:label}\" }" + lineSeparator() + //
 								"	$3" + lineSeparator() + //
 								"{/formElement}$0", //
-						r(0, 0, 0, 3)));
+						r(0, 0, 0, 9)));
 	}
 
 	@Test
@@ -360,5 +365,88 @@ public class QuteCompletionWithUserTagTest {
 		template = "{@org.acme.Item item}\r\n" + //
 				"{#let item.| }";
 		testCompletionFor(template, 0);
+	}
+
+	@Test
+	public void orphanEndTagWithEmptyStartTagWithoutSnippet() throws Exception {
+		String template = "{#|}{/}";
+
+		CompletionList list = testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("formElement", "{#formElement name=\"name\" label=\"label\" }", //
+						r(0, 0, 0, 3)));
+
+		CompletionItem formItem = findItemByLabel(list.getItems(), "form");
+		// Without resolving end tag
+		testCompletionApply(template, formItem, //
+				"{#form it }{/}");
+
+		formItem = resolveCompletionItem(formItem, template);
+		// With resolving end tag
+		testCompletionApply(template, formItem, //
+				"{#form it }{/form}");
+	}
+
+	@Test
+	public void orphanEndTagWithEmptyStartTagWithSnippet() throws Exception {
+		String template = "{#|}{/}";
+
+		CompletionList list = testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("formElement", "{#formElement name=\"${1:name}\" label=\"${2:label}\" }", //
+						r(0, 0, 0, 3)));
+
+		CompletionItem formItem = findItemByLabel(list.getItems(), "form");
+		// Without resolving end tag
+		testCompletionApply(template, formItem, //
+				"{#form ${1:it} }{/}");
+
+		formItem = resolveCompletionItem(formItem, template);
+		// With resolving end tag
+		testCompletionApply(template, formItem, //
+				"{#form ${1:it} }{/form}");
+	}
+
+	public void orphanEndTagWithExistingStartTagWithoutSnippet() throws Exception {
+		String template = "{#fo|r}{/}";
+
+		CompletionList list = testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("formElement", "{#formElement name=\"name\" label=\"label\" }", //
+						r(0, 0, 0, 5)));
+
+		CompletionItem formItem = findItemByLabel(list.getItems(), "form");
+		// Without resolving end tag
+		testCompletionApply(template, formItem, //
+				"{#form it }{/}");
+
+		formItem = resolveCompletionItem(formItem, template);
+		// With resolving end tag
+		testCompletionApply(template, formItem, //
+				"{#form it }{/form}");
+	}
+
+	@Test
+	public void orphanEndTagWithExistingStartTagWithSnippet() throws Exception {
+		String template = "{#fo|r}{/}";
+
+		CompletionList list = testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("formElement", "{#formElement name=\"${1:name}\" label=\"${2:label}\" }", //
+						r(0, 0, 0, 6)));
+
+		CompletionItem formItem = findItemByLabel(list.getItems(), "form");
+		// Without resolving end tag
+		testCompletionApply(template, formItem, //
+				"{#form ${1:it} }{/}");
+
+		formItem = resolveCompletionItem(formItem, template);
+		// With resolving end tag
+		testCompletionApply(template, formItem, //
+				"{#form ${1:it} }{/form}");
 	}
 }

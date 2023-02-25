@@ -66,6 +66,7 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.services.QuteLanguageService;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
+import com.redhat.qute.services.completions.CompletionItemUnresolvedData;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 
@@ -141,6 +142,17 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 	}
 
 	@Override
+	public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved,
+			CompletionItemUnresolvedData data) {
+		TextDocumentIdentifier document = new TextDocumentIdentifier(data.getTextDocumentUri());
+		return getTemplate(document,
+				(template, cancelChecker) -> {
+					return getQuteLanguageService().resolveCompletionItem(unresolved, data, template, sharedSettings,
+							cancelChecker);
+				});
+	}
+
+	@Override
 	public CompletableFuture<List<? extends CodeLens>> codeLens(CodeLensParams params) {
 		if (!sharedSettings.getCodeLensSettings().isEnabled()) {
 			return CompletableFuture.completedFuture(Collections.emptyList());
@@ -154,7 +166,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 	@Override
 	public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActionParams params) {
 		if (validatorDelayer.isRevalidating(params.getTextDocument().getUri())) {
-			return CompletableFuture.completedFuture((List<Either<Command, CodeAction>>) Collections.EMPTY_LIST);
+			return CompletableFuture.completedFuture(Collections.emptyList());
 		}
 		return getTemplateCompose(params.getTextDocument(),
 				(template, cancelChecker) -> {
