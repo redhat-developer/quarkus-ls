@@ -126,8 +126,12 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 	@Test
 	public void noCompletionInStartTag() throws Exception {
 		String template = "{#|let foo=bar}\r\n" + //
-				"{/let}";
+				"{/}";
 		testCompletionFor(template, 0 + SECTION_SNIPPET_SIZE /* section snippets */);
+		
+		template = "{#|let foo=bar}\r\n" + //
+				"{/let}";
+		testCompletionFor(template, 0);
 	}
 
 	@Test

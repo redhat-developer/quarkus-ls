@@ -196,7 +196,7 @@ public class QuteCompletionInSectionTagTest {
 				c("for", "{#for item in items}" + System.lineSeparator() + //
 						"	{item.name}" + System.lineSeparator() + //
 						"{/for}", //
-						r(0, 0, 0, 3)));
+						r(0, 0, 0, 5)));
 
 		// With snippet support
 		testCompletionFor(template, //
@@ -205,7 +205,7 @@ public class QuteCompletionInSectionTagTest {
 				c("for", "{#for ${1:item} in ${2:items}}" + System.lineSeparator() + //
 						"	{${1:item}.${3:name}}$0" + System.lineSeparator() + //
 						"{/for}", //
-						r(0, 0, 0, 3)));
+						r(0, 0, 0, 5)));
 	}
 
 	@Test
@@ -219,7 +219,7 @@ public class QuteCompletionInSectionTagTest {
 				c("for", "{#for item in items}" + System.lineSeparator() + //
 						"	{item.name}" + System.lineSeparator() + //
 						"{/for}", //
-						r(0, 0, 0, 3)));
+						r(0, 0, 0, 6)));
 
 		// With snippet support
 		testCompletionFor(template, //
@@ -228,7 +228,7 @@ public class QuteCompletionInSectionTagTest {
 				c("for", "{#for ${1:item} in ${2:items}}" + System.lineSeparator() + //
 						"	{${1:item}.${3:name}}$0" + System.lineSeparator() + //
 						"{/for}", //
-						r(0, 0, 0, 3)));
+						r(0, 0, 0, 6)));
 	}
 
 	@Test
@@ -242,7 +242,7 @@ public class QuteCompletionInSectionTagTest {
 				c("for", "{#for item in items}" + System.lineSeparator() + //
 						"	{item.name}" + System.lineSeparator() + //
 						"{/for}", //
-						r(0, 0, 0, 3)));
+						r(0, 0, 0, 9)));
 
 		// With snippet support
 		testCompletionFor(template, //
@@ -251,6 +251,6 @@ public class QuteCompletionInSectionTagTest {
 				c("for", "{#for ${1:item} in ${2:items}}" + System.lineSeparator() + //
 						"	{${1:item}.${3:name}}$0" + System.lineSeparator() + //
 						"{/for}", //
-						r(0, 0, 0, 3)));
+						r(0, 0, 0, 9)));
 	}
 }

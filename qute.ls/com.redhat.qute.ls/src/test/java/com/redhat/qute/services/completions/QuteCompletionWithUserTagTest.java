@@ -307,7 +307,7 @@ public class QuteCompletionWithUserTagTest {
 						"{#formElement name=\"name\" label=\"label\" }" + lineSeparator() + //
 								"	" + lineSeparator() + //
 								"{/formElement}", //
-						r(0, 0, 0, 3)));
+						r(0, 0, 0, 9)));
 
 		// With snippet support
 		testCompletionFor(template, //
@@ -317,7 +317,7 @@ public class QuteCompletionWithUserTagTest {
 						"{#formElement name=\"${1:name}\" label=\"${2:label}\" }" + lineSeparator() + //
 								"	$3" + lineSeparator() + //
 								"{/formElement}$0", //
-						r(0, 0, 0, 3)));
+						r(0, 0, 0, 9)));
 	}
 
 	@Test
@@ -361,4 +361,106 @@ public class QuteCompletionWithUserTagTest {
 				"{#let item.| }";
 		testCompletionFor(template, 0);
 	}
+
+	@Test
+	public void emptyStartTagAndEndTag() throws Exception {
+		String template = "{#|}{/}";
+
+		testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("formElement", "{#formElement name=\"name\" label=\"label\" }", //
+						r(0, 0, 0, 3)));
+
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("formElement", "{#formElement name=\"${1:name}\" label=\"${2:label}\" }", //
+						r(0, 0, 0, 3)));
+	}
+
+	@Test
+	public void existingStartTagAndEmptyEndTag() throws Exception {
+		String template = "{#fo|r}{/}";
+
+		testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("for", "{#for item in items}", //
+						r(0, 0, 0, 6)),
+				c("formElement", "{#formElement name=\"name\" label=\"label\" }", //
+						r(0, 0, 0, 6)));
+
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("for", "{#for ${1:item} in ${2:items}}", //
+						r(0, 0, 0, 6)),
+				c("formElement", "{#formElement name=\"${1:name}\" label=\"${2:label}\" }", //
+						r(0, 0, 0, 6)));
+	}
+
+	@Test
+	public void enclosed() throws Exception {
+		String template = "{#for}{#fo|r}{/}";
+
+		testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE + 1 /* #else (see #for-else inqute-nested.json) */, //
+				c("for", "{#for item in items}" + System.lineSeparator()
+						+ "	{item.name}" + System.lineSeparator()
+						+ "{/for}", //
+						r(0, 6, 0, 12)),
+				c("formElement", "{#formElement name=\"name\" label=\"label\" }" + System.lineSeparator()
+						+ "	" + System.lineSeparator()
+						+ "{/formElement}", //
+						r(0, 6, 0, 12)));
+
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE + 1 /* #else (see #for-else inqute-nested.json) */, //
+				c("for", "{#for ${1:item} in ${2:items}}" + System.lineSeparator()
+						+ "	{${1:item}.${3:name}}$0" + System.lineSeparator()
+						+ "{/for}", //
+						r(0, 6, 0, 12)),
+				c("formElement", "{#formElement name=\"${1:name}\" label=\"${2:label}\" }" + System.lineSeparator()
+						+ "	$3" + System.lineSeparator()
+						+ "{/formElement}$0", //
+						r(0, 6, 0, 12)));
+	}
+
+	@Test
+	public void existingStartTagAndEmptyEndTagWithParameter() throws Exception {
+		String template = "{#fo|r it }{/}";
+
+		testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("for", "{#for", //
+						r(0, 0, 0, 5)),
+				c("formElement", "{#formElement", //
+						r(0, 0, 0, 5)));
+
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("for", "{#for", //
+						r(0, 0, 0, 5)),
+				c("formElement", "{#formElement", //
+						r(0, 0, 0, 5)));
+	}
+
+	@Test
+	public void existingStartTagAndExistingEndTag() throws Exception {
+		String template = "{#fo|r}{/for}";
+
+		testCompletionFor(template, //
+				false, // no snippet support
+				0);
+
+		testCompletionFor(template, //
+				true, // snippet support
+				0);
+	}
+
 }

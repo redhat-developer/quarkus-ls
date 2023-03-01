@@ -30,7 +30,7 @@ public class TemplateScanner extends AbstractScanner<TokenType, ScannerState> {
 	private static final int[] RBRACKETS = new int[] { ']', '}' };
 	private static final int[] PIPE_RBRACKET = new int[] { '|', '}' };
 	private static final int[] CURLY_BRACKETS = new int[] { '}', '{', };
-	private static final int[] RCURLY_SLASH_QUOTE_SPACE = new int[] { '}', '/', '"', '\'', ' ' };
+	private static final int[] CURLY_SLASH_QUOTE_SPACE = new int[] { '}', '{', '/', '"', '\'', ' ' };
 	private static final int[] RCURLY_QUOTE = new int[] { '}', '"', '\'', };
 
 	private static final Predicate<Integer> TAG_NAME_PREDICATE = ch -> {
@@ -257,7 +257,7 @@ public class TemplateScanner extends AbstractScanner<TokenType, ScannerState> {
 					return finishToken(offset, TokenType.StartTagClose);
 				}
 
-				stream.advanceUntilChar(RCURLY_SLASH_QUOTE_SPACE);
+				stream.advanceUntilChar(CURLY_SLASH_QUOTE_SPACE);
 				int c = stream.peekChar();
 				if (c == '"' || c == '\'') {
 					stream.advance(1);
@@ -265,6 +265,9 @@ public class TemplateScanner extends AbstractScanner<TokenType, ScannerState> {
 					if (stream.peekChar() == c) {
 						stream.advance(1);
 					}
+				} else if (c == '{') {
+					state = ScannerState.WithinContent;
+					return internalScan();
 				}
 
 				return finishToken(offset, TokenType.ParameterTag);

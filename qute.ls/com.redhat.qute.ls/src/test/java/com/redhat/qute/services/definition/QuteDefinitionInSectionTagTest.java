@@ -104,4 +104,25 @@ public class QuteDefinitionInSectionTagTest {
 		testDefinitionFor(template, "test.qute", //
 				ll(userTagUri, r(0, 1, 0, 13), r(0, 0, 0, 0)));
 	}
+	
+	@Test
+	public void definitionInEmptyEndTagSection() throws Exception {
+		String template = "{#each items}\r\n"
+				+ "\r\n"
+				+ "{#each items}\r\n"
+				+ "  {it.name}\r\n"
+				+ "{/each}\r\n"
+				+ "\r\n"
+				+ "{#each items}\r\n"
+				+ "\r\n"
+				+ "{#each items}\r\n"
+				+ "  {it.name}\r\n"
+				+ "{/|}\r\n"
+				+ "\r\n"
+				+ "\r\n"
+				+ "\r\n"
+				+ "{/}";
+		testDefinitionFor(template, "test.qute", //
+				ll("test.qute", r(10, 1, 10, 2), r(8, 1, 8, 6)));
+	}
 }
