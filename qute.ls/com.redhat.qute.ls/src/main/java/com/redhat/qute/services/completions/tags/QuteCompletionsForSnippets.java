@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.services.completions;
+package com.redhat.qute.services.completions.tags;
 
 import java.util.List;
 import java.util.Set;
@@ -27,9 +27,11 @@ import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
 import com.redhat.qute.parser.template.Node;
+import com.redhat.qute.parser.template.NodeKind;
+import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.snippets.AbstractQuteSnippetContext;
-import com.redhat.qute.utils.QutePositionUtility;
 
 public class QuteCompletionsForSnippets<T extends Snippet> {
 
@@ -43,7 +45,6 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 
 	public QuteCompletionsForSnippets(SnippetRegistryProvider<T> snippetRegistryProvider) {
 		this(snippetRegistryProvider, false);
-
 	}
 
 	public QuteCompletionsForSnippets() {
@@ -72,15 +73,18 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 			Set<CompletionItem> completionItems) {
 		Node node = completionRequest.getNode();
 		int offset = completionRequest.getOffset();
-		Template template = node.getOwnerTemplate();
-		String text = template.getText();
-		int endExpr = offset;
-		// compute the from for search expression according to the node
-		int fromSearchExpr = getExprLimitStart(node, endExpr);
-		// compute the start expression
-		int startExpr = getExprStart(text, fromSearchExpr, endExpr);
+		Template template = completionRequest.getTemplate();
+
+		Section section = getCoveredStartSection(node, offset);
+		if (section != null && section.hasEndTag() && !section.hasEmptyEndTag()) {
+			// - {#f|or }{/for}
+			// No completion for section tags
+			return;
+		}
+
 		try {
-			Range replaceRange = getReplaceRange(startExpr, endExpr, offset, template);
+			QuteSnippetContentProvider contentProvider = new QuteSnippetContentProvider(node, section, offset, template);
+			Range replaceRange = contentProvider.getReplaceRange();
 			int lineNumber = replaceRange.getStart().getLine();
 			String lineDelimiter = null;
 			String whitespacesIndent = null;
@@ -91,6 +95,7 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 			} else {
 				lineDelimiter = template.lineDelimiter(lineNumber);
 			}
+
 			InsertTextMode defaultInsertTextMode = completionRequest.getDefaultInsertTextMode();
 			List<CompletionItem> snippets = getSnippetRegistry().getCompletionItems(replaceRange, lineDelimiter,
 					whitespacesIndent, defaultInsertTextMode,
@@ -100,28 +105,8 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 							return (((AbstractQuteSnippetContext) context).isMatch(completionRequest, model));
 						}
 						return false;
-					}, (suffix) -> {
-						// Search the suffix from the right of completion offset.
-						for (int i = endExpr; i < text.length(); i++) {
-							char ch = text.charAt(i);
-							if (Character.isWhitespace(ch)) {
-								// whitespace, continue to eat character
-								continue;
-							} else {
-								// the current character is not a whitespace, search the suffix index
-								Integer eatIndex = getSuffixIndex(text, suffix, i);
-								if (eatIndex != null) {
-									try {
-										return template.positionAt(eatIndex);
-									} catch (BadLocationException e) {
-										return null;
-									}
-								}
-								return null;
-							}
-						}
-						return null;
-					}, suffixToFind, prefixFilter);
+					}, contentProvider, suffixToFind, prefixFilter,
+					contentProvider);
 
 			completionItems.addAll(snippets);
 		} catch (BadLocationException e) {
@@ -129,66 +114,28 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 		}
 	}
 
-	private static Integer getSuffixIndex(String text, String suffix, final int initOffset) {
-		int offset = initOffset;
-		char ch = text.charAt(offset);
-		// Try to search the first character which matches the suffix
-		Integer suffixIndex = null;
-		for (int j = 0; j < suffix.length(); j++) {
-			if (suffix.charAt(j) == ch) {
-				suffixIndex = j;
-				break;
-			}
+	/**
+	 * Return the section where completion is triggered in start tag and null
+	 * otherwise (ex: {#f|or}.
+	 * 
+	 * @param node   the node.
+	 * @param offset the offset.
+	 * 
+	 * @return the section where completion is triggered in start tag and null
+	 *         otherwise.
+	 */
+	private static Section getCoveredStartSection(Node node, int offset) {
+		if (node == null || node.getKind() != NodeKind.Section) {
+			return null;
 		}
-		if (suffixIndex != null) {
-			// There is one of character of the suffix
-			offset++;
-			if (suffixIndex == suffix.length()) {
-				// the suffix index is the last character of the suffix
-				return offset;
-			}
-			// Try to eat the most characters of the suffix
-			for (; offset < text.length(); offset++) {
-				suffixIndex++;
-				if (suffixIndex == suffix.length()) {
-					// the suffix index is the last character of the suffix
-					return offset;
-				}
-				ch = text.charAt(offset);
-				if (suffix.charAt(suffixIndex) != ch) {
-					return offset;
-				}
-			}
-			return offset;
+		Section section = (Section) node;
+		if (section.isInStartTagName(offset)) {
+			// Completion is triggered inside a start tag
+			// - {#f|or }
+			// - {#| }
+			return section;
 		}
 		return null;
-	}
-
-	/**
-	 * Returns the limit start offset of the expression according to the current
-	 * node.
-	 *
-	 * @param currentNode the node.
-	 * @param offset      the offset.
-	 * @return the limit start offset of the expression according to the current
-	 *         node.
-	 */
-	private static int getExprLimitStart(Node currentNode, int offset) {
-		if (currentNode == null) {
-			// should never occurs
-			return 0;
-		}
-		// if (currentNode.isText()) {
-		return currentNode.getStart();
-		// }
-	}
-
-	private static Range getReplaceRange(int replaceStart, int replaceEnd, int offset, Template template)
-			throws BadLocationException {
-		if (replaceStart > offset) {
-			replaceStart = offset;
-		}
-		return QutePositionUtility.createRange(replaceStart, replaceEnd, template);
 	}
 
 	protected SnippetRegistry<T> getSnippetRegistry() {
@@ -200,22 +147,4 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 		}
 		return snippetRegistry;
 	}
-
-	private static int getExprStart(String value, int from, int to) {
-		if (to == 0) {
-			return to;
-		}
-		int index = to - 1;
-		while (index > 0) {
-			if (Character.isWhitespace(value.charAt(index))) {
-				return index + 1;
-			}
-			if (index <= from) {
-				return from;
-			}
-			index--;
-		}
-		return index;
-	}
-
 }

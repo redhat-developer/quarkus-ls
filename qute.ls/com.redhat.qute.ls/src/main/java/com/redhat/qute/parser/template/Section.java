@@ -184,7 +184,7 @@ public abstract class Section extends Node implements ParametersContainer {
 	 * Returns the offset which opens the section end tag and -1 otherwise.
 	 * 
 	 * <p>
-	 * |{\let}
+	 * |{/let}
 	 * </p>
 	 * 
 	 * @return the offset which opens the section end tag and -1 otherwise.
@@ -197,7 +197,7 @@ public abstract class Section extends Node implements ParametersContainer {
 	 * Returns the offset before the end tag name of the section.
 	 * 
 	 * <p>
-	 * {|\let}
+	 * {|/let}
 	 * </p>
 	 * 
 	 * 
@@ -215,7 +215,7 @@ public abstract class Section extends Node implements ParametersContainer {
 	 * Returns the offset which closes the section end tag and -1 otherwise.
 	 * 
 	 * <p>
-	 * {\let|}
+	 * {/let|}
 	 * </p>
 	 * 
 	 * 
@@ -365,9 +365,13 @@ public abstract class Section extends Node implements ParametersContainer {
 		if (parameters != null) {
 			return parameters;
 		}
+		if (!hasStartTag()) {
+			// {/else}
+			return Collections.emptyList();
+		}
 		int start = getStartParametersOffset();
 		int end = getEndParametersOffset();
-		if (start > end) {
+		if (start >= end) {
 			// cases:
 			// {#else|}
 			return Collections.emptyList();
@@ -435,6 +439,12 @@ public abstract class Section extends Node implements ParametersContainer {
 	@Override
 	public int getEndParametersOffset() {
 		if (!isStartTagClosed()) {
+			// {#for it
+			if (getChildCount() > 0) {
+				// {#for it
+				// |{it.name}
+				return getChild(0).getStart() - 1;
+			}
 			return getEnd();
 		}
 		return getStartTagCloseOffset();
@@ -626,6 +636,22 @@ public abstract class Section extends Node implements ParametersContainer {
 		}
 		SectionKind sectionKind = section.getSectionKind();
 		return sectionKind == SectionKind.SWITCH || sectionKind == SectionKind.WHEN;
+	}
+
+	/**
+	 * Returns true if the given section has an empty end section {/} and false
+	 * otherwise.
+	 *
+	 * @param section the section.
+	 *
+	 * @return true true if the given section has an empty end section {/} and false
+	 *         otherwise.
+	 */
+	public boolean hasEmptyEndTag() {
+		if (!hasEndTag()) {
+			return false;
+		}
+		return getEndTagCloseOffset() - getEndTagOpenOffset() == 2;
 	}
 
 }

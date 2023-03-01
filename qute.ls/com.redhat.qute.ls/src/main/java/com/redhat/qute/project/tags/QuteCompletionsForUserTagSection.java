@@ -14,7 +14,7 @@ package com.redhat.qute.project.tags;
 import java.util.Collection;
 
 import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
-import com.redhat.qute.services.completions.QuteCompletionsForSnippets;
+import com.redhat.qute.services.completions.tags.QuteCompletionsForSnippets;
 
 /**
  * Abstract class for user tag completion.

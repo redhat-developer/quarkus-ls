@@ -90,6 +90,48 @@ public class TemplateParserTest {
 	}
 
 	@Test
+	public void let4() {
+		String content = "{#let name=value}\r\n" + //
+				"    {#for item in items}\r\n" + //
+				"{/}";
+		Template template = TemplateParser.parse(content, "test.qute");
+		assertEquals(1, template.getChildCount());
+
+		// {#let name=value}
+		Node letSection = template.getChild(0);
+		assertEquals(NodeKind.Section, letSection.getKind());
+		Section section = (Section) letSection;
+		assertEquals(SectionKind.LET, section.getSectionKind());
+		assertFalse(section.isClosed());
+
+		assertEquals(0, section.getStartTagOpenOffset()); // |{#let
+		assertEquals(1, section.getStartTagNameOpenOffset()); // {|#let
+		assertEquals(5, section.getStartTagNameCloseOffset()); // {#let| name=value}
+		assertEquals(16, section.getStartTagCloseOffset()); // {#let name=value|}
+		assertFalse(section.hasEndTag());
+
+		assertEquals(2, letSection.getChildCount());
+
+		// {#for item in items}
+		// {/}
+		Node forSection = letSection.getChild(1);
+		assertEquals(NodeKind.Section, forSection.getKind());
+		section = (Section) forSection;
+		assertEquals(SectionKind.FOR, section.getSectionKind());
+		assertTrue(section.isClosed());
+
+		assertEquals(23, section.getStartTagOpenOffset()); // |{#for
+		assertEquals(24, section.getStartTagNameOpenOffset()); // {|#for
+		assertEquals(28, section.getStartTagNameCloseOffset()); // {#for| item in items}
+		assertEquals(42, section.getStartTagCloseOffset()); // {#for item in items|}
+
+		assertTrue(section.hasEndTag());
+		assertTrue(section.hasEmptyEndTag());
+		assertEquals(45, section.getEndTagOpenOffset()); // |{/}
+		assertEquals(47, section.getEndTagCloseOffset()); // {/|}
+	}
+
+	@Test
 	public void parameterNotClosed() {
 		String content = "{@\r\n" + //
 				"{#for todo in todos}\r\n" + //

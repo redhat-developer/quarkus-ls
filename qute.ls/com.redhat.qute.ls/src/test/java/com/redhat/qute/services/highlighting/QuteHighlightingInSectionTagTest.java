@@ -220,4 +220,120 @@ public class QuteHighlightingInSectionTagTest {
 				hl(r(5, 1, 5, 4), Read), //
 				hl(r(4, 1, 4, 6), Read));
 	}
+
+	@Test
+	public void highlightingWithEmptyEndSection() throws BadLocationException {
+		String template = "{#fo|r item in items}\r\n"
+				+ "	  {#for item in items}\r\n"
+				+ "	    \r\n"
+				+ "	  {/}\r\n"
+				+ "	{/}";
+		testHighlightsFor(template, //
+				hl(r(0, 1, 0, 5), Read), //
+				hl(r(4, 2, 4, 3), Read));
+
+		template = "{#for item in items}\r\n"
+				+ "	  {#for item in items}\r\n"
+				+ "	    \r\n"
+				+ "	  {/}\r\n"
+				+ "	{/|}";
+		testHighlightsFor(template, //
+				hl(r(0, 1, 0, 5), Read), //
+				hl(r(4, 2, 4, 3), Read));
+
+		template = "{#for item in items}\r\n"
+				+ "	  {#for item in items}\r\n"
+				+ "	    \r\n"
+				+ "	  \r\n" // <-- here it misses the {\} for the second #for
+				+ "	{/|}";
+		testHighlightsFor(template, //
+				hl(r(1, 4, 1, 8), Read), //
+				hl(r(4, 2, 4, 3), Read));
+
+		template = "{#for item in items}\r\n"
+				+ "	  {#fo|r item in items}\r\n"
+				+ "	    \r\n"
+				+ "	  {/}\r\n"
+				+ "	{/}";
+		testHighlightsFor(template, //
+				hl(r(1, 4, 1, 8), Read), //
+				hl(r(3, 4, 3, 5), Read));
+	}
+
+	@Test
+	public void highlightingWithEmptyEndSectionNotClosed() throws BadLocationException {
+		String template = "{#for items}\r\n"
+				+ "	  {#each items}\r\n"
+				+ "	    {#f|or items }{/for}\r\n"
+				+ "	{/for}";
+		testHighlightsFor(template, //
+				hl(r(2, 6, 2, 10), Read), //
+				hl(r(2, 19, 2, 23), Read));
+
+		template = "{#for items}\r\n"
+				+ "	  {#each items}\r\n"
+				+ "	    {#f|or items }{/for}\r\n"
+				+ "	{/}";
+		testHighlightsFor(template, //
+				hl(r(2, 6, 2, 10), Read), //
+				hl(r(2, 19, 2, 23), Read));
+	}
+
+	@Test
+	public void highlightingWithEmptyEndSectionNotClosed2() throws BadLocationException {
+		String template = "{#each items}\r\n"
+				+ "\r\n"
+				+ "{#each items}\r\n"
+				+ "\r\n"
+				+ "{#ea|ch items}\r\n"
+				+ "  {it.name}\r\n"
+				+ "{/each}\r\n"
+				+ "\r\n"
+				+ "{/}\r\n"
+				+ "";
+		testHighlightsFor(template, //
+				hl(r(4, 1, 4, 6), Read), //
+				hl(r(6, 1, 6, 6), Read));
+	}
+	
+	@Test
+	public void highlightingWithEmptyEndSectionNotClosed3() throws BadLocationException {
+		String template = "{#each items}\r\n"
+				+ "\r\n"
+				+ "{#each items}\r\n"
+				+ "  {it.name}\r\n"
+				+ "{/each}\r\n"
+				+ "\r\n"
+				+ "{#ea|ch items}\r\n"
+				+ "\r\n"
+				+ "{#each items}\r\n"
+				+ "  {it.name}\r\n"
+				+ "{/}\r\n"
+				+ "\r\n"
+				+ "\r\n"
+				+ "\r\n"
+				+ "{/}";
+		testHighlightsFor(template, //
+				hl(r(6, 1, 6, 6), Read), //
+				hl(r(14, 1, 14, 2), Read));
+		
+		template = "{#each items}\r\n"
+				+ "\r\n"
+				+ "{#each items}\r\n"
+				+ "  {it.name}\r\n"
+				+ "{/each}\r\n"
+				+ "\r\n"
+				+ "{#each items}\r\n"
+				+ "\r\n"
+				+ "{#each items}\r\n"
+				+ "  {it.name}\r\n"
+				+ "{/|}\r\n"
+				+ "\r\n"
+				+ "\r\n"
+				+ "\r\n"
+				+ "{/}";
+		testHighlightsFor(template, //
+				hl(r(8, 1, 8, 6), Read), //
+				hl(r(10, 1, 10, 2), Read));
+	}
 }
