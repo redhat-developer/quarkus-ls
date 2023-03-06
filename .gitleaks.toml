@@ -1,0 +1,9 @@
+
+[allowlist]
+  description = "List of files containing fake secrets to ignore"
+
+  paths = [
+    '''quarkus\.jdt\.ext\/com\.redhat\.microprofile\.jdt\.quarkus\.test\/projects\/maven\/quarkus-renarde-todo\/src\/main\/resources\/Apple-key-dev\.p8''',
+    '''qute\.jdt\/com\.redhat\.qute\.jdt\.test\/projects\/maven\/quarkus-renarde-todo\/src\/main\/resources\/Apple-key-dev\.p8''',
+  ]
+
