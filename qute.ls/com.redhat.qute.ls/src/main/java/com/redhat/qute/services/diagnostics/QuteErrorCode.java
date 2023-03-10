@@ -82,7 +82,7 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	
 	DuplicateParameter("Duplicate parameter `{0}` of `{1}` user tag."), //
 	
-	MissingRequiredParameter("Missing required parameter `{0}` of `{1}` user tag."), //
+	MissingRequiredParameter("Missing required parameter(s) {0} of `{1}` user tag."), //
 	
 	// Error code for #form section
 	MissingExpectedInput("Missing expected input(s): {0}."), //

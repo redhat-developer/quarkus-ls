@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetsBuilder;
@@ -162,6 +163,18 @@ public abstract class UserTag extends Snippet {
 			parameters = collectParameters();
 		}
 		return parameters.values();
+	}
+
+	/**
+	 * Returns all required parameters names.
+	 *
+	 * @return all required parameter names.
+	 */
+	public List<String> getRequiredParameterNames() {
+		return getParameters().stream()
+				.filter(UserTagParameter::isRequired)
+				.map(UserTagParameter::getName)
+				.collect(Collectors.toList());
 	}
 
 	/**

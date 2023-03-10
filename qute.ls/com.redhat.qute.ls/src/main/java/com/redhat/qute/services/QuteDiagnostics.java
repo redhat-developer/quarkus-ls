@@ -399,16 +399,23 @@ class QuteDiagnostics {
 					}
 
 					// Check if all required parameters are declared
+					List<String> missingRequiredParameters = new ArrayList<>();
 					for (UserTagParameter parameter : userTag.getParameters()) {
 						String paramName = parameter.getName();
 						if (!NESTED_CONTENT_OBJECT_PART_NAME.equals(paramName)) {
 							if (parameter.isRequired() && !existingParameters.contains(paramName)) {
-								Range range = QutePositionUtility.selectStartTagName(section);
-								Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
-										QuteErrorCode.MissingRequiredParameter, paramName, tagName);
-								diagnostics.add(diagnostic);
+								missingRequiredParameters.add(paramName);
 							}
 						}
+					}
+					if (!missingRequiredParameters.isEmpty()) {
+						String diagnosticMessageArg = missingRequiredParameters //
+								.stream() //
+								.collect(Collectors.joining("`, `", "`", "`"));
+						Range range = QutePositionUtility.selectStartTagName(section);
+						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
+								QuteErrorCode.MissingRequiredParameter, diagnosticMessageArg, tagName);
+						diagnostics.add(diagnostic);
 					}
 					return;
 				}

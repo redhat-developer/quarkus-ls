@@ -30,6 +30,7 @@ import com.redhat.qute.ls.commons.CodeActionFactory;
 import com.redhat.qute.ls.commons.LineIndentInfo;
 import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.template.Node;
+import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.RangeOffset;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
@@ -60,7 +61,7 @@ public class QuteCodeActionForMissingInputs extends AbstractQuteCodeAction {
 			if (node == null) {
 				return;
 			}
-			Section section = node instanceof Section ? (Section) node : null;
+			Section section = node.getKind() == NodeKind.Section ? (Section) node : null;
 			if (section == null) {
 				return;
 			}
