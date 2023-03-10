@@ -11,7 +11,10 @@
 *******************************************************************************/
 package com.redhat.qute.services.diagnostics;
 
+import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
+import static com.redhat.qute.QuteAssert.te;
+import static com.redhat.qute.QuteAssert.testCodeActionsFor;
 import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 
 import org.eclipse.lsp4j.Diagnostic;
@@ -57,19 +60,22 @@ public class QuteDiagnosticsWithUserTagTest {
 	}
 
 	@Test
-	public void missingRequiredParameterName() {
+	public void missingRequiredParameterName() throws Exception {
 		String template = "{#input /}";
 		Diagnostic d = d(0, 1, 0, 7, QuteErrorCode.MissingRequiredParameter,
-				"Missing required parameter `name` of `input` user tag.",
+				"Missing required parameter(s) `name` of `input` user tag.",
 				DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(0, 7, 0, 8, //
+						" name=\"name\"")));
 	}
 
 	@Test
 	public void missingRequiredItParameterName() {
 		String template = "{#form /}";
 		Diagnostic d = d(0, 1, 0, 6, QuteErrorCode.MissingRequiredParameter,
-				"Missing required parameter `it` of `form` user tag.",
+				"Missing required parameter(s) `it` of `form` user tag.",
 				DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 	}
@@ -90,6 +96,30 @@ public class QuteDiagnosticsWithUserTagTest {
 	}
 
 	@Test
+	public void missingRequiredParameterNameMultiple() throws Exception {
+		String template = "{#inputRequired /}";
+		Diagnostic d = d(0, 1, 0, 15, QuteErrorCode.MissingRequiredParameter,
+				"Missing required parameter(s) `name`, `class` of `inputRequired` user tag.",
+				DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(0, 15, 0, 16, //
+						" name=\"name\" class=\"class\"")));
+	}
+
+	@Test
+	public void missingRequiredParameterNameMultipleWithExisting() throws Exception {
+		String template = "{#inputRequired name=\"name\"/}";
+		Diagnostic d = d(0, 1, 0, 15, QuteErrorCode.MissingRequiredParameter,
+				"Missing required parameter(s) `class` of `inputRequired` user tag.",
+				DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(0, 27, 0, 27, //
+						" class=\"class\"")));
+	}
+
+	@Test
 	public void noMatchBetweenStartEndSection() {
 		String template = "{#form }\r\n"
 				+ "	\r\n"
@@ -99,7 +129,7 @@ public class QuteDiagnosticsWithUserTagTest {
 						"Parser error: section end tag [for] does not match the start tag [form]",
 						DiagnosticSeverity.Error), //
 				d(0, 1, 0, 6, QuteErrorCode.MissingRequiredParameter,
-						"Missing required parameter `it` of `form` user tag.",
+						"Missing required parameter(s) `it` of `form` user tag.",
 						DiagnosticSeverity.Warning));
 	}
 }

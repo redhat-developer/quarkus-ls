@@ -33,6 +33,7 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.codeactions.CodeActionRequest;
 import com.redhat.qute.services.codeactions.QuteCodeActionForMissingInputs;
+import com.redhat.qute.services.codeactions.QuteCodeActionForMissingParameters;
 import com.redhat.qute.services.codeactions.QuteCodeActionForUndefinedNamespace;
 import com.redhat.qute.services.codeactions.QuteCodeActionForUndefinedObject;
 import com.redhat.qute.services.codeactions.QuteCodeActionForUndefinedSectionTag;
@@ -77,6 +78,8 @@ class QuteCodeActions {
 
 	private final QuteCodeActionForMissingInputs codeActionForMissingInputs;
 
+	private final QuteCodeActionForMissingParameters codeActionForMissingParameters;
+
 	public QuteCodeActions(JavaDataModelCache javaCache) {
 		this.codeActionForUndefinedObject = new QuteCodeActionForUndefinedObject(javaCache);
 		this.codeActionForUndefinedNamespace = new QuteCodeActionForUndefinedNamespace(javaCache);
@@ -84,6 +87,7 @@ class QuteCodeActions {
 		this.codeActionForUnknownMethod = new QuteCodeActionForUnknownMethod(javaCache);
 		this.codeActionForUndefinedSectionTag = new QuteCodeActionForUndefinedSectionTag(javaCache);
 		this.codeActionForMissingInputs = new QuteCodeActionForMissingInputs(javaCache);
+		this.codeActionForMissingParameters = new QuteCodeActionForMissingParameters(javaCache);
 	}
 
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
@@ -144,6 +148,17 @@ class QuteCodeActions {
 						// Insert required input forms
 						// Insert all input forms
 						codeActionForMissingInputs.doCodeActions(request, codeActionResolveFutures, codeActions);
+						break;
+					case MissingRequiredParameter:
+						// The following Qute template:
+						// {#input /}
+						// with some required parameters defined in the user tag html
+						// will provide quickfix:
+						//
+						// Insert requried parameters
+						//
+						// Result: <input name="{name}" class="{class}" >
+						codeActionForMissingParameters.doCodeActions(request, codeActionResolveFutures, codeActions);
 						break;
 					default:
 						break;
