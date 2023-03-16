@@ -22,6 +22,7 @@ import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 
 import com.redhat.qute.project.MockQuteLanguageServer;
+import com.redhat.qute.utils.FileUtils;
 
 /**
  * Diagnostics tests with closed/opened Qute template in a given project with
@@ -39,7 +40,8 @@ public class QuteDiagnosticsInProjectWithLSPDidChangeWatchedFilesTest extends Ab
 	@Override
 	protected void deleteFile(Path filePath, MockQuteLanguageServer server) throws Exception {
 		Files.delete(filePath);
-		FileEvent deleteEvent = new FileEvent(filePath.toUri().toASCIIString(), FileChangeType.Deleted);
+		String uri = FileUtils.toUri(filePath);
+		FileEvent deleteEvent = new FileEvent(uri, FileChangeType.Deleted);
 		DidChangeWatchedFilesParams params = new DidChangeWatchedFilesParams(Arrays.asList(deleteEvent));
 		server.didChangeWatchedFiles(params);
 	}
@@ -47,7 +49,7 @@ public class QuteDiagnosticsInProjectWithLSPDidChangeWatchedFilesTest extends Ab
 	@Override
 	protected void createFile(Path filePath, MockQuteLanguageServer server) throws Exception {
 		Files.createFile(filePath);
-		String uri = filePath.toUri().toASCIIString();
+		String uri = FileUtils.toUri(filePath);
 
 		FileEvent createEvent = new FileEvent(uri, FileChangeType.Created);
 		DidChangeWatchedFilesParams params = new DidChangeWatchedFilesParams(Arrays.asList(createEvent));
@@ -68,7 +70,8 @@ public class QuteDiagnosticsInProjectWithLSPDidChangeWatchedFilesTest extends Ab
 		} finally {
 
 		}
-		FileEvent createEvent = new FileEvent(filePath.toUri().toASCIIString(), FileChangeType.Changed);
+		String uri = FileUtils.toUri(filePath);
+		FileEvent createEvent = new FileEvent(uri, FileChangeType.Changed);
 		DidChangeWatchedFilesParams params = new DidChangeWatchedFilesParams(Arrays.asList(createEvent));
 		server.didChangeWatchedFiles(params);
 	}

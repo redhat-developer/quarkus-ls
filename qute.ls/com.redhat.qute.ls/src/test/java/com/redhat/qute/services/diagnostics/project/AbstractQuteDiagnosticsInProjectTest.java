@@ -54,7 +54,7 @@ public abstract class AbstractQuteDiagnosticsInProjectTest {
 		@Override
 		public CompletableFuture<ProjectInfo> getProjectInfo(QuteProjectParams params) {
 			ProjectInfo projectInfo = new ProjectInfo(QuteQuickStartProject.PROJECT_URI,
-					templatesPath.toUri().toASCIIString());
+					FileUtils.toUri(templatesPath));
 			return CompletableFuture.completedFuture(projectInfo);
 		};
 	}
@@ -88,7 +88,7 @@ public abstract class AbstractQuteDiagnosticsInProjectTest {
 
 		// Open detail.html
 		Path filePath = server.templatesPath.resolve("detail.html");
-		String fileUri = filePath.toUri().toASCIIString();
+		String fileUri = FileUtils.toUri(filePath);
 		String template = IOUtils.getContent(filePath);
 		server.didOpen(fileUri, template);
 

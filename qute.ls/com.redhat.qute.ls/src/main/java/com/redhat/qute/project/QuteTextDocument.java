@@ -16,6 +16,7 @@ import java.util.concurrent.CompletableFuture;
 
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.parser.template.Parameter;
+import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.documents.SearchInfoQuery;
 
@@ -68,6 +69,17 @@ public interface QuteTextDocument {
 	 *         template.
 	 */
 	List<Parameter> findInsertTagParameter(String insertParameter);
+
+	/**
+	 * Returns list of section with the given section tag name declared in all
+	 * templates of the project and an empty list otherwise.
+	 * 
+	 * @param tag the section tag name.
+	 * 
+	 * @return list of section with the given section tag name declared in all
+	 *         templates of the project and an empty list otherwise.
+	 */
+	List<Section> findSectionsByTag(String tag);
 
 	/**
 	 * Returns the file template uri.

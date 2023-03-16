@@ -25,6 +25,8 @@ import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 
+import com.redhat.qute.utils.FileUtils;
+
 /**
  * This class provides the capability to track the deleted/created files from
  * src/main/resources/templates folder of a Qute project and generates
@@ -56,7 +58,7 @@ public class QuteProjectFilesWatcher extends WatchDir {
 			return;
 		}
 		FileEvent fileEvent = null;
-		String fileUri = child.toUri().toASCIIString();
+		String fileUri = FileUtils.toUri(child);
 		if (event.kind() == ENTRY_CREATE) {
 			fileEvent = new FileEvent(fileUri, FileChangeType.Created);
 		} else if (event.kind() == ENTRY_MODIFY) {

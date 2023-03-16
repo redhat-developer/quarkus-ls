@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteTextDocument;
+import com.redhat.qute.utils.FileUtils;
 
 /**
  * Registry which stores Qute template document closed
@@ -74,7 +75,7 @@ public class QuteClosedTextDocuments {
 				try {
 					tryToAddClosedTemplate(path, false);
 				} catch (Exception e) {
-					LOGGER.log(Level.SEVERE, "Error while loading template '" + path.toUri().toASCIIString() + "'.", e);
+					LOGGER.log(Level.SEVERE, "Error while loading template '" + FileUtils.toUri(path) + "'.", e);
 				}
 			});
 		} catch (Exception e) {

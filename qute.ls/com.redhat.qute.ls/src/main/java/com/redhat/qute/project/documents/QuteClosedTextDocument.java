@@ -22,10 +22,12 @@ import java.util.stream.Collectors;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.parser.template.Parameter;
+import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteTextDocument;
+import com.redhat.qute.utils.FileUtils;
 import com.redhat.qute.utils.IOUtils;
 
 /**
@@ -52,7 +54,7 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 	public QuteClosedTextDocument(Path path, String templateId, QuteProject project) {
 		this.path = path;
 		this.templateId = templateId;
-		this.uri = path.toFile().toURI().toASCIIString();
+		this.uri = FileUtils.toUri(path);
 		this.project = project;
 	}
 
@@ -110,6 +112,7 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 		}
 		SearchInfoQuery query = new SearchInfoQuery();
 		query.setInsertParameter(SearchInfoQuery.ALL);
+		query.setSectionTag(SearchInfoQuery.ALL);
 		TemplateInfoCollector collector = new TemplateInfoCollector(query);
 		getTemplate().accept(collector);
 		return collector;
@@ -126,6 +129,20 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 		}
 		return parameters.stream()
 				.filter(p -> insertParameter.equals(p.getValue()))
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<Section> findSectionsByTag(String tag) {
+		List<Section> sections = getCollector().getSectionsByTag();
+		if (sections == null) {
+			return Collections.emptyList();
+		}
+		if (SearchInfoQuery.ALL.equals(tag)) {
+			return sections;
+		}
+		return sections.stream()
+				.filter(s -> tag.equals(s.getTag()))
 				.collect(Collectors.toList());
 	}
 
