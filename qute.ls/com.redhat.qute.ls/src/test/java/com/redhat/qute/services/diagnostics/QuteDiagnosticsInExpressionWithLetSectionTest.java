@@ -106,4 +106,11 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 						ConfigurationItemEditType.update, "ignore", //
 						d)));
 	}
+
+	@Test
+	public void notAsObjectPartName() throws Exception {
+		String template = "{@int !value}\r\n" + //
+				"{#let name=!value /}";
+		testDiagnosticsFor(template);
+	}
 }

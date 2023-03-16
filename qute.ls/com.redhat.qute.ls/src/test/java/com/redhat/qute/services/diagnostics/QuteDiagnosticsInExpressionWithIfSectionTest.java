@@ -121,6 +121,14 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 	}
 
 	@Test
+	public void onlyNotOperator() {
+		String template = "{#if !}{/if}";
+		Diagnostic d = d(0, 0, 0, 0, QuteErrorCode.SyntaxError, "Unsupported param type: NOT",
+				DiagnosticSeverity.Error);
+		testDiagnosticsFor(template, d);
+	}
+
+	@Test
 	public void noOptionalParameterInIfBlock() {
 		String template = "{#if foo}\r\n" + //
 				"	{foo}\r\n" + //

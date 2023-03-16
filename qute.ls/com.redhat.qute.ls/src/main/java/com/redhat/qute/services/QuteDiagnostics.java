@@ -711,7 +711,15 @@ class QuteDiagnostics {
 				return null;
 			}
 
-			String literalJavaType = LiteralSupport.getLiteralJavaType(objectPart.getPartName());
+			String partName = objectPart.getPartName();
+			if (partName.isEmpty()) {
+				// This case comes from when only ! is used in #if
+				// ex : {#if !}
+				// In this case ! is not considered as an object part.
+				return null;
+			}
+
+			String literalJavaType = LiteralSupport.getLiteralJavaType(partName);
 			if (literalJavaType != null) {
 				// The object part is a literal type (ex : true)
 				return null;
@@ -727,7 +735,7 @@ class QuteDiagnostics {
 				return null;
 			}
 
-			if (CaseSection.isCaseSection(ownerSection)) {
+			if (Section.isCaseSection(ownerSection)) {
 				// Skip validation for case section, is done later
 				return null;
 			}
