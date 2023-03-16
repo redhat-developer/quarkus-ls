@@ -1026,7 +1026,8 @@ public class QuteAssert {
 		SharedSettings sharedSettings = new SharedSettings();
 		CommandCapabilities commandCapabilities = new CommandCapabilities();
 		CommandKindCapabilities kinds = new CommandKindCapabilities(
-				Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION));
+				Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION,
+						QuteClientCommandConstants.COMMAND_SHOW_REFERENCES));
 		commandCapabilities.setCommandKind(kinds);
 		sharedSettings.getCommandCapabilities().setCapabilities(commandCapabilities);
 		return sharedSettings;

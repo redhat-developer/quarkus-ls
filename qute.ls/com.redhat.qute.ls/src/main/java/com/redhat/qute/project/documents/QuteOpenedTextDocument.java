@@ -27,6 +27,7 @@ import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.commons.ModelTextDocument;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.parser.template.Parameter;
+import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
@@ -119,6 +120,15 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 		TemplateInfoCollector collector = new TemplateInfoCollector(query);
 		getTemplate().accept(collector);
 		return collector.getInsertParameters();
+	}
+
+	@Override
+	public List<Section> findSectionsByTag(String tag) {
+		SearchInfoQuery query = new SearchInfoQuery();
+		query.setSectionTag(tag);
+		TemplateInfoCollector collector = new TemplateInfoCollector(query);
+		getTemplate().accept(collector);
+		return collector.getSectionsByTag();
 	}
 
 	@Override

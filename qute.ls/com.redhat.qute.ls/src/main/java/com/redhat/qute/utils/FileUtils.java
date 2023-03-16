@@ -64,4 +64,8 @@ public class FileUtils {
 		}
 		return new File(fileUri).toPath();
 	}
+	
+	public static String toUri(Path path) {
+		return path.toUri().toASCIIString();
+	}
 }

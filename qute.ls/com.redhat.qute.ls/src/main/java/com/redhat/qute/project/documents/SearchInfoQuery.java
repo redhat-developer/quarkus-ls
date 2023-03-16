@@ -26,6 +26,8 @@ public class SearchInfoQuery {
 	public static final String ALL = "@all";
 
 	private String insertParameter;
+	
+	private String sectionTag;
 
 	/**
 	 * Set the insert parameter name to search in the Qute template where search is
@@ -51,4 +53,11 @@ public class SearchInfoQuery {
 		return insertParameter;
 	}
 
+	public void setSectionTag(String sectionTag) {
+		this.sectionTag = sectionTag;
+	}
+	
+	public String getSectionTag() {
+		return sectionTag;
+	}
 }

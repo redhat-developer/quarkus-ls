@@ -36,4 +36,9 @@ public class QuteClientCommandConstants {
 	 */
 	public static final String COMMAND_CONFIGURATION_UPDATE = "qute.command.configuration.update";
 
+	/**
+	 * Client command to show Qute references
+	 */
+	public static final String COMMAND_SHOW_REFERENCES = "qute.command.show.references";
+
 }

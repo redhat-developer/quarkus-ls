@@ -32,6 +32,8 @@ public abstract class Section extends Node implements ParametersContainer {
 
 	private static final SectionKind[] INCLUDE_SECTION_KIND = new SectionKind[] { SectionKind.INCLUDE };
 
+	private static final SectionKind[] INSERT_SECTION_KIND = new SectionKind[] { SectionKind.INSERT };
+
 	private static final SectionKind[] WHEN_SECTION_KIND = new SectionKind[] { SectionKind.WHEN, SectionKind.SWITCH };
 
 	private static final SectionKind[] CASE_SECTION_KIND = new SectionKind[] { SectionKind.CASE, SectionKind.IS };
@@ -645,6 +647,10 @@ public abstract class Section extends Node implements ParametersContainer {
 	 */
 	public static boolean isIncludeSection(Section section) {
 		return isSectionKind(section, INCLUDE_SECTION_KIND);
+	}
+
+	public static boolean isInsertSection(Section section) {
+		return isSectionKind(section, INSERT_SECTION_KIND);
 	}
 
 	private static boolean isSectionKind(Section section, SectionKind[] expectedKinds) {

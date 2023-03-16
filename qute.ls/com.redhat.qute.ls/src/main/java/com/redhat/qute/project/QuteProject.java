@@ -15,6 +15,7 @@ import static com.redhat.qute.utils.FileUtils.createPath;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.parser.template.Parameter;
+import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateConfiguration;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
@@ -202,6 +204,18 @@ public class QuteProject {
 			return document.findInsertTagParameter(insertParamater);
 		}
 		return null;
+	}
+
+	public List<Section> findSectionsByTag(String tag) {
+		closedDocuments.loadClosedTemplatesIfNeeded();
+		List<Section> allSections = new ArrayList<>();
+		for (QuteTextDocument document : documents.values()) {
+			List<Section> sections = document.findSectionsByTag(tag);
+			if (sections != null && !sections.isEmpty()) {
+				allSections.addAll(sections);
+			}
+		}
+		return allSections;
 	}
 
 	private QuteTextDocument findDocumentByTemplateId(String templateId) {
@@ -553,4 +567,5 @@ public class QuteProject {
 	public String[] getTemplateVariants() {
 		return TEMPLATE_VARIANTS;
 	}
+
 }

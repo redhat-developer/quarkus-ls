@@ -16,6 +16,8 @@ import java.util.List;
 
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Parameter;
+import com.redhat.qute.parser.template.Section;
+import com.redhat.qute.parser.template.sections.CustomSection;
 import com.redhat.qute.parser.template.sections.InsertSection;
 
 /**
@@ -33,6 +35,8 @@ public class TemplateInfoCollector extends ASTVisitor {
 	private SearchInfoQuery query = null;
 
 	private List<Parameter> insertParameters;
+
+	private List<Section> sectionsByTag;
 
 	public TemplateInfoCollector(SearchInfoQuery query) {
 		this.query = query;
@@ -55,6 +59,20 @@ public class TemplateInfoCollector extends ASTVisitor {
 		return super.visit(section);
 	}
 
+	@Override
+	public boolean visit(CustomSection section) {
+		String sectionTag = query.getSectionTag();
+		if (sectionTag != null) {
+			if (SearchInfoQuery.ALL.equals(sectionTag) || sectionTag.equals(section.getTag())) {
+				if (sectionsByTag == null) {
+					sectionsByTag = new ArrayList<>();
+				}
+				sectionsByTag.add(section);
+			}
+		}
+		return super.visit(section);
+	}
+
 	/**
 	 * Returns the collected insert parameters which matches the search query.
 	 * 
@@ -64,4 +82,7 @@ public class TemplateInfoCollector extends ASTVisitor {
 		return insertParameters;
 	}
 
+	public List<Section> getSectionsByTag() {
+		return sectionsByTag;
+	}
 }

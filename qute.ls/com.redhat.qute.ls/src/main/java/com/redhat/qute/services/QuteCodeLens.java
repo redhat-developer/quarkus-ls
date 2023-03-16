@@ -37,6 +37,7 @@ import com.redhat.qute.project.datamodel.ExtendedDataModelFragment;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.StringUtils;
@@ -150,11 +151,15 @@ class QuteCodeLens {
 			Template template, SharedSettings settings, QuteProject project,
 			List<CodeLens> lenses, CancelChecker cancelChecker) {
 		cancelChecker.checkCanceled();
+		String showReferencesCommandId = settings.getCommandCapabilities()
+				.isCommandSupported(QuteClientCommandConstants.COMMAND_SHOW_REFERENCES)
+						? QuteClientCommandConstants.COMMAND_SHOW_REFERENCES
+						: "";
 		if (parent.getKind() == NodeKind.Section) {
 			Section section = (Section) parent;
 			switch (section.getSectionKind()) {
 				case INSERT:
-					collectInsertCodeLens(project, section, lenses);
+					collectInsertCodeLens(project, section, template, showReferencesCommandId, lenses);
 					break;
 				case FRAGMENT:
 					collectFragmentCodeLens(templateDataModel, section, settings, project, lenses, cancelChecker);
@@ -188,17 +193,21 @@ class QuteCodeLens {
 				cancelChecker);
 	}
 
-	public static void collectInsertCodeLens(QuteProject project, Section section, List<CodeLens> lenses) {
+	private static void collectInsertCodeLens(QuteProject project, Section section, Template template,
+			String showReferencesCommandId, List<CodeLens> lenses) {
 		if (project != null) {
 			Parameter parameter = section.getParameterAtIndex(0);
 			if (parameter != null) {
 				String tag = parameter.getValue();
-				// TODO : implement findNbreferencesOfInsertTag correctly
-				int nbReferences = 0; // project.findNbreferencesOfInsertTag(template.getTemplateId(), tag);
+				int nbReferences = project.findSectionsByTag(tag).size();
 				if (nbReferences > 0) {
 					String title = nbReferences == 1 ? "1 reference" : nbReferences + " references";
 					Range range = QutePositionUtility.createRange(parameter);
-					Command command = new Command(title, "");
+					Command command = new Command(title, showReferencesCommandId);
+					if (!showReferencesCommandId.isEmpty()) {
+						String uri = template.getUri();
+						command.setArguments(Arrays.asList(uri, range.getStart()));
+					}
 					CodeLens codeLens = new CodeLens(range, command, null);
 					lenses.add(codeLens);
 				}
