@@ -17,6 +17,7 @@ import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
+import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.LoopSection;
 
@@ -33,7 +34,7 @@ import com.redhat.qute.parser.template.sections.LoopSection;
 
 public class ObjectPart extends Part {
 
-	private Boolean notComputed;
+	private int startName = -1;
 
 	public ObjectPart(int start, int end) {
 		super(start, end);
@@ -46,29 +47,23 @@ public class ObjectPart extends Part {
 
 	@Override
 	public int getStartName() {
-		computeNotIfNeeded();
-		return super.getStartName();
-	}
-
-	private void computeNotIfNeeded() {
-		if (notComputed != null) {
-			return;
+		if (startName != -1) {
+			return startName;
 		}
-		computeNot();
-	}
-
-	private synchronized void computeNot() {
-		if (notComputed != null) {
-			return;
+		startName = super.getStartName();
+		Parameter parameter = getOwnerParameter();
+		if (parameter != null) {
+			Section section = parameter.getOwnerSection();
+			if (section != null && section.getSectionKind() == SectionKind.IF) {
+				String text = getOwnerTemplate().getText();
+				if (text.charAt(startName) == '!') {
+					// ex : !true
+					// !true --> true
+					startName++;
+				}
+			}
 		}
-		String text = getOwnerTemplate().getText();
-		int start = super.getStartName();
-		if (text.charAt(start) == '!') {
-			// ex : !true
-			// !true --> true
-			super.setStart(start + 1);
-		}
-		notComputed = Boolean.TRUE;
+		return startName;
 	}
 
 	public JavaTypeInfoProvider resolveJavaType() {

@@ -28,6 +28,8 @@ import com.redhat.qute.project.tags.UserTag;
 
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.EngineBuilder;
+import io.quarkus.qute.ErrorCode;
+import io.quarkus.qute.ParserError;
 import io.quarkus.qute.TemplateException;
 import io.quarkus.qute.TemplateNode.Origin;
 import io.quarkus.qute.UserTagSectionHelper;
@@ -67,17 +69,29 @@ public class QuteDiagnosticsForSyntax {
 			Engine engine = engineBuilder.build();
 			engine.parse(templateContent);
 		} catch (TemplateException e) {
-			String message = e.getMessage();
-			if (message.contains("no section helper found for")) {
+			if (isIgnoreError(e)) {
 				// Ignore error "no section helper found for" which is managed with
 				// QuteDiagnostic to highlight the section start correctly.
 				return;
 			}
+			String message = e.getMessage();
 			Range range = createRange(e, template);
 			Diagnostic diagnostic = createDiagnostic(range, message, DiagnosticSeverity.Error,
 					QuteErrorCode.SyntaxError);
 			diagnostics.add(diagnostic);
 		}
+	}
+
+	private static boolean isIgnoreError(TemplateException e) {
+		// As the Qute real parser is not fault tolerant (it report just one error) and
+		// as it reports bad offset for the error
+		// we ignore some errors which are managed by QuteDiagnostics to highlight
+		// several errors and highlight section, object part, etc correctly.
+		ErrorCode code = e.getCode();
+		if (ParserError.NO_SECTION_HELPER_FOUND == code) {
+			return true;
+		}
+		return false;
 	}
 
 	private static void addUserTag(Collection<UserTag> tags, EngineBuilder engineBuilder) {
