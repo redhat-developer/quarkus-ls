@@ -13,6 +13,10 @@ package com.redhat.qute.jdt;
 
 import static com.redhat.qute.jdt.utils.JDTTypeUtils.findType;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -21,9 +25,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -61,16 +69,18 @@ import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
+import com.redhat.qute.jdt.internal.QuteJavaConstants;
 import com.redhat.qute.jdt.internal.resolver.ClassFileTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.CompilationUnitTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 import com.redhat.qute.jdt.internal.template.JavaTypesSearch;
 import com.redhat.qute.jdt.internal.template.QuarkusIntegrationForQute;
-import com.redhat.qute.jdt.internal.template.TemplateGenerateMissingJavaMember;
 import com.redhat.qute.jdt.internal.template.TemplateDataSupport;
+import com.redhat.qute.jdt.internal.template.TemplateGenerateMissingJavaMember;
 import com.redhat.qute.jdt.internal.template.resolvedtype.ResolvedJavaTypeFactoryRegistry;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
+import com.redhat.qute.jdt.utils.JDTTypeUtils;
 
 /**
  *
@@ -99,7 +109,7 @@ public class QuteSupportForTemplate {
 	 * @return the project information for the given project Uri and null otherwise.
 	 */
 	public ProjectInfo getProjectInfo(QuteProjectParams params, IJDTUtils utils, IProgressMonitor monitor) {
-		IJavaProject javaProject = getJavaProjectFromTemplateFile(params.getTemplateFileUri(), utils);
+		IJavaProject javaProject = findJavaProject(params.getTemplateFileUri(), utils);
 		if (javaProject == null) {
 			return null;
 		}
@@ -328,21 +338,107 @@ public class QuteSupportForTemplate {
 		return javaProject.exists() ? javaProject : null;
 	}
 
-	private static IJavaProject getJavaProjectFromTemplateFile(String templateFileUri, IJDTUtils utils) {
-		templateFileUri = templateFileUri.replace("vscode-notebook-cell", "file");
-		IFile file = utils.findFile(templateFileUri);
-		if (file == null || file.getProject() == null) {
+	/**
+	 * Returns the Java project of the given resource Uri (file or project uri) and
+	 * null otherwise.
+	 * 
+	 * @param resourceUri the resource Uri (file or project uri).
+	 * @param utils       the JDT utilities.
+	 * 
+	 * @return the Java project of the given resource Uri (file or project uri) and
+	 *         null otherwise.
+	 */
+	private static IJavaProject findJavaProject(String resourceUri, IJDTUtils utils) {
+		IProject project = findProject(resourceUri, utils);
+		if (project == null) {
 			// The uri doesn't belong to an Eclipse project
 			return null;
 		}
 		// The uri belong to an Eclipse project
-		if (!(JavaProject.hasJavaNature(file.getProject()))) {
+		return getJavaProject(project);
+	}
+
+	/**
+	 * Returns the project of the given resource Uri (file or project uri) and null
+	 * otherwise.
+	 * 
+	 * @param resourceUri the resource Uri (file or project uri).
+	 * @param utils       the JDT utilities.
+	 * 
+	 * @return the project of the given resource Uri (file or project uri) and null
+	 *         otherwise.
+	 */
+	private static IProject findProject(String resourceUri, IJDTUtils utils) {
+		String fileUri = resourceUri.replace("vscode-notebook-cell", "file");
+		IFile file = utils.findFile(fileUri);
+		if (file != null) {
+			// The resource Uri is a file which belong to an Eclipse project
+			return file.getProject();
+		}
+
+		// Try to get the project
+		URI projectUri = toURI(resourceUri);
+		if (!URIUtil.isFileURI(projectUri)) {
+			// ex : untitled:untitled
+			return null;
+		}
+		Path projectPath = Paths.get(projectUri);
+		for (IProject currentProject : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+			Path currentProjectPath = Paths.get(currentProject.getLocationURI());
+			if (projectPath.equals(currentProjectPath)) {
+				// check if it is a Qute project
+				if (!isQuteProject(currentProject)) {
+					return null;
+				}
+				return currentProject;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Returns true if the given project is a Java Qute project and false otherwise.
+	 * 
+	 * @param project the project.
+	 * 
+	 * @return true if the given project is a Java Qute project and false otherwise.
+	 */
+	private static boolean isQuteProject(IProject project) {
+		IJavaProject javaProject = getJavaProject(project);
+		if (javaProject == null) {
+			return false;
+		}
+		return JDTTypeUtils.findType(javaProject, QuteJavaConstants.TEMPLATE_CLASS) != null;
+	}
+
+	/**
+	 * Returns the Java project of the given project and null otherwise.
+	 * 
+	 * @param project the project
+	 * 
+	 * @return the Java project of the given project and null otherwise.
+	 */
+	private static IJavaProject getJavaProject(IProject project) {
+		if (!(JavaProject.hasJavaNature(project))) {
 			// The uri doesn't belong to a Java project
 			return null;
 		}
+		return JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(project);
+	}
 
-		String projectName = file.getProject().getName();
-		return JavaModelManager.getJavaModelManager().getJavaModel().getJavaProject(projectName);
+	private static URI toURI(String uriString) {
+		if (uriString == null || uriString.isEmpty()) {
+			return null;
+		}
+		try {
+			URI uri = new URI(uriString);
+			if (Platform.OS_WIN32.equals(Platform.getOS()) && URIUtil.isFileURI(uri)) {
+				uri = URIUtil.toFile(uri).toURI();
+			}
+			return uri;
+		} catch (URISyntaxException e) {
+			return null;
+		}
 	}
 
 	private static IType[] findImplementedInterfaces(IType type, IProgressMonitor progressMonitor)
@@ -370,8 +466,7 @@ public class QuteSupportForTemplate {
 	 */
 	public WorkspaceEdit generateMissingJavaMember(GenerateMissingJavaMemberParams params, IJDTUtils utils,
 			IProgressMonitor monitor) {
-		return TemplateGenerateMissingJavaMember.handleGenerateMissingJavaMember(params, utils,
-				monitor);
+		return TemplateGenerateMissingJavaMember.handleGenerateMissingJavaMember(params, utils, monitor);
 	}
 
 	/**

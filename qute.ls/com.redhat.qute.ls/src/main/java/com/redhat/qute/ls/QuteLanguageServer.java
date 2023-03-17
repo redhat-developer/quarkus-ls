@@ -27,8 +27,13 @@ import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
 import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.ProgressParams;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.SetTraceParams;
+import org.eclipse.lsp4j.WorkDoneProgressCreateParams;
+import org.eclipse.lsp4j.WorkDoneProgressNotification;
+import org.eclipse.lsp4j.WorkspaceFolder;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
@@ -64,6 +69,7 @@ import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.qute.ls.commons.client.InitializationOptionsExtendedClientCapabilities;
 import com.redhat.qute.ls.template.TemplateFileTextDocumentService;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.project.ProgressSupport;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.QuteTextDocument;
@@ -85,7 +91,7 @@ import com.redhat.qute.settings.capabilities.ServerCapabilitiesInitializer;
 public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer, QuteLanguageServerAPI,
 		QuteProjectInfoProvider, QuteJavaTypesProvider, QuteResolvedJavaTypeProvider, QuteJavaDefinitionProvider,
 		QuteDataModelProjectProvider, QuteUserTagProvider, QuteTemplateJavaTextEditProvider, QuteJavadocProvider,
-		QuteTemplateProvider, TemplateValidator {
+		QuteTemplateProvider, TemplateValidator, ProgressSupport {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteLanguageServer.class.getName());
 
@@ -106,10 +112,11 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	private QuteLanguageClientAPI languageClient;
 
 	private QuteCapabilityManager capabilityManager;
+	private List<WorkspaceFolder> workspaceFolders;
 
 	public QuteLanguageServer() {
 		this.sharedSettings = new SharedSettings();
-		this.projectRegistry = new QuteProjectRegistry(this, this, this, this, this, this, this);
+		this.projectRegistry = new QuteProjectRegistry(this, this, this, this, this, this, this, this);
 		this.dataModelCache = new JavaDataModelCache(projectRegistry);
 		this.quteLanguageService = new QuteLanguageService(dataModelCache);
 		this.textDocumentService = new QuteTextDocumentService(this);
@@ -133,6 +140,7 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 
 		projectRegistry.setDidChangeWatchedFilesSupported(
 				capabilityManager.getClientCapabilities().isDidChangeWatchedFilesRegistered());
+		workspaceFolders = params.getWorkspaceFolders();
 
 		InitializeResult initializeResult = new InitializeResult(serverCapabilities);
 		return CompletableFuture.completedFuture(initializeResult);
@@ -151,6 +159,28 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	public void initialized(InitializedParams params) {
 		capabilityManager.initializeCapabilities();
 		getCapabilityManager().registerExecuteCommand(getWorkspaceService().getCommandIds());
+		// The Qute language server is initialized, try to load a Qute project per
+		// workspace folder.
+		loadQuteProjects();
+	}
+
+	/**
+	 * Try to load the Qute project for each workspace folder.
+	 */
+	private void loadQuteProjects() {
+		if (workspaceFolders == null || workspaceFolders.isEmpty()) {
+			// No workspace folders.
+			return;
+		}
+		CompletableFuture.runAsync(() -> {
+			for (WorkspaceFolder workspaceFolder : workspaceFolders) {
+				// Get the LSP client progress support
+				ProgressSupport progressSupport = capabilityManager.getClientCapabilities()
+						.isWorkDoneProgressSupported() ? this : null;
+				// Try to load the Qute project of the current workspace folder
+				projectRegistry.tryToLoadQuteProject(workspaceFolder, progressSupport);
+			}
+		});
 	}
 
 	/**
@@ -321,4 +351,16 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	public void triggerValidationFor(Collection<QuteProject> projects) {
 		textDocumentService.triggerValidationFor(projects);
 	}
+
+	@Override
+	public CompletableFuture<Void> createProgress(WorkDoneProgressCreateParams params) {
+		return getLanguageClient().createProgress(params);
+	}
+
+	@Override
+	public void notifyProgress(String progressId, WorkDoneProgressNotification notification) {
+		ProgressParams params = new ProgressParams(Either.forLeft(progressId), Either.forRight(notification));
+		getLanguageClient().notifyProgress(params);
+	}
+
 }
