@@ -117,7 +117,8 @@ public class QuteProject {
 
 	public void validateClosedTemplates() {
 		if (validator != null) {
-			// Load closed document if needed and validate all closed documents.
+			// Load closed document if needed and validate all closed documents when data
+			// model is ready.
 			closedDocuments.loadClosedTemplatesIfNeeded();
 			for (QuteTextDocument document : documents.values()) {
 				if (!document.isOpened()) {

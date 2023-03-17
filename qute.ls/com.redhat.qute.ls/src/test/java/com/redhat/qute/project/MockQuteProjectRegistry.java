@@ -47,7 +47,7 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	public static final Range JAVA_STATIC_METHOD_RANGE = new Range(new Position(3, 3), new Position(3, 3));
 
 	public MockQuteProjectRegistry() {
-		super(null, null, null, null, null, null, null);
+		super(null, null, null, null, null, null, null, null);
 		super.setDidChangeWatchedFilesSupported(true);
 	}
 

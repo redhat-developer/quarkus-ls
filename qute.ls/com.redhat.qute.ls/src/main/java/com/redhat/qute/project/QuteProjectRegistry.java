@@ -28,11 +28,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.WorkDoneProgressBegin;
+import org.eclipse.lsp4j.WorkDoneProgressCreateParams;
+import org.eclipse.lsp4j.WorkDoneProgressEnd;
+import org.eclipse.lsp4j.WorkDoneProgressReport;
+import org.eclipse.lsp4j.WorkspaceFolder;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.commons.JavaElementInfo;
 import com.redhat.qute.commons.JavaFieldInfo;
@@ -44,6 +51,7 @@ import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
 import com.redhat.qute.commons.QuteJavadocParams;
+import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
@@ -89,7 +97,7 @@ import com.redhat.qute.utils.StringUtils;
  *
  */
 public class QuteProjectRegistry
-		implements QuteProjectInfoProvider, QuteDataModelProjectProvider, QuteUserTagProvider, QuteJavadocProvider {
+		implements QuteDataModelProjectProvider, QuteUserTagProvider, QuteJavadocProvider {
 
 	private final ValueResolversRegistry valueResolversRegistry;
 
@@ -125,6 +133,8 @@ public class QuteProjectRegistry
 
 	private final Map<String /* project uri */, QuteProject> projects;
 
+	private final QuteProjectInfoProvider projectInfoProvider;
+
 	private final QuteResolvedJavaTypeProvider resolvedTypeProvider;
 
 	private final QuteDataModelProjectProvider dataModelProvider;
@@ -141,11 +151,13 @@ public class QuteProjectRegistry
 
 	private boolean didChangeWatchedFilesSupported;
 
-	public QuteProjectRegistry(QuteJavaTypesProvider classProvider, QuteJavaDefinitionProvider definitionProvider,
+	public QuteProjectRegistry(QuteProjectInfoProvider projectInfoProvider, QuteJavaTypesProvider javaTypeProvider,
+			QuteJavaDefinitionProvider definitionProvider,
 			QuteResolvedJavaTypeProvider resolvedClassProvider, QuteDataModelProjectProvider dataModelProvider,
 			QuteUserTagProvider userTagsProvider, QuteJavadocProvider javadocProvider,
 			TemplateValidator validator) {
-		this.javaTypeProvider = classProvider;
+		this.projectInfoProvider = projectInfoProvider;
+		this.javaTypeProvider = javaTypeProvider;
 		this.definitionProvider = definitionProvider;
 		this.projects = new HashMap<>();
 		this.resolvedTypeProvider = resolvedClassProvider;
@@ -158,7 +170,7 @@ public class QuteProjectRegistry
 
 	/**
 	 * Enable/disable did change watched file support.
-	 * 
+	 *
 	 * @param didChangeWatchedFilesSupported true if did changed file is supported
 	 *                                       by the LSP client and false otherwise.
 	 */
@@ -169,7 +181,7 @@ public class QuteProjectRegistry
 	/**
 	 * Returns true if did changed file is supported by the LSP client and false
 	 * otherwise.
-	 * 
+	 *
 	 * @return true if did changed file is supported by the LSP client and false
 	 *         otherwise.
 	 */
@@ -198,11 +210,25 @@ public class QuteProjectRegistry
 	 * @return the Qute project by the given info <code>projectInfo</code>.
 	 */
 	public QuteProject getProject(ProjectInfo projectInfo) {
+		return getProject(projectInfo, true);
+	}
+
+	/**
+	 * Returns the Qute project by the given info <code>projectInfo</code>.
+	 *
+	 * @param projectInfo    the project information.
+	 * @param validateOnLoad true if validation of templates must be validated if
+	 *                       project is created and
+	 *                       false otherwise.
+	 *
+	 * @return the Qute project by the given info <code>projectInfo</code>.
+	 */
+	private QuteProject getProject(ProjectInfo projectInfo, boolean validateOnLoad) {
 		String projectUri = projectInfo.getUri();
 		QuteProject project = getProject(projectUri);
 		if (project == null) {
 			project = registerProjectSync(projectInfo);
-			if (validator != null) {
+			if (validator != null && validateOnLoad) {
 				QuteProject newProject = project;
 				// Validate closed Qute template on project load.
 				CompletableFuture.runAsync(() -> newProject.validateClosedTemplates());
@@ -1478,6 +1504,94 @@ public class QuteProjectRegistry
 	public void dispose() {
 		for (QuteProject project : projects.values()) {
 			project.dispose();
+		}
+	}
+
+	public CompletableFuture<ProjectInfo> getProjectInfo(QuteProjectParams params) {
+		return projectInfoProvider.getProjectInfo(params);
+	}
+
+	/**
+	 * Try to load the Qute project of the given workspace folder.
+	 * 
+	 * @param workspaceFolder the workspace folder.
+	 * @param progressSupport the LSP client progress support and null otherwise.
+	 */
+	public void tryToLoadQuteProject(WorkspaceFolder workspaceFolder, ProgressSupport progressSupport) {
+		String projectName = workspaceFolder.getName();
+
+		String progressId = createAndStartProgress(projectName, progressSupport);
+
+		// Load Qute project from the Java component (collect Java data model)
+		String projectUri = workspaceFolder.getUri();
+		QuteProjectParams params = new QuteProjectParams(projectUri);
+		getProjectInfo(params)
+				.thenAccept(projectInfo -> {
+					if (projectInfo == null) {
+						// The workspace folder is not a Qute project, end the process
+						endProgress(progressId, progressSupport);
+						return;
+					}
+
+					// The workspace folder is a Qute project, load the data model from Java
+					// component
+					QuteProject project = getProject(projectInfo, false);
+					if (progressSupport != null) {
+						WorkDoneProgressReport report = new WorkDoneProgressReport();
+						report.setMessage("Loading data model for '" + projectName + "' Qute project.");
+						report.setPercentage(10);
+						progressSupport.notifyProgress(progressId, report);
+					}
+					project.getDataModelProject()
+							.thenAccept(dataModel -> {
+								// The Java data model is collected for the project, validate all templates of
+								// the project
+								if (progressSupport != null) {
+									WorkDoneProgressReport report = new WorkDoneProgressReport();
+									report.setMessage(
+											"Validating Qute templates for '" + projectName + "' Qute project.");
+									report.setPercentage(80);
+									progressSupport.notifyProgress(progressId, report);
+								}
+								// Validate Qute templates
+								project.validateClosedTemplates();
+
+								// End progress
+								endProgress(progressId, progressSupport);
+
+							}).exceptionally((a) -> {
+								endProgress(progressId, progressSupport);
+								return null;
+							});
+
+				}).exceptionally((a) -> {
+					endProgress(progressId, progressSupport);
+					return null;
+				});
+
+	}
+
+	private static String createAndStartProgress(String projectName, ProgressSupport progressSupport) {
+		if (progressSupport == null) {
+			return null;
+		}
+		String progressId = UUID.randomUUID().toString();
+		// Initialize progress
+		WorkDoneProgressCreateParams create = new WorkDoneProgressCreateParams(Either.forLeft(progressId));
+		progressSupport.createProgress(create);
+
+		// Start progress
+		WorkDoneProgressBegin begin = new WorkDoneProgressBegin();
+		begin.setMessage("Trying to load '" + projectName + "' as Qute project.");
+		begin.setPercentage(100);
+		progressSupport.notifyProgress(progressId, begin);
+		return progressId;
+	}
+
+	private static void endProgress(String progressId, ProgressSupport progressSupport) {
+		if (progressSupport != null) {
+			WorkDoneProgressEnd end = new WorkDoneProgressEnd();
+			progressSupport.notifyProgress(progressId, end);
 		}
 	}
 }

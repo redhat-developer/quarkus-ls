@@ -110,6 +110,11 @@ public class ClientCapabilitiesWrapper {
 				&& capability.getDynamicRegistration().booleanValue();
 	}
 
+	public boolean isWorkDoneProgressSupported() {
+		return v3Supported && capabilities.getWindow() != null && capabilities.getWindow().getWorkDoneProgress() != null
+				&& capabilities.getWindow().getWorkDoneProgress().booleanValue();
+	}
+
 	/**
 	 * Returns true if the client should exit on shutdown() request and avoid
 	 * waiting for an exit() request
