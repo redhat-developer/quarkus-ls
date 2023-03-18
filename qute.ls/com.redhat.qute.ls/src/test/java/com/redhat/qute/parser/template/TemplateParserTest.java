@@ -214,5 +214,14 @@ public class TemplateParserTest {
 		assertEquals(14, expression.getStart());
 		assertEquals(19, expression.getEnd());
 	}
+	
+	@Test
+	public void emptyEndSection() {
+		String content = "{/}";
+		Template template = TemplateParser.parse(content, "test.qute");
+		assertEquals(1, template.getChildCount());
+		Node first = template.getChild(0);
+		assertEquals(NodeKind.Section, first.getKind());
+	}
 
 }

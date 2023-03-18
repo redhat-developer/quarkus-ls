@@ -21,6 +21,8 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
+import com.redhat.qute.parser.validator.QuteSyntaxErrorCode;
+
 /**
  * Qute diagnostics with user tags.
  *
@@ -125,7 +127,7 @@ public class QuteDiagnosticsWithUserTagTest {
 				+ "	\r\n"
 				+ "	{/for}";
 		testDiagnosticsFor(template,
-				d(2, 7, 2, 7, QuteErrorCode.SyntaxError,
+				d(2, 2, 2, 6, QuteSyntaxErrorCode.SECTION_END_DOES_NOT_MATCH_START,
 						"Parser error: section end tag [for] does not match the start tag [form]",
 						DiagnosticSeverity.Error), //
 				d(0, 1, 0, 6, QuteErrorCode.MissingRequiredParameter,

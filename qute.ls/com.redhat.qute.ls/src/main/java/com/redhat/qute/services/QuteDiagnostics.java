@@ -356,7 +356,11 @@ class QuteDiagnostics {
 	private static void validateSectionTag(Section section, Template template,
 			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
 		String tagName = section.getTag();
-		if (StringUtils.isEmpty(tagName)) {
+		if (StringUtils.isEmpty(tagName) || section.isOrphanEndTag()) {
+			// {#
+			// {/elsa}
+			// we ignore this error here, because the Qute validator syntax already takes
+			// care of this error.
 			return;
 		}
 		SectionKind sectionKind = section.getSectionKind();

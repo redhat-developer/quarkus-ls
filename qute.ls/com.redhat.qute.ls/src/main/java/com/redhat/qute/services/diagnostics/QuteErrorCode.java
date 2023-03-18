@@ -14,6 +14,7 @@ package com.redhat.qute.services.diagnostics;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.ls.commons.CodeActionFactory;
+import com.redhat.qute.parser.validator.IQuteErrorCode;
 
 public enum QuteErrorCode implements IQuteErrorCode {
 

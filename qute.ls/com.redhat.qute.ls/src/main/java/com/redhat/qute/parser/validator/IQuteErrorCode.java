@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.services.diagnostics;
+package com.redhat.qute.parser.validator;
 
 import java.text.MessageFormat;
 

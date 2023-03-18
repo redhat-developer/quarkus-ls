@@ -105,7 +105,7 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 	public void switchExpressionTypeMismatchInvalidSection() {
 		String template = "{@java.lang.String name}\r\n" + //
 				"		{#switch name}\r\n" + //
-				"		{#XXX \"Apple\"}\r\n" + //
+				"		{#XXX \"Apple\" /}\r\n" + //
 				"		{/switch}";
 		testDiagnosticsFor(template, //
 				d(2, 3, 2, 7, QuteErrorCode.UndefinedSectionTag, "No section helper found for `XXX`.",

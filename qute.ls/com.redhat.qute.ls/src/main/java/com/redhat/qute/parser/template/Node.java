@@ -58,7 +58,7 @@ public abstract class Node {
 	protected void setStart(int start) {
 		this.start = start;
 	}
-	
+
 	public int getEnd() {
 		return end;
 	}
@@ -155,6 +155,87 @@ public abstract class Node {
 
 	public Node getLastChild() {
 		return this.children != null && this.children.size() > 0 ? this.children.get(this.children.size() - 1) : null;
+	}
+
+	public Node getNextSibling() {
+		Node parentNode = getParent();
+		if (parentNode == null) {
+			return null;
+		}
+		List<Node> children = parentNode.getChildren();
+		int nextIndex = children.indexOf(this) + 1;
+		return nextIndex < children.size() ? children.get(nextIndex) : null;
+	}
+
+	public Section getNextSiblingSection() {
+		Node parentNode = getParent();
+		if (parentNode == null) {
+			return null;
+		}
+		List<Node> children = parentNode.getChildren();
+		int nextIndex = children.indexOf(this) + 1;
+		if (nextIndex >= children.size()) {
+			return null;
+		}
+		for (int i = nextIndex; i < children.size(); i++) {
+			Node node = children.get(i);
+			if (node.getKind() == NodeKind.Section) {
+				return (Section) node;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the orphan end section after the given offset which matches the given
+	 * tagName and null otherwise.
+	 * 
+	 * The following sample sample with tagName=foo will returns the <\foo> orphan
+	 * end section:
+	 * <p>
+	 * |
+	 * {/foo}
+	 * </p>
+	 * 
+	 * @param offset  the offset.
+	 * @param tagName the tag name.
+	 * 
+	 * @return the orphan end section after the given offset which matches the given
+	 *         tagName and null otherwise.
+	 */
+	public Section getOrphanEndSection(int offset, String tagName) {
+		return getOrphanEndSection(offset, tagName, false);
+	}
+
+	/**
+	 * Returns the orphan end section after the given offset which matches the given
+	 * tagName and the first orphan end section otherwise and null otherwise.
+	 * 
+	 * The following sample sample with tagName=bar will returns the <\foo> orphan
+	 * end section:
+	 * <p>
+	 * |
+	 * {/foo}
+	 * </p>
+	 * 
+	 * @param offset    the offset.
+	 * @param tagName   the tag name.
+	 * @param anyOrphan true if any orphan should be returned and false otherwise.
+	 * 
+	 * @return the orphan end section after the given offset which matches the given
+	 *         tagName and the first orphan end section otherwise and null
+	 *         otherwise.
+	 */
+	public Section getOrphanEndSection(int offset, String tagName, boolean anyOrphan) {
+		Section nextSection = getNextSiblingSection();
+		if (nextSection == null) {
+			return null;
+		}
+		// for| {/for}
+		if ((anyOrphan && nextSection.isOrphanEndTag()) || nextSection.isOrphanEndTagOf(tagName)) {
+			return nextSection;
+		}
+		return null;
 	}
 
 	/**

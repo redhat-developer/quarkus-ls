@@ -17,6 +17,7 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Range;
 
+import com.redhat.qute.parser.validator.IQuteErrorCode;
 import com.redhat.qute.utils.JSONUtility;
 
 /**
