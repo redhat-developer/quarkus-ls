@@ -23,7 +23,12 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 
+import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.validator.IQuteErrorCode;
+import com.redhat.qute.parser.validator.IQuteSyntaxValidatorReporter;
+import com.redhat.qute.parser.validator.QuteSyntaxErrorCode;
+import com.redhat.qute.parser.validator.QuteSyntaxValidator;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.tags.UserTag;
 
@@ -70,29 +75,25 @@ public class QuteDiagnosticsForSyntax {
 			Engine engine = engineBuilder.build();
 			engine.parse(templateContent);
 		} catch (TemplateException e) {
-			if (isIgnoreError(e)) {
-				// Ignore error "no section helper found for" which is managed with
-				// QuteDiagnostic to highlight the section start correctly.
-				return;
+			if (!QuteSyntaxErrorCode.isSupported(e)) {				
+				String message = e.getMessage();
+				Range range = createRange(e, template);
+				Diagnostic diagnostic = createDiagnostic(range, message, DiagnosticSeverity.Error,
+						QuteErrorCode.SyntaxError);
+				diagnostics.add(diagnostic);
 			}
-			String message = e.getMessage();
-			Range range = createRange(e, template);
-			Diagnostic diagnostic = createDiagnostic(range, message, DiagnosticSeverity.Error,
-					QuteErrorCode.SyntaxError);
-			diagnostics.add(diagnostic);
 		}
-	}
+		// Validate Qute syntax with the template parsed with the fault tolerant parser.
+		QuteSyntaxValidator syntaxValidator = new QuteSyntaxValidator(new IQuteSyntaxValidatorReporter() {
 
-	private static boolean isIgnoreError(TemplateException e) {
-		// As the Qute real parser is not fault tolerant (it report just one error) and
-		// as it reports bad offset for the error
-		// we ignore some errors which are managed by QuteDiagnostics to highlight
-		// several errors and highlight section, object part, etc correctly.
-		ErrorCode code = e.getCode();
-		if (ParserError.NO_SECTION_HELPER_FOUND == code) {
-			return true;
-		}
-		return false;
+			@Override
+			public void reportError(Range errorRange, Node node, IQuteErrorCode errorCode, Object... arguments) {
+				Diagnostic diagnostic = createDiagnostic(errorRange, DiagnosticSeverity.Error, errorCode,
+						arguments);
+				diagnostics.add(diagnostic);
+			}
+		});
+		template.accept(syntaxValidator);
 	}
 
 	private static void addUserTag(Collection<UserTag> tags, EngineBuilder engineBuilder) {

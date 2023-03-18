@@ -23,6 +23,7 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
+import com.redhat.qute.parser.validator.QuteSyntaxErrorCode;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 
 /**
@@ -93,8 +94,8 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 				DiagnosticSeverity.Warning);
 
 		testDiagnosticsFor(template, //
-				d(2, 6, 2, 6, QuteErrorCode.SyntaxError,
-						"Parser error: section start tag found for {/let}", DiagnosticSeverity.Error), //
+				d(2, 1, 2, 5, QuteSyntaxErrorCode.SECTION_START_NOT_FOUND,
+						"Parser error: section start tag not found for {/let}", DiagnosticSeverity.Error), //
 				d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String name}\r\n")),

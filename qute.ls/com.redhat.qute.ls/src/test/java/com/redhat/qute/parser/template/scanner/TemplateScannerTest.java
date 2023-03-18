@@ -212,6 +212,21 @@ public class TemplateScannerTest {
 		assertOffsetAndToken(23, TokenType.EOS, "");
 	}
 
+	@Test
+	public void endSection() {
+		scanner = TemplateScanner.createScanner("{/foo}");
+		assertOffsetAndToken(0, TokenType.EndTagOpen, "{/");
+		assertOffsetAndToken(2, TokenType.EndTag, "foo");
+		assertOffsetAndToken(5, TokenType.EndTagClose, "}");
+		assertOffsetAndToken(6, TokenType.EOS, "");
+	}
+	
+	@Test
+	public void emptyEndSection() {
+		scanner = TemplateScanner.createScanner("{/}");
+		assertOffsetAndToken(0, TokenType.EndTagSelfClose, "{/}");
+		assertOffsetAndToken(3, TokenType.EOS, "");
+	}
 	public void assertOffsetAndToken(int tokenOffset, TokenType tokenType) {
 		TokenType token = scanner.scan();
 		assertEquals(tokenOffset, scanner.getTokenOffset());

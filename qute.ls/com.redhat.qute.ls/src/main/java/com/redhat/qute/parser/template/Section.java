@@ -14,6 +14,7 @@ package com.redhat.qute.parser.template;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -498,6 +499,78 @@ public abstract class Section extends Node implements ParametersContainer {
 	// ---------------------------- Other methods
 
 	/**
+	 * Returns true if the given section is an orphan end tag (which has no start
+	 * tag, eg: {/for}) and false otherwise.
+	 *
+	 * @return true if the given section is an orphan end tag (which has no start
+	 *         tag, eg: {/for}) and false otherwise.
+	 */
+	public boolean isOrphanEndTag() {
+		return hasEndTag() && !hasStartTag();
+	}
+
+	/**
+	 * Returns true if the given section is an orphan end tag (which has no start
+	 * tag, eg: {/for}) of the given tag name and false otherwise.
+	 *
+	 * @param tagName the end tag name.
+	 * 
+	 * @return true if the given section is an orphan end tag (which has no start
+	 *         tag, eg: {/for}) of the given tag name and false otherwise.
+	 */
+	public boolean isOrphanEndTagOf(String tagName) {
+		return isSameTag(tagName) && isOrphanEndTag();
+	}
+
+	/**
+	 * Returns true if the given tag is the same tag of this section and false
+	 * otherwise.
+	 *
+	 * @param tag tag section
+	 * 
+	 * @return true if the given tag is the same tag of this section and false
+	 *         otherwise.
+	 */
+	public boolean isSameTag(String tag) {
+		return Objects.equals(this.tag, tag);
+	}
+
+	@Override
+	public Section getOrphanEndSection(int offset, String tagName, boolean anyOrphan) {
+		if ( getEnd() <= offset) {
+			// <employee />|
+			// <employee /> |
+			// <employee></employee> |
+			// check if next sibling node is an section like <\tagName>
+			return super.getOrphanEndSection(offset, tagName, anyOrphan);
+		}
+		if (isSameTag(tagName) && isInStartTagName(offset)) {
+			// <employe|e></employee>
+			if (anyOrphan) {
+				if (hasEndTag()) {
+					return this;
+				}
+			} else {
+				return hasEndTag() ? this : null;
+			}
+		}
+		// search if it exists an end tag
+		Section orphanEndSection = null;
+		List<Node> children = getChildren();
+		for (Node child : children) {
+			if (child.getKind() == NodeKind.Section) {
+				Section childSection = (Section) child;
+				if (childSection.isOrphanEndTagOf(tagName)) {
+					return childSection;
+				} else if (orphanEndSection == null && childSection.isOrphanEndTag()) {
+					orphanEndSection = childSection;
+				}
+			}
+		}
+		return anyOrphan ? orphanEndSection : null;
+	}
+
+	/**
 	 * Returns the section tag name and null otherwise.
 	 * 
 	 * @return the section tag name and null otherwise.
@@ -584,6 +657,11 @@ public abstract class Section extends Node implements ParametersContainer {
 	 */
 	public List<SectionKind> getBlockLabels() {
 		return Collections.emptyList();
+	}
+
+	public boolean isSectionBlock() {
+		Section parentSection = getParentSection();
+		return (parentSection != null && parentSection.getBlockLabels().contains(getSectionKind()));
 	}
 
 	@Override

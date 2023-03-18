@@ -137,13 +137,13 @@ public class TemplateParser {
 					}
 					curr.setEnd(scanner.getTokenEnd());
 				} else {
-					// element open tag not found (ex: <root>) add a fake element which only has an
+					// element open tag not found (ex: {#foo}) add a fake element which only has an
 					// end tag (no start tag).
-					Section element = sectionFactory.createSection(closeTag, scanner.getTokenOffset() - 2,
+					Section section = sectionFactory.createSection(closeTag, scanner.getTokenOffset() - 2,
 							scanner.getTokenEnd());
-					element.setEndTagOpenOffset(endTagOpenOffset);
-					current.addChild(element);
-					curr = element;
+					section.setEndTagOpenOffset(endTagOpenOffset);
+					current.addChild(section);
+					curr = section;
 				}
 				break;
 
@@ -166,6 +166,13 @@ public class TemplateParser {
 					section.setEndTagOpenOffset(scanner.getTokenOffset());
 					section.setEndTagCloseOffset(scanner.getTokenEnd() - 1);
 					curr = curr.getParent();
+				} else {
+					Section section = sectionFactory.createSection("", scanner.getTokenOffset() - 2,
+							scanner.getTokenEnd());
+					section.setEndTagOpenOffset(scanner.getTokenOffset());
+					section.setEndTagCloseOffset(scanner.getTokenEnd() - 1);
+					curr.addChild(section);
+					
 				}
 				break;
 
