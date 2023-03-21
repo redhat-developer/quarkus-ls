@@ -769,6 +769,7 @@ public class QuteAssert {
 		codeAction.setTitle("");
 		codeAction.setDiagnostics(Arrays.asList(d));
 		codeAction.setCommand(c);
+		codeAction.setEdit(new WorkspaceEdit());
 		return codeAction;
 	}
 

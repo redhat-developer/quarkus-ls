@@ -201,6 +201,7 @@ public class CodeActionFactory {
 		codeAction.setCommand(command);
 		codeAction.setDiagnostics(diagnostics);
 		codeAction.setKind(CodeActionKind.QuickFix);
+		codeAction.setEdit(new WorkspaceEdit());
 		return codeAction;
 	}
 
