@@ -31,4 +31,8 @@ public class Application extends Controller {
     public void test() {
 
     }
+
+    public String endpoint() {
+        return "asdf";
+    }
 }
