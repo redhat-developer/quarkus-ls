@@ -1,5 +1,41 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## 0.14.0 (April 3, 2023)
+
+### Enhancements
+
+ * Quick fixes to resolve unclosed sections in Qute templates. See [#821](https://github.com/redhat-developer/quarkus-ls/issues/821).
+ * Support for uri/uriabs Qute resolvers from Quarkus Renarde. See [#571](https://github.com/redhat-developer/quarkus-ls/issues/571).
+ * Workspace symbols and CodeLens for Renarde application REST endpoints. See [#777](https://github.com/redhat-developer/quarkus-ls/issues/777).
+ * CodeAction to insert expected `<input>` for Renarde `#form` section in Qute template. See [#778](https://github.com/redhat-developer/quarkus-ls/issues/778).
+ * Show validation errors for all Qute templates in a project (even unopened ones). See [#813](https://github.com/redhat-developer/quarkus-ls/issues/813).
+ * User tag snippets and completion in Qute templates account for the tag parameters. See [#784](https://github.com/redhat-developer/quarkus-ls/issues/784).
+ * Validatation and go to definition for user tag parameters in Qute templates. See [#788](https://github.com/redhat-developer/quarkus-ls/issues/788), [#789](https://github.com/redhat-developer/quarkus-ls/issues/789).
+ * CodeAction to insert required user tag parameters in Qute template. See [#797](https://github.com/redhat-developer/quarkus-ls/issues/797).
+ * Make Java file snippets context-aware. See [#782](https://github.com/redhat-developer/quarkus-ls/issues/782).
+ * Add support for Qute `#fragment` section. See [#768](https://github.com/redhat-developer/quarkus-ls/pull/768), [#769](https://github.com/redhat-developer/quarkus-ls/pull/769).
+ * When applying the Qute template quick fix to generate a missing class member, generate the member at the end of the class. See [#692](https://github.com/redhat-developer/quarkus-ls/pull/692).
+ * Support for validation, completion and document link for `#include` and `#insert` sections in Qute templates. See [#438](https://github.com/redhat-developer/quarkus-ls/issues/438).
+ * "Show references" CodeLens for `#insert` section in Qute templates. See [#814](https://github.com/redhat-developer/quarkus-ls/issues/814).
+ * Support surround with section/comments command for Qute templates. See [#801](https://github.com/redhat-developer/quarkus-ls/pull/801)
+
+### Bug Fixes
+
+ * Treat `CompletionStage` and `Uni` objects as their resolved type for validation and completion in Qute templates. See [#826](https://github.com/redhat-developer/quarkus-ls/issues/826).
+ * `{#if}` sections in Qute templates of the form `{#if !inject:beanName}{/if}` are marked as invalid. See [#828](https://github.com/redhat-developer/quarkus-ls/issues/828).
+ * Quick fix to generate a `@TemplateExtension` class from a Qute template might place the class in the wrong folder. See [#831](https://github.com/redhat-developer/quarkus-ls/issues/831).
+ * Incomplete `{#if}` section with operator may generate `ClassCastException`. See [#816](https://github.com/redhat-developer/quarkus-ls/issues/816).
+ * Use quarkus-ls's Qute parser for syntax validation in order to get consistent diagnostic positions and ranges. See [#812](https://github.com/redhat-developer/quarkus-ls/issues/812).
+ * Completion in Qute template should generate only start section when an empty end section is found. See [#805](https://github.com/redhat-developer/quarkus-ls/issues/805).
+ * Quarkus 3 support. See [#779](https://github.com/redhat-developer/quarkus-ls/issues/779).
+ * Qute "Generate missing member" quick fix cannot generate new template extension when `TemplateExtensions` and `TemplateExtensions0` exist. See [#712](https://github.com/redhat-developer/quarkus-ls/issues/712).
+ * Prevent resolving code actions that run commands. See [#823](https://github.com/redhat-developer/quarkus-ls/pull/823).
+
+### Build
+
+ * Add `.gitleaks.toml` to ignore false positive leaks. See [#808](https://github.com/redhat-developer/quarkus-ls/pull/808).
+ * Use Maven settings from `ENV` during Nexus deploy. See [#771](https://github.com/redhat-developer/quarkus-ls/pull/771).
+
 ## 0.13.0 (December 1, 2022)
 
 ### Enhancements
