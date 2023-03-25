@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
+import static com.redhat.qute.services.ResolvingJavaTypeContext.isValid;
+
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -95,21 +97,21 @@ public class QuteHover {
 			return NO_HOVER;
 		}
 		switch (node.getKind()) {
-		case Section:
-			// - Start end tag definition
-			Section section = (Section) node;
-			return doHoverForSection(section, template, hoverRequest, cancelChecker);
-		case ParameterDeclaration:
-			ParameterDeclaration parameterDeclaration = (ParameterDeclaration) node;
-			return doHoverForParameterDeclaration(parameterDeclaration, template, hoverRequest, cancelChecker);
-		case ExpressionPart:
-			Part part = (Part) node;
-			return doHoverForExpressionPart(part, template, hoverRequest, nativeSettings, cancelChecker);
-		case Parameter:
-			Parameter parameter = (Parameter) node;
-			return doHoverForParameter(parameter, template, hoverRequest);
-		default:
-			return NO_HOVER;
+			case Section:
+				// - Start end tag definition
+				Section section = (Section) node;
+				return doHoverForSection(section, template, hoverRequest, cancelChecker);
+			case ParameterDeclaration:
+				ParameterDeclaration parameterDeclaration = (ParameterDeclaration) node;
+				return doHoverForParameterDeclaration(parameterDeclaration, template, hoverRequest, cancelChecker);
+			case ExpressionPart:
+				Part part = (Part) node;
+				return doHoverForExpressionPart(part, template, hoverRequest, nativeSettings, cancelChecker);
+			case Parameter:
+				Parameter parameter = (Parameter) node;
+				return doHoverForParameter(parameter, template, hoverRequest);
+			default:
+				return NO_HOVER;
 		}
 	}
 
@@ -198,16 +200,17 @@ public class QuteHover {
 					cancelChecker);
 		}
 		switch (part.getPartKind()) {
-		case Namespace:
-			return doHoverForNamespacePart(part, projectUri, hoverRequest, cancelChecker);
-		case Object:
-			return doHoverForObjectPart(part, projectUri, hoverRequest, cancelChecker);
-		case Method:
-			return doHoverForMethodInvocation((MethodPart)part, projectUri, hoverRequest, nativeSettings, cancelChecker);
-		case Property:
-			return doHoverForPropertyPart(part, projectUri, hoverRequest, cancelChecker);
-		default:
-			return NO_HOVER;
+			case Namespace:
+				return doHoverForNamespacePart(part, projectUri, hoverRequest, cancelChecker);
+			case Object:
+				return doHoverForObjectPart(part, projectUri, hoverRequest, cancelChecker);
+			case Method:
+				return doHoverForMethodInvocation((MethodPart) part, projectUri, hoverRequest, nativeSettings,
+						cancelChecker);
+			case Property:
+				return doHoverForPropertyPart(part, projectUri, hoverRequest, cancelChecker);
+			default:
+				return NO_HOVER;
 		}
 	}
 
@@ -314,7 +317,7 @@ public class QuteHover {
 		return javaCache.resolveJavaType(part, projectUri) //
 				.thenApply(resolvedJavaType -> {
 					cancelChecker.checkCanceled();
-					if (resolvedJavaType != null) {
+					if (isValid(resolvedJavaType)) {
 						SectionMetadata metadata = getMetadata(part);
 						boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
 						MarkupContent content = DocumentationUtils.getDocumentation(resolvedJavaType,
@@ -361,8 +364,10 @@ public class QuteHover {
 				.thenCompose(resolvedJavaType -> {
 					cancelChecker.checkCanceled();
 					if (resolvedJavaType != null) {
-						ResolvedJavaTypeInfo iterableOfResolvedType = resolvedJavaType.isArray() ? null : resolvedJavaType;
-						return doHoverForMethodInvocation(part, projectUri, resolvedJavaType, iterableOfResolvedType, hoverRequest, nativeSettings, cancelChecker);
+						ResolvedJavaTypeInfo iterableOfResolvedType = resolvedJavaType.isArray() ? null
+								: resolvedJavaType;
+						return doHoverForMethodInvocation(part, projectUri, resolvedJavaType, iterableOfResolvedType,
+								hoverRequest, nativeSettings, cancelChecker);
 					}
 					return NO_HOVER;
 				});
@@ -433,9 +438,11 @@ public class QuteHover {
 		return javaCache.resolveJavaType(previousPart, projectUri) //
 				.thenCompose(resolvedJavaType -> {
 					cancelChecker.checkCanceled();
-					if (resolvedJavaType != null) {
-						ResolvedJavaTypeInfo iterableOfResolvedType = resolvedJavaType.isArray() ? null : resolvedJavaType;
-						return doHoverForPropertyPart(part, projectUri, resolvedJavaType, iterableOfResolvedType, hoverRequest);
+					if (isValid(resolvedJavaType)) {
+						ResolvedJavaTypeInfo iterableOfResolvedType = resolvedJavaType.isArray() ? null
+								: resolvedJavaType;
+						return doHoverForPropertyPart(part, projectUri, resolvedJavaType, iterableOfResolvedType,
+								hoverRequest);
 					}
 					return NO_HOVER;
 				});
@@ -485,7 +492,8 @@ public class QuteHover {
 						return javaCache.resolveJavaType(iterablePart, projectUri) //
 								.thenCompose(resolvedJavaType -> {
 									if (resolvedJavaType != null && resolvedJavaType.isIterable()) {
-										return javaCache.resolveJavaType(resolvedJavaType.getIterableOf(), projectUri) //
+										String iterableOf = resolvedJavaType.getIterableOf();
+										return javaCache.resolveJavaType(iterableOf, projectUri) //
 												.thenApply(resolvedIterableOf -> {
 													MarkupContent content = DocumentationUtils
 															.getDocumentation(resolvedIterableOf, hasMarkdown);

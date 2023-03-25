@@ -18,6 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
@@ -37,6 +38,8 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 	private static final Logger LOGGER = Logger.getLogger(ResolvingJavaTypeContext.class.getName());
 
 	public static final ResolvedJavaTypeInfo RESOLVING_JAVA_TYPE = new ResolvedJavaTypeInfo();
+
+	public static final ResolvedJavaTypeInfo DONT_MATCH_WITH_ITERABLE = new ResolvedJavaTypeInfo();
 
 	private final JavaDataModelCache javaCache;
 	private boolean projectResolved;
@@ -113,6 +116,19 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 		return super.add(e);
 	}
 
+	public static boolean isResolvingJavaType(ResolvedJavaTypeInfo resolvedJavaType) {
+		return RESOLVING_JAVA_TYPE.equals(resolvedJavaType);
+	}
+
+	public static boolean isDontMatchWithIterable(ResolvedJavaTypeInfo resolvedJavaType) {
+		return DONT_MATCH_WITH_ITERABLE.equals(resolvedJavaType);
+	}
+
+	public static boolean isValid(ResolvedJavaTypeInfo resolvedJavaType) {
+		return resolvedJavaType != null && !isResolvingJavaType(resolvedJavaType)
+				&& !isDontMatchWithIterable(resolvedJavaType);
+	}
+
 	public ResolvedJavaTypeInfo resolveJavaType(String javaType, String projectUri) {
 		CompletableFuture<ResolvedJavaTypeInfo> resolvingJavaTypeFuture = javaCache.resolveJavaType(javaType,
 				projectUri);
@@ -125,12 +141,19 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 		return resolvedJavaType;
 	}
 
-	public static boolean isResolvingJavaType(ResolvedJavaTypeInfo resolvedJavaType) {
-		return RESOLVING_JAVA_TYPE.equals(resolvedJavaType);
-	}
-
 	public ResolvedJavaTypeInfo resolveJavaType(Parameter parameter, String projectUri) {
 		CompletableFuture<ResolvedJavaTypeInfo> resolvingJavaTypeFuture = javaCache.resolveJavaType(parameter,
+				projectUri);
+		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture.getNow(RESOLVING_JAVA_TYPE);
+		if (isResolvingJavaType(resolvedJavaType)) {
+			this.add(resolvingJavaTypeFuture);
+			return RESOLVING_JAVA_TYPE;
+		}
+		return resolvedJavaType;
+	}
+
+	public ResolvedJavaTypeInfo resolveJavaType(Part part, String projectUri) {
+		CompletableFuture<ResolvedJavaTypeInfo> resolvingJavaTypeFuture = javaCache.resolveJavaType(part,
 				projectUri);
 		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture.getNow(RESOLVING_JAVA_TYPE);
 		if (isResolvingJavaType(resolvedJavaType)) {

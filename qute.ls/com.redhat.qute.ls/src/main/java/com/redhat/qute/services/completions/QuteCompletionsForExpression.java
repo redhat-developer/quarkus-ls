@@ -13,7 +13,9 @@ package com.redhat.qute.services.completions;
 
 import static com.redhat.qute.parser.template.Section.isCaseSection;
 import static com.redhat.qute.project.datamodel.resolvers.ValueResolver.MATCH_NAME_ANY;
+import static com.redhat.qute.services.QuteCompletions.EMPTY_COMPLETION;
 import static com.redhat.qute.services.QuteCompletions.EMPTY_FUTURE_COMPLETION;
+import static com.redhat.qute.services.ResolvingJavaTypeContext.isValid;
 import static com.redhat.qute.utils.UserTagUtils.IT_OBJECT_PART_NAME;
 import static com.redhat.qute.utils.UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME;
 
@@ -242,10 +244,31 @@ public class QuteCompletionsForExpression {
 				.thenCompose(resolvedType -> {
 					cancelChecker.checkCanceled();
 
-					if (resolvedType == null) {
+					if (!isValid(resolvedType)) {
 						return EMPTY_FUTURE_COMPLETION;
 					}
 
+					if (resolvedType.isCompletionStageOrUni()) {
+						List<JavaParameterInfo> types = resolvedType.getTypeParameters();
+						if (types != null && !types.isEmpty()) {
+							// java.util.concurrent.CompletableFuture<java.util.List<org.acme.Item>>
+							JavaParameterInfo type = types.get(0);
+							String javaTypeToResolve = type.getType(); // java.util.List<org.acme.Item>
+							// Here
+							// - javaTypeToResolve = java.util.List<org.acme.Item>
+							// - iterTypeName = org.acme.Item
+
+							return javaCache.resolveJavaType(javaTypeToResolve, projectUri)
+									.thenApply(r -> {
+										if (r == null) {
+											return EMPTY_COMPLETION;
+										}
+										return doCompleteForJavaTypeMembers(r, start, end, template,
+												infixNotation, completionSettings, formattingSettings,
+												nativeImagesSettings);
+									});
+						}
+					}
 					// Completion for member of the given Java class
 					// ex : org.acme.Item
 					CompletionList list = doCompleteForJavaTypeMembers(resolvedType, start, end, template,

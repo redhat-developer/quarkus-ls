@@ -250,4 +250,5 @@ public class QuteCompletionInExpressionWithForSectionTest {
 				c("getBytes(charsetName : String) : byte[]", "getBytes(${1:charsetName})$0", r(4, 15, 4, 15)),
 				c("charAt(index : int) : char", "charAt(${1:index})$0", r(4, 15, 4, 15)));
 	}
+
 }

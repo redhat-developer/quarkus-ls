@@ -11,9 +11,12 @@
 *******************************************************************************/
 package com.redhat.qute.project.datamodel;
 
+import static com.redhat.qute.services.ResolvingJavaTypeContext.DONT_MATCH_WITH_ITERABLE;
+
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import org.eclipse.lsp4j.Location;
 
@@ -21,6 +24,7 @@ import com.redhat.qute.commons.DocumentFormat;
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaElementInfo;
 import com.redhat.qute.commons.JavaMemberInfo;
+import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
@@ -48,8 +52,11 @@ import com.redhat.qute.utils.StringUtils;
 
 public class JavaDataModelCache implements DataModelTemplateProvider {
 
-	private static final CompletableFuture<ResolvedJavaTypeInfo> RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE = CompletableFuture
+	public static final CompletableFuture<ResolvedJavaTypeInfo> RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE = CompletableFuture
 			.completedFuture(null);
+
+	private static final CompletableFuture<ResolvedJavaTypeInfo> DONT_MATCH_WITH_ITERABLE_FUTURE = CompletableFuture
+			.completedFuture(DONT_MATCH_WITH_ITERABLE);
 
 	private final QuteProjectRegistry projectRegistry;
 
@@ -73,13 +80,13 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return projectRegistry.getGlobalVariables(projectUri);
 	}
 
-	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className, 
+	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className,
 			String projectUri) {
 		return resolveJavaType(className, null, projectUri);
 	}
 
-	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className, JavaTypeInfoProvider javaTypeInfo,
-			String projectUri) {
+	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className,
+			JavaTypeInfoProvider javaTypeInfo, String projectUri) {
 		return projectRegistry.resolveJavaType(className, javaTypeInfo, projectUri);
 	}
 
@@ -100,23 +107,38 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 	}
 
-	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Parts parts, int partIndex, String projectUri,
-			boolean nullIfDontMatchWithIterable) {
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Parts parts, int partIndex, String projectUri) {
 		CompletableFuture<ResolvedJavaTypeInfo> future = null;
 		for (int i = 0; i < partIndex + 1; i++) {
 			Part current = (parts.getChild(i));
 			switch (current.getPartKind()) {
 				case Object:
 					ObjectPart objectPart = (ObjectPart) current;
-					future = resolveJavaType(objectPart, projectUri, nullIfDontMatchWithIterable);
+					future = resolveJavaType(objectPart, projectUri);
 					break;
 				case Property:
 				case Method:
 					if (future != null) {
 						ResolvedJavaTypeInfo actualResolvedType = future.getNow(null);
 						if (actualResolvedType != null) {
-							future = resolveJavaType(current, projectUri, actualResolvedType);
+							CompletableFuture<ResolvedJavaTypeInfo> futureR = r(actualResolvedType, projectUri);
+							if (futureR != null) {
+								ResolvedJavaTypeInfo actualResolvedTypeR = futureR.getNow(null);
+								if (actualResolvedTypeR != null) {
+									future = resolveJavaType(current, projectUri, actualResolvedTypeR);
+								} else {
+									future = futureR.thenCompose(resolvedType -> {
+										if (resolvedType == null) {
+											return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+										}
+										return resolveJavaType(current, projectUri, resolvedType);
+									});
+								}
+							} else {
+								future = resolveJavaType(current, projectUri, actualResolvedType);
+							}
 						} else {
+							
 							future = future //
 									.thenCompose(resolvedType -> {
 										if (resolvedType == null) {
@@ -133,6 +155,23 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 		return future != null ? future : RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 	}
 
+	private CompletableFuture<ResolvedJavaTypeInfo> r(ResolvedJavaTypeInfo javaType, String projectUri) {
+		if (javaType.isCompletionStageOrUni()) {
+			List<JavaParameterInfo> types = javaType.getTypeParameters();
+			if (types != null && !types.isEmpty()) {
+				// java.util.concurrent.CompletableFuture<java.util.List<org.acme.Item>>
+				JavaParameterInfo type = types.get(0);
+				String javaTypeToResolve = type.getType(); // java.util.List<org.acme.Item>
+				// Here
+				// - javaTypeToResolve = java.util.List<org.acme.Item>
+				// - iterTypeName = org.acme.Item
+
+				return resolveJavaType(javaTypeToResolve, projectUri);
+			}
+		}
+		return null;
+	}
+
 	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Part part, String projectUri,
 			ResolvedJavaTypeInfo resolvedType) {
 		JavaMemberInfo member = findMember(part, resolvedType, projectUri);
@@ -144,18 +183,12 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 	}
 
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Part part, String projectUri) {
-		return resolveJavaType(part, projectUri, true);
-	}
-
-	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Part part, String projectUri,
-			boolean nullIfDontMatchWithIterable) {
 		Parts parts = part.getParent();
 		int partIndex = parts.getPartIndex(part);
-		return resolveJavaType(parts, partIndex, projectUri, nullIfDontMatchWithIterable);
+		return resolveJavaType(parts, partIndex, projectUri);
 	}
 
-	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(ObjectPart objectPart, String projectUri,
-			boolean nullIfDontMatchWithIterable) {
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(ObjectPart objectPart, String projectUri) {
 		CompletableFuture<ResolvedJavaTypeInfo> future = null;
 		JavaTypeInfoProvider javaTypeInfo = objectPart.resolveJavaType();
 		if (javaTypeInfo == null) {
@@ -190,31 +223,49 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 							if (resolvedType == null) {
 								return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 							}
+
+							if (resolvedType.isCompletionStageOrUni()) {
+
+								List<JavaParameterInfo> types = resolvedType.getTypeParameters();
+								if (types != null && !types.isEmpty()) {
+									// java.util.concurrent.CompletableFuture<java.util.List<org.acme.Item>>
+									JavaParameterInfo type = types.get(0);
+									String javaTypeToResolve = type.getType(); // java.util.List<org.acme.Item>
+									// Here
+									// - javaTypeToResolve = java.util.List<org.acme.Item>
+									// - iterTypeName = org.acme.Item
+
+									return resolveJavaType(javaTypeToResolve, projectUri)
+											.thenCompose(r -> {
+												if (r == null) {
+													return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+												}
+												if (!r.isIterable()) {
+													// valid case
+													// Ex:
+													// {@java.util.concurrent.CompletableFuture<java.util.List<org.acme.Item>>
+													// items}
+													// {#for item in items}
+													// {item.|}
+													return resolveSimpleJavaType(r,
+															projectUri);
+												}
+												// valid case
+												// Ex:
+												// {@java.util.concurrent.CompletableFuture<org.acme.Item>
+												// item}
+												// {item.|}
+												return resolveIteratorJavaType(r, projectUri);
+											});
+								}
+							}
+
 							if (!resolvedType.isIterable()) {
 								// case when iterable section is associated with a Java class which is not
 								// iterable.
-
-								if (resolvedType.isInteger()) {
-									// Special case with int, Integer
-
-									// The for statement also works with integers, starting from 1. In the example
-									// below, considering that total = 3:
-
-									// {#for i in total}
-									// {i}:
-									// {/for}
-									return resolveJavaType(resolvedType.getName(), projectUri);
-								}
-
-								if (nullIfDontMatchWithIterable) {
-									// -> the class is not valid
-									// Ex:
-									// {@org.acme.Item items}
-									// {#for item in items}
-									// {item.|}
-									return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
-								}
+								return resolveSimpleJavaType(resolvedType, projectUri);
 							}
+
 							// valid case
 							// Ex:
 							// {@java.util.List<org.acme.Item> items}
@@ -226,12 +277,39 @@ public class JavaDataModelCache implements DataModelTemplateProvider {
 							// - iterTypeName = org.acme.Item
 
 							// Resolve org.acme.Item
-							String iterTypeName = resolvedType.getIterableOf();
-							return resolveJavaType(iterTypeName, projectUri);
+							return resolveIteratorJavaType(resolvedType, projectUri);
 						});
 			}
 		}
 		return future;
+	}
+
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveSimpleJavaType(ResolvedJavaTypeInfo resolvedType,
+			String projectUri) {
+		if (resolvedType.isInteger()) {
+			// Special case with int, Integer
+
+			// The for statement also works with integers, starting from 1. In the example
+			// below, considering that total = 3:
+
+			// {#for i in total}
+			// {i}:
+			// {/for}
+			return resolveJavaType(resolvedType.getName(), projectUri);
+		}
+
+		// -> the class is not valid
+		// Ex:
+		// {@org.acme.Item items}
+		// {#for item in items}
+		// {item.|}
+		return DONT_MATCH_WITH_ITERABLE_FUTURE;
+	}
+
+	private CompletionStage<ResolvedJavaTypeInfo> resolveIteratorJavaType(ResolvedJavaTypeInfo resolvedType,
+			String projectUri) {
+		String iterTypeName = resolvedType.getIterableOf();
+		return resolveJavaType(iterTypeName, projectUri);
 	}
 
 	private Section getOwnerSection(Node node) {

@@ -31,6 +31,10 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
 	private static final String JAVA_LANG_ITERABLE_TYPE = "java.lang.Iterable";
 
+	private static final String JAVA_UTIL_CONCURRENT_COMPLETIONSTAGE_TYPE = "java.util.concurrent.CompletionStage";
+
+	private static final String IO_SMALLRYE_MUTINY_UNI_TYPE = "io.smallrye.mutiny.Uni";
+
 	private List<String> extendedTypes;
 
 	private List<JavaFieldInfo> fields;
@@ -46,6 +50,8 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	private transient String iterableOf;
 
 	private transient Boolean isIterable;
+
+	private transient Boolean isCompletionStageOrUni;
 
 	/**
 	 * Returns list of extended types.
@@ -73,7 +79,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	public List<JavaFieldInfo> getFields() {
 		return fields != null ? fields : Collections.emptyList();
 	}
-	
+
 	protected boolean isFieldsInitialized() {
 		return fields != null;
 	}
@@ -99,7 +105,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	protected boolean isMethodsInitialized() {
 		return methods != null;
 	}
-	
+
 	/**
 	 * Set member methods.
 	 * 
@@ -148,6 +154,57 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	}
 
 	/**
+	 * Returns true if the Java type is / or implements
+	 * "java.util.concurrent.CompletionStage"
+	 * or "io.smallrye.mutiny.Uni" and false otherwise.
+	 * 
+	 * @return true if the Java type is / or implements
+	 *         "java.util.concurrent.CompletionStage"
+	 *         or "io.smallrye.mutiny.Uni" and false otherwise.
+	 */
+	public boolean isCompletionStageOrUni() {
+		if (isCompletionStageOrUni != null) {
+			return isCompletionStageOrUni.booleanValue();
+		}
+		isCompletionStageOrUni = computeIsCompletionStageOrUni();
+		return isCompletionStageOrUni.booleanValue();
+	}
+
+	private synchronized boolean computeIsCompletionStageOrUni() {
+		if (isCompletionStageOrUni != null) {
+			return isCompletionStageOrUni.booleanValue();
+		}
+		boolean completionStageOrUni = isCompletionStageOrUni(getName());
+		if (!completionStageOrUni && extendedTypes != null) {
+			for (String extendedType : extendedTypes) {
+				if (isCompletionStageOrUni(extendedType)) {
+					completionStageOrUni = true;
+					break;
+				}
+			}
+		}
+		return completionStageOrUni;
+	}
+
+	/**
+	 * Returns true if the given Java type is "java.util.concurrent.CompletionStage"
+	 * or "io.smallrye.mutiny.Uni" and false otherwise.
+	 * 
+	 * @param type the Java type.
+	 * 
+	 * @return true if the given Java type is "java.util.concurrent.CompletionStage"
+	 *         or "io.smallrye.mutiny.Uni" and false otherwise.
+	 */
+	public static boolean isCompletionStageOrUni(String type) {
+		return JAVA_UTIL_CONCURRENT_COMPLETIONSTAGE_TYPE.equals(type)
+				|| IO_SMALLRYE_MUTINY_UNI_TYPE.equals(type);
+	}
+
+	public void setCompletionStageOrUni(Boolean completionStageOrUni) {
+		this.isCompletionStageOrUni = completionStageOrUni;
+	}
+
+	/**
 	 * Returns true if this Java type is in a binary file, and false otherwise.
 	 * 
 	 * @return true if this Java type is in a binary file, and false otherwise
@@ -185,7 +242,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		boolean iterable = getName().equals(JAVA_LANG_ITERABLE_TYPE);
 		if (!iterable && extendedTypes != null) {
 			for (String extendedType : extendedTypes) {
-				if (ITERABLE_TYPE.equals(extendedType) || extendedType.equals(JAVA_LANG_ITERABLE_TYPE)) {
+				if (isIterable(extendedType)) {
 					iterable = true;
 					break;
 				}
@@ -193,14 +250,22 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		}
 
 		if (iterable) {
-			List<JavaParameterInfo> typeParameters = getTypeParameters();
-			if (!typeParameters.isEmpty()) {
-				this.iterableOf = typeParameters.get(0).getType();
-			} else {
+			if (isGenericType()) {
 				this.iterableOf = "java.lang.Object";
+			} else {
+				List<JavaParameterInfo> typeParameters = getTypeParameters();
+				if (!typeParameters.isEmpty()) {
+					this.iterableOf = typeParameters.get(0).getType();
+				} else {
+					this.iterableOf = "java.lang.Object";
+				}
 			}
 		}
 		return iterable;
+	}
+
+	public static boolean isIterable(String type) {
+		return ITERABLE_TYPE.equals(type) || JAVA_LANG_ITERABLE_TYPE.equals(type);
 	}
 
 	/**
@@ -303,5 +368,4 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	public boolean isEnum() {
 		return getJavaTypeKind() == JavaTypeKind.Enum;
 	}
-
 }

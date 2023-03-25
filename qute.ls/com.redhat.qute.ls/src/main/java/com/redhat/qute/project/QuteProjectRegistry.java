@@ -364,7 +364,7 @@ public class QuteProjectRegistry
 														new CompletableFuture[resolvingExtendedFutures.size()]));
 										return allFutures //
 												.thenApply(all -> {
-													updateIterable(resolvedJavaTypeWithLoadedDeps,
+													updateIterableAndCompletionStageOrUni(resolvedJavaTypeWithLoadedDeps,
 															resolvingExtendedFutures);
 													return resolvedJavaTypeWithLoadedDeps;
 												});
@@ -402,14 +402,15 @@ public class QuteProjectRegistry
 		return javaType;
 	}
 
-	public void updateIterable(final ResolvedJavaTypeInfo resolvedJavaType,
+	private void updateIterableAndCompletionStageOrUni(final ResolvedJavaTypeInfo resolvedJavaType,
 			Set<CompletableFuture<ResolvedJavaTypeInfo>> resolvingExtendedFutures) {
 		String iterableOf = null;
+		boolean completionStageOrUni = false;
 		for (CompletableFuture<ResolvedJavaTypeInfo> g : resolvingExtendedFutures) {
 			// Update the iterable of the loaded Java type
 			ResolvedJavaTypeInfo extendedType = g.getNow(null);
 			if (extendedType != null) {
-				if ("java.lang.Iterable".equals(extendedType.getName())) {
+				if (ResolvedJavaTypeInfo.isIterable(extendedType.getName())) {
 					extendedType.isIterable();
 					iterableOf = extendedType.getIterableOf();
 					break;
@@ -419,7 +420,18 @@ public class QuteProjectRegistry
 				}
 			}
 		}
-
+		for (CompletableFuture<ResolvedJavaTypeInfo> g : resolvingExtendedFutures) {
+			ResolvedJavaTypeInfo extendedType = g.getNow(null);
+			if (extendedType != null) {
+				if (ResolvedJavaTypeInfo.isCompletionStageOrUni(extendedType.getName())) {
+					completionStageOrUni = true;
+					break;
+				}
+			}
+		}
+		if (completionStageOrUni) {
+			resolvedJavaType.setCompletionStageOrUni(true);
+		}
 		if (iterableOf != null) {
 			resolvedJavaType.setIterableOf(iterableOf);
 		}

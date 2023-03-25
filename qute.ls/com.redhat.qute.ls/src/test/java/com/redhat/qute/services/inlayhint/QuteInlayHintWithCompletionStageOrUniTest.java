@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 Red Hat Inc. and others.
+* Copyright (c) 2023 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.services;
+package com.redhat.qute.services.inlayhint;
 
 import static com.redhat.qute.QuteAssert.ih;
 import static com.redhat.qute.QuteAssert.ihLabel;
@@ -20,20 +20,19 @@ import org.eclipse.lsp4j.Command;
 import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.project.QuteQuickStartProject;
-import com.redhat.qute.services.inlayhint.InlayHintASTVistor;
 import com.redhat.qute.settings.QuteInlayHintSettings;
 
 /**
- * Tests for Qute inlay hint.
+ * Tests for Qute inlay hint with CompletionStage or Uni.
  * 
  * @author Angelo ZERR
  *
  */
-public class QuteInlayHintTest {
+public class QuteInlayHintWithCompletionStageOrUniTest {
 
 	@Test
 	public void aliasForSection() throws Exception {
-		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+		String template = "{@java.util.concurrent.CompletionStage<java.util.List<org.acme.Item>> items}\r\n" + //
 				"{#for item in items}\r\n" + // item[:Item]
 				"  {item.name}\r\n" + //
 				"{/for}";
@@ -56,7 +55,7 @@ public class QuteInlayHintTest {
 
 	@Test
 	public void parameterLetSection() throws Exception {
-		String template = "{@org.acme.Item item}\r\n" + //
+		String template = "{@java.util.concurrent.CompletionStage<org.acme.Item> item}\r\n" + //
 				"{#let name=item.name price=item.price bad=item.XXXX}\r\n" + // name[:String]=item.name
 																				// price[:BigInteger]=item.price
 																				// bad=item.XXXX
@@ -87,7 +86,7 @@ public class QuteInlayHintTest {
 
 	@Test
 	public void parameterCustomSection() throws Exception {
-		String template = "{@org.acme.Item item}\r\n" + //
+		String template = "{@java.util.concurrent.CompletionStage<org.acme.Item> item}\r\n" + //
 				"{#form name=item.name item.price bad=item.XXXX}\r\n" + // name[:String]=item.name
 																		// item.price[:BigInteger]
 																		// bad=item.XXXX
@@ -114,7 +113,7 @@ public class QuteInlayHintTest {
 
 	@Test
 	public void optionalParameterIfSection() throws Exception {
-		String template = "{@org.acme.Item item}\r\n" + //
+		String template = "{@java.util.concurrent.CompletionStage<org.acme.Item> item}\r\n" + //
 				"{#if foo?? and item??}\r\n" + // item??[:Item]
 				"  \r\n" + //
 				"{/if}";
@@ -137,7 +136,8 @@ public class QuteInlayHintTest {
 
 	@Test
 	public void forOfFor() throws Exception {
-		String template = "{@java.util.List<java.util.Set<java.lang.String>> items}\r\n" + //
+		String template = "{@java.util.concurrent.CompletionStage<java.util.List<java.util.Set<java.lang.String>>> items}\r\n"
+				+ //
 				"		{#for item in items}\r\n" + //
 				"			{#for innerItem in item}\r\n" + //
 				"				{innerItem.isEmpty()}\r\n" + //
@@ -152,7 +152,8 @@ public class QuteInlayHintTest {
 
 	@Test
 	public void forWithMapEntrySet() throws Exception {
-		String template = "{@java.util.Map<java.lang.String,org.acme.Item> map}\r\n" + //
+		String template = "{@java.util.concurrent.CompletionStage<java.util.Map<java.lang.String,org.acme.Item>> map}\r\n"
+				+ //
 				"	{#for item in map.entrySet()}\r\n" + //
 				"		{item.getKey()}\r\n" + //
 				"	{/for}";
@@ -162,4 +163,22 @@ public class QuteInlayHintTest {
 								cd("java.util.Map$Entry"))));
 	}
 
+	@Test
+	public void notIterable() throws Exception {
+		String template = "{@java.util.concurrent.CompletionStage<java.lang.String> items}\r\n" + //
+				"	{#for item in items}\r\n" + //
+				"{/for}";
+		testInlayHintFor(template);
+	}
+
+	@Test
+	public void list() throws Exception {
+		String template = "{@java.util.concurrent.CompletionStage<java.util.List> items}\r\n" + //
+				"	{#for item in items}\r\n" + //
+				"{/for}";
+		testInlayHintFor(template, //
+				ih(p(1, 11), ihLabel(":"),
+						ihLabel("Object", "Open `java.lang.Object` Java type.",
+								cd("java.lang.Object"))));
+	}
 }

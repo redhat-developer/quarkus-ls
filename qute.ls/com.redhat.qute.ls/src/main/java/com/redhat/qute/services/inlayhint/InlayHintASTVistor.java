@@ -11,15 +11,14 @@
 *******************************************************************************/
 package com.redhat.qute.services.inlayhint;
 
-import static com.redhat.qute.services.ResolvingJavaTypeContext.RESOLVING_JAVA_TYPE;
 import static com.redhat.qute.services.ResolvingJavaTypeContext.isResolvingJavaType;
+import static com.redhat.qute.services.ResolvingJavaTypeContext.isValid;
 import static com.redhat.qute.services.commands.QuteClientCommandConstants.COMMAND_JAVA_DEFINITION;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,6 +30,7 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
+import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.parser.template.ASTVisitor;
@@ -193,18 +193,43 @@ public class InlayHintASTVistor extends ASTVisitor {
 
 	private void createJavaTypeInlayHint(Parameter parameter, Parameter javaTypeParameter, Template template,
 			String projectUri) {
-		CompletableFuture<ResolvedJavaTypeInfo> javaTypeFuture = getJavaType(javaTypeParameter, projectUri, javaCache);
-		if (javaTypeFuture == null) {
+		ResolvedJavaTypeInfo javaType = getJavaType(javaTypeParameter, projectUri, resolvingJavaTypeContext);
+		if (javaType != null && !isValid(javaType)) {
 			return;
 		}
-		ResolvedJavaTypeInfo javaType = javaTypeFuture.getNow(RESOLVING_JAVA_TYPE);
-		if (isResolvingJavaType(javaType)) {
-			resolvingJavaTypeContext.add(javaTypeFuture);
-			return;
+		if (javaType == null) {
+			if (!parameter.isOptional()) {
+				return;
+			}
+		} else {
+			if (javaType.isCompletionStageOrUni()) {
+				List<JavaParameterInfo> types = javaType.getTypeParameters();
+				if (types != null && !types.isEmpty()) {
+					// java.util.concurrent.CompletableFuture<java.util.List<org.acme.Item>>
+					JavaParameterInfo type = types.get(0);
+					String javaTypeToResolve = type.getType(); // java.util.List<org.acme.Item>
+					// Here
+					// - javaTypeToResolve = java.util.List<org.acme.Item>
+					// - iterTypeName = org.acme.Item
+
+					javaType = resolvingJavaTypeContext.resolveJavaType(javaTypeToResolve, projectUri);
+					if (isResolvingJavaType(javaType)) {
+						return;
+					}
+				}
+			}
+
 		}
-		if ((!parameter.isOptional() && javaType == null)) {
-			return;
+
+		Section section = parameter.getOwnerSection();
+		if (section.isIterable()) {
+			if (javaType != null && javaType.isIterable()) {
+				javaType = resolvingJavaTypeContext.resolveJavaType(javaType.getIterableOf(), projectUri);
+			} else {
+				return;
+			}
 		}
+
 		createInlayHint(parameter, javaType, template);
 	}
 
@@ -223,8 +248,8 @@ public class InlayHintASTVistor extends ASTVisitor {
 		}
 	}
 
-	private static CompletableFuture<ResolvedJavaTypeInfo> getJavaType(Parameter parameter, String projectUri,
-			JavaDataModelCache javaCache) {
+	private static ResolvedJavaTypeInfo getJavaType(Parameter parameter, String projectUri,
+			ResolvingJavaTypeContext resolvingJavaTypeContext) {
 		if (projectUri == null) {
 			return null;
 		}
@@ -233,26 +258,18 @@ public class InlayHintASTVistor extends ASTVisitor {
 			return null;
 		}
 
-		CompletableFuture<ResolvedJavaTypeInfo> javaType = null;
+		ResolvedJavaTypeInfo javaType = null;
 		String literalJavaType = expression.getLiteralJavaType();
 		if (literalJavaType != null) {
-			javaType = javaCache.resolveJavaType(literalJavaType, projectUri);
+			javaType = resolvingJavaTypeContext.resolveJavaType(literalJavaType, projectUri);
 		} else {
-			javaType = javaCache.resolveJavaType(parameter, projectUri);
+			javaType = resolvingJavaTypeContext.resolveJavaType(parameter, projectUri);
 		}
 
-		Section section = parameter.getOwnerSection();
-		if (section.isIterable()) {
-			return javaType.thenCompose(javaTypeIterable -> {
-				if (javaTypeIterable == null) {
-					return CompletableFuture.completedFuture(null);
-				}
-				if (javaTypeIterable.isIterable()) {
-					return javaCache.resolveJavaType(javaTypeIterable.getIterableOf(), projectUri);
-				}
-				return CompletableFuture.completedFuture(javaTypeIterable);
-			});
+		if (!isValid(javaType)) {
+			return null;
 		}
+
 		return javaType;
 	}
 

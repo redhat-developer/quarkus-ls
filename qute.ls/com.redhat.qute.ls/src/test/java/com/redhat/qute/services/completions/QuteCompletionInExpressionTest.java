@@ -28,9 +28,6 @@ public class QuteCompletionInExpressionTest {
 	@Test
 	public void completionInExpressionForObjectPart() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
-				"Item: {|}";
-
-		template = "{@org.acme.Item item}\r\n" + //
 				"Item: {item. |}";
 		testCompletionFor(template, //
 				c("item", "item", r(1, 13, 1, 13)));
@@ -422,4 +419,16 @@ public class QuteCompletionInExpressionTest {
 		testCompletionFor(template, 6);
 	}
 
+	@Test
+	public void completionInExpressionForPropertyPartWithCompletionStage() throws Exception {
+		String template = "{@java.util.concurrent.CompletionStage<org.acme.Item> item}\r\n" + //
+				"Item: {item.|}";
+		testCompletionFor(template, //
+				c("base : String", "base", r(1, 12, 1, 12)), // comes from BaseItem extended by Item
+				c("name : String", "name", r(1, 12, 1, 12)), //
+				c("price : BigInteger", "price", r(1, 12, 1, 12)), //
+				c("review : Review", "review", r(1, 12, 1, 12)), //
+				c("review2 : Review", "review2", r(1, 12, 1, 12)), //
+				c("getReview2() : Review", "getReview2", r(1, 12, 1, 12)));
+	}
 }

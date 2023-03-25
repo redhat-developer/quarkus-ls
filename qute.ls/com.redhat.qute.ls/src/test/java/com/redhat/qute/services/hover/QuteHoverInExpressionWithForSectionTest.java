@@ -212,4 +212,47 @@ public class QuteHoverInExpressionWithForSectionTest {
 				"{/for}";
 		assertHover(template);
 	}
+
+	@Test
+	public void undefinedPropertyInIterable() throws Exception {
+		String template = "{@java.lang.String items}\r\n"
+				+ "	{#for item in items}\r\n"
+				+ "		{item.na|me}\r\n"
+				+ "	{/for}";
+		assertHover(template);
+	}
+
+	@Test
+	public void undefinedParameterInIterable() throws Exception {
+		String template = "{@java.lang.String items}\r\n"
+				+ "	{#for ite|m in items}\r\n"
+				+ "		{item.name}\r\n"
+				+ "	{/for}";
+		assertHover(template);
+	}
+
+	@Test
+	public void list() throws Exception {
+		String template = "{@java.util.List items}\r\n"
+				+ "	{#for ite|m in items}\r\n"
+				+ "		{item.name}\r\n"
+				+ "	{/for}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"Object" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 7, 1, 11));
+
+		template = "{@java.util.List items}\r\n"
+				+ "	{#for item in it|ems}\r\n"
+				+ "		{item.name}\r\n"
+				+ "	{/for}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"List<E>" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 15, 1, 20));
+	}
 }

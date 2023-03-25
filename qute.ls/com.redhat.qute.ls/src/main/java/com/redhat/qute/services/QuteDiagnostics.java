@@ -13,6 +13,7 @@ package com.redhat.qute.services;
 
 import static com.redhat.qute.parser.template.Section.isWhenSection;
 import static com.redhat.qute.services.ResolvingJavaTypeContext.RESOLVING_JAVA_TYPE;
+import static com.redhat.qute.services.ResolvingJavaTypeContext.isDontMatchWithIterable;
 import static com.redhat.qute.services.ResolvingJavaTypeContext.isResolvingJavaType;
 import static com.redhat.qute.services.diagnostics.DiagnosticDataFactory.createDiagnostic;
 import static com.redhat.qute.utils.UserTagUtils.IT_OBJECT_PART_NAME;
@@ -26,7 +27,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -768,8 +768,10 @@ class QuteDiagnostics {
 				} else {
 					Part lastPart = expression.getLastPart();
 					if (lastPart != null) {
-						ResolvedJavaTypeInfo alias = javaCache.resolveJavaType(lastPart, projectUri)
-								.getNow(RESOLVING_JAVA_TYPE);
+						ResolvedJavaTypeInfo alias = wrapResolvedJavaType(
+								javaCache.resolveJavaType(lastPart, projectUri)
+										.getNow(RESOLVING_JAVA_TYPE),
+								projectUri, resolvingJavaTypeContext);
 						if (isResolvingJavaType(alias)) {
 							// The java type is resolving, stop the validation
 							return RESOLVING_JAVA_TYPE;
@@ -1202,23 +1204,28 @@ class QuteDiagnostics {
 			return null;
 		}
 
-		CompletableFuture<ResolvedJavaTypeInfo> resolvingJavaTypeFuture = null;
+		ResolvedJavaTypeInfo resolvedJavaType = null;
 		if (part.getPartKind() == PartKind.Object) {
 			// Object part case.
 			// - if expression is included inside a loop section (#for, etc), we need to get
 			// the iterable of. If javaTypeToResolve= 'java.util.List<org.acme.Item>',we
 			// must get 'org.acme.Item'.
 			// - otherwise resolve the given java type to resolve
-			resolvingJavaTypeFuture = javaCache.resolveJavaType(part, projectUri, false);
+			resolvedJavaType = resolvingJavaTypeContext.resolveJavaType(part, projectUri);
 		} else {
 			// Other part kind (property, method), resolve the given java type to resolve
-			resolvingJavaTypeFuture = javaCache.resolveJavaType(javaTypeToResolve, projectUri);
+			resolvedJavaType = resolvingJavaTypeContext.resolveJavaType(javaTypeToResolve, projectUri);
 		}
-		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture.getNow(RESOLVING_JAVA_TYPE);
+
 		if (isResolvingJavaType(resolvedJavaType)) {
-			// Java type must be loaded.
-			LOGGER.log(Level.INFO, QuteErrorCode.ResolvingJavaType.getMessage(javaTypeToResolve));
-			resolvingJavaTypeContext.add(resolvingJavaTypeFuture);
+			return resolvedJavaType;
+		}
+
+		if (isDontMatchWithIterable(resolvedJavaType)) {
+			return null;
+		}
+		resolvedJavaType = wrapResolvedJavaType(resolvedJavaType, projectUri, resolvingJavaTypeContext);
+		if (isResolvingJavaType(resolvedJavaType)) {
 			return RESOLVING_JAVA_TYPE;
 		}
 
@@ -1232,6 +1239,25 @@ class QuteDiagnostics {
 		}
 
 		return validateIterable(part, ownerSection, resolvedJavaType, javaTypeToResolve, diagnostics);
+	}
+
+	private ResolvedJavaTypeInfo wrapResolvedJavaType(ResolvedJavaTypeInfo resolvedJavaType, String projectUri,
+			ResolvingJavaTypeContext resolvingJavaTypeContext) {
+		if (resolvedJavaType != null && RESOLVING_JAVA_TYPE != resolvedJavaType && resolvedJavaType.isCompletionStageOrUni()) {
+			// java.util.concurrent.CompletionStage
+			List<JavaParameterInfo> types = resolvedJavaType.getTypeParameters();
+			if (types != null && !types.isEmpty()) {
+				JavaParameterInfo type = types.get(0);
+				String javaTypeToResolve = type.getType();
+				ResolvedJavaTypeInfo r = resolvingJavaTypeContext.resolveJavaType(javaTypeToResolve, projectUri);
+				if (isResolvingJavaType(r)) {
+					// Java type must be loaded.
+					return RESOLVING_JAVA_TYPE;
+				}
+				return r;
+			}
+		}
+		return resolvedJavaType;
 	}
 
 	private ResolvedJavaTypeInfo validateIterable(Part part, Section ownerSection,

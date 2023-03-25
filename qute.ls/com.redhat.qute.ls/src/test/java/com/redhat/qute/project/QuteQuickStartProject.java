@@ -129,6 +129,14 @@ public class QuteQuickStartProject extends MockQuteProject {
 		ResolvedJavaTypeInfo hashMap = createResolvedJavaTypeInfo("java.util.HashMap<K,V>", cache, true);
 		hashMap.setExtendedTypes(Arrays.asList("java.util.AbstractMap<K,V>", "java.util.Map<K,V>"));
 
+		// https://quarkus.io/guides/qute-reference#evaluation-of-completionstage-and-uni-objects
+		createResolvedJavaTypeInfo("java.util.concurrent.CompletionStage<T>", cache, true);
+		ResolvedJavaTypeInfo completableFuture = createResolvedJavaTypeInfo("java.util.concurrent.CompletableFuture<T>", cache, true);
+		completableFuture.setExtendedTypes(Arrays.asList("java.util.concurrent.CompletionStage<T>"));
+		createResolvedJavaTypeInfo("io.smallrye.mutiny.Uni<T>", cache, true);
+		ResolvedJavaTypeInfo asyncResultUni = createResolvedJavaTypeInfo("io.smallrye.mutiny.vertx.AsyncResultUni<T>", cache, true);
+		asyncResultUni.setExtendedTypes(Arrays.asList("io.smallrye.mutiny.Uni<T>"));
+		
 		// RawString for raw and safe resolver tests
 		ResolvedJavaTypeInfo rawString = createResolvedJavaTypeInfo("io.quarkus.qute.RawString", cache, true);
 		registerMethod("getValue() : java.lang.String", rawString);
