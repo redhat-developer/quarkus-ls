@@ -96,7 +96,7 @@ public class Template extends Node {
 
 	public String getTemplateId() {
 		if (templateId == null) {
-			QuteProject project =  getProject();
+			QuteProject project = getProject();
 			if (project == null) {
 				return null;
 			}
@@ -119,7 +119,7 @@ public class Template extends Node {
 		checkCanceled();
 		return textDocument.lineIndentInfo(lineNumber);
 	}
-	
+
 	public void checkCanceled() {
 		if (cancelChecker != null) {
 			cancelChecker.checkCanceled();
@@ -257,14 +257,15 @@ public class Template extends Node {
 			// - from @CheckedTemplate
 			return findInInitialDataModel(objectPart);
 		}
-		if (projectRegistry == null || getProjectUri() == null) {
+		QuteProject project = getProject();
+		if (project == null) {
 			return null;
 		}
 		// {inject:bean}
-		return (JavaTypeInfoProvider) projectRegistry
-				.findJavaElementWithNamespace(namespace, objectPart.getPartName(), getProjectUri()).getNow(null);
+		return (JavaTypeInfoProvider) project
+				.findJavaElementWithNamespace(namespace, objectPart.getPartName()).getNow(null);
 	}
-	
+
 	public Set<String> getJavaTypesSupportedInNativeMode() {
 		Set<String> javaTypesSupportedInNativeMode = new HashSet<>();
 		// From parameter declaration
@@ -277,7 +278,7 @@ public class Template extends Node {
 					javaTypesSupportedInNativeMode.add(className);
 				}
 			}
-		} 	
+		}
 		return javaTypesSupportedInNativeMode;
 	}
 
@@ -286,14 +287,15 @@ public class Template extends Node {
 		if (namespace != null) {
 			return null;
 		}
-		if (projectRegistry == null || getProjectUri() == null) {
+		QuteProject project = getProject();
+		if (project == null) {
 			return null;
 		}
 		// {inject:bean}
-		return (JavaTypeInfoProvider) projectRegistry
-				.findGlobalVariableJavaElement(objectPart.getPartName(), getProjectUri()).getNow(null);
+		return (JavaTypeInfoProvider) project
+				.findGlobalVariableJavaElement(objectPart.getPartName()).getNow(null);
 	}
-	
+
 	@Override
 	protected void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);

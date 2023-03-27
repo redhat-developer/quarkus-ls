@@ -36,7 +36,7 @@ import com.redhat.qute.parser.template.ParameterDeclaration;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.completions.QuteCompletionForTemplateIds;
 import com.redhat.qute.services.completions.QuteCompletionsForExpression;
@@ -72,11 +72,11 @@ public class QuteCompletions {
 
 	private final QuteCompletionForTemplateIds completionForTemplateIds;
 
-	public QuteCompletions(JavaDataModelCache javaCache, SnippetRegistryProvider<Snippet> snippetRegistryProvider) {
-		this.completionsForParameterDeclaration = new QuteCompletionsForParameterDeclaration(javaCache);
+	public QuteCompletions(QuteProjectRegistry projectRegistry, SnippetRegistryProvider<Snippet> snippetRegistryProvider) {
+		this.completionsForParameterDeclaration = new QuteCompletionsForParameterDeclaration(projectRegistry);
 		this.completionsForSnippets = new QuteCompletionsForSnippets<Snippet>(snippetRegistryProvider);
 		this.completionForTagSection = new QuteCompletionForTagSection(completionsForSnippets);
-		this.completionForExpression = new QuteCompletionsForExpression(completionForTagSection, javaCache);
+		this.completionForExpression = new QuteCompletionsForExpression(completionForTagSection, projectRegistry);
 		this.completionForTemplateIds = new QuteCompletionForTemplateIds();
 	}
 

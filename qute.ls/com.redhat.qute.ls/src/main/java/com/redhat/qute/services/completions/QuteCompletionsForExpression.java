@@ -13,6 +13,9 @@ package com.redhat.qute.services.completions;
 
 import static com.redhat.qute.parser.template.Section.isCaseSection;
 import static com.redhat.qute.project.datamodel.resolvers.ValueResolver.MATCH_NAME_ANY;
+import static com.redhat.qute.services.QuteCompletableFutures.isResolvingJavaTypeOrNull;
+import static com.redhat.qute.services.QuteCompletableFutures.isValidJavaType;
+import static com.redhat.qute.services.QuteCompletions.EMPTY_COMPLETION;
 import static com.redhat.qute.services.QuteCompletions.EMPTY_FUTURE_COMPLETION;
 import static com.redhat.qute.utils.UserTagUtils.IT_OBJECT_PART_NAME;
 import static com.redhat.qute.utils.UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME;
@@ -62,14 +65,15 @@ import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.parser.template.sections.WhenSection;
 import com.redhat.qute.parser.template.sections.WithSection;
 import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
+import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.services.completions.tags.QuteCompletionForTagSection;
 import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
@@ -90,14 +94,14 @@ import com.redhat.qute.utils.UserTagUtils;
  */
 public class QuteCompletionsForExpression {
 
+	private final QuteProjectRegistry projectRegistry;
+
 	private final QuteCompletionForTagSection completionForTagSection;
 
-	private final JavaDataModelCache javaCache;
-
 	public QuteCompletionsForExpression(QuteCompletionForTagSection completionForTagSection,
-			JavaDataModelCache javaCache) {
+			QuteProjectRegistry projectRegistry) {
 		this.completionForTagSection = completionForTagSection;
-		this.javaCache = javaCache;
+		this.projectRegistry = projectRegistry;
 	}
 
 	/**
@@ -236,21 +240,24 @@ public class QuteCompletionsForExpression {
 			CancelChecker cancelChecker) {
 		int start = part != null ? part.getStart() : parts.getEnd();
 		int end = part != null ? part.getEnd() : parts.getEnd();
-		String projectUri = template.getProjectUri();
+		QuteProject project = template.getProject();
+		if (project == null) {
+			// The Java project is not loaded
+			return EMPTY_FUTURE_COMPLETION;
+		}
 		Part previousPart = parts.getPreviousPart(part);
-		return javaCache.resolveJavaType(previousPart, projectUri) //
-				.thenCompose(resolvedType -> {
+		return project.resolveJavaType(previousPart) //
+				.thenApply(resolvedType -> {
 					cancelChecker.checkCanceled();
 
-					if (resolvedType == null) {
-						return EMPTY_FUTURE_COMPLETION;
+					if (!isValidJavaType(resolvedType)) {
+						return EMPTY_COMPLETION;
 					}
 
 					// Completion for member of the given Java class
 					// ex : org.acme.Item
-					CompletionList list = doCompleteForJavaTypeMembers(resolvedType, start, end, template,
+					return doCompleteForJavaTypeMembers(resolvedType, start, end, template, project,
 							infixNotation, completionSettings, formattingSettings, nativeImagesSettings);
-					return CompletableFuture.completedFuture(list);
 				});
 
 	}
@@ -273,15 +280,14 @@ public class QuteCompletionsForExpression {
 	 * @return the completion list.
 	 */
 	private CompletionList doCompleteForJavaTypeMembers(ResolvedJavaTypeInfo baseType, int start, int end,
-			Template template, boolean infixNotation, QuteCompletionSettings completionSettings,
+			Template template, QuteProject project, boolean infixNotation, QuteCompletionSettings completionSettings,
 			QuteFormattingSettings formattingSettings, QuteNativeSettings nativeImagesSettings) {
 		Set<CompletionItem> completionItems = new HashSet<>();
 		Range range = QutePositionUtility.createRange(start, end, template);
-		String projectUri = template.getProjectUri();
 
 		Set<String> existingProperties = new HashSet<>();
 		Set<String> existingMethodSignatures = new HashSet<>();
-		JavaTypeFilter filter = javaCache.getJavaTypeFilter(projectUri, nativeImagesSettings);
+		JavaTypeFilter filter = projectRegistry.getJavaTypeFilter(project.getUri(), nativeImagesSettings);
 		JavaTypeAccessibiltyRule javaTypeAccessibility = !filter.isInNativeMode()
 				? JavaTypeAccessibiltyRule.ALLOWED_WITHOUT_RESTRICTION
 				: filter.getJavaTypeAccessibility(baseType, template.getJavaTypesSupportedInNativeMode());
@@ -295,12 +301,12 @@ public class QuteCompletionsForExpression {
 
 			if (!infixNotation) {
 				// Completion for Java fields
-				fillCompletionFields(baseType, javaTypeAccessibility, filter, range, projectUri, existingProperties,
+				fillCompletionFields(baseType, javaTypeAccessibility, filter, range, project, existingProperties,
 						completionItems);
 			}
 
 			// Completion for Java methods
-			fillCompletionMethods(baseType, javaTypeAccessibility, filter, range, projectUri, infixNotation,
+			fillCompletionMethods(baseType, javaTypeAccessibility, filter, range, project, infixNotation,
 					completionSettings, formattingSettings, existingProperties, existingMethodSignatures,
 					completionItems);
 		}
@@ -309,7 +315,7 @@ public class QuteCompletionsForExpression {
 
 		// - Static value resolvers (orEmpty, etc)
 		// - Dynamic value resolvers (from @TemplateExtension)
-		List<MethodValueResolver> resolvers = javaCache.getResolversFor(baseType, projectUri);
+		List<MethodValueResolver> resolvers = project.getResolversFor(baseType);
 		for (MethodValueResolver method : resolvers) {
 			if (method.isValidName() && isValidInfixNotation(method, infixNotation)) {
 				fillCompletionMethod(method, javaTypeAccessibility, null, range, infixNotation, completionSettings,
@@ -335,9 +341,9 @@ public class QuteCompletionsForExpression {
 	 * @param completionItems       the set of completion items to add to
 	 */
 	private void fillCompletionFields(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
-			JavaTypeFilter filter, Range range, String projectUri, Set<String> existingProperties,
+			JavaTypeFilter filter, Range range, QuteProject project, Set<String> existingProperties,
 			Set<CompletionItem> completionItems) {
-		fillCompletionFields(baseType, javaTypeAccessibility, filter, range, projectUri, existingProperties,
+		fillCompletionFields(baseType, javaTypeAccessibility, filter, range, project, existingProperties,
 				completionItems, new HashSet<>());
 	}
 
@@ -356,7 +362,7 @@ public class QuteCompletionsForExpression {
 	 * @param visited               the list of types that have already been visited
 	 */
 	private void fillCompletionFields(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
-			JavaTypeFilter filter, Range range, String projectUri, Set<String> existingProperties,
+			JavaTypeFilter filter, Range range, QuteProject project, Set<String> existingProperties,
 			Set<CompletionItem> completionItems, Set<ResolvedJavaTypeInfo> visited) {
 		if (visited.contains(baseType)) {
 			return;
@@ -381,10 +387,9 @@ public class QuteCompletionsForExpression {
 			List<String> extendedTypes = baseType.getExtendedTypes();
 			if (extendedTypes != null) {
 				for (String extendedType : extendedTypes) {
-					ResolvedJavaTypeInfo resolvedExtendedType = javaCache.resolveJavaType(extendedType, projectUri)
-							.getNow(null);
-					if (resolvedExtendedType != null) {
-						fillCompletionFields(resolvedExtendedType, javaTypeAccessibility, filter, range, projectUri,
+					ResolvedJavaTypeInfo resolvedExtendedType = project.resolveJavaTypeSync(extendedType);
+					if (!isResolvingJavaTypeOrNull(resolvedExtendedType)) {
+						fillCompletionFields(resolvedExtendedType, javaTypeAccessibility, filter, range, project,
 								existingProperties, completionItems, visited);
 					}
 				}
@@ -419,10 +424,10 @@ public class QuteCompletionsForExpression {
 	}
 
 	private void fillCompletionMethods(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
-			JavaTypeFilter filter, Range range, String projectUri, boolean infixNotation,
+			JavaTypeFilter filter, Range range, QuteProject project, boolean infixNotation,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
 			Set<String> existingProperties, Set<String> existingMethodSignatures, Set<CompletionItem> completionItems) {
-		fillCompletionMethods(baseType, javaTypeAccessibility, filter, range, projectUri, infixNotation,
+		fillCompletionMethods(baseType, javaTypeAccessibility, filter, range, project, infixNotation,
 				completionSettings, formattingSettings, existingProperties, existingMethodSignatures, completionItems,
 				new HashSet<>());
 	}
@@ -447,7 +452,7 @@ public class QuteCompletionsForExpression {
 	 * @param visited               the set of types that have already been visited
 	 */
 	private void fillCompletionMethods(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
-			JavaTypeFilter filter, Range range, String projectUri, boolean infixNotation,
+			JavaTypeFilter filter, Range range, QuteProject project, boolean infixNotation,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
 			Set<String> existingProperties, Set<String> existingMethodSignatures, Set<CompletionItem> completionItems,
 			Set<ResolvedJavaTypeInfo> visited) {
@@ -488,10 +493,10 @@ public class QuteCompletionsForExpression {
 			List<String> extendedTypes = baseType.getExtendedTypes();
 			if (extendedTypes != null) {
 				for (String extendedType : extendedTypes) {
-					ResolvedJavaTypeInfo resolvedExtendedType = javaCache.resolveJavaType(extendedType, projectUri)
-							.getNow(null);
-					if (resolvedExtendedType != null) {
-						fillCompletionMethods(resolvedExtendedType, javaTypeAccessibility, filter, range, projectUri,
+					ResolvedJavaTypeInfo resolvedExtendedType = project
+							.resolveJavaTypeSync(extendedType);
+					if (!isResolvingJavaTypeOrNull(resolvedExtendedType)) {
+						fillCompletionMethods(resolvedExtendedType, javaTypeAccessibility, filter, range, project,
 								infixNotation, completionSettings, formattingSettings, existingProperties,
 								existingMethodSignatures, completionItems, visited);
 					}
@@ -848,7 +853,11 @@ public class QuteCompletionsForExpression {
 
 	private void doCompleteExpressionForObjectPartWithGlobalVariables(Template template, Range range,
 			Set<CompletionItem> completionItems) {
-		List<ValueResolver> globalVariables = javaCache.getGlobalVariables(template.getProjectUri());
+		QuteProject project = template.getProject();
+		if (project == null) {
+			return;
+		}
+		List<ValueResolver> globalVariables = project.getGlobalVariables().getNow(null);
 		if (globalVariables != null) {
 			for (ValueResolver globalVariable : globalVariables) {
 				String name = globalVariable.getNamed();
@@ -895,8 +904,13 @@ public class QuteCompletionsForExpression {
 		// {|inject:}
 		// {config:|}
 		// {|config:}
+		QuteProject project = template.getProject();
+		if (project == null) {
+			return;
+		}
+
 		Set<String> existingResovers = new HashSet<>();
-		List<ValueResolver> namespaceResolvers = javaCache.getNamespaceResolvers(namespace, template.getProjectUri());
+		List<ValueResolver> namespaceResolvers = project.getNamespaceResolvers(namespace);
 		for (ValueResolver resolver : namespaceResolvers) {
 			boolean useNamespaceInTextEdit = namespace == null;
 			String named = resolver.getNamed();
@@ -1051,17 +1065,18 @@ public class QuteCompletionsForExpression {
 						// Completion for properties/methods of with object from #with
 						Parameter object = ((WithSection) parentSection).getObjectParameter();
 						if (object != null) {
-							String projectUri = template.getProjectUri();
-							ResolvedJavaTypeInfo withJavaTypeInfo = javaCache.resolveJavaType(object, projectUri)
+							QuteProject project = template.getProject();
+							ResolvedJavaTypeInfo withJavaTypeInfo = project.resolveJavaType(object)
 									.getNow(null);
 							if (withJavaTypeInfo != null) {
-								JavaTypeFilter filter = javaCache.getJavaTypeFilter(projectUri, nativeImagesSettings);
+								JavaTypeFilter filter = projectRegistry.getJavaTypeFilter(project.getUri(),
+										nativeImagesSettings);
 								JavaTypeAccessibiltyRule javaTypeAccessibility = filter.getJavaTypeAccessibility(
 										withJavaTypeInfo, template.getJavaTypesSupportedInNativeMode());
-								fillCompletionFields(withJavaTypeInfo, javaTypeAccessibility, filter, range, projectUri,
+								fillCompletionFields(withJavaTypeInfo, javaTypeAccessibility, filter, range, project,
 										existingVars, completionItems);
 								fillCompletionMethods(withJavaTypeInfo, javaTypeAccessibility, filter, range,
-										projectUri,
+										project,
 										false, completionSettings, formattingSettings, existingVars, new HashSet<>(),
 										completionItems);
 							}
@@ -1078,49 +1093,53 @@ public class QuteCompletionsForExpression {
 								// Completion for properties/methods of with object from #switch and #when
 								Parameter value = ((WhenSection) parentSection).getValueParameter();
 								if (value != null) {
-									String projectUri = template.getProjectUri();
-									ResolvedJavaTypeInfo whenJavaType = javaCache.resolveJavaType(value, projectUri)
-											.getNow(null);
-									if (whenJavaType != null && whenJavaType.isEnum()) {
-										JavaTypeFilter filter = javaCache.getJavaTypeFilter(projectUri,
-												nativeImagesSettings);
-										JavaTypeAccessibiltyRule javaTypeAccessibility = filter
-												.getJavaTypeAccessibility(
-														whenJavaType, template.getJavaTypesSupportedInNativeMode());
-										CompletionCaseResult result = caseSection.getCompletionCaseResultAt(offset,
-												triggeredParameter);
-										// Add existing variables
-										Set<String> caseExistingVars = new HashSet<String>(existingVars);
-										for (Parameter parameter : caseSection.getParameters()) {
-											caseExistingVars.add(parameter.getName());
-										}
-										boolean canSupportMarkdown = completionSettings
-												.canSupportMarkupKind(MarkupKind.MARKDOWN);
-										// Complete operator and/or field according to result
-										switch (result) {
-											case ALL_OPERATOR_AND_FIELD:
-												fillCaseOperators(caseSection, false, range, caseExistingVars,
-														completionItems,
-														canSupportMarkdown);
-												fillCompletionFields(whenJavaType, javaTypeAccessibility, filter, range,
-														projectUri, caseExistingVars, completionItems);
-												break;
-											case ALL_OPERATOR:
-												fillCaseOperators(caseSection, false, range, caseExistingVars,
-														completionItems,
-														canSupportMarkdown);
-												break;
-											case FIELD_ONLY:
-												fillCompletionFields(whenJavaType, javaTypeAccessibility, filter, range,
-														projectUri, caseExistingVars, completionItems);
-												break;
-											case MULTI_OPERATOR_ONLY:
-												fillCaseOperators(caseSection, true, range, caseExistingVars,
-														completionItems,
-														canSupportMarkdown);
-												break;
-											case NONE:
-												break;
+									QuteProject project = template.getProject();
+									if (project != null) {
+										ResolvedJavaTypeInfo whenJavaType = project.resolveJavaTypeSync(value);
+										if (!QuteCompletableFutures.isResolvingJavaTypeOrNull(whenJavaType)
+												&& whenJavaType.isEnum()) {
+											JavaTypeFilter filter = projectRegistry.getJavaTypeFilter(project.getUri(),
+													nativeImagesSettings);
+											JavaTypeAccessibiltyRule javaTypeAccessibility = filter
+													.getJavaTypeAccessibility(
+															whenJavaType, template.getJavaTypesSupportedInNativeMode());
+											CompletionCaseResult result = caseSection.getCompletionCaseResultAt(offset,
+													triggeredParameter);
+											// Add existing variables
+											Set<String> caseExistingVars = new HashSet<String>(existingVars);
+											for (Parameter parameter : caseSection.getParameters()) {
+												caseExistingVars.add(parameter.getName());
+											}
+											boolean canSupportMarkdown = completionSettings
+													.canSupportMarkupKind(MarkupKind.MARKDOWN);
+											// Complete operator and/or field according to result
+											switch (result) {
+												case ALL_OPERATOR_AND_FIELD:
+													fillCaseOperators(caseSection, false, range, caseExistingVars,
+															completionItems,
+															canSupportMarkdown);
+													fillCompletionFields(whenJavaType, javaTypeAccessibility, filter,
+															range,
+															project, caseExistingVars, completionItems);
+													break;
+												case ALL_OPERATOR:
+													fillCaseOperators(caseSection, false, range, caseExistingVars,
+															completionItems,
+															canSupportMarkdown);
+													break;
+												case FIELD_ONLY:
+													fillCompletionFields(whenJavaType, javaTypeAccessibility, filter,
+															range,
+															project, caseExistingVars, completionItems);
+													break;
+												case MULTI_OPERATOR_ONLY:
+													fillCaseOperators(caseSection, true, range, caseExistingVars,
+															completionItems,
+															canSupportMarkdown);
+													break;
+												case NONE:
+													break;
+											}
 										}
 									}
 								}
@@ -1153,7 +1172,11 @@ public class QuteCompletionsForExpression {
 
 	private void doCompleteExpressionForObjectPartWithCheckedTemplate(Template template, Range range,
 			Set<CompletionItem> completionItems) {
-		ExtendedDataModelTemplate dataModel = javaCache.getDataModelTemplate(template).getNow(null);
+		QuteProject project = template.getProject();
+		if (project == null) {
+			return;
+		}
+		ExtendedDataModelTemplate dataModel = project.getDataModelTemplate(template).getNow(null);
 		if (dataModel == null || dataModel.getParameters() == null) {
 			return;
 		}

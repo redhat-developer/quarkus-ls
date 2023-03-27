@@ -136,7 +136,20 @@ public class Parts extends Node {
 	private int getPreviousPartIndex(Part part) {
 		return part != null ? super.getChildren().indexOf(part) - 1 : super.getChildCount() - 1;
 	}
+	public Part getNextPart(Part part) {
+		int partIndex = getNextPartIndex(part);
+		return partIndex != -1 ? (Part) super.getChild(partIndex) : null;
+	}
 
+	private int getNextPartIndex(Part part) {
+		if (part == null) {
+			return -1;
+		}
+		int index= super.getChildren().indexOf(part) + 1 ;
+		return super.getChildCount() > index ? index : -1;
+	}
+
+	
 	@Override
 	public void setEnd(int end) {
 		super.setEnd(end);

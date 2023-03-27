@@ -30,7 +30,6 @@ import com.redhat.qute.ls.commons.client.ConfigurationItemEdit;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
@@ -49,12 +48,6 @@ public abstract class AbstractQuteCodeAction {
 	private static final String SET_IGNORE_SEVERITY_TITLE = "Ignore `{0}` problem.";
 
 	private static final String DID_YOU_MEAN_TITLE = "Did you mean `{0}`?";
-
-	protected final JavaDataModelCache javaCache;
-
-	public AbstractQuteCodeAction(JavaDataModelCache javaCache) {
-		this.javaCache = javaCache;
-	}
 
 	/**
 	 * Generate code action for similar value (Did you mean ...?)

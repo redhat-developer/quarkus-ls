@@ -35,8 +35,10 @@ import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.parser.expression.PropertyPart;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
+import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
@@ -61,8 +63,10 @@ public class QuteCodeActionForUnknownProperty extends AbstractQuteCodeAction {
 
 	private static final String CREATE_PUBLIC_FIELD = "Create public field `{0}` in `{1}`.";
 
-	public QuteCodeActionForUnknownProperty(JavaDataModelCache javaCache) {
-		super(javaCache);
+	private final QuteProjectRegistry projectRegistry;
+
+	public QuteCodeActionForUnknownProperty(QuteProjectRegistry projectRegistry) {
+		this.projectRegistry = projectRegistry;
 	}
 
 	@Override
@@ -73,16 +77,20 @@ public class QuteCodeActionForUnknownProperty extends AbstractQuteCodeAction {
 			if (node == null) {
 				return;
 			}
-			ResolvedJavaTypeInfo baseResolvedType = request.getJavaTypeOfCoveredNode(javaCache);
+			Template template = request.getTemplate();
+			QuteProject project = template.getProject();
+			if (project == null) {
+				return;
+			}
+			ResolvedJavaTypeInfo baseResolvedType = request.getJavaTypeOfCoveredNode();
 			if (baseResolvedType == null) {
 				return;
 			}
 
-			Template template = request.getTemplate();
 			Diagnostic diagnostic = request.getDiagnostic();
 			QuteTemplateJavaTextEditProvider javaTextEditProvider = request.getTextEditProvider();
 			SharedSettings sharedSettings = request.getSharedSettings();
-			Set<String> namespaces = this.javaCache.getAllTemplateExtensionsClasses(template.getProjectUri());
+			Set<String> namespaces = project.getAllTemplateExtensionsClasses();
 
 			PropertyPart propertyPart = (PropertyPart) request.getCoveredNode();
 			QuteNativeSettings nativeImageSettings = request.getSharedSettings().getNativeSettings();
@@ -133,18 +141,22 @@ public class QuteCodeActionForUnknownProperty extends AbstractQuteCodeAction {
 			ResolvedJavaTypeInfo baseResolvedType, QuteNativeSettings nativeImageSettings,
 			List<CodeAction> codeActions) {
 
-		String projectUri = template.getProjectUri();
-		JavaTypeFilter filter = javaCache.getJavaTypeFilter(projectUri, nativeImageSettings);
+		QuteProject project = template.getProject();
+		if (project == null) {
+			return;
+		}
+
+		JavaTypeFilter filter = projectRegistry.getJavaTypeFilter(project.getUri(), nativeImageSettings);
 		Set<String> existingProperties = new HashSet<>();
 
 		// Collect similar code action for Java properties defined in Java type
-		collectSimilarCodeActionsForJavaProperties(part, template, projectUri, baseResolvedType, filter,
+		collectSimilarCodeActionsForJavaProperties(part, template, project, baseResolvedType, filter,
 				existingProperties, diagnostic, codeActions);
 
 		// Collect similar code action for methods (getter or method which have no
 		// parameters) defined in built-in Qute value
 		// resolvers
-		List<MethodValueResolver> resolvers = javaCache.getResolversFor(baseResolvedType, template.getProjectUri());
+		List<MethodValueResolver> resolvers = project.getResolversFor(baseResolvedType);
 		for (MethodValueResolver method : resolvers) {
 			if (method.isValidName() && !method.hasParameters()) {
 				String methodName = method.getMethodName();
@@ -158,14 +170,14 @@ public class QuteCodeActionForUnknownProperty extends AbstractQuteCodeAction {
 		}
 	}
 
-	private void collectSimilarCodeActionsForJavaProperties(PropertyPart part, Template template, String projectUri,
+	private void collectSimilarCodeActionsForJavaProperties(PropertyPart part, Template template, QuteProject project,
 			ResolvedJavaTypeInfo baseResolvedType, JavaTypeFilter filter, Set<String> existingProperties,
 			Diagnostic diagnostic, List<CodeAction> codeActions) {
-		collectSimilarCodeActionsForJavaProperties(part, template, projectUri, baseResolvedType, filter,
+		collectSimilarCodeActionsForJavaProperties(part, template, project, baseResolvedType, filter,
 				existingProperties, diagnostic, codeActions, new HashSet<>());
 	}
 
-	private void collectSimilarCodeActionsForJavaProperties(PropertyPart part, Template template, String projectUri,
+	private void collectSimilarCodeActionsForJavaProperties(PropertyPart part, Template template, QuteProject project,
 			ResolvedJavaTypeInfo baseResolvedType, JavaTypeFilter filter, Set<String> existingProperties,
 			Diagnostic diagnostic, List<CodeAction> codeActions, Set<ResolvedJavaTypeInfo> visited) {
 
@@ -194,10 +206,9 @@ public class QuteCodeActionForUnknownProperty extends AbstractQuteCodeAction {
 			List<String> extendedTypes = baseResolvedType.getExtendedTypes();
 			if (extendedTypes != null) {
 				for (String extendedType : extendedTypes) {
-					ResolvedJavaTypeInfo resolvedExtendedType = javaCache.resolveJavaType(extendedType, projectUri)
-							.getNow(null);
-					if (resolvedExtendedType != null) {
-						collectSimilarCodeActionsForJavaProperties(part, template, projectUri, resolvedExtendedType,
+					ResolvedJavaTypeInfo resolvedExtendedType = project.resolveJavaTypeSync(extendedType);
+					if (!QuteCompletableFutures.isResolvingJavaTypeOrNull(resolvedExtendedType)) {
+						collectSimilarCodeActionsForJavaProperties(part, template, project, resolvedExtendedType,
 								filter, existingProperties, diagnostic, codeActions, visited);
 					}
 				}

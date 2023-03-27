@@ -48,6 +48,10 @@ class ResolvedGenericJavaTypeInfo extends ResolvedJavaTypeInfo {
 			super.setExtendedTypes(newExtendedTypes);
 		}
 		super.setSignature(JavaTypeInfo.applyGenericTypeInvocation(genericType, genericMap));
+		String iterableOf = genericType.getIterableOf();
+		if(iterableOf != null) {
+			setIterableOf(genericMap.get(iterableOf));
+		}
 
 	}
 

@@ -32,7 +32,6 @@ import com.redhat.qute.parser.template.sections.IfSection;
 import com.redhat.qute.parser.template.sections.LetSection;
 import com.redhat.qute.parser.template.sections.SetSection;
 import com.redhat.qute.project.QuteProject;
-import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.utils.StringUtils;
 
@@ -199,7 +198,7 @@ public class UserTagParameterCollector extends ASTVisitor {
 			return false;
 		}
 		if (globalVariables == null) {
-			List<ValueResolver> resolvers = QuteProjectRegistry.getGlobalVariables(project).getNow(null);
+			List<ValueResolver> resolvers = project.getGlobalVariables().getNow(null);
 			globalVariables = resolvers != null ? resolvers.stream()
 					.map(ValueResolver::getName).collect(Collectors.toList())
 					: Collections.emptyList();

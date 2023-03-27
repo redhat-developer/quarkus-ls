@@ -39,7 +39,7 @@ import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.services.codeactions.QuteTemplateCodeActionResolvers;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
@@ -72,16 +72,16 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 
 	private SnippetRegistry<Snippet> coreTagSnippetRegistry;
 
-	public QuteLanguageService(JavaDataModelCache javaCache) {
-		this.codeActions = new QuteCodeActions(javaCache);
-		this.codeLens = new QuteCodeLens(javaCache);
-		this.completions = new QuteCompletions(javaCache, this);
-		this.definition = new QuteDefinition(javaCache);
-		this.diagnostics = new QuteDiagnostics(javaCache);
+	public QuteLanguageService(QuteProjectRegistry projectRegistry) {
+		this.codeActions = new QuteCodeActions(projectRegistry);
+		this.codeLens = new QuteCodeLens(projectRegistry);
+		this.completions = new QuteCompletions(projectRegistry, this);
+		this.definition = new QuteDefinition();
+		this.diagnostics = new QuteDiagnostics(projectRegistry);
 		this.documentLink = new QuteDocumentLink();
 		this.highlighting = new QuteHighlighting();
-		this.hover = new QuteHover(javaCache, this);
-		this.inlayHint = new QuteInlayHint(javaCache);
+		this.hover = new QuteHover(this);
+		this.inlayHint = new QuteInlayHint(projectRegistry);
 		this.linkedEditing = new QuteLinkedEditing();
 		this.reference = new QuteReference();
 		this.rename = new QuteRename();

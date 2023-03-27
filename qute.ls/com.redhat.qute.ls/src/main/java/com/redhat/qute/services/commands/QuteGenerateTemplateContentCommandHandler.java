@@ -22,7 +22,8 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.GenerateTemplateInfo;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.IOUtils;
 
@@ -34,12 +35,12 @@ public class QuteGenerateTemplateContentCommandHandler implements IDelegateComma
 
 	public static final String COMMAND_ID = "qute.command.generate.template.content";
 
-	private final JavaDataModelCache cache;
+	private final QuteProjectRegistry projectRegistry;
 
 	private Engine engine;
 
-	public QuteGenerateTemplateContentCommandHandler(JavaDataModelCache cache) {
-		this.cache = cache;
+	public QuteGenerateTemplateContentCommandHandler(QuteProjectRegistry projectRegistry) {
+		this.projectRegistry = projectRegistry;
 		this.engine = createQuteEngine();
 	}
 
@@ -48,13 +49,16 @@ public class QuteGenerateTemplateContentCommandHandler implements IDelegateComma
 			CancelChecker cancelChecker) throws Exception {
 		GenerateTemplateInfo info = ArgumentsUtils.getArgAt(params, 0, GenerateTemplateInfo.class);
 		String projectUri = info.getProjectUri();
-		List<DataModelParameter> parameters = info.getParameters();
+		QuteProject project = projectRegistry.getProject(projectUri);
+		if (project == null) {
+			throw new Exception("Cannot findproject with the uri '" + projectUri + "'.");
+		}
 
+		List<DataModelParameter> parameters = info.getParameters();
 		List<ResolvedDataModelParameter> resolvedParameters = new ArrayList<>(parameters.size());
 		List<CompletableFuture<ResolvedJavaTypeInfo>> resolvingJavaTypeFutures = new ArrayList<>();
 		for (DataModelParameter parameter : parameters) {
-			CompletableFuture<ResolvedJavaTypeInfo> future = cache.resolveJavaType(parameter.getSourceType(),
-					projectUri);
+			CompletableFuture<ResolvedJavaTypeInfo> future = project.resolveJavaType(parameter.getSourceType());
 			resolvedParameters.add(new ResolvedDataModelParameter(parameter, future));
 			resolvingJavaTypeFutures.add(future);
 		}

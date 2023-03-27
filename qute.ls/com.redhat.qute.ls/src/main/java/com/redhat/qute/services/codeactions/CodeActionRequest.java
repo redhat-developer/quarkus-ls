@@ -19,7 +19,7 @@ import com.redhat.qute.ls.api.QuteTemplateJavaTextEditProvider;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.services.AbstractPositionRequest;
 import com.redhat.qute.services.diagnostics.DiagnosticDataFactory;
 import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
@@ -94,19 +94,20 @@ public class CodeActionRequest extends AbstractPositionRequest {
 	/**
 	 * Returns the Java base type of the covered node and null otherwise.
 	 *
-	 * @param javaCache the Java data model cache.
-	 *
 	 * @return the Java base type of the covered node and null otherwise.
 	 */
-	public ResolvedJavaTypeInfo getJavaTypeOfCoveredNode(JavaDataModelCache javaCache) {
+	public ResolvedJavaTypeInfo getJavaTypeOfCoveredNode() {
 		if (resolvedType == null) {
 			JavaBaseTypeOfPartData data = DiagnosticDataFactory.getJavaBaseTypeOfPartData(diagnostic);
 			if (data == null) {
 				return null;
 			}
+			QuteProject project = template.getProject();
+			if (project == null) {
+				return null;
+			}
 			String signature = data.getSignature();
-			String projectUri = template.getProjectUri();
-			resolvedType = javaCache.resolveJavaType(signature, projectUri).getNow(null);
+			resolvedType = project.resolveJavaTypeSync(signature);
 		}
 		return resolvedType;
 	}

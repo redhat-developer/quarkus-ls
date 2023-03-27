@@ -11,9 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
+import static com.redhat.qute.services.QuteCompletableFutures.isValidJavaType;
 import static com.redhat.qute.parser.template.Section.isWhenSection;
-import static com.redhat.qute.services.ResolvingJavaTypeContext.RESOLVING_JAVA_TYPE;
-import static com.redhat.qute.services.ResolvingJavaTypeContext.isResolvingJavaType;
 import static com.redhat.qute.services.diagnostics.DiagnosticDataFactory.createDiagnostic;
 import static com.redhat.qute.utils.UserTagUtils.IT_OBJECT_PART_NAME;
 import static com.redhat.qute.utils.UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME;
@@ -70,7 +69,7 @@ import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.QuteProject;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
 import com.redhat.qute.services.diagnostics.CollectHtmlInputNamesVisitor;
@@ -96,9 +95,9 @@ class QuteDiagnostics {
 
 	private static final String FORM_SECTION_TAG = "form";
 
-	private final JavaDataModelCache javaCache;
-
 	private final QuteDiagnosticsForSyntax diagnosticsForSyntax;
+
+	private final QuteProjectRegistry projectRegistry;
 
 	private class ResolutionContext extends HashMap<String, ResolvedJavaTypeInfo> {
 
@@ -130,9 +129,9 @@ class QuteDiagnostics {
 			this.whenObject = whenObject;
 		}
 
-		public JavaMemberInfo findMemberWithObject(String property, String projectUri) {
+		public JavaMemberInfo findMemberWithObject(String property, QuteProject project) {
 			if (withObject != null) {
-				JavaMemberInfo member = javaCache.findMember(withObject, property, projectUri);
+				JavaMemberInfo member = project.findMember(withObject, property);
 				if (member != null) {
 					return member;
 				}
@@ -140,7 +139,7 @@ class QuteDiagnostics {
 			// Search in parent context
 			ResolutionContext parent = this.parent;
 			while (parent != null) {
-				JavaMemberInfo member = parent.findMemberWithObject(property, projectUri);
+				JavaMemberInfo member = parent.findMemberWithObject(property, project);
 				if (member != null) {
 					return member;
 				}
@@ -151,8 +150,8 @@ class QuteDiagnostics {
 
 	}
 
-	public QuteDiagnostics(JavaDataModelCache javaCache) {
-		this.javaCache = javaCache;
+	public QuteDiagnostics(QuteProjectRegistry projectRegistry) {
+		this.projectRegistry = projectRegistry;
 		this.diagnosticsForSyntax = new QuteDiagnosticsForSyntax();
 	}
 
@@ -208,17 +207,20 @@ class QuteDiagnostics {
 	private void validateDataModel(Node parent, Template template, QuteValidationSettings validationSettings,
 			QuteNativeSettings nativeImagesSettings, ResolvingJavaTypeContext resolvingJavaTypeContext,
 			ResolutionContext currentContext, List<Diagnostic> diagnostics) {
-		String projectUri = template.getProjectUri();
-		JavaTypeFilter filter = javaCache.getJavaTypeFilter(projectUri, nativeImagesSettings);
+		QuteProject project = template.getProject();
+		String projectUri = project != null ? project.getUri() : null;
+		JavaTypeFilter filter = projectRegistry.getJavaTypeFilter(projectUri, nativeImagesSettings);
 		ResolutionContext previousContext = currentContext;
 		List<Node> children = parent.getChildren();
 		for (Node node : children) {
 			switch (node.getKind()) {
 				case ParameterDeclaration: {
-					ParameterDeclaration parameter = (ParameterDeclaration) node;
-					validateParameterDeclaration(parameter, template, projectUri, resolvingJavaTypeContext,
-							currentContext,
-							diagnostics);
+					if (project != null) {
+						ParameterDeclaration parameter = (ParameterDeclaration) node;
+						validateParameterDeclaration(parameter, template, project, resolvingJavaTypeContext,
+								currentContext,
+								diagnostics);
+					}
 					break;
 				}
 				case Section: {
@@ -295,8 +297,7 @@ class QuteDiagnostics {
 								ResolvedJavaTypeInfo whenJavaType = currentContext.whenObject;
 								if (whenJavaType != null) {
 									validateCaseSectionParameters((CaseSection) section, parentSection, template,
-											whenJavaType,
-											projectUri, diagnostics);
+											whenJavaType, project, diagnostics);
 								}
 							}
 							break;
@@ -327,27 +328,26 @@ class QuteDiagnostics {
 	 * @param currentContext           the resolution context.
 	 * @param diagnostics              the diagnostics to update.
 	 */
-	private void validateParameterDeclaration(ParameterDeclaration parameter, Template template, String projectUri,
+	private void validateParameterDeclaration(ParameterDeclaration parameter, Template template, QuteProject project,
 			ResolvingJavaTypeContext resolvingJavaTypeContext, ResolutionContext currentContext,
 			List<Diagnostic> diagnostics) {
 		String javaTypeToResolve = parameter.getJavaType();
 		if (!StringUtils.isEmpty(javaTypeToResolve)) {
-			if (projectUri != null) {
-				List<JavaTypeRangeOffset> classNameRanges = parameter.getJavaTypeNameRanges();
-				for (RangeOffset classNameRange : classNameRanges) {
-					String className = template.getText(classNameRange);
-					ResolvedJavaTypeInfo resolvedJavaType = resolveJavaType(className, projectUri,
-							resolvingJavaTypeContext);
-					if (resolvedJavaType == null) {
-						// ex : {@org.acme.XXXXX item}
-						// Java type 'org.acme.XXXXX' doesn't exist
-						Range range = QutePositionUtility.createRange(classNameRange, template);
-						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-								QuteErrorCode.UnknownType, className);
-						diagnostics.add(diagnostic);
-					} else if (!isResolvingJavaType(resolvedJavaType)) {
-						currentContext.put(javaTypeToResolve, resolvedJavaType);
-					}
+
+			List<JavaTypeRangeOffset> classNameRanges = parameter.getJavaTypeNameRanges();
+			for (RangeOffset classNameRange : classNameRanges) {
+				String className = template.getText(classNameRange);
+				ResolvedJavaTypeInfo resolvedJavaType = resolveJavaType(className, project,
+						resolvingJavaTypeContext);
+				if (resolvedJavaType == null) {
+					// ex : {@org.acme.XXXXX item}
+					// Java type 'org.acme.XXXXX' doesn't exist
+					Range range = QutePositionUtility.createRange(classNameRange, template);
+					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+							QuteErrorCode.UnknownType, className);
+					diagnostics.add(diagnostic);
+				} else if (!QuteCompletableFutures.isResolvingJavaType(resolvedJavaType)) {
+					currentContext.put(javaTypeToResolve, resolvedJavaType);
 				}
 			}
 		}
@@ -549,7 +549,7 @@ class QuteDiagnostics {
 			QuteValidationSettings validationSettings, JavaTypeFilter filter, ResolutionContext resolutionContext,
 			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
 		try {
-			String projectUri = template.getProjectUri();
+			QuteProject project = template.getProject();
 			String literalJavaType = expression.getLiteralJavaType();
 			if (literalJavaType != null) {
 				// The expression is a literal:
@@ -557,9 +557,8 @@ class QuteDiagnostics {
 				// - {true} : boolean literal
 				// - {null} : null literal
 				// - {123} : integer literal
-				ResolvedJavaTypeInfo resolvedLiteralType = javaCache.resolveJavaType(literalJavaType, projectUri)
-						.getNow(null);
-				if (resolvedLiteralType == null) {
+				ResolvedJavaTypeInfo resolvedLiteralType = project.resolveJavaTypeSync(literalJavaType);
+				if (QuteCompletableFutures.isResolvingJavaTypeOrNull(resolvedLiteralType)) {
 					return null;
 				}
 				return validateIterable(expression.getLastPart(), ownerSection, resolvedLiteralType,
@@ -571,7 +570,7 @@ class QuteDiagnostics {
 			for (Node expressionChild : expressionChildren) {
 				if (expressionChild.getKind() == NodeKind.ExpressionParts) {
 					Parts parts = (Parts) expressionChild;
-					resolvedJavaType = validateExpressionParts(parts, ownerSection, template, projectUri,
+					resolvedJavaType = validateExpressionParts(parts, ownerSection, template, project,
 							validationSettings, filter, resolutionContext, resolvingJavaTypeContext, diagnostics);
 				}
 			}
@@ -586,7 +585,7 @@ class QuteDiagnostics {
 	}
 
 	private ResolvedJavaTypeInfo validateExpressionParts(Parts parts, Section ownerSection, Template template,
-			String projectUri, QuteValidationSettings validationSettings, JavaTypeFilter filter,
+			QuteProject project, QuteValidationSettings validationSettings, JavaTypeFilter filter,
 			ResolutionContext resolutionContext, ResolvingJavaTypeContext resolvingJavaTypeContext,
 			List<Diagnostic> diagnostics) {
 		// In native mode we need to collect all Java type of the expression to use it
@@ -615,7 +614,7 @@ class QuteDiagnostics {
 
 				case Namespace: {
 					NamespacePart namespacePart = (NamespacePart) current;
-					namespace = validateNamespace(namespacePart, projectUri, validationSettings,
+					namespace = validateNamespace(namespacePart, project, validationSettings,
 							resolvingJavaTypeContext,
 							diagnostics);
 					if (namespace == null) {
@@ -627,11 +626,11 @@ class QuteDiagnostics {
 
 				case Object: {
 					ObjectPart objectPart = (ObjectPart) current;
-					baseType = validateObjectPart(namespace, objectPart, ownerSection, template, projectUri,
+					baseType = validateObjectPart(namespace, objectPart, ownerSection, template, project,
 							validationSettings, resolutionContext, diagnostics, resolvingJavaTypeContext);
-					if (isResolvingJavaType(baseType)) {
+					if (QuteCompletableFutures.isResolvingJavaType(baseType)) {
 						// The java type is resolving, stop the validation
-						return RESOLVING_JAVA_TYPE;
+						return QuteCompletableFutures.RESOLVING_JAVA_TYPE;
 					}
 					break;
 				}
@@ -639,11 +638,11 @@ class QuteDiagnostics {
 				case Method:
 				case Property: {
 					// java.util.List<org.acme.Item>
-					if (isResolvingJavaType(baseType)) {
+					if (QuteCompletableFutures.isResolvingJavaType(baseType)) {
 						// The java type is resolving, stop the validation
-						return RESOLVING_JAVA_TYPE;
+						return QuteCompletableFutures.RESOLVING_JAVA_TYPE;
 					}
-					baseType = validateMemberPart(current, ownerSection, template, projectUri, validationSettings,
+					baseType = validateMemberPart(current, ownerSection, template, project, validationSettings,
 							filter,
 							resolutionContext, baseType, baseType, diagnostics, resolvingJavaTypeContext);
 					break;
@@ -653,9 +652,9 @@ class QuteDiagnostics {
 		return baseType;
 	}
 
-	private ResolvedJavaTypeInfo resolveJavaType(String javaType, String projectUri,
+	private ResolvedJavaTypeInfo resolveJavaType(String javaType, QuteProject project,
 			ResolvingJavaTypeContext resolvingJavaTypeContext) {
-		return resolvingJavaTypeContext.resolveJavaType(javaType, projectUri);
+		return resolvingJavaTypeContext.resolveJavaType(javaType, project);
 	}
 
 	/**
@@ -668,7 +667,7 @@ class QuteDiagnostics {
 	 * @return the namespace of the part if it is an defined namespace and null
 	 *         otherwise.
 	 */
-	private String validateNamespace(NamespacePart namespacePart, String projectUri,
+	private String validateNamespace(NamespacePart namespacePart, QuteProject project,
 			QuteValidationSettings validationSettings, ResolvingJavaTypeContext resolvingJavaTypeContext,
 			List<Diagnostic> diagnostics) {
 		String namespace = namespacePart.getPartName();
@@ -680,8 +679,9 @@ class QuteDiagnostics {
 			return null;
 		}
 
-		if (projectUri != null) {
-			if (!javaCache.hasNamespace(namespace, projectUri)) {
+		if (project != null) {
+
+			if (!project.hasNamespace(namespace)) {
 				DiagnosticSeverity severity = validationSettings.getUndefinedNamespace().getDiagnosticSeverity();
 				if (severity == null) {
 					return null;
@@ -697,12 +697,16 @@ class QuteDiagnostics {
 	}
 
 	private ResolvedJavaTypeInfo validateObjectPart(String namespace, ObjectPart objectPart, Section ownerSection,
-			Template template, String projectUri, QuteValidationSettings validationSettings,
+			Template template, QuteProject project, QuteValidationSettings validationSettings,
 			ResolutionContext resolutionContext, List<Diagnostic> diagnostics,
 			ResolvingJavaTypeContext resolvingJavaTypeContext) {
-		JavaMemberInfo javaMember = resolutionContext.findMemberWithObject(objectPart.getPartName(), projectUri);
+		if (project == null) {
+			return null;
+		}
+
+		JavaMemberInfo javaMember = resolutionContext.findMemberWithObject(objectPart.getPartName(), project);
 		if (javaMember != null) {
-			ResolvedJavaTypeInfo resolvedJavaType = resolveJavaType(javaMember.getJavaElementType(), projectUri,
+			ResolvedJavaTypeInfo resolvedJavaType = resolveJavaType(javaMember.getJavaElementType(), project,
 					resolvingJavaTypeContext);
 			// returns the java type or the resolving java type
 			return resolvedJavaType;
@@ -768,11 +772,11 @@ class QuteDiagnostics {
 				} else {
 					Part lastPart = expression.getLastPart();
 					if (lastPart != null) {
-						ResolvedJavaTypeInfo alias = javaCache.resolveJavaType(lastPart, projectUri)
-								.getNow(RESOLVING_JAVA_TYPE);
-						if (isResolvingJavaType(alias)) {
+						ResolvedJavaTypeInfo alias = project.resolveJavaType(lastPart)
+								.getNow(QuteCompletableFutures.RESOLVING_JAVA_TYPE);
+						if (QuteCompletableFutures.isResolvingJavaType(alias)) {
 							// The java type is resolving, stop the validation
-							return RESOLVING_JAVA_TYPE;
+							return QuteCompletableFutures.RESOLVING_JAVA_TYPE;
 						}
 						if (alias == null) {
 							if (!resolvingJavaTypeContext.isDataModelTemplateResolved()) {
@@ -786,7 +790,7 @@ class QuteDiagnostics {
 				}
 			}
 		}
-		return validateJavaTypePart(objectPart, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext,
+		return validateJavaTypePart(objectPart, ownerSection, project, diagnostics, resolvingJavaTypeContext,
 				javaTypeToResolve, javaTypeInfo.getJavaTypeOwnerNode());
 	}
 
@@ -806,18 +810,18 @@ class QuteDiagnostics {
 	 * @return the Java type returned by the member part and null otherwise.
 	 */
 	private ResolvedJavaTypeInfo validateMemberPart(Part part, Section ownerSection, Template template,
-			String projectUri, QuteValidationSettings validationSettings, JavaTypeFilter filter,
+			QuteProject project, QuteValidationSettings validationSettings, JavaTypeFilter filter,
 			ResolutionContext resolutionContext, ResolvedJavaTypeInfo baseType, ResolvedJavaTypeInfo iterableOfType,
 			List<Diagnostic> diagnostics, ResolvingJavaTypeContext resolvingJavaTypeContext) {
 		if (part.getPartKind() == PartKind.Method) {
 			// Validate method part
 			// ex : {foo.method(1, 2)}
-			return validateMethodPart((MethodPart) part, ownerSection, template, projectUri, validationSettings, filter,
+			return validateMethodPart((MethodPart) part, ownerSection, template, project, validationSettings, filter,
 					resolutionContext, baseType, iterableOfType, diagnostics, resolvingJavaTypeContext);
 		}
 		// Validate property part
 		// ex : {foo.property}
-		return validatePropertyPart((PropertyPart) part, ownerSection, template, projectUri, resolutionContext,
+		return validatePropertyPart((PropertyPart) part, ownerSection, template, project, resolutionContext,
 				baseType, iterableOfType, filter, diagnostics, resolvingJavaTypeContext);
 	}
 
@@ -838,13 +842,13 @@ class QuteDiagnostics {
 	 * @return the Java type returned by the member part and null otherwise.
 	 */
 	private ResolvedJavaTypeInfo validatePropertyPart(PropertyPart part, Section ownerSection, Template template,
-			String projectUri, ResolutionContext resolutionContext, ResolvedJavaTypeInfo baseType,
+			QuteProject project, ResolutionContext resolutionContext, ResolvedJavaTypeInfo baseType,
 			ResolvedJavaTypeInfo iterableOfType, JavaTypeFilter filter, List<Diagnostic> diagnostics,
 			ResolvingJavaTypeContext resolvingJavaTypeContext) {
-		if (baseType == null) {
+		if (!isValidJavaType(baseType) || project == null) {
 			return null;
 		}
-		JavaMemberResult result = javaCache.findProperty(part, baseType, filter.isInNativeMode(), projectUri);
+		JavaMemberResult result = project.findProperty(part, baseType, filter.isInNativeMode());
 		JavaMemberInfo javaMember = result.getMember();
 		if (javaMember == null) {
 			// ex : {@org.acme.Item item}
@@ -922,7 +926,7 @@ class QuteDiagnostics {
 		}
 
 		String memberType = javaMember.resolveJavaElementType(iterableOfType);
-		return validateJavaTypePart(part, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext, memberType,
+		return validateJavaTypePart(part, ownerSection, project, diagnostics, resolvingJavaTypeContext, memberType,
 				null);
 	}
 
@@ -932,7 +936,7 @@ class QuteDiagnostics {
 	 * @param methodPart               the method part to validate.
 	 * @param ownerSection             the owner section and null otherwise.
 	 * @param template                 the template.
-	 * @param projectUri               the project Uri.
+	 * @param project                  the project Uri.
 	 * @param validationSettings       the validation settings.
 	 * @param the                      Java type filter.
 	 * @param resolutionContext        the resolution context.
@@ -944,7 +948,7 @@ class QuteDiagnostics {
 	 * @return the Java type returned by the member part and null otherwise.
 	 */
 	private ResolvedJavaTypeInfo validateMethodPart(MethodPart methodPart, Section ownerSection, Template template,
-			String projectUri, QuteValidationSettings validationSettings, JavaTypeFilter filter,
+			QuteProject project, QuteValidationSettings validationSettings, JavaTypeFilter filter,
 			ResolutionContext resolutionContext, ResolvedJavaTypeInfo baseType, ResolvedJavaTypeInfo iterableOfType,
 			List<Diagnostic> diagnostics, ResolvingJavaTypeContext resolvingJavaTypeContext) {
 		if (methodPart.isInfixNotation()) {
@@ -969,7 +973,7 @@ class QuteDiagnostics {
 				result = validateExpression(expression, ownerSection, template, validationSettings, filter,
 						resolutionContext, resolvingJavaTypeContext, diagnostics);
 			}
-			if (result == null || RESOLVING_JAVA_TYPE == result) {
+			if (result == null || QuteCompletableFutures.RESOLVING_JAVA_TYPE == result) {
 				// The resolved type cannot be resolved or it is resolving.
 				undefinedType = true;
 			}
@@ -984,12 +988,15 @@ class QuteDiagnostics {
 			return baseType;
 		}
 
+		if (project == null) {
+			return null;
+		}
 		// All parameters are resolved, validate the existing of method name according
 		// to the computed parameter types
 		String methodName = methodPart.getPartName();
 		String namespace = methodPart.getNamespace();
-		JavaMemberResult result = javaCache.findMethod(baseType, namespace, methodName, parameterTypes,
-				filter.isInNativeMode(), projectUri);
+		JavaMemberResult result = project.findMethod(baseType, namespace, methodName, parameterTypes,
+				filter.isInNativeMode());
 		JavaMethodInfo method = (JavaMethodInfo) result.getMember();
 		if (method == null) {
 			String signature = null;
@@ -1004,7 +1011,7 @@ class QuteDiagnostics {
 				// {item.getXXXX()}
 				if (baseType != null) {
 					arg = baseType.getSignature();
-					InvalidMethodReason reason = javaCache.getInvalidMethodReason(methodName, baseType, projectUri);
+					InvalidMethodReason reason = project.getInvalidMethodReason(methodName, baseType);
 					if (reason != null) {
 						switch (reason) {
 							case VoidReturn:
@@ -1164,7 +1171,7 @@ class QuteDiagnostics {
 					diagnostics);
 		}
 		String memberType = method.resolveJavaElementType(iterableOfType);
-		return validateJavaTypePart(methodPart, ownerSection, projectUri, diagnostics, resolvingJavaTypeContext,
+		return validateJavaTypePart(methodPart, ownerSection, project, diagnostics, resolvingJavaTypeContext,
 				memberType, null);
 	}
 
@@ -1178,7 +1185,7 @@ class QuteDiagnostics {
 		return filter.isInNativeMode();
 	}
 
-	private ResolvedJavaTypeInfo validateJavaTypePart(Part part, Section ownerSection, String projectUri,
+	private ResolvedJavaTypeInfo validateJavaTypePart(Part part, Section ownerSection, QuteProject project,
 			List<Diagnostic> diagnostics, ResolvingJavaTypeContext resolvingJavaTypeContext, String javaTypeToResolve,
 			Node referencedNode) {
 		if (StringUtils.isEmpty(javaTypeToResolve)) {
@@ -1198,7 +1205,7 @@ class QuteDiagnostics {
 			return null;
 		}
 
-		if (projectUri == null) {
+		if (project == null) {
 			return null;
 		}
 
@@ -1209,17 +1216,18 @@ class QuteDiagnostics {
 			// the iterable of. If javaTypeToResolve= 'java.util.List<org.acme.Item>',we
 			// must get 'org.acme.Item'.
 			// - otherwise resolve the given java type to resolve
-			resolvingJavaTypeFuture = javaCache.resolveJavaType(part, projectUri, false);
+			resolvingJavaTypeFuture = project.resolveJavaType(part);
 		} else {
 			// Other part kind (property, method), resolve the given java type to resolve
-			resolvingJavaTypeFuture = javaCache.resolveJavaType(javaTypeToResolve, projectUri);
+			resolvingJavaTypeFuture = project.resolveJavaType(javaTypeToResolve, true);
 		}
-		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture.getNow(RESOLVING_JAVA_TYPE);
-		if (isResolvingJavaType(resolvedJavaType)) {
+		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture
+				.getNow(QuteCompletableFutures.RESOLVING_JAVA_TYPE);
+		if (QuteCompletableFutures.isResolvingJavaType(resolvedJavaType)) {
 			// Java type must be loaded.
 			LOGGER.log(Level.INFO, QuteErrorCode.ResolvingJavaType.getMessage(javaTypeToResolve));
 			resolvingJavaTypeContext.add(resolvingJavaTypeFuture);
-			return RESOLVING_JAVA_TYPE;
+			return QuteCompletableFutures.RESOLVING_JAVA_TYPE;
 		}
 
 		if (resolvedJavaType == null) {
@@ -1266,7 +1274,7 @@ class QuteDiagnostics {
 	 * @param diagnostics the diagnostic list.
 	 */
 	private void validateCaseSectionParameters(CaseSection caseSection, Section whenSection, Template template,
-			ResolvedJavaTypeInfo whenType, String projectUri, List<Diagnostic> diagnostics) {
+			ResolvedJavaTypeInfo whenType, QuteProject project, List<Diagnostic> diagnostics) {
 		String expression = whenSection.getExpressionContent();
 		List<Parameter> parameters = caseSection.getParameters();
 		String whenTypeName = whenType.getSignature();
@@ -1313,7 +1321,7 @@ class QuteDiagnostics {
 				}
 			}
 			String caseJavaType = LiteralSupport.getLiteralJavaType(parameter.getValue());
-			if (caseJavaType == null && javaCache.findMember(whenType, parameterName, projectUri) == null) {
+			if (caseJavaType == null && project.findMember(whenType, parameterName) == null) {
 				if (i == 0 && parameters.size() > 1) {
 					// The first parameter is invalid: either invalid Enum value or unknown operator
 					// Ex: {#is XXX ON}

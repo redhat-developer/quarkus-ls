@@ -73,7 +73,6 @@ import com.redhat.qute.project.ProgressSupport;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.QuteTextDocument;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.project.documents.TemplateValidator;
 import com.redhat.qute.services.QuteLanguageService;
 import com.redhat.qute.settings.AllQuteSettings;
@@ -95,8 +94,6 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 
 	private static final Logger LOGGER = Logger.getLogger(QuteLanguageServer.class.getName());
 
-	private final JavaDataModelCache dataModelCache;
-
 	private final SharedSettings sharedSettings;
 
 	private final QuteProjectRegistry projectRegistry;
@@ -117,8 +114,7 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	public QuteLanguageServer() {
 		this.sharedSettings = new SharedSettings();
 		this.projectRegistry = new QuteProjectRegistry(this, this, this, this, this, this, this, this);
-		this.dataModelCache = new JavaDataModelCache(projectRegistry);
-		this.quteLanguageService = new QuteLanguageService(dataModelCache);
+		this.quteLanguageService = new QuteLanguageService(projectRegistry);
 		this.textDocumentService = new QuteTextDocumentService(this);
 		this.workspaceService = new QuteWorkspaceService(this);
 	}
@@ -301,10 +297,6 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	public void dataModelChanged(JavaDataModelChangeEvent event) {
 		projectRegistry.dataModelChanged(event);
 		textDocumentService.dataModelChanged(event);
-	}
-
-	public JavaDataModelCache getDataModelCache() {
-		return dataModelCache;
 	}
 
 	public QuteProjectRegistry getProjectRegistry() {

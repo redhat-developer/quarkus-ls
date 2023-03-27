@@ -30,7 +30,7 @@ import com.redhat.qute.ls.api.QuteTemplateJavaTextEditProvider;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.services.codeactions.CodeActionRequest;
 import com.redhat.qute.services.codeactions.QuteCodeActionForMissingInputs;
 import com.redhat.qute.services.codeactions.QuteCodeActionForMissingParameters;
@@ -80,14 +80,14 @@ class QuteCodeActions {
 
 	private final QuteCodeActionForMissingParameters codeActionForMissingParameters;
 
-	public QuteCodeActions(JavaDataModelCache javaCache) {
-		this.codeActionForUndefinedObject = new QuteCodeActionForUndefinedObject(javaCache);
-		this.codeActionForUndefinedNamespace = new QuteCodeActionForUndefinedNamespace(javaCache);
-		this.codeActionForUnknownProperty = new QuteCodeActionForUnknownProperty(javaCache);
-		this.codeActionForUnknownMethod = new QuteCodeActionForUnknownMethod(javaCache);
-		this.codeActionForUndefinedSectionTag = new QuteCodeActionForUndefinedSectionTag(javaCache);
-		this.codeActionForMissingInputs = new QuteCodeActionForMissingInputs(javaCache);
-		this.codeActionForMissingParameters = new QuteCodeActionForMissingParameters(javaCache);
+	public QuteCodeActions(QuteProjectRegistry projectRegistry) {
+		this.codeActionForUndefinedObject = new QuteCodeActionForUndefinedObject();
+		this.codeActionForUndefinedNamespace = new QuteCodeActionForUndefinedNamespace();
+		this.codeActionForUnknownProperty = new QuteCodeActionForUnknownProperty(projectRegistry);
+		this.codeActionForUnknownMethod = new QuteCodeActionForUnknownMethod(projectRegistry);
+		this.codeActionForUndefinedSectionTag = new QuteCodeActionForUndefinedSectionTag();
+		this.codeActionForMissingInputs = new QuteCodeActionForMissingInputs(projectRegistry);
+		this.codeActionForMissingParameters = new QuteCodeActionForMissingParameters();
 	}
 
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
@@ -106,62 +106,63 @@ class QuteCodeActions {
 					CodeActionRequest request = new CodeActionRequest(template, range.getEnd(), diagnostic,
 							javaTextEditProvider, sharedSettings);
 					switch (errorCode) {
-					case UndefinedObject:
-						// The following Qute template:
-						// {undefinedObject}
-						//
-						// will provide a quickfix like:
-						//
-						// Declare `undefinedObject` with parameter declaration."
-						codeActionForUndefinedObject.doCodeActions(request, codeActionResolveFutures, codeActions);
-						break;
-					case UndefinedNamespace:
-						// The following Qute template:
-						// {undefinedNamespace:xyz}
-						codeActionForUndefinedNamespace.doCodeActions(request, codeActionResolveFutures,
-								codeActions);
-						break;
-					case UnknownProperty:
-						codeActionForUnknownProperty.doCodeActions(request, codeActionResolveFutures, codeActions);
-						break;
-					case UnknownMethod:
-						codeActionForUnknownMethod.doCodeActions(request, codeActionResolveFutures, codeActions);
-						break;
-					case UndefinedSectionTag:
-						// The following Qute template:
-						// {#undefinedTag }
-						//
-						// will provide a quickfix like:
-						//
-						// Create `undefinedTag`"
-						codeActionForUndefinedSectionTag.doCodeActions(request, codeActionResolveFutures,
-								codeActions);
-						break;
-					case MissingExpectedInput:
-						// The following Qute template:
-						// {#form uri:Login.manualLogin() id="login"}
-						//
-						// {/form}
-						// with some required inputs to be defined within the form section
-						// will provide 2 quickfixs:
-						//
-						// Insert required input forms
-						// Insert all input forms
-						codeActionForMissingInputs.doCodeActions(request, codeActionResolveFutures, codeActions);
-						break;
-					case MissingRequiredParameter:
-						// The following Qute template:
-						// {#input /}
-						// with some required parameters defined in the user tag html
-						// will provide quickfix:
-						//
-						// Insert requried parameters
-						//
-						// Result: <input name="{name}" class="{class}" >
-						codeActionForMissingParameters.doCodeActions(request, codeActionResolveFutures, codeActions);
-						break;
-					default:
-						break;
+						case UndefinedObject:
+							// The following Qute template:
+							// {undefinedObject}
+							//
+							// will provide a quickfix like:
+							//
+							// Declare `undefinedObject` with parameter declaration."
+							codeActionForUndefinedObject.doCodeActions(request, codeActionResolveFutures, codeActions);
+							break;
+						case UndefinedNamespace:
+							// The following Qute template:
+							// {undefinedNamespace:xyz}
+							codeActionForUndefinedNamespace.doCodeActions(request, codeActionResolveFutures,
+									codeActions);
+							break;
+						case UnknownProperty:
+							codeActionForUnknownProperty.doCodeActions(request, codeActionResolveFutures, codeActions);
+							break;
+						case UnknownMethod:
+							codeActionForUnknownMethod.doCodeActions(request, codeActionResolveFutures, codeActions);
+							break;
+						case UndefinedSectionTag:
+							// The following Qute template:
+							// {#undefinedTag }
+							//
+							// will provide a quickfix like:
+							//
+							// Create `undefinedTag`"
+							codeActionForUndefinedSectionTag.doCodeActions(request, codeActionResolveFutures,
+									codeActions);
+							break;
+						case MissingExpectedInput:
+							// The following Qute template:
+							// {#form uri:Login.manualLogin() id="login"}
+							//
+							// {/form}
+							// with some required inputs to be defined within the form section
+							// will provide 2 quickfixs:
+							//
+							// Insert required input forms
+							// Insert all input forms
+							codeActionForMissingInputs.doCodeActions(request, codeActionResolveFutures, codeActions);
+							break;
+						case MissingRequiredParameter:
+							// The following Qute template:
+							// {#input /}
+							// with some required parameters defined in the user tag html
+							// will provide quickfix:
+							//
+							// Insert requried parameters
+							//
+							// Result: <input name="{name}" class="{class}" >
+							codeActionForMissingParameters.doCodeActions(request, codeActionResolveFutures,
+									codeActions);
+							break;
+						default:
+							break;
 					}
 				} catch (BadLocationException e) {
 					LOGGER.log(Level.SEVERE, "Failed creating CodeAction Request", e);

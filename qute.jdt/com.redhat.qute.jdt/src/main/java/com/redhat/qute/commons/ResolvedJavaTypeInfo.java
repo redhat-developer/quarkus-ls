@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.commons;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,6 +32,9 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
 	private static final String JAVA_LANG_ITERABLE_TYPE = "java.lang.Iterable";
 
+	private static final List<String> WRAPPED_TYPES = Arrays.asList("java.util.concurrent.CompletionStage",
+			"io.smallrye.mutiny.Uni");
+
 	private List<String> extendedTypes;
 
 	private List<JavaFieldInfo> fields;
@@ -46,6 +50,8 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	private transient String iterableOf;
 
 	private transient Boolean isIterable;
+
+	private transient Boolean isWrapperObject;
 
 	/**
 	 * Returns list of extended types.
@@ -73,7 +79,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	public List<JavaFieldInfo> getFields() {
 		return fields != null ? fields : Collections.emptyList();
 	}
-	
+
 	protected boolean isFieldsInitialized() {
 		return fields != null;
 	}
@@ -99,7 +105,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	protected boolean isMethodsInitialized() {
 		return methods != null;
 	}
-	
+
 	/**
 	 * Set member methods.
 	 * 
@@ -148,6 +154,56 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	}
 
 	/**
+	 * Returns true if the Java type is / or implements
+	 * "java.util.concurrent.CompletionStage"
+	 * or "io.smallrye.mutiny.Uni" and false otherwise.
+	 * 
+	 * @return true if the Java type is / or implements
+	 *         "java.util.concurrent.CompletionStage"
+	 *         or "io.smallrye.mutiny.Uni" and false otherwise.
+	 */
+	public boolean isWrapperObject() {
+		if (isWrapperObject != null) {
+			return isWrapperObject.booleanValue();
+		}
+		isWrapperObject = computeIsWrappedObject();
+		return isWrapperObject.booleanValue();
+	}
+
+	private synchronized boolean computeIsWrappedObject() {
+		if (isWrapperObject != null) {
+			return isWrapperObject.booleanValue();
+		}
+		boolean wrapperObject = isWrapperObject(getName());
+		if (!wrapperObject && extendedTypes != null) {
+			for (String extendedType : extendedTypes) {
+				if (isWrapperObject(extendedType)) {
+					wrapperObject = true;
+					break;
+				}
+			}
+		}
+		return wrapperObject;
+	}
+
+	/**
+	 * Returns true if the given Java type is "java.util.concurrent.CompletionStage"
+	 * or "io.smallrye.mutiny.Uni" and false otherwise.
+	 * 
+	 * @param type the Java type.
+	 * 
+	 * @return true if the given Java type is "java.util.concurrent.CompletionStage"
+	 *         or "io.smallrye.mutiny.Uni" and false otherwise.
+	 */
+	public static boolean isWrapperObject(String type) {
+		return WRAPPED_TYPES.contains(type);
+	}
+
+	public void setWrapperObject(Boolean wrapperObject) {
+		this.isWrapperObject = wrapperObject;
+	}
+
+	/**
 	 * Returns true if this Java type is in a binary file, and false otherwise.
 	 * 
 	 * @return true if this Java type is in a binary file, and false otherwise
@@ -185,7 +241,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		boolean iterable = getName().equals(JAVA_LANG_ITERABLE_TYPE);
 		if (!iterable && extendedTypes != null) {
 			for (String extendedType : extendedTypes) {
-				if (ITERABLE_TYPE.equals(extendedType) || extendedType.equals(JAVA_LANG_ITERABLE_TYPE)) {
+				if (isIterable(extendedType)) {
 					iterable = true;
 					break;
 				}
@@ -201,6 +257,10 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 			}
 		}
 		return iterable;
+	}
+
+	public static boolean isIterable(String type) {
+		return ITERABLE_TYPE.equals(type) || JAVA_LANG_ITERABLE_TYPE.equals(type);
 	}
 
 	/**
@@ -303,5 +363,4 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	public boolean isEnum() {
 		return getJavaTypeKind() == JavaTypeKind.Enum;
 	}
-
 }

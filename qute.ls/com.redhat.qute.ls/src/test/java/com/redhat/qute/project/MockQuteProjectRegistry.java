@@ -97,7 +97,7 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 			String fieldName = params.getSourceField();
 			if (fieldName != null) {
 				// Definition for field
-				JavaFieldInfo fieldInfo = super.findField(classInfo, fieldName);
+				JavaFieldInfo fieldInfo = QuteProject.findField(classInfo, fieldName);
 				if (fieldInfo != null) {
 					definitionRange = JAVA_FIELD_RANGE;
 				}
@@ -105,19 +105,19 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 				// Definition for method
 				String methodName = params.getSourceMethod();
 				if (methodName != null) {
-					String getterMethodName = computeGetterName(methodName);
-					String booleanGetterName = computeBooleanGetterName(methodName);
-					JavaMethodInfo methodInfo = super.findMethod(classInfo, methodName, getterMethodName,
+					String getterMethodName = QuteProject.computeGetterName(methodName);
+					String booleanGetterName = QuteProject.computeBooleanGetterName(methodName);
+					JavaMethodInfo methodInfo = QuteProject.findMethod(classInfo, methodName, getterMethodName,
 							booleanGetterName);
 					if (methodInfo != null) {
 						definitionRange = JAVA_METHOD_RANGE;
-					} 
+					}
 				} else {
 					// Definition for class
 					definitionRange = JAVA_CLASS_RANGE;
 				}
 			}
-		} 
+		}
 
 		if (definitionRange == null) {
 			// Find by field, method of value resolver
@@ -126,10 +126,10 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 				JavaMethodInfo methodInfo = project.getMethodValueResolver(className, methodName);
 				if (methodInfo != null) {
 					definitionRange = JAVA_STATIC_METHOD_RANGE;
-				} 
+				}
 			}
 		}
-		
+
 		if (definitionRange != null) {
 			int index = className.indexOf('<');
 			if (index != -1) {
@@ -155,7 +155,7 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
 		return CompletableFuture.completedFuture(Collections.emptyList());
 	}
-	
+
 	@Override
 	public CompletableFuture<String> getJavadoc(QuteJavadocParams params) {
 		return CompletableFuture.completedFuture(null);

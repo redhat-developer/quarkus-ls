@@ -212,4 +212,71 @@ public class QuteHoverInExpressionWithForSectionTest {
 				"{/for}";
 		assertHover(template);
 	}
+
+	@Test
+	public void notIterable() throws Exception {
+		String template = "{@java.lang.String items}\r\n"
+				+ "\r\n"
+				+ "{#for it|em in items}\r\n"
+				+ "	{item.blank}\r\n"
+				+ "{/for}";
+		assertHover(template);
+
+		template = "{@java.lang.String items}\r\n"
+				+ "\r\n"
+				+ "{#for item in items}\r\n"
+				+ "	{it|em.blank}\r\n"
+				+ "{/for}";
+		assertHover(template);
+
+		template = "{@java.lang.String items}\r\n"
+				+ "\r\n"
+				+ "{#for item in items}\r\n"
+				+ "	{item.bl|ank}\r\n"
+				+ "{/for}";
+		assertHover(template);
+	}
+
+	@Test
+	public void list() throws Exception {
+		String template = "{@java.util.List items}\r\n"
+				+ "{#for it|em in items}\r\n"
+				+ "	{item.blank}\r\n"
+				+ "{/for}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"Object" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 6, 1, 10));
+
+		template = "{@java.util.List items}\r\n"
+				+ "{#for item in it|ems}\r\n"
+				+ "	{item.blank}\r\n"
+				+ "{/for}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"List<Object>" + //
+				System.lineSeparator() + //
+				"```", //
+				r(1, 14, 1, 19));
+
+		template = "{@java.util.List items}\r\n"
+				+ "{#for item in items}\r\n"
+				+ "	{ite|m.blank}\r\n"
+				+ "{/for}";
+		assertHover(template, "```java" + //
+				System.lineSeparator() + //
+				"Object" + //
+				System.lineSeparator() + //
+				"```", //
+				r(2, 2, 2, 6));
+
+		template = "{@java.util.List items}\r\n"
+				+ "{#for item in items}\r\n"
+				+ "	{item.bl|ank}\r\n"
+				+ "{/for}";
+		assertHover(template);
+	}
+
 }
