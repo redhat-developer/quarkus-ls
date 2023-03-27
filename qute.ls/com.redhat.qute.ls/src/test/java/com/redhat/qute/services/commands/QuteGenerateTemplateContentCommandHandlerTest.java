@@ -16,7 +16,6 @@ import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.GenerateTemplateInfo;
 import com.redhat.qute.project.MockQuteProjectRegistry;
 import com.redhat.qute.project.QuteProjectRegistry;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.settings.SharedSettings;
 
 public class QuteGenerateTemplateContentCommandHandlerTest {
@@ -25,7 +24,7 @@ public class QuteGenerateTemplateContentCommandHandlerTest {
 	public void generateItem() throws InterruptedException, ExecutionException, Exception {
 
 		QuteGenerateTemplateContentCommandHandler command = new QuteGenerateTemplateContentCommandHandler(
-				createJavaDataModelCache());
+				createProjectRegistry());
 		ExecuteCommandParams params = new ExecuteCommandParams("", Arrays.asList(createItemInfo()));
 		String result = (String) command.executeCommand(params, new SharedSettings(), //
 				() -> {
@@ -33,16 +32,16 @@ public class QuteGenerateTemplateContentCommandHandlerTest {
 		System.err.println(result);
 	}
 
-	private JavaDataModelCache createJavaDataModelCache() {
+	private QuteProjectRegistry createProjectRegistry() {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		projectRegistry.getProject(new ProjectInfo(PROJECT_URI, TEMPLATE_BASE_DIR));
-		return new JavaDataModelCache(projectRegistry);
+		return projectRegistry;
 	}
 
 	@Test
 	public void generateListItems() throws InterruptedException, ExecutionException, Exception {
 		QuteGenerateTemplateContentCommandHandler command = new QuteGenerateTemplateContentCommandHandler(
-				createJavaDataModelCache());
+				createProjectRegistry());
 		ExecuteCommandParams params = new ExecuteCommandParams("", Arrays.asList(createListItemsInfo()));
 		String result = (String) command.executeCommand(params, new SharedSettings(), //
 				() -> {

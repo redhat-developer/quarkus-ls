@@ -27,7 +27,6 @@ import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.RangeOffset;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.utils.QutePositionUtility;
 
@@ -38,10 +37,6 @@ import com.redhat.qute.utils.QutePositionUtility;
 public class QuteCodeActionForMissingParameters extends AbstractQuteCodeAction {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteCodeActionForMissingParameters.class.getName());
-
-	public QuteCodeActionForMissingParameters(JavaDataModelCache javaCache) {
-		super(javaCache);
-	}
 
 	@Override
 	public void doCodeActions(CodeActionRequest request, List<CompletableFuture<Void>> codeActionResolveFutures,

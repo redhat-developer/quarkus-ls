@@ -34,8 +34,6 @@ import com.redhat.qute.project.tags.UserTag;
 
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.EngineBuilder;
-import io.quarkus.qute.ErrorCode;
-import io.quarkus.qute.ParserError;
 import io.quarkus.qute.TemplateException;
 import io.quarkus.qute.TemplateNode.Origin;
 import io.quarkus.qute.UserTagSectionHelper;

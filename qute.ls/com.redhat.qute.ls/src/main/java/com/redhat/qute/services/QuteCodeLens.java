@@ -32,11 +32,11 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.DataModelSourceProvider;
 import com.redhat.qute.project.datamodel.ExtendedDataModelFragment;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
@@ -52,15 +52,15 @@ import com.redhat.qute.utils.UserTagUtils;
 class QuteCodeLens {
 
 	private static final Range LEFT_TOP_RANGE = new Range(new Position(0, 0), new Position(0, 0));
-	private final JavaDataModelCache javaCache;
+	private final QuteProjectRegistry projectRegistry;
 
-	public QuteCodeLens(JavaDataModelCache javaCache) {
-		this.javaCache = javaCache;
+	public QuteCodeLens(QuteProjectRegistry projectRegistry) {
+		this.projectRegistry = projectRegistry;
 	}
 
 	public CompletableFuture<List<? extends CodeLens>> getCodelens(Template template, SharedSettings settings,
 			CancelChecker cancelChecker) {
-		return javaCache.getDataModelTemplate(template) //
+		return projectRegistry.getDataModelTemplate(template) //
 				.thenApply(templateDataModel -> {
 					cancelChecker.checkCanceled();
 					List<CodeLens> lenses = new ArrayList<>();
@@ -84,15 +84,13 @@ class QuteCodeLens {
 	}
 
 	private static void collectDataModelFoTemplateCodeLenses(DataModelSourceProvider templateDataModel,
-			Template template,
-			SharedSettings settings, List<CodeLens> lenses, CancelChecker cancelChecker) {
+			Template template, SharedSettings settings, List<CodeLens> lenses, CancelChecker cancelChecker) {
 		collectDataModelCodeLenses(LEFT_TOP_RANGE, templateDataModel, template.getProjectUri(), settings, lenses,
 				cancelChecker);
 	}
 
 	private static void collectDataModelCodeLenses(Range range, DataModelSourceProvider templateDataModel,
-			String projectUri,
-			SharedSettings settings, List<CodeLens> lenses, CancelChecker cancelChecker) {
+			String projectUri, SharedSettings settings, List<CodeLens> lenses, CancelChecker cancelChecker) {
 		if (templateDataModel == null || templateDataModel.getSourceType() == null) {
 			return;
 		}

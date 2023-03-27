@@ -40,9 +40,9 @@ import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.LoopSection;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.utils.StringUtils;
@@ -61,10 +61,6 @@ public class QuteCodeActionForUndefinedObject extends AbstractQuteCodeAction {
 	private static final String UNDEFINED_OBJECT_CODEACTION_TITLE = "Declare `{0}` with parameter declaration.";
 
 	private static final String UNDEFINED_OBJECT_SEVERITY_SETTING = "qute.validation.undefinedObject.severity";
-
-	public QuteCodeActionForUndefinedObject(JavaDataModelCache javaCache) {
-		super(javaCache);
-	}
 
 	@Override
 	public void doCodeActions(CodeActionRequest request, List<CompletableFuture<Void>> codeActionResolveFutures,
@@ -100,7 +96,10 @@ public class QuteCodeActionForUndefinedObject extends AbstractQuteCodeAction {
 	private void doCodeActionsForSimilarValues(ObjectPart part, Template template, Diagnostic diagnostic,
 			List<CodeAction> codeActions) throws BadLocationException {
 		int offset = template.offsetAt(diagnostic.getRange().getStart());
-		String projectUri = template.getProjectUri();
+		QuteProject project = template.getProject();
+		if (project == null) {
+			return;
+		}
 		Set<String> existingProperties = new HashSet<>();
 
 		Section section = part != null ? part.getParentSection() : null;
@@ -132,42 +131,45 @@ public class QuteCodeActionForUndefinedObject extends AbstractQuteCodeAction {
 			}
 
 			switch (section.getSectionKind()) {
-			case LET:
-			case SET: {
-				// completion for parameters coming from #let, #set
-				List<Parameter> parameters = section.getParameters();
-				if (parameters != null) {
-					for (Parameter parameter : parameters) {
-						String parameterName = parameter.getName();
-						doCodeActionsForSimilarValue(part, parameterName, template, existingProperties, diagnostic,
-								codeActions);
-					}
-				}
-				break;
-			}
-			case IF: {
-				// completion for parameters coming from #if
-				List<Parameter> parameters = section.getParameters();
-				if (parameters != null) {
-					for (Parameter parameter : parameters) {
-						if (parameter.isOptional()) {
-							// {#if foo??}
+				case LET:
+				case SET: {
+					// completion for parameters coming from #let, #set
+					List<Parameter> parameters = section.getParameters();
+					if (parameters != null) {
+						for (Parameter parameter : parameters) {
 							String parameterName = parameter.getName();
 							doCodeActionsForSimilarValue(part, parameterName, template, existingProperties, diagnostic,
 									codeActions);
 						}
 					}
+					break;
 				}
-				break;
-			}
-			default:
+				case IF: {
+					// completion for parameters coming from #if
+					List<Parameter> parameters = section.getParameters();
+					if (parameters != null) {
+						for (Parameter parameter : parameters) {
+							if (parameter.isOptional()) {
+								// {#if foo??}
+								String parameterName = parameter.getName();
+								doCodeActionsForSimilarValue(part, parameterName, template, existingProperties,
+										diagnostic,
+										codeActions);
+							}
+						}
+					}
+					break;
+				}
+				default:
 			}
 		}
 
-		List<ValueResolver> globalResolvers = javaCache.getGlobalVariables(projectUri);
-		for (ValueResolver resolver : globalResolvers) {
-			doCodeActionsForSimilarValue(part, resolver.getName(), template, existingProperties, diagnostic,
-					codeActions);
+		List<ValueResolver> globalResolvers = project.getGlobalVariables().getNow(null);
+		if (globalResolvers != null) {
+			for (ValueResolver resolver : globalResolvers) {
+				doCodeActionsForSimilarValue(part, resolver.getName(), template, existingProperties, diagnostic,
+						codeActions);
+			}
 		}
 
 		List<String> aliases = template.getChildren().stream() //
@@ -179,7 +181,7 @@ public class QuteCodeActionForUndefinedObject extends AbstractQuteCodeAction {
 			doCodeActionsForSimilarValue(part, alias, template, existingProperties, diagnostic, codeActions);
 		}
 
-		ExtendedDataModelTemplate dataModel = javaCache.getDataModelTemplate(template).getNow(null);
+		ExtendedDataModelTemplate dataModel = project.getDataModelTemplate(template).getNow(null);
 		if (dataModel != null) {
 			for (ExtendedDataModelParameter parameter : dataModel.getParameters()) {
 				doCodeActionsForSimilarValue(part, parameter.getKey(), template, existingProperties, diagnostic,

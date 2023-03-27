@@ -25,7 +25,7 @@ import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
@@ -39,10 +39,6 @@ public class QuteCodeActionForUndefinedNamespace extends AbstractQuteCodeAction 
 	private static final Logger LOGGER = Logger.getLogger(QuteCodeActionForUndefinedNamespace.class.getName());
 
 	private static final String UNDEFINED_NAMESPACE_SEVERITY_SETTING = "qute.validation.undefinedNamespace.severity";
-
-	public QuteCodeActionForUndefinedNamespace(JavaDataModelCache javaCache) {
-		super(javaCache);
-	}
 
 	@Override
 	public void doCodeActions(CodeActionRequest request, List<CompletableFuture<Void>> codeActionResolveFutures,
@@ -70,9 +66,12 @@ public class QuteCodeActionForUndefinedNamespace extends AbstractQuteCodeAction 
 
 	private void doCodeActionsForSimilarValues(NamespacePart part, Template template, Diagnostic diagnostic,
 			List<CodeAction> codeActions) throws BadLocationException {
-		String projectUri = template.getProjectUri();
+		QuteProject project = template.getProject();
+		if (project == null) {
+			return;
+		}
 		Set<String> existingProperties = new HashSet<>();
-		for (String namespace : javaCache.getAllNamespaces(projectUri)) {
+		for (String namespace : project.getAllNamespaces()) {
 			doCodeActionsForSimilarValue(part, namespace, template, existingProperties, diagnostic, codeActions);
 		}
 	}

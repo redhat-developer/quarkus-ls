@@ -90,7 +90,7 @@ public class QuteWorkspaceService implements WorkspaceService {
 				new QuteTemplateValidationStatusCommandHandler());
 		commands.put(QuteGenerateCommandHandler.COMMAND_ID, new QuteGenerateCommandHandler());
 		commands.put(QuteGenerateTemplateContentCommandHandler.COMMAND_ID,
-				new QuteGenerateTemplateContentCommandHandler(quteLanguageServer.getDataModelCache()));
+				new QuteGenerateTemplateContentCommandHandler(quteLanguageServer.getProjectRegistry()));
 		commands.put(QuteSurroundWithCommandHandler.COMMAND_ID,
 				new QuteSurroundWithCommandHandler(quteLanguageServer));
 		return commands;

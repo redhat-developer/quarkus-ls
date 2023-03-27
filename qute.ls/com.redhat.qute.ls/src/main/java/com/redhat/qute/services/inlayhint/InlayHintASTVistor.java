@@ -11,8 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.services.inlayhint;
 
-import static com.redhat.qute.services.ResolvingJavaTypeContext.RESOLVING_JAVA_TYPE;
-import static com.redhat.qute.services.ResolvingJavaTypeContext.isResolvingJavaType;
 import static com.redhat.qute.services.commands.QuteClientCommandConstants.COMMAND_JAVA_DEFINITION;
 
 import java.text.MessageFormat;
@@ -43,7 +41,8 @@ import com.redhat.qute.parser.template.sections.ForSection;
 import com.redhat.qute.parser.template.sections.IfSection;
 import com.redhat.qute.parser.template.sections.LetSection;
 import com.redhat.qute.parser.template.sections.SetSection;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.QuteInlayHintSettings;
 import com.redhat.qute.settings.SharedSettings;
@@ -61,8 +60,6 @@ public class InlayHintASTVistor extends ASTVisitor {
 
 	private static final Logger LOGGER = Logger.getLogger(InlayHintASTVistor.class.getName());
 
-	private final JavaDataModelCache javaCache;
-
 	private final int startOffset;
 
 	private final int endOffset;
@@ -74,14 +71,16 @@ public class InlayHintASTVistor extends ASTVisitor {
 
 	private boolean canSupportJavaDefinition;
 
-	public InlayHintASTVistor(JavaDataModelCache javaCache, int startOffset, int endOffset, SharedSettings settings,
+	private CancelChecker cancelChecker;
+
+	public InlayHintASTVistor(int startOffset, int endOffset, SharedSettings settings,
 			ResolvingJavaTypeContext resolvingJavaTypeContext, CancelChecker cancelChecker) {
-		this.javaCache = javaCache;
 		this.startOffset = startOffset;
 		this.endOffset = endOffset;
 		this.inlayHintSettings = settings.getInlayHintSettings();
 		this.resolvingJavaTypeContext = resolvingJavaTypeContext;
 		this.inlayHints = new ArrayList<InlayHint>();
+		this.cancelChecker = cancelChecker;
 		canSupportJavaDefinition = settings.getCommandCapabilities().isCommandSupported(COMMAND_JAVA_DEFINITION);
 	}
 
@@ -91,6 +90,8 @@ public class InlayHintASTVistor extends ASTVisitor {
 
 	@Override
 	public boolean visit(ForSection node) {
+		cancelChecker.checkCanceled();
+
 		if (!isAfterStartParameterVisible(node)) {
 			return false;
 		}
@@ -101,8 +102,8 @@ public class InlayHintASTVistor extends ASTVisitor {
 				Parameter iterableParameter = node.getIterableParameter();
 				if (iterableParameter != null) {
 					Template template = node.getOwnerTemplate();
-					String projectUri = template.getProjectUri();
-					createJavaTypeInlayHint(aliasParameter, iterableParameter, template, projectUri);
+					QuteProject project = template.getProject();
+					createJavaTypeInlayHint(aliasParameter, iterableParameter, template, project);
 				}
 			}
 		}
@@ -111,6 +112,8 @@ public class InlayHintASTVistor extends ASTVisitor {
 
 	@Override
 	public boolean visit(IfSection node) {
+		cancelChecker.checkCanceled();
+
 		if (!isAfterStartParameterVisible(node)) {
 			return false;
 		}
@@ -120,8 +123,8 @@ public class InlayHintASTVistor extends ASTVisitor {
 				if (parameter.isOptional()) {
 					// {#if foo??}
 					Template template = node.getOwnerTemplate();
-					String projectUri = template.getProjectUri();
-					createJavaTypeInlayHint(parameter, template, projectUri);
+					QuteProject project = template.getProject();
+					createJavaTypeInlayHint(parameter, template, project);
 				}
 			}
 		}
@@ -130,6 +133,8 @@ public class InlayHintASTVistor extends ASTVisitor {
 
 	@Override
 	public boolean visit(LetSection node) {
+		cancelChecker.checkCanceled();
+
 		if (!isAfterStartParameterVisible(node)) {
 			return false;
 		}
@@ -139,6 +144,8 @@ public class InlayHintASTVistor extends ASTVisitor {
 	}
 
 	public boolean visit(SetSection node) {
+		cancelChecker.checkCanceled();
+
 		if (!isAfterStartParameterVisible(node)) {
 			return false;
 		}
@@ -148,6 +155,8 @@ public class InlayHintASTVistor extends ASTVisitor {
 	}
 
 	public boolean visit(CustomSection node) {
+		cancelChecker.checkCanceled();
+
 		if (!isAfterStartParameterVisible(node)) {
 			return false;
 		}
@@ -180,25 +189,25 @@ public class InlayHintASTVistor extends ASTVisitor {
 		// {#form id[:String]=item.id }
 		// {#form item.id[:String] }
 		Template template = node.getOwnerTemplate();
-		String projectUri = template.getProjectUri();
+		QuteProject project = template.getProject();
 		List<Parameter> parameters = node.getParameters();
 		for (Parameter parameter : parameters) {
-			createJavaTypeInlayHint(parameter, template, projectUri);
+			createJavaTypeInlayHint(parameter, template, project);
 		}
 	}
 
-	private void createJavaTypeInlayHint(Parameter parameter, Template template, String projectUri) {
-		createJavaTypeInlayHint(parameter, parameter, template, projectUri);
+	private void createJavaTypeInlayHint(Parameter parameter, Template template, QuteProject project) {
+		createJavaTypeInlayHint(parameter, parameter, template, project);
 	}
 
 	private void createJavaTypeInlayHint(Parameter parameter, Parameter javaTypeParameter, Template template,
-			String projectUri) {
-		CompletableFuture<ResolvedJavaTypeInfo> javaTypeFuture = getJavaType(javaTypeParameter, projectUri, javaCache);
+			QuteProject project) {
+		CompletableFuture<ResolvedJavaTypeInfo> javaTypeFuture = getJavaType(javaTypeParameter, project);
 		if (javaTypeFuture == null) {
 			return;
 		}
-		ResolvedJavaTypeInfo javaType = javaTypeFuture.getNow(RESOLVING_JAVA_TYPE);
-		if (isResolvingJavaType(javaType)) {
+		ResolvedJavaTypeInfo javaType = javaTypeFuture.getNow(QuteCompletableFutures.RESOLVING_JAVA_TYPE);
+		if (QuteCompletableFutures.isResolvingJavaType(javaType)) {
 			resolvingJavaTypeContext.add(javaTypeFuture);
 			return;
 		}
@@ -223,9 +232,8 @@ public class InlayHintASTVistor extends ASTVisitor {
 		}
 	}
 
-	private static CompletableFuture<ResolvedJavaTypeInfo> getJavaType(Parameter parameter, String projectUri,
-			JavaDataModelCache javaCache) {
-		if (projectUri == null) {
+	private static CompletableFuture<ResolvedJavaTypeInfo> getJavaType(Parameter parameter, QuteProject project) {
+		if (project == null) {
 			return null;
 		}
 		Expression expression = parameter.getJavaTypeExpression();
@@ -236,9 +244,9 @@ public class InlayHintASTVistor extends ASTVisitor {
 		CompletableFuture<ResolvedJavaTypeInfo> javaType = null;
 		String literalJavaType = expression.getLiteralJavaType();
 		if (literalJavaType != null) {
-			javaType = javaCache.resolveJavaType(literalJavaType, projectUri);
+			javaType = project.resolveJavaType(literalJavaType);
 		} else {
-			javaType = javaCache.resolveJavaType(parameter, projectUri);
+			javaType = project.resolveJavaType(parameter);
 		}
 
 		Section section = parameter.getOwnerSection();
@@ -248,9 +256,9 @@ public class InlayHintASTVistor extends ASTVisitor {
 					return CompletableFuture.completedFuture(null);
 				}
 				if (javaTypeIterable.isIterable()) {
-					return javaCache.resolveJavaType(javaTypeIterable.getIterableOf(), projectUri);
+					return project.resolveJavaType(javaTypeIterable.getIterableOf());
 				}
-				return CompletableFuture.completedFuture(javaTypeIterable);
+				return CompletableFuture.completedFuture(null);
 			});
 		}
 		return javaType;

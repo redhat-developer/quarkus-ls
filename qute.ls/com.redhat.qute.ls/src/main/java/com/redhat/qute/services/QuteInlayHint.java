@@ -23,7 +23,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.services.inlayhint.InlayHintASTVistor;
 import com.redhat.qute.settings.QuteInlayHintSettings;
 import com.redhat.qute.settings.SharedSettings;
@@ -41,10 +41,10 @@ public class QuteInlayHint {
 	private static CompletableFuture<List<InlayHint>> NO_INLAY_HINT = CompletableFuture
 			.completedFuture(Collections.emptyList());
 
-	private final JavaDataModelCache javaCache;
+	private final QuteProjectRegistry projectRegistry;
 
-	public QuteInlayHint(JavaDataModelCache javaCache) {
-		this.javaCache = javaCache;
+	public QuteInlayHint(QuteProjectRegistry projectRegistry) {
+		this.projectRegistry = projectRegistry;
 	}
 
 	public CompletableFuture<List<InlayHint>> getInlayHint(Template template, Range range,
@@ -55,7 +55,7 @@ public class QuteInlayHint {
 		if (!settings.isEnabled()) {
 			return NO_INLAY_HINT;
 		}
-		return javaCache.getDataModelTemplate(template) //
+		return projectRegistry.getDataModelTemplate(template) //
 				.thenApply(templateDataModel -> {
 					// get range offsets
 					int startOffset = -1;
@@ -69,7 +69,7 @@ public class QuteInlayHint {
 						}
 					}
 					cancelChecker.checkCanceled();
-					InlayHintASTVistor visitor = new InlayHintASTVistor(javaCache, startOffset, endOffset,
+					InlayHintASTVistor visitor = new InlayHintASTVistor(startOffset, endOffset,
 							sharedSettings, resolvingJavaTypeContext, cancelChecker);
 					template.accept(visitor);
 					cancelChecker.checkCanceled();

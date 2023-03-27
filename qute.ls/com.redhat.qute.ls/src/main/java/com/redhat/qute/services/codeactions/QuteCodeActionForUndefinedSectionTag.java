@@ -27,7 +27,6 @@ import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
@@ -41,10 +40,6 @@ public class QuteCodeActionForUndefinedSectionTag extends AbstractQuteCodeAction
 	private static final String UNDEFINED_SECTION_TAG_CODEACTION_TITLE = "Create the user tag file `{0}`.";
 
 	private static final Logger LOGGER = Logger.getLogger(QuteCodeActionForUndefinedSectionTag.class.getName());
-
-	public QuteCodeActionForUndefinedSectionTag(JavaDataModelCache javaCache) {
-		super(javaCache);
-	}
 
 	@Override
 	public void doCodeActions(CodeActionRequest request, List<CompletableFuture<Void>> codeActionResolveFutures,

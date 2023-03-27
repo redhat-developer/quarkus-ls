@@ -75,8 +75,6 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 		testDiagnosticsFor(template, //
 				d(2, 7, 2, 12, QuteErrorCode.IterationError,
 						"Iteration error: {items} resolved to [org.acme.Item] which is not iterable.",
-						DiagnosticSeverity.Error),
-				d(3, 2, 3, 4, QuteErrorCode.UnknownType, "`org.acme.Item` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}
 
@@ -104,8 +102,6 @@ public class QuteDiagnosticsInExpressionWithEachSectionTest {
 		testDiagnosticsFor(template, //
 				d(3, 13, 3, 17, QuteErrorCode.IterationError,
 						"Iteration error: {item.name} resolved to [java.lang.String] which is not iterable.",
-						DiagnosticSeverity.Error),
-				d(4, 3, 4, 5, QuteErrorCode.UnknownType, "`java.lang.String` cannot be resolved to a type.",
 						DiagnosticSeverity.Error));
 	}
 

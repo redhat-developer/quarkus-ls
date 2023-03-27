@@ -32,7 +32,8 @@ import com.redhat.qute.ls.commons.snippets.SnippetsBuilder;
 import com.redhat.qute.parser.template.ParameterDeclaration;
 import com.redhat.qute.parser.template.ParameterDeclaration.JavaTypeRangeOffset;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.services.QuteCompletions;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.utils.QutePositionUtility;
@@ -45,16 +46,16 @@ import com.redhat.qute.utils.QutePositionUtility;
  */
 public class QuteCompletionsForParameterDeclaration {
 
-	private final JavaDataModelCache javaCache;
+	private final QuteProjectRegistry projectRegistry;
 
-	public QuteCompletionsForParameterDeclaration(JavaDataModelCache javaCache) {
-		this.javaCache = javaCache;
+	public QuteCompletionsForParameterDeclaration(QuteProjectRegistry projectRegistry) {
+		this.projectRegistry = projectRegistry;
 	}
 
 	public CompletableFuture<CompletionList> doCollectJavaClassesSuggestions(ParameterDeclaration parameterDeclaration,
 			Template template, int offset, QuteCompletionSettings completionSettings, CancelChecker cancelChecker) {
-		String projectUri = template.getProjectUri();
-		if (projectUri != null) {
+		QuteProject project = template.getProject();
+		if (project != null) {
 			if (parameterDeclaration.isInJavaTypeName(offset)) {
 				// Completion for java types
 				JavaTypeRangeOffset rangeOffset = parameterDeclaration.getJavaTypeNameRange(offset);
@@ -62,7 +63,8 @@ public class QuteCompletionsForParameterDeclaration {
 					boolean hasAlias = parameterDeclaration.hasAlias();
 					boolean closed = parameterDeclaration.isClosed();
 					String patternTypeName = template.getText(rangeOffset.getStart(), offset);
-					return collectJavaClassesSuggestions(patternTypeName, hasAlias, closed, rangeOffset, projectUri, template,
+					return collectJavaClassesSuggestions(patternTypeName, hasAlias, closed, rangeOffset, project,
+							template,
 							completionSettings, cancelChecker);
 				}
 			}
@@ -71,10 +73,10 @@ public class QuteCompletionsForParameterDeclaration {
 	}
 
 	private CompletableFuture<CompletionList> collectJavaClassesSuggestions(String pattern, boolean hasAlias,
-			boolean closed, JavaTypeRangeOffset rangeOffset, String projectUri, Template template,
+			boolean closed, JavaTypeRangeOffset rangeOffset, QuteProject project, Template template,
 			QuteCompletionSettings completionSettings, CancelChecker cancelChecker) {
-		QuteJavaTypesParams params = new QuteJavaTypesParams(pattern, projectUri);
-		return javaCache.getJavaTypes(params) //
+		QuteJavaTypesParams params = new QuteJavaTypesParams(pattern, project.getUri());
+		return projectRegistry.getJavaTypes(params) //
 				.thenApply(result -> {
 					cancelChecker.checkCanceled();
 					if (result == null) {
@@ -98,8 +100,9 @@ public class QuteCompletionsForParameterDeclaration {
 								insertText.append('>');
 							}
 						} else {
-							item.setKind(typeInfo.getJavaTypeKind() == JavaTypeKind.Interface ? CompletionItemKind.Interface
-									: CompletionItemKind.Class);
+							item.setKind(
+									typeInfo.getJavaTypeKind() == JavaTypeKind.Interface ? CompletionItemKind.Interface
+											: CompletionItemKind.Class);
 
 							int snippetIndex = 1;
 							// Generate class

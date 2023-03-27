@@ -21,7 +21,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import com.redhat.qute.project.QuteProjectRegistry;
+import com.redhat.qute.project.JavaDataModelCache;
 
 /**
  * Resolved Java Type tests.
@@ -63,7 +63,7 @@ public class ResolvedJavaTypeInfoTest {
 		assertTrue(generics.containsKey("V"));
 		assertEquals("org.acme.Item", generics.get("V"));
 
-		ResolvedJavaTypeInfo typeWithGenericApply = QuteProjectRegistry.updateJavaType(map, generics);
+		ResolvedJavaTypeInfo typeWithGenericApply = JavaDataModelCache.updateJavaType(map, generics);
 		assertEquals("java.util.Map<java.lang.String,org.acme.Item>", typeWithGenericApply.getSignature());
 		assertEquals("Map<String,Item>", typeWithGenericApply.getJavaElementSimpleType());
 
@@ -150,7 +150,7 @@ public class ResolvedJavaTypeInfoTest {
 		assertEquals("org.acme.Item", generics.get("D"));
 
 		// Java type apply
-		ResolvedJavaTypeInfo classAWithGenericApply = QuteProjectRegistry.updateJavaType(classA, generics);
+		ResolvedJavaTypeInfo classAWithGenericApply = JavaDataModelCache.updateJavaType(classA, generics);
 		assertEquals("org.acme.A<java.lang.String,java.util.Set<java.lang.String>,org.acme.Item>",
 				classAWithGenericApply.getSignature());
 		assertEquals("A<String,Set<String>,Item>", classAWithGenericApply.getJavaElementSimpleType());

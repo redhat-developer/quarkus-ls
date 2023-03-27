@@ -83,7 +83,6 @@ import com.redhat.qute.parser.validator.IQuteErrorCode;
 import com.redhat.qute.project.MockQuteLanguageServer;
 import com.redhat.qute.project.MockQuteProjectRegistry;
 import com.redhat.qute.project.QuteProjectRegistry;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.QuteLanguageService;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
@@ -207,7 +206,7 @@ public class QuteAssert {
 
 		QuteFormattingSettings formattingSettings = new QuteFormattingSettings();
 
-		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 		CompletionList list = languageService
 				.doComplete(template, position, completionSettings, formattingSettings, nativeImagesSettings, () -> {
 				}).get();
@@ -341,10 +340,9 @@ public class QuteAssert {
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 		template.setTemplateId(templateId);
 
-		JavaDataModelCache javaCache = new JavaDataModelCache(projectRegistry);
-		QuteLanguageService languageService = new QuteLanguageService(javaCache);
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 		List<Diagnostic> actual = languageService.doDiagnostics(template, validationSettings, nativeImagesSettings,
-				new ResolvingJavaTypeContext(template, javaCache), () -> {
+				new ResolvingJavaTypeContext(template), () -> {
 				});
 		if (expected == null) {
 			assertTrue(actual.isEmpty());
@@ -459,7 +457,7 @@ public class QuteAssert {
 
 		Position position = template.positionAt(offset);
 
-		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 		Hover hover = languageService.doHover(template, position, sharedSettings, () -> {
 		}).get();
 		if (expectedHoverLabel == null) {
@@ -501,7 +499,7 @@ public class QuteAssert {
 
 		Position position = template.positionAt(offset);
 
-		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 
 		List<? extends LocationLink> actual = languageService.findDefinition(template, position, () -> {
 		}).get();
@@ -533,7 +531,7 @@ public class QuteAssert {
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
-		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 
 		List<DocumentLink> actual = languageService.findDocumentLinks(template, () -> {
 		}).get();
@@ -566,7 +564,7 @@ public class QuteAssert {
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
-		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 
 		Position position = template.positionAt(offset);
 		List<? extends DocumentHighlight> actual = languageService.findDocumentHighlights(template, position, () -> {
@@ -605,7 +603,7 @@ public class QuteAssert {
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 		template.setTemplateId(templateId);
 
-		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 		SharedSettings sharedSettings = createSharedSettings();
 		List<? extends CodeLens> actual = languageService.getCodeLens(template, sharedSettings, () -> {
 		}).get();
@@ -652,11 +650,10 @@ public class QuteAssert {
 			settings.getInlayHintSettings().update(inlayHintSettings);
 		}
 
-		JavaDataModelCache javaCache = new JavaDataModelCache(projectRegistry);
-		QuteLanguageService languageService = new QuteLanguageService(javaCache);
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 		Range range = null;
 		List<InlayHint> actual = languageService
-				.getInlayHint(template, range, settings, new ResolvingJavaTypeContext(template, javaCache), () -> {
+				.getInlayHint(template, range, settings, new ResolvingJavaTypeContext(template), () -> {
 				}).get();
 		assertInlayHint(actual, expected);
 	}
@@ -722,7 +719,7 @@ public class QuteAssert {
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
-		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 
 		List<CodeAction> actual = languageService
 				.doCodeActions(template, context, new QuteTemplateJavaTextEditProvider() {
@@ -838,7 +835,7 @@ public class QuteAssert {
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
-		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 
 		Position position = template.positionAt(offset);
 		List<? extends Location> actual = languageService.findReferences(template, position, new ReferenceContext(),
@@ -875,7 +872,7 @@ public class QuteAssert {
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
-		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 
 		Position position = template.positionAt(offset);
 
@@ -908,7 +905,7 @@ public class QuteAssert {
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
-		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 
 		Position position = template.positionAt(offset);
 		LinkedEditingRanges actual = languageService.findLinkedEditingRanges(template, position, () -> {
@@ -941,7 +938,7 @@ public class QuteAssert {
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
-		QuteLanguageService languageService = new QuteLanguageService(new JavaDataModelCache(projectRegistry));
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 
 		List<DocumentSymbol> actual = languageService.findDocumentSymbols(template, () -> {
 		});

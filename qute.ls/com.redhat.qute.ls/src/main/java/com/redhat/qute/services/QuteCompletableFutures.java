@@ -24,7 +24,7 @@ import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 
 public class QuteCompletableFutures {
 
-	public static final CompletableFuture<ResolvedJavaTypeInfo> RESOLVED_JAVA_CLASSINFO_NULL_FUTURE = CompletableFuture
+	public static final CompletableFuture<ResolvedJavaTypeInfo> RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE = CompletableFuture
 			.completedFuture(null);
 
 	public static final CompletableFuture<ExtendedDataModelTemplate> EXTENDED_TEMPLATE_DATAMODEL_NULL_FUTURE = CompletableFuture
@@ -44,5 +44,24 @@ public class QuteCompletableFutures {
 
 	public static final CompletableFuture<JavaElementInfo> JAVA_ELEMENT_INFO_NULL_FUTURE = CompletableFuture
 			.completedFuture(null);
+
+	public static final ResolvedJavaTypeInfo RESOLVING_JAVA_TYPE = new ResolvedJavaTypeInfo();
+
+	public static final ResolvedJavaTypeInfo NOT_ITERABLE_JAVA_TYPE = new ResolvedJavaTypeInfo();
+
+	public static final CompletableFuture<ResolvedJavaTypeInfo> RESOLVED_JAVA_TYPE_NOT_ITERABLE_FUTURE = CompletableFuture
+			.completedFuture(NOT_ITERABLE_JAVA_TYPE);
+
+	public static boolean isResolvingJavaTypeOrNull(ResolvedJavaTypeInfo resolvedJavaType) {
+		return resolvedJavaType == null | RESOLVING_JAVA_TYPE == resolvedJavaType;
+	}
+
+	public static boolean isResolvingJavaType(ResolvedJavaTypeInfo resolvedJavaType) {
+		return RESOLVING_JAVA_TYPE == resolvedJavaType;
+	}
+
+	public static boolean isValidJavaType(ResolvedJavaTypeInfo resolvedJavaType) {
+		return resolvedJavaType != NOT_ITERABLE_JAVA_TYPE && !isResolvingJavaTypeOrNull(resolvedJavaType);
+	}
 
 }

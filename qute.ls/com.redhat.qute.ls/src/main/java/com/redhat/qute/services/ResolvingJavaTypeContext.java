@@ -21,7 +21,6 @@ import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
@@ -36,9 +35,6 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 
 	private static final Logger LOGGER = Logger.getLogger(ResolvingJavaTypeContext.class.getName());
 
-	public static final ResolvedJavaTypeInfo RESOLVING_JAVA_TYPE = new ResolvedJavaTypeInfo();
-
-	private final JavaDataModelCache javaCache;
 	private boolean projectResolved;
 
 	private boolean dataModelTemplateResolved;
@@ -49,8 +45,7 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 
 	private final Template template;
 
-	public ResolvingJavaTypeContext(Template template, JavaDataModelCache javaCache) {
-		this.javaCache = javaCache;
+	public ResolvingJavaTypeContext(Template template) {
 		this.template = template;
 		projectResolved = template.getProjectUri() != null;
 		if (projectResolved) {
@@ -113,29 +108,23 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 		return super.add(e);
 	}
 
-	public ResolvedJavaTypeInfo resolveJavaType(String javaType, String projectUri) {
-		CompletableFuture<ResolvedJavaTypeInfo> resolvingJavaTypeFuture = javaCache.resolveJavaType(javaType,
-				projectUri);
-		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture.getNow(RESOLVING_JAVA_TYPE);
-		if (isResolvingJavaType(resolvedJavaType)) {
+	public ResolvedJavaTypeInfo resolveJavaType(String javaType, QuteProject project) {
+		CompletableFuture<ResolvedJavaTypeInfo> resolvingJavaTypeFuture = project.resolveJavaType(javaType);
+		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture.getNow(QuteCompletableFutures.RESOLVING_JAVA_TYPE);
+		if (QuteCompletableFutures.isResolvingJavaType(resolvedJavaType)) {
 			LOGGER.log(Level.INFO, QuteErrorCode.ResolvingJavaType.getMessage(javaType));
 			this.add(resolvingJavaTypeFuture);
-			return RESOLVING_JAVA_TYPE;
+			return QuteCompletableFutures.RESOLVING_JAVA_TYPE;
 		}
 		return resolvedJavaType;
 	}
 
-	public static boolean isResolvingJavaType(ResolvedJavaTypeInfo resolvedJavaType) {
-		return RESOLVING_JAVA_TYPE.equals(resolvedJavaType);
-	}
-
-	public ResolvedJavaTypeInfo resolveJavaType(Parameter parameter, String projectUri) {
-		CompletableFuture<ResolvedJavaTypeInfo> resolvingJavaTypeFuture = javaCache.resolveJavaType(parameter,
-				projectUri);
-		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture.getNow(RESOLVING_JAVA_TYPE);
-		if (isResolvingJavaType(resolvedJavaType)) {
+	public ResolvedJavaTypeInfo resolveJavaType(Parameter parameter, QuteProject project) {
+		CompletableFuture<ResolvedJavaTypeInfo> resolvingJavaTypeFuture = project.resolveJavaType(parameter);
+		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture.getNow(QuteCompletableFutures.RESOLVING_JAVA_TYPE);
+		if (QuteCompletableFutures.isResolvingJavaType(resolvedJavaType)) {
 			this.add(resolvingJavaTypeFuture);
-			return RESOLVING_JAVA_TYPE;
+			return QuteCompletableFutures.RESOLVING_JAVA_TYPE;
 		}
 		return resolvedJavaType;
 	}

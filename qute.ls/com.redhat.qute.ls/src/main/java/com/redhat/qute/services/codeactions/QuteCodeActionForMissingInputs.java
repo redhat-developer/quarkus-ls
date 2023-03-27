@@ -35,7 +35,8 @@ import com.redhat.qute.parser.template.RangeOffset;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.JavaMemberResult;
-import com.redhat.qute.project.datamodel.JavaDataModelCache;
+import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.utils.QutePositionUtility;
 
@@ -49,14 +50,21 @@ public class QuteCodeActionForMissingInputs extends AbstractQuteCodeAction {
 
 	private static final String DEFAULT_INDENTATION = "  ";
 
-	public QuteCodeActionForMissingInputs(JavaDataModelCache javaCache) {
-		super(javaCache);
+	private final QuteProjectRegistry projectRegistry;
+
+	public QuteCodeActionForMissingInputs(QuteProjectRegistry projectRegistry) {
+		this.projectRegistry = projectRegistry;
 	}
 
 	@Override
 	public void doCodeActions(CodeActionRequest request, List<CompletableFuture<Void>> codeActionResolveFutures,
 			List<CodeAction> codeActions) {
 		try {
+			Template template = request.getTemplate();
+			QuteProject project = template.getProject();
+			if (project == null) {
+				return;
+			}
 			Node node = request.getCoveredNode();
 			if (node == null) {
 				return;
@@ -65,8 +73,8 @@ public class QuteCodeActionForMissingInputs extends AbstractQuteCodeAction {
 			if (section == null) {
 				return;
 			}
-			Template template = request.getTemplate();
 			Diagnostic diagnostic = request.getDiagnostic();
+
 			String projectUri = template.getProjectUri();
 
 			int methodOffset = section.getParameters().get(0).getEnd() - 2;
@@ -77,11 +85,10 @@ public class QuteCodeActionForMissingInputs extends AbstractQuteCodeAction {
 				return;
 			}
 
-			ResolvedJavaTypeInfo baseResolvedType = request.getJavaTypeOfCoveredNode(javaCache);
-			JavaMemberResult result = javaCache.findMethod(baseResolvedType, methodPart.getNamespace(),
-					methodPart.getPartName(), new ArrayList<>(), javaCache.getJavaTypeFilter(projectUri,
-							request.getSharedSettings().getNativeSettings()).isInNativeMode(),
-					projectUri);
+			ResolvedJavaTypeInfo baseResolvedType = request.getJavaTypeOfCoveredNode();
+			JavaMemberResult result = project.findMethod(baseResolvedType, methodPart.getNamespace(),
+					methodPart.getPartName(), new ArrayList<>(), projectRegistry.getJavaTypeFilter(projectUri,
+							request.getSharedSettings().getNativeSettings()).isInNativeMode());
 			if (result == null) {
 				return;
 			}

@@ -286,8 +286,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		return getTemplateCompose(params.getTextDocument(),
 				(template, cancelChecker) -> {
 					// Collect inlay hints
-					ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template,
-							quteLanguageServer.getDataModelCache());
+					ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template);
 					CompletableFuture<List<InlayHint>> hints = getQuteLanguageService().getInlayHint(template,
 							params.getRange(), sharedSettings, resolvingJavaTypeContext,
 							cancelChecker);
@@ -385,8 +384,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		var template = document.getTemplate();
 
 		// Collect diagnostics
-		ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template,
-				quteLanguageServer.getDataModelCache());
+		ResolvingJavaTypeContext resolvingJavaTypeContext = new ResolvingJavaTypeContext(template);
 		List<Diagnostic> diagnostics = getQuteLanguageService().doDiagnostics(template,
 				getSharedSettings().getValidationSettings(template.getUri()),
 				getSharedSettings().getNativeSettings(), resolvingJavaTypeContext,
