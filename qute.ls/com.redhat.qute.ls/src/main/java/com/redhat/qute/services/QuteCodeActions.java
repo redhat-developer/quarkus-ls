@@ -31,7 +31,10 @@ import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProjectRegistry;
+import com.redhat.qute.parser.validator.QuteSyntaxErrorCode;
+import com.redhat.qute.services.codeactions.QuteCodeActionForUnterminatedSection;
 import com.redhat.qute.services.codeactions.CodeActionRequest;
+import com.redhat.qute.services.codeactions.QuteCodeActionForMismatchSectionTag;
 import com.redhat.qute.services.codeactions.QuteCodeActionForMissingInputs;
 import com.redhat.qute.services.codeactions.QuteCodeActionForMissingParameters;
 import com.redhat.qute.services.codeactions.QuteCodeActionForUndefinedNamespace;
@@ -80,6 +83,10 @@ class QuteCodeActions {
 
 	private final QuteCodeActionForMissingParameters codeActionForMissingParameters;
 
+	private final QuteCodeActionForUnterminatedSection codeActionForUnterminatedSection;
+
+	private final QuteCodeActionForMismatchSectionTag codeActionForMismatchSectionTag;
+
 	public QuteCodeActions(QuteProjectRegistry projectRegistry) {
 		this.codeActionForUndefinedObject = new QuteCodeActionForUndefinedObject();
 		this.codeActionForUndefinedNamespace = new QuteCodeActionForUndefinedNamespace();
@@ -88,6 +95,8 @@ class QuteCodeActions {
 		this.codeActionForUndefinedSectionTag = new QuteCodeActionForUndefinedSectionTag();
 		this.codeActionForMissingInputs = new QuteCodeActionForMissingInputs(projectRegistry);
 		this.codeActionForMissingParameters = new QuteCodeActionForMissingParameters();
+		this.codeActionForUnterminatedSection = new QuteCodeActionForUnterminatedSection();
+		this.codeActionForMismatchSectionTag = new QuteCodeActionForMismatchSectionTag();
 	}
 
 	public CompletableFuture<List<CodeAction>> doCodeActions(Template template, CodeActionContext context, Range range,
@@ -166,6 +175,41 @@ class QuteCodeActions {
 					}
 				} catch (BadLocationException e) {
 					LOGGER.log(Level.SEVERE, "Failed creating CodeAction Request", e);
+					return NO_CODEACTION;
+					// Do nothing
+				}
+			}
+			QuteSyntaxErrorCode syntaxErrorCode = QuteSyntaxErrorCode.getErrorCode(diagnostic.getCode());
+			if (syntaxErrorCode != null) {
+				try {
+					CodeActionRequest request = new CodeActionRequest(template, range.getEnd(), diagnostic,
+							javaTextEditProvider, sharedSettings);
+					switch (syntaxErrorCode) {
+					case UNTERMINATED_SECTION:
+						// Given the following Qute template
+						// {#if variable}
+						//
+						// Provide a code action to add an end section tag
+						// {#if variable}
+						// {/if}
+						codeActionForUnterminatedSection.doCodeActions(request, codeActionResolveFutures, codeActions);
+						break;
+					case SECTION_END_DOES_NOT_MATCH_START:
+					case SECTION_BLOCK_END_DOES_NOT_MATCH_START:
+						// Given the following Qute template
+						// {#if variable}
+						// {/else}
+						//
+						// Provide a code action to correct the end tag
+						// {#if variable}
+						// {/if}
+						codeActionForMismatchSectionTag.doCodeActions(request, codeActionResolveFutures, codeActions);
+						break;
+					default:
+						break;
+					}
+				} catch (BadLocationException e) {
+					LOGGER.log(Level.SEVERE, "Failed creating Syntax CodeAction Request", e);
 					return NO_CODEACTION;
 					// Do nothing
 				}
