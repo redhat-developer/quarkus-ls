@@ -122,16 +122,19 @@ public class QuteDiagnosticsWithUserTagTest {
 	}
 
 	@Test
-	public void noMatchBetweenStartEndSection() {
+	public void noMatchBetweenStartEndSection() throws Exception {
 		String template = "{#form }\r\n"
 				+ "	\r\n"
 				+ "	{/for}";
-		testDiagnosticsFor(template,
-				d(2, 2, 2, 6, QuteSyntaxErrorCode.SECTION_END_DOES_NOT_MATCH_START,
-						"Parser error: section end tag [for] does not match the start tag [form]",
-						DiagnosticSeverity.Error), //
+		Diagnostic d1 = d(2, 2, 2, 6, QuteSyntaxErrorCode.SECTION_END_DOES_NOT_MATCH_START,
+				"Parser error: section end tag [for] does not match the start tag [form]",
+				DiagnosticSeverity.Error);
+		testDiagnosticsFor(template, d1, //
 				d(0, 1, 0, 6, QuteErrorCode.MissingRequiredParameter,
 						"Missing required parameter(s) `it` of `form` user tag.",
 						DiagnosticSeverity.Warning));
+		testCodeActionsFor(template, d1, //
+				ca(d1, te(2, 3, 2, 6, //
+						"form")));
 	}
 }

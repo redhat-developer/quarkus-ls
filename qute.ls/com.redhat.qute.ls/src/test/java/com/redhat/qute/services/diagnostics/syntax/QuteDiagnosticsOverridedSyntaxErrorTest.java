@@ -11,9 +11,13 @@
 *******************************************************************************/
 package com.redhat.qute.services.diagnostics.syntax;
 
+import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
+import static com.redhat.qute.QuteAssert.te;
+import static com.redhat.qute.QuteAssert.testCodeActionsFor;
 import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 
+import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
@@ -28,21 +32,24 @@ import com.redhat.qute.parser.validator.QuteSyntaxErrorCode;
 public class QuteDiagnosticsOverridedSyntaxErrorTest {
 
 	@Test
-	public void UNTERMINATED_SECTION() {
+	public void UNTERMINATED_SECTION() throws Exception {
 		String template = "{@java.util.List items}\r\n"
 				+ "{#each items}\r\n" // <-- error
 				+ "	\r\n"
 				+ "{#each items}\r\n"
 				+ "	\r\n"
 				+ "{/each}\r\n";
-		testDiagnosticsFor(template, //
-				d(1, 1, 1, 6, QuteSyntaxErrorCode.UNTERMINATED_SECTION,
-						"Parser error: unterminated section [each] detected",
-						DiagnosticSeverity.Error));
+		Diagnostic d = d(1, 1, 1, 6, QuteSyntaxErrorCode.UNTERMINATED_SECTION,
+				"Parser error: unterminated section [each] detected",
+				DiagnosticSeverity.Error);
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(5, 7, 5, 7, //
+						"\r\n{/each}")));
 	}
 
 	@Test
-	public void severalUNTERMINATED_SECTION() {
+	public void severalUNTERMINATED_SECTION() throws Exception {
 		String template = "{@java.util.List items}\r\n"
 				+ "{#each items}\r\n" // <-- error
 				+ "	\r\n"
@@ -50,24 +57,51 @@ public class QuteDiagnosticsOverridedSyntaxErrorTest {
 				+ "	\r\n"
 				+ "{/each}\r\n"
 				+ "{#each items}\r\n"; // <-- error
-		testDiagnosticsFor(template, //
-				d(1, 1, 1, 6, QuteSyntaxErrorCode.UNTERMINATED_SECTION,
-						"Parser error: unterminated section [each] detected",
-						DiagnosticSeverity.Error),
-				d(6, 1, 6, 6, QuteSyntaxErrorCode.UNTERMINATED_SECTION,
-						"Parser error: unterminated section [each] detected",
-						DiagnosticSeverity.Error));
+		Diagnostic d1 = d(1, 1, 1, 6, QuteSyntaxErrorCode.UNTERMINATED_SECTION,
+				"Parser error: unterminated section [each] detected",
+				DiagnosticSeverity.Error);
+		Diagnostic d2 = d(6, 1, 6, 6, QuteSyntaxErrorCode.UNTERMINATED_SECTION,
+				"Parser error: unterminated section [each] detected",
+				DiagnosticSeverity.Error);
+		testDiagnosticsFor(template, d1, d2);
+		testCodeActionsFor(template, d1, //
+				ca(d1, te(5, 7, 5, 7, //
+						"\r\n{/each}")));
+		testCodeActionsFor(template, d2, //
+				ca(d2, te(6, 13, 6, 13, //
+						"\r\n{/each}")));
 	}
 
 	@Test
-	public void SECTION_END_DOES_NOT_MATCH_START() {
+	public void nestedUNTERMINATED_SECTION_with_content() throws Exception {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n"
+				+ "{#if true}\r\n"
+				+ "	\r\n"
+				+ "  {#each items}\r\n" // <-- error
+				+ "    {it.name}\r\n"
+				+ "	\r\n"
+				+ "{/if}\r\n";
+		Diagnostic d = d(3, 3, 3, 8, QuteSyntaxErrorCode.UNTERMINATED_SECTION,
+				"Parser error: unterminated section [each] detected",
+				DiagnosticSeverity.Error);
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(4, 13, 4, 13, //
+						"\r\n  {/each}")));
+	}
+
+	@Test
+	public void SECTION_END_DOES_NOT_MATCH_START() throws Exception {
 		String template = "{#for }\r\n"
 				+ "	\r\n"
 				+ "	{/each}"; // <-- error
-		testDiagnosticsFor(template,
-				d(2, 2, 2, 7, QuteSyntaxErrorCode.SECTION_END_DOES_NOT_MATCH_START,
-						"Parser error: section end tag [each] does not match the start tag [for]",
-						DiagnosticSeverity.Error));
+		Diagnostic d = d(2, 2, 2, 7, QuteSyntaxErrorCode.SECTION_END_DOES_NOT_MATCH_START,
+				"Parser error: section end tag [each] does not match the start tag [for]",
+				DiagnosticSeverity.Error);
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(2, 3, 2, 7, //
+						"for")));
 	}
 
 	@Test
@@ -117,16 +151,32 @@ public class QuteDiagnosticsOverridedSyntaxErrorTest {
 	}
 
 	@Test
-	public void SECTION_BLOCK_END_DOES_NOT_MATCH_START() {
+	public void SECTION_BLOCK_END_DOES_NOT_MATCH_START() throws Exception {
 		String template = "{#if true}\r\n"
 				+ "	Hello\r\n"
 				+ "{#else}\r\n"
 				+ "Hi\r\n"
 				+ "{/elsa}\r\n" // <-- error
 				+ "{/if}";
-		testDiagnosticsFor(template,
+		Diagnostic d = d(4, 1, 4, 6, QuteSyntaxErrorCode.SECTION_BLOCK_END_DOES_NOT_MATCH_START,
+				"Parser error: section block end tag [elsa] does not match the start tag [else]",
+				DiagnosticSeverity.Error);
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(4, 2, 4, 6, "if")));
+	}
+
+	@Test
+	public void SECTION_BLOCK_END_DOES_NOT_MATCH_START_no_error() throws Exception {
+		String template = "{#if true}\r\n"
+				+ "	Hello\r\n"
+				+ "{#else}\r\n"
+				+ "Hi\r\n"
+				+ "{/else}\r\n" // should not report error, need to fix in future PR
+				+ "{/if}";
+		testDiagnosticsFor(template, //
 				d(4, 1, 4, 6, QuteSyntaxErrorCode.SECTION_BLOCK_END_DOES_NOT_MATCH_START,
-						"Parser error: section block end tag [elsa] does not match the start tag [else]",
+						"Parser error: section block end tag [else] does not match the start tag [else]",
 						DiagnosticSeverity.Error));
 	}
 

@@ -150,6 +150,11 @@ public class QutePositionUtility {
 						expression = parameter.getJavaTypeExpression();
 					}
 					if (expression == null) {
+						// Return the section node if offset is in end section tag
+						// Used in the case of syntax error
+						if (offset >= section.getEndTagOpenOffset() && offset <= section.getEndTagCloseOffset()) {
+							return section;
+						}
 						expression = section.getExpressionParameter();
 					}
 					if (expression != null) {
