@@ -11,16 +11,22 @@ package com.redhat.qute.jdt.internal.template;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.Flags;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -378,9 +384,46 @@ public class TemplateGenerateMissingJavaMember {
 
 		IPackageFragment destPackage = null;
 		try {
+
+			IPath targetFolder = project.getOutputLocation().removeLastSegments(1);
+
+			List<IClasspathEntry> sourceClassPathEntries = Stream.of(project.getRawClasspath()) //
+					.filter(cpe -> {
+						cpe.getExtraAttributes();
+						return cpe.getEntryKind() == IClasspathEntry.CPE_SOURCE && !cpe.isTest() && !targetFolder.isPrefixOf(cpe.getPath());
+					}) //
+					.toList();
+			if (sourceClassPathEntries.isEmpty()) {
+				throw new UnsupportedOperationException(
+						"Cannot locate source code folder");
+			}
+			Optional<IPackageFragmentRoot> sourceFragmentRootOptional = Stream.of(project.getPackageFragmentRoots()) //
+					.filter(pfr -> {
+						try {
+							if (pfr.getKind() == IPackageFragmentRoot.K_BINARY || pfr.getResource() == null) {
+								return false;
+							}
+							return Stream.of(pfr.getChildren()).anyMatch(child -> child.getElementType() == IJavaElement.PACKAGE_FRAGMENT);
+						} catch (JavaModelException e) {
+							return false;
+						}
+					}) //
+					.filter(pfr -> {
+						for (var cpe : sourceClassPathEntries) {
+							if (cpe.getPath().equals(pfr.getResource().getFullPath())) {
+								return true;
+							}
+						}
+						return false;
+					}) //
+					.findFirst();
+			if (sourceFragmentRootOptional.isEmpty()) {
+				throw new UnsupportedOperationException(
+						"Cannot locate source code folder");
+			}
+			IPackageFragmentRoot fragmentRoot = sourceFragmentRootOptional.get();
 			// TODO: longest substring match of package of original class
 			// OR: figure out the "correct" one from the groupId?
-			IPackageFragmentRoot fragmentRoot = project.getPackageFragmentRoots()[0];
 			destPackage = fragmentRoot.getPackageFragment("");
 		} catch (JavaModelException e) {
 		}
