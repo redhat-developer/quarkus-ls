@@ -109,17 +109,15 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 	}
 
 	@Test
-	public void notOperator() {
+	public void notOperatorWithObjectPart() {
 		String template = "{#if !true}NOK{#else}OK{/if}";
 		testDiagnosticsFor(template);
 
-		Diagnostic d = d(0, 6, 0, 9, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
-				DiagnosticSeverity.Warning);
-
 		template = "{#if !foo}NOK{#else}OK{/if}";
-		testDiagnosticsFor(template, d);
+		testDiagnosticsFor(template, d(0, 6, 0, 9, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
+				DiagnosticSeverity.Warning));
 	}
-
+	
 	@Test
 	public void onlyNotOperator() {
 		String template = "{#if !}{/if}";

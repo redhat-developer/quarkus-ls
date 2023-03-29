@@ -657,7 +657,9 @@ public class QuteCompletionsForExpression {
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
 			QuteNativeSettings nativeImagesSettings, CancelChecker cancelChecker) {
 		// Completion for root object
-		int partStart = part != null && part.getKind() != NodeKind.Text ? part.getStart() : offset;
+		int partStart = part != null && part.getKind() != NodeKind.Text
+				? ((part.getKind() == NodeKind.ExpressionPart) ? ((Part) part).getStartName() : part.getStart())
+				: offset;
 		int partEnd = part != null && part.getKind() != NodeKind.Text ? part.getEnd() : offset;
 		Range range = QutePositionUtility.createRange(partStart, partEnd, template);
 

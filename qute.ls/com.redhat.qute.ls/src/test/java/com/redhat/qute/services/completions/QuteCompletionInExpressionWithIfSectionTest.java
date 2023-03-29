@@ -61,4 +61,17 @@ public class QuteCompletionInExpressionWithIfSectionTest {
 				c("foo", "foo", r(2, 2, 2, 2)), //
 				c("item", "item", r(2, 2, 2, 2)));
 	}
+	
+	@Test
+	public void objectPartAfterNot() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{#if !|}";
+		testCompletionFor(template, //
+				c("item", "item", r(1, 6, 1, 6)));
+
+		template = "{@org.acme.Item item}\r\n" + //
+				"{#if abcd != '' && !|it }";
+		testCompletionFor(template, //
+				c("item", "item", r(1, 20, 1, 22)));
+	}
 }
