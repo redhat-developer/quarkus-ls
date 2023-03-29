@@ -123,6 +123,20 @@ public class QuteDiagnosticsInExpressionWithNamespaceTest {
 		template = "{cdi:bean.isEmpty()}";
 		testDiagnosticsFor(template);
 	}
+	
+	@Test
+	public void notOperatorWithNamespacePart() {
+		String template = "{#if !cdi:bean}NOK{#else}OK{/if}";
+		testDiagnosticsFor(template);
+
+		template = "{#if !cdi:foo}NOK{#else}OK{/if}";
+		testDiagnosticsFor(template, d(0, 10, 0, 13, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
+				DiagnosticSeverity.Warning));
+		
+		template = "{#if !foo:bar}NOK{#else}OK{/if}";
+		testDiagnosticsFor(template, d(0, 6, 0, 9, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `foo`.",
+				DiagnosticSeverity.Warning));
+	}
 
 	@Test
 	public void badNamespace() throws Exception {

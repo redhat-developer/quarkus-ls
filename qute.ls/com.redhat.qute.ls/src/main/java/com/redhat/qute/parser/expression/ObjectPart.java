@@ -13,7 +13,6 @@ package com.redhat.qute.parser.expression;
 
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.ASTVisitor;
-import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
@@ -146,24 +145,6 @@ public class ObjectPart extends Part {
 	@Override
 	protected boolean canBeOptional() {
 		return true;
-	}
-
-	/**
-	 * Returns the owner parameter of the object part and null otherwise.
-	 * 
-	 * <p>
-	 * {#if foo?? }
-	 * </p>
-	 *
-	 * <p>
-	 * {#let foo='bar' }
-	 * </p>
-	 * 
-	 * @return the owner parameter of the object part and null otherwise.
-	 */
-	public Parameter getOwnerParameter() {
-		Expression expression = getParent().getParent();
-		return expression != null ? expression.getOwnerParameter() : null;
 	}
 
 	@Override

@@ -15,6 +15,7 @@ import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
+import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 
 /**
@@ -198,6 +199,23 @@ public abstract class Part extends Node {
 		return getPartName();
 	}
 
+	/**
+	 * Returns the owner parameter of the object part and null otherwise.
+	 * 
+	 * <p>
+	 * {#if foo?? }
+	 * </p>
+	 *
+	 * <p>
+	 * {#let foo='bar' }
+	 * </p>
+	 * 
+	 * @return the owner parameter of the object part and null otherwise.
+	 */
+	public Parameter getOwnerParameter() {
+		Expression expression = getParent().getParent();
+		return expression != null ? expression.getOwnerParameter() : null;
+	}
 	/**
 	 * Returns the part kind.
 	 * 
