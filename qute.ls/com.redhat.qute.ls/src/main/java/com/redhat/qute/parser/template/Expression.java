@@ -14,6 +14,7 @@ package com.redhat.qute.parser.template;
 import java.util.List;
 
 import com.redhat.qute.parser.expression.ExpressionParser;
+import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
@@ -96,31 +97,33 @@ public class Expression extends Node {
 	}
 
 	/**
-	 * Returns the object part of the expression and null otherwise.
-	 *
-	 * @return the object part of the expression and null otherwise.
-	 */
-	public ObjectPart getObjectPart() {
-		List<Node> nodes = getExpressionContent();
-		if (nodes.isEmpty()) {
-			return null;
-		}
-		Parts parts = (Parts) nodes.get(0);
-		return parts.getObjectPart();
-	}
-
-	/**
 	 * Returns the namespace part of the expression and null otherwise.
 	 *
 	 * @return the namespace part of the expression and null otherwise.
 	 */
 	public NamespacePart getNamespacePart() {
-		List<Node> nodes = getExpressionContent();
-		if (nodes.isEmpty()) {
-			return null;
-		}
-		Parts parts = (Parts) nodes.get(0);
-		return parts.getNamespacePart();
+		Parts parts = getParts();
+		return parts != null ? parts.getNamespacePart() : null;
+	}
+
+	/**
+	 * Returns the object part of the expression and null otherwise.
+	 *
+	 * @return the object part of the expression and null otherwise.
+	 */
+	public ObjectPart getObjectPart() {
+		Parts parts = getParts();
+		return parts != null ? parts.getObjectPart() : null;
+	}
+
+	/**
+	 * Returns the method part of the expression and null otherwise.
+	 *
+	 * @return the method part of the expression and null otherwise.
+	 */
+	public MethodPart getMethodPart() {
+		Parts parts = getParts();
+		return parts != null ? parts.getMethodPart() : null;
 	}
 
 	/**
@@ -129,12 +132,16 @@ public class Expression extends Node {
 	 * @return the last part of the expression and null otherwise.
 	 */
 	public Part getLastPart() {
+		Parts parts = getParts();
+		return parts != null ? (Part) parts.getLastChild() : null;
+	}
+
+	private Parts getParts() {
 		List<Node> nodes = getExpressionContent();
 		if (nodes.isEmpty()) {
 			return null;
 		}
-		Parts parts = (Parts) nodes.get(0);
-		return (Part) parts.getLastChild();
+		return (Parts) nodes.get(0);
 	}
 
 	/**

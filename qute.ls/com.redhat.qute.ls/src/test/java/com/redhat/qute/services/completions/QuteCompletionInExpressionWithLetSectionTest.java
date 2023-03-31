@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.QuteAssert.RESOLVERS_SIZE;
 import static com.redhat.qute.QuteAssert.SECTION_SNIPPET_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
@@ -163,7 +164,7 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 				"	{foo.method(n|}\r\n" + //
 				"{/let}";
 		testCompletionFor(template, //
-				8, //
+				RESOLVERS_SIZE + 1, //
 				c("name", "name", r(1, 13, 1, 14)), //
 				c("inject:bean", "inject:bean", r(1, 13, 1, 14)), //
 				c("inject:plexux", "inject:plexux", r(1, 13, 1, 14)), //
@@ -172,6 +173,8 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 						r(1, 13, 1, 14)), //
 				c("GLOBAL", "GLOBAL", r(1, 13, 1, 14)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 13, 1, 14)), //
-				c("uri:Login", "uri:Login", r(1, 13, 1, 14)));
+				c("uri:Login", "uri:Login", r(1, 13, 1, 14)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 13, 1, 14)),//
+				c("msg2:hello() : String", "msg2:hello", r(1, 13, 1, 14)));
 	}
 }

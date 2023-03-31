@@ -32,12 +32,14 @@ public class ValueResolverInfo {
 	private String signature;
 
 	private String sourceType;
-	
+
 	private Boolean binary;
-	
+
 	private ValueResolverKind kind;
 
 	private Boolean globalVariable;
+
+	private Object data;
 
 	/**
 	 * Returns the named of the resolver.
@@ -118,7 +120,7 @@ public class ValueResolverInfo {
 	public void setSourceType(String sourceType) {
 		this.sourceType = sourceType;
 	}
-	
+
 	/**
 	 * Returns true if the source type is a source file and false otherwise.
 	 * 
@@ -127,7 +129,7 @@ public class ValueResolverInfo {
 	public boolean isBinary() {
 		return binary != null && binary.booleanValue();
 	}
-	
+
 	/**
 	 * Sets if the source type is a binary file.
 	 * 
@@ -136,7 +138,7 @@ public class ValueResolverInfo {
 	public void setBinary(boolean binary) {
 		this.binary = binary;
 	}
-	
+
 	/**
 	 * Returns the kind of the value resolver.
 	 * 
@@ -145,7 +147,7 @@ public class ValueResolverInfo {
 	public ValueResolverKind getKind() {
 		return this.kind;
 	}
-	
+
 	/**
 	 * Sets the kind of the value resolver.
 	 * 
@@ -173,6 +175,14 @@ public class ValueResolverInfo {
 		this.globalVariable = global;
 	}
 
+	public Object getData() {
+		return data;
+	}
+
+	public void setData(Object data) {
+		this.data = data;
+	}
+
 	/**
 	 * Returns the Java element kind (type, method, field).
 	 *
@@ -191,12 +201,15 @@ public class ValueResolverInfo {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((binary == null) ? 0 : binary.hashCode());
+		result = prime * result + ((data == null) ? 0 : data.hashCode());
+		result = prime * result + ((globalVariable == null) ? 0 : globalVariable.hashCode());
+		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
 		result = prime * result + ((matchName == null) ? 0 : matchName.hashCode());
 		result = prime * result + ((named == null) ? 0 : named.hashCode());
 		result = prime * result + ((namespace == null) ? 0 : namespace.hashCode());
 		result = prime * result + ((signature == null) ? 0 : signature.hashCode());
 		result = prime * result + ((sourceType == null) ? 0 : sourceType.hashCode());
-		result = prime * result + ((globalVariable == null) ? 0 : globalVariable.hashCode());
 		return result;
 	}
 
@@ -209,6 +222,23 @@ public class ValueResolverInfo {
 		if (getClass() != obj.getClass())
 			return false;
 		ValueResolverInfo other = (ValueResolverInfo) obj;
+		if (binary == null) {
+			if (other.binary != null)
+				return false;
+		} else if (!binary.equals(other.binary))
+			return false;
+		if (data == null) {
+			if (other.data != null)
+				return false;
+		} else if (!data.equals(other.data))
+			return false;
+		if (globalVariable == null) {
+			if (other.globalVariable != null)
+				return false;
+		} else if (!globalVariable.equals(other.globalVariable))
+			return false;
+		if (kind != other.kind)
+			return false;
 		if (matchName == null) {
 			if (other.matchName != null)
 				return false;
@@ -233,11 +263,6 @@ public class ValueResolverInfo {
 			if (other.sourceType != null)
 				return false;
 		} else if (!sourceType.equals(other.sourceType))
-			return false;
-		if (globalVariable == null) {
-			if (other.globalVariable != null)
-				return false;
-		} else if (!globalVariable.equals(other.globalVariable))
 			return false;
 		return true;
 	}

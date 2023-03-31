@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.QuteAssert.RESOLVERS_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
 import static com.redhat.qute.QuteAssert.testCompletionFor;
@@ -45,6 +46,7 @@ public class QuteCompletionWithCheckedTemplateTest {
 				"Item: {|";
 		testCompletionFor(template, //
 				"src/main/resources/templates/ItemResource/items.qute.html", //
-				"ItemResource/Items", 8, c("items", "items", r(1, 7, 1, 7)));
+				"ItemResource/Items", RESOLVERS_SIZE + 1, //
+				c("items", "items", r(1, 7, 1, 7)));
 	}
 }

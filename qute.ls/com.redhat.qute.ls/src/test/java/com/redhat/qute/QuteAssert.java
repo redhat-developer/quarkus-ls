@@ -117,6 +117,8 @@ public class QuteAssert {
 												 */;
 
 	public static final int SECTION_SNIPPET_SIZE = 15 /* #each, #for, ... #fragment ... */ + USER_TAG_SIZE;
+	
+	public static final int RESOLVERS_SIZE = 9;
 
 	public static String getFileUri(String templateFile) {
 		return Paths.get(TEMPLATE_BASE_DIR + templateFile).toUri().toString();

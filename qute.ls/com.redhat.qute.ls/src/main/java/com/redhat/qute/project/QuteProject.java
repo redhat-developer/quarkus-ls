@@ -45,6 +45,7 @@ import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
 import com.redhat.qute.commons.jaxrs.RestParam;
 import com.redhat.qute.parser.expression.Part;
@@ -56,6 +57,7 @@ import com.redhat.qute.parser.template.TemplateConfiguration;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.MessageValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
@@ -1320,6 +1322,24 @@ public class QuteProject {
 				});
 	}
 
+	public CompletableFuture<MessageValueResolver> findMessageValueResolver(String namespace, String methodName) {
+		return getDataModelProject() //
+				.thenApply(dataModel -> {
+					if (dataModel == null) {
+						return null;
+					}
+					// Search in methods resolvers
+					List<MethodValueResolver> methodResolvers = dataModel.getMethodValueResolvers();
+					for (MethodValueResolver resolver : methodResolvers) {
+						if (resolver.getKind() == ValueResolverKind.Message
+								&& isMatchNamespaceResolver(namespace, methodName, resolver, dataModel)) {
+							return (MessageValueResolver) resolver;
+						}
+					}
+					return null;
+				});
+	}
+
 	private static boolean isMatchNamespaceResolver(String namespace, String partName, ValueResolver resolver,
 			ExtendedDataModelProject dataModel) {
 		String name = getResolverName(resolver);
@@ -1376,6 +1396,22 @@ public class QuteProject {
 						}
 					}
 					return globalVariables;
+				});
+	}
+
+	public CompletableFuture<List<MessageValueResolver>> getMessageValueResolvers() {
+		return getDataModelProject() //
+				.thenApply(dataModel -> {
+					if (dataModel == null) {
+						return null;
+					}
+					List<MessageValueResolver> messages = new ArrayList<>();
+					for (ValueResolver valueResolver : dataModel.getMethodValueResolvers()) {
+						if (valueResolver.getKind() == ValueResolverKind.Message) {
+							messages.add((MessageValueResolver) valueResolver);
+						}
+					}
+					return messages;
 				});
 	}
 

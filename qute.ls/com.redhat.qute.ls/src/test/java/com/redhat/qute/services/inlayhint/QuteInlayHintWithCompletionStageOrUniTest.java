@@ -81,7 +81,7 @@ public class QuteInlayHintWithCompletionStageOrUniTest {
 	}
 
 	private static Command cd(String javaType) {
-		return InlayHintASTVistor.createJavaDefinitionCommand(javaType, QuteQuickStartProject.PROJECT_URI);
+		return InlayHintASTVistor.createOpenJavaTypeCommand(javaType, QuteQuickStartProject.PROJECT_URI);
 	}
 
 	@Test

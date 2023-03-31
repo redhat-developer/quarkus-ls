@@ -31,6 +31,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Parameter;
@@ -42,6 +43,7 @@ import com.redhat.qute.parser.template.sections.IfSection;
 import com.redhat.qute.parser.template.sections.LetSection;
 import com.redhat.qute.parser.template.sections.SetSection;
 import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.datamodel.resolvers.MessageValueResolver;
 import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.QuteInlayHintSettings;
@@ -57,6 +59,8 @@ import com.redhat.qute.settings.SharedSettings;
 public class InlayHintASTVistor extends ASTVisitor {
 
 	private static final String OPEN_JAVA_TYPE_MESSAGE = "Open `{0}` Java type.";
+
+	private static final String EDIT_JAVA_MESSAGE_MESSAGE = "Edit `{0}` Java message.";
 
 	private static final Logger LOGGER = Logger.getLogger(InlayHintASTVistor.class.getName());
 
@@ -166,6 +170,61 @@ public class InlayHintASTVistor extends ASTVisitor {
 		return isAfterEndParameterVisible(node);
 	}
 
+	@Override
+	public boolean visit(Expression node) {
+		cancelChecker.checkCanceled();
+
+		Part objectOrMethodPart = node.getObjectPart();
+		if (objectOrMethodPart == null) {
+			objectOrMethodPart = node.getMethodPart();
+		}
+		if (objectOrMethodPart != null) {
+			String namespace = objectOrMethodPart.getNamespace();
+			if (namespace != null) {
+				String partName = objectOrMethodPart.getPartName();
+				Template template = node.getOwnerTemplate();
+				QuteProject project = template.getProject();
+				CompletableFuture<MessageValueResolver> messageFuture = project
+						.findMessageValueResolver(namespace, partName);
+				MessageValueResolver message = messageFuture.getNow(null);
+				if (message != null) {
+					// It is a message value resolver
+					// {msg:hello}
+					// {msg:hello_name('Lucie')}
+
+					String messageContent = message.getMessage();
+					if (messageContent != null) {
+						try {
+							// Display the message as inlay hint
+							// {msg:hello} [Hello!]
+							// {msg:hello_name('Lucie')} [Hello {name}!]
+							InlayHint hint = new InlayHint();
+							hint.setKind(InlayHintKind.Type);
+							if (canSupportJavaDefinition) {
+								// Clickable Message to edit it (ex : 'Hello {name}!')
+								InlayHintLabelPart messagePart = new InlayHintLabelPart(messageContent);
+								Command javaDefCommand = createEditJavaMessageCommand(messageContent,
+										message.getSourceType(),
+										message.getName(), project.getUri());
+								messagePart.setCommand(javaDefCommand);
+								messagePart.setTooltip(javaDefCommand.getTitle());
+								hint.setLabel(Either.forRight(Arrays.asList(messagePart)));
+							} else {
+								hint.setLabel(Either.forLeft(messageContent));
+							}
+							Position position = template.positionAt(node.getEnd());
+							hint.setPosition(position);
+							inlayHints.add(hint);
+						} catch (Exception e) {
+							LOGGER.log(Level.SEVERE, "Error while creating inlay hint for message", e);
+						}
+					}
+				}
+			}
+		}
+		return super.visit(node);
+	}
+
 	private boolean isAfterStartParameterVisible(Section node) {
 		if (startOffset == -1) {
 			return true;
@@ -271,7 +330,7 @@ public class InlayHintASTVistor extends ASTVisitor {
 			InlayHintLabelPart separatorPart = new InlayHintLabelPart(":");
 			// second part label : clickable Java type (ex : String)
 			InlayHintLabelPart javaTypePart = new InlayHintLabelPart(type);
-			Command javaDefCommand = createJavaDefinitionCommand(javaType.getName(), projectUri);
+			Command javaDefCommand = createOpenJavaTypeCommand(javaType.getName(), projectUri);
 			javaTypePart.setCommand(javaDefCommand);
 			javaTypePart.setTooltip(javaDefCommand.getTitle());
 			hint.setLabel(Either.forRight(Arrays.asList(separatorPart, javaTypePart)));
@@ -280,10 +339,18 @@ public class InlayHintASTVistor extends ASTVisitor {
 		}
 	}
 
-	public static Command createJavaDefinitionCommand(String javaType, String projectUri) {
-		String title = MessageFormat.format(OPEN_JAVA_TYPE_MESSAGE, javaType);
+	public static Command createOpenJavaTypeCommand(String sourceType, String projectUri) {
+		String title = MessageFormat.format(OPEN_JAVA_TYPE_MESSAGE, sourceType);
 		return new Command(title, COMMAND_JAVA_DEFINITION,
-				Arrays.asList(new QuteJavaDefinitionParams(javaType, projectUri)));
+				Arrays.asList(new QuteJavaDefinitionParams(sourceType, projectUri)));
+	}
+
+	public static Command createEditJavaMessageCommand(String messageContent, String sourceType, String sourceMethod,
+			String projectUri) {
+		String title = MessageFormat.format(EDIT_JAVA_MESSAGE_MESSAGE, messageContent);
+		QuteJavaDefinitionParams params = new QuteJavaDefinitionParams(sourceType, projectUri);
+		params.setSourceMethod(sourceMethod);
+		return new Command(title, COMMAND_JAVA_DEFINITION, Arrays.asList(params));
 	}
 
 	private static String getLabel(ResolvedJavaTypeInfo javaType) {

@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.QuteAssert.RESOLVERS_SIZE;
 import static com.redhat.qute.QuteAssert.SECTION_SNIPPET_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
@@ -101,7 +102,7 @@ public class QuteCompletionWithUserTagTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				7 + 3, //
+				RESOLVERS_SIZE + 3, //
 				c("method", "method=\"method\"", r(0, 7, 0, 7)), //
 				c("class", "class=\"class\"", r(0, 7, 0, 7)), //
 				c("id", "id=\"id\"", r(0, 7, 0, 7)));
@@ -109,7 +110,7 @@ public class QuteCompletionWithUserTagTest {
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				7 + 3, //
+				RESOLVERS_SIZE + 3, //
 				c("method", "method=\"${1:method}\"$0", r(0, 7, 0, 7)), //
 				c("class", "class=\"${1:class}\"$0", r(0, 7, 0, 7)), //
 				c("id", "id=\"${1:id}\"$0", r(0, 7, 0, 7)));
@@ -228,12 +229,12 @@ public class QuteCompletionWithUserTagTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				7);
+				RESOLVERS_SIZE);
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				7);
+				RESOLVERS_SIZE);
 	}
 
 	@Test

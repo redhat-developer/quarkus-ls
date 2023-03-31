@@ -19,7 +19,6 @@ import static com.redhat.qute.jdt.QuteProjectTest.loadMavenProject;
 
 import java.util.List;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.junit.Assert;
 import org.junit.Test;

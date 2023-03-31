@@ -18,6 +18,7 @@ import java.util.Optional;
 import org.junit.Assert;
 
 import com.redhat.qute.commons.datamodel.DataModelParameter;
+import com.redhat.qute.commons.datamodel.resolvers.MessageResolverData;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 
 /**
@@ -38,7 +39,7 @@ public class QuteAssert {
 		assertValueResolver(namespace, signature, sourceType, named, false, resolvers);
 	}
 
-	public static void assertValueResolver(String namespace, String signature, String sourceType, String named,
+	public static ValueResolverInfo assertValueResolver(String namespace, String signature, String sourceType, String named,
 			boolean globalVariable, List<ValueResolverInfo> resolvers) {
 		Optional<ValueResolverInfo> result = resolvers.stream()
 				.filter(r -> signature.equals(r.getSignature()) && Objects.equals(namespace, r.getNamespace()))
@@ -49,6 +50,7 @@ public class QuteAssert {
 		Assert.assertEquals(signature, resolver.getSignature());
 		Assert.assertEquals(sourceType, resolver.getSourceType());
 		Assert.assertEquals(globalVariable, resolver.isGlobalVariable());
+		return resolver;
 	}
 
 	public static void assertNotValueResolver(String namespace, String signature, String sourceType, String named,
@@ -63,6 +65,19 @@ public class QuteAssert {
 		Assert.assertTrue("Find '" + signature + "' value resolver.", result.isEmpty());
 	}
 
+	public static void assertMessageResolverData(String locale, String messageContent, ValueResolverInfo message) {
+		if (locale == null && messageContent == null) {
+			Assert.assertNull(message.getData());
+		} else {
+			Assert.assertNotNull(message.getData());
+			Assert.assertTrue(message.getData() instanceof MessageResolverData);
+			MessageResolverData data = (MessageResolverData) message.getData();
+			Assert.assertEquals(locale, data.getLocale());
+			Assert.assertEquals(messageContent, data.getMessage());
+		}
+		
+	}
+	
 	public static void assertParameter(String key, String sourceType, boolean dataMethodInvocation,
 			List<DataModelParameter> parameters, int index) {
 		DataModelParameter parameter = parameters.get(index);

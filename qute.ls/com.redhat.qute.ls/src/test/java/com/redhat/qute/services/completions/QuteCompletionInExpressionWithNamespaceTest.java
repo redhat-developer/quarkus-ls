@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.QuteAssert.RESOLVERS_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
 import static com.redhat.qute.QuteAssert.testCompletionFor;
@@ -34,7 +35,7 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 				"  {|}\r\n" + //
 				"{/let}";
 		testCompletionFor(template, //
-				9, // name and item
+				RESOLVERS_SIZE + 2, // name and item
 				c("item", "item", r(2, 3, 2, 3)), //
 				c("name", "name", r(2, 3, 2, 3)), //
 				c("inject:bean", "inject:bean", r(2, 3, 2, 3)), //
@@ -44,7 +45,9 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 						r(2, 3, 2, 3)), //
 				c("GLOBAL", "GLOBAL", r(2, 3, 2, 3)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(2, 3, 2, 3)), //
-				c("uri:Login", "uri:Login", r(2, 3, 2, 3)));
+				c("uri:Login", "uri:Login", r(2, 3, 2, 3)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(2, 3, 2, 3)), //
+				c("msg2:hello() : String", "msg2:hello", r(2, 3, 2, 3)));
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"{#let name=123 }\r\n" + //
@@ -113,7 +116,7 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 	public void namespaceResolver() throws Exception {
 		String template = "{|}";
 		testCompletionFor(template, //
-				7, //
+				RESOLVERS_SIZE, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 1, 0, 1)),
@@ -121,7 +124,9 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 						r(0, 1, 0, 1)), //
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
-				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
+				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 1, 0, 1)), //
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
 	}
 
 	@Test
@@ -143,7 +148,7 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 	public void orpheanColonSpace() throws Exception {
 		String template = "	{inject :|}";
 		testCompletionFor(template, //
-				7, //
+				RESOLVERS_SIZE, //
 				c("inject:bean", "inject:bean", r(0, 10, 0, 10)), //
 				c("inject:plexux", "inject:plexux", r(0, 10, 0, 10)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 10, 0, 10)),
@@ -151,7 +156,9 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 						r(0, 10, 0, 10)), //
 				c("GLOBAL", "GLOBAL", r(0, 10, 0, 10)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 10, 0, 10)), //
-				c("uri:Login", "uri:Login", r(0, 10, 0, 10)));
+				c("uri:Login", "uri:Login", r(0, 10, 0, 10)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 10, 0, 10)), //
+				c("msg2:hello() : String", "msg2:hello", r(0, 10, 0, 10)));
 	}
 
 }

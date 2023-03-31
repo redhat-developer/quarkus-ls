@@ -40,6 +40,7 @@
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateDataAnnotationSupport" />
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateEnumAnnotationSupport" />
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateGlobalAnnotationSupport" />
+      <provider class="com.redhat.qute.jdt.internal.template.datamodel.TypeSafeMessageBundlesSupport" />
    </extension>
 
    <!-- Data model providers for Quarkus integration for Qute -->

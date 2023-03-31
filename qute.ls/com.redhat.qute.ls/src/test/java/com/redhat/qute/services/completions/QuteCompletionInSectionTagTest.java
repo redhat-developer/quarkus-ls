@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.QuteAssert.RESOLVERS_SIZE;
 import static com.redhat.qute.QuteAssert.SECTION_SNIPPET_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
@@ -33,19 +34,21 @@ public class QuteCompletionInSectionTagTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				7, //
+				RESOLVERS_SIZE, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:propertyName", r(0, 1, 0, 1)),
 				c("config:property(propertyName : String) : Object", "config:property(propertyName)", r(0, 1, 0, 1)), //
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
-				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
+				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(name)", r(0, 1, 0, 1)),//
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				7, //
+				RESOLVERS_SIZE, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 1, 0, 1)),
@@ -53,7 +56,9 @@ public class QuteCompletionInSectionTagTest {
 						r(0, 1, 0, 1)), //
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
-				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
+				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 1, 0, 1)),//
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
 	}
 
 	@Test
@@ -63,19 +68,21 @@ public class QuteCompletionInSectionTagTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				7, //
+				RESOLVERS_SIZE, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:propertyName", r(0, 1, 0, 1)),
 				c("config:property(propertyName : String) : Object", "config:property(propertyName)", r(0, 1, 0, 1)), //
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
-				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
+				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(name)", r(0, 1, 0, 1)),//
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				7, //
+				RESOLVERS_SIZE, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 1, 0, 1)),
@@ -83,7 +90,9 @@ public class QuteCompletionInSectionTagTest {
 						r(0, 1, 0, 1)), //
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
-				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
+				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 1, 0, 1)),//
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
 	}
 
 	@Test
@@ -93,19 +102,21 @@ public class QuteCompletionInSectionTagTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				7, //
+				RESOLVERS_SIZE, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:propertyName", r(0, 1, 0, 1)),
 				c("config:property(propertyName : String) : Object", "config:property(propertyName)", r(0, 1, 0, 1)), //
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
-				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
+				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(name)", r(0, 1, 0, 1)),//
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				7, //
+				RESOLVERS_SIZE, //
 				c("inject:bean", "inject:bean", r(0, 1, 0, 1)), //
 				c("inject:plexux", "inject:plexux", r(0, 1, 0, 1)), //
 				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 1, 0, 1)),
@@ -113,7 +124,9 @@ public class QuteCompletionInSectionTagTest {
 						r(0, 1, 0, 1)), //
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
-				c("uri:Login", "uri:Login", r(0, 1, 0, 1)));
+				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 1, 0, 1)),//
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
 	}
 
 	@Test

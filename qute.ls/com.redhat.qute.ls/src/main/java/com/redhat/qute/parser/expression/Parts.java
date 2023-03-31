@@ -40,27 +40,13 @@ public class Parts extends Node {
 	}
 
 	/**
-	 * Returns the object part of the parts and null otherwise.
+	 * Returns the namespace of the parts and null otherwise.
 	 * 
-	 * @return the object part of the parts and null otherwise.
+	 * @return the namespace of the parts and null otherwise.
 	 */
-	public ObjectPart getObjectPart() {
-		if (super.getChildCount() == 0) {
-			return null;
-		}
-		Part firstPart = getChild(0);
-		switch (firstPart.getPartKind()) {
-		case Object:
-			return (ObjectPart) firstPart;
-		case Namespace:
-			if (super.getChildCount() == 1) {
-				return null;
-			}
-			Part secondPart = getChild(1);
-			return (ObjectPart) secondPart;
-		default:
-			return null;
-		}
+	public String getNamespace() {
+		NamespacePart namespacePart = getNamespacePart();
+		return namespacePart != null ? namespacePart.getPartName() : null;
 	}
 
 	/**
@@ -78,15 +64,53 @@ public class Parts extends Node {
 		}
 		return null;
 	}
-	
+
 	/**
-	 * Returns the namespace of the parts and null otherwise.
+	 * Returns the object part of the parts and null otherwise.
 	 * 
-	 * @return the namespace of the parts and null otherwise.
+	 * @return the object part of the parts and null otherwise.
 	 */
-	public String getNamespace() {
-		NamespacePart namespacePart = getNamespacePart();
-		return namespacePart != null ? namespacePart.getPartName() : null;
+	public ObjectPart getObjectPart() {
+		if (super.getChildCount() == 0) {
+			return null;
+		}
+		Part firstPart = getChild(0);
+		switch (firstPart.getPartKind()) {
+			case Object:
+				return (ObjectPart) firstPart;
+			case Namespace:
+				if (super.getChildCount() == 1) {
+					return null;
+				}
+				Part secondPart = getChild(1);
+				return secondPart.getPartKind() == PartKind.Object ? (ObjectPart) secondPart : null;
+			default:
+				return null;
+		}
+	}
+
+	/**
+	 * Returns the method part of the parts and null otherwise.
+	 * 
+	 * @return the method part of the parts and null otherwise.
+	 */
+	public MethodPart getMethodPart() {
+		if (super.getChildCount() == 0) {
+			return null;
+		}
+		Part firstPart = getChild(0);
+		switch (firstPart.getPartKind()) {
+			case Method:
+				return (MethodPart) firstPart;
+			case Namespace:
+				if (super.getChildCount() == 1) {
+					return null;
+				}
+				Part secondPart = getChild(1);
+				return secondPart.getPartKind() == PartKind.Method ? (MethodPart) secondPart : null;
+			default:
+				return null;
+		}
 	}
 
 	@Override
@@ -136,6 +160,7 @@ public class Parts extends Node {
 	private int getPreviousPartIndex(Part part) {
 		return part != null ? super.getChildren().indexOf(part) - 1 : super.getChildCount() - 1;
 	}
+
 	public Part getNextPart(Part part) {
 		int partIndex = getNextPartIndex(part);
 		return partIndex != -1 ? (Part) super.getChild(partIndex) : null;
@@ -145,11 +170,10 @@ public class Parts extends Node {
 		if (part == null) {
 			return -1;
 		}
-		int index= super.getChildren().indexOf(part) + 1 ;
+		int index = super.getChildren().indexOf(part) + 1;
 		return super.getChildCount() > index ? index : -1;
 	}
 
-	
 	@Override
 	public void setEnd(int end) {
 		super.setEnd(end);
