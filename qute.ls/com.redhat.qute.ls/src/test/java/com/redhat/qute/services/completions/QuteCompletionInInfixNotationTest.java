@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.QuteAssert.RESOLVERS_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
 import static com.redhat.qute.QuteAssert.testCompletionFor;
@@ -84,7 +85,7 @@ public class QuteCompletionInInfixNotationTest {
 
 		// Infix notation : only methods with one parameter of String class
 		testCompletionFor(template, //
-				8, //
+				RESOLVERS_SIZE + 1, //, //
 				c("item", "item", r(1, 14, 1, 14)), //
 				c("inject:bean", "inject:bean", r(1, 14, 1, 14)), //
 				c("inject:plexux", "inject:plexux", r(1, 14, 1, 14)), //
@@ -93,14 +94,16 @@ public class QuteCompletionInInfixNotationTest {
 						r(1, 14, 1, 14)), //
 				c("GLOBAL", "GLOBAL", r(1, 14, 1, 14)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 14, 1, 14)), //
-				c("uri:Login", "uri:Login", r(1, 14, 1, 14)));
+				c("uri:Login", "uri:Login", r(1, 14, 1, 14)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 14, 1, 14)),//
+				c("msg2:hello() : String", "msg2:hello", r(1, 14, 1, 14)));
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.name ?: item.name :|}";
 
 		// Infix notation : only methods with one parameter of String class
 		testCompletionFor(template, //
-				8, //
+				RESOLVERS_SIZE + 1, //
 				c("item", "item", r(1, 25, 1, 25)), //
 				c("inject:bean", "inject:bean", r(1, 25, 1, 25)), //
 				c("inject:plexux", "inject:plexux", r(1, 25, 1, 25)), //
@@ -109,7 +112,9 @@ public class QuteCompletionInInfixNotationTest {
 						r(1, 25, 1, 25)), //
 				c("GLOBAL", "GLOBAL", r(1, 25, 1, 25)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 25, 1, 25)), //
-				c("uri:Login", "uri:Login", r(1, 25, 1, 25)));
+				c("uri:Login", "uri:Login", r(1, 25, 1, 25)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 25, 1, 25)),//
+				c("msg2:hello() : String", "msg2:hello", r(1, 25, 1, 25)));
 	}
 
 }

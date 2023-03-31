@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.QuteAssert.RESOLVERS_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
 import static com.redhat.qute.QuteAssert.testCompletionFor;
@@ -32,7 +33,7 @@ public class QuteCompletionInUserTagTest {
 
 		// In qute template
 		testCompletionFor(template, //
-				8, //
+				RESOLVERS_SIZE + 1, //
 				c("item", "item", r(1, 1, 1, 1)), //
 				c("inject:bean", "inject:bean", r(1, 1, 1, 1)), //
 				c("inject:plexux", "inject:plexux", r(1, 1, 1, 1)), //
@@ -41,13 +42,15 @@ public class QuteCompletionInUserTagTest {
 						r(1, 1, 1, 1)), //
 				c("GLOBAL", "GLOBAL", r(1, 1, 1, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 1, 1, 1)), //
-				c("uri:Login", "uri:Login", r(1, 1, 1, 1)));
+				c("uri:Login", "uri:Login", r(1, 1, 1, 1)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 1, 1, 1)),//
+				c("msg2:hello() : String", "msg2:hello", r(1, 1, 1, 1)));
 
 		// In user tag
 		testCompletionFor(template, //
 				"src/main/resources/templates/tags/form.html", //
 				"tags/form", //
-				7 /* item, inject:bean, config:getConfigProperty */ + 2 /* it, nested-content */ + 1 /*
+				RESOLVERS_SIZE /* item, inject:bean, config:getConfigProperty */ + 2 /* it, nested-content */ + 1 /*
 																										 * global
 																										 * variables
 																										 */, //
@@ -60,7 +63,9 @@ public class QuteCompletionInUserTagTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 1, 1, 1)), //
 				c("it", "it", r(1, 1, 1, 1)), //
 				c("nested-content", "nested-content", r(1, 1, 1, 1)), //
-				c("uri:Login", "uri:Login", r(1, 1, 1, 1)));
+				c("uri:Login", "uri:Login", r(1, 1, 1, 1)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(name)", r(1, 1, 1, 1)),//
+				c("msg2:hello() : String", "msg2:hello", r(1, 1, 1, 1)));
 
 	}
 

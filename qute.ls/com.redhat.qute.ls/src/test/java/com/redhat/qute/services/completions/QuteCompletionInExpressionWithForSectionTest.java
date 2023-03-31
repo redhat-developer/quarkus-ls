@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.QuteAssert.RESOLVERS_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
 import static com.redhat.qute.QuteAssert.testCompletionFor;
@@ -216,7 +217,7 @@ public class QuteCompletionInExpressionWithForSectionTest {
 				"{#else}\r\n" + //
 				"	{|}    \r\n" + // <-- here items is only available because it is on #else block
 				"{/for}";
-		testCompletionFor(template, 8, //
+		testCompletionFor(template, RESOLVERS_SIZE + 1, //
 				c("items", "items", r(4, 2, 4, 2)), //
 				c("inject:bean", "inject:bean", r(4, 2, 4, 2)), //
 				c("inject:plexux", "inject:plexux", r(4, 2, 4, 2)), //
@@ -225,7 +226,9 @@ public class QuteCompletionInExpressionWithForSectionTest {
 						r(4, 2, 4, 2)), //
 				c("GLOBAL", "GLOBAL", r(4, 2, 4, 2)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(4, 2, 4, 2)), //
-				c("uri:Login", "uri:Login", r(4, 2, 4, 2)));
+				c("uri:Login", "uri:Login", r(4, 2, 4, 2)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(4, 2, 4, 2)),//
+				c("msg2:hello() : String", "msg2:hello", r(4, 2, 4, 2)));
 	}
 
 	@Test

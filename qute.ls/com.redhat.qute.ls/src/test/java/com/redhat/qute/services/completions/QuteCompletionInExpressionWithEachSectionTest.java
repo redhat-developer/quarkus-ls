@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.QuteAssert.RESOLVERS_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
 import static com.redhat.qute.QuteAssert.testCompletionFor;
@@ -193,7 +194,7 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#each |}";
-		testCompletionFor(template, 8, //
+		testCompletionFor(template, RESOLVERS_SIZE + 1, //
 				c("items", "items", r(2, 7, 2, 7)), //
 				c("inject:bean", "inject:bean", r(2, 7, 2, 7)), //
 				c("inject:plexux", "inject:plexux", r(2, 7, 2, 7)), //
@@ -202,12 +203,14 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 						r(2, 7, 2, 7)), //
 				c("GLOBAL", "GLOBAL", r(2, 7, 2, 7)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(2, 7, 2, 7)), //
-				c("uri:Login", "uri:Login", r(2, 7, 2, 7)));
+				c("uri:Login", "uri:Login", r(2, 7, 2, 7)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(2, 7, 2, 7)), //
+				c("msg2:hello() : String", "msg2:hello", r(2, 7, 2, 7)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
 				"{#each |";
-		testCompletionFor(template, 8, //
+		testCompletionFor(template, RESOLVERS_SIZE + 1, //
 				c("items", "items", r(2, 7, 2, 7)), //
 				c("inject:bean", "inject:bean", r(2, 7, 2, 7)), //
 				c("inject:plexux", "inject:plexux", r(2, 7, 2, 7)), //
@@ -216,7 +219,9 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 						r(2, 7, 2, 7)), //
 				c("GLOBAL", "GLOBAL", r(2, 7, 2, 7)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(2, 7, 2, 7)), //
-				c("uri:Login", "uri:Login", r(2, 7, 2, 7)));
+				c("uri:Login", "uri:Login", r(2, 7, 2, 7)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(2, 7, 2, 7)), //
+				c("msg2:hello() : String", "msg2:hello", r(2, 7, 2, 7)));
 
 	}
 

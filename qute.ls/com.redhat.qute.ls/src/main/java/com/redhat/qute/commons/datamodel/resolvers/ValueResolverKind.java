@@ -23,7 +23,8 @@ public enum ValueResolverKind {
 	TemplateExtensionOnClass(4), //
 	TemplateGlobal(5), //
 	InjectedBean(6), //
-	Renarde(7);
+	Message(7), //
+	Renarde(8);
 
 	private final int value;
 

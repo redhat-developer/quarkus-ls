@@ -20,7 +20,6 @@ import org.eclipse.lsp4j.Command;
 import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.project.QuteQuickStartProject;
-import com.redhat.qute.services.inlayhint.InlayHintASTVistor;
 import com.redhat.qute.settings.QuteInlayHintSettings;
 
 /**
@@ -79,10 +78,6 @@ public class QuteInlayHintTest {
 		settings.setShowSectionParameterType(false);
 		testInlayHintFor(template, //
 				settings);
-	}
-
-	private static Command cd(String javaType) {
-		return InlayHintASTVistor.createJavaDefinitionCommand(javaType, QuteQuickStartProject.PROJECT_URI);
 	}
 
 	@Test
@@ -182,5 +177,9 @@ public class QuteInlayHintTest {
 		testInlayHintFor(template, //
 				ih(p(2, 11), ihLabel(":"),
 						ihLabel("Object", "Open `java.lang.Object` Java type.", cd("java.lang.Object"))));
+	}
+
+	private static Command cd(String javaType) {
+		return InlayHintASTVistor.createOpenJavaTypeCommand(javaType, QuteQuickStartProject.PROJECT_URI);
 	}
 }

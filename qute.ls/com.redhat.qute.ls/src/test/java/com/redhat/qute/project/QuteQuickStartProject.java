@@ -29,6 +29,7 @@ import com.redhat.qute.commons.annotations.TemplateDataAnnotation;
 import com.redhat.qute.commons.datamodel.DataModelFragment;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import com.redhat.qute.commons.datamodel.resolvers.MessageResolverData;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
@@ -138,7 +139,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		ResolvedJavaTypeInfo asyncResultUni = createResolvedJavaTypeInfo("io.smallrye.mutiny.vertx.AsyncResultUni<T>",
 				cache, true);
 		asyncResultUni.setExtendedTypes(Arrays.asList("io.smallrye.mutiny.Uni<T>"));
-		
+
 		// RawString for raw and safe resolver tests
 		ResolvedJavaTypeInfo rawString = createResolvedJavaTypeInfo("io.quarkus.qute.RawString", cache, true);
 		registerMethod("getValue() : java.lang.String", rawString);
@@ -336,11 +337,14 @@ public class QuteQuickStartProject extends MockQuteProject {
 		restParameters.put("firstName", new RestParam("firstName", JaxRsParamKind.FORM, true));
 		restParameters.put("lastName", new RestParam("lastName", JaxRsParamKind.FORM, true));
 		completeMethod.setRestParameters(restParameters);
-		
+
 		// https://quarkus.io/guides/qute-reference#evaluation-of-completionstage-and-uni-objects
-		ResolvedJavaTypeInfo completionStagePOJO = createResolvedJavaTypeInfo("org.acme.CompletionStagePOJO", cache, false);
-		registerMethod("getMyStrings() : io.smallrye.mutiny.Uni<java.util.List<java.lang.String>>",completionStagePOJO);
-		registerMethod("getOtherStrings() : java.util.concurrent.CompletableFuture<java.util.List<java.lang.String>>",completionStagePOJO);
+		ResolvedJavaTypeInfo completionStagePOJO = createResolvedJavaTypeInfo("org.acme.CompletionStagePOJO", cache,
+				false);
+		registerMethod("getMyStrings() : io.smallrye.mutiny.Uni<java.util.List<java.lang.String>>",
+				completionStagePOJO);
+		registerMethod("getOtherStrings() : java.util.concurrent.CompletableFuture<java.util.List<java.lang.String>>",
+				completionStagePOJO);
 	}
 
 	@Override
@@ -501,6 +505,24 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// Renarde controller
 		resolvers.add(createValueResolver("uri", "Login", null, "rest.Login", "rest.Login",
 				ValueResolverKind.Renarde, false, false));
+
+		// Type-safe Message Bundles support
+		ValueResolverInfo hello_name = createValueResolver("msg", null, null, "org.acme.AppMessages",
+				"hello_name(name : java.lang.String) : java.lang.String",
+				ValueResolverKind.Message, false, false);
+		MessageResolverData hello_nameData = new MessageResolverData();
+		hello_nameData.setMessage("Hello {name ?: 'Qute'}");
+		hello_name.setData(hello_nameData);
+		resolvers.add(hello_name);
+		
+		ValueResolverInfo hello = createValueResolver("msg2", null, null, "org.acme.App2Messages",
+				"hello() : java.lang.String",
+				ValueResolverKind.Message, false, false);
+		MessageResolverData helloData = new MessageResolverData();
+		helloData.setMessage("Hello!");
+		hello.setData(helloData);
+		resolvers.add(hello);
+		
 		return resolvers;
 	}
 
