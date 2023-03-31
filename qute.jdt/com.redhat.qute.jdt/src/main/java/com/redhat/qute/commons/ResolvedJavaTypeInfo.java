@@ -32,7 +32,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
 	private static final String JAVA_LANG_ITERABLE_TYPE = "java.lang.Iterable";
 
-	private static final List<String> WRAPPED_TYPES = Arrays.asList("java.util.concurrent.CompletionStage",
+	private static final List<String> WRAPPER_TYPES = Arrays.asList("java.util.concurrent.CompletionStage",
 			"io.smallrye.mutiny.Uni");
 
 	private List<String> extendedTypes;
@@ -51,7 +51,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
 	private transient Boolean isIterable;
 
-	private transient Boolean isWrapperObject;
+	private transient Boolean isWrapperType;
 
 	/**
 	 * Returns list of extended types.
@@ -162,28 +162,28 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	 *         "java.util.concurrent.CompletionStage"
 	 *         or "io.smallrye.mutiny.Uni" and false otherwise.
 	 */
-	public boolean isWrapperObject() {
-		if (isWrapperObject != null) {
-			return isWrapperObject.booleanValue();
+	public boolean isWrapperType() {
+		if (isWrapperType != null) {
+			return isWrapperType.booleanValue();
 		}
-		isWrapperObject = computeIsWrappedObject();
-		return isWrapperObject.booleanValue();
+		isWrapperType = computeIsWrappedObject();
+		return isWrapperType.booleanValue();
 	}
 
 	private synchronized boolean computeIsWrappedObject() {
-		if (isWrapperObject != null) {
-			return isWrapperObject.booleanValue();
+		if (isWrapperType != null) {
+			return isWrapperType.booleanValue();
 		}
-		boolean wrapperObject = isWrapperObject(getName());
-		if (!wrapperObject && extendedTypes != null) {
+		boolean wrapperType = isWrapperType(getName());
+		if (!wrapperType && extendedTypes != null) {
 			for (String extendedType : extendedTypes) {
-				if (isWrapperObject(extendedType)) {
-					wrapperObject = true;
+				if (isWrapperType(extendedType)) {
+					wrapperType = true;
 					break;
 				}
 			}
 		}
-		return wrapperObject;
+		return wrapperType;
 	}
 
 	/**
@@ -195,12 +195,12 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	 * @return true if the given Java type is "java.util.concurrent.CompletionStage"
 	 *         or "io.smallrye.mutiny.Uni" and false otherwise.
 	 */
-	public static boolean isWrapperObject(String type) {
-		return WRAPPED_TYPES.contains(type);
+	public static boolean isWrapperType(String type) {
+		return WRAPPER_TYPES.contains(type);
 	}
 
-	public void setWrapperObject(Boolean wrapperObject) {
-		this.isWrapperObject = wrapperObject;
+	public void setWrapperType(Boolean wrapperType) {
+		this.isWrapperType = wrapperType;
 	}
 
 	/**
