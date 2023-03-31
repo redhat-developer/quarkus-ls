@@ -22,8 +22,8 @@ public enum ValueResolverKind {
 	TemplateExtensionOnMethod(3), //
 	TemplateExtensionOnClass(4), //
 	TemplateGlobal(6), //
-	InjectedBean(6), //
-	Renarde(7);
+	InjectedBean(7), //
+	Renarde(8);
 
 	private final int value;
 
