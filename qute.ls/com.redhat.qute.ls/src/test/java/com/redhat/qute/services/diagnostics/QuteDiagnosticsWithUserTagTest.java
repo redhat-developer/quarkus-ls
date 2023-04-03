@@ -121,6 +121,34 @@ public class QuteDiagnosticsWithUserTagTest {
 						" class=\"class\"")));
 	}
 
+	// https://github.com/redhat-developer/quarkus-ls/issues/841
+	@Test
+	public void missingRequiredParameterNestedContent() throws Exception {
+		String template = "{#formElement}\r\n" + //
+				"  Hello!\r\n" + //
+				"{/}";
+		Diagnostic d = d(0, 1, 0, 13, QuteErrorCode.MissingRequiredParameter,
+				"Missing required parameter(s) `name`, `label` of `formElement` user tag.",
+				DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(0, 13, 0, 13, //
+						" name=\"name\" label=\"label\"")));
+	}
+
+	@Test
+	public void missingRequiredParameterIt() throws Exception {
+		String template = "{#myTag required=\"required\"}\r\n" + //
+				"{/}";
+		Diagnostic d = d(0, 1, 0, 7, QuteErrorCode.MissingRequiredParameter,
+				"Missing required parameter(s) `it` of `myTag` user tag.",
+				DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(0, 27, 0, 27, //
+						" \"\"")));
+	}
+
 	@Test
 	public void noMatchBetweenStartEndSection() throws Exception {
 		String template = "{#form }\r\n"

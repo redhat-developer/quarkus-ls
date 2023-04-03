@@ -174,6 +174,7 @@ public abstract class UserTag extends Snippet {
 		return getParameters().stream()
 				.filter(UserTagParameter::isRequired)
 				.map(UserTagParameter::getName)
+				.filter(paramName -> !paramName.equals(UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME))
 				.collect(Collectors.toList());
 	}
 
