@@ -29,6 +29,7 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.utils.QutePositionUtility;
+import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * Code actions for {@link QuteErrorCode#MissingRequiredParameter}.
@@ -81,7 +82,11 @@ public class QuteCodeActionForMissingParameters extends AbstractQuteCodeAction {
 		StringBuilder str = new StringBuilder();
 		for (String paramName : paramNames) {
 			str.append(" ");
-			str.append(String.format("%s=\"%s\"", paramName, paramName));
+			if (paramName.equals(UserTagUtils.IT_OBJECT_PART_NAME)){
+				str.append("\"\"");
+			} else {
+				str.append(String.format("%s=\"%s\"", paramName, paramName));
+			}
 		}
 		return str.toString();
 	}
