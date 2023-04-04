@@ -1,5 +1,11 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## 0.14.1 (April 4, 2023)
+
+### Bug Fixes
+
+ * `uri:` and `uriabs:` (for Qute templates in Renarde projects) no longer work as expected. See [#850](https://github.com/redhat-developer/quarkus-ls/issues/850).
+
 ## 0.14.0 (April 3, 2023)
 
 ### Enhancements
