@@ -136,7 +136,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 			case IClasspathEntry.CPE_LIBRARY:
 				String jarPath = entry.getPath().toOSString();
 				IPackageFragmentRoot root = project.getPackageFragmentRoot(jarPath);
-				if (root != null) {
+				if (root != null && root.exists()) {
 					Artifact deploymentArtifact = getDeploymentArtifact(root);
 					if (deploymentArtifact != null) {
 						deploymentArtifacts.add(deploymentArtifact);
