@@ -94,7 +94,13 @@ public class QuarkusIntegrationForQute {
 			case IClasspathEntry.CPE_LIBRARY:
 				String jarPath = entry.getPath().toOSString();
 				IPackageFragmentRoot root = javaProject.getPackageFragmentRoot(jarPath);
-				if (root != null) {
+				if (root != null && root.exists()) {
+					// IPackageFragmentRoot doesn't exist for instance when maven dependency is not good:
+					//<dependency>
+					//  <groupId>io.quarkus</groupId>
+					//  <artifactId>missing</artifactId>
+					//  <version>9.9.9</version>
+					//</dependency>					
 					collectUserTags(root, tags);
 				}
 			}
