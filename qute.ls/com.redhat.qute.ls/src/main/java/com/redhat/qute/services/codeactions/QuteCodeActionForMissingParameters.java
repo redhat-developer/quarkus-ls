@@ -61,9 +61,9 @@ public class QuteCodeActionForMissingParameters extends AbstractQuteCodeAction {
 			// collect missing paramters
 			for (Parameter param : section.getParameters()) {
 				if (requiredUserTagParamNames.contains(param.getName())) {
-					startRangeOffset = param.getEnd();
 					requiredUserTagParamNames.remove(param.getName());
 				}
+				startRangeOffset = param.getEnd();
 			}
 
 			Range range = QutePositionUtility.createRange(

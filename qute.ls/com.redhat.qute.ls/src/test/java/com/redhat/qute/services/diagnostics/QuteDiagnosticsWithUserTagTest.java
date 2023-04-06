@@ -149,6 +149,20 @@ public class QuteDiagnosticsWithUserTagTest {
 						" \"\"")));
 	}
 
+	// https://github.com/redhat-developer/quarkus-ls/issues/856
+	@Test
+	public void missingRequiredParameterWithOptionalParamter() throws Exception {
+		String template = "{#myTag required=\"required\" optional=\"optional\"}\r\n" + //
+				"{/}";
+		Diagnostic d = d(0, 1, 0, 7, QuteErrorCode.MissingRequiredParameter,
+				"Missing required parameter(s) `it` of `myTag` user tag.",
+				DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(0, 47, 0, 47, //
+						" \"\"")));
+	}
+
 	@Test
 	public void noMatchBetweenStartEndSection() throws Exception {
 		String template = "{#form }\r\n"
