@@ -11,16 +11,20 @@
 *******************************************************************************/
 package com.redhat.qute.services.codeaction;
 
+import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.te;
 import static com.redhat.qute.QuteAssert.testCodeActionsFor;
+import static com.redhat.qute.QuteAssert.testCodeActionsWithConfigurationUpdateFor;
 import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
+import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
+import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
@@ -45,6 +49,20 @@ public class QuteCodeActionForSimilarTextSuggestionsForUnknownMethodTest {
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(1, 8, 1, 13, "charAt")));
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
+				ca(d, te(1, 8, 1, 13, "charAt")),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
+						d)));
 	}
 
 	@Test
@@ -61,6 +79,20 @@ public class QuteCodeActionForSimilarTextSuggestionsForUnknownMethodTest {
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(1, 8, 1, 13, "orEmpty")));
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
+				ca(d, te(1, 8, 1, 13, "orEmpty")),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
+						d)));
 	}
 
 	@Test
@@ -77,6 +109,20 @@ public class QuteCodeActionForSimilarTextSuggestionsForUnknownMethodTest {
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(1, 6, 1, 12, "convert")));
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
+				ca(d, te(1, 6, 1, 12, "convert")),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
+						d)));
 	}
 
 	@Test
@@ -92,6 +138,19 @@ public class QuteCodeActionForSimilarTextSuggestionsForUnknownMethodTest {
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d);
+		testCodeActionsWithConfigurationUpdateFor(template, d,
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
+						d)));
 	}
 
 	@Test
@@ -107,6 +166,21 @@ public class QuteCodeActionForSimilarTextSuggestionsForUnknownMethodTest {
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 10, 0, 15, "charAt")));
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
+				ca(d, te(0, 10, 0, 15, "charAt")),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
+						d)));
+
 	}
 
 	@Test
@@ -123,6 +197,20 @@ public class QuteCodeActionForSimilarTextSuggestionsForUnknownMethodTest {
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(1, 8, 1, 14, "convert")));
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
+				ca(d, te(1, 8, 1, 14, "convert")),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
+						d)));
 	}
 
 }

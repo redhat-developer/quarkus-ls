@@ -16,6 +16,7 @@ import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.te;
 import static com.redhat.qute.QuteAssert.testCodeActionsFor;
+import static com.redhat.qute.QuteAssert.testCodeActionsWithConfigurationUpdateFor;
 import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 
 import org.eclipse.lsp4j.Diagnostic;
@@ -27,7 +28,8 @@ import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
- * Test code action for similar text suggestions for {@link QuteErrorCode#UndefinedNamespace}.
+ * Test code action for similar text suggestions for
+ * {@link QuteErrorCode#UndefinedNamespace}.
  *
  */
 public class QuteCodeActionForSimilarTextSuggestionsForUndefinedNamespaceTest {
@@ -42,12 +44,26 @@ public class QuteCodeActionForSimilarTextSuggestionsForUndefinedNamespaceTest {
 
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
+				ca(d, te(0, 1, 0, 5, "inject")));
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
 				ca(d, te(0, 1, 0, 5, "inject")), //
 				ca(d, c("Ignore `UndefinedNamespace` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedNamespace.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
+						d)),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
 						d)));
 	}
 
@@ -60,13 +76,26 @@ public class QuteCodeActionForSimilarTextSuggestionsForUndefinedNamespaceTest {
 				DiagnosticSeverity.Warning);
 
 		testDiagnosticsFor(template, d);
-		testCodeActionsFor(template, d, //
+		testCodeActionsFor(template, d);
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
 				ca(d, c("Ignore `UndefinedNamespace` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedNamespace.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
+						d)));		
 	}
 
 }

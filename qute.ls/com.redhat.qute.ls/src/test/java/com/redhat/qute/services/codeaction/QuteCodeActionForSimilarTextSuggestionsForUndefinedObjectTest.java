@@ -16,6 +16,7 @@ import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.te;
 import static com.redhat.qute.QuteAssert.testCodeActionsFor;
+import static com.redhat.qute.QuteAssert.testCodeActionsWithConfigurationUpdateFor;
 import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 
 import org.eclipse.lsp4j.Diagnostic;
@@ -47,13 +48,30 @@ public class QuteCodeActionForSimilarTextSuggestionsForUndefinedObjectTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(1, 1, 1, 5, "string")), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String stri}\r\n")), //
+				ca(d, te(1, 5, 1, 5, "??")));
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
+				ca(d, te(1, 1, 1, 5, "string")), //
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String stri}\r\n")), //
 				ca(d, te(1, 5, 1, 5, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
+						d)),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
 						d)));
+
 	}
 
 	@Test
@@ -70,13 +88,30 @@ public class QuteCodeActionForSimilarTextSuggestionsForUndefinedObjectTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(1, 1, 1, 5, "string")), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String trin}\r\n")), //
+				ca(d, te(1, 5, 1, 5, "??")));
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
+				ca(d, te(1, 1, 1, 5, "string")), //
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String trin}\r\n")), //
 				ca(d, te(1, 5, 1, 5, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
+						d)),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
 						d)));
+
 	}
 
 	@Test
@@ -92,13 +127,30 @@ public class QuteCodeActionForSimilarTextSuggestionsForUndefinedObjectTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String abc}" + //
 						System.lineSeparator())), //
+				ca(d, te(0, 4, 0, 4, "??")));
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String abc}" + //
+						System.lineSeparator())), //
 				ca(d, te(0, 4, 0, 4, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
+						d)),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
 						d)));
+
 	}
 
 	@Test
@@ -118,13 +170,30 @@ public class QuteCodeActionForSimilarTextSuggestionsForUndefinedObjectTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(2, 21, 2, 25, "index")), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String inde}\r\n")), //
+				ca(d, te(2, 25, 2, 25, "??")));
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
+				ca(d, te(2, 21, 2, 25, "index")), //
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String inde}\r\n")), //
 				ca(d, te(2, 25, 2, 25, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
+						d)),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
 						d)));
+
 	}
 
 	@Test
@@ -142,12 +211,28 @@ public class QuteCodeActionForSimilarTextSuggestionsForUndefinedObjectTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(2, 2, 2, 5, "item")), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String ite}\r\n")), //
+				ca(d, te(2, 5, 2, 5, "??")));
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
+				ca(d, te(2, 2, 2, 5, "item")), //
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String ite}\r\n")), //
 				ca(d, te(2, 5, 2, 5, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
+						d)),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
 						d)));
 	}
 
@@ -168,13 +253,30 @@ public class QuteCodeActionForSimilarTextSuggestionsForUndefinedObjectTest {
 				ca(d, te(2, 2, 2, 5, "item")), //
 				ca(d, te(2, 2, 2, 5, "items")), //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String ite}\r\n")), //
+				ca(d, te(2, 5, 2, 5, "??")));
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
+				ca(d, te(2, 2, 2, 5, "item")), //
+				ca(d, te(2, 2, 2, 5, "items")), //
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String ite}\r\n")), //
 				ca(d, te(2, 5, 2, 5, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
+						d)));		
 	}
 
 }

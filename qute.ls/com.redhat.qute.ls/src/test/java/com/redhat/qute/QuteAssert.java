@@ -117,7 +117,7 @@ public class QuteAssert {
 												 */;
 
 	public static final int SECTION_SNIPPET_SIZE = 15 /* #each, #for, ... #fragment ... */ + USER_TAG_SIZE;
-	
+
 	public static final int RESOLVERS_SIZE = 9;
 
 	public static String getFileUri(String templateFile) {
@@ -606,7 +606,7 @@ public class QuteAssert {
 		template.setTemplateId(templateId);
 
 		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
-		SharedSettings sharedSettings = createSharedSettings();
+		SharedSettings sharedSettings = createSharedSettings(false);
 		List<? extends CodeLens> actual = languageService.getCodeLens(template, sharedSettings, () -> {
 		}).get();
 		assertCodeLens(actual, expected);
@@ -647,7 +647,7 @@ public class QuteAssert {
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 		template.setTemplateId(templateId);
 
-		SharedSettings settings = createSharedSettings();
+		SharedSettings settings = createSharedSettings(false);
 		if (inlayHintSettings != null) {
 			settings.getInlayHintSettings().update(inlayHintSettings);
 		}
@@ -689,9 +689,14 @@ public class QuteAssert {
 
 	// ------------------- CodeAction assert
 
+	public static void testCodeActionsWithConfigurationUpdateFor(String value, Diagnostic diagnostic, CodeAction... expected)
+			throws Exception {
+		testCodeActionsFor(value, diagnostic, createSharedSettings(true), expected);
+	}
+	
 	public static void testCodeActionsFor(String value, Diagnostic diagnostic, CodeAction... expected)
 			throws Exception {
-		testCodeActionsFor(value, diagnostic, new SharedSettings(), expected);
+		testCodeActionsFor(value, diagnostic, createSharedSettings(false), expected);
 	}
 
 	public static void testCodeActionsFor(String value, Diagnostic diagnostic, SharedSettings settings,
@@ -1022,12 +1027,16 @@ public class QuteAssert {
 		return template;
 	}
 
-	private static SharedSettings createSharedSettings() {
+	public static SharedSettings createSharedSettings(boolean withConfigurationUpdate) {
 		SharedSettings sharedSettings = new SharedSettings();
 		CommandCapabilities commandCapabilities = new CommandCapabilities();
 		CommandKindCapabilities kinds = new CommandKindCapabilities(
-				Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION,
-						QuteClientCommandConstants.COMMAND_SHOW_REFERENCES));
+				withConfigurationUpdate ? 
+						Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION,
+						QuteClientCommandConstants.COMMAND_SHOW_REFERENCES,
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE) : 
+							Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION,
+									QuteClientCommandConstants.COMMAND_SHOW_REFERENCES));
 		commandCapabilities.setCommandKind(kinds);
 		sharedSettings.getCommandCapabilities().setCapabilities(commandCapabilities);
 		return sharedSettings;
