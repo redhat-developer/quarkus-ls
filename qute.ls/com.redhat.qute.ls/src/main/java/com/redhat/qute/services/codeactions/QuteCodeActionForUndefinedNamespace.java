@@ -26,6 +26,7 @@ import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
@@ -55,10 +56,13 @@ public class QuteCodeActionForUndefinedNamespace extends AbstractQuteCodeAction 
 			// CodeAction(s) to replace text with similar suggestions
 			doCodeActionsForSimilarValues(part, template, diagnostic, codeActions);
 
-			// CodeAction to set validation severity to ignore
-			doCodeActionToSetIgnoreSeverity(template, diagnostic, QuteErrorCode.UndefinedNamespace, codeActions,
-					UNDEFINED_NAMESPACE_SEVERITY_SETTING);
-
+			boolean canUpdateConfiguration = request.getSharedSettings().getCommandCapabilities()
+					.isCommandSupported(QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE);
+			if (canUpdateConfiguration) {
+				// CodeAction to set validation severity to ignore
+				doCodeActionToSetIgnoreSeverity(template, diagnostic, QuteErrorCode.UndefinedNamespace, codeActions,
+						UNDEFINED_NAMESPACE_SEVERITY_SETTING);
+			}
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "Creation of undefined namespace code action failed", e);
 		}

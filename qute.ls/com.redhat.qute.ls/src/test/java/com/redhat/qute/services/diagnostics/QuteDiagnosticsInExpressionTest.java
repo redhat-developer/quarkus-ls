@@ -16,6 +16,7 @@ import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.te;
 import static com.redhat.qute.QuteAssert.testCodeActionsFor;
+import static com.redhat.qute.QuteAssert.testCodeActionsWithConfigurationUpdateFor;
 import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 
 import org.eclipse.lsp4j.Diagnostic;
@@ -63,13 +64,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String trueX}" + //
 						System.lineSeparator())), //
-				ca(d, te(0, 6, 0, 6, "??")), //
-				ca(d, c("Ignore `UndefinedObject` problem.", //
-						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedObject.severity", //
-						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
-						d)));
+				ca(d, te(0, 6, 0, 6, "??")));
 
 		template = "{false}";
 		testDiagnosticsFor(template);
@@ -82,13 +77,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String falseX}" + //
 						System.lineSeparator())), //
-				ca(d, te(0, 7, 0, 7, "??")), //
-				ca(d, c("Ignore `UndefinedObject` problem.", //
-						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedObject.severity", //
-						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
-						d)));
+				ca(d, te(0, 7, 0, 7, "??")));
 	}
 
 	@Test
@@ -104,13 +93,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String nullX}" + //
 						System.lineSeparator())), //
-				ca(d, te(0, 6, 0, 6, "??")), //
-				ca(d, c("Ignore `UndefinedObject` problem.", //
-						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedObject.severity", //
-						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
-						d)));
+				ca(d, te(0, 6, 0, 6, "??")));
 	}
 
 	@Test
@@ -135,13 +118,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String 123X}" + //
 						System.lineSeparator())), //
-				ca(d, te(0, 5, 0, 5, "??")), //
-				ca(d, c("Ignore `UndefinedObject` problem.", //
-						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedObject.severity", //
-						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
-						d)));
+				ca(d, te(0, 5, 0, 5, "??")));
 	}
 
 	@Test
@@ -157,13 +134,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String 123LX}" + //
 						System.lineSeparator())), //
-				ca(d, te(0, 6, 0, 6, "??")), //
-				ca(d, c("Ignore `UndefinedObject` problem.", //
-						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedObject.severity", //
-						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
-						d)));
+				ca(d, te(0, 6, 0, 6, "??")));
 	}
 
 	@Test
@@ -179,13 +150,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
 						System.lineSeparator())), //
-				ca(d, te(0, 5, 0, 5, "??")), //
-				ca(d, c("Ignore `UndefinedObject` problem.", //
-						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedObject.severity", //
-						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
-						d)));
+				ca(d, te(0, 5, 0, 5, "??")));
 	}
 
 	@Test
@@ -201,13 +166,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String nested-content}" + //
 						System.lineSeparator())), //
-				ca(d, te(0, 15, 0, 15, "??")), //
-				ca(d, c("Ignore `UndefinedObject` problem.", //
-						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedObject.severity", //
-						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
-						d)));
+				ca(d, te(0, 15, 0, 15, "??")));
 	}
 
 	@Test
@@ -367,13 +326,7 @@ public class QuteDiagnosticsInExpressionTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String person}" + //
 						System.lineSeparator())), //
-				ca(d, te(0, 7, 0, 7, "??")), //
-				ca(d, c("Ignore `UndefinedObject` problem.", //
-						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedObject.severity", //
-						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
-						d)));
+				ca(d, te(0, 7, 0, 7, "??")));
 	}
 
 	@Test
@@ -390,12 +343,25 @@ public class QuteDiagnosticsInExpressionTest {
 		Diagnostic d = d(1, 1, 1, 8, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `dataXXX`.",
 				DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
-		testCodeActionsFor(template, d, //
+		testCodeActionsFor(template, d);
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
 				ca(d, c("Ignore `UndefinedNamespace` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedNamespace.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
+						d)),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
 						d)));
 	}
 
@@ -733,7 +699,8 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template, //
 				d(0, 1, 0, 6, QuteErrorCode.UndefinedObject, "`items` cannot be resolved to an object.",
 						DiagnosticSeverity.Warning),
-				d(0, 7, 0, 17, QuteErrorCode.UnknownMethod, "`getByIndex` cannot be resolved or is not a method of `null` Java type.",
+				d(0, 7, 0, 17, QuteErrorCode.UnknownMethod,
+						"`getByIndex` cannot be resolved or is not a method of `null` Java type.",
 						DiagnosticSeverity.Error));
 	}
 }

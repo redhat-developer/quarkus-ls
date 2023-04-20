@@ -16,6 +16,7 @@ import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.te;
 import static com.redhat.qute.QuteAssert.testCodeActionsFor;
+import static com.redhat.qute.QuteAssert.testCodeActionsWithConfigurationUpdateFor;
 import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 
 import java.util.Arrays;
@@ -53,13 +54,30 @@ public class QuteCodeActionWithSettingsTest {
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
 						System.lineSeparator())), //
+				ca(d, te(0, 5, 0, 5, "??")));
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}" + //
+						System.lineSeparator())), //
 				ca(d, te(0, 5, 0, 5, "??")), //
 				ca(d, c("Ignore `UndefinedObject` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedObject.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
+						d)),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
 						d)));
+								
 	}
 
 	@Test
@@ -72,13 +90,26 @@ public class QuteCodeActionWithSettingsTest {
 				DiagnosticSeverity.Warning);
 
 		testDiagnosticsFor(template, d);
-		testCodeActionsFor(template, d, //
+		testCodeActionsFor(template, d);
+		testCodeActionsWithConfigurationUpdateFor(template, d, //
 				ca(d, c("Ignore `UndefinedNamespace` problem.", //
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
 						"qute.validation.undefinedNamespace.severity", //
 						"test.qute", //
 						ConfigurationItemEditType.update, "ignore", //
-						d)));
+						d)),
+				ca(d, c("Exclude this file from validation.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.excluded", //
+						"test.qute", //
+						ConfigurationItemEditType.add, "test.qute", //
+						d)),
+				ca(d, c("Disable Qute validation for the `qute-quickstart` project.", //
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
+						"qute.validation.enabled", //
+						"test.qute", //
+						ConfigurationItemEditType.update, false, //
+						d)));				
 	}
 
 	@Test

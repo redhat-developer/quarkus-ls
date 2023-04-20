@@ -44,6 +44,7 @@ import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
+import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.utils.StringUtils;
 import com.redhat.qute.utils.UserTagUtils;
@@ -83,9 +84,13 @@ public class QuteCodeActionForUndefinedObject extends AbstractQuteCodeAction {
 			// CodeAction to append ?? to object to make it optional
 			doCodeActionToAddOptionalSuffix(template, diagnostic, codeActions);
 
-			// CodeAction to set validation severity to ignore
-			doCodeActionToSetIgnoreSeverity(template, diagnostic, QuteErrorCode.UndefinedObject, codeActions,
-					UNDEFINED_OBJECT_SEVERITY_SETTING);
+			boolean canUpdateConfiguration = request.getSharedSettings().getCommandCapabilities()
+					.isCommandSupported(QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE);
+			if (canUpdateConfiguration) {
+				// CodeAction to set validation severity to ignore
+				doCodeActionToSetIgnoreSeverity(template, diagnostic, QuteErrorCode.UndefinedObject, codeActions,
+						UNDEFINED_OBJECT_SEVERITY_SETTING);
+			}
 
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "Creation of undefined object code action failed", e);

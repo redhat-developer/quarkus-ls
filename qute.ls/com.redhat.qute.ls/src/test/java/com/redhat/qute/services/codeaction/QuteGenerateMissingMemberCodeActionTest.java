@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.services.codeaction;
 
+import static com.redhat.qute.QuteAssert.c;
+import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.cad;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.testCodeActionsFor;
@@ -26,9 +28,11 @@ import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams.MemberType;
+import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.project.QuteQuickStartProject;
 import com.redhat.qute.services.codeactions.CodeActionResolverKind;
 import com.redhat.qute.services.codeactions.CodeActionUnresolvedData;
+import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.settings.SharedSettings;
@@ -58,6 +62,7 @@ public class QuteGenerateMissingMemberCodeActionTest {
 						QuteQuickStartProject.PROJECT_URI, "org.acme.foo.TemplateExtensions")), //
 				cad(d, new GenerateMissingJavaMemberParams(MemberType.CreateTemplateExtension, "asdf", "org.acme.Item",
 						QuteQuickStartProject.PROJECT_URI)));
+
 	}
 
 	@Test

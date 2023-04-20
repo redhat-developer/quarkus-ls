@@ -44,13 +44,7 @@ public class QuteDiagnosticsInExpressionWithWithSectionTest {
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String item}\r\n")), //
-				ca(d, te(0, 11, 0, 11, "??")), //
-				ca(d, c("Ignore `UndefinedObject` problem.", //
-						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedObject.severity", //
-						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
-						d)));
+				ca(d, te(0, 11, 0, 11, "??")));
 	}
 
 	@Test
@@ -84,13 +78,7 @@ public class QuteDiagnosticsInExpressionWithWithSectionTest {
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 0, 0, 0, "{@java.lang.String average}\r\n")), //
-				ca(d, te(6, 12, 6, 12, "??")), //
-				ca(d, c("Ignore `UndefinedObject` problem.", //
-						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE, //
-						"qute.validation.undefinedObject.severity", //
-						"test.qute", //
-						ConfigurationItemEditType.update, "ignore", //
-						d)));
+				ca(d, te(6, 12, 6, 12, "??")));
 
 	}
 }
