@@ -39,7 +39,7 @@
 		<maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
 		<dev.build.timestamp>${maven.build.timestamp}</dev.build.timestamp>
 		<lsp4j.version>0.14.0</lsp4j.version>
-		<microprofile.ls.version>0.7.0-SNAPSHOT</microprofile.ls.version>
+		<microprofile.ls.version>0.8.0-SNAPSHOT</microprofile.ls.version>
 		<jboss.releases.repo.id>jboss-releases-repository</jboss.releases.repo.id>
 		<jboss.releases.repo.url>https://repository.jboss.org/nexus/content/repositories/releases/</jboss.releases.repo.url>
 		<jboss.snapshots.repo.id>jboss-snapshots-repository</jboss.snapshots.repo.id>
