@@ -472,6 +472,7 @@ public class QuteProjectRegistry
 
 		// Start progress
 		WorkDoneProgressBegin begin = new WorkDoneProgressBegin();
+		begin.setTitle("Loading '" + projectName + "' project");
 		begin.setMessage("Trying to load '" + projectName + "' as Qute project.");
 		begin.setPercentage(100);
 		progressSupport.notifyProgress(progressId, begin);
