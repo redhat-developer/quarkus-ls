@@ -15,13 +15,35 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.lsp4j.DocumentLink;
+import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.MessageActionItem;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.RegistrationParams;
 import org.eclipse.lsp4j.ShowMessageRequestParams;
 import org.eclipse.lsp4j.UnregistrationParams;
+import org.eclipse.lsp4j.WorkspaceEdit;
 
+import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
+import com.redhat.qute.commons.JavaTypeInfo;
+import com.redhat.qute.commons.ProjectInfo;
+import com.redhat.qute.commons.QuteJavaCodeLensParams;
+import com.redhat.qute.commons.QuteJavaDefinitionParams;
+import com.redhat.qute.commons.QuteJavaDiagnosticsParams;
+import com.redhat.qute.commons.QuteJavaDocumentLinkParams;
+import com.redhat.qute.commons.QuteJavaTypesParams;
+import com.redhat.qute.commons.QuteJavadocParams;
+import com.redhat.qute.commons.QuteProjectParams;
+import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
+import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.datamodel.DataModelParameter;
+import com.redhat.qute.commons.datamodel.DataModelProject;
+import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
+import com.redhat.qute.commons.usertags.QuteUserTagParams;
+import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteLanguageClientAPI;
 
 /**
@@ -88,5 +110,61 @@ public class MockQuteLanguageClient implements QuteLanguageClientAPI {
 
 	public List<MessageParams> getShowMessages() {
 		return showMessages;
+	}
+
+	@Override
+	public CompletableFuture<List<JavaTypeInfo>> getJavaTypes(QuteJavaTypesParams params) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaType(QuteResolvedJavaTypeParams params) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<Location> getJavaDefinition(QuteJavaDefinitionParams params) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<ProjectInfo> getProjectInfo(QuteProjectParams params) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
+			QuteDataModelProjectParams params) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<List<? extends CodeLens>> getJavaCodelens(QuteJavaCodeLensParams javaParams) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<List<PublishDiagnosticsParams>> getJavaDiagnostics(QuteJavaDiagnosticsParams javaParams) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<List<DocumentLink>> getJavaDocumentLink(QuteJavaDocumentLinkParams javaParams) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<WorkspaceEdit> generateMissingJavaMember(GenerateMissingJavaMemberParams params) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<String> getJavadoc(QuteJavadocParams params) {
+		return CompletableFuture.completedFuture(null);
 	}
 }

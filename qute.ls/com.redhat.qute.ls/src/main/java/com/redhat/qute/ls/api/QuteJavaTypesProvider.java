@@ -28,8 +28,6 @@ import com.redhat.qute.commons.QuteJavaTypesParams;
 public interface QuteJavaTypesProvider {
 
 	@JsonRequest("qute/template/javaTypes")
-	default CompletableFuture<List<JavaTypeInfo>> getJavaTypes(QuteJavaTypesParams params) {
-		return CompletableFuture.completedFuture(null);
-	}
+	CompletableFuture<List<JavaTypeInfo>> getJavaTypes(QuteJavaTypesParams params);
 
 }

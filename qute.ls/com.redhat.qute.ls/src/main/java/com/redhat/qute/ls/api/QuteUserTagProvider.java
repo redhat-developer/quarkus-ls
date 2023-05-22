@@ -28,7 +28,5 @@ import com.redhat.qute.commons.usertags.UserTagInfo;
 public interface QuteUserTagProvider {
 
 	@JsonRequest("qute/template/userTags")
-	default CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
-		return CompletableFuture.completedFuture(null);
-	}
+	CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params);
 }

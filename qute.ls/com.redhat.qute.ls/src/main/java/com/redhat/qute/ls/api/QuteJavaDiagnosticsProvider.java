@@ -28,8 +28,6 @@ import com.redhat.qute.commons.QuteJavaDiagnosticsParams;
 public interface QuteJavaDiagnosticsProvider {
 
 	@JsonRequest("qute/java/diagnostics")
-	default CompletableFuture<List<PublishDiagnosticsParams>> getJavaDiagnostics(QuteJavaDiagnosticsParams javaParams) {
-		return CompletableFuture.completedFuture(null);
-	}
+	CompletableFuture<List<PublishDiagnosticsParams>> getJavaDiagnostics(QuteJavaDiagnosticsParams javaParams);
 
 }

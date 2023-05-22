@@ -29,8 +29,6 @@ import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 public interface QuteDataModelProjectProvider {
 
 	@JsonRequest("qute/template/projectDataModel")
-	default CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
-			QuteDataModelProjectParams params) {
-		return CompletableFuture.completedFuture(null);
-	}
+	CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
+			QuteDataModelProjectParams params);
 }

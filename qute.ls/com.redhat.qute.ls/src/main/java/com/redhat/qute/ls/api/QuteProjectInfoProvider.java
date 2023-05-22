@@ -27,7 +27,5 @@ import com.redhat.qute.commons.QuteProjectParams;
 public interface QuteProjectInfoProvider {
 
 	@JsonRequest("qute/template/project")
-	default CompletableFuture<ProjectInfo> getProjectInfo(QuteProjectParams params) {
-		return CompletableFuture.completedFuture(null);
-	}
+	CompletableFuture<ProjectInfo> getProjectInfo(QuteProjectParams params);
 }

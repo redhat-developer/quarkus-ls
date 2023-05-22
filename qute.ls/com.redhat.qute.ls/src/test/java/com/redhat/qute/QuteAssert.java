@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -69,6 +70,7 @@ import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
+import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.ls.api.QuteTemplateJavaTextEditProvider;
 import com.redhat.qute.ls.commons.BadLocationException;
@@ -730,6 +732,12 @@ public class QuteAssert {
 
 		List<CodeAction> actual = languageService
 				.doCodeActions(template, context, new QuteTemplateJavaTextEditProvider() {
+
+					@Override
+					public CompletableFuture<WorkspaceEdit> generateMissingJavaMember(
+							GenerateMissingJavaMemberParams params) {
+						return CompletableFuture.completedFuture(null);
+					}
 					// do not attempt to resolve "generate missing java member" code actions in
 					// qute-ls unit tests
 				}, range, settings).get();

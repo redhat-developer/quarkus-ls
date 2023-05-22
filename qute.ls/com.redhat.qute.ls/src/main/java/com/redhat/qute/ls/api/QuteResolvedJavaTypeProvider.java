@@ -27,8 +27,6 @@ import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 public interface QuteResolvedJavaTypeProvider {
 
 	@JsonRequest("qute/template/resolvedJavaType")
-	default CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaType(QuteResolvedJavaTypeParams params) {
-		return CompletableFuture.completedFuture(null);
-	}
+	CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaType(QuteResolvedJavaTypeParams params);
 
 }
