@@ -25,8 +25,6 @@ import com.redhat.qute.commons.QuteJavadocParams;
 public interface QuteJavadocProvider {
 
 	@JsonRequest("qute/template/javadoc")
-	default CompletableFuture<String> getJavadoc(QuteJavadocParams params) {
-		return CompletableFuture.completedFuture(null);
-	}
+	CompletableFuture<String> getJavadoc(QuteJavadocParams params);
 
 }

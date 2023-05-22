@@ -34,7 +34,5 @@ public interface QuteTemplateJavaTextEditProvider {
 	 *         for a given type
 	 */
 	@JsonRequest("qute/template/generateMissingJavaMember")
-	default CompletableFuture<WorkspaceEdit> generateMissingJavaMember(GenerateMissingJavaMemberParams params) {
-		return CompletableFuture.completedFuture(null);
-	}
+	CompletableFuture<WorkspaceEdit> generateMissingJavaMember(GenerateMissingJavaMemberParams params);
 }

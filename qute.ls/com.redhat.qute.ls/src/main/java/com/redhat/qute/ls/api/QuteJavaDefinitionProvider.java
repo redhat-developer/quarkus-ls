@@ -27,8 +27,6 @@ import com.redhat.qute.commons.QuteJavaDefinitionParams;
 public interface QuteJavaDefinitionProvider {
 
 	@JsonRequest("qute/template/javaDefinition")
-	default CompletableFuture<Location> getJavaDefinition(QuteJavaDefinitionParams params) {
-		return CompletableFuture.completedFuture(null);
-	}
+	CompletableFuture<Location> getJavaDefinition(QuteJavaDefinitionParams params);
 
 }

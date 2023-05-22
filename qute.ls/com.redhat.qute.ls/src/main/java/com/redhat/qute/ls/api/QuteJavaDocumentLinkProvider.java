@@ -28,8 +28,6 @@ import com.redhat.qute.commons.QuteJavaDocumentLinkParams;
 public interface QuteJavaDocumentLinkProvider {
 
 	@JsonRequest("qute/java/documentLink")
-	default CompletableFuture<List<DocumentLink>> getJavaDocumentLink(QuteJavaDocumentLinkParams javaParams) {
-		return CompletableFuture.completedFuture(null);
-	}
+	CompletableFuture<List<DocumentLink>> getJavaDocumentLink(QuteJavaDocumentLinkParams javaParams);
 
 }

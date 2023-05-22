@@ -28,8 +28,6 @@ import com.redhat.qute.commons.QuteJavaCodeLensParams;
 public interface QuteJavaCodeLensProvider {
 
 	@JsonRequest("qute/java/codeLens")
-	default CompletableFuture<List<? extends CodeLens>> getJavaCodelens(QuteJavaCodeLensParams javaParams) {
-		return CompletableFuture.completedFuture(null);
-	}
+	CompletableFuture<List<? extends CodeLens>> getJavaCodelens(QuteJavaCodeLensParams javaParams);
 
 }
