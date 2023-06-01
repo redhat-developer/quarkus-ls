@@ -54,7 +54,7 @@
    <!-- Data model providers for Quarkus Renarde -->
    <extension point="com.redhat.qute.jdt.dataModelProviders">
       <provider namespaces="uri,uriabs"
-                description="If you want a URI to an endpoint in a Qute view, you can use the `uri` and `uriabs` namespace with a call to the endpoint you want to point to."
+                description="In order to generate the URI to an endpoint, in a Qute view, you can use the `uri` and `uriabs` namespace with a call to the endpoint you want to point to."
                 url="https://github.com/quarkiverse/quarkus-renarde/blob/main/docs/modules/ROOT/pages/index.adoc#obtaining-a-uri-in-qute-views"
                 class="com.redhat.qute.jdt.internal.extensions.renarde.UriNamespaceResolverSupport" />
    </extension>
