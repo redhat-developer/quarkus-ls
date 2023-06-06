@@ -1,5 +1,28 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## 0.15.0 (June 15, 2023)
+
+### Enhancements
+
+ * Initialize support for Qute Type-safe Message Bundles. See [#800](https://github.com/redhat-developer/quarkus-ls/issues/800).
+
+### Bug Fixes
+
+ * Fix URI Renarde description. See [#877](https://github.com/redhat-developer/quarkus-ls/pull/877).
+ * Missing required "title" property when starting Qute LS leads to NPE. See [#865](https://github.com/redhat-developer/quarkus-ls/issues/865).
+ * `ClassCastException` seen in `textDocument/codelens`. See [#859](https://github.com/redhat-developer/quarkus-ls/issues/859).
+ * `textDocument/inlayHint` fails when classpath is incorrect. See [#858](https://github.com/redhat-developer/quarkus-ls/issues/858).
+ * Code action to insert missing parameters overwrites optional parameter. See [#856](https://github.com/redhat-developer/quarkus-ls/issues/856).
+ * Quick fix to insert all missing attributes for user tag in Qute file adds a `nested-content` attribute. See [#841](https://github.com/redhat-developer/quarkus-ls/issues/841).
+ * NPE during Qute validation when project is not available. See [#886](https://github.com/redhat-developer/quarkus-ls/issues/886).
+ * Ignore `UndefinedObject` + `UndefinedNamespace` problem code action should appear only if LSP client can support update configuration. See [#862](https://github.com/redhat-developer/quarkus-ls/pull/862).
+ * Don't implement by default custom language client API. See [#870](https://github.com/redhat-developer/quarkus-ls/issues/870).
+
+### Build
+
+ * Update eclipse.jdt.ls to 1.24.0-SNAPSHOT. See [#874](https://github.com/redhat-developer/quarkus-ls/pull/874).
+ * Use lsp4mp `0.8.0-SNAPSHOT`. See [#863](https://github.com/redhat-developer/quarkus-ls/pull/863).
+
 ## 0.14.1 (April 4, 2023)
 
 ### Bug Fixes
