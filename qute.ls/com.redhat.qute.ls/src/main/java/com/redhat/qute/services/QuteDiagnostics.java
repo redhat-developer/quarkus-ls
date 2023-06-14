@@ -557,7 +557,9 @@ class QuteDiagnostics {
 				// - {true} : boolean literal
 				// - {null} : null literal
 				// - {123} : integer literal
-				ResolvedJavaTypeInfo resolvedLiteralType = project.resolveJavaTypeSync(literalJavaType);
+				ResolvedJavaTypeInfo resolvedLiteralType = project != null
+						? project.resolveJavaTypeSync(literalJavaType)
+						: null;
 				if (QuteCompletableFutures.isResolvingJavaTypeOrNull(resolvedLiteralType)) {
 					return null;
 				}
