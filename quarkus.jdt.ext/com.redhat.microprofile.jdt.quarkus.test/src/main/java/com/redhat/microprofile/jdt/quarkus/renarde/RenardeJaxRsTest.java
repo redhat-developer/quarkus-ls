@@ -53,6 +53,23 @@ public class RenardeJaxRsTest extends BasePropertiesManagerTest {
 	}
 
 	@Test
+	public void absolutePathCodeLens() throws Exception {
+		IJavaProject javaProject = loadMavenProject(quarkus_renarde_todo);
+
+		assertNotNull(javaProject);
+
+		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
+		params.setCheckServerAvailable(false);
+		IFile javaFile = javaProject.getProject().getFile(new Path("src/main/java/rest/Game.java"));
+		params.setUri(javaFile.getLocation().toFile().toURI().toString());
+		params.setUrlCodeLensEnabled(true);
+
+		assertCodeLens(params, JDT_UTILS, //
+				cl("http://localhost:8080/play/id", "", r(9, 16, 16)),
+				cl("http://localhost:8080/play/start", "", r(13, 18, 23)));
+	}
+	
+	@Test
 	public void workspaceSymbols() throws Exception {
 		IJavaProject javaProject = loadMavenProject(quarkus_renarde_todo);
 
@@ -73,7 +90,9 @@ public class RenardeJaxRsTest extends BasePropertiesManagerTest {
 				si("@/Todos/delete: POST", r(35, 16, 22)), //
 				si("@/Todos/done: POST", r(46, 16, 20)), //
 				si("@/Todos/index: GET", r(29, 28, 33)), //
-				si("@/about: GET", r(25, 28, 33)));
+				si("@/about: GET", r(25, 28, 33)),
+				si("@/play/id: GET", r(9, 18, 26)),
+				si("@/play/start: GET", r(13, 18, 23)));
 	}
 
 }
