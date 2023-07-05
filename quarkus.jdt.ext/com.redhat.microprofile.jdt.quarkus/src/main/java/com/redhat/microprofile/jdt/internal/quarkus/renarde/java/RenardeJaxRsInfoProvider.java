@@ -61,10 +61,8 @@ public class RenardeJaxRsInfoProvider implements IJaxRsInfoProvider {
 			IProgressMonitor monitor) {
 		try {
 			IType type = typeRoot.findPrimaryType();
-			String typeSegment = JaxRsUtils.getJaxRsPathValue(type);
-			if (typeSegment == null) {
-				typeSegment = type.getElementName();
-			}
+			String pathSegment = JaxRsUtils.getJaxRsPathValue(type);
+			String typeSegment = type.getElementName();
 
 			List<JaxRsMethodInfo> methodInfos = new ArrayList<>();
 			for (IMethod method : type.getMethods()) {
@@ -85,9 +83,14 @@ public class RenardeJaxRsInfoProvider implements IJaxRsInfoProvider {
 					if (methodSegment == null) {
 						methodSegment = method.getElementName();
 					}
-					String url = methodSegment.startsWith("/") ? methodSegment
-							: JaxRsUtils.buildURL(typeSegment, methodSegment);
-					url = JaxRsUtils.buildURL(jaxrsContext.getLocalBaseURL(), url);
+					String path;
+					if (pathSegment == null) {
+						path = methodSegment.startsWith("/") ? methodSegment : JaxRsUtils.buildURL(typeSegment, methodSegment);
+					} else {
+						path = JaxRsUtils.buildURL(pathSegment, methodSegment);
+					}
+					
+					String url = JaxRsUtils.buildURL(jaxrsContext.getLocalBaseURL(), path);
 
 					JaxRsMethodInfo methodInfo = createMethodInfo(method, url);
 					if (methodInfo != null) {
