@@ -13,6 +13,7 @@ package com.redhat.qute.ls.template;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
@@ -56,6 +57,8 @@ import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
+import com.redhat.qute.commons.QuteTelemetryConstants;
+import com.redhat.qute.commons.TelemetryEvent;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.ls.AbstractTextDocumentService;
 import com.redhat.qute.ls.QuteLanguageServer;
@@ -85,6 +88,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 	private final QuteOpenedTextDocuments documents;
 	private ValidatorDelayer<ModelTextDocument<Template>> validatorDelayer;
 	private final QuteLanguageServer languageServer;
+	private boolean hasOpenedAQuteDocument;
 
 	public TemplateFileTextDocumentService(QuteLanguageServer quteLanguageServer, SharedSettings sharedSettings) {
 		super(quteLanguageServer, sharedSettings);
@@ -100,6 +104,10 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 	@Override
 	public void didOpen(DidOpenTextDocumentParams params) {
 		QuteOpenedTextDocument document = (QuteOpenedTextDocument) documents.onDidOpenTextDocument(params);
+		if (!hasOpenedAQuteDocument) {
+			hasOpenedAQuteDocument = true;
+			getLanguageClient().telemetryEvent(new TelemetryEvent(QuteTelemetryConstants.FILE_OPENED, new HashMap<>()));
+		}
 		// The qute template is opened, trigger the validation
 		QuteProject project = document.getProject();
 		if (project != null) {
