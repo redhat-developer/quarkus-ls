@@ -89,7 +89,7 @@ import com.redhat.qute.settings.capabilities.ServerCapabilitiesInitializer;
 public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer, QuteLanguageServerAPI,
 		QuteProjectInfoProvider, QuteJavaTypesProvider, QuteResolvedJavaTypeProvider, QuteJavaDefinitionProvider,
 		QuteDataModelProjectProvider, QuteUserTagProvider, QuteJavadocProvider,
-		QuteTemplateProvider, TemplateValidator, ProgressSupport {
+		QuteTemplateProvider, TemplateValidator, ProgressSupport, TelemetrySupport {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteLanguageServer.class.getName());
 
@@ -352,6 +352,11 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	public void notifyProgress(String progressId, WorkDoneProgressNotification notification) {
 		ProgressParams params = new ProgressParams(Either.forLeft(progressId), Either.forRight(notification));
 		getLanguageClient().notifyProgress(params);
+	}
+
+	@Override
+	public void telemetryEvent (Object object) {
+		getLanguageClient().telemetryEvent(object);
 	}
 
 }
