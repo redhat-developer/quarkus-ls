@@ -18,7 +18,7 @@
 		<tycho.generateSourceReferences>true</tycho.generateSourceReferences>
 		<jdt.ls.version>1.25.0-SNAPSHOT</jdt.ls.version>
 		<tycho.test.platformArgs />
-		<tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
+		<tycho.test.jvmArgs>-Xmx512m -DDetectVMInstallationsJob.disabled=true ${tycho.test.platformArgs}</tycho.test.jvmArgs>
 
 		<!-- Code coverage -->
 		<jacoco.version>0.8.8</jacoco.version>
