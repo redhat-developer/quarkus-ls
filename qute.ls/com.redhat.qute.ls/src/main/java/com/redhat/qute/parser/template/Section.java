@@ -537,7 +537,7 @@ public abstract class Section extends Node implements ParametersContainer {
 
 	@Override
 	public Section getOrphanEndSection(int offset, String tagName, boolean anyOrphan) {
-		if ( getEnd() <= offset) {
+		if (getEnd() <= offset) {
 			// <employee />|
 			// <employee /> |
 			// <employee></employee> |
@@ -562,7 +562,8 @@ public abstract class Section extends Node implements ParametersContainer {
 				Section childSection = (Section) child;
 				if (childSection.isOrphanEndTagOf(tagName)) {
 					return childSection;
-				} else if (orphanEndSection == null && childSection.isOrphanEndTag()) {
+				} else if (orphanEndSection == null && childSection.isOrphanEndTag()
+						&& !childSection.canSupportUnterminatedSection()) {
 					orphanEndSection = childSection;
 				}
 			}
@@ -660,7 +661,7 @@ public abstract class Section extends Node implements ParametersContainer {
 	}
 
 	public boolean isSectionBlock() {
-		Section parentSection = getParentSection();
+		Section parentSection = getParentSection(true);
 		return (parentSection != null && parentSection.getBlockLabels().contains(getSectionKind()));
 	}
 
@@ -760,4 +761,16 @@ public abstract class Section extends Node implements ParametersContainer {
 		return getEndTagCloseOffset() - getEndTagOpenOffset() == 2;
 	}
 
+	/**
+	 * Returns true if the section can support unterminated section (ex : #let or
+	 * #include) and false otherwise.
+	 * 
+	 * @param section the section.
+	 * 
+	 * @return true if the section can support unterminated section (ex: #let or
+	 *         #include) and false otherwise.
+	 */
+	public boolean canSupportUnterminatedSection() {
+		return false;
+	}
 }

@@ -238,16 +238,42 @@ public abstract class Node {
 		return null;
 	}
 
+
 	/**
 	 * Returns the parent section of the node and null otherwise.
 	 * 
 	 * @return the parent section of the node and null otherwise.
 	 */
 	public Section getParentSection() {
+		return getParentSection(false);
+	}
+	/**
+	 * Returns the parent section of the node and null otherwise.
+	 * 
+	 * @return the parent section of the node and null otherwise.
+	 */
+	public Section getParentSection(boolean excludeSupportUnterminatedSection) {
 		Node parent = getParent();
 		while (parent != null && parent.getKind() != NodeKind.Template) {
 			if (parent != null && parent.getKind() == NodeKind.Section) {
-				return (Section) parent;
+				Section parentSection = (Section) parent;
+				if (!excludeSupportUnterminatedSection) {
+					// we don't exclude #let, #include which can be not closed 
+					return parentSection;
+				}
+				if (parentSection.hasEndTag()) {
+					// {#for}foo{/for}
+					// here #for is the parent section of foo
+					return parentSection;
+				}
+				if (!parentSection.canSupportUnterminatedSection()) {
+					// {#for}foo
+					// here #for is the parent section of foo
+					// But
+					// {#let}foo
+					// here #let is NOT the parent section of foo
+					return parentSection;
+				}
 			}
 			parent = parent.getParent();
 		}

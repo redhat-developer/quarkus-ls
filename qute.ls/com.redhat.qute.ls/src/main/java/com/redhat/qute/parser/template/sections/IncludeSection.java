@@ -113,4 +113,8 @@ public class IncludeSection extends Section {
 		visitor.endVisit(this);
 	}
 
+	@Override
+	public boolean canSupportUnterminatedSection() {
+		return true;
+	}
 }
