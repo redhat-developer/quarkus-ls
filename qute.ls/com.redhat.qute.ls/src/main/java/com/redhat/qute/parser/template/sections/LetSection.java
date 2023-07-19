@@ -58,4 +58,9 @@ public class LetSection extends AssignSection {
 		}
 		visitor.endVisit(this);
 	}
+	
+	@Override
+	public boolean canSupportUnterminatedSection() {
+		return true;
+	}
 }

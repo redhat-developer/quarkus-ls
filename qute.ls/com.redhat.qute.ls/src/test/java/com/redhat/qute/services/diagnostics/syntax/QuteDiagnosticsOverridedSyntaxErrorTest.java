@@ -22,6 +22,7 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.parser.validator.QuteSyntaxErrorCode;
+import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
  * Syntax error which improves the error of the real Qute parser.
@@ -30,6 +31,39 @@ import com.redhat.qute.parser.validator.QuteSyntaxErrorCode;
  *
  */
 public class QuteDiagnosticsOverridedSyntaxErrorTest {
+
+	@Test
+	public void UNTERMINATED_SECTION_with_let() throws Exception {
+		String template = "{#let name='foo'}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void UNTERMINATED_SECTION_with_let_insideIf() throws Exception {
+		String template = "{#if true}\r\n" + //
+				"	{#let sandwich='salami'}\r\n" + //
+				"{#else}\r\n" + //
+				"{/if}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void UNTERMINATED_SECTION_with_include() throws Exception {
+		String template = "{#include template}";
+		Diagnostic d = d(0, 10, 0, 18, QuteErrorCode.TemplateNotFound,
+				"Template not found: `template`.",
+				DiagnosticSeverity.Error);
+		testDiagnosticsFor(template, d);
+	}
+
+	@Test
+	public void UNTERMINATED_SECTION_with_insert() throws Exception {
+		String template = "{#insert}";
+		Diagnostic d = d(0, 1, 0, 8, QuteSyntaxErrorCode.UNTERMINATED_SECTION,
+				"Parser error: unterminated section [insert] detected",
+				DiagnosticSeverity.Error);
+		testDiagnosticsFor(template, d);
+	}
 
 	@Test
 	public void UNTERMINATED_SECTION() throws Exception {

@@ -18,6 +18,7 @@ import org.eclipse.lsp4j.Range;
 
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Section;
+import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.CustomSection;
 import com.redhat.qute.parser.template.sections.EachSection;
@@ -194,11 +195,14 @@ public class QuteSyntaxValidator extends ASTVisitor {
 					if (sectionBlock) {
 						// {#else} is valid if it is declared in an {#if}
 					} else {
-						// {#for}{#each}{/each}
-						// --> Parser error: unterminated section [for] detected
-						Range startSectionRange = QutePositionUtility.selectStartTagName(section);
-						reporter.reportError(startSectionRange, section, QuteSyntaxErrorCode.UNTERMINATED_SECTION,
-								section.getTag());
+						// #let and #include can be not closed
+						if (!section.canSupportUnterminatedSection()) {
+							// {#for}{#each}{/each}
+							// --> Parser error: unterminated section [for] detected
+							Range startSectionRange = QutePositionUtility.selectStartTagName(section);
+							reporter.reportError(startSectionRange, section, QuteSyntaxErrorCode.UNTERMINATED_SECTION,
+									section.getTag());
+						}
 					}
 				}
 			}
@@ -213,4 +217,5 @@ public class QuteSyntaxValidator extends ASTVisitor {
 			}
 		}
 	}
+
 }
