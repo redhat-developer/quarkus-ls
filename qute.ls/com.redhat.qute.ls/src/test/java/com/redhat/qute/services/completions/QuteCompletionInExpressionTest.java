@@ -312,7 +312,8 @@ public class QuteCompletionInExpressionTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 7, 1, 7)), //
 				c("uri:Login", "uri:Login", r(1, 7, 1, 7)), //
 				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 7, 1, 7)), //
-				c("msg2:hello() : String", "msg2:hello", r(1, 7, 1, 7)));
+				c("msg2:hello() : String", "msg2:hello", r(1, 7, 1, 7)), //
+				c("bundle", "bundle", r(1, 7, 1, 7)));
 	}
 
 	@Test
@@ -343,7 +344,8 @@ public class QuteCompletionInExpressionTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 9, 1, 9)), //
 				c("uri:Login", "uri:Login", r(1, 9, 1, 9)), //
 				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 9, 1, 9)), //
-				c("msg2:hello() : String", "msg2:hello", r(1, 9, 1, 9)));
+				c("msg2:hello() : String", "msg2:hello", r(1, 9, 1, 9)), //
+				c("bundle", "bundle", r(1, 9, 1, 9)));
 	}
 
 	@Test
@@ -382,8 +384,8 @@ public class QuteCompletionInExpressionTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
 				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
 				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 1, 0, 1)), //
-				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
-
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)), //
+				c("bundle", "bundle", r(0, 1, 0, 1)));
 	}
 
 	@Test

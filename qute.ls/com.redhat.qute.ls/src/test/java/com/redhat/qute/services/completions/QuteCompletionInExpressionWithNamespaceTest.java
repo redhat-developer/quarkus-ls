@@ -47,7 +47,8 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(2, 3, 2, 3)), //
 				c("uri:Login", "uri:Login", r(2, 3, 2, 3)), //
 				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(2, 3, 2, 3)), //
-				c("msg2:hello() : String", "msg2:hello", r(2, 3, 2, 3)));
+				c("msg2:hello() : String", "msg2:hello", r(2, 3, 2, 3)), //
+				c("bundle", "bundle", r(2, 3, 2, 3)));
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"{#let name=123 }\r\n" + //
@@ -126,7 +127,8 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
 				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
 				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 1, 0, 1)), //
-				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)), //
+				c("bundle", "bundle", r(0, 1, 0, 1)));
 	}
 
 	@Test
@@ -158,7 +160,8 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 10, 0, 10)), //
 				c("uri:Login", "uri:Login", r(0, 10, 0, 10)), //
 				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 10, 0, 10)), //
-				c("msg2:hello() : String", "msg2:hello", r(0, 10, 0, 10)));
+				c("msg2:hello() : String", "msg2:hello", r(0, 10, 0, 10)), //
+				c("bundle", "bundle", r(0, 10, 0, 10)));
 	}
 
 }

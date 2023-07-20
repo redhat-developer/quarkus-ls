@@ -205,7 +205,8 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(2, 7, 2, 7)), //
 				c("uri:Login", "uri:Login", r(2, 7, 2, 7)), //
 				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(2, 7, 2, 7)), //
-				c("msg2:hello() : String", "msg2:hello", r(2, 7, 2, 7)));
+				c("msg2:hello() : String", "msg2:hello", r(2, 7, 2, 7)), //
+				c("bundle", "bundle", r(2, 7, 2, 7)));
 
 		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
 				" \r\n" + //
@@ -221,7 +222,8 @@ public class QuteCompletionInExpressionWithEachSectionTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(2, 7, 2, 7)), //
 				c("uri:Login", "uri:Login", r(2, 7, 2, 7)), //
 				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(2, 7, 2, 7)), //
-				c("msg2:hello() : String", "msg2:hello", r(2, 7, 2, 7)));
+				c("msg2:hello() : String", "msg2:hello", r(2, 7, 2, 7)), //
+				c("bundle", "bundle", r(2, 7, 2, 7)));
 
 	}
 

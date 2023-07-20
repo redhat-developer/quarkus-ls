@@ -43,17 +43,18 @@ public class QuteCompletionInUserTagTest {
 				c("GLOBAL", "GLOBAL", r(1, 1, 1, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 1, 1, 1)), //
 				c("uri:Login", "uri:Login", r(1, 1, 1, 1)), //
-				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 1, 1, 1)),//
-				c("msg2:hello() : String", "msg2:hello", r(1, 1, 1, 1)));
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 1, 1, 1)), //
+				c("msg2:hello() : String", "msg2:hello", r(1, 1, 1, 1)), //
+				c("bundle", "bundle", r(1, 1, 1, 1)));
 
 		// In user tag
 		testCompletionFor(template, //
 				"src/main/resources/templates/tags/form.html", //
 				"tags/form", //
 				RESOLVERS_SIZE /* item, inject:bean, config:getConfigProperty */ + 2 /* it, nested-content */ + 1 /*
-																										 * global
-																										 * variables
-																										 */, //
+																													 * global
+																													 * variables
+																													 */, //
 				c("item", "item", r(1, 1, 1, 1)), //
 				c("inject:bean", "inject:bean", r(1, 1, 1, 1)), //
 				c("inject:plexux", "inject:plexux", r(1, 1, 1, 1)), //
@@ -64,8 +65,9 @@ public class QuteCompletionInUserTagTest {
 				c("it", "it", r(1, 1, 1, 1)), //
 				c("nested-content", "nested-content", r(1, 1, 1, 1)), //
 				c("uri:Login", "uri:Login", r(1, 1, 1, 1)), //
-				c("msg:hello_name(name : String) : String", "msg:hello_name(name)", r(1, 1, 1, 1)),//
-				c("msg2:hello() : String", "msg2:hello", r(1, 1, 1, 1)));
+				c("msg:hello_name(name : String) : String", "msg:hello_name(name)", r(1, 1, 1, 1)), //
+				c("msg2:hello() : String", "msg2:hello", r(1, 1, 1, 1)), //
+				c("bundle", "bundle", r(1, 1, 1, 1)));
 
 	}
 

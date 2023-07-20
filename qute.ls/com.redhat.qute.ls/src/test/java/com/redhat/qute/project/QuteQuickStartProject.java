@@ -490,7 +490,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 						"property(propertyName : java.lang.String) : java.lang.Object",
 						ValueResolverKind.TemplateExtensionOnMethod, false, true));
 
-		// Static meythod value resolvers
+		// Static method value resolvers
 		resolvers.add(createValueResolver(null, "VARCHAR_SIZE", null, "util.Globals", "VARCHAR_SIZE() : int",
 				ValueResolverKind.TemplateGlobal, true));
 
@@ -505,6 +505,10 @@ public class QuteQuickStartProject extends MockQuteProject {
 		// Renarde controller
 		resolvers.add(createValueResolver("uri", "Login", null, "rest.Login", "rest.Login",
 				ValueResolverKind.Renarde, false, false));
+
+		// Web bundler 'bundle" field as global
+		resolvers.add(createValueResolver(null, "bundle", null, "util.Globals", "bundle : java.util.Map<java.lang.String,java.lang.String>",
+				ValueResolverKind.TemplateGlobal, true));
 
 		// Type-safe Message Bundles support
 		ValueResolverInfo hello_name = createValueResolver("msg", null, null, "org.acme.AppMessages",

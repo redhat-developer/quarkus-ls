@@ -228,7 +228,8 @@ public class QuteCompletionInExpressionWithForSectionTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(4, 2, 4, 2)), //
 				c("uri:Login", "uri:Login", r(4, 2, 4, 2)), //
 				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(4, 2, 4, 2)),//
-				c("msg2:hello() : String", "msg2:hello", r(4, 2, 4, 2)));
+				c("msg2:hello() : String", "msg2:hello", r(4, 2, 4, 2)), //
+				c("bundle", "bundle", r(4, 2, 4, 2)));
 	}
 
 	@Test

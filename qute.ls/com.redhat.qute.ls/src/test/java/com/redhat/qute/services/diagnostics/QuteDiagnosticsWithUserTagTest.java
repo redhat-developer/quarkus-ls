@@ -32,6 +32,12 @@ import com.redhat.qute.parser.validator.QuteSyntaxErrorCode;
 public class QuteDiagnosticsWithUserTagTest {
 
 	@Test
+	public void bundleStyle() {
+		String template = "{#bundleStyle /}";
+		testDiagnosticsFor(template);
+	}
+	
+	@Test
 	public void definedRequiredParameterName() {
 		String template = "{#input name='' /}";
 		testDiagnosticsFor(template);

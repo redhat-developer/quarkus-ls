@@ -96,7 +96,8 @@ public class QuteCompletionInInfixNotationTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 14, 1, 14)), //
 				c("uri:Login", "uri:Login", r(1, 14, 1, 14)), //
 				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 14, 1, 14)),//
-				c("msg2:hello() : String", "msg2:hello", r(1, 14, 1, 14)));
+				c("msg2:hello() : String", "msg2:hello", r(1, 14, 1, 14)), //
+				c("bundle", "bundle", r(1, 14, 1, 14)));
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.name ?: item.name :|}";
@@ -114,7 +115,8 @@ public class QuteCompletionInInfixNotationTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 25, 1, 25)), //
 				c("uri:Login", "uri:Login", r(1, 25, 1, 25)), //
 				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 25, 1, 25)),//
-				c("msg2:hello() : String", "msg2:hello", r(1, 25, 1, 25)));
+				c("msg2:hello() : String", "msg2:hello", r(1, 25, 1, 25)), //
+				c("bundle", "bundle", r(1, 25, 1, 25)));
 	}
 
 }

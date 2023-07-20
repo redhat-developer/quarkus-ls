@@ -29,6 +29,27 @@ import org.junit.jupiter.api.Test;
 public class QuteCompletionWithUserTagTest {
 
 	@Test
+	public void bundleStyle() throws Exception {
+		String template = "{#|";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("bundleStyle", //
+						"{#bundleStyle /}", //
+						r(0, 0, 0, 2)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("bundleStyle", //
+						"{#bundleStyle /}$0", //
+						r(0, 0, 0, 2)));
+	}
+	
+	@Test
 	public void input() throws Exception {
 		String template = "{#|";
 

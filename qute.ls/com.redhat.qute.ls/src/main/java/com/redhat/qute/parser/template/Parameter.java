@@ -22,7 +22,6 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 	private int startName;
 
 	private int endName;
-
 	private int startValue = -1;
 
 	private int endValue = -1;
@@ -108,7 +107,17 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 			}
 		}
 		if (name == null) {
-			name = getText(getStartName(), getEndName());
+			int endName = getEndName();
+			Section section = getOwnerSection();
+			if (section != null && section.getSectionKind() == SectionKind.LET) {
+				String text = getOwnerTemplate().getText();
+				if (text.charAt(endName - 1) == '?') {
+					// ex : {#let name?"=main"}
+					// name? --> name
+					endName--;
+				}
+			}
+			name = getText(getStartName(), endName);
 		}
 		return name;
 	}
