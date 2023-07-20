@@ -264,20 +264,22 @@ public class QuteTextDocumentService implements TextDocumentService, TemplateVal
 
 	@Override
 	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction codeAction) {
-		/*
-		 * {
-		 * resolverKind: ...,
-		 * textDocumentUri: ...,
-		 * resolverData: {
-		 * ...
-		 * }
-		 * }
-		 */
 		CodeActionUnresolvedData data = JSONUtility.toModel(codeAction.getData(), CodeActionUnresolvedData.class);
-		TextDocumentIdentifier textDocument = new TextDocumentIdentifier(data.getTextDocumentUri());
-		AbstractTextDocumentService service = getTextDocumentService(textDocument);
-		if (service != null) {
-			return service.resolveCodeAction(codeAction);
+		if (data != null) {
+			/*
+			 * {
+			 * resolverKind: ...,
+			 * textDocumentUri: ...,
+			 * resolverData: {
+			 * ...
+			 * }
+			 * }
+			 */
+			TextDocumentIdentifier textDocument = new TextDocumentIdentifier(data.getTextDocumentUri());
+			AbstractTextDocumentService service = getTextDocumentService(textDocument);
+			if (service != null) {
+				return service.resolveCodeAction(codeAction);
+			}
 		}
 		return CompletableFuture.completedFuture(null);
 	}
