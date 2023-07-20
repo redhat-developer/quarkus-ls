@@ -115,16 +115,38 @@ public abstract class UserTag extends Snippet {
 	 */
 	public static void generateUserTagParameter(UserTagParameter parameter, boolean snippetsSupported, int index,
 			StringBuilder snippet) {
+		// Generate parameter name
 		snippet.append(parameter.getName());
 		snippet.append("=");
-		snippet.append("\"");
-		if (snippetsSupported) {
-			SnippetsBuilder.placeholders(index, parameter.getName(), snippet);
-		} else {
-			snippet.append(parameter.getName());
-		}
-		snippet.append("\"");
 
+		// Generate parameter value
+		String value = parameter.getName();
+		Character quote = '"';
+		String defaultValue = parameter.getDefaultValue();
+		if (defaultValue != null && !defaultValue.isEmpty()) {
+			value = defaultValue;
+			// there is a default value, remove the quote if needed
+			char start = defaultValue.charAt(0);
+			if (start == '"' || start == '\'') {
+				quote = start;
+				value = value.substring(1, value.length() - (value.endsWith(start + "") ? 1 : 0));
+			} else {
+				quote = null;
+			}
+		}
+		
+		if (quote != null) {
+			snippet.append(quote);
+		}
+		
+		if (snippetsSupported) {
+			SnippetsBuilder.placeholders(index, value, snippet);
+		} else {
+			snippet.append(value);
+		}
+		if (quote != null) {
+			snippet.append(quote);
+		}
 	}
 
 	/**

@@ -33,7 +33,15 @@ public class QuteDiagnosticsWithUserTagTest {
 
 	@Test
 	public void bundleStyle() {
+		// test with default value declared in bundleStyle.html user tag
+		// {#let name?="main.css"}
+		// In this case:
+		
+		// - name is optional
 		String template = "{#bundleStyle /}";
+		testDiagnosticsFor(template);
+		// - name can be overridden
+		template = "{#bundleStyle name='foo.css'/}";
 		testDiagnosticsFor(template);
 	}
 	

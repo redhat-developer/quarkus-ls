@@ -34,6 +34,8 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 
 	private ParametersContainer container;
 
+	private boolean hasDefaultValue; // #let name?="foo"
+
 	public Parameter(int start, int end) {
 		super(start, end);
 		this.startName = start;
@@ -109,9 +111,11 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 		if (name == null) {
 			int endName = getEndName();
 			Section section = getOwnerSection();
-			if (section != null && section.getSectionKind() == SectionKind.LET) {
+			if (section != null
+					&& (section.getSectionKind() == SectionKind.LET || section.getSectionKind() == SectionKind.SET)) {
 				String text = getOwnerTemplate().getText();
 				if (text.charAt(endName - 1) == '?') {
+					hasDefaultValue = true;
 					// ex : {#let name?"=main"}
 					// name? --> name
 					endName--;
@@ -240,5 +244,18 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 	public boolean isOptional() {
 		Expression expression = getJavaTypeExpression();
 		return expression != null ? expression.isOptional() : false;
+	}
+
+	/**
+	 * Returns true if the parameter uses '?' to assign value (ex : #let
+	 * name?="foo")
+	 * which means that name has default value and false other.
+	 * 
+	 * @return true if the parameter uses '?' to assign value (ex : #let
+	 *         name?="foo")
+	 *         which means that name has default value and false other.
+	 */
+	public boolean hasDefaultValue() {
+		return hasDefaultValue;
 	}
 }

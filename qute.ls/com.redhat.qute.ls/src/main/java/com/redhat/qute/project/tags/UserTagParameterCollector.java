@@ -47,17 +47,26 @@ public class UserTagParameterCollector extends ASTVisitor {
 
 	private final Map<String, UserTagParameter> parameters;
 
-	private final List<List<String>> optionalParameterNamesStack;
-
-	private final List<List<String>> ignoreParameterNamesStack;
+	private final List<List<ParamInfo>> parameterNamesStack;
 
 	private List<String> globalVariables;
+
+	private static class ParamInfo {
+		public final String name;
+		public final boolean assigned; // true if parameter comes from a #let, #set and false otherwise.
+		public final String defaultValue; // ex : name?="foo", the default value is "foo"
+
+		public ParamInfo(String name, boolean assigned, String defaultValue) {
+			this.name = name;
+			this.assigned = assigned;
+			this.defaultValue = defaultValue;
+		}
+	}
 
 	public UserTagParameterCollector(QuteProject project) {
 		this.project = project;
 		this.parameters = new LinkedHashMap<>();
-		this.optionalParameterNamesStack = new ArrayList<>();
-		this.ignoreParameterNamesStack = new ArrayList<>();
+		this.parameterNamesStack = new ArrayList<>();
 	}
 
 	@Override
@@ -68,12 +77,12 @@ public class UserTagParameterCollector extends ASTVisitor {
 
 	@Override
 	public void endVisit(IfSection node) {
-		removeOptionalStack();
+		removeParameterStack();
 		super.endVisit(node);
 	}
 
 	private void addOptionalStack(Section node) {
-		List<String> optionalParameterNames = null;
+		List<ParamInfo> optionalParameterNames = null;
 		List<Parameter> parameters = node.getParameters();
 		for (Parameter parameter : parameters) {
 			String name = parameter.getName();
@@ -81,56 +90,53 @@ public class UserTagParameterCollector extends ASTVisitor {
 				if (optionalParameterNames == null) {
 					optionalParameterNames = new ArrayList<>();
 				}
-				optionalParameterNames.add(name);
+				optionalParameterNames.add(new ParamInfo(name, false, null));
 			}
 		}
-		optionalParameterNamesStack
+		parameterNamesStack
 				.add(optionalParameterNames != null ? optionalParameterNames : Collections.emptyList());
 	}
 
-	private void removeOptionalStack() {
-		optionalParameterNamesStack.remove(optionalParameterNamesStack.size() - 1);
+	private void removeParameterStack() {
+		parameterNamesStack.remove(parameterNamesStack.size() - 1);
 	}
 
 	public boolean visit(LetSection node) {
-		addIgnoreStack(node);
+		addAssignedParameterStack(node);
 		return super.visit(node);
 	}
 
 	@Override
 	public void endVisit(LetSection node) {
-		removeIgnoreStack();
+		removeParameterStack();
 		super.endVisit(node);
 	}
 
 	public boolean visit(SetSection node) {
-		addIgnoreStack(node);
+		addAssignedParameterStack(node);
 		return super.visit(node);
 	}
 
 	@Override
 	public void endVisit(SetSection node) {
-		removeIgnoreStack();
+		removeParameterStack();
 		super.endVisit(node);
 	}
 
-	private void addIgnoreStack(Section node) {
-		List<String> ignoreParameterNames = null;
+	private void addAssignedParameterStack(Section node) {
+		List<ParamInfo> declaredParameterNames = null;
 		List<Parameter> parameters = node.getParameters();
 		for (Parameter parameter : parameters) {
 			String name = parameter.getName();
+			String defaultValue = parameter.hasDefaultValue() ? parameter.getValue() : null;
 			if (!StringUtils.isEmpty(name)) {
-				if (ignoreParameterNames == null) {
-					ignoreParameterNames = new ArrayList<>();
+				if (declaredParameterNames == null) {
+					declaredParameterNames = new ArrayList<>();
 				}
-				ignoreParameterNames.add(name);
+				declaredParameterNames.add(new ParamInfo(name, true, defaultValue));
 			}
 		}
-		ignoreParameterNamesStack.add(ignoreParameterNames != null ? ignoreParameterNames : Collections.emptyList());
-	}
-
-	private void removeIgnoreStack() {
-		ignoreParameterNamesStack.remove(ignoreParameterNamesStack.size() - 1);
+		parameterNamesStack.add(declaredParameterNames != null ? declaredParameterNames : Collections.emptyList());
 	}
 
 	@Override
@@ -147,28 +153,37 @@ public class UserTagParameterCollector extends ASTVisitor {
 	@Override
 	public boolean visit(ObjectPart node) {
 		if (isValid(node)) {
-			String partName = node.getPartName();
+			String partName = node.getPartName(); // {foo}
 
-			for (List<String> ignoreNames : ignoreParameterNamesStack) {
-				if (ignoreNames.contains(partName)) {
-					return super.visit(node);
-				}
+			// Get the parameter info from the parameter stack
+			ParamInfo paramInfo = getParamInfo(partName);
+			if (paramInfo != null && paramInfo.assigned && paramInfo.defaultValue == null) {
+				// The part name (foo) is defined in parent section #let, #set
+				// which have not default value
+				// {#let foo="bar"}
+				// {foo}
+				// It is not a user tag parameter.
+				return super.visit(node);
 			}
+
+			// Here we are in several usecase:
+			// 1. foo is not declared in none parent section -> user tag parameter is
+			// required
+			// 2. foo is declared in #if section -> user tag parameter is optional
+			// 3. foo is declared in #let section with default value (#let foo?="bar") ->
+			// user tag parameter is optional and have a defaut value
 
 			// Get or create the user tag parameter
 			UserTagParameter parameter = parameters.get(partName);
 			if (parameter == null) {
 				parameter = new UserTagParameter(partName);
+				parameter.setDefaultValue(paramInfo != null ? paramInfo.defaultValue : null);
 				parameters.put(partName, parameter);
 			}
-			// Compute required flag if needed
-			if (!parameter.isRequired()) {
-				boolean ignore = false;
-				for (List<String> optionalNames : optionalParameterNamesStack) {
-					if (optionalNames.contains(partName)) {
-						ignore = true;
-					}
-				}
+
+			// Compute user tag parameter required flag if needed
+			if (!parameter.isRequired() && parameter.getDefaultValue() == null) {
+				boolean ignore = paramInfo != null && !paramInfo.assigned;
 				if (!ignore) {
 					boolean required = true;
 					Parts parts = node.getParent();
@@ -189,6 +204,17 @@ public class UserTagParameterCollector extends ASTVisitor {
 			}
 		}
 		return super.visit(node);
+	}
+
+	private ParamInfo getParamInfo(String partName) {
+		for (List<ParamInfo> params : parameterNamesStack) {
+			for (ParamInfo paramInfo : params) {
+				if (paramInfo.name.equals(partName)) {
+					return paramInfo;
+				}
+			}
+		}
+		return null;
 	}
 
 	public boolean isValid(ObjectPart node) {

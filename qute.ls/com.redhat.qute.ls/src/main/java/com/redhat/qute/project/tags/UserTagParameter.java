@@ -23,8 +23,19 @@ public class UserTagParameter {
 
 	private boolean required;
 
+	private String defaultValue;
+
 	public UserTagParameter(String name) {
 		this.name = name;
+	}
+
+	/**
+	 * Returns the user tag parameter name.
+	 * 
+	 * @return the user tag parameter name.
+	 */
+	public String getName() {
+		return name;
 	}
 
 	/**
@@ -45,12 +56,14 @@ public class UserTagParameter {
 		return required;
 	}
 
-	/**
-	 * Returns the user tag parameter name.
-	 * 
-	 * @return the user tag parameter name.
-	 */
-	public String getName() {
-		return name;
+	public String getDefaultValue() {
+		return defaultValue;
+	}
+
+	public void setDefaultValue(String defaultValue) {
+		this.defaultValue = defaultValue;
+		if (defaultValue != null) {
+			setRequired(false);
+		}
 	}
 }
