@@ -25,9 +25,12 @@ public class QuteInlayHintSettings {
 
 	private boolean showSectionParameterType;
 
+	private boolean showSectionParameterDefaultValue;
+
 	public QuteInlayHintSettings() {
 		setEnabled(true);
 		setShowSectionParameterType(true);
+		setShowSectionParameterDefaultValue(true);
 	}
 
 	/**
@@ -58,9 +61,18 @@ public class QuteInlayHintSettings {
 		this.showSectionParameterType = showSectionParameterType;
 	}
 
+	public boolean isShowSectionParameterDefaultValue() {
+		return showSectionParameterDefaultValue;
+	}
+
+	public void setShowSectionParameterDefaultValue(boolean showSectionParameterDefaultValue) {
+		this.showSectionParameterDefaultValue = showSectionParameterDefaultValue;
+	}
+
 	public void update(QuteInlayHintSettings newInlayHint) {
 		this.setEnabled(newInlayHint.isEnabled());
 		this.setShowSectionParameterType(newInlayHint.isShowSectionParameterType());
+		this.setShowSectionParameterDefaultValue(newInlayHint.isShowSectionParameterDefaultValue());
 	}
 
 	@Override
@@ -68,6 +80,7 @@ public class QuteInlayHintSettings {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + (enabled ? 1231 : 1237);
+		result = prime * result + (showSectionParameterDefaultValue ? 1231 : 1237);
 		result = prime * result + (showSectionParameterType ? 1231 : 1237);
 		return result;
 	}
@@ -82,6 +95,8 @@ public class QuteInlayHintSettings {
 			return false;
 		QuteInlayHintSettings other = (QuteInlayHintSettings) obj;
 		if (enabled != other.enabled)
+			return false;
+		if (showSectionParameterDefaultValue != other.showSectionParameterDefaultValue)
 			return false;
 		if (showSectionParameterType != other.showSectionParameterType)
 			return false;

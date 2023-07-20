@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.InlayHint;
@@ -44,6 +45,8 @@ import com.redhat.qute.parser.template.sections.LetSection;
 import com.redhat.qute.parser.template.sections.SetSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.resolvers.MessageValueResolver;
+import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.tags.UserTagParameter;
 import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.QuteInlayHintSettings;
@@ -184,39 +187,41 @@ public class InlayHintASTVistor extends ASTVisitor {
 				String partName = objectOrMethodPart.getPartName();
 				Template template = node.getOwnerTemplate();
 				QuteProject project = template.getProject();
-				CompletableFuture<MessageValueResolver> messageFuture = project
-						.findMessageValueResolver(namespace, partName);
-				MessageValueResolver message = messageFuture.getNow(null);
-				if (message != null) {
-					// It is a message value resolver
-					// {msg:hello}
-					// {msg:hello_name('Lucie')}
+				if (project != null) {
+					CompletableFuture<MessageValueResolver> messageFuture = project
+							.findMessageValueResolver(namespace, partName);
+					MessageValueResolver message = messageFuture.getNow(null);
+					if (message != null) {
+						// It is a message value resolver
+						// {msg:hello}
+						// {msg:hello_name('Lucie')}
 
-					String messageContent = message.getMessage();
-					if (messageContent != null) {
-						try {
-							// Display the message as inlay hint
-							// {msg:hello} [Hello!]
-							// {msg:hello_name('Lucie')} [Hello {name}!]
-							InlayHint hint = new InlayHint();
-							hint.setKind(InlayHintKind.Type);
-							if (canSupportJavaDefinition) {
-								// Clickable Message to edit it (ex : 'Hello {name}!')
-								InlayHintLabelPart messagePart = new InlayHintLabelPart(messageContent);
-								Command javaDefCommand = createEditJavaMessageCommand(messageContent,
-										message.getSourceType(),
-										message.getName(), project.getUri());
-								messagePart.setCommand(javaDefCommand);
-								messagePart.setTooltip(javaDefCommand.getTitle());
-								hint.setLabel(Either.forRight(Arrays.asList(messagePart)));
-							} else {
-								hint.setLabel(Either.forLeft(messageContent));
+						String messageContent = message.getMessage();
+						if (messageContent != null) {
+							try {
+								// Display the message as inlay hint
+								// {msg:hello} [Hello!]
+								// {msg:hello_name('Lucie')} [Hello {name}!]
+								InlayHint hint = new InlayHint();
+								hint.setKind(InlayHintKind.Type);
+								if (canSupportJavaDefinition) {
+									// Clickable Message to edit it (ex : 'Hello {name}!')
+									InlayHintLabelPart messagePart = new InlayHintLabelPart(messageContent);
+									Command javaDefCommand = createEditJavaMessageCommand(messageContent,
+											message.getSourceType(),
+											message.getName(), project.getUri());
+									messagePart.setCommand(javaDefCommand);
+									messagePart.setTooltip(javaDefCommand.getTitle());
+									hint.setLabel(Either.forRight(Arrays.asList(messagePart)));
+								} else {
+									hint.setLabel(Either.forLeft(messageContent));
+								}
+								Position position = template.positionAt(node.getEnd());
+								hint.setPosition(position);
+								inlayHints.add(hint);
+							} catch (Exception e) {
+								LOGGER.log(Level.SEVERE, "Error while creating inlay hint for message", e);
 							}
-							Position position = template.positionAt(node.getEnd());
-							hint.setPosition(position);
-							inlayHints.add(hint);
-						} catch (Exception e) {
-							LOGGER.log(Level.SEVERE, "Error while creating inlay hint for message", e);
 						}
 					}
 				}
@@ -240,18 +245,70 @@ public class InlayHintASTVistor extends ASTVisitor {
 	}
 
 	private void createInlayHintParametersSection(Section node) {
-		if (!inlayHintSettings.isShowSectionParameterType()) {
+		boolean isShowSectionParameterType = inlayHintSettings.isShowSectionParameterType();
+		boolean isShowSectionParameterDefaultValue = inlayHintSettings.isShowSectionParameterDefaultValue();
+		if (!isShowSectionParameterType && !isShowSectionParameterDefaultValue) {
 			return;
 		}
-		// {#let user[:User]=item.owner }
-		// {#set user[:User]=item.owner }
-		// {#form id[:String]=item.id }
-		// {#form item.id[:String] }
+		List<Parameter> parameters = node.getParameters();
+
 		Template template = node.getOwnerTemplate();
 		QuteProject project = template.getProject();
-		List<Parameter> parameters = node.getParameters();
+
+		// In case of the section is an user tag, collect all parameters which have a
+		// default value (#let name?="foo")
+		List<String> userTagParameterDefaultValues = null;
+		UserTag userTag = isShowSectionParameterDefaultValue && project != null ? project.findUserTag(node.getTag())
+				: null;
+		if (userTag != null) {
+			userTagParameterDefaultValues = userTag.getParameters()
+					.stream()
+					.filter(p -> p.getDefaultValue() != null)
+					.map(p -> p.getName())
+					.collect(Collectors.toList());
+
+		}
+
+		// Loop for declared section parameters
 		for (Parameter parameter : parameters) {
-			createJavaTypeInlayHint(parameter, template, project);
+			if (userTagParameterDefaultValues != null) {
+				userTagParameterDefaultValues.remove(parameter.getName());
+			}
+			if (isShowSectionParameterType) {
+				// {#let user[:User]=item.owner }
+				// {#set user[:User]=item.owner }
+				// {#form id[:String]=item.id }
+				// {#form item.id[:String] }
+				createJavaTypeInlayHint(parameter, template, project);
+			}
+		}
+
+		if (userTag != null && userTagParameterDefaultValues != null) {
+			// The section is an user tag and some default value parameters are not declared
+			// Display them with inlay hint
+			for (String name : userTagParameterDefaultValues) {
+				UserTagParameter userTagParameter = userTag.findParameter(name);
+				String defaultValue = userTagParameter.getDefaultValue();
+				if (defaultValue != null) {
+					// {#bundleScript [name="main.js"] /}
+					createInlayHint(node, template, name, defaultValue);
+				}
+			}
+		}
+	}
+
+	private void createInlayHint(Section node, Template template, String name, String defaultValue) {
+		try {
+			InlayHint hint = new InlayHint();
+			hint.setKind(InlayHintKind.Parameter);
+			hint.setLabel(Either.forLeft(name + "=" + defaultValue));
+			int end = node.getEndParametersOffset();
+			Position position = template.positionAt(end);
+			hint.setPosition(position);
+			inlayHints.add(hint);
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while creating inlay hint for user tag default value parameter",
+					e);
 		}
 	}
 

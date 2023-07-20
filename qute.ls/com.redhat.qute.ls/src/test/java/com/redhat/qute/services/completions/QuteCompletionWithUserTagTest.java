@@ -50,6 +50,26 @@ public class QuteCompletionWithUserTagTest {
 	}
 	
 	@Test
+	public void bundleStyleWithingParameter() throws Exception {
+		String template = "{#bundleStyle |";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				1, //
+				c("name", //
+						"name=\"main.css\"", //
+						r(0, 14, 0, 14)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				1, //
+				c("name", //
+						"name=\"${1:main.css}\"$0", //
+						r(0, 14, 0, 14)));
+	}
+	@Test
 	public void input() throws Exception {
 		String template = "{#|";
 
