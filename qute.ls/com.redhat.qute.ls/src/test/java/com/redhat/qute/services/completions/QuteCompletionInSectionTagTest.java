@@ -42,8 +42,9 @@ public class QuteCompletionInSectionTagTest {
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
 				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
-				c("msg:hello_name(name : String) : String", "msg:hello_name(name)", r(0, 1, 0, 1)),//
-				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
+				c("msg:hello_name(name : String) : String", "msg:hello_name(name)", r(0, 1, 0, 1)), //
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)), //
+				c("bundle", "bundle", r(0, 1, 0, 1)));
 
 		// With snippet support
 		testCompletionFor(template, //
@@ -57,8 +58,9 @@ public class QuteCompletionInSectionTagTest {
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
 				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
-				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 1, 0, 1)),//
-				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 1, 0, 1)), //
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)), //
+				c("bundle", "bundle", r(0, 1, 0, 1)));
 	}
 
 	@Test
@@ -76,8 +78,9 @@ public class QuteCompletionInSectionTagTest {
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
 				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
-				c("msg:hello_name(name : String) : String", "msg:hello_name(name)", r(0, 1, 0, 1)),//
-				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
+				c("msg:hello_name(name : String) : String", "msg:hello_name(name)", r(0, 1, 0, 1)), //
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)), //
+				c("bundle", "bundle", r(0, 1, 0, 1)));
 
 		// With snippet support
 		testCompletionFor(template, //
@@ -91,8 +94,9 @@ public class QuteCompletionInSectionTagTest {
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
 				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
-				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 1, 0, 1)),//
-				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 1, 0, 1)), //
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)), //
+				c("bundle", "bundle", r(0, 1, 0, 1)));
 	}
 
 	@Test
@@ -110,8 +114,9 @@ public class QuteCompletionInSectionTagTest {
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
 				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
-				c("msg:hello_name(name : String) : String", "msg:hello_name(name)", r(0, 1, 0, 1)),//
-				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
+				c("msg:hello_name(name : String) : String", "msg:hello_name(name)", r(0, 1, 0, 1)), //
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)), //
+				c("bundle", "bundle", r(0, 1, 0, 1)));
 
 		// With snippet support
 		testCompletionFor(template, //
@@ -125,8 +130,9 @@ public class QuteCompletionInSectionTagTest {
 				c("GLOBAL", "GLOBAL", r(0, 1, 0, 1)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 1, 0, 1)), //
 				c("uri:Login", "uri:Login", r(0, 1, 0, 1)), //
-				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 1, 0, 1)),//
-				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)));
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 1, 0, 1)), //
+				c("msg2:hello() : String", "msg2:hello", r(0, 1, 0, 1)), //
+				c("bundle", "bundle", r(0, 1, 0, 1)));
 	}
 
 	@Test

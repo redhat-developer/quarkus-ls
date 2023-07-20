@@ -113,14 +113,14 @@ public class QuteAssert {
 
 	private static final String FILE_URI = "test.qute";
 
-	public static final int USER_TAG_SIZE = 8 /*
-												 * #input, #form, #title, #simpleTitle, #user, #formElement,
+	public static final int USER_TAG_SIZE = 9 /*
+												 * #input, #bundleStyle, #form, #title, #simpleTitle, #user, #formElement,
 												 * #inputRequired, #myTag
 												 */;
 
 	public static final int SECTION_SNIPPET_SIZE = 15 /* #each, #for, ... #fragment ... */ + USER_TAG_SIZE;
 
-	public static final int RESOLVERS_SIZE = 9;
+	public static final int RESOLVERS_SIZE = 10;
 
 	public static String getFileUri(String templateFile) {
 		return Paths.get(TEMPLATE_BASE_DIR + templateFile).toUri().toString();

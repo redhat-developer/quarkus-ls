@@ -175,6 +175,7 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 13, 1, 14)), //
 				c("uri:Login", "uri:Login", r(1, 13, 1, 14)), //
 				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 13, 1, 14)),//
-				c("msg2:hello() : String", "msg2:hello", r(1, 13, 1, 14)));
+				c("msg2:hello() : String", "msg2:hello", r(1, 13, 1, 14)), //
+				c("bundle", "bundle", r(1, 13, 1, 14)));
 	}
 }
