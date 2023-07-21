@@ -16,9 +16,18 @@ import java.util.Set;
 
 import org.eclipse.lsp4j.Range;
 
+import com.redhat.qute.parser.expression.MethodPart;
+import com.redhat.qute.parser.expression.ObjectPart;
+import com.redhat.qute.parser.expression.Part;
+import com.redhat.qute.parser.expression.Parts.PartKind;
+import com.redhat.qute.parser.expression.PropertyPart;
 import com.redhat.qute.parser.template.ASTVisitor;
+import com.redhat.qute.parser.template.Expression;
+import com.redhat.qute.parser.template.Node;
+import com.redhat.qute.parser.template.NodeKind;
+import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
-import com.redhat.qute.parser.template.SectionKind;
+import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.CustomSection;
 import com.redhat.qute.parser.template.sections.EachSection;
@@ -218,4 +227,62 @@ public class QuteSyntaxValidator extends ASTVisitor {
 		}
 	}
 
+	@Override
+	public boolean visit(ObjectPart node) {
+		validateEndWithDotSyntax(node);
+		return super.visit(node);
+	}
+
+	public boolean visit(PropertyPart node) {
+		validateEndWithDotSyntax(node);
+		return super.visit(node);
+	}
+
+	public boolean visit(MethodPart node) {
+		// Validate end dot syntax for parameters
+		for (Parameter parameter : node.getParameters()) {
+			Expression expression = parameter.getJavaTypeExpression();
+			if (expression != null) {
+				expression.accept(this);
+			}
+		}
+		validateEndWithDotSyntax(node);
+		return super.visit(node);
+	}
+
+	private void validateEndWithDotSyntax(Part node) {
+		if (!hasFollowingPart(node)) {
+			Template template = node.getOwnerTemplate();
+			// It's the last part, check if it is not ended with '.'
+			int end = node.getPartKind() == PartKind.Method ? node.getEnd() + 1 : node.getEnd();
+			String text = template.getText();
+			if (end < text.length()) {
+				char c = text.charAt(end);
+				if (c == '.') {
+					Range range = QutePositionUtility.createRange(end, end + 1, template);
+					reporter.reportError(range, node,
+							QuteSyntaxErrorCode.UNEXPECTED_TOKEN, c);
+				}
+			}
+		}
+	}
+
+	private boolean hasFollowingPart(Part node) {
+		Node next = node.getNextSibling();
+		if (next == null) {
+			// - {name.}
+			// - {name.size().}
+			return false;
+		}
+		if (next.getKind() == NodeKind.ExpressionPart) {
+			Part nextPart = (Part) next;
+			if (nextPart.getPartKind() == PartKind.Method) {
+				// - {name.or(10)} <-- valid
+				// - {name. ?: 10} <-- invaid: infix notation
+				MethodPart methodPart = (MethodPart) nextPart;
+				return !methodPart.isInfixNotation();
+			}
+		}
+		return true;
+	}
 }

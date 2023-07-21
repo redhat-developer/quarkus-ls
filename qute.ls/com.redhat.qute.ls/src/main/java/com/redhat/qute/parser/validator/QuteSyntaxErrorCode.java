@@ -48,8 +48,10 @@ public enum QuteSyntaxErrorCode implements IQuteErrorCode {
 	/**
 	 * <code>{#if test}Hello {name}</code>
 	 */
-	UNTERMINATED_SECTION("Parser error: unterminated section [{0}] detected", ParserError.UNTERMINATED_SECTION);
+	UNTERMINATED_SECTION("Parser error: unterminated section [{0}] detected", ParserError.UNTERMINATED_SECTION),
 
+	UNEXPECTED_TOKEN("Syntax error: `Unexpected ''{0}'' token`.", null);
+	
 	private static List<ErrorCode> supportedErrorCodes;
 
 	private final String rawMessage;

@@ -597,21 +597,6 @@ class QuteDiagnostics {
 		for (int i = 0; i < parts.getChildCount(); i++) {
 			Part current = parts.getChild(i);
 
-			if (current.isLast()) {
-				// It's the last part, check if it is not ended with '.'
-				int end = current.getEnd();
-				String text = template.getText();
-				if (end < text.length()) {
-					char c = text.charAt(end);
-					if (c == '.') {
-						Range range = QutePositionUtility.createRange(end, end + 1, template);
-						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-								QuteErrorCode.SyntaxError, "Unexpected '.' token.");
-						diagnostics.add(diagnostic);
-					}
-				}
-			}
-
 			switch (current.getPartKind()) {
 
 				case Namespace: {

@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.services.diagnostics.syntax;
+package com.redhat.qute.services.diagnostics.syntax.overrided;
 
 import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
@@ -25,12 +25,13 @@ import com.redhat.qute.parser.validator.QuteSyntaxErrorCode;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
- * Syntax error which improves the error of the real Qute parser.
+ * Syntax error which improves the error with sections from the real Qute
+ * parser.
  * 
  * @author Angelo ZERR
  *
  */
-public class QuteDiagnosticsOverridedSyntaxErrorTest {
+public class QuteDiagnosticsSectionSyntaxErrorTest {
 
 	@Test
 	public void UNTERMINATED_SECTION_with_let() throws Exception {
