@@ -52,6 +52,26 @@ public class QuteDiagnosticsInUserTagTest {
 	}
 
 	@Test
+	public void undefinedObjectFollowingByMethodInTemplate() {
+		String template = "{name.or(10)}";
+
+		Diagnostic d = d(0, 1, 0, 5, QuteErrorCode.UndefinedObject, "`name` cannot be resolved to an object.",
+				DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, //
+				"src/main/resources/templates/user.html", //
+				"user", //
+				d);
+	}
+
+	@Test
+	public void undefinedObjectFollowingByMethodInUserTagTemplate() {
+		String template = "{name.or(10)}";
+		testDiagnosticsFor(template, //
+				"src/main/resources/templates/tags/user.html", //
+				"tags/user");
+	}
+	
+	@Test
 	public void undefinedObjectInUserTagCall() {
 		String template = "{#input name=name /}";
 

@@ -30,11 +30,7 @@ public class RenardeDiagnosticsTest {
 		testDiagnosticsFor("{uri:XXXX.confirm()}", //
 				d(0, 5, 0, 9, QuteErrorCode.UndefinedObject,
 						"`XXXX` cannot be resolved to an object.",
-						DiagnosticSeverity.Warning),
-				d(0, 10, 0, 17, QuteErrorCode.UnknownMethod,
-						"`confirm` cannot be resolved or is not a method of `null` Java type.",
-						DiagnosticSeverity.Error));
-
+						DiagnosticSeverity.Warning));
 	}
 
 	@Test
