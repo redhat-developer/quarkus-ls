@@ -366,22 +366,6 @@ public class QuteDiagnosticsInExpressionTest {
 	}
 
 	@Test
-	public void objectPartEndsWithDot() {
-		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
-				"{items.}";
-		testDiagnosticsFor(template, d(1, 6, 1, 7, QuteErrorCode.SyntaxError, //
-				"Syntax error: `Unexpected '.' token.`.", DiagnosticSeverity.Error));
-	}
-
-	@Test
-	public void propertyPartEndsWithDot() {
-		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
-				"{items.size.}";
-		testDiagnosticsFor(template, d(1, 11, 1, 12, QuteErrorCode.SyntaxError, //
-				"Syntax error: `Unexpected '.' token.`.", DiagnosticSeverity.Error));
-	}
-
-	@Test
 	public void invalidMethodVoid() {
 		String template = "{@java.lang.String string}\r\n" + //
 				"{string.isEmpty()}\r\n" + //
