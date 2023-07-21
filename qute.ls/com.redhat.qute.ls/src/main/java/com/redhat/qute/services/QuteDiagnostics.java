@@ -11,8 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
-import static com.redhat.qute.services.QuteCompletableFutures.isValidJavaType;
 import static com.redhat.qute.parser.template.Section.isWhenSection;
+import static com.redhat.qute.services.QuteCompletableFutures.isValidJavaType;
 import static com.redhat.qute.services.diagnostics.DiagnosticDataFactory.createDiagnostic;
 import static com.redhat.qute.utils.UserTagUtils.IT_OBJECT_PART_NAME;
 import static com.redhat.qute.utils.UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME;
@@ -1031,12 +1031,14 @@ class QuteDiagnostics {
 					signature = baseType.getSignature();
 				}
 			}
-			Range range = QutePositionUtility.createRange(methodPart);
-			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode, methodName, arg);
-			if (signature != null) {
-				diagnostic.setData(new JavaBaseTypeOfPartData(signature));
+			if (signature != null || errorCode == QuteErrorCode.UnknownNamespaceResolverMethod) {
+				Range range = QutePositionUtility.createRange(methodPart);
+				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode, methodName, arg);
+				if (signature != null) {
+					diagnostic.setData(new JavaBaseTypeOfPartData(signature));
+				}
+				diagnostics.add(diagnostic);
 			}
-			diagnostics.add(diagnostic);
 			return null;
 		} else if (canValidateMemberInNativeMode(filter, method)) {
 			// The (non virtual) method has been retrieved, check if it is a valid in native
