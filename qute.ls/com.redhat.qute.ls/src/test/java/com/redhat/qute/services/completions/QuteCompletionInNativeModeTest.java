@@ -194,7 +194,7 @@ public class QuteCompletionInNativeModeTest {
 		QuteNativeSettings nativeImagesSettings = new QuteNativeSettings();
 		nativeImagesSettings.setEnabled(true);
 
-		QuteAssert.testCompletionFor(template, false, templateUri, null, QuteQuickStartProject.PROJECT_URI,
+		QuteAssert.testCompletionFor(template, false, false, templateUri, null, QuteQuickStartProject.PROJECT_URI,
 				QuteAssert.TEMPLATE_BASE_DIR, expectedCount, nativeImagesSettings, expected);
 	}
 
