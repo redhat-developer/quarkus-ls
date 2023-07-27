@@ -169,7 +169,7 @@ public class QuteCompletionWithInsertTextModeTest {
 		completionSettings.setCapabilities(completionCapabilities);
 
 		QuteAssert.testCompletionFor(value, "test.qute", null, QuteQuickStartProject.PROJECT_URI,
-				QuteAssert.TEMPLATE_BASE_DIR, null, null, completionSettings, expectedItems);
+				QuteAssert.TEMPLATE_BASE_DIR, null, null, completionSettings, false, expectedItems);
 	}
 
 	public static CompletionItem c(String label, String newText, Range range, InsertTextMode insertTextMode) {

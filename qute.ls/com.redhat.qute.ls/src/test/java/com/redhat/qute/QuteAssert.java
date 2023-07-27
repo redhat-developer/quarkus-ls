@@ -37,6 +37,7 @@ import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemCapabilities;
 import org.eclipse.lsp4j.CompletionItemInsertTextModeSupportCapabilities;
 import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.CompletionListCapabilities;
 import org.eclipse.lsp4j.CreateFile;
 import org.eclipse.lsp4j.CreateFileOptions;
 import org.eclipse.lsp4j.Diagnostic;
@@ -146,6 +147,12 @@ public class QuteAssert {
 		testCompletionFor(value, snippetSupport, null, expectedItems);
 	}
 
+	public static void testCompletionFor(String value, boolean snippetSupport, boolean itemDefaultsSupport,
+			CompletionItem... expectedItems) throws Exception {
+		testCompletionFor(value, snippetSupport, itemDefaultsSupport, FILE_URI, PROJECT_URI, PROJECT_URI,
+				TEMPLATE_BASE_DIR, null, new QuteNativeSettings(), expectedItems);
+	}
+
 	public static void testCompletionFor(String value, boolean snippetSupport, Integer expectedCount,
 			CompletionItem... expectedItems) throws Exception {
 		testCompletionFor(value, snippetSupport, FILE_URI, PROJECT_URI, TEMPLATE_BASE_DIR, expectedCount,
@@ -173,13 +180,13 @@ public class QuteAssert {
 	public static void testCompletionFor(String value, boolean snippetSupport, String fileUri, String templateId,
 			String projectUri, String templateBaseDir, Integer expectedCount, CompletionItem... expectedItems)
 			throws Exception {
-		testCompletionFor(value, snippetSupport, fileUri, templateId, projectUri, templateBaseDir, expectedCount,
+		testCompletionFor(value, snippetSupport, false, fileUri, templateId, projectUri, templateBaseDir, expectedCount,
 				new QuteNativeSettings(), expectedItems);
 	}
 
-	public static void testCompletionFor(String value, boolean snippetSupport, String fileUri, String templateId,
-			String projectUri, String templateBaseDir, Integer expectedCount, QuteNativeSettings nativeImagesSettings,
-			CompletionItem... expectedItems) throws Exception {
+	public static void testCompletionFor(String value, boolean snippetSupport, boolean itemDefaultsSupport,
+			String fileUri, String templateId, String projectUri, String templateBaseDir, Integer expectedCount,
+			QuteNativeSettings nativeImagesSettings, CompletionItem... expectedItems) throws Exception {
 
 		// Add snippet support for completion
 		QuteCompletionSettings completionSettings = new QuteCompletionSettings();
@@ -190,15 +197,20 @@ public class QuteAssert {
 		completionItemCapabilities.setInsertTextModeSupport(insertTextModeSupport);
 		CompletionCapabilities completionCapabilities = new CompletionCapabilities(completionItemCapabilities);
 		completionCapabilities.setInsertTextMode(InsertTextMode.AdjustIndentation);
+		CompletionListCapabilities completionListCapabilities = new CompletionListCapabilities();
+		if (itemDefaultsSupport) {
+			completionCapabilities.setCompletionList(completionListCapabilities);
+			completionCapabilities.getCompletionList().setItemDefaults(Arrays.asList("insertTextFormat", "editRange"));
+		}
 		completionSettings.setCapabilities(completionCapabilities);
 
 		testCompletionFor(value, fileUri, templateId, projectUri, templateBaseDir, expectedCount, nativeImagesSettings,
-				completionSettings, expectedItems);
+				completionSettings, itemDefaultsSupport, expectedItems);
 	}
 
 	public static void testCompletionFor(String value, String fileUri, String templateId, String projectUri,
 			String templateBaseDir, Integer expectedCount, QuteNativeSettings nativeImagesSettings,
-			QuteCompletionSettings completionSettings, CompletionItem... expectedItems) throws Exception {
+			QuteCompletionSettings completionSettings, boolean itemDefaultsSupport, CompletionItem... expectedItems) throws Exception {
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
@@ -232,12 +244,12 @@ public class QuteAssert {
 		}
 		if (expectedItems != null) {
 			for (CompletionItem item : expectedItems) {
-				assertCompletion(list, item, expectedCount);
+				assertCompletion(list, item, itemDefaultsSupport, expectedCount);
 			}
 		}
 	}
 
-	public static void assertCompletion(CompletionList completions, CompletionItem expected, Integer expectedCount) {
+	public static void assertCompletion(CompletionList completions, CompletionItem expected, boolean itemDefaultsSupport, Integer expectedCount) {
 		List<CompletionItem> matches = completions.getItems().stream().filter(completion -> {
 			return expected.getLabel().equals(completion.getLabel());
 		}).collect(Collectors.toList());
@@ -254,8 +266,8 @@ public class QuteAssert {
 			});
 		}
 
-		CompletionItem match = getCompletionMatch(matches, expected);
-		if (expected.getTextEdit() != null && match.getTextEdit() != null) {
+		CompletionItem match = getCompletionMatch(matches, itemDefaultsSupport, expected);
+		if (!itemDefaultsSupport && expected.getTextEdit() != null && match.getTextEdit() != null) {
 			if (expected.getTextEdit().getLeft().getNewText() != null) {
 				assertEquals(expected.getTextEdit().getLeft().getNewText(), match.getTextEdit().getLeft().getNewText());
 			}
@@ -263,7 +275,12 @@ public class QuteAssert {
 			if (r != null && r.getStart() != null && r.getEnd() != null) {
 				assertEquals(expected.getTextEdit().getLeft().getRange(), match.getTextEdit().getLeft().getRange());
 			}
+		} else if (itemDefaultsSupport) {
+			assertEquals(expected.getTextEdit().getLeft().getNewText(), match.getTextEditText());
+			assertEquals(expected.getTextEdit().getLeft().getRange(), completions.getItemDefaults().getEditRange().getLeft());
+			assertNull(match.getTextEdit());
 		}
+
 		if (expected.getFilterText() != null && match.getFilterText() != null) {
 			assertEquals(expected.getFilterText(), match.getFilterText());
 		}
@@ -275,9 +292,11 @@ public class QuteAssert {
 
 	}
 
-	private static CompletionItem getCompletionMatch(List<CompletionItem> matches, CompletionItem expected) {
+	private static CompletionItem getCompletionMatch(List<CompletionItem> matches, boolean itemDefaultsSupport, CompletionItem expected) {
 		for (CompletionItem item : matches) {
-			if (expected.getTextEdit().getLeft().getNewText().equals(item.getTextEdit().getLeft().getNewText())) {
+			if (!itemDefaultsSupport && expected.getTextEdit().getLeft().getNewText().equals(item.getTextEdit().getLeft().getNewText())) {
+				return item;
+			} else if (itemDefaultsSupport && expected.getTextEdit().getLeft().getNewText().equals(item.getTextEditText())) {
 				return item;
 			}
 		}
@@ -695,7 +714,7 @@ public class QuteAssert {
 			throws Exception {
 		testCodeActionsFor(value, diagnostic, createSharedSettings(true), expected);
 	}
-	
+
 	public static void testCodeActionsFor(String value, Diagnostic diagnostic, CodeAction... expected)
 			throws Exception {
 		testCodeActionsFor(value, diagnostic, createSharedSettings(false), expected);

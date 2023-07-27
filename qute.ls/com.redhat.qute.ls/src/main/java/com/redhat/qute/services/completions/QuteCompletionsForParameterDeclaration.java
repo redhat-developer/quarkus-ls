@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionItemDefaults;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.InsertTextFormat;
@@ -48,6 +49,8 @@ public class QuteCompletionsForParameterDeclaration {
 
 	private final QuteProjectRegistry projectRegistry;
 
+	private CompletionItemDefaults completionItemDefaults;
+
 	public QuteCompletionsForParameterDeclaration(QuteProjectRegistry projectRegistry) {
 		this.projectRegistry = projectRegistry;
 	}
@@ -60,12 +63,12 @@ public class QuteCompletionsForParameterDeclaration {
 				// Completion for java types
 				JavaTypeRangeOffset rangeOffset = parameterDeclaration.getJavaTypeNameRange(offset);
 				if (rangeOffset != null) {
+					initializeCompletionListItemDefaults(rangeOffset, template, completionSettings);
 					boolean hasAlias = parameterDeclaration.hasAlias();
 					boolean closed = parameterDeclaration.isClosed();
 					String patternTypeName = template.getText(rangeOffset.getStart(), offset);
 					return collectJavaClassesSuggestions(patternTypeName, hasAlias, closed, rangeOffset, project,
-							template,
-							completionSettings, cancelChecker);
+							template, completionSettings, cancelChecker);
 				}
 			}
 		}
@@ -90,8 +93,6 @@ public class QuteCompletionsForParameterDeclaration {
 						String fullClassName = typeInfo.getName();
 						CompletionItem item = new CompletionItem();
 						item.setLabel(typeInfo.getSignature());
-						TextEdit textEdit = new TextEdit();
-						textEdit.setRange(range);
 
 						StringBuilder insertText = new StringBuilder(fullClassName);
 						if (typeInfo.getJavaTypeKind() == JavaTypeKind.Package) {
@@ -136,7 +137,6 @@ public class QuteCompletionsForParameterDeclaration {
 							String alias = String.valueOf(typeName.charAt(0)).toLowerCase()
 									+ typeName.substring(1, typeName.length());
 							if (completionSettings.isCompletionSnippetsSupported()) {
-								item.setInsertTextFormat(InsertTextFormat.Snippet);
 								if (!hasAlias) {
 									SnippetsBuilder.placeholders(snippetIndex++, alias, insertText);
 									if (!closed) {
@@ -145,7 +145,6 @@ public class QuteCompletionsForParameterDeclaration {
 								}
 								SnippetsBuilder.tabstops(0, insertText); // $0
 							} else {
-								item.setInsertTextFormat(InsertTextFormat.PlainText);
 								if (!hasAlias) {
 									insertText.append(alias);
 									if (!closed) {
@@ -154,12 +153,33 @@ public class QuteCompletionsForParameterDeclaration {
 								}
 							}
 						}
-						textEdit.setNewText(insertText.toString());
-						item.setTextEdit(Either.forLeft(textEdit));
+						if (completionItemDefaults.getEditRange() != null && range.equals(completionItemDefaults.getEditRange().getLeft())) {
+							item.setTextEditText(insertText.toString());
+						} else {
+							item.setTextEdit(Either.forLeft(new TextEdit(range, insertText.toString())));
+						}
+						if (completionItemDefaults.getInsertTextFormat() == null) {
+							item.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported() ? InsertTextFormat.Snippet
+											: InsertTextFormat.PlainText);
+						}
 						list.getItems().add(item);
 					}
+					list.setItemDefaults(completionItemDefaults);
 					return list;
 				});
 	}
 
+	private void initializeCompletionListItemDefaults(JavaTypeRangeOffset rangeOffset, Template template,
+			QuteCompletionSettings completionSettings) {
+		completionItemDefaults = new CompletionItemDefaults();
+		Range range = QutePositionUtility.createRange(rangeOffset, template);
+		if (completionSettings.isCompletionListItemDefaultsSupport("editRange")) {
+			completionItemDefaults.setEditRange(Either.forLeft(range));
+		}
+		if (completionSettings.isCompletionListItemDefaultsSupport("insertTextFormat")) {
+			completionItemDefaults
+					.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported() ? InsertTextFormat.Snippet
+							: InsertTextFormat.PlainText);
+		}
+	}
 }

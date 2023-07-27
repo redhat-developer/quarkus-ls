@@ -49,7 +49,35 @@ public class QuteCompletionInParameterDeclarationTest {
 				c("org.acme.Review", "org.acme.Review ${1:review}$0", r(0, 2, 0, 2)), //
 				c("java.util.List<E>", "java.util.List<${1:E}> ${2:list}$0", r(0, 2, 0, 2)), //
 				c("java.util.Map<K,V>", "java.util.Map<${1:K},${2:V}> ${3:map}$0", r(0, 2, 0, 2)));
+	}
+	
+	@Test
+	public void completionInParameterDeclarationForJavaClassItemDefaults() throws Exception {
+		String template = "{@|}\r\n";
 
+		// Without snippet
+		testCompletionFor(template, //
+				false, // snippet support
+				true, // completion item defaults support
+				// Package completion
+				c("org.acme", "org.acme", r(0, 2, 0, 2)), //
+				// Class completion
+				c("org.acme.Item", "org.acme.Item item", r(0, 2, 0, 2)), //
+				c("org.acme.Review", "org.acme.Review review", r(0, 2, 0, 2)), //
+				c("java.util.List<E>", "java.util.List<E> list", r(0, 2, 0, 2)), //
+				c("java.util.Map<K,V>", "java.util.Map<K,V> map", r(0, 2, 0, 2)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				true, // completion item defaults support
+				// Package completion
+				c("org.acme", "org.acme", r(0, 2, 0, 2)), //
+				// Class completion
+				c("org.acme.Item", "org.acme.Item ${1:item}$0", r(0, 2, 0, 2)), //
+				c("org.acme.Review", "org.acme.Review ${1:review}$0", r(0, 2, 0, 2)), //
+				c("java.util.List<E>", "java.util.List<${1:E}> ${2:list}$0", r(0, 2, 0, 2)), //
+				c("java.util.Map<K,V>", "java.util.Map<${1:K},${2:V}> ${3:map}$0", r(0, 2, 0, 2)));
 	}
 
 	@Test
