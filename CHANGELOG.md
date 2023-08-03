@@ -1,5 +1,27 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## 0.16.0 (August 8, 2023)
+
+### Enhancements
+
+ * Telemetry for `qute-ls`. See [#765](https://github.com/redhat-developer/quarkus-ls/issues/765) and [#917](https://github.com/redhat-developer/quarkus-ls/pull/917).
+ * Support `completionList/itemDefaults` for Qute parameter declaration. See [#900](https://github.com/redhat-developer/quarkus-ls/issues/900).
+
+### Bug Fixes
+
+ * Support `?` in parameter `let` section. See [#904](https://github.com/redhat-developer/quarkus-ls/issues/904) and [#906](https://github.com/redhat-developer/quarkus-ls/issues/906).
+ * Support Qute optional end tags for sections. See [#879](https://github.com/redhat-developer/quarkus-ls/issues/879).
+ * Don't report error when `javaType` is null. See [#908](https://github.com/redhat-developer/quarkus-ls/issues/908).
+ * Fix NPE with Qute resolve completion when data is not filled. See [#903](https://github.com/redhat-developer/quarkus-ls/pull/903).
+ * Detected path in plugin are not following renarde paths spec. See [#892](https://github.com/redhat-developer/quarkus-ls/issues/892).
+ * `{name. ?: "Qute"} ` doesn't report a validation error. See [#884](https://github.com/redhat-developer/quarkus-ls/issues/884).
+
+### Build
+
+ * Use `DetectVMInstallationsJob.disabled=true` property from JDT Debug. See [#898](https://github.com/redhat-developer/quarkus-ls/pull/898).
+ * Update eclipse.jdt.ls to `1.27.0-SNAPSHOT`. See [#920](https://github.com/redhat-developer/quarkus-ls/pull/920).
+ * Update lsp4mp to `0.8.0`. See[#895](https://github.com/redhat-developer/quarkus-ls/pull/895).
+
 ## 0.15.0 (June 15, 2023)
 
 ### Enhancements
