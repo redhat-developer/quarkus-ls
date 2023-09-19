@@ -78,7 +78,7 @@ public class QuteDocumentLink {
 						if (range != null) {
 							Path templateFile = includeSection.getReferencedTemplateFile();
 							if (templateFile != null) {
-								String target = templateFile.toUri().toString();
+								String target = templateFile.toUri().toASCIIString();
 								links.add(new DocumentLink(range, target != null ? target : ""));
 							}
 						}

@@ -75,7 +75,14 @@ public class QuteCompletionForTemplateIds {
 			String currentTemplateId = template.getTemplateId();
 			Range range = getReplaceRange(completionRequest.getNode(), completionRequest.getOffset(),
 					template);
+
+			// Add all templates from the Qute project
 			List<QuteTextDocument> documents = new ArrayList<>(project.getDocuments());
+			// Add all templates from the Qute project dependencies
+			for (QuteProject projectDependency : project.getProjectDependencies()) {
+				documents.addAll(projectDependency.getDocuments());
+			}
+
 			// Sort template ids to show at first the root files of the
 			// src/main/resources/templates folder (ex : base,main).
 			Collections.sort(documents, TEMPLATE_ID_COMPARATOR);

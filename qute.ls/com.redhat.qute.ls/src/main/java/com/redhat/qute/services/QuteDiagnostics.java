@@ -278,7 +278,7 @@ class QuteDiagnostics {
 					}
 					switch (section.getSectionKind()) {
 						case INCLUDE:
-							validateIncludeSection((IncludeSection) section, diagnostics);
+							validateIncludeSection((IncludeSection) section, project, diagnostics);
 							break;
 						case CASE:
 						case IS:
@@ -461,13 +461,13 @@ class QuteDiagnostics {
 	 * Validate #include section.
 	 *
 	 * @param includeSection the include section
+	 * @param project 
 	 * @param diagnostics    the diagnostics to fill.
 	 */
-	private static void validateIncludeSection(IncludeSection includeSection, List<Diagnostic> diagnostics) {
+	private static void validateIncludeSection(IncludeSection includeSection, QuteProject project, List<Diagnostic> diagnostics) {
 		Parameter templateParameter = includeSection.getTemplateParameter();
 		if (templateParameter != null) {
 			// Validate template id, only if project exists.
-			QuteProject project = includeSection.getOwnerTemplate().getProject();
 			if (project != null) {
 				// include defines a template to include
 				// ex : {#include base}

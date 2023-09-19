@@ -12,6 +12,7 @@
 package com.redhat.qute.project;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -166,5 +167,20 @@ public class MockQuteLanguageClient implements QuteLanguageClientAPI {
 	@Override
 	public CompletableFuture<String> getJavadoc(QuteJavadocParams params) {
 		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<Collection<ProjectInfo>> getProjects() {
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public void projectAdded(ProjectInfo project) {
+		
+	}
+
+	@Override
+	public void projectRemoved(ProjectInfo project) {
+		
 	}
 }

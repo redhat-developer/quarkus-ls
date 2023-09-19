@@ -11,7 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.project;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -56,11 +55,9 @@ public class QuteQuickStartProject extends MockQuteProject {
 	}
 
 	@Override
-	protected List<ResolvedJavaTypeInfo> createResolvedTypes() {
-		List<ResolvedJavaTypeInfo> cache = new ArrayList<>();
+	protected void fillResolvedJavaTypes(List<ResolvedJavaTypeInfo> cache) {
 		createBinaryTypes(cache);
 		createSourceTypes(cache);
-		return cache;
 	}
 
 	private void createBinaryTypes(List<ResolvedJavaTypeInfo> cache) {
@@ -348,11 +345,9 @@ public class QuteQuickStartProject extends MockQuteProject {
 	}
 
 	@Override
-	protected List<DataModelTemplate<DataModelParameter>> createTemplates() {
-		List<DataModelTemplate<DataModelParameter>> templates = new ArrayList<>();
+	protected void fillTemplates(List<DataModelTemplate<DataModelParameter>> templates) {
 		createItemsTemplate(templates);
 		createItemsNativeTemplate(templates);
-		return templates;
 	}
 
 	private static void createItemsTemplate(List<DataModelTemplate<DataModelParameter>> templates) {
@@ -445,8 +440,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 	}
 
 	@Override
-	protected List<ValueResolverInfo> createValueResolvers() {
-		List<ValueResolverInfo> resolvers = new ArrayList<>();
+	protected void fillValueResolvers(List<ValueResolverInfo> resolvers) {
 
 		// Type value resolvers
 		resolvers.add(createValueResolver("inject", "plexux", null,
@@ -507,7 +501,8 @@ public class QuteQuickStartProject extends MockQuteProject {
 				ValueResolverKind.Renarde, false, false));
 
 		// Web bundler 'bundle" field as global
-		resolvers.add(createValueResolver(null, "bundle", null, "util.Globals", "bundle : java.util.Map<java.lang.String,java.lang.String>",
+		resolvers.add(createValueResolver(null, "bundle", null, "util.Globals",
+				"bundle : java.util.Map<java.lang.String,java.lang.String>",
 				ValueResolverKind.TemplateGlobal, true));
 
 		// Type-safe Message Bundles support
@@ -518,7 +513,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		hello_nameData.setMessage("Hello {name ?: 'Qute'}");
 		hello_name.setData(hello_nameData);
 		resolvers.add(hello_name);
-		
+
 		ValueResolverInfo hello = createValueResolver("msg2", null, null, "org.acme.App2Messages",
 				"hello() : java.lang.String",
 				ValueResolverKind.Message, false, false);
@@ -526,27 +521,22 @@ public class QuteQuickStartProject extends MockQuteProject {
 		helloData.setMessage("Hello!");
 		hello.setData(helloData);
 		resolvers.add(hello);
-		
-		return resolvers;
+
 	}
 
 	@Override
-	protected List<JavaTypeInfo> createTypes() {
-		List<JavaTypeInfo> cache = new ArrayList<>();
+	protected void fillJavaTypes(List<JavaTypeInfo> cache) {
 		createJavaTypeInfo("java.util.List<E>", JavaTypeKind.Interface, cache);
 		createJavaTypeInfo("java.util.Map<K,V>", JavaTypeKind.Interface, cache);
-		return cache;
 	}
 
 	@Override
-	protected Map<String, NamespaceResolverInfo> createNamespaceResolverInfos() {
-		Map<String, NamespaceResolverInfo> infos = new HashMap<>();
+	protected void fillNamespaceResolverInfos(Map<String, NamespaceResolverInfo> infos) {
 		NamespaceResolverInfo inject = new NamespaceResolverInfo();
 		inject.setNamespaces(Arrays.asList("inject", "cdi"));
 		inject.setDescription(
 				"A CDI bean annotated with `@Named` can be referenced in any template through `cdi` and/or `inject` namespaces.");
 		inject.setUrl("https://quarkus.io/guides/qute-reference#injecting-beans-directly-in-templates");
 		infos.put("inject", inject);
-		return infos;
 	}
 }

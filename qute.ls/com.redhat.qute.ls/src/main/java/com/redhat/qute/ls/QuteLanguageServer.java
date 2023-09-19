@@ -32,7 +32,6 @@ import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.SetTraceParams;
 import org.eclipse.lsp4j.WorkDoneProgressCreateParams;
 import org.eclipse.lsp4j.WorkDoneProgressNotification;
-import org.eclipse.lsp4j.WorkspaceFolder;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -108,11 +107,12 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	private QuteLanguageClientAPI languageClient;
 
 	private QuteCapabilityManager capabilityManager;
-	private List<WorkspaceFolder> workspaceFolders;
 
 	public QuteLanguageServer() {
 		this.sharedSettings = new SharedSettings();
-		this.projectRegistry = new QuteProjectRegistry(this, this, this, this, this, this, this, this);
+		this.projectRegistry = new QuteProjectRegistry(this, this, this, this, this, this, this, this, //
+				() -> capabilityManager.getClientCapabilities()
+						.isWorkDoneProgressSupported() ? this : null);
 		this.quteLanguageService = new QuteLanguageService(projectRegistry);
 		this.textDocumentService = new QuteTextDocumentService(this);
 		this.workspaceService = new QuteWorkspaceService(this);
@@ -135,7 +135,6 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 
 		projectRegistry.setDidChangeWatchedFilesSupported(
 				capabilityManager.getClientCapabilities().isDidChangeWatchedFilesRegistered());
-		workspaceFolders = params.getWorkspaceFolders();
 
 		InitializeResult initializeResult = new InitializeResult(serverCapabilities);
 		return CompletableFuture.completedFuture(initializeResult);
@@ -163,19 +162,13 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	 * Try to load the Qute project for each workspace folder.
 	 */
 	private void loadQuteProjects() {
-		if (workspaceFolders == null || workspaceFolders.isEmpty()) {
-			// No workspace folders.
-			return;
-		}
-		CompletableFuture.runAsync(() -> {
-			for (WorkspaceFolder workspaceFolder : workspaceFolders) {
-				// Get the LSP client progress support
-				ProgressSupport progressSupport = capabilityManager.getClientCapabilities()
-						.isWorkDoneProgressSupported() ? this : null;
-				// Try to load the Qute project of the current workspace folder
-				projectRegistry.tryToLoadQuteProject(workspaceFolder, progressSupport);
-			}
-		});
+		getLanguageClient().getProjects()
+				.thenAccept(projects -> {
+					if (projects != null && !projects.isEmpty()) {
+						// There are some Qute projects in the workspace, load them
+						projectRegistry.loadQuteProjects(projects);
+					}
+				});
 	}
 
 	/**
@@ -267,6 +260,30 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 		return sharedSettings;
 	}
 
+	// Project requests / notifications
+
+	@Override
+	public CompletableFuture<Collection<ProjectInfo>> getProjects() {
+		return getLanguageClient().getProjects();
+	}
+
+	@Override
+	public void projectAdded(ProjectInfo project) {
+		projectRegistry.projectAdded(project);
+	}
+
+	@Override
+	public void projectRemoved(ProjectInfo project) {
+		projectRegistry.projectRemoved(project);
+	}
+
+	@Override
+	public CompletableFuture<ProjectInfo> getProjectInfo(QuteProjectParams params) {
+		return getLanguageClient().getProjectInfo(params);
+	}
+
+	// Other requests / notifications
+
 	@Override
 	public CompletableFuture<List<JavaTypeInfo>> getJavaTypes(QuteJavaTypesParams params) {
 		return getLanguageClient().getJavaTypes(params);
@@ -280,11 +297,6 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	@Override
 	public CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaType(QuteResolvedJavaTypeParams params) {
 		return getLanguageClient().getResolvedJavaType(params);
-	}
-
-	@Override
-	public CompletableFuture<ProjectInfo> getProjectInfo(QuteProjectParams params) {
-		return getLanguageClient().getProjectInfo(params);
 	}
 
 	@Override
@@ -355,7 +367,7 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	}
 
 	@Override
-	public void telemetryEvent (Object object) {
+	public void telemetryEvent(Object object) {
 		getLanguageClient().telemetryEvent(object);
 	}
 

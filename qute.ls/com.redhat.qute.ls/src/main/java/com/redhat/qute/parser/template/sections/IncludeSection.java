@@ -53,12 +53,42 @@ public class IncludeSection extends Section {
 		if (referencedTemplateId == null) {
 			return null;
 		}
-
 		QuteProject project = getOwnerTemplate().getProject();
 		if (project == null) {
 			return null;
 		}
+		// 1. Try to get a valid template from the Qute project
+		Path templatePath = getReferencedTemplateFile(referencedTemplateId, project);
+		if (templatePath != null && Files.exists(templatePath)) {
+			// Returns the valid template from the Qute project
+			return templatePath;
+		}
 
+		if (!project.getProjectDependencies().isEmpty()) {
+			// 2. The Qute project have some project dependencies, try to get a valid from
+			// those dependencies
+			for (QuteProject projectDependency : project.getProjectDependencies()) {
+				if (projectDependency != null) {
+					Path dependencyTemplatePath = getReferencedTemplateFile(referencedTemplateId, projectDependency);
+					if (dependencyTemplatePath != null && Files.exists(dependencyTemplatePath)) {
+						return dependencyTemplatePath;
+					}
+				}
+			}
+		}
+
+		// Returns the invalid template from the Qute project
+		return templatePath;
+	}
+
+	/**
+	 * Returns the referenced template file defined in the first parameter of the
+	 * section and null otherwise.
+	 * 
+	 * @return the referenced template file defined in the first parameter of the
+	 *         section and null otherwise.
+	 */
+	private static Path getReferencedTemplateFile(String referencedTemplateId, QuteProject project) {
 		Path templateBaseDir = project.getTemplateBaseDir();
 		if (templateBaseDir == null) {
 			return null;

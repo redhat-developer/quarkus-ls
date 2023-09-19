@@ -12,6 +12,7 @@
    <!-- Delegate command handler for Qute template -->
    <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
       <delegateCommandHandler class="com.redhat.qute.jdt.internal.ls.QuteSupportForTemplateDelegateCommandHandler">
+            <command id="qute/template/projects"/>
             <command id="qute/template/project"/>
             <command id="qute/template/projectDataModel"/>
             <command id="qute/template/userTags"/>
