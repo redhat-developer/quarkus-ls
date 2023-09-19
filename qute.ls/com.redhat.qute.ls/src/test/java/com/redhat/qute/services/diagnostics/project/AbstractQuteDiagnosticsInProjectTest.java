@@ -18,6 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -53,10 +56,23 @@ public abstract class AbstractQuteDiagnosticsInProjectTest {
 
 		@Override
 		public CompletableFuture<ProjectInfo> getProjectInfo(QuteProjectParams params) {
-			ProjectInfo projectInfo = new ProjectInfo(QuteQuickStartProject.PROJECT_URI,
-					FileUtils.toUri(templatesPath));
+			ProjectInfo projectInfo = createQuickStartProject();
 			return CompletableFuture.completedFuture(projectInfo);
+		}
+
+		@Override
+		public CompletableFuture<Collection<ProjectInfo>> getProjects() {
+			Collection<ProjectInfo> projects = Arrays.asList(createQuickStartProject());
+			return CompletableFuture.completedFuture(projects);
+		}
+
+		private ProjectInfo createQuickStartProject() {
+			ProjectInfo projectInfo = new ProjectInfo(QuteQuickStartProject.PROJECT_URI,
+					Collections.emptyList(),
+					FileUtils.toUri(templatesPath));
+			return projectInfo;
 		};
+
 	}
 
 	private final boolean didChangeWatchedFilesSupported;

@@ -74,6 +74,7 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 
 	private static final String CLASS_NAME_ATTR = "className";
 
+	private static final String QUTE_TEMPLATE_PROJECTS_COMMAND_ID = "qute/template/projects";
 	private static final String QUTE_TEMPLATE_PROJECT_COMMAND_ID = "qute/template/project";
 
 	private static final String QUTE_TEMPLATE_PROJECT_DATA_MODEL_COMMAND_ID = "qute/template/projectDataModel";
@@ -93,6 +94,8 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 	@Override
 	public Object executeCommand(String commandId, List<Object> arguments, IProgressMonitor monitor) throws Exception {
 		switch (commandId) {
+		case QUTE_TEMPLATE_PROJECTS_COMMAND_ID:
+			return getProjects(commandId, monitor);
 			case QUTE_TEMPLATE_PROJECT_COMMAND_ID:
 				return getProjectInfo(arguments, commandId, monitor);
 			case QUTE_TEMPLATE_PROJECT_DATA_MODEL_COMMAND_ID:
@@ -113,6 +116,10 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 		return null;
 	}
 
+	private static List<ProjectInfo> getProjects(String commandId, IProgressMonitor monitor) {
+		return QuteSupportForTemplate.getInstance().getProjects(JDTUtilsLSImpl.getInstance(), monitor);
+	}
+	
 	private static ProjectInfo getProjectInfo(List<Object> arguments, String commandId, IProgressMonitor monitor) {
 		QuteProjectParams params = createQuteProjectParams(arguments, commandId);
 		return QuteSupportForTemplate.getInstance().getProjectInfo(params, JDTUtilsLSImpl.getInstance(), monitor);

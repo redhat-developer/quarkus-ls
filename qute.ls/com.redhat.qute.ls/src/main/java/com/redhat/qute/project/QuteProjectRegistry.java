@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.FileEvent;
@@ -30,7 +31,6 @@ import org.eclipse.lsp4j.WorkDoneProgressBegin;
 import org.eclipse.lsp4j.WorkDoneProgressCreateParams;
 import org.eclipse.lsp4j.WorkDoneProgressEnd;
 import org.eclipse.lsp4j.WorkDoneProgressReport;
-import org.eclipse.lsp4j.WorkspaceFolder;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.commons.JavaTypeInfo;
@@ -95,13 +95,15 @@ public class QuteProjectRegistry
 
 	private final TemplateValidator validator;
 
+	private final Supplier<ProgressSupport> progressSupportProvider;
+
 	private boolean didChangeWatchedFilesSupported;
 
 	public QuteProjectRegistry(QuteProjectInfoProvider projectInfoProvider, QuteJavaTypesProvider javaTypeProvider,
 			QuteJavaDefinitionProvider definitionProvider,
 			QuteResolvedJavaTypeProvider resolvedClassProvider, QuteDataModelProjectProvider dataModelProvider,
 			QuteUserTagProvider userTagsProvider, QuteJavadocProvider javadocProvider,
-			TemplateValidator validator) {
+			TemplateValidator validator, Supplier<ProgressSupport> progressSupportProvider) {
 		this.projectInfoProvider = projectInfoProvider;
 		this.javaTypeProvider = javaTypeProvider;
 		this.definitionProvider = definitionProvider;
@@ -112,6 +114,7 @@ public class QuteProjectRegistry
 		this.javadocProvider = javadocProvider;
 		this.valueResolversRegistry = new ValueResolversRegistry();
 		this.validator = validator;
+		this.progressSupportProvider = progressSupportProvider;
 	}
 
 	/**
@@ -401,64 +404,68 @@ public class QuteProjectRegistry
 		return projectInfoProvider.getProjectInfo(params);
 	}
 
-	/**
-	 * Try to load the Qute project of the given workspace folder.
-	 * 
-	 * @param workspaceFolder the workspace folder.
-	 * @param progressSupport the LSP client progress support and null otherwise.
-	 */
-	public void tryToLoadQuteProject(WorkspaceFolder workspaceFolder, ProgressSupport progressSupport) {
-		String projectName = workspaceFolder.getName();
-
-		String progressId = createAndStartProgress(projectName, progressSupport);
-
-		// Load Qute project from the Java component (collect Java data model)
-		String projectUri = workspaceFolder.getUri();
-		QuteProjectParams params = new QuteProjectParams(projectUri);
-		getProjectInfo(params)
-				.thenAccept(projectInfo -> {
-					if (projectInfo == null) {
-						// The workspace folder is not a Qute project, end the process
-						endProgress(progressId, progressSupport);
-						return;
+	public void loadQuteProjects(Collection<ProjectInfo> projects) {
+		// 1. Load all Qute projects
+		for (ProjectInfo projectInfo : projects) {
+			// Load the Qute project
+			loadQuteProject(projectInfo);
+		}
+		// 2. Update project dependencies
+		for (ProjectInfo projectInfo : projects) {
+			if (projectInfo.getProjectDependencyUris() != null && !projectInfo.getProjectDependencyUris().isEmpty()) {
+				QuteProject project = getProject(projectInfo.getUri());
+				for (String projectDependencyUri : projectInfo.getProjectDependencyUris()) {
+					QuteProject projectDependency = getProject(projectDependencyUri);
+					if (projectDependency != null) {
+						project.getProjectDependencies().add(projectDependency);
 					}
+				}
+			}
+		}
 
-					// The workspace folder is a Qute project, load the data model from Java
-					// component
-					QuteProject project = getProject(projectInfo, false);
+	}
+
+	/**
+	 * Load the Qute project from the given Qute project information.
+	 * 
+	 * @param projectInfo the project information.
+	 */
+	private QuteProject loadQuteProject(ProjectInfo projectInfo) {
+		// Get the LSP client progress support (or null if LSP client cannot support
+		// progress)
+		ProgressSupport progressSupport = progressSupportProvider.get();
+		String projectName = projectInfo.getUri();
+		String progressId = createAndStartProgress(projectName, progressSupport);
+		// Load Qute project from the Java component (collect Java data model)
+		QuteProject project = getProject(projectInfo, false);
+		if (progressSupport != null) {
+			WorkDoneProgressReport report = new WorkDoneProgressReport();
+			report.setMessage("Loading data model for '" + projectName + "' Qute project.");
+			report.setPercentage(10);
+			progressSupport.notifyProgress(progressId, report);
+		}
+		project.getDataModelProject()
+				.thenAccept(dataModel -> {
+					// The Java data model is collected for the project, validate all templates of
+					// the project
 					if (progressSupport != null) {
 						WorkDoneProgressReport report = new WorkDoneProgressReport();
-						report.setMessage("Loading data model for '" + projectName + "' Qute project.");
-						report.setPercentage(10);
+						report.setMessage(
+								"Validating Qute templates for '" + projectName + "' Qute project.");
+						report.setPercentage(80);
 						progressSupport.notifyProgress(progressId, report);
 					}
-					project.getDataModelProject()
-							.thenAccept(dataModel -> {
-								// The Java data model is collected for the project, validate all templates of
-								// the project
-								if (progressSupport != null) {
-									WorkDoneProgressReport report = new WorkDoneProgressReport();
-									report.setMessage(
-											"Validating Qute templates for '" + projectName + "' Qute project.");
-									report.setPercentage(80);
-									progressSupport.notifyProgress(progressId, report);
-								}
-								// Validate Qute templates
-								project.validateClosedTemplates();
+					// Validate Qute templates
+					project.validateClosedTemplates();
 
-								// End progress
-								endProgress(progressId, progressSupport);
-
-							}).exceptionally((a) -> {
-								endProgress(progressId, progressSupport);
-								return null;
-							});
+					// End progress
+					endProgress(progressId, progressSupport);
 
 				}).exceptionally((a) -> {
 					endProgress(progressId, progressSupport);
 					return null;
 				});
-
+		return project;
 	}
 
 	private static String createAndStartProgress(String projectName, ProgressSupport progressSupport) {
@@ -485,4 +492,18 @@ public class QuteProjectRegistry
 			progressSupport.notifyProgress(progressId, end);
 		}
 	}
+
+	public void projectAdded(ProjectInfo project) {
+		loadQuteProject(project);
+	}
+
+	public void projectRemoved(ProjectInfo projectInfo) {
+		String projectUri = projectInfo.getUri();
+		QuteProject project = getProject(projectUri);
+		if (project != null) {
+			project.dispose();
+			projects.remove(projectUri);
+		}
+	}
+
 }

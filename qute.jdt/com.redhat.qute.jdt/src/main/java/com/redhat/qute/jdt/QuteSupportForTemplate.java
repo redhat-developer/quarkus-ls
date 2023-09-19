@@ -17,6 +17,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -97,6 +98,28 @@ public class QuteSupportForTemplate {
 
 	public static QuteSupportForTemplate getInstance() {
 		return INSTANCE;
+	}
+
+	/**
+	 * Returns the list of Qute projects from the workspace.
+	 * 
+	 * @param utils   the JDT LS utility.
+	 * @param monitor the progress monitor.
+	 * 
+	 * @return the list of Qute projects from teh workspace.
+	 */
+	public List<ProjectInfo> getProjects(IJDTUtils utils, IProgressMonitor monitor) {
+		List<ProjectInfo> quteProjects = new ArrayList<>();
+		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+		// Loop for project from the workspace
+		for (IProject project : allProjects) {
+			IJavaProject javaProject = getJavaProject(project);
+			if (isQuteProject(javaProject)) {
+				// It is a Qute project
+				quteProjects.add(JDTQuteProjectUtils.getProjectInfo(javaProject));
+			}
+		}
+		return quteProjects;
 	}
 
 	/**
@@ -405,6 +428,19 @@ public class QuteSupportForTemplate {
 	 */
 	private static boolean isQuteProject(IProject project) {
 		IJavaProject javaProject = getJavaProject(project);
+		return isQuteProject(javaProject);
+	}
+
+	/**
+	 * Returns true if the given Java project is a Java Qute project and false
+	 * otherwise.
+	 * 
+	 * @param project the Java project.
+	 * 
+	 * @return true if the given Java project is a Java Qute project and false
+	 *         otherwise.
+	 */
+	private static boolean isQuteProject(IJavaProject javaProject) {
 		if (javaProject == null) {
 			return false;
 		}

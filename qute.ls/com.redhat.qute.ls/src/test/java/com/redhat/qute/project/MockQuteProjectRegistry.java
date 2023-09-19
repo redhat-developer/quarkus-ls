@@ -35,6 +35,8 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
+import com.redhat.qute.project.multiple.QuteProjectA;
+import com.redhat.qute.project.multiple.QuteProjectB;
 
 public class MockQuteProjectRegistry extends QuteProjectRegistry {
 
@@ -47,7 +49,7 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	public static final Range JAVA_STATIC_METHOD_RANGE = new Range(new Position(3, 3), new Position(3, 3));
 
 	public MockQuteProjectRegistry() {
-		super(null, null, null, null, null, null, null, null);
+		super(null, null, null, null, null, null, null, null, () -> null);
 		super.setDidChangeWatchedFilesSupported(true);
 	}
 
@@ -55,6 +57,12 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	protected QuteProject createProject(ProjectInfo projectInfo) {
 		if (QuteQuickStartProject.PROJECT_URI.equals(projectInfo.getUri())) {
 			return new QuteQuickStartProject(projectInfo, this);
+		}
+		if (QuteProjectA.PROJECT_URI.equals(projectInfo.getUri())) {
+			return new QuteProjectA(this);
+		}
+		if (QuteProjectB.PROJECT_URI.equals(projectInfo.getUri())) {
+			return new QuteProjectB(this);
 		}
 		return super.createProject(projectInfo);
 	}

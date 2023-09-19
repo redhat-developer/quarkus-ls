@@ -112,7 +112,7 @@ public class QuteAssert {
 
 	public static final String TEMPLATE_BASE_DIR = "src/test/resources/templates";
 
-	private static final String FILE_URI = "test.qute";
+	public static final String FILE_URI = "test.qute";
 
 	public static final int USER_TAG_SIZE = 9 /*
 												 * #input, #bundleStyle, #form, #title, #simpleTitle, #user, #formElement,
@@ -1049,7 +1049,7 @@ public class QuteAssert {
 			QuteProjectRegistry projectRegistry) {
 		Template template = TemplateParser.parse(value, fileUri != null ? fileUri : FILE_URI);
 		template.setProjectUri(projectUri);
-		projectRegistry.getProject(new ProjectInfo(projectUri, templateBaseDir));
+		projectRegistry.getProject(new ProjectInfo(projectUri, Collections.emptyList(), templateBaseDir));
 		template.setProjectRegistry(projectRegistry);
 		return template;
 	}

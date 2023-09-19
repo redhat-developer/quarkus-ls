@@ -11,11 +11,18 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.utils;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ITypeRoot;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.core.manipulation.dom.ASTResolving;
 
@@ -30,6 +37,8 @@ import com.redhat.qute.jdt.internal.QuteJavaConstants;
  */
 public class JDTQuteProjectUtils {
 
+	private static final Logger LOGGER = Logger.getLogger(JDTQuteProjectUtils.class.getName());
+
 	private static final String TEMPLATES_BASE_DIR = "src/main/resources/templates/";
 
 	private JDTQuteProjectUtils() {
@@ -40,7 +49,20 @@ public class JDTQuteProjectUtils {
 		IProject project = javaProject.getProject();
 		String projectUri = getProjectURI(project);
 		String templateBaseDir = project.getFile(TEMPLATES_BASE_DIR).getLocationURI().toString();
-		return new ProjectInfo(projectUri, templateBaseDir);
+		// Project dependencies
+		List<String> projectDependencies = Collections.emptyList();
+		try {
+			String[] requiredProjectNames = javaProject.getRequiredProjectNames();
+			if (requiredProjectNames != null) {
+				projectDependencies = Arrays.asList(requiredProjectNames);
+			}
+		} catch (JavaModelException e) {
+			// Should never occurs
+			LOGGER.log(Level.SEVERE,
+					"Error while getting project dependencies for '" + javaProject.getElementName() + "' Java project.",
+					e);
+		}
+		return new ProjectInfo(projectUri, projectDependencies, templateBaseDir);
 	}
 
 	/**
@@ -84,7 +106,8 @@ public class JDTQuteProjectUtils {
 		return JDTTypeUtils.findType(javaProject, QuteJavaConstants.ENGINE_BUILDER_CLASS) != null;
 	}
 
-	public static TemplatePathInfo getTemplatePath(String className, String methodOrFieldName, boolean ignoreFragments) {
+	public static TemplatePathInfo getTemplatePath(String className, String methodOrFieldName,
+			boolean ignoreFragments) {
 		String fragmentId = null;
 		StringBuilder templateUri = new StringBuilder(TEMPLATES_BASE_DIR);
 		if (className != null) {

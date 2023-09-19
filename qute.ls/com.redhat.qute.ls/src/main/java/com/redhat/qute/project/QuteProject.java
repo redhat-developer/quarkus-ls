@@ -116,6 +116,8 @@ public class QuteProject {
 
 	private final JavaDataModelCache javaCache;
 
+	private List<QuteProject> projectDependencies;
+
 	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry,
 			TemplateValidator validator) {
 		this.uri = projectInfo.getUri();
@@ -132,6 +134,7 @@ public class QuteProject {
 		// ONLY if LSP client cannot support DidChangeWatchedFiles.
 		this.watcher = !projectRegistry.isDidChangeWatchedFilesSupported() ? createFilesWatcher(this) : null;
 		this.javaCache = new JavaDataModelCache(this);
+		this.projectDependencies = new ArrayList<>();
 	}
 
 	private static QuteProjectFilesWatcher createFilesWatcher(QuteProject project) {
@@ -209,6 +212,10 @@ public class QuteProject {
 	 */
 	public String getUri() {
 		return uri;
+	}
+	
+	public List<QuteProject> getProjectDependencies() {
+		return projectDependencies;
 	}
 
 	/**
@@ -1507,5 +1514,6 @@ public class QuteProject {
 		return projectRegistry.getJavadoc(new QuteJavadocParams(typeName, getUri(), javaMemberInfo.getName(),
 				signature, hasMarkdown ? DocumentFormat.Markdown : DocumentFormat.PlainText));
 	}
+	
 
 }

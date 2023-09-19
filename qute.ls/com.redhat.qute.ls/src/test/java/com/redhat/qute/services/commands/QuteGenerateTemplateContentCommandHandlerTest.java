@@ -5,6 +5,7 @@ import static com.redhat.qute.project.QuteQuickStartProject.PROJECT_URI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -34,7 +35,7 @@ public class QuteGenerateTemplateContentCommandHandlerTest {
 
 	private QuteProjectRegistry createProjectRegistry() {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
-		projectRegistry.getProject(new ProjectInfo(PROJECT_URI, TEMPLATE_BASE_DIR));
+		projectRegistry.getProject(new ProjectInfo(PROJECT_URI, Collections.emptyList(), TEMPLATE_BASE_DIR));
 		return projectRegistry;
 	}
 

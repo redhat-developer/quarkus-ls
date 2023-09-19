@@ -52,11 +52,16 @@ public abstract class MockQuteProject extends QuteProject {
 
 	public MockQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		super(projectInfo, projectRegistry, null);
-		this.typesCache = createTypes();
-		this.resolvedTypesCache = createResolvedTypes();
-		this.templates = createTemplates();
-		this.valueResolvers = createValueResolvers();
-		this.namespaceResolverInfos = createNamespaceResolverInfos();
+		this.typesCache = new ArrayList<>();
+		this.fillJavaTypes(typesCache);
+		this.resolvedTypesCache = new ArrayList<>();
+		this.fillResolvedJavaTypes(resolvedTypesCache);
+		this.templates = new ArrayList<>();
+		this.fillTemplates(templates);
+		this.valueResolvers = new ArrayList<>();
+		this.fillValueResolvers(valueResolvers);
+		this.namespaceResolverInfos = new HashMap<>();
+		this.fillNamespaceResolverInfos(namespaceResolverInfos);
 	}
 
 	public ResolvedJavaTypeInfo getResolvedJavaTypeSync(String typeName) {
@@ -160,15 +165,15 @@ public abstract class MockQuteProject extends QuteProject {
 		return resolver;
 	}
 
-	protected abstract List<JavaTypeInfo> createTypes();
+	protected abstract void fillJavaTypes(List<JavaTypeInfo> types);
 
-	protected abstract List<ResolvedJavaTypeInfo> createResolvedTypes();
+	protected abstract void fillResolvedJavaTypes(List<ResolvedJavaTypeInfo> resolvedJavaTypes);
 
-	protected abstract List<DataModelTemplate<DataModelParameter>> createTemplates();
+	protected abstract void fillTemplates(List<DataModelTemplate<DataModelParameter>> templates);
 
-	protected abstract List<ValueResolverInfo> createValueResolvers();
+	protected abstract void fillValueResolvers(List<ValueResolverInfo> valueResolvers);
 
-	protected abstract Map<String, NamespaceResolverInfo> createNamespaceResolverInfos();
+	protected abstract void fillNamespaceResolverInfos(Map<String, NamespaceResolverInfo> namespaces);
 
 	public JavaMethodInfo getMethodValueResolver(String typeName, String methodName) {
 		try {
@@ -184,4 +189,7 @@ public abstract class MockQuteProject extends QuteProject {
 		return null;
 	}
 
+	protected static String getProjectPath(String projectUri) {
+		return "src/test/resources/projects/" + projectUri;
+	}
 }

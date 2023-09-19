@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.services;
+package com.redhat.qute.services.documentlink;
 
 import static com.redhat.qute.QuteAssert.dl;
 import static com.redhat.qute.QuteAssert.r;
