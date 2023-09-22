@@ -14,6 +14,7 @@ package com.redhat.qute.ls.api;
 import org.eclipse.lsp4j.jsonrpc.services.JsonNotification;
 import org.eclipse.lsp4j.services.LanguageServer;
 
+import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 
 /**
@@ -37,4 +38,21 @@ public interface QuteLanguageServerAPI extends LanguageServer {
 	 */
 	@JsonNotification("qute/dataModelChanged")
 	void dataModelChanged(JavaDataModelChangeEvent event);
+	
+	/**
+	 * Notification received when a Qute project is added in the workspace.
+	 * 
+	 * @param project the Qute project which is added in the workspace.
+	 */
+	@JsonNotification("qute/template/project/added")
+	void projectAdded(ProjectInfo project);
+
+	/**
+	 * Notification received when a Qute project is closed / removed from the
+	 * workspace.
+	 * 
+	 * @param project the Qute project which is closed / removed from the workspace.
+	 */
+	@JsonNotification("qute/template/project/removed")
+	void projectRemoved(ProjectInfo project);
 }
