@@ -174,13 +174,4 @@ public class MockQuteLanguageClient implements QuteLanguageClientAPI {
 		return CompletableFuture.completedFuture(null);
 	}
 
-	@Override
-	public void projectAdded(ProjectInfo project) {
-		
-	}
-
-	@Override
-	public void projectRemoved(ProjectInfo project) {
-		
-	}
 }
