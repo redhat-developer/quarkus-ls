@@ -1,5 +1,21 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## 0.17.0 (October 5, 2023)
+
+### Enhancements
+
+ * Qute support for multi module project. See [#930](https://github.com/redhat-developer/quarkus-ls/issues/930).
+
+### Bug Fixes
+
+ * Fix `java.lang.StackOverflowError` while editing Quarkus extension. See [#924](https://github.com/redhat-developer/quarkus-ls/issues/924).
+
+### Build
+
+ * Move projectAdded / projectRemoved to language server. See [#941](https://github.com/redhat-developer/quarkus-ls/pull/941).
+ * Update eclipse.jdt.ls to 1.29.0-SNAPSHOT. See [#942](https://github.com/redhat-developer/quarkus-ls/pull/942).
+ * Update to Tycho 3.0.5 and Maven 3.9.4. See [#936](https://github.com/redhat-developer/quarkus-ls/pull/936).
+
 ## 0.16.0 (August 8, 2023)
 
 ### Enhancements
