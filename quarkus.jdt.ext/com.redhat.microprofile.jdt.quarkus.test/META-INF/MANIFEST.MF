@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: quarkus.jdt.ls Test Plugin
 Bundle-SymbolicName: com.redhat.microprofile.jdt.quarkus.test
-Bundle-Version: 0.17.0.qualifier
+Bundle-Version: 0.18.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: org.junit,
  org.apache.commons.commons-io,
