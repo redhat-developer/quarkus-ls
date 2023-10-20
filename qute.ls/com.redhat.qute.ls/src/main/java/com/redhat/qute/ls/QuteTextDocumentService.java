@@ -294,7 +294,7 @@ public class QuteTextDocumentService implements TextDocumentService, TemplateVal
 
 	public AbstractTextDocumentService getTextDocumentService(String uri) {
 		String fileExtension = getFileExtension(uri);
-		if ("java".equals(fileExtension) || "class".equals(fileExtension)) {
+		if ("java".equals(fileExtension) || "class".equals(fileExtension) || "kt".equals(fileExtension)) {
 			return javaFileTextDocumentService;
 		}
 		return templateFileTextDocumentService;
