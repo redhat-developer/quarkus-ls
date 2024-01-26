@@ -5,17 +5,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Cache .m2 repository
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: maven-repository-${{ hashFiles('**/pom.xml') }}
+          save-always: true
       - name: Cache Maven wrapper
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.m2/wrapper
           key: maven-wrapper-${{ hashFiles('**/mvnw') }}
+          save-always: true
       - name: Set up Eclipse Temurin JDK 17
         uses: actions/setup-java@v2
         with:
