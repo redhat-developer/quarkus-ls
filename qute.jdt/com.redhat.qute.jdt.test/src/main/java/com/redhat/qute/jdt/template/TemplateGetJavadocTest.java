@@ -90,7 +90,7 @@ public class TemplateGetJavadocTest {
 				DocumentFormat.PlainText);
 
 		String actual = QuteSupportForTemplate.getInstance().getJavadoc(params, getJDTUtils(), new NullProgressMonitor());
-		String expected = " Returns the derived items. \n * Returns:\n   - the derived items";
+		String expected = " Returns the derived items.   Returns:\nthe derived items\n";// Updated jdt.ls JavaDoc2PlainTextConverter doesn't yield great results anymore
 		assertEquals(expected, actual);
 	}
 	
