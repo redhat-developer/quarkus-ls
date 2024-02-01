@@ -1,5 +1,19 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## 0.18.0 (February 1, 2024)
+
+### Enhancements
+
+ * Delegate kotlin file *.kt to java document service. See [#948](https://github.com/redhat-developer/quarkus-ls/pull/948).
+
+### Bug Fixes
+
+ * Fixed Javadoc for Qute completion. See [#949](https://github.com/redhat-developer/quarkus-ls/pull/949).
+
+### Build
+
+ * Increase XmX to 2G for quarkus.jdt.ext tests. See [#946](https://github.com/redhat-developer/quarkus-ls/pull/946).
+
 ## 0.17.0 (October 5, 2023)
 
 ### Enhancements
