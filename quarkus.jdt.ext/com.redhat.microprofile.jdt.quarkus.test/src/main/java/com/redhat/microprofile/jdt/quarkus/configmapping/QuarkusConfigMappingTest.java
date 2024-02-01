@@ -150,9 +150,22 @@ public class QuarkusConfigMappingTest extends BasePropertiesManagerTest {
 				p(null, "server.withparentname.port", "int", null, false, "org.acme.withparentname.ServerHostAndPort",
 						null, "port()I", 0, null),
 				p(null, "server.withparentname.name", "java.lang.String", null, false,
-						"org.acme.withparentname.ServerInfo", null, "name()QString;", 0, null)
+						"org.acme.withparentname.ServerInfo", null, "name()QString;", 0, null),
 
-		);
+				// 8) Optionals
+
+				// @ConfigMapping(prefix = "optionals")
+				// public interface Optionals {
+				//	Optional<Server> server();
+				// 	OptionalInt optionalInt();
+
+				p(null, "optionals.optional", "java.lang.String", null, false,
+						"org.acme.optionals.Optionals", null,
+						"optional()QOptional<QString;>;", 0, null),
+				p(null, "optionals.optional-int", "java.util.OptionalInt", null, false,
+						"org.acme.optionals.Optionals", null,
+						"optionalInt()QOptionalInt;", 0, null)
+				);
 
 		assertPropertiesDuplicate(infoFromJavaSources);
 	}

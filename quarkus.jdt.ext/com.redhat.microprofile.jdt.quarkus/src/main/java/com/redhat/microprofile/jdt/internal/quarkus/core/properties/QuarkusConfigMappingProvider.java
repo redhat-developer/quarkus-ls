@@ -60,6 +60,7 @@ import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 import org.eclipse.lsp4mp.jdt.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import org.eclipse.lsp4mp.jdt.core.IPropertiesCollector;
 import org.eclipse.lsp4mp.jdt.core.SearchContext;
+import org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils;
 
 import com.redhat.microprofile.jdt.quarkus.JDTQuarkusUtils;
 
@@ -149,8 +150,11 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 					// it's an optional type
 					// Optional<List<String>> databases();
 					// extract the type List<String>
-					returnTypeSignature = org.eclipse.jdt.core.Signature.getTypeArguments(returnTypeSignature)[0];
-					resolvedTypeSignature = JavaModelUtil.getResolvedTypeName(returnTypeSignature, configMappingType);
+					String typeArgument = JDTTypeUtils.getFirstTypeArgument(returnTypeSignature); 
+					if (typeArgument != null) {
+						returnTypeSignature = typeArgument;
+						resolvedTypeSignature = JavaModelUtil.getResolvedTypeName(returnTypeSignature, configMappingType);
+					}
 				}
 
 				IType returnType = findType(method.getJavaProject(), resolvedTypeSignature);
@@ -219,7 +223,15 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 	}
 
 	private boolean isSimpleType(String resolvedTypeSignature, IType returnType) {
-		return returnType == null || isPrimitiveType(resolvedTypeSignature);
+		return returnType == null 
+				|| isPrimitiveType(resolvedTypeSignature)
+				|| isSimpleOptionalType(resolvedTypeSignature);
+	}
+
+	private boolean isSimpleOptionalType(String resolvedTypeSignature) {
+		return "java.util.OptionalInt".equals(resolvedTypeSignature)
+				|| "java.util.OptionalDouble".equals(resolvedTypeSignature)
+				|| "java.util.OptionalLong".equals(resolvedTypeSignature);
 	}
 
 	private static boolean isMap(IType type, String typeName) {
