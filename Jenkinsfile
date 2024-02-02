@@ -37,7 +37,7 @@ pipeline {
           if [[ ${pomVersion} == *"-SNAPSHOT" ]]; then
             ${MVN} -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/snapshots/builds/quarkus-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=1800 -Dmaven.test.failure.ignore=true
           else
-            ${MVN} -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/stable/builds/quarkus-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=1800 -Dmaven.test.failure.ignore=true -DdeployNumbuildstokeep=1000 -DdeployNumbuildstolink=1000
+            ${MVN} -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/stable/builds/quarkus-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=1800 -Dmaven.test.failure.ignore=true -DdeployNumbuildstokeep=1000 -DdeployNumbuildstolink=1000 -DskipTests
           fi
 
           pom=${WORKSPACE_SAV}/qute.jdt/pom.xml
@@ -47,7 +47,7 @@ pipeline {
           if [[ ${pomVersion} == *"-SNAPSHOT" ]]; then
             ${MVN} -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/snapshots/builds/qute-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=1800 -Dmaven.test.failure.ignore=true
           else
-            ${MVN} -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/stable/builds/qute-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=1800 -Dmaven.test.failure.ignore=true -DdeployNumbuildstokeep=1000 -DdeployNumbuildstolink=1000
+            ${MVN} -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/stable/builds/qute-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=1800 -Dmaven.test.failure.ignore=true -DdeployNumbuildstokeep=1000 -DdeployNumbuildstolink=1000 -DskipTests
           fi
         '''
       }
