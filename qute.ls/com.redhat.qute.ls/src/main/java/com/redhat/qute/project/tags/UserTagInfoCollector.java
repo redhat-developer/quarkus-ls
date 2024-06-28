@@ -34,14 +34,20 @@ import com.redhat.qute.parser.template.sections.SetSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.utils.StringUtils;
+import com.redhat.qute.utils.UserTagUtils;
 
 /**
- * User tag parameters collector.
+ * User tag info collector to get:
+ * 
+ * <ul>
+ * <li>if user tag uses '_args'</li>
+ * <li>user tag parameters</li>
+ * </ul>
  * 
  * @author Angelo ZERR
  *
  */
-public class UserTagParameterCollector extends ASTVisitor {
+public class UserTagInfoCollector extends ASTVisitor {
 
 	private final QuteProject project;
 
@@ -50,6 +56,8 @@ public class UserTagParameterCollector extends ASTVisitor {
 	private final List<List<ParamInfo>> parameterNamesStack;
 
 	private List<String> globalVariables;
+
+	private boolean hasArgs;
 
 	private static class ParamInfo {
 		public final String name;
@@ -63,7 +71,7 @@ public class UserTagParameterCollector extends ASTVisitor {
 		}
 	}
 
-	public UserTagParameterCollector(QuteProject project) {
+	public UserTagInfoCollector(QuteProject project) {
 		this.project = project;
 		this.parameters = new LinkedHashMap<>();
 		this.parameterNamesStack = new ArrayList<>();
@@ -154,6 +162,12 @@ public class UserTagParameterCollector extends ASTVisitor {
 	public boolean visit(ObjectPart node) {
 		if (isValid(node)) {
 			String partName = node.getPartName(); // {foo}
+			boolean isArgs = UserTagUtils.ARGS_OBJECT_PART_NAME.equals(partName);
+			if (isArgs) {
+				// {_args.skip("readonly")..}
+				hasArgs = true;
+				return super.visit(node);
+			}
 
 			// Get the parameter info from the parameter stack
 			ParamInfo paramInfo = getParamInfo(partName);
@@ -243,5 +257,16 @@ public class UserTagParameterCollector extends ASTVisitor {
 
 	public Map<String, UserTagParameter> getParameters() {
 		return parameters;
+	}
+
+	/**
+	 * Returns true if the user tag declares an object part with _args and false
+	 * otherwise.
+	 * 
+	 * @return true if the user tag declares an object part with _args and false
+	 * otherwise.
+	 */
+	public boolean hasArgs() {
+		return hasArgs;
 	}
 }

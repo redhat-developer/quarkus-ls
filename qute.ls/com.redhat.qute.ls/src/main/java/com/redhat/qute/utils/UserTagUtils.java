@@ -42,6 +42,7 @@ public class UserTagUtils {
 	public static final String IT_OBJECT_PART_NAME = "it";
 	public static final String NESTED_CONTENT_OBJECT_PART_NAME = "nested-content";
 	
+	public static final String ARGS_OBJECT_PART_NAME = "_args";
 	private static final Map<String, SectionMetadata> SPECIAL_KEYS;
 
 	static {
@@ -50,6 +51,9 @@ public class UserTagUtils {
 				"`it` is a special key that is replaced with the first unnamed parameter of the tag."));
 		register(new SectionMetadata(NESTED_CONTENT_OBJECT_PART_NAME, Object.class.getName(),
 				"`nested-content` is a special key that will be replaced by the content of the tag"));
+		register(new SectionMetadata(ARGS_OBJECT_PART_NAME, "io.quarkus.qute.UserTagSectionHelper.Arguments",
+				"`io.quarkus.qute.UserTagSectionHelper.Arguments` metadata are accessible in a tag using the `_args` alias."
+				+ "\nSee [here](https://quarkus.io/guides/qute-reference#arguments) for more information."));
 	}
 
 	private static void register(SectionMetadata metadata) {

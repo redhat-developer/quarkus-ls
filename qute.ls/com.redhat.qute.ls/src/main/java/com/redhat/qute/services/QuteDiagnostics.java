@@ -52,7 +52,6 @@ import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.expression.PropertyPart;
 import com.redhat.qute.parser.template.CaseOperator;
 import com.redhat.qute.parser.template.Expression;
-import com.redhat.qute.parser.template.ExpressionParameter;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Node;
@@ -396,17 +395,18 @@ class QuteDiagnostics {
 							diagnostics.add(diagnostic);
 						} else {
 							existingParameters.add(paramName);
-							// Check if the declared parameter is defined in the user tag
-							UserTagParameter userTagParameter = userTag.findParameter(paramName);
-							if (userTagParameter == null) {
-								Range range = QutePositionUtility.selectParameterName(parameter);
-								Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
-										QuteErrorCode.UndefinedParameter, paramName, tagName);
-								diagnostics.add(diagnostic);
+							if (!userTag.hasArgs()) {
+								// Check if the declared parameter is defined in the user tag
+								UserTagParameter userTagParameter = userTag.findParameter(paramName);
+								if (userTagParameter == null) {
+									Range range = QutePositionUtility.selectParameterName(parameter);
+									Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
+											QuteErrorCode.UndefinedParameter, paramName, tagName);
+									diagnostics.add(diagnostic);
+								}
 							}
 						}
 					}
-
 					// Check if all required parameters are declared
 					List<String> missingRequiredParameters = new ArrayList<>();
 					for (UserTagParameter parameter : userTag.getParameters()) {

@@ -505,4 +505,24 @@ public class QuteCompletionWithUserTagTest {
 				0);
 	}
 
+	@Test
+	public void tagWithArgs() throws Exception {
+		// Here the content of tagWithArgs.html:
+		
+		// {_args.filter('readonly').asHtmlAttributes}
+		// {_args}
+		// {foo}
+		
+		String template = "{#tagWithArgs |}";
+
+		testCompletionFor(template, //
+				false, // no snippet support
+				1, //
+				c("foo", "foo=\"foo\"", r(0, 14, 0, 14)));
+
+		testCompletionFor(template, //
+				true, // snippet support
+				1, //
+				c("foo", "foo=\"${1:foo}\"$0", r(0, 14, 0, 14)));
+	}
 }

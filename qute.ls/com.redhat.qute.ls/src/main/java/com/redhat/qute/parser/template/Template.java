@@ -36,6 +36,7 @@ import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.utils.FileUtils;
+import com.redhat.qute.utils.UserTagUtils;
 
 public class Template extends Node {
 
@@ -191,7 +192,15 @@ public class Template extends Node {
 				return parameter;
 			}
 			// Try to find the class name from @CheckedTemplate
-			return getParameterDataModel(partName).getNow(null);
+			parameter = getParameterDataModel(partName).getNow(null);
+			if (parameter != null) {
+				return parameter;
+			}
+			// Try special keys (ex: _args)
+			if (UserTagUtils.isUserTag(this)) {
+				return UserTagUtils.getSpecialKey(partName);
+			}
+			return null;
 		}
 		return null;
 	}

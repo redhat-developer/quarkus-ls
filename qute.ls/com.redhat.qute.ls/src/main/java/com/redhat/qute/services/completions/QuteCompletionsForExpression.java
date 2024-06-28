@@ -764,7 +764,7 @@ public class QuteCompletionsForExpression {
 			}
 
 			if (UserTagUtils.isUserTag(template)) {
-				// provide completion for 'it' and 'nested-content'
+				// provide completion for 'it', 'nested-content', '_args'
 				Collection<SectionMetadata> metadatas = UserTagUtils.getSpecialKeys();
 				for (SectionMetadata metadata : metadatas) {
 					String name = metadata.getName();
