@@ -41,6 +41,7 @@ public abstract class UserTag extends Snippet {
 	private final String templateId;
 	private Map<String, UserTagParameter> parameters;
 	private final QuteProject project;
+	private boolean hasArgs;
 
 	public UserTag(String fileName, QuteProject project) {
 		String name = UserTagUtils.getUserTagName(fileName);
@@ -182,9 +183,21 @@ public abstract class UserTag extends Snippet {
 	 */
 	public Collection<UserTagParameter> getParameters() {
 		if (parameters == null) {
-			parameters = collectParameters();
+			UserTagInfoCollector collector = getUserTagCollector();
+			if (collector != null) {
+				parameters = collector.getParameters();
+				hasArgs = collector.hasArgs();
+			} else {
+				parameters = Collections.emptyMap();
+				hasArgs = false;
+			}
 		}
 		return parameters.values();
+	}
+	
+	public boolean hasArgs() {
+		getParameters();
+		return hasArgs;
 	}
 
 	/**
@@ -223,14 +236,14 @@ public abstract class UserTag extends Snippet {
 	 * 
 	 * @return parameters of the user tag.
 	 */
-	private Map<String, UserTagParameter> collectParameters() {
+	private UserTagInfoCollector getUserTagCollector() {
 		Template template = getTemplate();
 		if (template == null) {
-			return Collections.emptyMap();
+			return null;
 		}
-		UserTagParameterCollector collector = new UserTagParameterCollector(project);
+		UserTagInfoCollector collector = new UserTagInfoCollector(project);
 		template.accept(collector);
-		return collector.getParameters();
+		return collector;
 	}
 
 	/**

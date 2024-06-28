@@ -51,7 +51,7 @@ public class QuteCompletionInUserTagTest {
 		testCompletionFor(template, //
 				"src/main/resources/templates/tags/form.html", //
 				"tags/form", //
-				RESOLVERS_SIZE /* item, inject:bean, config:getConfigProperty */ + 2 /* it, nested-content */ + 1 /*
+				RESOLVERS_SIZE /* item, inject:bean, config:getConfigProperty */ + 3 /* it, nested-content, _args */ + 1 /*
 																													 * global
 																													 * variables
 																													 */, //
@@ -64,6 +64,7 @@ public class QuteCompletionInUserTagTest {
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 1, 1, 1)), //
 				c("it", "it", r(1, 1, 1, 1)), //
 				c("nested-content", "nested-content", r(1, 1, 1, 1)), //
+				c("_args", "_args", r(1, 1, 1, 1)), //
 				c("uri:Login", "uri:Login", r(1, 1, 1, 1)), //
 				c("msg:hello_name(name : String) : String", "msg:hello_name(name)", r(1, 1, 1, 1)), //
 				c("msg2:hello() : String", "msg2:hello", r(1, 1, 1, 1)), //

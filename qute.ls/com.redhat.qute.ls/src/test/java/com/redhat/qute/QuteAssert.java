@@ -114,9 +114,9 @@ public class QuteAssert {
 
 	public static final String FILE_URI = "test.qute";
 
-	public static final int USER_TAG_SIZE = 9 /*
+	public static final int USER_TAG_SIZE = 10 /*
 												 * #input, #bundleStyle, #form, #title, #simpleTitle, #user, #formElement,
-												 * #inputRequired, #myTag
+												 * #inputRequired, #myTag, #tagWithArgs
 												 */;
 
 	public static final int SECTION_SNIPPET_SIZE = 15 /* #each, #for, ... #fragment ... */ + USER_TAG_SIZE;

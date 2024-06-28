@@ -36,7 +36,7 @@ public class QuteDiagnosticsWithUserTagTest {
 		// test with default value declared in bundleStyle.html user tag
 		// {#let name?="main.css"}
 		// In this case:
-		
+
 		// - name is optional
 		String template = "{#bundleStyle /}";
 		testDiagnosticsFor(template);
@@ -44,7 +44,7 @@ public class QuteDiagnosticsWithUserTagTest {
 		template = "{#bundleStyle name='foo.css'/}";
 		testDiagnosticsFor(template);
 	}
-	
+
 	@Test
 	public void definedRequiredParameterName() {
 		String template = "{#input name='' /}";
@@ -64,6 +64,22 @@ public class QuteDiagnosticsWithUserTagTest {
 				"No parameter `XXXX` found for `input` user tag.",
 				DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
+	}
+
+	@Test
+	public void ignoreUndefinedParameterNameWhenArgs() throws Exception {
+		// tagWithArgs.html contains an expression which uses _args
+		// in this case, we ignore the QuteErrorCode.UndefinedParameter error.
+		String template = "{#tagWithArgs name='' XXXX='' /}";
+		
+		// There is no error with name (just an error with foo parameter which is required)
+		Diagnostic d = d(0, 1, 0, 13, QuteErrorCode.MissingRequiredParameter,
+				"Missing required parameter(s) `foo` of `tagWithArgs` user tag.",
+				DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(0, 29, 0, 30, //
+						" foo=\"foo\"")));
 	}
 
 	@Test
