@@ -61,4 +61,14 @@ public class RenardeDiagnosticsTest {
 
 	}
 
+	@Test
+	public void timeoutGame() throws Exception {
+		testDiagnosticsFor("{uri:Login.timeoutGame()}");
+		testDiagnosticsFor("{uri:Login.timeoutGame}");
+		testDiagnosticsFor("{uri:Login.timeoutGame('nok')}", //
+				d(0, 11, 0, 22, QuteErrorCode.InvalidMethodParameter,
+						"The method `timeoutGame()` in the type `Login` is not applicable for the arguments `(String)`.",
+						DiagnosticSeverity.Error));
+
+	}
 }

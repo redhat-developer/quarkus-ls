@@ -335,6 +335,9 @@ public class QuteQuickStartProject extends MockQuteProject {
 		restParameters.put("lastName", new RestParam("lastName", JaxRsParamKind.FORM, true));
 		completeMethod.setRestParameters(restParameters);
 
+		// void method
+		registerMethod("timeoutGame() : void", renardeLogin);
+		
 		// https://quarkus.io/guides/qute-reference#evaluation-of-completionstage-and-uni-objects
 		ResolvedJavaTypeInfo completionStagePOJO = createResolvedJavaTypeInfo("org.acme.CompletionStagePOJO", cache,
 				false);
