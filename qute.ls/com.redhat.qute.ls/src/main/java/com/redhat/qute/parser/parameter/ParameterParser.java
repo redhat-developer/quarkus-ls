@@ -49,7 +49,7 @@ public class ParameterParser {
 			int tokenEnd = scanner.getTokenEnd();
 			switch (token) {
 			case Whitespace:
-				currentParameter = null;
+				// Do nothing
 				break;
 			case ParameterName:
 				currentParameter = new Parameter(tokenOffset, tokenEnd);
