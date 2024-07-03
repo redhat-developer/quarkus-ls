@@ -91,12 +91,11 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 
 			case WithinParameter: {
 				if (!methodParameters && splitWithEquals) {
+					if (stream.skipWhitespace()) {
+						return finishToken(offset, TokenType.Whitespace);
+					}
 					if (stream.advanceIfChar('=')) {
-						if (!stream.eos() && (stream.peekChar() == ' ' || stream.peekChar() == '=')) {
-							state = ScannerState.WithinParameters;
-						} else {
-							state = ScannerState.AfterAssign;
-						}
+						state = ScannerState.AfterAssign;
 						return finishToken(offset, TokenType.Assign);
 					}
 				}
@@ -105,6 +104,9 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 			}
 
 			case AfterAssign: {
+				if (stream.skipWhitespace()) {
+					return finishToken(offset, TokenType.Whitespace);
+				}
 				int c = stream.peekChar();
 				if (c == '"' || c == '\'') {
 					stream.advance(1);

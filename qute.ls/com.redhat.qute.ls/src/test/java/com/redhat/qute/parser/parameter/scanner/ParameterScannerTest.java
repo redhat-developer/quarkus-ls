@@ -55,15 +55,32 @@ public class ParameterScannerTest {
 	}
 
 	@Test
+	public void letSectionWithSpaces() {
+		// {#let    myParent  =order.item.parent   myPrice=    order.price}
+		scanner = ParameterScanner.createScanner("   myParent  =order.item.parent   myPrice=    order.price");
+		assertOffsetAndToken(0, TokenType.Whitespace, "   ");
+		assertOffsetAndToken(3, TokenType.ParameterName, "myParent");
+		assertOffsetAndToken(11, TokenType.Whitespace, "  ");
+		assertOffsetAndToken(13, TokenType.Assign, "=");
+		assertOffsetAndToken(14, TokenType.ParameterValue, "order.item.parent");
+		assertOffsetAndToken(31, TokenType.Whitespace, "   ");
+		assertOffsetAndToken(34, TokenType.ParameterName, "myPrice");
+		assertOffsetAndToken(41, TokenType.Assign, "=");
+		assertOffsetAndToken(42, TokenType.Whitespace, "    ");
+		assertOffsetAndToken(46, TokenType.ParameterValue, "order.price");
+		assertOffsetAndToken(57, TokenType.EOS, "");
+	}
+
+	@Test
 	public void parameterAndAssignOnly() {
 		// {#let myParent= myPrice=order.price}
 		scanner = ParameterScanner.createScanner("myParent= myPrice=order.price");
 		assertOffsetAndToken(0, TokenType.ParameterName, "myParent");
 		assertOffsetAndToken(8, TokenType.Assign, "=");
 		assertOffsetAndToken(9, TokenType.Whitespace, " ");
-		assertOffsetAndToken(10, TokenType.ParameterName, "myPrice");
-		assertOffsetAndToken(17, TokenType.Assign, "=");
-		assertOffsetAndToken(18, TokenType.ParameterValue, "order.price");
+		assertOffsetAndToken(10, TokenType.ParameterValue, "myPrice");
+		assertOffsetAndToken(17, TokenType.Unknown, "=");
+		assertOffsetAndToken(18, TokenType.ParameterName, "order.price");
 		assertOffsetAndToken(29, TokenType.EOS, "");
 	}
 

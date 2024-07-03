@@ -43,6 +43,21 @@ public class QuteCompletionInExpressionWithLetSectionTest {
 	}
 
 	@Test
+	public void objectPartWithSpaces() throws Exception {
+		String template = "{@org.acme.Item item}\r\n" + //
+				"{#let myParent =  item.name         isActive =false age= 10} \r\n" + //
+				"  <h1>{myParent.name}</h1>\r\n" + //
+				"  Is active: {|}\r\n" + // <-- completion here
+				"  Age: {age}\r\n" + //
+				"{/let}";
+		testCompletionFor(template, //
+				c("item", "item", r(3, 14, 3, 14)), //
+				c("myParent", "myParent", r(3, 14, 3, 14)), //
+				c("isActive", "isActive", r(3, 14, 3, 14)), //
+				c("age", "age", r(3, 14, 3, 14)));
+	}
+	
+	@Test
 	public void objectPartWithOnlyStartBracket() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{#let myParent=item.name isActive=false age=10} \r\n" + //

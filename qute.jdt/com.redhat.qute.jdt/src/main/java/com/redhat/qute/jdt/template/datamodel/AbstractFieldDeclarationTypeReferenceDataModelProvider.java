@@ -77,6 +77,9 @@ public abstract class AbstractFieldDeclarationTypeReferenceDataModelProvider ext
 
 	private boolean isApplicable(IField field) {
 		String fieldTypeName = JDTTypeUtils.getResolvedTypeName(field);
+		if (fieldTypeName == null) {
+			return false;
+		}
 		for (String typeName : getTypeNames()) {
 			if (typeName.endsWith(fieldTypeName)) {
 				return true;
