@@ -911,6 +911,10 @@ class QuteDiagnostics {
 				}
 			}
 		}
+		
+		if (javaMember.getJavaElementKind() == JavaElementKind.METHOD && ((JavaMethodInfo) javaMember).isVoidMethod()) {
+			return null;
+		}
 
 		String memberType = javaMember.resolveJavaElementType(iterableOfType);
 		return validateJavaTypePart(part, ownerSection, project, diagnostics, resolvingJavaTypeContext, memberType,

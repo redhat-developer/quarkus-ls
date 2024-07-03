@@ -132,7 +132,11 @@ public class DocumentationUtils {
 			documentation.append("```java");
 			documentation.append(System.lineSeparator());
 		}
-		documentation.append(getSimpleType(member.resolveJavaElementType(iterableOfResolvedType)));
+		if (member.getJavaElementKind() == JavaElementKind.METHOD && ((JavaMethodInfo) member).isVoidMethod()) {
+			documentation.append("void");
+		} else {
+			documentation.append(getSimpleType(member.resolveJavaElementType(iterableOfResolvedType)));
+		}
 		documentation.append(" ");
 		String sourceType = member.getSourceType();
 		if (sourceType != null) {
