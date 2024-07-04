@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -85,24 +86,26 @@ public class CDIUtilsTest {
 	@Test
 	public void isBeanQuarkus3() throws Exception {
 		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.quarkus3);
-		IFile javaFile = javaProject.getProject()
-				.getFile(new Path("src/main/java/org/acme/NotBean1.java"));
-		ICompilationUnit cu = JDTUtilsLSImpl.getInstance().resolveCompilationUnit(javaFile.getLocationURI().toString());
+
+		IType notBean1 = getCompilationUnit("src/main/java/org/acme/NotBean1.java", javaProject);
 		// @Decorator annotated class is not a bean
-		assertFalse(CDIUtils.isValidBean(cu.findPrimaryType()));
+		assertFalse(CDIUtils.isValidBean(notBean1));
 
-		cu.getAllTypes();
-
-		javaFile = javaProject.getProject()
-				.getFile(new Path("src/main/java/org/acme/NotBean2.java"));
-		cu = JDTUtilsLSImpl.getInstance().resolveCompilationUnit(javaFile.getLocationURI().toString());
+		IType notBean2 = getCompilationUnit("src/main/java/org/acme/NotBean2.java", javaProject);
 		// @Vetoed annotated class is not a bean
-		assertFalse(CDIUtils.isValidBean(cu.findPrimaryType()));
+		assertFalse(CDIUtils.isValidBean(notBean2));
 
-		javaFile = javaProject.getProject()
-				.getFile(new Path("src/main/java/org/acme/Bean1.java"));
-		cu = JDTUtilsLSImpl.getInstance().resolveCompilationUnit(javaFile.getLocationURI().toString());
+		IType bean1 = getCompilationUnit("src/main/java/org/acme/Bean1.java", javaProject);
 		// Empty class is a bean
-		assertTrue(CDIUtils.isValidBean(cu.findPrimaryType()));
+		assertTrue(CDIUtils.isValidBean(bean1));
+
+		// Class with constructor is a bean
+		IType bean3 = getCompilationUnit("src/main/java/org/acme/Bean3.java", javaProject);
+		assertTrue(CDIUtils.isValidBean(bean3));
+	}
+
+	private static IType getCompilationUnit(String javaFilePath, IJavaProject javaProject) {
+		IFile javaFile = javaProject.getProject().getFile(new Path(javaFilePath));
+		return JDTUtilsLSImpl.getInstance().resolveCompilationUnit(javaFile.getLocationURI().toString()).findPrimaryType();
 	}
 }
