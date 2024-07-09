@@ -25,12 +25,12 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 
 	private static final int[] PAREN_COMMA = new int[] { '(', ')', ',' };
 
-	private static final Predicate<Integer> PARAM_SPLITTED_BY_ONLY_SPACE = ch -> {
-		return ch != ' ';
+	private static final Predicate<Integer> PARAM_SPLIT_BY_ONLY_SPACE_OR_PAREN  = ch -> {
+		return ch != ' ' && ch != '(';
 	};
 
-	private static final Predicate<Integer> PARAM_SPLITTED_BY_SPACE_OR_EQUALS = ch -> {
-		return ch != ' ' && ch != '=';
+	private static final Predicate<Integer> PARAM_SPLIT_BY_SPACE_OR_EQUALS_OR_PAREN = ch -> {
+		return ch != ' ' && ch != '=' && ch != '(';
 	};
 
 	public static ParameterScanner createScanner(String input) {
@@ -82,6 +82,7 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 					return parseParameterName(offset);
 				} else {
 					if (hasNextParameterNameOrValue()) {
+						adjustPositionWithComma();
 						state = ScannerState.WithinParameter;
 						return finishToken(offset, TokenType.ParameterName);
 					}
@@ -116,8 +117,9 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 					state = ScannerState.WithinParameters;
 					return finishToken(offset, TokenType.ParameterValue);
 				}
-
+				
 				if (hasNextParameterNameOrValue()) {
+					adjustPositionWithComma();
 					state = ScannerState.WithinParameters;
 					return finishToken(offset, TokenType.ParameterValue);
 				}
@@ -129,11 +131,37 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 		return finishToken(offset, TokenType.Unknown, errorMessage);
 	}
 
+	private void adjustPositionWithComma() {
+		if (stream.peekChar() == '(') {
+			// ex: utils.values(a,  b) 
+			// in '#for items in utils.values(a,  b)
+			// we need to adjust the end parameter name/value offset after the ')'
+			stream.advance(1);
+			int bracket = 1;
+			while(stream.advanceUntilChar(PAREN_COMMA)) {
+				int p = stream.peekChar();
+				stream.advance(1);
+				if (p == '(') {
+					bracket++;
+				} else if (p == ')') {
+					bracket--;
+					if(bracket ==0) {
+						break;
+					}
+				}						}
+		}
+		if (!stream.eos() && stream.peekChar(1) != ' ') {
+			if (hasNextParameterNameOrValue()) {
+				adjustPositionWithComma();
+			}
+		}
+	}
+
 	private boolean hasNextParameterNameOrValue() {
 		if (splitWithEquals) {
-			return stream.advanceWhileChar(PARAM_SPLITTED_BY_SPACE_OR_EQUALS) > 0;
+			return stream.advanceWhileChar(PARAM_SPLIT_BY_SPACE_OR_EQUALS_OR_PAREN) > 0;
 		}
-		return stream.advanceWhileChar(PARAM_SPLITTED_BY_ONLY_SPACE) > 0;
+		return stream.advanceWhileChar(PARAM_SPLIT_BY_ONLY_SPACE_OR_PAREN) > 0;
 	}
 
 	private TokenType parseParameterName(int offset) {

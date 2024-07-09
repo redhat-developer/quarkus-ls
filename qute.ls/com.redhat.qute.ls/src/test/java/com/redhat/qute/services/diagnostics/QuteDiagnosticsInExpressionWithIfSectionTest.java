@@ -90,6 +90,21 @@ public class QuteDiagnosticsInExpressionWithIfSectionTest {
 	}
 
 	@Test
+	public void conditionWithMethodAndParameter() throws Exception {
+		String template = "{@java.lang.String foo}\r\n" + //
+				"{#if foo.codePointCount(0, 0) != 0}OK{/if}";
+		testDiagnosticsFor(template);
+	}
+	
+	@Test
+	public void conditionWithMethodAndParameter2() throws Exception {
+		String template = "{@java.lang.String foo}\r\n" + //
+				"{@int index}\r\n" + //
+				"{#if foo.codePointCount(0, index) != 0 && (foo.or(false) || false || true) && (true)}OK{/if}";
+		testDiagnosticsFor(template);
+	}
+	
+	@Test
 	public void notOperatorWithObjectPart() {
 		String template = "{#if !true}NOK{#else}OK{/if}";
 		testDiagnosticsFor(template);
