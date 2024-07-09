@@ -52,6 +52,7 @@ import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.expression.PropertyPart;
 import com.redhat.qute.parser.template.CaseOperator;
 import com.redhat.qute.parser.template.Expression;
+import com.redhat.qute.parser.template.ExpressionParameter;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Node;
@@ -256,6 +257,11 @@ class QuteDiagnostics {
 								switch (section.getSectionKind()) {
 									case FOR:
 									case EACH:
+										Part lastPart = expression.getLastPart();
+										if (result != null) {
+											result = validateIterable(lastPart, section, result, result.getSignature(),
+													diagnostics);
+										}
 										String alias = ((LoopSection) section).getAlias();
 										currentContext.put(alias, result);
 										break;
@@ -461,10 +467,11 @@ class QuteDiagnostics {
 	 * Validate #include section.
 	 *
 	 * @param includeSection the include section
-	 * @param project 
+	 * @param project
 	 * @param diagnostics    the diagnostics to fill.
 	 */
-	private static void validateIncludeSection(IncludeSection includeSection, QuteProject project, List<Diagnostic> diagnostics) {
+	private static void validateIncludeSection(IncludeSection includeSection, QuteProject project,
+			List<Diagnostic> diagnostics) {
 		Parameter templateParameter = includeSection.getTemplateParameter();
 		if (templateParameter != null) {
 			// Validate template id, only if project exists.
@@ -563,8 +570,7 @@ class QuteDiagnostics {
 				if (QuteCompletableFutures.isResolvingJavaTypeOrNull(resolvedLiteralType)) {
 					return null;
 				}
-				return validateIterable(expression.getLastPart(), ownerSection, resolvedLiteralType,
-						resolvedLiteralType.getName(), diagnostics);
+				return resolvedLiteralType;
 			}
 			// The expression reference Java data model (ex : {item})
 			ResolvedJavaTypeInfo resolvedJavaType = null;
@@ -911,7 +917,7 @@ class QuteDiagnostics {
 				}
 			}
 		}
-		
+
 		if (javaMember.getJavaElementKind() == JavaElementKind.METHOD && ((JavaMethodInfo) javaMember).isVoidMethod()) {
 			return null;
 		}
@@ -1232,26 +1238,24 @@ class QuteDiagnostics {
 			return null;
 		}
 
-		return validateIterable(part, ownerSection, resolvedJavaType, javaTypeToResolve, diagnostics);
+		return resolvedJavaType;
 	}
 
 	private ResolvedJavaTypeInfo validateIterable(Part part, Section ownerSection,
 			ResolvedJavaTypeInfo resolvedJavaType, String javaTypeToResolve, List<Diagnostic> diagnostics) {
-		if (part != null && part.isLast() && ownerSection != null && ownerSection.isIterable()) {
-			// The expression is declared inside an iterable section like #for, #each.
-			// Ex: {#for item in items}
-			if (!resolvedJavaType.isIterable() && !resolvedJavaType.isInteger()) {
-				// The Java class is not an iterable class like
-				// - java.util.List
-				// - object array
-				// - integer
-				String expression = part.getParent().getContent();
-				Range range = QutePositionUtility.createRange(part);
-				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.IterationError,
-						expression, javaTypeToResolve);
-				diagnostics.add(diagnostic);
-				return null;
-			}
+		// The expression is declared inside an iterable section like #for, #each.
+		// Ex: {#for item in items}
+		if (!resolvedJavaType.isIterable() && !resolvedJavaType.isInteger()) {
+			// The Java class is neither an integer nor an iterable class like:
+			// - java.util.List
+			// - object array
+			// - integer
+			String expression = part.getParent().getContent();
+			Range range = QutePositionUtility.createRange(part);
+			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.IterationError,
+					expression, javaTypeToResolve);
+			diagnostics.add(diagnostic);
+			return null;
 		}
 		return resolvedJavaType;
 	}

@@ -103,6 +103,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		list.setExtendedTypes(Arrays.asList("java.util.Collection<E>"));
 		registerMethod("size() : int", list);
 		registerMethod("get(index : int) : E", list);
+		registerMethod("subList(fromIndex : int, toIndex: int) : java.util.List<E>", list);
 
 		// Set
 		ResolvedJavaTypeInfo set = createResolvedJavaTypeInfo("java.util.Set<E>", cache, true);
@@ -113,6 +114,7 @@ public class QuteQuickStartProject extends MockQuteProject {
 		registerMethod("keySet() : java.util.Set<K>", map);
 		registerMethod("values() : java.util.Collection<V>", map);
 		registerMethod("entrySet() : java.util.Set<java.util.Map$Entry<K,V>>", map);
+		registerMethod("get(key : K) : V", map);
 
 		// Map.Entry
 		ResolvedJavaTypeInfo mapEntry = createResolvedJavaTypeInfo("java.util.Map$Entry<K,V>", cache, true);

@@ -11,7 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.services.diagnostics;
 
-import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.te;
@@ -21,9 +20,6 @@ import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
-
-import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
-import com.redhat.qute.services.commands.QuteClientCommandConstants;
 
 /**
  * Test with #for section
@@ -251,5 +247,70 @@ public class QuteDiagnosticsInExpressionWithForSectionTest {
 				"	{item}	\r\n" + //
 				"{/for}";
 		testDiagnosticsFor(template);
+	}
+	
+	@Test
+	public void listFromMethodWithIntParameter() throws Exception {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				" \r\n" + //
+				"{#for item in items.subList(0,5)}\r\n" + //
+				"	{item.name}    \r\n" + //
+				"{/for}}";
+		testDiagnosticsFor(template);
+		
+		template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				" \r\n" + //
+				"{#for item in items.subList(0,5).subList(0,5)}\r\n" + //
+				"	{item.name}    \r\n" + //
+				"{/for}}";
+		testDiagnosticsFor(template);
+	}
+	
+	@Test
+	public void invalidTypeAfterList() throws Exception {
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				" \r\n" + //
+				"{#for item in items.subList(0,5).get(0)}\r\n" + //
+				"	{item.name}    \r\n" + //
+				"{/for}}";
+		testDiagnosticsFor(template, //
+				d(2, 33, 2, 36, QuteErrorCode.IterationError,
+						"Iteration error: {items.subList(0,5).get(0)} resolved to [org.acme.Item] which is not iterable.",
+						DiagnosticSeverity.Error));
+		
+	}
+	
+	@Test
+	public void listFromMethodWithIntParameterAndLet() throws Exception {		
+		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
+				"{#let index = 0 }\r\n" + //
+				" \r\n" + //
+				"{#for item in items.subList(index,index)}\r\n" + //
+				"	{item.name}    \r\n" + //
+				"{/for}}";
+		testDiagnosticsFor(template);
+	}
+	
+	@Test
+	public void listFromMethodWithStringParameter() throws Exception {
+		String template = "{@java.util.Map<java.lang.String,java.util.List<org.acme.Item>> items}\r\n" + //
+				" \r\n" + //
+				"{#for item in items.get('foo')}\r\n" + //
+				"	{item.name}    \r\n" + //
+				"{/for}}";
+		testDiagnosticsFor(template);	
+	}
+	
+
+	@Test
+	public void listFromMethodWithStringParameterAndLet() throws Exception {
+		String template = "{@java.util.Map<java.lang.String,java.util.List<org.acme.Item>> items}\r\n" + //
+				"{#let key = 'foo' }\r\n" + //
+				" \r\n" + //
+				"{#for item in items.get(key)}\r\n" + //
+				"	{item.name}    \r\n" + //
+				"{/for}}";
+		testDiagnosticsFor(template);
+		
 	}
 }

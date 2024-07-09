@@ -11,7 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.services.diagnostics;
 
-import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.te;
@@ -22,9 +21,7 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
-import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
 import com.redhat.qute.parser.validator.QuteSyntaxErrorCode;
-import com.redhat.qute.services.commands.QuteClientCommandConstants;
 
 /**
  * Test with #let section
@@ -102,6 +99,13 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 	public void notAsObjectPartName() throws Exception {
 		String template = "{@int !value}\r\n" + //
 				"{#let name=!value /}";
+		testDiagnosticsFor(template);
+	}
+	
+	@Test
+	public void letAssignedToMathodWithParametersWhichContainsSpaces() {
+		String template = "{@java.util.List items}\r\n" + //
+				"{#let name=items.subList(0, 5)}";
 		testDiagnosticsFor(template);
 	}
 }
