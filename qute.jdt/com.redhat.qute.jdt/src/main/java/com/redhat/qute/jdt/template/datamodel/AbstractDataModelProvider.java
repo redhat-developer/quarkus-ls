@@ -106,6 +106,20 @@ public abstract class AbstractDataModelProvider implements IDataModelProvider {
 				IJavaSearchConstants.FIELD_DECLARATION_TYPE_REFERENCE, SearchPattern.R_EXACT_MATCH);
 	}
 
+	/**
+	 * Create a search pattern to retrieve IType which implement the given
+	 * <code>interfaceName</code interface name.
+	 *
+	 * @param interfaceName the interface name to search.
+	 * 
+	 * @return a search pattern to retrieve IType which implement the given
+	 *         <code>interfaceName</code interface name.
+	 */
+	protected static SearchPattern createInterfaceImplementationSearchPattern(String interfaceName) {
+		return SearchPattern.createPattern(interfaceName, IJavaSearchConstants.CLASS, IJavaSearchConstants.IMPLEMENTORS,
+				SearchPattern.R_EXACT_MATCH);
+	}
+
 	@Override
 	public void endSearch(SearchContext context, IProgressMonitor monitor) {
 		NamespaceResolverInfo info = getNamespaceResolverInfo();

@@ -134,13 +134,16 @@ class QuteCodeLens {
 		String className = dataModel.getSourceType();
 		int index = className.lastIndexOf('.');
 		className = className.substring(index + 1, className.length());
-		StringBuilder title = new StringBuilder(className) //
-				.append("#"); //
-		if (dataModel.getSourceMethod() != null) {
-			title.append(dataModel.getSourceMethod());
-			title.append("(...)");
-		} else {
-			title.append(dataModel.getSourceField());
+		StringBuilder title = new StringBuilder(className);
+		boolean hasHash = dataModel.getSourceMethod() != null || dataModel.getSourceField() != null;
+		if (hasHash) {
+			title.append("#");
+			if (dataModel.getSourceMethod() != null) {
+				title.append(dataModel.getSourceMethod());
+				title.append("(...)");
+			} else {
+				title.append(dataModel.getSourceField());
+			}
 		}
 		return title.toString();
 	}

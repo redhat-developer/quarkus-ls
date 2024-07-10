@@ -378,4 +378,37 @@ public class TemplateGetDataModelProjectTest {
 		assertValueResolver("inject", "org.acme.Bean2", "org.acme.Bean2", resolvers);
 	}
 
+	@Test
+	public void quteRecord() throws Exception {
+		loadMavenProject(QuteMavenProjectName.qute_record);
+
+		QuteDataModelProjectParams params = new QuteDataModelProjectParams(QuteMavenProjectName.qute_record);
+		DataModelProject<DataModelTemplate<DataModelParameter>> project = QuteSupportForTemplate.getInstance()
+				.getDataModelProject(params, getJDTUtils(), new NullProgressMonitor());
+		Assert.assertNotNull(project);
+
+		// public class HelloResource {
+		// record Hello(String name) implements TemplateInstance {}
+		
+		// Hello
+		DataModelTemplate<DataModelParameter> helloTemplate = project
+				.findDataModelTemplate("src/main/resources/templates/Hello");
+		Assert.assertNotNull(helloTemplate);
+		Assert.assertEquals("src/main/resources/templates/Hello", helloTemplate.getTemplateUri());
+		Assert.assertEquals("org.acme.sample.HelloResource$Hello", helloTemplate.getSourceType());
+		Assert.assertNull(helloTemplate.getSourceField());
+		Assert.assertNull(helloTemplate.getSourceMethod());
+
+		List<DataModelParameter> helloParameters = helloTemplate.getParameters();
+		Assert.assertNotNull(helloParameters);
+
+		Assert.assertEquals(2, helloParameters.size());
+
+		// record Hello(String name) implements TemplateInstance {}
+		assertParameter("name", "java.lang.String", false, helloParameters, 0);
+		
+		//  public TemplateInstance get(@QueryParam("name") String name) {
+        // return new Hello(name).data("foo", 100);
+		assertParameter("foo", "int", true, helloParameters, 1);
+	}
 }

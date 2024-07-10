@@ -235,48 +235,68 @@ public class QuteSupportForTemplate {
 		String parameterName = params.getSourceParameter();
 		boolean dataMethodInvocation = parameterName != null && params.isDataMethodInvocation();
 
-		String fieldName = params.getSourceField();
-		if (fieldName != null) {
-			IField field = type.getField(fieldName);
-			if (field == null || !field.exists()) {
-				// The field doesn't exist
-				return null;
-			}
-
+		if (type.isRecord()) {
+			// The source type is a record
 			if (dataMethodInvocation) {
-				// returns the location of "data" method invocation with the given parameter
-				// name
-				return TemplateDataSupport.getDataMethodInvocationLocation(field, parameterName, utils, monitor);
+					// returns the location of "data" method invocation with the given parameter
+					// name
+					return TemplateDataSupport.getDataMethodInvocationLocation(type, parameterName, utils,
+							monitor);
+				
+			} else {
+				// Search field of the record
+				IField recordField = type.getRecordComponent(parameterName);
+				if (recordField != null && recordField.exists()) {
+					// returns the record field location
+					return utils.toLocation(recordField);
+				}
 			}
-			// returns field location
-			return utils.toLocation(field);
-		}
+		} else {
+			// The source type is a class
+			String fieldName = params.getSourceField();
+			if (fieldName != null) {
+				IField field = type.getField(fieldName);
+				if (field == null || !field.exists()) {
+					// The field doesn't exist
+					return null;
+				}
 
-		String sourceMethod = params.getSourceMethod();
-		if (sourceMethod != null) {
-			IMethod method = findMethod(type, sourceMethod);
-			if (method == null || !method.exists()) {
-				// The method doesn't exist
-				return null;
-			}
-
-			if (parameterName != null) {
 				if (dataMethodInvocation) {
 					// returns the location of "data" method invocation with the given parameter
 					// name
-					return TemplateDataSupport.getDataMethodInvocationLocation(method, parameterName, utils, monitor);
+					return TemplateDataSupport.getDataMethodInvocationLocation(field, parameterName, utils, monitor);
 				}
-				ILocalVariable[] parameters = method.getParameters();
-				for (ILocalVariable parameter : parameters) {
-					if (parameterName.equals(parameter.getElementName())) {
-						// returns the method parameter location
-						return utils.toLocation(parameter);
-					}
-				}
-				return null;
+				// returns field location
+				return utils.toLocation(field);
 			}
-			// returns method location
-			return utils.toLocation(method);
+
+			String sourceMethod = params.getSourceMethod();
+			if (sourceMethod != null) {
+				IMethod method = findMethod(type, sourceMethod);
+				if (method == null || !method.exists()) {
+					// The method doesn't exist
+					return null;
+				}
+
+				if (parameterName != null) {
+					if (dataMethodInvocation) {
+						// returns the location of "data" method invocation with the given parameter
+						// name
+						return TemplateDataSupport.getDataMethodInvocationLocation(method, parameterName, utils,
+								monitor);
+					}
+					ILocalVariable[] parameters = method.getParameters();
+					for (ILocalVariable parameter : parameters) {
+						if (parameterName.equals(parameter.getElementName())) {
+							// returns the method parameter location
+							return utils.toLocation(parameter);
+						}
+					}
+					return null;
+				}
+				// returns method location
+				return utils.toLocation(method);
+			}
 		}
 		// returns Java type location
 		return utils.toLocation(type);

@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
@@ -66,7 +67,7 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
 	}
 
 	@Override
-	protected void collectTemplateLink(ASTNode fieldOrMethod, ASTNode locationAnnotation, TypeDeclaration type,
+	protected void collectTemplateLink(ASTNode fieldOrMethod, ASTNode locationAnnotation, AbstractTypeDeclaration type,
 			String className, String fieldOrMethodName, String location, IFile templateFile,
 			TemplatePathInfo templatePathInfo) throws JavaModelException {
 		if (!templatePathInfo.isValid()) {
