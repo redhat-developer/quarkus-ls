@@ -88,14 +88,14 @@ public class TemplateGetDataModelProjectTest {
 		List<DataModelParameter> parameters = helloTemplate.getParameters();
 		Assert.assertNotNull(parameters);
 
-		// hello.data("age", 12);
-		// hello.data("height", 1.50, "weight", 50.5);
-		// return hello.data("name", name);
+		// hello.data("height", 1.50, "weight", 50L)
+		// .data("age", 12)					
+		// .data("name", name);
 
 		Assert.assertEquals(4, parameters.size());
-		assertParameter("age", "int", true, parameters, 0);
-		assertParameter("height", "double", true, parameters, 1);
-		assertParameter("weight", "long", true, parameters, 2);
+		assertParameter("height", "double", true, parameters, 0);
+		assertParameter("weight", "long", true, parameters, 1);
+		assertParameter("age", "int", true, parameters, 2);
 		assertParameter("name", "java.lang.String", true, parameters, 3);
 
 		// Template goodbye;
