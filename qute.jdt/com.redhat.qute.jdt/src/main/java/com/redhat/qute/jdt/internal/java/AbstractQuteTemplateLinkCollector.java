@@ -27,11 +27,13 @@ import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.RecordDeclaration;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.StringLiteral;
@@ -55,6 +57,7 @@ import com.redhat.qute.jdt.utils.TemplatePathInfo;
  * <ul>
  * <li>declared methods which have class annotated with @CheckedTemplate.</li>
  * <li>declared field which have Template as type.</li>
+ * <li>declared record which implements TemplateInstance.</li>
  * </ul>
  * 
  * @author Angelo ZERR
@@ -92,6 +95,17 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 		return super.visit(node);
 	}
 
+	/**
+	 * Support for "Template Fields"
+	 * 
+	 * <p>
+	 * private Template items;
+	 * </p>
+	 * 
+	 * @see <a href=
+	 *      "https://quarkus.io/guides/qute-reference#quarkus_integration">Quarkus
+	 *      Integration</a>
+	 */
 	@Override
 	public boolean visit(FieldDeclaration node) {
 		Type type = node.getType();
@@ -141,6 +155,19 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 		return annotationLocationSupport;
 	}
 
+	/**
+	 * Support for "TypeSafe Templates"
+	 * 
+	 * <p>
+	 * 
+	 * @CheckedTemplate public static class Templates { public static native
+	 *                  TemplateInstance book(Book book);
+	 *                  </p>
+	 * 
+	 * @see <a href=
+	 *      "https://quarkus.io/guides/qute-reference#typesafe_templates">TypeSafe
+	 *      Templates</a>
+	 */
 	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean visit(TypeDeclaration node) {
@@ -164,6 +191,20 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 				}
 			}
 		}
+		return super.visit(node);
+	}
+
+	/**
+	 * Support for "Template Records"
+	 * 
+	 * @see <a href=
+	 *      "https://quarkus.io/guides/qute-reference#template-records">Template
+	 *      Records</a>
+	 */
+	@Override
+	public boolean visit(RecordDeclaration node) {
+		String recordName = node.getName().getIdentifier();
+		collectTemplateLink(node, null, node, null, recordName, false);
 		return super.visit(node);
 	}
 
@@ -217,8 +258,8 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 		collectTemplateLink(methodDeclaration, null, type, className, methodName, ignoreFragment);
 	}
 
-	private void collectTemplateLink(ASTNode fieldOrMethod, StringLiteral locationAnnotation, TypeDeclaration type,
-			String className, String fieldOrMethodName, boolean ignoreFragment) {
+	private void collectTemplateLink(ASTNode fieldOrMethod, StringLiteral locationAnnotation,
+			AbstractTypeDeclaration type, String className, String fieldOrMethodName, boolean ignoreFragment) {
 		try {
 			String location = locationAnnotation != null ? locationAnnotation.getLiteralValue() : null;
 			IProject project = typeRoot.getJavaProject().getProject();
@@ -256,12 +297,17 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 			SimpleName methodName = method.getName();
 			return utils.toRange(typeRoot, methodName.getStartPosition(), methodName.getLength());
 		}
+		case ASTNode.RECORD_DECLARATION: {
+			RecordDeclaration recordDecl = (RecordDeclaration) fieldOrMethod;
+			SimpleName recordName = recordDecl.getName();
+			return utils.toRange(typeRoot, recordName.getStartPosition(), recordName.getLength());
+		}
 		default:
 			return utils.toRange(typeRoot, fieldOrMethod.getStartPosition(), fieldOrMethod.getLength());
 		}
 	}
 
-	protected abstract void collectTemplateLink(ASTNode node, ASTNode locationAnnotation, TypeDeclaration type,
+	protected abstract void collectTemplateLink(ASTNode node, ASTNode locationAnnotation, AbstractTypeDeclaration type,
 			String className, String fieldOrMethodName, String location, IFile templateFile,
 			TemplatePathInfo templatePathInfo) throws JavaModelException;
 

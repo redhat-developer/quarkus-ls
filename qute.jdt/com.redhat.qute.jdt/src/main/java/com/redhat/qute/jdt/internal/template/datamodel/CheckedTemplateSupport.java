@@ -65,7 +65,9 @@ import com.redhat.qute.jdt.utils.TemplatePathInfo;
  *	}
  * </code>
  * 
- * 
+ * @see <a href=
+ *      "https://quarkus.io/guides/qute-reference#typesafe_templates">TypeSafe
+ *      Templates</a>
  * @author Angelo ZERR
  *
  */

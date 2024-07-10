@@ -19,6 +19,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.lsp4j.Diagnostic;
@@ -52,7 +53,7 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
 	}
 
 	@Override
-	protected void collectTemplateLink(ASTNode fieldOrMethod, ASTNode locationAnnotation, TypeDeclaration type,
+	protected void collectTemplateLink(ASTNode fieldOrMethod, ASTNode locationAnnotation, AbstractTypeDeclaration type,
 			String className, String fieldOrMethodName, String location, IFile templateFile,
 			TemplatePathInfo templatePathInfo) throws JavaModelException {
 		QuteErrorCode error = getQuteErrorCode(templatePathInfo, templateFile);

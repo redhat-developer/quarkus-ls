@@ -60,13 +60,11 @@ public class QuteProjectTest {
 
 		public static String quarkus3 = "quarkus3";
 		public static String quarkus_renarde_todo = "quarkus-renarde-todo";
-
 		public static String qute_java17 = "qute-java17";
-
 		public static String qute_messages = "qute-messages";
-
 		public static String qute_quickstart = "qute-quickstart";
-
+		public static String qute_record = "qute-record";
+		
 	}
 
 	@BeforeClass

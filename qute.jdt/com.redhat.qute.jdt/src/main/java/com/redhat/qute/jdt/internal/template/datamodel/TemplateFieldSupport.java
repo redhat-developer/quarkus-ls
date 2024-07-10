@@ -58,7 +58,10 @@ import com.redhat.qute.jdt.utils.AnnotationUtils;
  *       return hello.data("name", name);
  *   }
  *   </code>
- * 
+ *
+ * @see <a href=
+ *      "https://quarkus.io/guides/qute-reference#quarkus_integration">Quarkus
+ *      Integration</a>
  * @author Angelo ZERR
  *
  */

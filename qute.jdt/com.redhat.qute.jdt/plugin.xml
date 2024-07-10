@@ -35,9 +35,10 @@
 
    <!-- Data model providers for Qute core -->
    <extension point="com.redhat.qute.jdt.dataModelProviders">
-   	  <provider class="com.redhat.qute.jdt.internal.template.datamodel.CheckedTemplateSupport" />
-      <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateExtensionAnnotationSupport" />
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateFieldSupport" />
+   	  <provider class="com.redhat.qute.jdt.internal.template.datamodel.CheckedTemplateSupport" />
+      <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateRecordsSupport" />
+      <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateExtensionAnnotationSupport" />
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateDataAnnotationSupport" />
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateEnumAnnotationSupport" />
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateGlobalAnnotationSupport" />
