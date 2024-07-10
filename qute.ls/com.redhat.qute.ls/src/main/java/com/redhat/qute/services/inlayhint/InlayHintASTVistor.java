@@ -302,6 +302,7 @@ public class InlayHintASTVistor extends ASTVisitor {
 			InlayHint hint = new InlayHint();
 			hint.setKind(InlayHintKind.Parameter);
 			hint.setLabel(Either.forLeft(name + "=" + defaultValue));
+			hint.setPaddingRight(Boolean.TRUE);
 			int end = node.getEndParametersOffset();
 			Position position = template.positionAt(end);
 			hint.setPosition(position);
