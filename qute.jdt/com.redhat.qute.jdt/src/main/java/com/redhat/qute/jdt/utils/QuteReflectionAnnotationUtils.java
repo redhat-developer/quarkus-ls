@@ -223,6 +223,6 @@ public class QuteReflectionAnnotationUtils {
 
 	private static String resolveTarget(String target, ITypeResolver typeResolver) {
 		//
-		return typeResolver.resolveTypeSignature(Signature.C_UNRESOLVED + target + Signature.C_NAME_END);
+		return typeResolver.resolveTypeSignature(Signature.C_UNRESOLVED + target + Signature.C_NAME_END, null);
 	}
 }

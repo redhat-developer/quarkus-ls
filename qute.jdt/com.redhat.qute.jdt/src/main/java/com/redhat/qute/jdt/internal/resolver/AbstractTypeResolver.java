@@ -68,12 +68,12 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		try {
 			String superTypeSignature = primaryType.getSuperclassTypeSignature();
 			if (superTypeSignature != null) {
-				extendedTypes.add(resolveTypeSignature(superTypeSignature));
+				extendedTypes.add(resolveTypeSignature(superTypeSignature, primaryType));
 			}
 			String[] superInterfaceTypeSignature = primaryType.getSuperInterfaceTypeSignatures();
 			if (superInterfaceTypeSignature != null) {
 				for (String string : superInterfaceTypeSignature) {
-					extendedTypes.add(resolveTypeSignature(string));
+					extendedTypes.add(resolveTypeSignature(string, primaryType));
 				}
 			}
 
@@ -89,7 +89,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		StringBuilder signature = new StringBuilder(field.getElementName());
 		signature.append(" : ");
 		try {
-			signature.append(resolveTypeSignature(field.getTypeSignature(), false));
+			signature.append(resolveTypeSignature(field.getTypeSignature(), false, field.getDeclaringType()));
 		} catch (JavaModelException e) {
 			LOGGER.log(Level.SEVERE, "Error while resolving field type '" + field.getElementName() + "'", e);
 		}
@@ -111,8 +111,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 					ILocalVariable parameter = parameters[i];
 					signature.append(parameter.getElementName());
 					signature.append(" : ");
-					signature.append(
-							resolveLocalVariableSignature(parameter, varargs && i == parameters.length - 1));
+					signature.append(resolveLocalVariableSignature(parameter, varargs && i == parameters.length - 1));
 				}
 			}
 		} catch (JavaModelException e) {
@@ -121,7 +120,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		}
 		signature.append(')');
 		try {
-			String returnType = resolveTypeSignature(method.getReturnType(), false);
+			String returnType = resolveTypeSignature(method.getReturnType(), false, method.getDeclaringType());
 			signature.append(" : ");
 			signature.append(returnType);
 		} catch (JavaModelException e) {
@@ -133,23 +132,24 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 
 	@Override
 	public String resolveLocalVariableSignature(ILocalVariable parameter, boolean varargs) {
-		return resolveTypeSignature(parameter.getTypeSignature(), varargs);
+		return resolveTypeSignature(parameter.getTypeSignature(), varargs,
+				parameter.getDeclaringMember().getDeclaringType());
 	}
 
 	@Override
-	public String resolveTypeSignature(String typeSignature) {
-		return resolveTypeSignature(typeSignature, false);
+	public String resolveTypeSignature(String typeSignature, IType declaringType) {
+		return resolveTypeSignature(typeSignature, false, declaringType);
 	}
 
-	private String resolveTypeSignature(String typeSignature, boolean varargs) {
+	private String resolveTypeSignature(String typeSignature, boolean varargs, IType declaringType) {
 		if (typeSignature.charAt(0) == '[') {
-			return doResolveTypeSignature(typeSignature.substring(1, typeSignature.length()))
+			return doResolveTypeSignature(typeSignature.substring(1, typeSignature.length()), declaringType)
 					+ (varargs ? "..." : "[]");
 		}
-		return doResolveTypeSignature(typeSignature);
+		return doResolveTypeSignature(typeSignature, declaringType);
 	}
 
-	private String doResolveTypeSignature(String typeSignature) {
+	private String doResolveTypeSignature(String typeSignature, IType declaringType) {
 		// Example: for 'class A<A1, A2> extends B<A2, String>' the type signature is
 		// 'QB<QA2;QString;>;'
 		// The method should return 'B<A2,java.lang.String>'
@@ -162,15 +162,17 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		}
 		case Signature.C_RESOLVED: {
 			if (typeSignature.indexOf('$') != -1) {
-				// We cannot use Signature.toString(typeSignature); from JDT because it replaces '$' (for inner class) with '.'
-				// ex : Ljava.util.Set<Ljava.util.Map$Entry<TK;TV;>;>; the JDT Signature.toString returns java.util.Set<java.util.Map.Entry<K,V>>
+				// We cannot use Signature.toString(typeSignature); from JDT because it replaces
+				// '$' (for inner class) with '.'
+				// ex : Ljava.util.Set<Ljava.util.Map$Entry<TK;TV;>;>; the JDT
+				// Signature.toString returns java.util.Set<java.util.Map.Entry<K,V>>
 				// and not java.util.Set<java.util.Map$Entry<K,V>>
-				return doResolveTypeSignatureWithoutJDT(typeSignature);
+				return doResolveTypeSignatureWithoutJDT(typeSignature, declaringType);
 			}
 			return Signature.toString(typeSignature);
 		}
 		case Signature.C_UNRESOLVED:
-			return doResolveTypeSignatureWithoutJDT(typeSignature);
+			return doResolveTypeSignatureWithoutJDT(typeSignature, declaringType);
 		}
 		// ex :
 		// - Ljava.lang.Long;
@@ -178,14 +180,33 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		return Signature.toString(typeSignature);
 	}
 
-	public String doResolveTypeSignatureWithoutJDT(String typeSignature) {
+	public String doResolveTypeSignatureWithoutJDT(String typeSignature, IType declaringType) {
 		int startGeneric = typeSignature.indexOf('<');
 		boolean hasGeneric = startGeneric != -1;
 		if (!hasGeneric) {
 			// Example : 'QString';
 			// Remove the 'Q' start and the ';' end.
 			boolean endsWithColon = typeSignature.charAt(typeSignature.length() - 1) == Signature.C_NAME_END;
-			return resolveSimpleType(typeSignature.substring(1, typeSignature.length() - (endsWithColon ? 1 : 0)));
+			String simpleType = typeSignature.substring(1, typeSignature.length() - (endsWithColon ? 1 : 0));
+			String resolved = resolveSimpleType(simpleType);
+
+			if (resolved.equals(simpleType) && declaringType != null) {
+				try {
+					if (declaringType.isEnum()) {
+						return resolveJavaTypeSignature(declaringType);
+					}
+				} catch (JavaModelException e) {
+				}
+				IType type = declaringType.getType(simpleType);
+				while (type != null && type.exists()) {
+					resolved = resolveJavaTypeSignature(type);
+					if (!resolved.equals(simpleType)) {
+						return resolved;
+					}
+					type = type.getDeclaringType();
+				}
+			}
+			return resolved;
 		}
 
 		// Example :
@@ -195,7 +216,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 
 		String typeErasure = typeSignature.substring(0, startGeneric); // ex : List
 		StringBuilder result = new StringBuilder();
-		result.append(doResolveTypeSignature(typeErasure + Signature.C_NAME_END));
+		result.append(doResolveTypeSignature(typeErasure + Signature.C_NAME_END, declaringType));
 		result.append('<');
 
 		int bracket = 0;
@@ -216,7 +237,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 						result.append(",");
 					}
 					String s = typeSignature.substring(start, i);
-					result.append(doResolveTypeSignature(s + Signature.C_NAME_END));
+					result.append(doResolveTypeSignature(s + Signature.C_NAME_END, declaringType));
 					nbTypeParams++;
 					start = i + 1;
 				}

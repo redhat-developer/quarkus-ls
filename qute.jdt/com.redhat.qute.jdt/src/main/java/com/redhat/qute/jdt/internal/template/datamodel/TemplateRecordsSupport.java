@@ -98,7 +98,7 @@ public class TemplateRecordsSupport extends AbstractInterfaceImplementationDataM
 		for (IField field : type.getRecordComponents()) {
 			DataModelParameter parameter = new DataModelParameter();
 			parameter.setKey(field.getElementName());
-			parameter.setSourceType(typeResolver.resolveTypeSignature(field.getTypeSignature()));
+			parameter.setSourceType(typeResolver.resolveTypeSignature(field.getTypeSignature(), field.getDeclaringType()));
 			template.getParameters().add(parameter);
 		}
 
