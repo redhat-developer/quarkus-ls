@@ -17,6 +17,7 @@ import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IType;
 
 /**
  * Type resolver API.
@@ -85,7 +86,7 @@ public interface ITypeResolver {
 	 * @return the resolved Java type signature from the given String
 	 *         <code>typeSignature</code>.
 	 */
-	String resolveTypeSignature(String typeSignature);
+	String resolveTypeSignature(String typeSignature, IType declaringType);
 
 	/**
 	 * Returns the Java field signature from the given JDT <code>field</code>.

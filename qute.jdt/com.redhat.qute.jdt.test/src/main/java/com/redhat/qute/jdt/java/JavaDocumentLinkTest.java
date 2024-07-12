@@ -236,6 +236,37 @@ public class JavaDocumentLinkTest {
 						templateFileUri, "Create `src/main/resources/templates/ItemResourceWithFragment/items3.html`"));
 	}
 
+	@Test
+	public void templateRecord() throws Exception {
+
+		// public class HelloResource {
+
+		// record Hello(String name) implements TemplateInstance {}
+
+		// record Bonjour(String name) implements TemplateInstance {}
+
+		// record Status() {}
+
+		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_record);
+
+		QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
+		IFile javaFile = javaProject.getProject().getFile(new Path("src/main/java/org/acme/sample/HelloResource.java"));
+		params.setUri(javaFile.getLocation().toFile().toURI().toString());
+
+		List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, getJDTUtils(),
+				new NullProgressMonitor());
+		assertEquals(2, links.size());
+
+		String templateFileUri = javaProject.getProject().getFile("src/main/resources/templates/Hello.html")
+				.getLocationURI().toString();
+
+		assertDocumentLink(links, //
+				dl(r(14, 11, 14, 16), //
+						templateFileUri, "Open `src/main/resources/templates/Hello.html`"), //
+				dl(r(16, 11, 16, 18), //
+						templateFileUri, "Create `src/main/resources/templates/Bonjour.html`"));
+	}
+
 	public static Range r(int line, int startChar, int endChar) {
 		return r(line, startChar, line, endChar);
 	}

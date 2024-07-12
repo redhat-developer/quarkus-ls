@@ -336,6 +336,40 @@ public class JavaCodeLensTest {
 						"qute.command.generate.template.file", Arrays.asList(items2Uri_id2)));
 	}
 
+	@Test
+	public void templateRecord() throws CoreException, Exception {
+		// public class HelloResource {
+
+		// record Hello(String name) implements TemplateInstance {}
+
+		// record Bonjour(String name) implements TemplateInstance {}
+
+		// record Status() {}
+
+		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_record);
+
+		QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
+		IFile javaFile = javaProject.getProject().getFile(new Path("src/main/java/org/acme/sample/HelloResource.java"));
+		params.setUri(javaFile.getLocation().toFile().toURI().toString());
+
+		List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, getJDTUtils(),
+				new NullProgressMonitor());
+		assertEquals(2, lenses.size());
+
+		String helloFileUri = javaProject.getProject().getFile("src/main/resources/templates/Hello.html")
+				.getLocationURI().toString();
+		String boujourFileUri1 = javaProject.getProject().getFile("src/main/resources/templates/Bonjour.html")
+				.getLocationURI().toString();
+
+		assertCodeLens(lenses, //
+				cl(r(14, 4, 14, 60), //
+						"Open `src/main/resources/templates/Hello.html`", //
+						"qute.command.open.uri", Arrays.asList(helloFileUri)), //
+				cl(r(16, 4, 16, 62), //
+						"Create `src/main/resources/templates/Bonjour.html`", //
+						"qute.command.generate.template.file", Arrays.asList(boujourFileUri1)));
+	}
+
 	public static Range r(int line, int startChar, int endChar) {
 		return r(line, startChar, line, endChar);
 	}
