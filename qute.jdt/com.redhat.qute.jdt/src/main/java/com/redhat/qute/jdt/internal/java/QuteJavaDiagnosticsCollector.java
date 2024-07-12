@@ -11,6 +11,10 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.java;
 
+import static com.redhat.qute.jdt.utils.JDTQuteProjectUtils.appendAndSlash;
+
+import static com.redhat.qute.jdt.utils.JDTQuteProjectUtils.DEFAULTED;
+
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -21,7 +25,6 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Range;
@@ -53,7 +56,7 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
 	}
 
 	@Override
-	protected void collectTemplateLink(ASTNode fieldOrMethod, ASTNode locationAnnotation, AbstractTypeDeclaration type,
+	protected void collectTemplateLink(String basePath, ASTNode fieldOrMethod, ASTNode locationAnnotation, AbstractTypeDeclaration type,
 			String className, String fieldOrMethodName, String location, IFile templateFile,
 			TemplatePathInfo templatePathInfo) throws JavaModelException {
 		QuteErrorCode error = getQuteErrorCode(templatePathInfo, templateFile);
@@ -61,7 +64,7 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
 			return;
 		}
 
-		String path = createPath(className, fieldOrMethodName, location);
+		String path = createPath(basePath, className, fieldOrMethodName, location);
 		String fragmentId = templatePathInfo.getFragmentId();
 		if (templatePathInfo.hasFragment() && path.endsWith(fragmentId)) {
 			// Adjust path by removing fragment information
@@ -99,15 +102,18 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
 		return null;
 	}
 
-	private static String createPath(String className, String fieldOrMethodName, String location) {
-		if (location != null) {
-			return location;
-		}
-		if (className == null) {
-			return fieldOrMethodName;
-		}
-		return className + '/' + fieldOrMethodName;
-	}
+	private static String createPath(String basePath, String className, String fieldOrMethodName, String location) {
+        if (location != null) {
+            return location;
+        }
+        StringBuilder path = new StringBuilder();
+        if (basePath != null && !DEFAULTED.equals(basePath)) {
+            appendAndSlash(path, basePath);
+        } else if (className != null){
+            appendAndSlash(path, className);
+        }
+        return path.append(fieldOrMethodName).toString();
+    }
 
 	private static Diagnostic createDiagnostic(Range range, DiagnosticSeverity severity, IQuteErrorCode errorCode,
 			Object... arguments) {

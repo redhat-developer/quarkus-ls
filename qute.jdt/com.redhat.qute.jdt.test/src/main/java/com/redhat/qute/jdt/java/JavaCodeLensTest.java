@@ -199,6 +199,92 @@ public class JavaCodeLensTest {
 	}
 
 	@Test
+	public void checkedTemplateWithCustomBasePath() throws Exception {
+
+		// @CheckedTemplate(basePath="ItemResourceWithFragment")
+		// public class ItemTemplatesCustomBasePath {
+		//
+		// static native TemplateInstance items(List<Item> items);
+		// static native TemplateInstance items$id1(List<Item> items);
+		// static native TemplateInstance items3$id2(List<Item> items);
+		// static native TemplateInstance items3$(List<Item> items);
+		// }
+
+		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
+		IFile javaFile = javaProject.getProject()
+				.getFile(new Path("src/main/java/org/acme/qute/ItemTemplatesCustomBasePath.java"));
+		params.setUri(javaFile.getLocation().toFile().toURI().toString());
+
+		List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, getJDTUtils(),
+				new NullProgressMonitor());
+		assertEquals(3, lenses.size());
+
+		String itemsUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResourceWithFragment/items.html").getLocationURI()
+				.toString();
+		String items3Uri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResourceWithFragment/items3.html").getLocationURI()
+				.toString();
+
+		assertCodeLens(lenses, //
+				cl(r(9, 1, 9, 56), //
+						"Open `src/main/resources/templates/ItemResourceWithFragment/items.html`", //
+						"qute.command.open.uri", Arrays.asList(itemsUri)), //
+				cl(r(10, 1, 10, 60), //
+						"Open `id1` fragment of `src/main/resources/templates/ItemResourceWithFragment/items.html`", //
+						"qute.command.open.uri", Arrays.asList(itemsUri, "id1")), //
+				cl(r(11, 1, 11, 61), //
+						"Create `src/main/resources/templates/ItemResourceWithFragment/items3.html`", //
+						"qute.command.generate.template.file", Arrays.asList(items3Uri)));
+
+	}
+
+	@Test
+	public void checkedTemplateInInnerClassWithCustomBasePath() throws Exception {
+
+		// @CheckedTemplate(basePath="ItemResourceWithFragment")
+		// public class ItemTemplatesCustomBasePath {
+		//
+		// static native TemplateInstance items(List<Item> items);
+		// static native TemplateInstance items$id1(List<Item> items);
+		// static native TemplateInstance items3$id2(List<Item> items);
+		// static native TemplateInstance items3$(List<Item> items);
+		// }
+
+		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
+		IFile javaFile = javaProject.getProject()
+				.getFile(new Path("src/main/java/org/acme/qute/ItemTemplatesCustomBasePath.java"));
+		params.setUri(javaFile.getLocation().toFile().toURI().toString());
+
+		List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, getJDTUtils(),
+				new NullProgressMonitor());
+		assertEquals(3, lenses.size());
+
+		String itemsUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResourceWithFragment/items.html").getLocationURI()
+				.toString();
+		String items3Uri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResourceWithFragment/items3.html").getLocationURI()
+				.toString();
+
+		assertCodeLens(lenses, //
+				cl(r(9, 1, 9, 56), //
+						"Open `src/main/resources/templates/ItemResourceWithFragment/items.html`", //
+						"qute.command.open.uri", Arrays.asList(itemsUri)), //
+				cl(r(10, 1, 10, 60), //
+						"Open `id1` fragment of `src/main/resources/templates/ItemResourceWithFragment/items.html`", //
+						"qute.command.open.uri", Arrays.asList(itemsUri, "id1")), //
+				cl(r(11, 1, 11, 61), //
+						"Create `src/main/resources/templates/ItemResourceWithFragment/items3.html`", //
+						"qute.command.generate.template.file", Arrays.asList(items3Uri)));
+
+	}
+
+	@Test
 	public void checkedTemplateWithFragment() throws CoreException, Exception {
 
 		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);

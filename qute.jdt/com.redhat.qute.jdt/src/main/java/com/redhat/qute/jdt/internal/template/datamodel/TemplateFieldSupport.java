@@ -123,7 +123,7 @@ public class TemplateFieldSupport extends AbstractFieldDeclarationTypeReferenceD
 				: getLocation(field);
 		String fieldName = field.getElementName();
 		// src/main/resources/templates/${methodName}.qute.html
-		String templateUri = getTemplatePath(null, location != null ? location : fieldName, true).getTemplateUri();
+		String templateUri = getTemplatePath(null, null, location != null ? location : fieldName, true).getTemplateUri();
 
 		// Create template data model with:
 		// - template uri : Qute template file which must be bind with data model.

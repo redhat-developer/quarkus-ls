@@ -83,7 +83,7 @@ public class TemplateRecordsSupport extends AbstractInterfaceImplementationDataM
 
 		String recordName = type.getElementName();
 		// src/main/resources/templates/${recordName}.qute.html
-		String templateUri = getTemplatePath(null, recordName, true).getTemplateUri();
+		String templateUri = getTemplatePath(null, null, recordName, true).getTemplateUri();
 
 		// Create template data model with:
 		// - template uri : Qute template file which must be bind with data model.

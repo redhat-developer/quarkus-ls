@@ -15,7 +15,7 @@ import static io.quarkus.runtime.util.StringUtil.lowerCase;
 import static io.quarkus.runtime.util.StringUtil.lowerCaseFirst;
 import static io.quarkus.runtime.util.StringUtil.toList;
 import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
-import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getAnnotation;
+import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getFirstAnnotation;
 import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.findType;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getEnclosedType;
@@ -413,7 +413,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 						continue;
 					}
 
-					final IAnnotation configItemAnnotation = getAnnotation((IAnnotatable) field,
+					final IAnnotation configItemAnnotation = getFirstAnnotation((IAnnotatable) field,
 							QuarkusConstants.CONFIG_ITEM_ANNOTATION);
 					String name = configItemAnnotation == null ? hyphenate(field.getElementName())
 							: getAnnotationMemberValue(configItemAnnotation,
@@ -437,7 +437,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 
 					String fieldTypeName = getResolvedTypeName(field);
 					IType fieldClass = findType(field.getJavaProject(), fieldTypeName);
-					final IAnnotation configGroupAnnotation = getAnnotation((IAnnotatable) fieldClass,
+					final IAnnotation configGroupAnnotation = getFirstAnnotation((IAnnotatable) fieldClass,
 							QuarkusConstants.CONFIG_GROUP_ANNOTATION);
 					if (configGroupAnnotation != null) {
 						processConfigGroup(extensionName, fieldClass, subKey, configPhase, javadocCache, quarkusContext,

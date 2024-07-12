@@ -195,6 +195,41 @@ public class JavaDiagnosticsTest {
 						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
 	}
 
+	@Test
+	public void checkedTemplateWithCustomBasePath() throws Exception {
+
+		// @CheckedTemplate(basePath="ItemResourceWithFragment")
+		// public class ItemTemplatesCustomBasePath {
+		//
+		// static native TemplateInstance items(List<Item> items);
+		// static native TemplateInstance items$id1(List<Item> items);
+		// static native TemplateInstance items3$id2(List<Item> items);
+		// static native TemplateInstance items3$(List<Item> items);
+		// }
+
+		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
+		IFile javaFile = javaProject.getProject()
+				.getFile(new Path("src/main/java/org/acme/qute/ItemTemplatesCustomBasePath.java"));
+		params.setUris(Arrays.asList(javaFile.getLocation().toFile().toURI().toString()));
+
+		List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
+				getJDTUtils(), new NullProgressMonitor());
+		assertEquals(1, publishDiagnostics.size());
+
+		List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
+		assertEquals(2, diagnostics.size());
+
+		assertDiagnostic(diagnostics, //
+				new Diagnostic(r(11, 32, 11, 42),
+						"No template matching the path ItemResourceWithFragment/items3 could be found for: org.acme.qute.ItemTemplatesCustomBasePath",
+						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
+				new Diagnostic(r(12, 32, 12, 39),
+						"Fragment [] not defined in template ItemResourceWithFragment/items3$",
+						DiagnosticSeverity.Error, "qute", QuteErrorCode.FragmentNotDefined.name()));
+	}
+
 	public static Range r(int line, int startChar, int endChar) {
 		return r(line, startChar, line, endChar);
 	}

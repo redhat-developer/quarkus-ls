@@ -200,6 +200,42 @@ public class JavaDocumentLinkTest {
 						"Open `src/main/resources/templates/ItemResourceWithFragment/items2$id2.html`"));
 	}
 
+	@Test
+	public void checkedTemplateWithCustomBasePath() throws Exception {
+
+		// @CheckedTemplate(basePath="ItemResourceWithFragment")
+		// public class ItemTemplatesCustomBasePath {
+		//
+		// static native TemplateInstance items(List<Item> items);
+		// static native TemplateInstance items$id1(List<Item> items);
+		// static native TemplateInstance items3$id2(List<Item> items);
+		// static native TemplateInstance items3$(List<Item> items);
+		// }
+
+		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_quickstart);
+
+		QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
+		IFile javaFile = javaProject.getProject()
+				.getFile(new Path("src/main/java/org/acme/qute/ItemTemplatesCustomBasePath.java"));
+		params.setUri(javaFile.getLocation().toFile().toURI().toString());
+
+		List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, getJDTUtils(),
+				new NullProgressMonitor());
+		assertEquals(3, links.size());
+
+		String templateFileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResourceWithFragment/items.html").getLocationURI()
+				.toString();
+
+		assertDocumentLink(links, //
+				dl(r(9, 32, 9, 37), //
+						templateFileUri, "Open `src/main/resources/templates/ItemResourceWithFragment/items.html`"), //
+				dl(r(10, 32, 10, 41), //
+						templateFileUri, "Open `src/main/resources/templates/ItemResourceWithFragment/items.html`"), //
+				dl(r(11, 32, 11, 42), //
+						templateFileUri, "Create `src/main/resources/templates/ItemResourceWithFragment/items3.html`"));
+	}
+
 	public static Range r(int line, int startChar, int endChar) {
 		return r(line, startChar, line, endChar);
 	}

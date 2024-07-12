@@ -277,4 +277,15 @@ public class AnnotationUtils {
 		}
 		return null;
 	}
+
+	public static String getString(Expression expression) {
+		if (expression == null) {
+			return null;
+		}
+		Object expressionValue = expression.resolveConstantExpressionValue();
+		if (expressionValue instanceof String) {
+			return (String) expressionValue;
+		}
+		return null;
+	}
 }
