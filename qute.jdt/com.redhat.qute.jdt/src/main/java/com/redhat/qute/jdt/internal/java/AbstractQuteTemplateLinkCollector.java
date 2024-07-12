@@ -33,6 +33,7 @@ import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.RecordDeclaration;
 import org.eclipse.jdt.core.dom.SimpleName;
@@ -45,6 +46,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.lsp4j.Range;
 
 import com.redhat.qute.jdt.internal.AnnotationLocationSupport;
+import com.redhat.qute.jdt.internal.QuteJavaConstants;
 import com.redhat.qute.jdt.utils.AnnotationUtils;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
@@ -205,9 +207,36 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 	 */
 	@Override
 	public boolean visit(RecordDeclaration node) {
-		String recordName = node.getName().getIdentifier();
-		collectTemplateLink(null, node, null, node, null, recordName, false);
+		if (isImplementTemplateInstance(node)) {
+			String recordName = node.getName().getIdentifier();
+			collectTemplateLink(null, node, null, node, null, recordName, false);
+		}
 		return super.visit(node);
+	}
+
+	/**
+	 * Returns true if the record implements the "io.quarkus.qute.TemplateInstance"
+	 * interface and false otherwise.
+	 * 
+	 * @param node the record node.
+	 * @return true if the record implements the "io.quarkus.qute.TemplateInstance"
+	 *         interface and false otherwise.
+	 */
+	private static boolean isImplementTemplateInstance(RecordDeclaration node) {
+		ITypeBinding binding = node.resolveBinding();
+		if (binding == null) {
+			return false;
+		}
+		ITypeBinding[] interfaces = binding.getInterfaces();
+		if (interfaces == null || interfaces.length == 0) {
+			return false;
+		}
+		for (ITypeBinding current : interfaces) {
+			if (QuteJavaConstants.TEMPLATE_INSTANCE_INTERFACE.equals(current.getQualifiedName())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

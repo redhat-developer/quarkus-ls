@@ -230,6 +230,36 @@ public class JavaDiagnosticsTest {
 						DiagnosticSeverity.Error, "qute", QuteErrorCode.FragmentNotDefined.name()));
 	}
 
+	@Test
+	public void templateRecord() throws Exception {
+
+		// public class HelloResource {
+
+		// record Hello(String name) implements TemplateInstance {}
+
+		// record Bonjour(String name) implements TemplateInstance {}
+
+		// record Status() {}
+
+		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_record);
+
+		QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
+		IFile javaFile = javaProject.getProject().getFile(new Path("src/main/java/org/acme/sample/HelloResource.java"));
+		params.setUris(Arrays.asList(javaFile.getLocation().toFile().toURI().toString()));
+
+		List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
+				getJDTUtils(), new NullProgressMonitor());
+		assertEquals(1, publishDiagnostics.size());
+
+		List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
+		assertEquals(1, diagnostics.size());
+
+		assertDiagnostic(diagnostics, //
+				new Diagnostic(r(16, 11, 16, 18),
+						"No template matching the path Bonjour could be found for: org.acme.sample.HelloResource$Bonjour",
+						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
+	}
+
 	public static Range r(int line, int startChar, int endChar) {
 		return r(line, startChar, line, endChar);
 	}
