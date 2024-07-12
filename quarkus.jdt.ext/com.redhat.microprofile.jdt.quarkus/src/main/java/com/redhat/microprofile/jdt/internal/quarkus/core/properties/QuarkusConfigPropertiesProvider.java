@@ -14,7 +14,7 @@ import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.runtime.util.StringUtil.join;
 import static io.quarkus.runtime.util.StringUtil.lowerCase;
 import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
-import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getAnnotation;
+import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getFirstAnnotation;
 import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.findType;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getEnclosedType;
@@ -189,7 +189,7 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 						}
 						String name = null;
 						String defaultValue = null;
-						IAnnotation configPropertyAnnotation = getAnnotation(method,
+						IAnnotation configPropertyAnnotation = getFirstAnnotation(method,
 							MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION);
 						if (configPropertyAnnotation != null) {
 							name = getAnnotationMemberValue(configPropertyAnnotation,

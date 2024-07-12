@@ -23,7 +23,7 @@ import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.runtime.util.StringUtil.join;
 import static io.quarkus.runtime.util.StringUtil.lowerCase;
-import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getAnnotation;
+import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getFirstAnnotation;
 import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.hasAnnotation;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.findType;
@@ -254,7 +254,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 		// @WithName("name")
 		// String host();
 		// --> See https://quarkus.io/guides/config-mappings#withname
-		IAnnotation withNameAnnotation = getAnnotation((IAnnotatable) member, WITH_NAME_ANNOTATION);
+		IAnnotation withNameAnnotation = getFirstAnnotation((IAnnotatable) member, WITH_NAME_ANNOTATION);
 		if (withNameAnnotation != null) {
 			String name = getAnnotationMemberValue(withNameAnnotation, WITH_NAME_ANNOTATION_VALUE);
 			if (StringUtils.isNotEmpty(name)) {
@@ -304,7 +304,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 	 */
 	private static String getWithDefault(IMember member) {
 		try {
-			IAnnotation withDefaultAnnotation = getAnnotation((IAnnotatable) member, WITH_DEFAULT_ANNOTATION);
+			IAnnotation withDefaultAnnotation = getFirstAnnotation((IAnnotatable) member, WITH_DEFAULT_ANNOTATION);
 			if (withDefaultAnnotation != null) {
 				String defaultValue = getAnnotationMemberValue(withDefaultAnnotation, WITH_DEFAULT_ANNOTATION_VALUE);
 				if (StringUtils.isNotEmpty(defaultValue)) {

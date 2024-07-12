@@ -41,6 +41,11 @@ public class JDTQuteProjectUtils {
 
 	private static final String TEMPLATES_BASE_DIR = "src/main/resources/templates/";
 
+	/**
+	 * Value for Qute annotations indicating behaviour should be using the default
+	 */
+	public static final String DEFAULTED = "<<defaulted>>";
+
 	private JDTQuteProjectUtils() {
 
 	}
@@ -106,23 +111,37 @@ public class JDTQuteProjectUtils {
 		return JDTTypeUtils.findType(javaProject, QuteJavaConstants.ENGINE_BUILDER_CLASS) != null;
 	}
 
-	public static TemplatePathInfo getTemplatePath(String className, String methodOrFieldName,
+	public static TemplatePathInfo getTemplatePath(String basePath, String className, String methodOrFieldName,
 			boolean ignoreFragments) {
 		String fragmentId = null;
 		StringBuilder templateUri = new StringBuilder(TEMPLATES_BASE_DIR);
-		if (className != null) {
-			templateUri.append(className);
-			templateUri.append('/');
-			if (!ignoreFragments) {
-				int fragmentIndex = methodOrFieldName != null ? methodOrFieldName.lastIndexOf('$') : -1;
-				if (fragmentIndex != -1) {
-					fragmentId = methodOrFieldName.substring(fragmentIndex + 1, methodOrFieldName.length());
-					methodOrFieldName = methodOrFieldName.substring(0, fragmentIndex);
-				}
+		if (basePath != null && !DEFAULTED.equals(basePath)) {
+			appendAndSlash(templateUri, basePath);
+		} else if (className != null) {
+			appendAndSlash(templateUri, className);
+		}
+		if (!ignoreFragments) {
+			int fragmentIndex = methodOrFieldName != null ? methodOrFieldName.lastIndexOf('$') : -1;
+			if (fragmentIndex != -1) {
+				fragmentId = methodOrFieldName.substring(fragmentIndex + 1, methodOrFieldName.length());
+				methodOrFieldName = methodOrFieldName.substring(0, fragmentIndex);
 			}
 		}
 		templateUri.append(methodOrFieldName);
 		return new TemplatePathInfo(templateUri.toString(), fragmentId);
+	}
+
+	/**
+	 * Appends a segment to a path, add trailing "/" if necessary
+	 * 
+	 * @param path    the path to append to
+	 * @param segment the segment to append to the path
+	 */
+	public static void appendAndSlash(StringBuilder path, String segment) {
+		path.append(segment);
+		if (!segment.endsWith("/")) {
+			path.append('/');
+		}
 	}
 
 	public static CompilationUnit getASTRoot(ITypeRoot typeRoot) {

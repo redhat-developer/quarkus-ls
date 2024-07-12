@@ -27,7 +27,6 @@ import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Type;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Range;
@@ -67,9 +66,9 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
 	}
 
 	@Override
-	protected void collectTemplateLink(ASTNode fieldOrMethod, ASTNode locationAnnotation, AbstractTypeDeclaration type,
-			String className, String fieldOrMethodName, String location, IFile templateFile,
-			TemplatePathInfo templatePathInfo) throws JavaModelException {
+	protected void collectTemplateLink(String basePath, ASTNode fieldOrMethod, ASTNode locationAnnotation,
+			AbstractTypeDeclaration type, String className, String fieldOrMethodName, String location,
+			IFile templateFile, TemplatePathInfo templatePathInfo) throws JavaModelException {
 		if (!templatePathInfo.isValid()) {
 			// It is an empty fragment which is not valid, don't generate a codelens.
 			return;
