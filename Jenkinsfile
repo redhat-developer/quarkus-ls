@@ -57,7 +57,7 @@ pipeline {
         withCredentials([usernamePassword(credentialsId: 'hudson-services-id', usernameVariable: 'DEPLOY_USERNAME', passwordVariable: 'DEPLOY_PASSWORD')]) {
           configFileProvider([configFile(fileId: 'JBossNexusDeploymentSettings', variable: 'MAVEN_SETTINGS')]) {
             sh '''
-              mvnFlags="-B -ntp -DaltSnapshotDeploymentRepository=origin-repository.jboss.org -s ${MAVEN_SETTINGS} -DSkipTests=true"
+              mvnFlags="-B -ntp -DaltSnapshotDeploymentRepository=origin-repository.jboss.org -s ${MAVEN_SETTINGS} -DskipTests=true"
               export JAVA_HOME="${NATIVE_TOOLS}${SEP}jdk11_last"
               MVN="${COMMON_TOOLS}${SEP}maven3-latest/bin/mvn -V -Dmaven.repo.local=${WORKSPACE}/.repository/"
 
