@@ -233,27 +233,29 @@ public class QuteSupportForTemplate {
 		}
 
 		String parameterName = params.getSourceParameter();
+		String fieldName = params.getSourceField();
 		boolean dataMethodInvocation = parameterName != null && params.isDataMethodInvocation();
 
 		if (type.isRecord()) {
 			// The source type is a record
 			if (dataMethodInvocation) {
-					// returns the location of "data" method invocation with the given parameter
-					// name
-					return TemplateDataSupport.getDataMethodInvocationLocation(type, parameterName, utils,
-							monitor);
-				
+				// returns the location of "data" method invocation with the given parameter
+				// name
+				return TemplateDataSupport.getDataMethodInvocationLocation(type, parameterName, utils, monitor);
+
 			} else {
 				// Search field of the record
-				IField recordField = type.getRecordComponent(parameterName);
-				if (recordField != null && recordField.exists()) {
-					// returns the record field location
-					return utils.toLocation(recordField);
+				String recordFieldName = parameterName != null ? parameterName : fieldName;
+				if (recordFieldName != null) {
+					IField recordField = type.getRecordComponent(recordFieldName);
+					if (recordField != null && recordField.exists()) {
+						// returns the record field location
+						return utils.toLocation(recordField);
+					}
 				}
 			}
 		} else {
 			// The source type is a class
-			String fieldName = params.getSourceField();
 			if (fieldName != null) {
 				IField field = type.getField(fieldName);
 				if (field == null || !field.exists()) {

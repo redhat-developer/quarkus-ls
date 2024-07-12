@@ -345,6 +345,27 @@ public class TemplateGetResolvedJavaTypeTest {
 	}
 
 	@Test
+	public void enumDeclaredInRecord() throws Exception {
+		loadMavenProject(QuteMavenProjectName.qute_record);
+
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.sample.SomeService$RunnerState$Status",
+				QuteMavenProjectName.qute_record);
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
+				new NullProgressMonitor());
+		Assert.assertNotNull(result);
+		Assert.assertEquals("org.acme.sample.SomeService$RunnerState$Status", result.getSignature());
+		Assert.assertEquals(JavaTypeKind.Enum, result.getJavaTypeKind());
+
+		// Enum
+		Assert.assertNotNull(result.getFields());
+		Assert.assertEquals(4, result.getFields().size());
+		Assert.assertEquals("dead", result.getFields().get(0).getName());
+		Assert.assertEquals("org.acme.sample.SomeService$RunnerState$Status", result.getFields().get(0).getType());
+		Assert.assertEquals("alive", result.getFields().get(1).getName());
+		Assert.assertEquals("org.acme.sample.SomeService$RunnerState$Status", result.getFields().get(1).getType());
+	}
+	
+	@Test
 	public void templateData() throws CoreException, Exception {
 		loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
