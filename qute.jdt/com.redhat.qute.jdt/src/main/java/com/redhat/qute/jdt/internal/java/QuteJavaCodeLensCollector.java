@@ -114,10 +114,12 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
 			String parameterName = variable.getName().getFullyQualifiedName();
 			Type parameterType = variable.getType();
 			ITypeBinding binding = parameterType.resolveBinding();
-			DataModelParameter parameter = new DataModelParameter();
-			parameter.setKey(parameterName);
-			parameter.setSourceType(binding.getQualifiedName());
-			parameters.add(parameter);
+			if (binding != null) {
+				DataModelParameter parameter = new DataModelParameter();
+				parameter.setKey(parameterName);
+				parameter.setSourceType(binding.getQualifiedName());
+				parameters.add(parameter);
+			}
 		}
 		return parameters;
 	}

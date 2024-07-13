@@ -13,6 +13,7 @@ package com.redhat.qute.jdt.utils;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,6 +29,8 @@ import org.eclipse.jdt.internal.core.manipulation.dom.ASTResolving;
 
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.jdt.internal.QuteJavaConstants;
+
+import io.quarkus.runtime.util.StringUtil;
 
 /**
  * JDT Qute utilities.
@@ -87,7 +90,7 @@ public class JDTQuteProjectUtils {
 	 * @return the project URI of the given project.
 	 */
 	public static String getProjectURI(IProject project) {
-		return project.getName(); // .getLocation().toOSString();
+		return project.getName();
 	}
 
 	/**
@@ -112,7 +115,7 @@ public class JDTQuteProjectUtils {
 	}
 
 	public static TemplatePathInfo getTemplatePath(String basePath, String className, String methodOrFieldName,
-			boolean ignoreFragments) {
+			boolean ignoreFragments, TemplateNameStrategy templateNameStrategy) {
 		String fragmentId = null;
 		StringBuilder templateUri = new StringBuilder(TEMPLATES_BASE_DIR);
 		if (basePath != null && !DEFAULTED.equals(basePath)) {
@@ -127,8 +130,36 @@ public class JDTQuteProjectUtils {
 				methodOrFieldName = methodOrFieldName.substring(0, fragmentIndex);
 			}
 		}
-		templateUri.append(methodOrFieldName);
+		templateUri.append(defaultedName(templateNameStrategy, methodOrFieldName));
 		return new TemplatePathInfo(templateUri.toString(), fragmentId);
+	}
+
+	/**
+	 * 
+	 * @param defaultNameStrategy
+	 * @param value
+	 * @return
+	 * @see <a href=
+	 *      "https://github.com/quarkusio/quarkus/blob/32392afcd5cbbed86fe119ed90d4c679d4d52123/extensions/qute/deployment/src/main/java/io/quarkus/qute/deployment/QuteProcessor.java#L562C5-L578C6">QuteProcessor#defaultName</a>
+	 */
+	private static String defaultedName(TemplateNameStrategy defaultNameStrategy, String value) {
+		switch (defaultNameStrategy) {
+		case ELEMENT_NAME:
+			return value;
+		case HYPHENATED_ELEMENT_NAME:
+			return StringUtil.hyphenate(value);
+		case UNDERSCORED_ELEMENT_NAME:
+			return String.join("_", new Iterable<String>() {
+				@Override
+				public Iterator<String> iterator() {
+					return StringUtil.lowerCase(StringUtil.camelHumpsIterator(value));
+				}
+			});
+		default:
+			return value;
+		// throw new IllegalArgumentException("Unsupported
+		// @CheckedTemplate#defaultName() value: " + defaultNameStrategy);
+		}
 	}
 
 	/**

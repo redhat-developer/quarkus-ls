@@ -28,6 +28,7 @@ import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 import com.redhat.qute.jdt.internal.template.TemplateDataSupport;
 import com.redhat.qute.jdt.template.datamodel.AbstractInterfaceImplementationDataModelProvider;
 import com.redhat.qute.jdt.template.datamodel.SearchContext;
+import com.redhat.qute.jdt.utils.TemplateNameStrategy;
 
 /**
  * Template Records support for template files:
@@ -83,7 +84,8 @@ public class TemplateRecordsSupport extends AbstractInterfaceImplementationDataM
 
 		String recordName = type.getElementName();
 		// src/main/resources/templates/${recordName}.qute.html
-		String templateUri = getTemplatePath(null, null, recordName, true).getTemplateUri();
+		String templateUri = getTemplatePath(null, null, recordName, true, TemplateNameStrategy.ELEMENT_NAME)
+				.getTemplateUri();
 
 		// Create template data model with:
 		// - template uri : Qute template file which must be bind with data model.
@@ -98,7 +100,8 @@ public class TemplateRecordsSupport extends AbstractInterfaceImplementationDataM
 		for (IField field : type.getRecordComponents()) {
 			DataModelParameter parameter = new DataModelParameter();
 			parameter.setKey(field.getElementName());
-			parameter.setSourceType(typeResolver.resolveTypeSignature(field.getTypeSignature(), field.getDeclaringType()));
+			parameter.setSourceType(
+					typeResolver.resolveTypeSignature(field.getTypeSignature(), field.getDeclaringType()));
 			template.getParameters().add(parameter);
 		}
 

@@ -260,6 +260,38 @@ public class JavaDiagnosticsTest {
 						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
 	}
 
+	@Test
+	public void checkedTemplateWithDefaultName() throws Exception {
+
+		// @CheckedTemplate(defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+		// static class Templates {
+		// static native TemplateInstance HelloWorld(String name);
+
+		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_record);
+
+		QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
+		IFile javaFile = javaProject.getProject().getFile(new Path("src/main/java/org/acme/sample/ItemResource.java"));
+		params.setUris(Arrays.asList(javaFile.getLocation().toFile().toURI().toString()));
+
+		List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
+				getJDTUtils(), new NullProgressMonitor());
+		assertEquals(1, publishDiagnostics.size());
+
+		List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
+		assertEquals(3, diagnostics.size());
+
+		assertDiagnostic(diagnostics, //
+				new Diagnostic(r(19, 33, 19, 43),
+						"No template matching the path ItemResource/HelloWorld could be found for: org.acme.sample.ItemResource$Templates",
+						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
+				new Diagnostic(r(25, 33, 25, 43),
+						"No template matching the path ItemResource/HelloWorld could be found for: org.acme.sample.ItemResource$Templates2",
+						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
+				new Diagnostic(r(31, 33, 31, 43),
+						"No template matching the path ItemResource/HelloWorld could be found for: org.acme.sample.ItemResource$Templates3",
+						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
+	}
+
 	public static Range r(int line, int startChar, int endChar) {
 		return r(line, startChar, line, endChar);
 	}
