@@ -370,6 +370,41 @@ public class JavaCodeLensTest {
 						"qute.command.generate.template.file", Arrays.asList(boujourFileUri1)));
 	}
 
+	@Test
+	public void checkedTemplateWithDefaultName() throws CoreException, Exception {
+		// @CheckedTemplate(defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+		// static class Templates {
+		// static native TemplateInstance HelloWorld(String name);
+
+		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_record);
+
+		QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
+		IFile javaFile = javaProject.getProject().getFile(new Path("src/main/java/org/acme/sample/ItemResource.java"));
+		params.setUri(javaFile.getLocation().toFile().toURI().toString());
+
+		List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, getJDTUtils(),
+				new NullProgressMonitor());
+		assertEquals(3, lenses.size());
+
+		String helloFileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResource/HelloWorld.html").getLocationURI().toString();
+		String hello2FileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResource/hello-world.html").getLocationURI().toString();
+		String hello3FileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResource/hello_world.html").getLocationURI().toString();
+
+		assertCodeLens(lenses, //
+				cl(r(19, 2, 19, 57), //
+						"Create `src/main/resources/templates/ItemResource/HelloWorld.html`", //
+						"qute.command.generate.template.file", Arrays.asList(helloFileUri)), //
+				cl(r(25, 2, 25, 57), //
+						"Create `src/main/resources/templates/ItemResource/hello-world.html`", //
+						"qute.command.generate.template.file", Arrays.asList(hello2FileUri)), //
+				cl(r(31, 2, 31, 57), //
+						"Create `src/main/resources/templates/ItemResource/hello_world.html`", //
+						"qute.command.generate.template.file", Arrays.asList(hello3FileUri)));
+	}
+
 	public static Range r(int line, int startChar, int endChar) {
 		return r(line, startChar, line, endChar);
 	}

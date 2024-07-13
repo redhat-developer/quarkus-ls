@@ -40,6 +40,7 @@ import com.redhat.qute.jdt.internal.template.TemplateDataSupport;
 import com.redhat.qute.jdt.template.datamodel.AbstractFieldDeclarationTypeReferenceDataModelProvider;
 import com.redhat.qute.jdt.template.datamodel.SearchContext;
 import com.redhat.qute.jdt.utils.AnnotationUtils;
+import com.redhat.qute.jdt.utils.TemplateNameStrategy;
 
 /**
  * Template field support.
@@ -123,7 +124,8 @@ public class TemplateFieldSupport extends AbstractFieldDeclarationTypeReferenceD
 				: getLocation(field);
 		String fieldName = field.getElementName();
 		// src/main/resources/templates/${methodName}.qute.html
-		String templateUri = getTemplatePath(null, null, location != null ? location : fieldName, true).getTemplateUri();
+		String templateUri = getTemplatePath(null, null, location != null ? location : fieldName, true,
+				TemplateNameStrategy.ELEMENT_NAME).getTemplateUri();
 
 		// Create template data model with:
 		// - template uri : Qute template file which must be bind with data model.

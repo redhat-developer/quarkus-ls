@@ -13,6 +13,7 @@ package com.redhat.qute.jdt.internal.template.datamodel;
 
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION_BASE_PATH;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.qute.jdt.utils.JDTQuteProjectUtils.getTemplatePath;
@@ -43,6 +44,7 @@ import com.redhat.qute.jdt.template.datamodel.AbstractAnnotationTypeReferenceDat
 import com.redhat.qute.jdt.template.datamodel.SearchContext;
 import com.redhat.qute.jdt.utils.AnnotationUtils;
 import com.redhat.qute.jdt.utils.JDTTypeUtils;
+import com.redhat.qute.jdt.utils.TemplateNameStrategy;
 import com.redhat.qute.jdt.utils.TemplatePathInfo;
 
 /**
@@ -91,8 +93,9 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 			IType type = (IType) javaElement;
 			boolean ignoreFragments = isIgnoreFragments(checkedTemplateAnnotation);
 			String basePath = getBasePath(checkedTemplateAnnotation);
-			collectDataModelTemplateForCheckedTemplate(type, basePath, ignoreFragments, context.getTypeResolver(type),
-					context.getDataModelProject().getTemplates(), monitor);
+			TemplateNameStrategy templateNameStrategy = getDefaultName(checkedTemplateAnnotation);
+			collectDataModelTemplateForCheckedTemplate(type, basePath, ignoreFragments, templateNameStrategy,
+					context.getTypeResolver(type), context.getDataModelProject().getTemplates(), monitor);
 		}
 	}
 
@@ -146,6 +149,36 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 	}
 
 	/**
+	 * Returns the <code>defaultName</code> value declared in the @CheckedTemplate
+	 * annotation, relative to the templates root, to search the templates from.
+	 * <code>
+	 * @CheckedTemplate(defaultName=@CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+	 *</code>
+	 *
+	 * @param checkedTemplateAnnotation the CheckedTemplate annotation.
+	 * @return the <code>defaultName</code> value declared in the @CheckedTemplate
+	 *         annotation
+	 */
+	private static TemplateNameStrategy getDefaultName(IAnnotation checkedTemplateAnnotation) {
+		TemplateNameStrategy defaultName = TemplateNameStrategy.ELEMENT_NAME;
+		try {
+			for (IMemberValuePair pair : checkedTemplateAnnotation.getMemberValuePairs()) {
+				if (CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME.equalsIgnoreCase(pair.getMemberName())) {
+					String value = AnnotationUtils.getValueAsString(pair);
+					if (value.endsWith("HYPHENATED_ELEMENT_NAME")) {
+						defaultName = TemplateNameStrategy.HYPHENATED_ELEMENT_NAME;
+					} else if (value.endsWith("UNDERSCORED_ELEMENT_NAME")) {
+						defaultName = TemplateNameStrategy.UNDERSCORED_ELEMENT_NAME;
+					}
+				}
+			}
+		} catch (Exception e) {
+			// Do nothing
+		}
+		return defaultName;
+	}
+
+	/**
 	 * Collect data model template from @CheckedTemplate.
 	 * 
 	 * @param type            the Java type.
@@ -158,8 +191,8 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 	 * @throws JavaModelException
 	 */
 	private static void collectDataModelTemplateForCheckedTemplate(IType type, String basePath, boolean ignoreFragments,
-			ITypeResolver typeResolver, List<DataModelTemplate<DataModelParameter>> templates, IProgressMonitor monitor)
-			throws JavaModelException {
+			TemplateNameStrategy templateNameStrategy, ITypeResolver typeResolver,
+			List<DataModelTemplate<DataModelParameter>> templates, IProgressMonitor monitor) throws JavaModelException {
 		boolean innerClass = type.getParent() != null && type.getParent().getElementType() == IJavaElement.TYPE;
 		String className = !innerClass ? null
 				: JDTTypeUtils.getSimpleClassName(
@@ -172,7 +205,8 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 		for (IMethod method : methods) {
 
 			// src/main/resources/templates/${className}/${methodName}.qute.html
-			TemplatePathInfo templatePathInfo = getTemplatePath(basePath, className, method.getElementName(), ignoreFragments);
+			TemplatePathInfo templatePathInfo = getTemplatePath(basePath, className, method.getElementName(),
+					ignoreFragments, templateNameStrategy);
 
 			// Get or create template
 			String templateUri = templatePathInfo.getTemplateUri();
@@ -240,7 +274,11 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 				for (int i = 0; i < parameters.length; i++) {
 					DataModelParameter parameter = createParameterDataModel(parameters[i],
 							varargs && i == parameters.length - 1, typeResolver);
-					templateOrFragment.getParameters().add(parameter);
+					if (templateOrFragment.getParameter(parameter.getKey()) == null) {
+						// Add parameter if it doesn't exist
+						// to avoid parameters duplication
+						templateOrFragment.getParameters().add(parameter);
+					}
 				}
 			}
 		} catch (Exception e) {

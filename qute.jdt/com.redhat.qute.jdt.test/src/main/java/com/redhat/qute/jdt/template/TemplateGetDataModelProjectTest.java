@@ -411,4 +411,37 @@ public class TemplateGetDataModelProjectTest {
         // return new Hello(name).data("foo", 100);
 		assertParameter("foo", "int", true, helloParameters, 1);
 	}
+	
+	@Test
+	public void checkedTemplateWithDefaultName() throws Exception {
+		loadMavenProject(QuteMavenProjectName.qute_record);
+
+		QuteDataModelProjectParams params = new QuteDataModelProjectParams(QuteMavenProjectName.qute_record);
+		DataModelProject<DataModelTemplate<DataModelParameter>> project = QuteSupportForTemplate.getInstance()
+				.getDataModelProject(params, getJDTUtils(), new NullProgressMonitor());
+		Assert.assertNotNull(project);
+
+		// public class HelloResource {
+		// record Hello(String name) implements TemplateInstance {}
+		
+		// Hello
+		DataModelTemplate<DataModelParameter> helloTemplate = project
+				.findDataModelTemplate("src/main/resources/templates/ItemResource/hello-world.html");
+		Assert.assertNotNull(helloTemplate);
+		Assert.assertEquals("src/main/resources/templates/ItemResource/hello-world", helloTemplate.getTemplateUri());
+		Assert.assertEquals("org.acme.sample.ItemResource$Templates2", helloTemplate.getSourceType());
+		Assert.assertEquals("HelloWorld", helloTemplate.getSourceMethod());
+		Assert.assertNull(helloTemplate.getSourceField());
+
+		List<DataModelParameter> helloParameters = helloTemplate.getParameters();
+		Assert.assertNotNull(helloParameters);
+
+		Assert.assertEquals(2, helloParameters.size());
+
+		// static class Templates2 {
+		// static native TemplateInstance HelloWorld(String name);
+		assertParameter("name", "java.lang.String", false, helloParameters, 0);
+		
+	}
+
 }

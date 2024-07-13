@@ -267,6 +267,39 @@ public class JavaDocumentLinkTest {
 						templateFileUri, "Create `src/main/resources/templates/Bonjour.html`"));
 	}
 
+	@Test
+	public void checkedTemplateWithDefaultName() throws Exception {
+
+		// @CheckedTemplate(defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+		// static class Templates {
+		// static native TemplateInstance HelloWorld(String name);
+
+		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_record);
+
+		QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
+		IFile javaFile = javaProject.getProject().getFile(new Path("src/main/java/org/acme/sample/ItemResource.java"));
+		params.setUri(javaFile.getLocation().toFile().toURI().toString());
+
+		List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, getJDTUtils(),
+				new NullProgressMonitor());
+		assertEquals(3, links.size());
+
+		String helloFileUri = javaProject.getProject().getFile("src/main/resources/templates/ItemResource/HelloWorld.html")
+				.getLocationURI().toString();
+		String hello2FileUri = javaProject.getProject().getFile("src/main/resources/templates/ItemResource/hello-world.html")
+				.getLocationURI().toString();
+		String hello3FileUri = javaProject.getProject().getFile("src/main/resources/templates/ItemResource/hello_world.html")
+				.getLocationURI().toString();
+
+		assertDocumentLink(links, //
+				dl(r(19, 33, 19, 43), //
+						helloFileUri, "Create `src/main/resources/templates/ItemResource/HelloWorld.html`"), //
+				dl(r(25, 33, 25, 43), //
+						hello2FileUri, "Create `src/main/resources/templates/ItemResource/hello-world.html`"), //
+				dl(r(31, 33, 31, 43), //
+						hello3FileUri, "Create `src/main/resources/templates/ItemResource/hello_world.html`"));
+	}
+
 	public static Range r(int line, int startChar, int endChar) {
 		return r(line, startChar, line, endChar);
 	}

@@ -13,6 +13,9 @@ package com.redhat.qute.jdt.internal.java;
 
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION_BASE_PATH;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME_HYPHENATED_ELEMENT_NAME;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME_UNDERSCORED_ELEMENT_NAME;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_CLASS;
@@ -51,6 +54,7 @@ import com.redhat.qute.jdt.utils.AnnotationUtils;
 import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
 import com.redhat.qute.jdt.utils.JDTTypeUtils;
+import com.redhat.qute.jdt.utils.TemplateNameStrategy;
 import com.redhat.qute.jdt.utils.TemplatePathInfo;
 
 /**
@@ -138,7 +142,8 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 							.getLocationExpressionFromConstructorParameter(variable.getName().getIdentifier());
 				}
 				String fieldName = variable.getName().getIdentifier();
-				collectTemplateLink(null, node, locationExpression, getTypeDeclaration(node), null, fieldName, false);
+				collectTemplateLink(null, node, locationExpression, getTypeDeclaration(node), null, fieldName, false,
+						TemplateNameStrategy.ELEMENT_NAME);
 			}
 		}
 		return super.visit(node);
@@ -186,10 +191,12 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 					// public static native TemplateInstance book(Book book);
 					boolean ignoreFragments = isIgnoreFragments(annotation);
 					String basePath = getBasePath(annotation);
+					TemplateNameStrategy templateNameStrategy = getDefaultName(annotation);
 					List body = node.bodyDeclarations();
 					for (Object declaration : body) {
 						if (declaration instanceof MethodDeclaration) {
-							collectTemplateLink(basePath, (MethodDeclaration) declaration, node, ignoreFragments);
+							collectTemplateLink(basePath, (MethodDeclaration) declaration, node, ignoreFragments,
+									templateNameStrategy);
 						}
 					}
 				}
@@ -209,7 +216,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 	public boolean visit(RecordDeclaration node) {
 		if (isImplementTemplateInstance(node)) {
 			String recordName = node.getName().getIdentifier();
-			collectTemplateLink(null, node, null, node, null, recordName, false);
+			collectTemplateLink(null, node, null, node, null, recordName, false, TemplateNameStrategy.ELEMENT_NAME);
 		}
 		return super.visit(node);
 	}
@@ -275,16 +282,50 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 	 * @return the <code>basePath</code> value declared in the @CheckedTemplate
 	 *         annotation
 	 */
-	public static String getBasePath(Annotation checkedTemplateAnnotation) {
+	private static String getBasePath(Annotation checkedTemplateAnnotation) {
 		String basePath = null;
 		try {
-			Expression ignoreFragmentExpr = AnnotationUtils.getAnnotationMemberValueExpression(
-					checkedTemplateAnnotation, CHECKED_TEMPLATE_ANNOTATION_BASE_PATH);
-			basePath = AnnotationUtils.getString(ignoreFragmentExpr);
+			Expression basePathExpr = AnnotationUtils.getAnnotationMemberValueExpression(checkedTemplateAnnotation,
+					CHECKED_TEMPLATE_ANNOTATION_BASE_PATH);
+			basePath = AnnotationUtils.getString(basePathExpr);
 		} catch (Exception e) {
 			// Do nothing
 		}
 		return basePath;
+	}
+
+	/**
+	 * Returns the <code>defaultName</code> value declared in the @CheckedTemplate
+	 * annotation, relative to the templates root, to search the templates from.
+	 * <code>
+	 * @CheckedTemplate(defaultName=@CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+	 *</code>
+	 *
+	 * @param checkedTemplateAnnotation the CheckedTemplate annotation.
+	 * @return the <code>defaultName</code> value declared in the @CheckedTemplate
+	 *         annotation
+	 */
+	private static TemplateNameStrategy getDefaultName(Annotation checkedTemplateAnnotation) {
+		TemplateNameStrategy defaultName = TemplateNameStrategy.ELEMENT_NAME;
+		try {
+			Expression defaultNameExpr = AnnotationUtils.getAnnotationMemberValueExpression(checkedTemplateAnnotation,
+					CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME);
+			defaultName = getDefaultName(AnnotationUtils.getString(defaultNameExpr));
+		} catch (Exception e) {
+			// Do nothing
+		}
+		return defaultName;
+	}
+
+	private static TemplateNameStrategy getDefaultName(String defaultName) {
+		switch (defaultName) {
+		case CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME_HYPHENATED_ELEMENT_NAME:
+			return TemplateNameStrategy.HYPHENATED_ELEMENT_NAME;
+
+		case CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME_UNDERSCORED_ELEMENT_NAME:
+			return TemplateNameStrategy.UNDERSCORED_ELEMENT_NAME;
+		}
+		return TemplateNameStrategy.ELEMENT_NAME;
 	}
 
 	@Override
@@ -302,24 +343,28 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 	}
 
 	private void collectTemplateLink(String basePath, MethodDeclaration methodDeclaration, TypeDeclaration type,
-			boolean ignoreFragment) {
+			boolean ignoreFragment, TemplateNameStrategy templateNameStrategy) {
 		String className = null;
 		boolean innerClass = levelTypeDecl > 1;
 		if (innerClass) {
 			className = JDTTypeUtils.getSimpleClassName(typeRoot.getElementName());
 		}
 		String methodName = methodDeclaration.getName().getIdentifier();
-		collectTemplateLink(basePath, methodDeclaration, null, type, className, methodName, ignoreFragment);
+		collectTemplateLink(basePath, methodDeclaration, null, type, className, methodName, ignoreFragment,
+				templateNameStrategy);
 	}
 
 	private void collectTemplateLink(String basePath, ASTNode fieldOrMethod, StringLiteral locationAnnotation,
-			AbstractTypeDeclaration type, String className, String fieldOrMethodName, boolean ignoreFragment) {
+			AbstractTypeDeclaration type, String className, String fieldOrMethodName, boolean ignoreFragment,
+			TemplateNameStrategy templateNameStrategy) {
 		try {
 			String location = locationAnnotation != null ? locationAnnotation.getLiteralValue() : null;
 			IProject project = typeRoot.getJavaProject().getProject();
 			TemplatePathInfo templatePathInfo = location != null
-					? JDTQuteProjectUtils.getTemplatePath(basePath, null, location, ignoreFragment)
-					: JDTQuteProjectUtils.getTemplatePath(basePath, className, fieldOrMethodName, ignoreFragment);
+					? JDTQuteProjectUtils.getTemplatePath(basePath, null, location, ignoreFragment,
+							templateNameStrategy)
+					: JDTQuteProjectUtils.getTemplatePath(basePath, className, fieldOrMethodName, ignoreFragment,
+							templateNameStrategy);
 			IFile templateFile = null;
 			if (location == null) {
 				templateFile = getTemplateFile(project, templatePathInfo.getTemplateUri());
