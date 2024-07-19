@@ -1,0 +1,85 @@
+name: release
+
+on:
+    schedule:
+      - cron: '0 8 * * *'
+    workflow_dispatch:
+      inputs:
+        QUARKUS_LS_VERSION:
+          description: 'The (optional) release version (including qualifier) of quarkus-ls to use.'
+          type: string
+
+jobs:
+  should-build-change:
+    runs-on: ubuntu-latest
+    outputs:
+        repo-cache-hit: ${{ steps.cache-last-commit.outputs.cache-hit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: 'rgrunber/quarkus-ls'
+          fetch-depth: 2
+          path: quarkus-ls
+      - run: |
+          pushd quarkus-ls
+          git rev-parse HEAD >> ../lastCommit
+          popd
+      - name: Check New Changes
+        id: cache-last-commit
+        uses: actions/cache@v4
+        with:
+          path: lastCommit
+          key: lastCommit-${{ hashFiles('lastCommit') }}
+  packaging-job:
+    runs-on: ubuntu-latest
+    needs: should-build-change
+    if: ${{ needs.should-build-change.outputs.repo-cache-hit != 'true' || github.event_name != 'schedule' }}
+    steps:
+      - name: Checkout quarkus-ls
+        uses: actions/checkout@v4
+        with:
+          repository: rgrunber/quarkus-ls
+      - name: Cache Maven local repository
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+            !~/.m2/repository/com/redhat/microprofile
+          key: maven-local-${{ hashFiles('**/pom.xml') }}
+      - name: Set Up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+      - name: Update Version Number
+        if: ${{ inputs.QUARKUS_LS_VERSION != '' }}
+        run: |
+          ./quarkus.jdt.ext/mvnw -B -f quarkus.jdt.ext/pom.xml org.eclipse.tycho:tycho-versions-plugin:4.0.5:set-version -DnewVersion=${{ inputs.QUARKUS_LS_VERSION }} -Dtycho.mode=maven
+          ./quarkus.ls.ext/com.redhat.quarkus.ls/mvnw -B -f quarkus.ls.ext/com.redhat.quarkus.ls/pom.xml versions:set -DnewVersion=${{ inputs.QUARKUS_LS_VERSION }} -Dtycho.mode=maven
+          ./qute.jdt/mvnw -B -f qute.jdt/pom.xml org.eclipse.tycho:tycho-versions-plugin:4.0.5:set-version -DnewVersion=${{ inputs.QUARKUS_LS_VERSION }} -Dtycho.mode=maven
+          ./qute.ls/com.redhat.qute.ls/mvnw -B -f qute.ls/com.redhat.qute.ls/pom.xml versions:set -DnewVersion=${{ inputs.QUARKUS_LS_VERSION }} -Dtycho.mode=maven
+      - name: Build Quarkus/Qute LS & JDT Extensions
+        run: |
+          for dir in quarkus.jdt.ext quarkus.ls.ext/com.redhat.quarkus.ls qute.jdt qute.ls/com.redhat.qute.ls releng; do
+            pushd ${dir}
+            pomVersion=$(grep "<version>" pom.xml | head -1 | sed -e "s#.*<version>\\(.\\+\\)</version>.*#\\1#")
+            if [[ ${pomVersion} == *"-SNAPSHOT" ]]; then
+              ./mvnw -B clean verify -Dsurefire.timeout=3600 -Dmaven.test.failure.ignore=true
+            else
+              ./mvnw -B clean verify -Dsurefire.timeout=3600 -DskipTests
+            fi
+            popd
+          done
+      - name: Publish Quarkus & Qute to GH Release Tab
+        if: ${{ inputs.QUARKUS_LS_VERSION != '' }}
+        uses: "marvinpinto/action-automatic-releases@919008cf3f741b179569b7a6fb4d8860689ab7f0"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "${{ inputs.QUARKUS_LS_VERSION }}"
+          title: "Quarkus ${{ inputs.QUARKUS_LS_VERSION }}"
+          draft: true
+          files: |
+            quarkus.ls.ext/com.redhat.quarkus.ls/target/com.redhat.quarkus.ls-*.jar
+            qute.ls/com.redhat.qute.ls/target/com.redhat.qute.ls-uber.jar
+            releng/target/flat-repository/*

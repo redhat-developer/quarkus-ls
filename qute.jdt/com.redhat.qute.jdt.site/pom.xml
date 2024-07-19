@@ -15,4 +15,5 @@
 	<properties>
 		<skipDeployToJBossOrg>false</skipDeployToJBossOrg>
 	</properties>
+
 </project>
