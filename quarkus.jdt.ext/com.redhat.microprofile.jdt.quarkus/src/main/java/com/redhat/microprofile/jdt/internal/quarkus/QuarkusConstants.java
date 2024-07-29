@@ -56,10 +56,9 @@ public class QuarkusConstants {
 	public static final String SCHEDULED_ANNOTATION_DELAY_UNIT = "delayUnit";
 	public static final String SCHEDULED_ANNOTATION_DELAYED = "delayed";
 
-	public static final String[] SCHEDULED_SUPPORTED_PARTICIPANT_MEMBERS = {
-			SCHEDULED_ANNOTATION_CRON, SCHEDULED_ANNOTATION_EVERY, SCHEDULED_ANNOTATION_DELAY,
-			SCHEDULED_ANNOTATION_DELAYED, SCHEDULED_ANNOTATION_DELAY_UNIT
-	};
+	public static final String[] SCHEDULED_SUPPORTED_PARTICIPANT_MEMBERS = { SCHEDULED_ANNOTATION_CRON,
+			SCHEDULED_ANNOTATION_EVERY, SCHEDULED_ANNOTATION_DELAY, SCHEDULED_ANNOTATION_DELAYED,
+			SCHEDULED_ANNOTATION_DELAY_UNIT };
 	public static final String SCHEDULED_ANNOTATION_CONCURRENT_EXECUTION = "concurrentExecution";
 	public static final String SCHEDULED_ANNOTATION_SKIP_EXECUTION_IF = "skipExecutionIf";
 
@@ -131,6 +130,10 @@ public class QuarkusConstants {
 	public static final String DEPLOYMENT_ARTIFACT_PROPERTY = "deployment-artifact";
 
 	public static final String QUARKUS_RUNTIME_CLASS_NAME = "io.quarkus.runtime.LaunchMode";
+
+	public static final String QUARKUS_BUILD_ITEM_CLASS_NAME = "io.quarkus.builder.item.BuildItem";
+
+	public static final String QUARKUS_DIAGNOSTIC_SOURCE = "quarkus";
 
 	private QuarkusConstants() {
 	}
