@@ -74,6 +74,12 @@
       <jaxrs class="com.redhat.microprofile.jdt.internal.quarkus.renarde.java.RenardeJaxRsInfoProvider"/>
    </extension>
 
+   <!-- Quarkus Route support -->
+
+   <extension point="org.eclipse.lsp4mp.jdt.core.javaFeatureParticipants">
+      <jaxrs class="com.redhat.microprofile.jdt.internal.quarkus.route.java.ReactiveRouteJaxRsInfoProvider"/>
+   </extension>
+
    <!-- Quarkus Scheduled annotation -->
    
    <extension point="org.eclipse.lsp4mp.jdt.core.javaASTValidators">
