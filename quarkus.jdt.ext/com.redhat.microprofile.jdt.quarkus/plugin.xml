@@ -19,6 +19,13 @@
       <provider class="com.redhat.microprofile.jdt.internal.quarkus.core.properties.QuarkusConfigMappingProvider" />
    </extension>
 
+   <!-- Quarkus Builditems support -->
+   
+   <extension point="org.eclipse.lsp4mp.jdt.core.javaASTValidators">
+      <!-- Java validation for BuildItem: checks if the BuildItem is final or abstract-->
+      <validator class="com.redhat.microprofile.jdt.internal.quarkus.builditems.java.QuarkusBuildItemASTVisitor" />
+   </extension>
+
    <extension point="org.eclipse.lsp4mp.jdt.core.javaASTValidators">
       <!-- Java validation for the Quarkus @ConfigMapping annotation -->
       <validator class="com.redhat.microprofile.jdt.internal.quarkus.core.java.QuarkusConfigMappingASTVisitor" />
