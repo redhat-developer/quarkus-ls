@@ -40,11 +40,6 @@
 		<dev.build.timestamp>${maven.build.timestamp}</dev.build.timestamp>
 		<lsp4j.version>0.14.0</lsp4j.version>
 		<microprofile.ls.version>0.13.3-SNAPSHOT</microprofile.ls.version>
-		<jboss.releases.repo.id>jboss-releases-repository</jboss.releases.repo.id>
-		<jboss.releases.repo.url>https://repository.jboss.org/nexus/content/repositories/releases/</jboss.releases.repo.url>
-		<jboss.snapshots.repo.id>jboss-snapshots-repository</jboss.snapshots.repo.id>
-		<jboss.snapshots.repo.url>https://repository.jboss.org/nexus/content/repositories/snapshots/</jboss.snapshots.repo.url>
-		<jbossNexus>https://repository.jboss.org</jbossNexus>
 	</properties>
 	<repositories>
 		<repository>
@@ -117,16 +112,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.12</version>
-				<extensions>true</extensions>
-				<configuration>
-					<nexusUrl>${jbossNexus}/nexus/</nexusUrl>
-					<serverId>${jboss.releases.repo.id}</serverId>
-				</configuration>
-			</plugin>
 		</plugins>
 	</build>
 
@@ -174,16 +159,12 @@
 		</dependency>
 	</dependencies>
 
-	<distributionManagement>
- 		<repository>
-			<id>${jboss.releases.repo.id}</id>
-			<name>JBoss Releases Repository</name>
- 			<url>${jboss.releases.repo.url}</url>
-		</repository>
-		<snapshotRepository>
-			<id>${jboss.snapshots.repo.id}</id>
-			<name>JBoss Snapshots Repository</name>
-			<url>${jboss.snapshots.repo.url}</url>
-		</snapshotRepository>
-	</distributionManagement>
+    <distributionManagement>
+        <repository>
+            <id>internal.repo</id>
+            <name>Temporary Staging Repository</name>
+            <url>file://${project.basedir}/../../mvn-repo</url>
+        </repository>
+    </distributionManagement>
+
 </project>
