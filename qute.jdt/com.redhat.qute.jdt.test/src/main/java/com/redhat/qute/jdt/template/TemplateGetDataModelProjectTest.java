@@ -436,7 +436,7 @@ public class TemplateGetDataModelProjectTest {
 		List<DataModelParameter> helloParameters = helloTemplate.getParameters();
 		Assert.assertNotNull(helloParameters);
 
-		Assert.assertEquals(2, helloParameters.size());
+		Assert.assertEquals(1, helloParameters.size());
 
 		// static class Templates2 {
 		// static native TemplateInstance HelloWorld(String name);

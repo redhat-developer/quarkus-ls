@@ -102,7 +102,11 @@ public class TemplateRecordsSupport extends AbstractInterfaceImplementationDataM
 			parameter.setKey(field.getElementName());
 			parameter.setSourceType(
 					typeResolver.resolveTypeSignature(field.getTypeSignature(), field.getDeclaringType()));
-			template.getParameters().add(parameter);
+			if (template.getParameter(parameter.getKey()) == null) {
+				// Add parameter if it doesn't exist
+				// to avoid parameters duplication
+				template.addParameter(parameter);
+			}
 		}
 
 		// Collect data parameters for the given template

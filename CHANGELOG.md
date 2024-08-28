@@ -1,5 +1,11 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## [0.19.1](https://github.com/redhat-developer/quarkus-ls/milestone/22?closed=1) (August 29, 2024)
+
+### Bug Fixes
+
+- Version 18 release duplicate key issue. See [#975](https://github.com/redhat-developer/quarkus-ls/issues/988).
+
 ## [0.19.0](https://github.com/redhat-developer/quarkus-ls/milestone/21?closed=1) (August 26, 2024)
 
 ### Enhancements
