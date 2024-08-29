@@ -112,15 +112,21 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 	 * @return true if @CheckedTemplate annotation declares that fragment must be
 	 *         ignored and false otherwise.
 	 */
-	private static boolean isIgnoreFragments(IAnnotation checkedTemplateAnnotation) {
-		try {
-			Boolean ignoreFragments = AnnotationUtils.getAnnotationMemberValueAsBoolean(checkedTemplateAnnotation,
-					CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS);
-			return ignoreFragments != null ? ignoreFragments.booleanValue() : false;
-		} catch (Exception e) {
-			// Do nothing
-			return false;
+	public static boolean isIgnoreFragments(IAnnotation checkedTemplateAnnotation) {
+		boolean ignoreFragments = false;
+		if (checkedTemplateAnnotation != null) {
+
+			try {
+				Boolean result = AnnotationUtils.getAnnotationMemberValueAsBoolean(checkedTemplateAnnotation,
+						CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS);
+				if (result != null) {
+					ignoreFragments = result.booleanValue();
+				}
+			} catch (Exception e) {
+				// Do nothing
+			}
 		}
+		return ignoreFragments;
 	}
 
 	/**
@@ -134,16 +140,18 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 	 * @return the <code>basePath</code> value declared in the @CheckedTemplate
 	 *         annotation
 	 */
-	private static String getBasePath(IAnnotation checkedTemplateAnnotation) {
+	public static String getBasePath(IAnnotation checkedTemplateAnnotation) {
 		String basePath = null;
-		try {
-			for (IMemberValuePair pair : checkedTemplateAnnotation.getMemberValuePairs()) {
-				if (CHECKED_TEMPLATE_ANNOTATION_BASE_PATH.equalsIgnoreCase(pair.getMemberName())) {
-					basePath = AnnotationUtils.getValueAsString(pair);
+		if (checkedTemplateAnnotation != null) {
+			try {
+				for (IMemberValuePair pair : checkedTemplateAnnotation.getMemberValuePairs()) {
+					if (CHECKED_TEMPLATE_ANNOTATION_BASE_PATH.equalsIgnoreCase(pair.getMemberName())) {
+						basePath = AnnotationUtils.getValueAsString(pair);
+					}
 				}
+			} catch (Exception e) {
+				// Do nothing
 			}
-		} catch (Exception e) {
-			// Do nothing
 		}
 		return basePath;
 	}
@@ -159,21 +167,23 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 	 * @return the <code>defaultName</code> value declared in the @CheckedTemplate
 	 *         annotation
 	 */
-	private static TemplateNameStrategy getDefaultName(IAnnotation checkedTemplateAnnotation) {
+	public static TemplateNameStrategy getDefaultName(IAnnotation checkedTemplateAnnotation) {
 		TemplateNameStrategy defaultName = TemplateNameStrategy.ELEMENT_NAME;
-		try {
-			for (IMemberValuePair pair : checkedTemplateAnnotation.getMemberValuePairs()) {
-				if (CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME.equalsIgnoreCase(pair.getMemberName())) {
-					String value = AnnotationUtils.getValueAsString(pair);
-					if (value.endsWith("HYPHENATED_ELEMENT_NAME")) {
-						defaultName = TemplateNameStrategy.HYPHENATED_ELEMENT_NAME;
-					} else if (value.endsWith("UNDERSCORED_ELEMENT_NAME")) {
-						defaultName = TemplateNameStrategy.UNDERSCORED_ELEMENT_NAME;
+		if (checkedTemplateAnnotation != null) {
+			try {
+				for (IMemberValuePair pair : checkedTemplateAnnotation.getMemberValuePairs()) {
+					if (CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME.equalsIgnoreCase(pair.getMemberName())) {
+						String value = AnnotationUtils.getValueAsString(pair);
+						if (value.endsWith("HYPHENATED_ELEMENT_NAME")) {
+							defaultName = TemplateNameStrategy.HYPHENATED_ELEMENT_NAME;
+						} else if (value.endsWith("UNDERSCORED_ELEMENT_NAME")) {
+							defaultName = TemplateNameStrategy.UNDERSCORED_ELEMENT_NAME;
+						}
 					}
 				}
+			} catch (Exception e) {
+				// Do nothing
 			}
-		} catch (Exception e) {
-			// Do nothing
 		}
 		return defaultName;
 	}
@@ -193,11 +203,7 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 	private static void collectDataModelTemplateForCheckedTemplate(IType type, String basePath, boolean ignoreFragments,
 			TemplateNameStrategy templateNameStrategy, ITypeResolver typeResolver,
 			List<DataModelTemplate<DataModelParameter>> templates, IProgressMonitor monitor) throws JavaModelException {
-		boolean innerClass = type.getParent() != null && type.getParent().getElementType() == IJavaElement.TYPE;
-		String className = !innerClass ? null
-				: JDTTypeUtils.getSimpleClassName(
-						type.getCompilationUnit() != null ? type.getCompilationUnit().getElementName()
-								: type.getClassFile().getElementName());
+		String className = getParentClassName(type);
 
 		// Loop for each methods (book, book) and create a template data model per
 		// method.
@@ -238,6 +244,15 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 				collectParameters(method, typeResolver, template, monitor);
 			}
 		}
+	}
+
+	public static String getParentClassName(IType type) {
+		boolean innerClass = type.getParent() != null && type.getParent().getElementType() == IJavaElement.TYPE;
+		String className = !innerClass ? null
+				: JDTTypeUtils.getSimpleClassName(
+						type.getCompilationUnit() != null ? type.getCompilationUnit().getElementName()
+								: type.getClassFile().getElementName());
+		return className;
 	}
 
 	private static DataModelTemplate<DataModelParameter> createTemplateDataModel(String templateUri, IMethod method,

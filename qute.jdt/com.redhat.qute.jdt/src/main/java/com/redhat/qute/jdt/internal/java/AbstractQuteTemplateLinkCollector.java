@@ -33,6 +33,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.Annotation;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
@@ -180,25 +181,20 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 	@Override
 	public boolean visit(TypeDeclaration node) {
 		levelTypeDecl++;
-		List modifiers = node.modifiers();
-		for (Object modifier : modifiers) {
-			if (modifier instanceof Annotation) {
-				Annotation annotation = (Annotation) modifier;
-				if (AnnotationUtils.isMatchAnnotation(annotation, CHECKED_TEMPLATE_ANNOTATION)
-						|| AnnotationUtils.isMatchAnnotation(annotation, OLD_CHECKED_TEMPLATE_ANNOTATION)) {
-					// @CheckedTemplate
-					// public static class Templates {
-					// public static native TemplateInstance book(Book book);
-					boolean ignoreFragments = isIgnoreFragments(annotation);
-					String basePath = getBasePath(annotation);
-					TemplateNameStrategy templateNameStrategy = getDefaultName(annotation);
-					List body = node.bodyDeclarations();
-					for (Object declaration : body) {
-						if (declaration instanceof MethodDeclaration) {
-							collectTemplateLink(basePath, (MethodDeclaration) declaration, node, ignoreFragments,
-									templateNameStrategy);
-						}
-					}
+		Annotation checkedAnnotation = getCheckedAnnotation(node);
+		if (checkedAnnotation != null) {
+			// @CheckedTemplate
+			// public static class Templates {
+			// public static native TemplateInstance book(Book book);
+			boolean ignoreFragments = isIgnoreFragments(checkedAnnotation);
+			String basePath = getBasePath(checkedAnnotation);
+			TemplateNameStrategy templateNameStrategy = getDefaultName(checkedAnnotation);
+			List body = node.bodyDeclarations();
+			for (Object declaration : body) {
+				if (declaration instanceof MethodDeclaration methodDeclaration) {
+					String methodName = methodDeclaration.getName().getIdentifier();
+					collectTemplateLinkForMethodOrRecord(basePath, methodDeclaration, methodName, node, ignoreFragments,
+							templateNameStrategy);
 				}
 			}
 		}
@@ -215,8 +211,15 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 	@Override
 	public boolean visit(RecordDeclaration node) {
 		if (isImplementTemplateInstance(node)) {
+			// public class HelloResource {
+			// record Hello(String name) implements TemplateInstance {}
 			String recordName = node.getName().getIdentifier();
-			collectTemplateLink(null, node, null, node, null, recordName, false, TemplateNameStrategy.ELEMENT_NAME);
+			Annotation checkedAnnotation = getCheckedAnnotation(node);
+			boolean ignoreFragments = isIgnoreFragments(checkedAnnotation);
+			String basePath = getBasePath(checkedAnnotation);
+			TemplateNameStrategy templateNameStrategy = getDefaultName(checkedAnnotation);
+			collectTemplateLinkForMethodOrRecord(basePath, node, recordName, node, ignoreFragments,
+					templateNameStrategy);
 		}
 		return super.visit(node);
 	}
@@ -246,6 +249,20 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 		return false;
 	}
 
+	private static Annotation getCheckedAnnotation(BodyDeclaration node) {
+		List modifiers = node.modifiers();
+		for (Object modifier : modifiers) {
+			if (modifier instanceof Annotation) {
+				Annotation annotation = (Annotation) modifier;
+				if (AnnotationUtils.isMatchAnnotation(annotation, CHECKED_TEMPLATE_ANNOTATION)
+						|| AnnotationUtils.isMatchAnnotation(annotation, OLD_CHECKED_TEMPLATE_ANNOTATION)) {
+					return annotation;
+				}
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * Returns true if @CheckedTemplate annotation declares that fragment must be
 	 * ignored and false otherwise.
@@ -261,12 +278,14 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 	 */
 	private static boolean isIgnoreFragments(Annotation checkedTemplateAnnotation) {
 		Boolean ignoreFragment = null;
-		try {
-			Expression ignoreFragmentExpr = AnnotationUtils.getAnnotationMemberValueExpression(
-					checkedTemplateAnnotation, CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS);
-			ignoreFragment = AnnotationUtils.getBoolean(ignoreFragmentExpr);
-		} catch (Exception e) {
-			// Do nothing
+		if (checkedTemplateAnnotation != null) {
+			try {
+				Expression ignoreFragmentExpr = AnnotationUtils.getAnnotationMemberValueExpression(
+						checkedTemplateAnnotation, CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS);
+				ignoreFragment = AnnotationUtils.getBoolean(ignoreFragmentExpr);
+			} catch (Exception e) {
+				// Do nothing
+			}
 		}
 		return ignoreFragment != null ? ignoreFragment.booleanValue() : false;
 	}
@@ -284,12 +303,14 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 	 */
 	private static String getBasePath(Annotation checkedTemplateAnnotation) {
 		String basePath = null;
-		try {
-			Expression basePathExpr = AnnotationUtils.getAnnotationMemberValueExpression(checkedTemplateAnnotation,
-					CHECKED_TEMPLATE_ANNOTATION_BASE_PATH);
-			basePath = AnnotationUtils.getString(basePathExpr);
-		} catch (Exception e) {
-			// Do nothing
+		if (checkedTemplateAnnotation != null) {
+			try {
+				Expression basePathExpr = AnnotationUtils.getAnnotationMemberValueExpression(checkedTemplateAnnotation,
+						CHECKED_TEMPLATE_ANNOTATION_BASE_PATH);
+				basePath = AnnotationUtils.getString(basePathExpr);
+			} catch (Exception e) {
+				// Do nothing
+			}
 		}
 		return basePath;
 	}
@@ -307,12 +328,14 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 	 */
 	private static TemplateNameStrategy getDefaultName(Annotation checkedTemplateAnnotation) {
 		TemplateNameStrategy defaultName = TemplateNameStrategy.ELEMENT_NAME;
-		try {
-			Expression defaultNameExpr = AnnotationUtils.getAnnotationMemberValueExpression(checkedTemplateAnnotation,
-					CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME);
-			defaultName = getDefaultName(AnnotationUtils.getString(defaultNameExpr));
-		} catch (Exception e) {
-			// Do nothing
+		if (checkedTemplateAnnotation != null) {
+			try {
+				Expression defaultNameExpr = AnnotationUtils.getAnnotationMemberValueExpression(
+						checkedTemplateAnnotation, CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME);
+				defaultName = getDefaultName(AnnotationUtils.getString(defaultNameExpr));
+			} catch (Exception e) {
+				// Do nothing
+			}
 		}
 		return defaultName;
 	}
@@ -342,15 +365,15 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 		return parent != null && parent.getNodeType() == ASTNode.TYPE_DECLARATION ? (TypeDeclaration) parent : null;
 	}
 
-	private void collectTemplateLink(String basePath, MethodDeclaration methodDeclaration, TypeDeclaration type,
-			boolean ignoreFragment, TemplateNameStrategy templateNameStrategy) {
+	private void collectTemplateLinkForMethodOrRecord(String basePath, ASTNode methodOrRecord,
+			String methodOrRecordName, AbstractTypeDeclaration type, boolean ignoreFragment,
+			TemplateNameStrategy templateNameStrategy) {
 		String className = null;
-		boolean innerClass = levelTypeDecl > 1;
+		boolean innerClass = methodOrRecord instanceof RecordDeclaration ? levelTypeDecl >= 1 : levelTypeDecl > 1;
 		if (innerClass) {
 			className = JDTTypeUtils.getSimpleClassName(typeRoot.getElementName());
 		}
-		String methodName = methodDeclaration.getName().getIdentifier();
-		collectTemplateLink(basePath, methodDeclaration, null, type, className, methodName, ignoreFragment,
+		collectTemplateLink(basePath, methodOrRecord, null, type, className, methodOrRecordName, ignoreFragment,
 				templateNameStrategy);
 	}
 
