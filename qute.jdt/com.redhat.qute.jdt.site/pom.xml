@@ -6,7 +6,7 @@
 	<parent>
 		<artifactId>parent-qute</artifactId>
 		<groupId>com.redhat.microprofile</groupId>
-		<version>0.19.1-SNAPSHOT</version>
+		<version>0.19.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>com.redhat.qute.jdt.site</artifactId>
 	<packaging>eclipse-repository</packaging>

@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.redhat.microprofile</groupId>
 	<artifactId>com.redhat.qute.ls</artifactId>
-	<version>0.19.1-SNAPSHOT</version>
+	<version>0.19.2-SNAPSHOT</version>
 
 	<name>Qute Language Server</name>
 	<description>Qute Language Server</description>
