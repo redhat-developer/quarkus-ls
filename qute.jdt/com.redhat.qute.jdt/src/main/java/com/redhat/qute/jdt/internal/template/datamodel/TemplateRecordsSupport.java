@@ -11,13 +11,20 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.template.datamodel;
 
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_INSTANCE_INTERFACE;
+import static com.redhat.qute.jdt.internal.template.datamodel.CheckedTemplateSupport.getBasePath;
+import static com.redhat.qute.jdt.internal.template.datamodel.CheckedTemplateSupport.getDefaultName;
+import static com.redhat.qute.jdt.internal.template.datamodel.CheckedTemplateSupport.getParentClassName;
+import static com.redhat.qute.jdt.internal.template.datamodel.CheckedTemplateSupport.isIgnoreFragments;
 import static com.redhat.qute.jdt.utils.JDTQuteProjectUtils.getTemplatePath;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -28,6 +35,7 @@ import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 import com.redhat.qute.jdt.internal.template.TemplateDataSupport;
 import com.redhat.qute.jdt.template.datamodel.AbstractInterfaceImplementationDataModelProvider;
 import com.redhat.qute.jdt.template.datamodel.SearchContext;
+import com.redhat.qute.jdt.utils.AnnotationUtils;
 import com.redhat.qute.jdt.utils.TemplateNameStrategy;
 
 /**
@@ -37,6 +45,9 @@ import com.redhat.qute.jdt.utils.TemplateNameStrategy;
  * public class HelloResource {
 
  *  record Hello(String name) implements TemplateInstance {}
+ *  
+ *  &#64;CheckedTemplate(basePath="Foo", defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+ *  record HelloWorld(String name) implements TemplateInstance {}
  * 
  *  ...
  *  
@@ -79,12 +90,19 @@ public class TemplateRecordsSupport extends AbstractInterfaceImplementationDataM
 		templates.add(template);
 	}
 
-	private static DataModelTemplate<DataModelParameter> createTemplateDataModel(IType type, ITypeResolver typeResolver,
-			IProgressMonitor monitor) throws JavaModelException {
+	private static DataModelTemplate<DataModelParameter> createTemplateDataModel(IType recordType,
+			ITypeResolver typeResolver, IProgressMonitor monitor) throws JavaModelException {
 
-		String recordName = type.getElementName();
+		IAnnotation checkedTemplateAnnotation = AnnotationUtils.getAnnotation(recordType, CHECKED_TEMPLATE_ANNOTATION,
+				OLD_CHECKED_TEMPLATE_ANNOTATION);
+		boolean ignoreFragments = isIgnoreFragments(checkedTemplateAnnotation);
+		String basePath = getBasePath(checkedTemplateAnnotation);
+		TemplateNameStrategy templateNameStrategy = getDefaultName(checkedTemplateAnnotation);
+		String className = getParentClassName(recordType);
+
+		String recordName = recordType.getElementName();
 		// src/main/resources/templates/${recordName}.qute.html
-		String templateUri = getTemplatePath(null, null, recordName, true, TemplateNameStrategy.ELEMENT_NAME)
+		String templateUri = getTemplatePath(basePath, className, recordName, ignoreFragments, templateNameStrategy)
 				.getTemplateUri();
 
 		// Create template data model with:
@@ -94,10 +112,10 @@ public class TemplateRecordsSupport extends AbstractInterfaceImplementationDataM
 		DataModelTemplate<DataModelParameter> template = new DataModelTemplate<DataModelParameter>();
 		template.setParameters(new ArrayList<>());
 		template.setTemplateUri(templateUri);
-		template.setSourceType(type.getFullyQualifiedName());
+		template.setSourceType(recordType.getFullyQualifiedName());
 
 		// Collect data parameters from the record fields
-		for (IField field : type.getRecordComponents()) {
+		for (IField field : recordType.getRecordComponents()) {
 			DataModelParameter parameter = new DataModelParameter();
 			parameter.setKey(field.getElementName());
 			parameter.setSourceType(
@@ -110,7 +128,7 @@ public class TemplateRecordsSupport extends AbstractInterfaceImplementationDataM
 		}
 
 		// Collect data parameters for the given template
-		TemplateDataSupport.collectParametersFromDataMethodInvocation(type, template, monitor);
+		TemplateDataSupport.collectParametersFromDataMethodInvocation(recordType, template, monitor);
 		return template;
 	}
 

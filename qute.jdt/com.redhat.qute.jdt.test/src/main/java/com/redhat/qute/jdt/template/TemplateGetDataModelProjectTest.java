@@ -388,13 +388,23 @@ public class TemplateGetDataModelProjectTest {
 		Assert.assertNotNull(project);
 
 		// public class HelloResource {
+
 		// record Hello(String name) implements TemplateInstance {}
-		
-		// Hello
+
+		// record Bonjour(String name) implements TemplateInstance {}
+
+		// record Status() {}
+
+		// @CheckedTemplate(basePath="Foo",
+		// defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+		// record HelloWorld(String name) implements TemplateInstance {}
+
+		// Hello ->
+		// record Hello(String name) implements TemplateInstance {}
 		DataModelTemplate<DataModelParameter> helloTemplate = project
-				.findDataModelTemplate("src/main/resources/templates/Hello");
+				.findDataModelTemplate("src/main/resources/templates/HelloResource/Hello");
 		Assert.assertNotNull(helloTemplate);
-		Assert.assertEquals("src/main/resources/templates/Hello", helloTemplate.getTemplateUri());
+		Assert.assertEquals("src/main/resources/templates/HelloResource/Hello", helloTemplate.getTemplateUri());
 		Assert.assertEquals("org.acme.sample.HelloResource$Hello", helloTemplate.getSourceType());
 		Assert.assertNull(helloTemplate.getSourceField());
 		Assert.assertNull(helloTemplate.getSourceMethod());
@@ -406,12 +416,33 @@ public class TemplateGetDataModelProjectTest {
 
 		// record Hello(String name) implements TemplateInstance {}
 		assertParameter("name", "java.lang.String", false, helloParameters, 0);
-		
-		//  public TemplateInstance get(@QueryParam("name") String name) {
-        // return new Hello(name).data("foo", 100);
+
+		// public TemplateInstance get(@QueryParam("name") String name) {
+		// return new Hello(name).data("foo", 100);
 		assertParameter("foo", "int", true, helloParameters, 1);
+
+		// HelloWorld ->
+		// @CheckedTemplate(basePath="Foo",
+		// defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+		// record HelloWorld(String name) implements TemplateInstance {}
+		DataModelTemplate<DataModelParameter> helloWorldTemplate = project
+				.findDataModelTemplate("src/main/resources/templates/Foo/hello-world");
+		Assert.assertNotNull(helloWorldTemplate);
+		Assert.assertEquals("src/main/resources/templates/Foo/hello-world", helloWorldTemplate.getTemplateUri());
+		Assert.assertEquals("org.acme.sample.HelloResource$HelloWorld", helloWorldTemplate.getSourceType());
+		Assert.assertNull(helloWorldTemplate.getSourceField());
+		Assert.assertNull(helloWorldTemplate.getSourceMethod());
+
+		List<DataModelParameter> helloWorldParameters = helloWorldTemplate.getParameters();
+		Assert.assertNotNull(helloWorldParameters);
+
+		Assert.assertEquals(1, helloWorldParameters.size());
+
+		// record HelloWorld(String name) implements TemplateInstance {}
+		assertParameter("name", "java.lang.String", false, helloWorldParameters, 0);
+
 	}
-	
+
 	@Test
 	public void checkedTemplateWithDefaultName() throws Exception {
 		loadMavenProject(QuteMavenProjectName.qute_record);
@@ -423,7 +454,7 @@ public class TemplateGetDataModelProjectTest {
 
 		// public class HelloResource {
 		// record Hello(String name) implements TemplateInstance {}
-		
+
 		// Hello
 		DataModelTemplate<DataModelParameter> helloTemplate = project
 				.findDataModelTemplate("src/main/resources/templates/ItemResource/hello-world.html");
@@ -441,7 +472,7 @@ public class TemplateGetDataModelProjectTest {
 		// static class Templates2 {
 		// static native TemplateInstance HelloWorld(String name);
 		assertParameter("name", "java.lang.String", false, helloParameters, 0);
-		
+
 	}
 
 }

@@ -247,6 +247,10 @@ public class JavaDocumentLinkTest {
 
 		// record Status() {}
 
+		// @CheckedTemplate(basePath="Foo",
+		// defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+		// record HelloWorld(String name) implements TemplateInstance {}
+
 		IJavaProject javaProject = loadMavenProject(QuteMavenProjectName.qute_record);
 
 		QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
@@ -255,16 +259,22 @@ public class JavaDocumentLinkTest {
 
 		List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, getJDTUtils(),
 				new NullProgressMonitor());
-		assertEquals(2, links.size());
+		assertEquals(3, links.size());
 
-		String templateFileUri = javaProject.getProject().getFile("src/main/resources/templates/Hello.html")
+		String helloFileUri = javaProject.getProject().getFile("src/main/resources/templates/HelloResource/Hello.html")
+				.getLocationURI().toString();
+		String boujourFileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/HelloResource/Bonjour.html").getLocationURI().toString();
+		String helloWorldFileUri = javaProject.getProject().getFile("src/main/resources/templates/Foo/hello-world.html")
 				.getLocationURI().toString();
 
 		assertDocumentLink(links, //
-				dl(r(14, 11, 14, 16), //
-						templateFileUri, "Open `src/main/resources/templates/Hello.html`"), //
-				dl(r(16, 11, 16, 18), //
-						templateFileUri, "Create `src/main/resources/templates/Bonjour.html`"));
+				dl(r(15, 11, 15, 16), //
+						helloFileUri, "Open `src/main/resources/templates/HelloResource/Hello.html`"), //
+				dl(r(17, 11, 17, 18), //
+						boujourFileUri, "Create `src/main/resources/templates/HelloResource/Bonjour.html`"),
+				dl(r(22, 11, 22, 21), //
+						helloWorldFileUri, "Create `src/main/resources/templates/Foo/hello-world.html`"));
 	}
 
 	@Test
@@ -284,12 +294,12 @@ public class JavaDocumentLinkTest {
 				new NullProgressMonitor());
 		assertEquals(3, links.size());
 
-		String helloFileUri = javaProject.getProject().getFile("src/main/resources/templates/ItemResource/HelloWorld.html")
-				.getLocationURI().toString();
-		String hello2FileUri = javaProject.getProject().getFile("src/main/resources/templates/ItemResource/hello-world.html")
-				.getLocationURI().toString();
-		String hello3FileUri = javaProject.getProject().getFile("src/main/resources/templates/ItemResource/hello_world.html")
-				.getLocationURI().toString();
+		String helloFileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResource/HelloWorld.html").getLocationURI().toString();
+		String hello2FileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResource/hello-world.html").getLocationURI().toString();
+		String hello3FileUri = javaProject.getProject()
+				.getFile("src/main/resources/templates/ItemResource/hello_world.html").getLocationURI().toString();
 
 		assertDocumentLink(links, //
 				dl(r(19, 33, 19, 43), //
