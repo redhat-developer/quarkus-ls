@@ -213,7 +213,7 @@ public class QuteProject {
 	public String getUri() {
 		return uri;
 	}
-	
+
 	public List<QuteProject> getProjectDependencies() {
 		return projectDependencies;
 	}
@@ -423,6 +423,9 @@ public class QuteProject {
 	 * @return user tag by the given tagName and null otherwise.
 	 */
 	public UserTag findUserTag(String tagName) {
+		if (StringUtils.isEmpty(tagName)) {
+			return null;
+		}
 		// Source tags
 		Collection<UserTag> tags = getSourceUserTags();
 		for (UserTag userTag : tags) {
@@ -1514,6 +1517,5 @@ public class QuteProject {
 		return projectRegistry.getJavadoc(new QuteJavadocParams(typeName, getUri(), javaMemberInfo.getName(),
 				signature, hasMarkdown ? DocumentFormat.Markdown : DocumentFormat.PlainText));
 	}
-	
 
 }
