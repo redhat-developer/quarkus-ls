@@ -29,7 +29,7 @@ import com.redhat.qute.settings.QuteInlayHintSettings;
  *
  */
 public class QuteInlayHintTest {
-
+	
 	@Test
 	public void aliasForSection() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
@@ -206,6 +206,12 @@ public class QuteInlayHintTest {
 						ihLabel("Object", "Open `java.lang.Object` Java type.", cd("java.lang.Object"))));
 	}
 
+	@Test
+	public void nullTagName() throws Exception {
+		String template = "{#";
+		testInlayHintFor(template);
+	}
+	
 	private static Command cd(String javaType) {
 		return InlayHintASTVistor.createOpenJavaTypeCommand(javaType, QuteQuickStartProject.PROJECT_URI);
 	}
