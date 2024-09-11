@@ -14,7 +14,7 @@
     <tycho.extras.version>${tycho.version}</tycho.extras.version>
     <tycho.scmUrl>scm:git:https://github.com/redhat-developer/quarkus-ls</tycho.scmUrl>
     <tycho.generateSourceReferences>true</tycho.generateSourceReferences>
-    <jdt.ls.version>1.39.0-SNAPSHOT</jdt.ls.version>
+    <jdt.ls.version>1.40.0-SNAPSHOT</jdt.ls.version>
     <tycho.test.platformArgs />
     <tycho.test.jvmArgs>-Xmx4G -DDetectVMInstallationsJob.disabled=true ${tycho.test.platformArgs}</tycho.test.jvmArgs>
     <lsp4mp.p2.url>https://download.eclipse.org/lsp4mp/snapshots/0.12.0/repository/</lsp4mp.p2.url>
