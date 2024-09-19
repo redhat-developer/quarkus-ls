@@ -456,6 +456,11 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 		if (type == null || !type.isSimpleType()) {
 			return false;
 		}
-		return (TEMPLATE_CLASS.equals(((SimpleType) type).resolveBinding().getQualifiedName().toString()));
+		ITypeBinding binding = ((SimpleType) type).resolveBinding();
+		if (binding == null) {
+			// ex : when type=Integer
+			return false;
+		}
+		return TEMPLATE_CLASS.equals(binding.getQualifiedName());
 	}
 }

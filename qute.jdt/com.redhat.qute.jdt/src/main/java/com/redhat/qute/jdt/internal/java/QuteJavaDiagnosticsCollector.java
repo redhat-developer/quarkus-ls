@@ -80,9 +80,12 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
 		}
 		case NoMatchingTemplate: {			
 			ITypeBinding binding = type.resolveBinding();
-			String fullQualifiedName = ((IType) binding.getJavaElement()).getFullyQualifiedName();
-			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, error, path, fullQualifiedName);
-			this.diagnostics.add(diagnostic);
+			if (binding != null) {
+				String fullQualifiedName = ((IType) binding.getJavaElement()).getFullyQualifiedName();
+				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, error, path,
+						fullQualifiedName);
+				this.diagnostics.add(diagnostic);
+			}
 			break;
 		}
 		}
