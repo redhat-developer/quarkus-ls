@@ -73,6 +73,10 @@ public class OllamaItemMetadataProvider implements ItemMetadataProvider {
 
 	@Override
 	public void update(PropertiesModel document) {
+		if (document == null) {
+			// Java sources changes, do nothing
+			return;
+		}
 		// Called when application.properties file is opened or updated (when user type
 		// something in the file).
 		boolean hasModelProperty = getProperty(document, QUARKUS_LANGCHAIN4J_OLLAMA_CHAT_MODEL_MODEL_ID_KEY) != null;
