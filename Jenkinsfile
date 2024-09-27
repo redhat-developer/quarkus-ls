@@ -22,36 +22,6 @@ pipeline {
         '''
       }
     }
-    stage ("Deploy to JBoss.org") {
-      steps {
-        sh '''
-          WORKSPACE_SAV=${WORKSPACE}
-          export JAVA_HOME="${NATIVE_TOOLS}${SEP}openjdk17_last"
-          MVN="${COMMON_TOOLS}${SEP}maven3-latest/bin/mvn -V -Dmaven.repo.local=${WORKSPACE}/.repository/ -B -ntp"
-          BUILD_TIMESTAMP=`date -u +%Y-%m-%d_%H-%M-%S`
-
-          pom=${WORKSPACE_SAV}/quarkus.jdt.ext/pom.xml
-
-          pomVersion=$(grep "<version>" ${pom} | head -1 | sed -e "s#.*<version>\\(.\\+\\)</version>.*#\\1#")
-          WORKSPACE=${WORKSPACE_SAV}/quarkus.jdt.ext/com.redhat.microprofile.jdt.quarkus.site/target/releng-scripts
-          if [[ ${pomVersion} == *"-SNAPSHOT" ]]; then
-            ${MVN} -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/snapshots/builds/quarkus-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=3600 -Dmaven.test.failure.ignore=true
-          else
-            ${MVN} -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/stable/builds/quarkus-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=3600 -Dmaven.test.failure.ignore=true -DdeployNumbuildstokeep=1000 -DdeployNumbuildstolink=1000 -DskipTests
-          fi
-
-          pom=${WORKSPACE_SAV}/qute.jdt/pom.xml
-
-          pomVersion=$(grep "<version>" ${pom} | head -1 | sed -e "s#.*<version>\\(.\\+\\)</version>.*#\\1#")
-          WORKSPACE=${WORKSPACE_SAV}/qute.jdt/com.redhat.qute.jdt.site/target/releng-scripts
-          if [[ ${pomVersion} == *"-SNAPSHOT" ]]; then
-            ${MVN} -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/snapshots/builds/qute-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=3600 -Dmaven.test.failure.ignore=true
-          else
-            ${MVN} -f ${pom} -Pdeploy-to-jboss.org clean deploy -DJOB_NAME=${JOB_NAME} -DBUILD_NUMBER=${BUILD_NUMBER} -DBUILD_TIMESTAMP=${BUILD_TIMESTAMP} -DdeployTargetFolder=vscode/stable/builds/qute-jdt/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/repo/ -Dsurefire.timeout=3600 -Dmaven.test.failure.ignore=true -DdeployNumbuildstokeep=1000 -DdeployNumbuildstolink=1000 -DskipTests
-          fi
-        '''
-      }
-    }
     stage ("Deploy to Nexus") {
       steps {
         withCredentials([usernamePassword(credentialsId: 'hudson-services-id', usernameVariable: 'DEPLOY_USERNAME', passwordVariable: 'DEPLOY_PASSWORD')]) {
