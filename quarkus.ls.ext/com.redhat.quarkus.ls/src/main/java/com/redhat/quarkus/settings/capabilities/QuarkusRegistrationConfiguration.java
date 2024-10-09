@@ -12,14 +12,15 @@
  */
 package com.redhat.quarkus.settings.capabilities;
 
-import static org.eclipse.lsp4mp.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_FORMATTING;
-import static org.eclipse.lsp4mp.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_RANGE_FORMATTING;
+import java.util.List;
 
 import org.eclipse.lsp4j.DocumentFilter;
 import org.eclipse.lsp4j.Registration;
 import org.eclipse.lsp4j.TextDocumentRegistrationOptions;
-
+import org.eclipse.lsp4mp.MicroProfileLanguageIds;
 import org.eclipse.lsp4mp.settings.capabilities.IMicroProfileRegistrationConfiguration;
+
+import com.redhat.quarkus.QuarkusLanguageIds;
 
 /**
  * Specific Quarkus LSP Registration configuration
@@ -29,18 +30,16 @@ public class QuarkusRegistrationConfiguration implements IMicroProfileRegistrati
 
 	@Override
 	public void configure(Registration registration) {
-		switch (registration.getMethod()) {
-		case TEXT_DOCUMENT_FORMATTING:
-		case TEXT_DOCUMENT_RANGE_FORMATTING:
-			// add "quarkus-properties" as language document filter for formatting
-			((TextDocumentRegistrationOptions) registration.getRegisterOptions()).getDocumentSelector()
-					.add(new DocumentFilter("quarkus-properties", null, null));
-			break;
-		default:
-			break;
-
+		if (registration.getRegisterOptions() instanceof TextDocumentRegistrationOptions) {
+			List<DocumentFilter> documentSelector = ((TextDocumentRegistrationOptions) registration
+					.getRegisterOptions()).getDocumentSelector();
+			if (documentSelector != null && documentSelector.stream().anyMatch(filter -> filter != null
+					&& MicroProfileLanguageIds.MICROPROFILE_PROPERTIES.equals(filter.getLanguage()))) {
+				// Add "quarkus-properties" in the list of filter which contains
+				// "microprofile-properties"
+				documentSelector.add(new DocumentFilter(QuarkusLanguageIds.QUARKUS_PROPERTIES, null, null));
+			}
 		}
-
 	}
 
 }

@@ -15,7 +15,6 @@ import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.CODE_LENS_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.COMPLETION_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_CODELENS_OPTIONS;
-import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_COMPLETION_OPTIONS;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_DOCUMENT_LINK_OPTIONS;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DOCUMENT_DEFINITION_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DOCUMENT_HIGHLIGHT_ID;
@@ -44,20 +43,35 @@ import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.WORKSPACE_WATCHED_FILES_ID;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.eclipse.lsp4j.ClientCapabilities;
+import org.eclipse.lsp4j.CodeActionKind;
+import org.eclipse.lsp4j.CodeActionRegistrationOptions;
+import org.eclipse.lsp4j.CompletionRegistrationOptions;
+import org.eclipse.lsp4j.DefinitionRegistrationOptions;
 import org.eclipse.lsp4j.DidChangeWatchedFilesRegistrationOptions;
+import org.eclipse.lsp4j.DocumentFilter;
+import org.eclipse.lsp4j.DocumentHighlightRegistrationOptions;
+import org.eclipse.lsp4j.DocumentSymbolRegistrationOptions;
 import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.FileSystemWatcher;
+import org.eclipse.lsp4j.HoverRegistrationOptions;
+import org.eclipse.lsp4j.InlayHintRegistrationOptions;
+import org.eclipse.lsp4j.LinkedEditingRangeRegistrationOptions;
+import org.eclipse.lsp4j.ReferenceRegistrationOptions;
 import org.eclipse.lsp4j.Registration;
 import org.eclipse.lsp4j.RegistrationParams;
+import org.eclipse.lsp4j.RenameOptions;
+import org.eclipse.lsp4j.TextDocumentRegistrationOptions;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 
+import com.redhat.qute.QuteLanguageIds;
 import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
 
 /**
@@ -80,43 +94,63 @@ public class QuteCapabilityManager {
 	 */
 	public void initializeCapabilities() {
 		if (this.getClientCapabilities().isCodeActionDynamicRegistered()) {
-			registerCapability(CODE_ACTION_ID, TEXT_DOCUMENT_CODE_ACTION, ServerCapabilitiesConstants.DEFAULT_CODE_ACTION_OPTIONS);
+			// Code action is only available for Qute templates
+			CodeActionRegistrationOptions options = new CodeActionRegistrationOptions(
+					Arrays.asList(CodeActionKind.QuickFix, CodeActionKind.Empty));
+			options.setResolveProvider(true);
+			registerCapability(CODE_ACTION_ID, TEXT_DOCUMENT_CODE_ACTION, options, QuteLanguageIds.QUTE_ALL);
 		}
 		if (this.getClientCapabilities().isCodeLensDynamicRegistered()) {
+			// Code Lens is available for Qute templates and Java both
 			registerCapability(CODE_LENS_ID, TEXT_DOCUMENT_CODE_LENS, DEFAULT_CODELENS_OPTIONS);
 		}
 		if (this.getClientCapabilities().isCompletionDynamicRegistrationSupported()) {
-			registerCapability(COMPLETION_ID, TEXT_DOCUMENT_COMPLETION, DEFAULT_COMPLETION_OPTIONS);
+			// Completion is only available for Qute templates
+			CompletionRegistrationOptions options = new CompletionRegistrationOptions(
+					Arrays.asList("{", "@", "#", ".", ":", "$", "!"), false);
+			registerCapability(COMPLETION_ID, TEXT_DOCUMENT_COMPLETION, options, QuteLanguageIds.QUTE_ALL);
 		}
 		if (this.getClientCapabilities().isDefinitionDynamicRegistered()) {
-			registerCapability(DOCUMENT_DEFINITION_ID, TEXT_DOCUMENT_DEFINITION);
-		}
-		if (this.getClientCapabilities().isDocumentLinkDynamicRegistered()) {
-			registerCapability(DOCUMENT_DEFINITION_ID, TEXT_DOCUMENT_DEFINITION);
+			// Definition is only available for Qute templates
+			registerCapability(DOCUMENT_DEFINITION_ID, TEXT_DOCUMENT_DEFINITION, new DefinitionRegistrationOptions(),
+					QuteLanguageIds.QUTE_ALL);
 		}
 		if (this.getClientCapabilities().isDocumentHighlightDynamicRegistered()) {
-			registerCapability(DOCUMENT_HIGHLIGHT_ID, TEXT_DOCUMENT_HIGHLIGHT);
+			// Document highlight is only available for Qute templates
+			registerCapability(DOCUMENT_HIGHLIGHT_ID, TEXT_DOCUMENT_HIGHLIGHT,
+					new DocumentHighlightRegistrationOptions(), QuteLanguageIds.QUTE_ALL);
 		}
 		if (this.getClientCapabilities().isDocumentLinkDynamicRegistered()) {
+			// Document link is available for Qute templates and Java both
 			registerCapability(DOCUMENT_LINK_ID, TEXT_DOCUMENT_DOCUMENT_LINK, DEFAULT_DOCUMENT_LINK_OPTIONS);
 		}
 		if (this.getClientCapabilities().isDocumentSymbolDynamicRegistrationSupported()) {
-			registerCapability(DOCUMENT_SYMBOL_ID, TEXT_DOCUMENT_DOCUMENT_SYMBOL);
+			// Document symbol is only available for Qute templates
+			registerCapability(DOCUMENT_SYMBOL_ID, TEXT_DOCUMENT_DOCUMENT_SYMBOL,
+					new DocumentSymbolRegistrationOptions(), QuteLanguageIds.QUTE_ALL);
 		}
 		if (this.getClientCapabilities().isHoverDynamicRegistered()) {
-			registerCapability(HOVER_ID, TEXT_DOCUMENT_HOVER);
+			// Hover is only available for Qute templates
+			registerCapability(HOVER_ID, TEXT_DOCUMENT_HOVER, new HoverRegistrationOptions(), QuteLanguageIds.QUTE_ALL);
 		}
 		if (this.getClientCapabilities().isLinkedEditingRangeDynamicRegistered()) {
-			registerCapability(LINKED_EDITING_RANGE_ID, TEXT_DOCUMENT_LINKED_EDITING_RANGE);
+			// Linked editing range is only available for Qute templates
+			registerCapability(LINKED_EDITING_RANGE_ID, TEXT_DOCUMENT_LINKED_EDITING_RANGE,
+					new LinkedEditingRangeRegistrationOptions(), QuteLanguageIds.QUTE_ALL);
 		}
 		if (this.getClientCapabilities().isReferencesDynamicRegistrationSupported()) {
-			registerCapability(REFERENCES_ID, TEXT_DOCUMENT_REFERENCES);
+			// References is only available for Qute templates
+			registerCapability(REFERENCES_ID, TEXT_DOCUMENT_REFERENCES, new ReferenceRegistrationOptions(),
+					QuteLanguageIds.QUTE_ALL);
 		}
 		if (this.getClientCapabilities().isRenameDynamicRegistered()) {
-			registerCapability(RENAME_ID, TEXT_DOCUMENT_RENAME);
+			// Rename is only available for Qute templates
+			registerCapability(RENAME_ID, TEXT_DOCUMENT_RENAME, new RenameOptions(), QuteLanguageIds.QUTE_ALL);
 		}
 		if (this.getClientCapabilities().isInlayHintDynamicRegistered()) {
-			registerCapability(INLAY_HINT_ID, TEXT_DOCUMENT_INLAY_HINT);
+			// Inlay Hint is only available for Qute templates
+			registerCapability(INLAY_HINT_ID, TEXT_DOCUMENT_INLAY_HINT, new InlayHintRegistrationOptions(),
+					QuteLanguageIds.QUTE_ALL);
 		}
 		if (this.getClientCapabilities().isDidChangeWatchedFilesRegistered()) {
 			registerWatchedFiles();
@@ -150,12 +184,15 @@ public class QuteCapabilityManager {
 		return registeredCapabilities;
 	}
 
-	private void registerCapability(String id, String method) {
-		registerCapability(id, method, null);
-	}
-
-	private void registerCapability(String id, String method, Object options) {
+	private void registerCapability(String id, String method, Object options, String... languageIds) {
 		if (registeredCapabilities.add(id)) {
+			if (languageIds != null && languageIds.length > 0) {
+				List<DocumentFilter> documentSelector = new ArrayList<>();
+				((TextDocumentRegistrationOptions) options).setDocumentSelector(documentSelector);
+				for (String languageId : languageIds) {
+					documentSelector.add(new DocumentFilter(languageId, null, null));
+				}
+			}
 			Registration registration = new Registration(id, method, options);
 			RegistrationParams registrationParams = new RegistrationParams(Collections.singletonList(registration));
 			languageClient.registerCapability(registrationParams);

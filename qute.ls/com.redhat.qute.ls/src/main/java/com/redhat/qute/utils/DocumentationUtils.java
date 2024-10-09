@@ -21,6 +21,7 @@ import java.util.List;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 
+import com.redhat.qute.QuteLanguageIds;
 import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
@@ -94,7 +95,7 @@ public class DocumentationUtils {
 			documentation.append(":");
 			documentation.append(System.lineSeparator());
 			if (markdown) {
-				documentation.append("```qute-html");
+				documentation.append("```" + QuteLanguageIds.QUTE_HTML);
 				documentation.append(System.lineSeparator());
 			}
 			for (int i = 0; i < resolver.getSample().size(); i++) {
@@ -249,7 +250,7 @@ public class DocumentationUtils {
 			documentation.append(":");
 			documentation.append(System.lineSeparator());
 			if (markdown) {
-				documentation.append("```qute-html");
+				documentation.append("```" + QuteLanguageIds.QUTE_HTML);
 				documentation.append(System.lineSeparator());
 			}
 			for (int i = 0; i < operator.getSample().size(); i++) {
