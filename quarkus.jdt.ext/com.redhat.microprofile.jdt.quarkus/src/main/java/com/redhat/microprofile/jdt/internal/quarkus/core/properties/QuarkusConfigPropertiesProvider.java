@@ -14,8 +14,8 @@ import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.runtime.util.StringUtil.join;
 import static io.quarkus.runtime.util.StringUtil.lowerCase;
 import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
-import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getFirstAnnotation;
 import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
+import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getFirstAnnotation;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.findType;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getEnclosedType;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getPropertyType;
@@ -57,7 +57,6 @@ import org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils;
 import com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants;
 import com.redhat.microprofile.jdt.quarkus.JDTQuarkusUtils;
 
-import io.quarkus.arc.config.ConfigProperties;
 import io.quarkus.deployment.bean.JavaBeanUtil;
 
 /**
@@ -72,12 +71,10 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 
 	private static final Logger LOGGER = Logger.getLogger(QuarkusConfigPropertiesProvider.class.getName());
 
-	private static final String[] ANNOTATION_NAMES = {
-		QuarkusConstants.CONFIG_PROPERTIES_ANNOTATION
-	};
+	private static final String[] ANNOTATION_NAMES = { QuarkusConstants.CONFIG_PROPERTIES_ANNOTATION };
 
 	private static final String CONFIG_PROPERTIES_CONTEXT_KEY = QuarkusConfigPropertiesProvider.class.getName()
-		+ "#ConfigPropertiesContext";
+			+ "#ConfigPropertiesContext";
 
 	@Override
 	protected String[] getAnnotationNames() {
@@ -114,11 +111,10 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 		public String getDefaultNamingStrategy() throws JavaModelException {
 			if (defaultNamingStrategy == null) {
 				defaultNamingStrategy = JDTMicroProfileProjectManager.getInstance()
-					.getJDTMicroProfileProject(javaProject)
-					.getProperty(QuarkusConstants.QUARKUS_ARC_CONFIG_PROPERTIES_DEFAULT_NAMING_STRATEGY, null);
+						.getJDTMicroProfileProject(javaProject)
+						.getProperty(QuarkusConstants.QUARKUS_ARC_CONFIG_PROPERTIES_DEFAULT_NAMING_STRATEGY, null);
 				if (defaultNamingStrategy != null) {
-					defaultNamingStrategy = QuarkusConstants.NAMING_STRATEGY_PREFIX
-						+ defaultNamingStrategy.trim().toUpperCase();
+					defaultNamingStrategy = defaultNamingStrategy.trim().toUpperCase();
 				} else {
 					defaultNamingStrategy = "";
 				}
@@ -134,24 +130,24 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 
 	@Override
 	protected void processAnnotation(IJavaElement javaElement, IAnnotation annotation, String annotationName,
-		SearchContext context, IProgressMonitor monitor) throws JavaModelException {
+			SearchContext context, IProgressMonitor monitor) throws JavaModelException {
 		ConfigPropertiesContext configPropertiesContext = (ConfigPropertiesContext) context
-			.get(CONFIG_PROPERTIES_CONTEXT_KEY);
+				.get(CONFIG_PROPERTIES_CONTEXT_KEY);
 		processConfigProperties(javaElement, annotation, configPropertiesContext, context.getCollector(), monitor);
 	}
 
 	// ------------- Process Quarkus ConfigProperties -------------
 
 	private void processConfigProperties(IJavaElement javaElement, IAnnotation configPropertiesAnnotation,
-		ConfigPropertiesContext configPropertiesContext, IPropertiesCollector collector, IProgressMonitor monitor)
-		throws JavaModelException {
+			ConfigPropertiesContext configPropertiesContext, IPropertiesCollector collector, IProgressMonitor monitor)
+			throws JavaModelException {
 		if (javaElement.getElementType() != IJavaElement.TYPE) {
 			return;
 		}
 		IType configPropertiesType = (IType) javaElement;
 		// Location (JAR, src)
 		IPackageFragmentRoot packageRoot = (IPackageFragmentRoot) javaElement
-			.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
+				.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
 		String location = packageRoot.getPath().toString();
 		// Quarkus Extension name
 		String extensionName = JDTQuarkusUtils.getExtensionName(location);
@@ -175,27 +171,27 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 						}
 						if (method.getNumberOfParameters() > 0) {
 							LOGGER.log(Level.INFO,
-								"Method " + method.getElementName() + " of interface "
-									+ method.getDeclaringType().getFullyQualifiedName()
-									+ " is not a getter method since it defined parameters");
+									"Method " + method.getElementName() + " of interface "
+											+ method.getDeclaringType().getFullyQualifiedName()
+											+ " is not a getter method since it defined parameters");
 							continue;
 						}
 						if (JDTTypeUtils.isVoidReturnType(method)) {
 							LOGGER.log(Level.INFO,
-								"Method " + method.getElementName() + " of interface "
-									+ method.getDeclaringType().getFullyQualifiedName()
-									+ " is not a getter method since it returns void");
+									"Method " + method.getElementName() + " of interface "
+											+ method.getDeclaringType().getFullyQualifiedName()
+											+ " is not a getter method since it returns void");
 							continue;
 						}
 						String name = null;
 						String defaultValue = null;
 						IAnnotation configPropertyAnnotation = getFirstAnnotation(method,
-							MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION);
+								MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION);
 						if (configPropertyAnnotation != null) {
 							name = getAnnotationMemberValue(configPropertyAnnotation,
-								MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_NAME);
+									MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_NAME);
 							defaultValue = getAnnotationMemberValue(configPropertyAnnotation,
-								MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
+									MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
 						}
 						if (name == null) {
 							name = getPropertyNameFromMethodName(method);
@@ -205,7 +201,7 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 						}
 
 						String propertyName = prefix + "."
-							+ convertName(name, method, configPropertiesAnnotation, configPropertiesContext);
+								+ convertName(name, method, configPropertiesAnnotation, configPropertiesContext);
 						String methodResultTypeName = getResolvedResultTypeName(method);
 						IType returnType = findType(method.getJavaProject(), methodResultTypeName);
 
@@ -225,11 +221,11 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 
 						if (isSimpleFieldType(returnType, methodResultTypeName)) {
 							ItemMetadata metadata = super.addItemMetadata(collector, propertyName, type, description,
-								sourceType, null, sourceMethod, defaultValue, extensionName, method.isBinary());
+									sourceType, null, sourceMethod, defaultValue, extensionName, method.isBinary());
 							JDTQuarkusUtils.updateConverterKinds(metadata, method, enclosedType);
 						} else {
 							populateConfigObject(returnType, propertyName, extensionName, new HashSet<>(),
-								configPropertiesAnnotation, configPropertiesContext, collector, monitor);
+									configPropertiesAnnotation, configPropertiesContext, collector, monitor);
 						}
 
 					}
@@ -240,7 +236,7 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 			// https://github.com/quarkusio/quarkus/blob/e8606513e1bd14f0b1aaab7f9969899bd27c55a3/extensions/arc/deployment/src/main/java/io/quarkus/arc/deployment/configproperties/ClassConfigPropertiesUtil.java#L117
 			// TODO : validation
 			populateConfigObject(configPropertiesType, prefix, extensionName, new HashSet<>(),
-				configPropertiesAnnotation, configPropertiesContext, collector, monitor);
+					configPropertiesAnnotation, configPropertiesContext, collector, monitor);
 		}
 	}
 
@@ -250,9 +246,9 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 	}
 
 	private void populateConfigObject(IType configPropertiesType, String prefixStr, String extensionName,
-		Set<IType> typesAlreadyProcessed, IAnnotation configPropertiesAnnotation,
-		ConfigPropertiesContext configPropertiesContext, IPropertiesCollector collector, IProgressMonitor monitor)
-		throws JavaModelException {
+			Set<IType> typesAlreadyProcessed, IAnnotation configPropertiesAnnotation,
+			ConfigPropertiesContext configPropertiesContext, IPropertiesCollector collector, IProgressMonitor monitor)
+			throws JavaModelException {
 		if (typesAlreadyProcessed.contains(configPropertiesType)) {
 			return;
 		}
@@ -272,8 +268,9 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 				if (setter == null) {
 					if (!Flags.isPublic(field.getFlags()) || Flags.isFinal(field.getFlags())) {
 						LOGGER.log(Level.INFO,
-							"Configuration properties class " + configClassInfo + " does not have a setter for field "
-								+ field + " nor is the field a public non-final field");
+								"Configuration properties class " + configClassInfo
+										+ " does not have a setter for field " + field
+										+ " nor is the field a public non-final field");
 						continue;
 					}
 					useFieldAccess = true;
@@ -289,7 +286,7 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 				// build a DOM CompilationUnit to extract assigned value.
 				final String defaultValue = null;
 				String propertyName = prefixStr + "."
-					+ convertName(name, field, configPropertiesAnnotation, configPropertiesContext);
+						+ convertName(name, field, configPropertiesAnnotation, configPropertiesContext);
 
 				String fieldTypeName = getResolvedTypeName(field);
 				IType fieldClass = findType(field.getJavaProject(), fieldTypeName);
@@ -310,33 +307,32 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 					super.updateHint(collector, enclosedType);
 
 					ItemMetadata metadata = super.addItemMetadata(collector, propertyName, type, description,
-						sourceType, sourceField, null, defaultValue, extensionName, field.isBinary());
+							sourceType, sourceField, null, defaultValue, extensionName, field.isBinary());
 					JDTQuarkusUtils.updateConverterKinds(metadata, field, enclosedType);
 				} else {
 					populateConfigObject(fieldClass, propertyName, extensionName, typesAlreadyProcessed,
-						configPropertiesAnnotation, configPropertiesContext, collector, monitor);
+							configPropertiesAnnotation, configPropertiesContext, collector, monitor);
 				}
 			}
 		}
 	}
 
 	private static String convertName(String name, IMember member, IAnnotation configPropertiesAnnotation,
-		ConfigPropertiesContext configPropertiesContext) throws JavaModelException {
+			ConfigPropertiesContext configPropertiesContext) throws JavaModelException {
 		if (!configPropertiesContext.isSupportNamingStrategy()) {
 			// Quarkus < 1.2, the property name is the same than the method, field name
 			return name;
 		}
 		// Quarkus >=1.2
 		// check if the ConfigProperties use the namingStrategy
-		String namingStrategy = getAnnotationMemberValue(configPropertiesAnnotation,
-			QuarkusConstants.CONFIG_PROPERTIES_ANNOTATION_NAMING_STRATEGY);
+		ConfigProperties.NamingStrategy namingStrategy = getNamingStrategy(configPropertiesAnnotation);
 		if (namingStrategy != null) {
 			switch (namingStrategy) {
-			case QuarkusConstants.CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_FROM_CONFIG:
+			case FROM_CONFIG:
 				return convertDefaultName(name, configPropertiesContext);
-			case QuarkusConstants.CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_VERBATIM:
+			case VERBATIM:
 				return name;
-			case QuarkusConstants.CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_KEBAB_CASE:
+			case KEBAB_CASE:
 				return hyphenate(name);
 			}
 		}
@@ -345,9 +341,10 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 	}
 
 	private static String convertDefaultName(String name, ConfigPropertiesContext configPropertiesContext)
-		throws JavaModelException {
-		if (QuarkusConstants.CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_VERBATIM
-			.equals(configPropertiesContext.getDefaultNamingStrategy())) {
+			throws JavaModelException {
+		ConfigProperties.NamingStrategy namingStrategy = getNamingStrategy(
+				configPropertiesContext.getDefaultNamingStrategy());
+		if (namingStrategy != null && namingStrategy == ConfigProperties.NamingStrategy.VERBATIM) {
 			// the application.properties declares :
 			// quarkus.arc.config-properties-default-naming-strategy = verbatim
 			return name;
@@ -361,21 +358,19 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 			return JavaBeanUtil.getPropertyNameFromGetter(method.getElementName());
 		} catch (IllegalArgumentException e) {
 			LOGGER.log(Level.INFO, "Method " + method.getElementName() + " of interface "
-				+ method.getDeclaringType().getElementName()
-				+ " is not a getter method. Either rename the method to follow getter name conventions or annotate the method with @ConfigProperty");
+					+ method.getDeclaringType().getElementName()
+					+ " is not a getter method. Either rename the method to follow getter name conventions or annotate the method with @ConfigProperty");
 			return null;
 		}
 	}
 
 	private static IMethod findMethod(IType configPropertiesType, String setterName, String fieldTypeSignature) {
-		IMethod method = configPropertiesType.getMethod(setterName, new String[] {
-			fieldTypeSignature
-		});
+		IMethod method = configPropertiesType.getMethod(setterName, new String[] { fieldTypeSignature });
 		return method.exists() ? method : null;
 	}
 
 	private static String determinePrefix(IType configPropertiesType, IAnnotation configPropertiesAnnotation)
-		throws JavaModelException {
+			throws JavaModelException {
 		String fromAnnotation = getPrefixFromAnnotation(configPropertiesAnnotation);
 		if (fromAnnotation != null) {
 			return fromAnnotation;
@@ -397,8 +392,32 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 	private static String getPrefixFromClassName(IType className) {
 		String simpleName = className.getElementName(); // className.isInner() ? className.local() :
 														// className.withoutPackagePrefix();
-		return join("-",
-			withoutSuffix(lowerCase(camelHumpsIterator(simpleName)), "config", "configuration", "properties", "props"));
+		return join("-", withoutSuffix(lowerCase(camelHumpsIterator(simpleName)), "config", "configuration",
+				"properties", "props"));
 	}
 
+	/**
+	 * Returns the Quarkus @ConfigProperties(namingStrategy=...) value.
+	 *
+	 * @param configPropertiesAnnotation
+	 * @return the Quarkus @ConfigProperties(namingStrategy=...) value.
+	 * @throws JavaModelException
+	 */
+	private static ConfigProperties.NamingStrategy getNamingStrategy(IAnnotation configPropertiesAnnotation)
+			throws JavaModelException {
+		String namingStrategy = getAnnotationMemberValue(configPropertiesAnnotation,
+				QuarkusConstants.CONFIG_PROPERTIES_ANNOTATION_NAMING_STRATEGY);
+		return getNamingStrategy(namingStrategy);
+	}
+
+	private static ConfigProperties.NamingStrategy getNamingStrategy(String namingStrategy) {
+		if (namingStrategy != null && !namingStrategy.isEmpty()) {
+			try {
+				return ConfigProperties.NamingStrategy.valueOf(namingStrategy.toUpperCase());
+			} catch (Exception e) {
+
+			}
+		}
+		return null;
+	}
 }
