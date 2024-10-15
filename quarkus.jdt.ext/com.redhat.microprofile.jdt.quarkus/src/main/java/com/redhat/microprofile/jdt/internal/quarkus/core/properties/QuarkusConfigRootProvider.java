@@ -65,6 +65,7 @@ import org.eclipse.lsp4mp.jdt.core.ArtifactResolver.Artifact;
 import org.eclipse.lsp4mp.jdt.core.BuildingScopeContext;
 import org.eclipse.lsp4mp.jdt.core.IPropertiesCollector;
 import org.eclipse.lsp4mp.jdt.core.SearchContext;
+import org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils;
 import org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils;
 
 import com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants;
@@ -73,7 +74,6 @@ import com.redhat.microprofile.jdt.internal.quarkus.providers.QuarkusSearchConte
 import com.redhat.microprofile.jdt.quarkus.JDTQuarkusUtils;
 
 import io.quarkus.runtime.annotations.ConfigItem;
-import io.quarkus.runtime.annotations.ConfigPhase;
 
 /**
  * Properties provider to collect Quarkus properties from the Java classes
@@ -287,16 +287,13 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * @throws JavaModelException
 	 */
 	private static ConfigPhase getConfigPhase(IAnnotation configRootAnnotation) throws JavaModelException {
-		String value = getAnnotationMemberValue(configRootAnnotation, QuarkusConstants.CONFIG_ROOT_ANNOTATION_PHASE);
-		if (value != null) {
-			if (value.endsWith(ConfigPhase.RUN_TIME.name())) {
-				return ConfigPhase.RUN_TIME;
+		String phase = AnnotationUtils.getAnnotationMemberValue(configRootAnnotation, QuarkusConstants.CONFIG_ROOT_ANNOTATION_PHASE);
+		if (phase != null) {
+			try {
+				return ConfigPhase.valueOf(phase.toUpperCase());
 			}
-			if (value.endsWith(ConfigPhase.BUILD_AND_RUN_TIME_FIXED.name())) {
-				return ConfigPhase.BUILD_AND_RUN_TIME_FIXED;
-			}
-			if (value.endsWith(ConfigPhase.BOOTSTRAP.name())) {
-				return ConfigPhase.BOOTSTRAP;
+			catch(Exception e) {
+
 			}
 		}
 		return ConfigPhase.BUILD_TIME;

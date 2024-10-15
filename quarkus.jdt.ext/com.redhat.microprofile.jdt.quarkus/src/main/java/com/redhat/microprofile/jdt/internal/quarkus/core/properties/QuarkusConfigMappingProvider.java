@@ -12,8 +12,6 @@ package com.redhat.microprofile.jdt.internal.quarkus.core.properties;
 import static com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_ANNOTATION;
 import static com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_ANNOTATION_NAMING_STRATEGY;
 import static com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_ANNOTATION_PREFIX;
-import static com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_NAMING_STRATEGY_SNAKE_CASE;
-import static com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_NAMING_STRATEGY_VERBATIM;
 import static com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants.WITH_DEFAULT_ANNOTATION;
 import static com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants.WITH_DEFAULT_ANNOTATION_VALUE;
 import static com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants.WITH_NAME_ANNOTATION;
@@ -23,8 +21,8 @@ import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.runtime.util.StringUtil.join;
 import static io.quarkus.runtime.util.StringUtil.lowerCase;
-import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getFirstAnnotation;
 import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
+import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getFirstAnnotation;
 import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.hasAnnotation;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.findType;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getEnclosedType;
@@ -269,18 +267,13 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 		// ConfigMapping.NamingStrategy.VERBATIM)
 		// public interface ServerVerbatimNamingStrategy
 		// --> See https://quarkus.io/guides/config-mappings#namingstrategy
-		String namingStrategy = getAnnotationMemberValue(configMappingAnnotation,
-				CONFIG_MAPPING_ANNOTATION_NAMING_STRATEGY);
-		if (namingStrategy != null) {
-			int index = namingStrategy.lastIndexOf('.');
-			if (index != -1) {
-				namingStrategy = namingStrategy.substring(index + 1, namingStrategy.length());
-			}
+		NamingStrategy namingStrategy = getNamingStrategy(configMappingAnnotation);
+		if (namingStrategy != null) {			
 			switch (namingStrategy) {
-			case CONFIG_MAPPING_NAMING_STRATEGY_VERBATIM:
+			case VERBATIM:
 				// The method name is used as is to map the configuration property.
 				return name;
-			case CONFIG_MAPPING_NAMING_STRATEGY_SNAKE_CASE:
+			case SNAKE_CASE:
 				// The method name is derived by replacing case changes with an underscore to
 				// map the configuration property.
 				return snake(name);
@@ -296,6 +289,31 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 		return hyphenate(name);
 	}
 
+	/**
+	 * Returns the Quarkus @ConfigMapping(namingStrategy=...) value.
+	 *
+	 * @param configMappingAnnotation
+	 * @return the Quarkus @ConfigMapping(namingStrategy=...) value.
+	 * @throws JavaModelException
+	 */
+	private static NamingStrategy getNamingStrategy(IAnnotation configMappingAnnotation) throws JavaModelException {
+		// 2) Check if ConfigMapping.NamingStrategy is used
+		// @ConfigMapping(prefix = "server", namingStrategy =
+		// ConfigMapping.NamingStrategy.VERBATIM)
+		// public interface ServerVerbatimNamingStrategy
+		// --> See https://quarkus.io/guides/config-mappings#namingstrategy
+		String namingStrategy = getAnnotationMemberValue(configMappingAnnotation,
+				CONFIG_MAPPING_ANNOTATION_NAMING_STRATEGY);
+		if (namingStrategy != null) {
+			try {
+				return NamingStrategy.valueOf(namingStrategy.toUpperCase());
+			} catch (Exception e) {
+
+			}
+		}
+		return null;
+	}
+    
 	/**
 	 * Returns the value of @WithDefault("a value") and null otherwise.
 	 * 
