@@ -21,8 +21,8 @@ import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 
+import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.project.MockQuteLanguageServer;
-import com.redhat.qute.utils.FileUtils;
 
 /**
  * Diagnostics tests with closed/opened Qute template in a given project with

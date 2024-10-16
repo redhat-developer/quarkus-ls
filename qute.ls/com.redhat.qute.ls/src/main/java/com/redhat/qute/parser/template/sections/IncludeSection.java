@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
@@ -89,20 +90,26 @@ public class IncludeSection extends Section {
 	 *         section and null otherwise.
 	 */
 	private static Path getReferencedTemplateFile(String referencedTemplateId, QuteProject project) {
-		Path templateBaseDir = project.getTemplateBaseDir();
-		if (templateBaseDir == null) {
+		List<TemplateRootPath> templateRootPaths = project.getTemplateRootPaths();
+		if (templateRootPaths == null || templateRootPaths.isEmpty()) {
 			return null;
 		}
 
-		for (String suffix : project.getTemplateVariants()) {
-			Path referencedTemplateFile = templateBaseDir.resolve(referencedTemplateId + suffix);
-			if (Files.exists(referencedTemplateFile)) {
-				// The template file exists
-				return referencedTemplateFile;
+		for (TemplateRootPath rootPath : templateRootPaths) {
+			for (String suffix : project.getTemplateVariants()) {
+				Path templateBaseDir = rootPath.getBasePath();
+				if (templateBaseDir != null) {
+					Path referencedTemplateFile = templateBaseDir.resolve(referencedTemplateId + suffix);
+					if (Files.exists(referencedTemplateFile)) {
+						// The template file exists
+						return referencedTemplateFile;
+					}
+				}
 			}
 		}
 		// The template file doesn't exists, we return a file to create it if user wants
 		// to do that (available when Ctrl+Click is processed).
+		Path templateBaseDir = templateRootPaths.get(0).getBasePath();
 		return templateBaseDir.resolve(referencedTemplateId + ".html");
 	}
 
