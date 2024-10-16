@@ -1,5 +1,23 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## [0.20.0](https://github.com/redhat-developer/quarkus-ls/milestone/23?closed=1) (October 22, 2024)
+
+### Enhancements
+
+- Completion on available Ollama models support for `quarkus.langchain4j.ollama.chat-model.model-id` property value. See [#985](https://github.com/redhat-developer/quarkus-ls/pull/985).
+- `quarkus.rest.path` support. See [#1003](https://github.com/redhat-developer/quarkus-ls/pull/1003).
+
+### Bug Fixes
+
+- Fix false-positive error when string parameter contains a comma. See [#1011](https://github.com/redhat-developer/quarkus-ls/issues/1011).
+- Support for Vert.x Integration. See [#1009](https://github.com/redhat-developer/quarkus-ls/issues/1009).
+- TemplateExtension match any support. See [#1008](https://github.com/redhat-developer/quarkus-ls/pull/1008).
+- Fix false positive error with param name and user tag. See [#1007](https://github.com/redhat-developer/quarkus-ls/pull/1007).
+- Fix add languageId filter for options similar to microprofile. See [#999](https://github.com/redhat-developer/quarkus-ls/pull/999).
+- Fix Message: Request qute/java/documentLink failed with message: Cannot invoke "org.eclipse.jdt.core.dom.ITypeBinding.getQualifiedName()". See [#996](https://github.com/redhat-developer/quarkus-ls/pull/996).
+- Fix NPE with {# and Qute inlay hint. See [#991](https://github.com/redhat-developer/quarkus-ls/issues/991).
+
+
 ## [0.19.1](https://github.com/redhat-developer/quarkus-ls/milestone/22?closed=1) (August 29, 2024)
 
 ### Bug Fixes
