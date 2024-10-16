@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.parser.template.Parameter;
@@ -27,7 +28,6 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteTextDocument;
-import com.redhat.qute.utils.FileUtils;
 import com.redhat.qute.utils.IOUtils;
 
 /**

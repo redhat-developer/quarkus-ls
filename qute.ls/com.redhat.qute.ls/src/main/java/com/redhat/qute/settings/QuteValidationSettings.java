@@ -11,7 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.settings;
 
-import static com.redhat.qute.utils.FileUtils.isFileURI;
+import static com.redhat.qute.commons.FileUtils.isFileURI;
 
 import java.net.URI;
 import java.util.ArrayList;
