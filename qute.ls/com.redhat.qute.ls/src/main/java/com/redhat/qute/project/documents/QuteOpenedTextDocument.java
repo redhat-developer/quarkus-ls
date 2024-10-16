@@ -11,7 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.project.documents;
 
-import static com.redhat.qute.utils.FileUtils.createPath;
+import static com.redhat.qute.commons.FileUtils.createPath;
 
 import java.nio.file.Path;
 import java.util.List;

@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.codeactions;
 
+import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -63,10 +64,13 @@ public class QuteCodeActionForUndefinedSectionTag extends AbstractQuteCodeAction
 
 			// TODO : use a settings to know the preferred file extension
 			String preferedFileExtension = ".html";
-			String tagFileUri = project.getTagsDir().resolve(tagName + preferedFileExtension).toUri().toString();
-			String title = MessageFormat.format(UNDEFINED_SECTION_TAG_CODEACTION_TITLE, tagName);
-			CodeAction createUserTagFile = CodeActionFactory.createFile(title, tagFileUri, "", diagnostic);
-			codeActions.add(createUserTagFile);
+			Path tagsDir = project.getPreferredTagsDir();
+			if (tagsDir != null) {
+				String tagFileUri = tagsDir.resolve(tagName + preferedFileExtension).toUri().toString();
+				String title = MessageFormat.format(UNDEFINED_SECTION_TAG_CODEACTION_TITLE, tagName);
+				CodeAction createUserTagFile = CodeActionFactory.createFile(title, tagFileUri, "", diagnostic);
+				codeActions.add(createUserTagFile);
+			}
 
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "Creation of undefined user tag code action failed", e);

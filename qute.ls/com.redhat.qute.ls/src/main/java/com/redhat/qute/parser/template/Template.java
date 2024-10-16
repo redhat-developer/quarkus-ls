@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.Position;
 
+import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.LineIndentInfo;
@@ -35,7 +36,6 @@ import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
-import com.redhat.qute.utils.FileUtils;
 import com.redhat.qute.utils.UserTagUtils;
 
 public class Template extends Node {
@@ -154,14 +154,6 @@ public class Template extends Node {
 
 	public String getProjectUri() {
 		return projectUri;
-	}
-
-	public Path getTemplateBaseDir() {
-		QuteProject project = getProject();
-		if (project == null) {
-			return null;
-		}
-		return project.getTemplateBaseDir();
 	}
 
 	public QuteProject getProject() {

@@ -42,7 +42,7 @@ import com.redhat.qute.commons.jaxrs.RestParam;
  *
  */
 public class QuteQuickStartProject extends BaseQuteProject {
-
+ 
 	public final static String PROJECT_URI = "qute-quickstart";
 
 	public static final String ITEMRESOURCE_ITEMS_TEMPLATE_URI = "src/main/resources/templates/ItemResource/items";

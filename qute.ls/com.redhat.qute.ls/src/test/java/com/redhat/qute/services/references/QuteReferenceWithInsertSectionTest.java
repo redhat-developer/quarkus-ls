@@ -17,8 +17,8 @@ import static com.redhat.qute.QuteAssert.testReferencesFor;
 
 import org.junit.jupiter.api.Test;
 
+import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.ls.commons.BadLocationException;
-import com.redhat.qute.utils.FileUtils;
 
 /**
  * Qute reference with object part.

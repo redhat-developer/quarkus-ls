@@ -23,17 +23,17 @@ public class ProjectInfo {
 
 	private String uri;
 
-	private String templateBaseDir;
+	private List<TemplateRootPath> templateRootPaths;
 
 	private List<String> projectDependencyUris;
 
 	public ProjectInfo() {
 	}
 
-	public ProjectInfo(String projectUri, List<String> projectDependencies, String templateBaseDir) {
+	public ProjectInfo(String projectUri, List<String> projectDependencies, List<TemplateRootPath> templateRootPaths) {
 		setUri(projectUri);
 		setProjectDependencyUris(projectDependencies);
-		setTemplateBaseDir(templateBaseDir);
+		setTemplateRootPaths(templateRootPaths);
 	}
 
 	/**
@@ -73,20 +73,20 @@ public class ProjectInfo {
 	}
 
 	/**
-	 * Returns the Qute templates base directory and null otherwise.
+	 * Returns the list of the template root path supported by the Qute project.
 	 * 
-	 * @return the Qute templates base directory and null otherwise.
+	 * @return the list of the template root path supported by the Qute project.
 	 */
-	public String getTemplateBaseDir() {
-		return templateBaseDir;
+	public List<TemplateRootPath> getTemplateRootPaths() {
+		return templateRootPaths;
 	}
 
 	/**
-	 * Set the Qute templates base directory.
+	 * Set the list of the template root path supported by the Qute project.
 	 * 
-	 * @param templateBaseDir the Qute templates base directory.
+	 * @param templateRootPaths the list of the template root path.
 	 */
-	public void setTemplateBaseDir(String templateBaseDir) {
-		this.templateBaseDir = templateBaseDir;
+	public void setTemplateRootPaths(List<TemplateRootPath> templateRootPaths) {
+		this.templateRootPaths = templateRootPaths;
 	}
 }

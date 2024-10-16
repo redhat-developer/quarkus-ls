@@ -12,7 +12,6 @@
 package com.redhat.qute.project;
 
 import static com.redhat.qute.project.JavaDataModelCache.isSameType;
-import static com.redhat.qute.utils.FileUtils.createPath;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -29,6 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import org.eclipse.lsp4j.CompletionItem;
 
 import com.redhat.qute.commons.DocumentFormat;
+import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaElementInfo;
 import com.redhat.qute.commons.JavaFieldInfo;
@@ -39,6 +39,7 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.annotations.TemplateDataAnnotation;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
@@ -71,7 +72,6 @@ import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.NativeModeJavaTypeFilter;
-import com.redhat.qute.utils.FileUtils;
 import com.redhat.qute.utils.StringUtils;
 import com.redhat.qute.utils.UserTagUtils;
 
@@ -91,7 +91,7 @@ public class QuteProject {
 
 	private final String uri;
 
-	private final Path templateBaseDir;
+	private final List<TemplateRootPath> templateRootPaths;
 
 	private final QuteClosedTextDocuments closedDocuments;
 
@@ -121,12 +121,12 @@ public class QuteProject {
 	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry,
 			TemplateValidator validator) {
 		this.uri = projectInfo.getUri();
-		this.templateBaseDir = createPath(projectInfo.getTemplateBaseDir());
+		this.templateRootPaths = projectInfo.getTemplateRootPaths();
 		this.documents = new HashMap<>();
 		this.closedDocuments = new QuteClosedTextDocuments(this, documents);
 		this.projectRegistry = projectRegistry;
 		this.resolvedJavaTypes = new HashMap<>();
-		this.tagRegistry = new UserTagRegistry(this, templateBaseDir, projectRegistry);
+		this.tagRegistry = new UserTagRegistry(this, templateRootPaths, projectRegistry);
 		this.filterInNativeMode = new NativeModeJavaTypeFilter(this);
 		this.validator = validator;
 		// Create a Java file watcher to track create/delete Qute file in
@@ -169,8 +169,8 @@ public class QuteProject {
 	 * @return the templates base dir folder of the project (ex :
 	 *         src/main/resources/templates).
 	 */
-	public Path getTemplateBaseDir() {
-		return templateBaseDir;
+	public List<TemplateRootPath> getTemplateRootPaths() {
+		return templateRootPaths;
 	}
 
 	/**
@@ -181,14 +181,22 @@ public class QuteProject {
 	 * @return the template id of the given template file path.
 	 */
 	public String getTemplateId(Path templateFilePath) {
-		if (templateFilePath == null || templateBaseDir == null) {
+		if (templateFilePath == null || templateRootPaths == null) {
 			return null;
 		}
-		try {
-			return templateBaseDir.relativize(templateFilePath).toString().replace('\\', '/');
-		} catch (Exception e) {
-			return templateFilePath.getFileName().toString();
+		for (TemplateRootPath rootPath : templateRootPaths) {
+			Path basePath = rootPath.getBasePath();
+			if (basePath != null) {
+				if (templateFilePath.startsWith(basePath)) {
+					try {
+						return basePath.relativize(templateFilePath).toString().replace('\\', '/');
+					} catch (Exception e) {
+						// Do nothing
+					}
+				}
+			}
 		}
+		return templateFilePath.getFileName().toString();
 	}
 
 	/**
@@ -482,12 +490,14 @@ public class QuteProject {
 	}
 
 	/**
-	 * Returns the src/main/resources/templates/tags directory.
-	 *
-	 * @return the src/main/resources/templates/tags directory.
+	 * Returns the preferred tags dir (ex : src/main/resources/templates/tags)
+	 * directory and null otherwise.
+	 * 
+	 * @return the preferred tags dir (ex : src/main/resources/templates/tags)
+	 *         directory and null otherwise.
 	 */
-	public Path getTagsDir() {
-		return tagRegistry.getTagsDir();
+	public Path getPreferredTagsDir() {
+		return tagRegistry.getPreferredTagsDir();
 	}
 
 	public JavaTypeAccessibiltyRule getJavaTypeAccessibiltyInNativeMode(String javaTypeName) {

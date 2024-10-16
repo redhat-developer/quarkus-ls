@@ -25,7 +25,7 @@ import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 
-import com.redhat.qute.utils.FileUtils;
+import com.redhat.qute.commons.FileUtils;
 
 /**
  * This class provides the capability to track the deleted/created files from
@@ -44,7 +44,7 @@ public class QuteProjectFilesWatcher extends WatchDir {
 	private final Thread thread;
 
 	public QuteProjectFilesWatcher(QuteProject project) throws IOException {
-		super(project.getTemplateBaseDir(), true);
+		super(project.getTemplateRootPaths().get(0).getBasePath(), true);
 		this.project = project;
 		thread = new Thread(this);
 		thread.setName("Watch Qute templates for '" + project.getUri() + "'");

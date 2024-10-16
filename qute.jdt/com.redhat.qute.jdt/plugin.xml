@@ -2,6 +2,9 @@
 <?eclipse version="3.5"?>
 <plugin>
 
+   <extension-point id="templateRootPathProviders"
+					name="%templateRootPathProviders.name"
+					schema="schema/templateRootPathProviders.exsd" />
    <extension-point id="dataModelProviders"
 					name="%dataModelProviders.name"
 					schema="schema/dataModelProviders.exsd" />
@@ -21,6 +24,7 @@
             <command id="qute/template/javaDefinition"/>
             <command id="qute/template/javadoc"/>
             <command id="qute/template/generateMissingJavaMember"/>
+            <command id="qute/template/isInTemplate"/>
        </delegateCommandHandler>
    </extension>
 
@@ -35,6 +39,11 @@
 
    <!-- =========== Qute core & Quarkus Integration =========== -->
    
+   <!-- Template root path providers for Qute core (src/main/resources/templates) -->
+   <extension point="com.redhat.qute.jdt.templateRootPathProviders">
+      <provider class="com.redhat.qute.jdt.template.rootpath.DefaultTemplateRootPathProvider" />
+   </extension>
+
    <!-- Data model providers for Qute core -->
    <extension point="com.redhat.qute.jdt.dataModelProviders">
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateFieldSupport" />
@@ -71,9 +80,21 @@
    </extension>
 
    <!-- =========== Roq extension =========== -->
-
+   
    <extension point="com.redhat.qute.jdt.dataModelProviders">
       <provider class="com.redhat.qute.jdt.internal.extensions.roq.DataMappingSupport" />
    </extension>
+   
+   <!-- Template root path providers for Roq (content, etc) -->
+   <extension point="com.redhat.qute.jdt.templateRootPathProviders">
+      <provider class="com.redhat.qute.jdt.internal.extensions.roq.RoqTemplateRootPathProvider" />
+   </extension>
+   
+   <!-- =========== Web Bundler extension =========== -->
+   
+   <!-- Template root path providers for Web Bundler (src/main/resources/web/templates/) -->
+   <extension point="com.redhat.qute.jdt.templateRootPathProviders">
+      <provider class="com.redhat.qute.jdt.internal.extensions.webbundler.WebBundlerTemplateRootPathProvider" />
+   </extension>   
    
 </plugin>
