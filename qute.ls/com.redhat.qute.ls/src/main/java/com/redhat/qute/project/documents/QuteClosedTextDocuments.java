@@ -13,13 +13,15 @@ package com.redhat.qute.project.documents;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.redhat.qute.commons.FileUtils;
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteTextDocument;
-import com.redhat.qute.utils.FileUtils;
 
 /**
  * Registry which stores Qute template document closed
@@ -63,15 +65,25 @@ public class QuteClosedTextDocuments {
 			return;
 		}
 
-		if (!Files.exists(project.getTemplateBaseDir())) {
+		List<TemplateRootPath> rootPaths = project.getTemplateRootPaths();
+		for (TemplateRootPath templateRootPath : rootPaths) {
+			scan(templateRootPath.getBasePath());
+		}
+		scanned = true;
+	}
+
+	private void scan(Path basePath) {
+		if (basePath == null) {
+			return;
+		}
+		if (!Files.exists(basePath)) {
 			// The Qute project doesn't contain the src/main/resources/templates directory
 			return;
 		}
-
 		// Scan all directories from src/main/resources/templates directory to collect
 		// closed Templates
 		try {
-			Files.walk(project.getTemplateBaseDir()).forEach(path -> {
+			Files.walk(basePath).forEach(path -> {
 				try {
 					tryToAddClosedTemplate(path, false);
 				} catch (Exception e) {
@@ -80,10 +92,7 @@ public class QuteClosedTextDocuments {
 			});
 		} catch (Exception e) {
 			// Do nothing
-		} finally {
-			scanned = true;
 		}
-
 	}
 
 	/**

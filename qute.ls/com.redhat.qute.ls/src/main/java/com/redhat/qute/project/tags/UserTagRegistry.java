@@ -21,12 +21,12 @@ import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.CompletionItem;
 
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.services.completions.CompletionRequest;
-import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * User tag (from source and binary) registry.
@@ -39,8 +39,7 @@ import com.redhat.qute.utils.UserTagUtils;
 public class UserTagRegistry {
 
 	private final QuteProject project;
-
-	private final Path tagsDir;
+	private final List<TemplateRootPath> templateRootPaths;
 
 	private final QuteCompletionsForSourceUserTagSection completionsSourceUserTag;
 
@@ -49,9 +48,10 @@ public class UserTagRegistry {
 
 	private CompletableFuture<List<UserTag>> userTagFuture;
 
-	public UserTagRegistry(QuteProject project, Path templateBaseDir, QuteUserTagProvider userTagProvider) {
+	public UserTagRegistry(QuteProject project, List<TemplateRootPath> templateRootPaths,
+			QuteUserTagProvider userTagProvider) {
 		this.project = project;
-		this.tagsDir = templateBaseDir.resolve(UserTagUtils.TAGS_DIR);
+		this.templateRootPaths = templateRootPaths;
 		this.userTagProvider = userTagProvider;
 		this.completionsSourceUserTag = new QuteCompletionsForSourceUserTagSection();
 		this.completionsBinaryUserTag = new QuteCompletionsForBinaryUserTagSection();
@@ -72,7 +72,12 @@ public class UserTagRegistry {
 	 */
 	private void refresh() {
 		// Loop for files from src/main/resources/tags to update list of user tags.
-		completionsSourceUserTag.refresh(getTagsDir(), project);
+		for (TemplateRootPath templateRootPath : templateRootPaths) {
+			Path tagsDir = templateRootPath.getTagsDir();
+			if (tagsDir != null) {
+				completionsSourceUserTag.refresh(tagsDir, project);
+			}
+		}
 		// Update from the 'templates.tags' entries of JARs of the classpath
 		completionsBinaryUserTag.refresh(getBinaryUserTags());
 	}
@@ -133,12 +138,20 @@ public class UserTagRegistry {
 	}
 
 	/**
-	 * Returns the src/main/resources/templates/tags directory.
+	 * Returns the preferred tags dir (ex : src/main/resources/templates/tags)
+	 * directory and null otherwise.
 	 * 
-	 * @return the src/main/resources/templates/tags directory.
+	 * @return the preferred tags dir (ex : src/main/resources/templates/tags)
+	 *         directory and null otherwise.
 	 */
-	public Path getTagsDir() {
-		return tagsDir;
+	public Path getPreferredTagsDir() {
+		for (TemplateRootPath templateRootPath : templateRootPaths) {
+			Path tagsDir = templateRootPath.getTagsDir();
+			if (tagsDir != null) {
+				return tagsDir;
+			}
+		}
+		return null;
 	}
 
 	public void refreshDataModel() {

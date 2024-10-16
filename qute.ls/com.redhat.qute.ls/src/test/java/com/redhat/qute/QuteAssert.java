@@ -73,6 +73,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.ProjectInfo;
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.ls.api.QuteTemplateJavaTextEditProvider;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.TextDocument;
@@ -107,7 +108,7 @@ import com.redhat.qute.utils.StringUtils;
  *
  */
 public class QuteAssert {
-
+ 
 	private static final String QUTE_SOURCE = "qute";
 
 	public static final String TEMPLATE_BASE_DIR = "src/test/resources/templates";
@@ -115,7 +116,8 @@ public class QuteAssert {
 	public static final String FILE_URI = "test.qute";
 
 	public static final int USER_TAG_SIZE = 10 /*
-												 * #input, #bundleStyle, #form, #title, #simpleTitle, #user, #formElement,
+												 * #input, #bundleStyle, #form, #title, #simpleTitle, #user,
+												 * #formElement,
 												 * #inputRequired, #myTag, #tagWithArgs
 												 */;
 
@@ -210,7 +212,8 @@ public class QuteAssert {
 
 	public static void testCompletionFor(String value, String fileUri, String templateId, String projectUri,
 			String templateBaseDir, Integer expectedCount, QuteNativeSettings nativeImagesSettings,
-			QuteCompletionSettings completionSettings, boolean itemDefaultsSupport, CompletionItem... expectedItems) throws Exception {
+			QuteCompletionSettings completionSettings, boolean itemDefaultsSupport, CompletionItem... expectedItems)
+			throws Exception {
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
@@ -249,7 +252,8 @@ public class QuteAssert {
 		}
 	}
 
-	public static void assertCompletion(CompletionList completions, CompletionItem expected, boolean itemDefaultsSupport, Integer expectedCount) {
+	public static void assertCompletion(CompletionList completions, CompletionItem expected,
+			boolean itemDefaultsSupport, Integer expectedCount) {
 		List<CompletionItem> matches = completions.getItems().stream().filter(completion -> {
 			return expected.getLabel().equals(completion.getLabel());
 		}).collect(Collectors.toList());
@@ -277,7 +281,8 @@ public class QuteAssert {
 			}
 		} else if (itemDefaultsSupport) {
 			assertEquals(expected.getTextEdit().getLeft().getNewText(), match.getTextEditText());
-			assertEquals(expected.getTextEdit().getLeft().getRange(), completions.getItemDefaults().getEditRange().getLeft());
+			assertEquals(expected.getTextEdit().getLeft().getRange(),
+					completions.getItemDefaults().getEditRange().getLeft());
 			assertNull(match.getTextEdit());
 		}
 
@@ -292,11 +297,14 @@ public class QuteAssert {
 
 	}
 
-	private static CompletionItem getCompletionMatch(List<CompletionItem> matches, boolean itemDefaultsSupport, CompletionItem expected) {
+	private static CompletionItem getCompletionMatch(List<CompletionItem> matches, boolean itemDefaultsSupport,
+			CompletionItem expected) {
 		for (CompletionItem item : matches) {
-			if (!itemDefaultsSupport && expected.getTextEdit().getLeft().getNewText().equals(item.getTextEdit().getLeft().getNewText())) {
+			if (!itemDefaultsSupport && expected.getTextEdit().getLeft().getNewText()
+					.equals(item.getTextEdit().getLeft().getNewText())) {
 				return item;
-			} else if (itemDefaultsSupport && expected.getTextEdit().getLeft().getNewText().equals(item.getTextEditText())) {
+			} else if (itemDefaultsSupport
+					&& expected.getTextEdit().getLeft().getNewText().equals(item.getTextEditText())) {
 				return item;
 			}
 		}
@@ -710,7 +718,8 @@ public class QuteAssert {
 
 	// ------------------- CodeAction assert
 
-	public static void testCodeActionsWithConfigurationUpdateFor(String value, Diagnostic diagnostic, CodeAction... expected)
+	public static void testCodeActionsWithConfigurationUpdateFor(String value, Diagnostic diagnostic,
+			CodeAction... expected)
 			throws Exception {
 		testCodeActionsFor(value, diagnostic, createSharedSettings(true), expected);
 	}
@@ -1049,7 +1058,8 @@ public class QuteAssert {
 			QuteProjectRegistry projectRegistry) {
 		Template template = TemplateParser.parse(value, fileUri != null ? fileUri : FILE_URI);
 		template.setProjectUri(projectUri);
-		projectRegistry.getProject(new ProjectInfo(projectUri, Collections.emptyList(), templateBaseDir));
+		projectRegistry.getProject(new ProjectInfo(projectUri, Collections.emptyList(),
+				Arrays.asList(new TemplateRootPath(templateBaseDir))));
 		template.setProjectRegistry(projectRegistry);
 		return template;
 	}
@@ -1058,12 +1068,11 @@ public class QuteAssert {
 		SharedSettings sharedSettings = new SharedSettings();
 		CommandCapabilities commandCapabilities = new CommandCapabilities();
 		CommandKindCapabilities kinds = new CommandKindCapabilities(
-				withConfigurationUpdate ? 
-						Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION,
+				withConfigurationUpdate ? Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION,
 						QuteClientCommandConstants.COMMAND_SHOW_REFERENCES,
-						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE) : 
-							Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION,
-									QuteClientCommandConstants.COMMAND_SHOW_REFERENCES));
+						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE)
+						: Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION,
+								QuteClientCommandConstants.COMMAND_SHOW_REFERENCES));
 		commandCapabilities.setCommandKind(kinds);
 		sharedSettings.getCommandCapabilities().setCapabilities(commandCapabilities);
 		return sharedSettings;

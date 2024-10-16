@@ -28,7 +28,10 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.core.manipulation.dom.ASTResolving;
 
 import com.redhat.qute.commons.ProjectInfo;
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.jdt.internal.QuteJavaConstants;
+import com.redhat.qute.jdt.internal.template.rootpath.TemplateRootPathProviderRegistry;
+import com.redhat.qute.jdt.template.rootpath.DefaultTemplateRootPathProvider;
 
 import io.quarkus.runtime.util.StringUtil;
 
@@ -42,8 +45,6 @@ public class JDTQuteProjectUtils {
 
 	private static final Logger LOGGER = Logger.getLogger(JDTQuteProjectUtils.class.getName());
 
-	private static final String TEMPLATES_BASE_DIR = "src/main/resources/templates/";
-
 	/**
 	 * Value for Qute annotations indicating behaviour should be using the default
 	 */
@@ -56,7 +57,6 @@ public class JDTQuteProjectUtils {
 	public static ProjectInfo getProjectInfo(IJavaProject javaProject) {
 		IProject project = javaProject.getProject();
 		String projectUri = getProjectURI(project);
-		String templateBaseDir = project.getFile(TEMPLATES_BASE_DIR).getLocationURI().toString();
 		// Project dependencies
 		List<String> projectDependencies = Collections.emptyList();
 		try {
@@ -70,7 +70,10 @@ public class JDTQuteProjectUtils {
 					"Error while getting project dependencies for '" + javaProject.getElementName() + "' Java project.",
 					e);
 		}
-		return new ProjectInfo(projectUri, projectDependencies, templateBaseDir);
+		// Template root paths
+		List<TemplateRootPath> templateRootPaths = TemplateRootPathProviderRegistry.getInstance()
+				.getTemplateRootPaths(javaProject, null);
+		return new ProjectInfo(projectUri, projectDependencies, templateRootPaths);
 	}
 
 	/**
@@ -117,7 +120,7 @@ public class JDTQuteProjectUtils {
 	public static TemplatePathInfo getTemplatePath(String basePath, String className, String methodOrFieldName,
 			boolean ignoreFragments, TemplateNameStrategy templateNameStrategy) {
 		String fragmentId = null;
-		StringBuilder templateUri = new StringBuilder(TEMPLATES_BASE_DIR);
+		StringBuilder templateUri = new StringBuilder(DefaultTemplateRootPathProvider.TEMPLATES_BASE_DIR);
 		if (basePath != null && !DEFAULTED.equals(basePath)) {
 			appendAndSlash(templateUri, basePath);
 		} else if (className != null) {

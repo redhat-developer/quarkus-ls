@@ -28,12 +28,13 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.junit.jupiter.api.Test;
 
+import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteProjectParams;
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.project.MockQuteLanguageServer;
 import com.redhat.qute.project.QuteQuickStartProject;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
-import com.redhat.qute.utils.FileUtils;
 import com.redhat.qute.utils.IOUtils;
 
 /**
@@ -69,7 +70,7 @@ public abstract class AbstractQuteDiagnosticsInProjectTest {
 		private ProjectInfo createQuickStartProject() {
 			ProjectInfo projectInfo = new ProjectInfo(QuteQuickStartProject.PROJECT_URI,
 					Collections.emptyList(),
-					FileUtils.toUri(templatesPath));
+					Arrays.asList(new TemplateRootPath(FileUtils.toUri(templatesPath))));
 			return projectInfo;
 		};
 

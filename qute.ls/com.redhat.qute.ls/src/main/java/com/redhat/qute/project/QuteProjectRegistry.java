@@ -33,6 +33,7 @@ import org.eclipse.lsp4j.WorkDoneProgressEnd;
 import org.eclipse.lsp4j.WorkDoneProgressReport;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
+import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
@@ -41,6 +42,7 @@ import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
@@ -64,7 +66,6 @@ import com.redhat.qute.project.documents.TemplateValidator;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.ReflectionJavaTypeFilter;
 import com.redhat.qute.settings.QuteNativeSettings;
-import com.redhat.qute.utils.FileUtils;
 
 /**
  * Registry which hosts Qute project {@link QuteProject}.
@@ -333,7 +334,13 @@ public class QuteProjectRegistry
 	}
 
 	private static boolean isBelongToProject(Path path, QuteProject project) {
-		return path.startsWith(project.getTemplateBaseDir());
+		for (TemplateRootPath rootPath : project.getTemplateRootPaths()) {
+			Path basePath = rootPath.getBasePath();
+			if (basePath != null && path.startsWith(basePath)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public Collection<QuteProject> getProjects() {

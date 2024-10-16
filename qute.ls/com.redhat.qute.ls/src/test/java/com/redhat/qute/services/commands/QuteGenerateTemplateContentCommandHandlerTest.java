@@ -13,6 +13,7 @@ import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.commons.ProjectInfo;
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.GenerateTemplateInfo;
 import com.redhat.qute.project.MockQuteProjectRegistry;
@@ -35,7 +36,8 @@ public class QuteGenerateTemplateContentCommandHandlerTest {
 
 	private QuteProjectRegistry createProjectRegistry() {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
-		projectRegistry.getProject(new ProjectInfo(PROJECT_URI, Collections.emptyList(), TEMPLATE_BASE_DIR));
+		projectRegistry.getProject(new ProjectInfo(PROJECT_URI, Collections.emptyList(),
+				Arrays.asList(new TemplateRootPath(TEMPLATE_BASE_DIR))));
 		return projectRegistry;
 	}
 

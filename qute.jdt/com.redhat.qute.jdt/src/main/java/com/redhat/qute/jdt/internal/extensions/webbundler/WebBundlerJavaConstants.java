@@ -9,21 +9,19 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.jdt.internal.extensions.roq;
+package com.redhat.qute.jdt.internal.extensions.webbundler;
 
 /**
- * Roq Java constants.
+ * Web Bundler Java constants.
  *
  * @author Angelo ZERR
  *
  */
-public class RoqJavaConstants {
+public class WebBundlerJavaConstants {
 
-	private RoqJavaConstants() {
+	private WebBundlerJavaConstants() {
 	}
 
-	public static final String DATA_MAPPING_ANNOTATION = "io.quarkiverse.roq.data.runtime.annotations.DataMapping";
-
-	public static final String SITE_CLASS = "io.quarkiverse.roq.frontmatter.runtime.model.Site";
+	public static final String BUNDLE_CLASS = "io.quarkiverse.web.bundler.runtime.Bundle";
 
 }

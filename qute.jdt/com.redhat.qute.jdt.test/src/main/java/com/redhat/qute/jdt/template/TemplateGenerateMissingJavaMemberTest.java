@@ -187,7 +187,7 @@ public class TemplateGenerateMissingJavaMemberTest {
 				Either.forLeft(tde(project, "src/main/java/TemplateExtensions.java", te(0, 0, 0, 0, //
 						sep //
 								+ "/**" + sep //
-								+ " * " + sep //
+								+ " * java" + sep //
 								+ " */" + sep //
 								+ sep //
 								+ "@io.quarkus.qute.TemplateExtension" + sep //
@@ -235,7 +235,7 @@ public class TemplateGenerateMissingJavaMemberTest {
 					Either.forLeft(tde(project, "src/main/java/TemplateExtensions1.java", te(0, 0, 0, 0, //
 							sep //
 							+ "/**" + sep //
-							+ " * " + sep //
+							+ " * java" + sep //
 							+ " */" + sep //
 							+ sep //
 							+ "@io.quarkus.qute.TemplateExtension" + sep //
@@ -258,7 +258,7 @@ public class TemplateGenerateMissingJavaMemberTest {
 						Either.forLeft(tde(project, "src/main/java/TemplateExtensions2.java", te(0, 0, 0, 0, //
 								sep //
 								+ "/**" + sep //
-								+ " * " + sep //
+								+ " * java" + sep //
 								+ " */" + sep //
 								+ sep //
 								+ "@io.quarkus.qute.TemplateExtension" + sep //
