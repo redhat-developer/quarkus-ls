@@ -382,11 +382,10 @@ class QuteDiagnostics {
 				UserTag userTag = project.findUserTag(tagName);
 				if (userTag != null) {
 					// Validate parameters of user tag
-
 					List<String> existingParameters = new ArrayList<>();
 					// Check if the parameter exists
 					for (Parameter parameter : section.getParameters()) {
-						String paramName = !parameter.hasValueAssigned() ? IT_OBJECT_PART_NAME : parameter.getName();
+						String paramName = getParamName(parameter);
 						if (existingParameters.contains(paramName)) {
 							// It exists several parameters with the same name
 							Range range = QutePositionUtility.selectParameterName(parameter);
@@ -399,10 +398,27 @@ class QuteDiagnostics {
 								// Check if the declared parameter is defined in the user tag
 								UserTagParameter userTagParameter = userTag.findParameter(paramName);
 								if (userTagParameter == null) {
-									Range range = QutePositionUtility.selectParameterName(parameter);
-									Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
-											QuteErrorCode.UndefinedParameter, paramName, tagName);
-									diagnostics.add(diagnostic);
+									if (!parameter.hasValueAssigned()) {
+										// ex : foo
+										// check if foo can be used as 'it'
+										paramName = IT_OBJECT_PART_NAME;
+										userTagParameter = userTag.findParameter(paramName);
+										if (existingParameters.contains(paramName)) {
+											// It exists several parameters with the same name
+											Range range = QutePositionUtility.selectParameterName(parameter);
+											Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
+													QuteErrorCode.DuplicateParameter, paramName, tagName);
+											diagnostics.add(diagnostic);
+										} else {
+											existingParameters.add(paramName);
+										}
+									}
+									if (userTagParameter == null) {
+										Range range = QutePositionUtility.selectParameterName(parameter);
+										Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
+												QuteErrorCode.UndefinedParameter, paramName, tagName);
+										diagnostics.add(diagnostic);
+									}
 								}
 							}
 						}
@@ -454,6 +470,27 @@ class QuteDiagnostics {
 			}
 		}
 
+	}
+
+	private static String getParamName(Parameter parameter) {
+		if (parameter.hasValueAssigned()) {
+			// ex : foo="bar" --> return 'foo'
+			return parameter.getName();
+		}
+		// ex:
+		// bar
+		// uri:bar
+		// bar.foo()
+		String name = parameter.getValue();
+		if (name.indexOf('.') != -1 || name.indexOf(':') != -1 || name.indexOf('(') != -1) {
+			// ex:
+			// uri:bar
+			// bar.foo()
+			// return 'it'
+			return IT_OBJECT_PART_NAME;
+		}
+
+		return name;
 	}
 
 	private static boolean canChangeContext(Section section) {
