@@ -58,6 +58,14 @@ public class QuteDiagnosticsWithUserTagTest {
 	}
 
 	@Test
+	public void definedAllParameterNamesWithoutAssignment() {
+		String template = "{@java.lang.String name}\n" + //
+				"{@java.lang.String id}\n" + //
+				"{#input name value='' id /}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
 	public void undefinedParameterName() {
 		String template = "{#input name='' XXXX='' /}";
 		Diagnostic d = d(0, 16, 0, 20, QuteErrorCode.UndefinedParameter,
@@ -71,8 +79,9 @@ public class QuteDiagnosticsWithUserTagTest {
 		// tagWithArgs.html contains an expression which uses _args
 		// in this case, we ignore the QuteErrorCode.UndefinedParameter error.
 		String template = "{#tagWithArgs name='' XXXX='' /}";
-		
-		// There is no error with name (just an error with foo parameter which is required)
+
+		// There is no error with name (just an error with foo parameter which is
+		// required)
 		Diagnostic d = d(0, 1, 0, 13, QuteErrorCode.MissingRequiredParameter,
 				"Missing required parameter(s) `foo` of `tagWithArgs` user tag.",
 				DiagnosticSeverity.Warning);
@@ -122,6 +131,17 @@ public class QuteDiagnosticsWithUserTagTest {
 	public void duplicateItParameter() {
 		String template = "{#form uri:Login.confirm('ok') uri:Login.confirm('ok') /}";
 		Diagnostic d = d(0, 31, 0, 54, QuteErrorCode.DuplicateParameter,
+				"Duplicate parameter `it` of `form` user tag.",
+				DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, d);
+	}
+
+	@Test
+	public void duplicateItParameter2() {
+		String template = "{@java.lang.String login}\n" + //
+				"{@java.lang.String login}\n" + //
+				"{#form login confirm /}";
+		Diagnostic d = d(2, 13, 2, 20, QuteErrorCode.DuplicateParameter,
 				"Duplicate parameter `it` of `form` user tag.",
 				DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
