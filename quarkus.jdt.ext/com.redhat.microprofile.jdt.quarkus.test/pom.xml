@@ -19,6 +19,14 @@
 	   <skipDeployToJBossOrg>false</skipDeployToJBossOrg>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>platform.p2</id>
+			<layout>p2</layout>
+			<url>https://download.eclipse.org/eclipse/updates/4.34-I-builds</url>
+		</repository>
+	</repositories>
+
 	<build>
 	   <pluginManagement>
 	       <plugins>
