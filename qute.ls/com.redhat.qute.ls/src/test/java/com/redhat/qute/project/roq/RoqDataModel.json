@@ -1,0 +1,461 @@
+{
+	"templates": [],
+	"namespaceResolverInfos": {
+		"inject": {
+			"namespaces": [
+				"inject",
+				"cdi"
+			],
+			"description": "A CDI bean annotated with `@Named` can be referenced in any template through `cdi` and/or `inject` namespaces.",
+			"url": "https://quarkus.io/guides/qute-reference#injecting-beans-directly-in-templates"
+		}
+	},
+	"valueResolvers": [
+		{
+			"namespace": "fm",
+			"signature": "pageNumber(arg0 : int, arg1 : int) : java.lang.String",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.RoqFrontMatterMessages",
+			"kind": 7,
+			"data": {
+				"locale": "en",
+				"message": "Page {index} of {total}"
+			}
+		},
+		{
+			"signature": "numberOfWords(text : java.lang.String) : long",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"matchName": "*",
+			"signature": "collection(collections : io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections, key : java.lang.String) : io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "readTime(page : io.quarkiverse.roq.frontmatter.runtime.model.Page) : java.lang.Object",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "slugify(text : java.lang.String) : java.lang.String",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "asStrings(o : java.lang.Object) : java.util.List<java.lang.String>",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"matchName": "*",
+			"signature": "collection(collections : io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections, key : java.lang.String) : io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"signature": "now : java.time.LocalDateTime",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal",
+			"kind": 5,
+			"globalVariable": true
+		},
+		{
+			"signature": "roqVersion : java.lang.String",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal",
+			"kind": 5,
+			"globalVariable": true
+		},
+		{
+			"signature": "locale : java.lang.String",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.RoqTemplateGlobal",
+			"kind": 5,
+			"globalVariable": true
+		},
+		{
+			"namespace": "io_quarkiverse_roq_frontmatter_runtime_model_Page",
+			"signature": "getImgFromData(data : io.vertx.core.json.JsonObject) : java.lang.String",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.model.Page",
+			"kind": 1
+		},
+		{
+			"namespace": "io_quarkiverse_roq_frontmatter_runtime_model_Page",
+			"signature": "resolveImgUrl(rootUrl : io.quarkiverse.roq.frontmatter.runtime.model.RootUrl, data : io.vertx.core.json.JsonObject) : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.model.Page",
+			"kind": 1
+		},
+		{
+			"namespace": "io_quarkiverse_roq_frontmatter_runtime_model_PageInfo",
+			"signature": "HTML_OUTPUT_EXTENSIONS : java.util.Set<java.lang.String>",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.model.PageInfo",
+			"kind": 1
+		},
+		{
+			"namespace": "io_quarkiverse_roq_frontmatter_runtime_model_PageInfo",
+			"signature": "create(id : java.lang.String, draft : boolean, imagesRootPath : java.lang.String, dateString : java.lang.String, rawContent : java.lang.String, sourcePath : java.lang.String, quteTemplatePath : java.lang.String) : io.quarkiverse.roq.frontmatter.runtime.model.PageInfo",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.model.PageInfo",
+			"kind": 1
+		},
+		{
+			"namespace": "io_quarkiverse_roq_frontmatter_runtime_model_RoqUrl",
+			"signature": "isFullPath(path : java.lang.String) : boolean",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl",
+			"kind": 1
+		},
+		{
+			"namespace": "io_quarkiverse_roq_frontmatter_runtime_model_RoqUrl",
+			"signature": "fromRoot(root : io.quarkiverse.roq.frontmatter.runtime.model.RootUrl, path : java.lang.String) : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl",
+			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl",
+			"kind": 1
+		},
+		{
+			"signature": "get(list : java.util.List<T>, index : int) : T",
+			"sourceType": "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "getByIndex(list : java.util.List<T>, index : java.lang.String) : T",
+			"sourceType": "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "reversed(list : java.util.List<T>) : java.util.Iterator<T>",
+			"sourceType": "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "take(list : java.util.List<T>, n : int) : java.util.List<T>",
+			"sourceType": "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "takeLast(list : java.util.List<T>, n : int) : java.util.List<T>",
+			"sourceType": "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "orEmpty(iterable : java.util.Collection<T>) : java.util.Collection<T>",
+			"sourceType": "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "first(list : java.util.List<T>) : T",
+			"sourceType": "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "last(list : java.util.List<T>) : T",
+			"sourceType": "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "getByIndex(list : java.util.List<T>, index : java.lang.String) : T",
+			"sourceType": "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"namespace": "config",
+			"matchName": "*",
+			"signature": "getConfigProperty(propertyName : java.lang.String) : java.lang.Object",
+			"sourceType": "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"namespace": "config",
+			"signature": "property(propertyName : java.lang.String) : java.lang.Object",
+			"sourceType": "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"namespace": "config",
+			"matchName": "boolean",
+			"signature": "booleanProperty(propertyName : java.lang.String) : java.lang.Object",
+			"sourceType": "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"namespace": "config",
+			"matchName": "integer",
+			"signature": "integerProperty(propertyName : java.lang.String) : java.lang.Object",
+			"sourceType": "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"matchName": "*",
+			"signature": "map(arg0 : java.util.Map, arg1 : java.lang.String) : java.lang.Object",
+			"sourceType": "io.quarkus.qute.runtime.extensions.MapTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "get(map : java.util.Map<?,V>, key : java.lang.Object) : V",
+			"sourceType": "io.quarkus.qute.runtime.extensions.MapTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "containsKey(map : java.util.Map<?,?>, key : java.lang.Object) : boolean",
+			"sourceType": "io.quarkus.qute.runtime.extensions.MapTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"matchName": "*",
+			"signature": "map(arg0 : java.util.Map, arg1 : java.lang.String) : java.lang.Object",
+			"sourceType": "io.quarkus.qute.runtime.extensions.MapTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"signature": "mod(number : java.lang.Integer, mod : java.lang.Integer) : java.lang.Integer",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "addToInt(number : java.lang.Integer, name : java.lang.String, other : java.lang.Integer) : java.lang.Integer",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "addToInt(number : java.lang.Integer, name : java.lang.String, other : java.lang.Long) : java.lang.Long",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "addToLong(number : java.lang.Long, name : java.lang.String, other : java.lang.Integer) : java.lang.Long",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "addToLong(number : java.lang.Long, name : java.lang.String, other : java.lang.Long) : java.lang.Long",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "subtractFromInt(number : java.lang.Integer, name : java.lang.String, other : java.lang.Integer) : java.lang.Integer",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "subtractFromInt(number : java.lang.Integer, name : java.lang.String, other : java.lang.Long) : java.lang.Long",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "subtractFromLong(number : java.lang.Long, name : java.lang.String, other : java.lang.Integer) : java.lang.Long",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "subtractFromLong(number : java.lang.Long, name : java.lang.String, other : java.lang.Long) : java.lang.Long",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "addToInt(number : java.lang.Integer, name : java.lang.String, other : java.lang.Integer) : java.lang.Integer",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"signature": "addToInt(number : java.lang.Integer, name : java.lang.String, other : java.lang.Long) : java.lang.Long",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"signature": "addToLong(number : java.lang.Long, name : java.lang.String, other : java.lang.Integer) : java.lang.Long",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"signature": "addToLong(number : java.lang.Long, name : java.lang.String, other : java.lang.Long) : java.lang.Long",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"signature": "subtractFromInt(number : java.lang.Integer, name : java.lang.String, other : java.lang.Integer) : java.lang.Integer",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"signature": "subtractFromInt(number : java.lang.Integer, name : java.lang.String, other : java.lang.Long) : java.lang.Long",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"signature": "subtractFromLong(number : java.lang.Long, name : java.lang.String, other : java.lang.Integer) : java.lang.Long",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"signature": "subtractFromLong(number : java.lang.Long, name : java.lang.String, other : java.lang.Long) : java.lang.Long",
+			"sourceType": "io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"signature": "or(value : T, other : T) : T",
+			"sourceType": "io.quarkus.qute.runtime.extensions.OrOperatorTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "fmtInstance(format : java.lang.String, ignoredPropertyName : java.lang.String, args : java.lang.Object...) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.StringTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"signature": "fmtInstance(format : java.lang.String, ignoredPropertyName : java.lang.String, locale : java.util.Locale, args : java.lang.Object...) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.StringTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"namespace": "str",
+			"signature": "fmt(ignoredPropertyName : java.lang.String, format : java.lang.String, args : java.lang.Object...) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.StringTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"namespace": "str",
+			"signature": "fmt(ignoredPropertyName : java.lang.String, locale : java.util.Locale, format : java.lang.String, args : java.lang.Object...) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.StringTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"matchName": "+",
+			"signature": "plus(str : java.lang.String, val : java.lang.Object) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.StringTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"signature": "format(temporal : java.time.temporal.TemporalAccessor, pattern : java.lang.String) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.TimeTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "format(temporal : java.time.temporal.TemporalAccessor, pattern : java.lang.String, locale : java.util.Locale) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.TimeTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "format(temporal : java.time.temporal.TemporalAccessor, pattern : java.lang.String, locale : java.util.Locale, timeZone : java.time.ZoneId) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.TimeTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"namespace": "time",
+			"signature": "format(dateTimeObject : java.lang.Object, pattern : java.lang.String) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.TimeTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"namespace": "time",
+			"signature": "format(dateTimeObject : java.lang.Object, pattern : java.lang.String, locale : java.util.Locale) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.TimeTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"namespace": "time",
+			"signature": "format(dateTimeObject : java.lang.Object, pattern : java.lang.String, locale : java.util.Locale, timeZone : java.time.ZoneId) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.TimeTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "getFormattableObject(value : java.lang.Object, timeZone : java.time.ZoneId) : java.time.temporal.TemporalAccessor",
+			"sourceType": "io.quarkus.qute.runtime.extensions.TimeTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"signature": "formatterForKey(key : io.quarkus.qute.runtime.extensions.TimeTemplateExtensions$Key) : java.time.format.DateTimeFormatter",
+			"sourceType": "io.quarkus.qute.runtime.extensions.TimeTemplateExtensions",
+			"binary": true,
+			"kind": 4
+		},
+		{
+			"namespace": "time",
+			"signature": "format(dateTimeObject : java.lang.Object, pattern : java.lang.String) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.TimeTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"namespace": "time",
+			"signature": "format(dateTimeObject : java.lang.Object, pattern : java.lang.String, locale : java.util.Locale) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.TimeTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"namespace": "time",
+			"signature": "format(dateTimeObject : java.lang.Object, pattern : java.lang.String, locale : java.util.Locale, timeZone : java.time.ZoneId) : java.lang.String",
+			"sourceType": "io.quarkus.qute.runtime.extensions.TimeTemplateExtensions",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"signature": "convertToMarkdown(text : java.lang.String, ignoredName : java.lang.String) : java.lang.String",
+			"sourceType": "io.quarkiverse.qute.web.markdown.runtime.MarkdownSectionHelperFactory",
+			"binary": true,
+			"kind": 3
+		},
+		{
+			"named": "bundle",
+			"namespace": "inject",
+			"signature": "io.quarkiverse.web.bundler.runtime.Bundle",
+			"sourceType": "io.quarkiverse.web.bundler.runtime.Bundle",
+			"kind": 6
+		},
+		{
+			"named": "vertxRequest",
+			"namespace": "inject",
+			"signature": "getCurrentRequest(rc : io.vertx.ext.web.RoutingContext) : io.vertx.core.http.HttpServerRequest",
+			"sourceType": "io.quarkus.vertx.http.runtime.CurrentRequestProducer",
+			"kind": 6
+		}
+	]
+}

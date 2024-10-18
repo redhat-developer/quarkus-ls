@@ -1118,11 +1118,19 @@ public class QuteProject {
 		}
 		List<MethodValueResolver> resolvers = getResolversFor(baseType);
 		for (MethodValueResolver resolver : resolvers) {
-			if (isMatchMethod(resolver, property)) {
+			if (isMatchMethod(resolver, property) || isMatchMethodResolver(resolver, property)) {
 				return resolver;
 			}
 		}
 		return null;
+	}
+
+	private boolean isMatchMethodResolver(MethodValueResolver resolver, String property) {
+		String matchName = resolver.getMatchName();
+		if (matchName == null) {
+			return false;
+		}
+		return ValueResolver.MATCH_NAME_ANY.equals(matchName) || matchName.equals(property);
 	}
 
 	public List<MethodValueResolver> getResolversFor(ResolvedJavaTypeInfo javaType) {

@@ -1,0 +1,76 @@
+{
+	"signature": "io.quarkiverse.roq.frontmatter.runtime.model.Site",
+	"extendedTypes": [
+		"java.lang.Record"
+	],
+	"fields": [
+		{
+			"signature": "url : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "imagesUrl : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "data : io.vertx.core.json.JsonObject"
+		},
+		{
+			"signature": "pages : java.util.List<io.quarkiverse.roq.frontmatter.runtime.model.NormalPage>"
+		},
+		{
+			"signature": "collections : io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections"
+		}
+	],
+	"methods": [
+		{
+			"signature": "title() : java.lang.String"
+		},
+		{
+			"signature": "description() : java.lang.String"
+		},
+		{
+			"signature": "img() : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "url(path : java.lang.Object) : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "url(path : java.lang.Object, others : java.lang.Object...) : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "page(id : java.lang.String) : io.quarkiverse.roq.frontmatter.runtime.model.NormalPage"
+		},
+		{
+			"signature": "document(id : java.lang.String) : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage"
+		},
+		{
+			"signature": "toString() : java.lang.String"
+		},
+		{
+			"signature": "hashCode() : int"
+		},
+		{
+			"signature": "equals(o : java.lang.Object) : boolean"
+		},
+		{
+			"signature": "url() : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "imagesUrl() : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "data() : io.vertx.core.json.JsonObject"
+		},
+		{
+			"signature": "pages() : java.util.List<io.quarkiverse.roq.frontmatter.runtime.model.NormalPage>"
+		},
+		{
+			"signature": "collections() : io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections"
+		}
+	],
+	"binary": true,
+	"templateDataAnnotations": [
+		{}
+	],
+	"typeKind": 0,
+	"invalidMethods": {}
+}

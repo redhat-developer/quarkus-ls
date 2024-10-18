@@ -1,0 +1,128 @@
+/*******************************************************************************
+* Copyright (c) 2024 Red Hat Inc. and others.
+* All rights reserved. This program and the accompanying materials
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v20.html
+*
+* SPDX-License-Identifier: EPL-2.0
+*
+* Contributors:
+*     Red Hat Inc. - initial API and implementation
+*******************************************************************************/
+package com.redhat.qute.project;
+
+import java.util.Arrays;
+import java.util.List;
+
+import com.redhat.qute.commons.InvalidMethodReason;
+import com.redhat.qute.commons.JavaTypeInfo;
+import com.redhat.qute.commons.JavaTypeKind;
+import com.redhat.qute.commons.ProjectInfo;
+import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+
+/**
+ * Base class for project which initializes JDK resolved Java types.
+ */
+public abstract class BaseQuteProject extends MockQuteProject {
+
+	public BaseQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
+		super(projectInfo, projectRegistry);
+	}
+
+	@Override
+	protected void fillJavaTypes(List<JavaTypeInfo> cache) {
+		createJavaTypeInfo("java.util.List<E>", JavaTypeKind.Interface, cache);
+		createJavaTypeInfo("java.util.Map<K,V>", JavaTypeKind.Interface, cache);
+	}
+
+	@Override
+	protected void fillResolvedJavaTypes(List<ResolvedJavaTypeInfo> resolvedJavaTypes) {
+		createBinaryTypes(resolvedJavaTypes);
+	}
+
+	private void createBinaryTypes(List<ResolvedJavaTypeInfo> cache) {
+		// Java type primitives
+		createResolvedJavaTypeInfo("java.lang.Object", cache, true);
+		createResolvedJavaTypeInfo("java.lang.Boolean", cache, true);
+		createResolvedJavaTypeInfo("java.lang.Integer", cache, true);
+		createResolvedJavaTypeInfo("java.lang.Double", cache, true);
+		createResolvedJavaTypeInfo("java.lang.Long", cache, true);
+		createResolvedJavaTypeInfo("java.lang.Float", cache, true);
+		createResolvedJavaTypeInfo("java.math.BigDecimal", cache, true);
+
+		// String
+		ResolvedJavaTypeInfo string = createResolvedJavaTypeInfo("java.lang.String", cache, true);
+		registerField("UTF16 : byte", string);
+		registerMethod("isEmpty() : boolean", string);
+		registerMethod("codePointCount(beginIndex : int,endIndex : int) : int", string);
+		string.setInvalidMethod("getChars", InvalidMethodReason.VoidReturn); // void getChars(int srcBegin, int srcEnd,
+																				// char dst[], int dstBegin)
+		registerMethod("charAt(index : int) : char", string);
+		registerMethod("getBytes(charsetName : java.lang.String) : byte[]", string);
+		registerMethod("getBytes() : byte[]", string);
+
+		// BigInteger
+		ResolvedJavaTypeInfo bigInteger = createResolvedJavaTypeInfo("java.math.BigInteger", cache, true);
+		registerMethod("divide(val : java.math.BigInteger) : java.math.BigInteger", bigInteger);
+
+		// Iterator
+		ResolvedJavaTypeInfo iterator = createResolvedJavaTypeInfo("java.util.Iterator<E>", cache, true);
+		registerMethod("hasNext() : boolean", iterator);
+		registerMethod("next() : E", iterator);
+
+		// Iterable
+		ResolvedJavaTypeInfo iterable = createResolvedJavaTypeInfo("java.lang.Iterable<T>", cache, true);
+		registerMethod("iterator() : java.util.Iterator<T>", iterable);
+
+		// Collection
+		ResolvedJavaTypeInfo collection = createResolvedJavaTypeInfo("java.util.Collection<E>", cache, true);
+		collection.setExtendedTypes(Arrays.asList("java.lang.Iterable<E>"));
+
+		// List
+		ResolvedJavaTypeInfo list = createResolvedJavaTypeInfo("java.util.List<E>", cache, true);
+		list.setExtendedTypes(Arrays.asList("java.util.Collection<E>"));
+		registerMethod("size() : int", list);
+		registerMethod("get(index : int) : E", list);
+		registerMethod("subList(fromIndex : int, toIndex: int) : java.util.List<E>", list);
+
+		// Set
+		ResolvedJavaTypeInfo set = createResolvedJavaTypeInfo("java.util.Set<E>", cache, true);
+		set.setExtendedTypes(Arrays.asList("java.lang.Iterable<E>"));
+
+		// Map
+		ResolvedJavaTypeInfo map = createResolvedJavaTypeInfo("java.util.Map<K,V>", cache, true);
+		registerMethod("keySet() : java.util.Set<K>", map);
+		registerMethod("values() : java.util.Collection<V>", map);
+		registerMethod("entrySet() : java.util.Set<java.util.Map$Entry<K,V>>", map);
+		registerMethod("get(key : K) : V", map);
+
+		// Map.Entry
+		ResolvedJavaTypeInfo mapEntry = createResolvedJavaTypeInfo("java.util.Map$Entry<K,V>", cache, true);
+		registerMethod("getKey() : K", mapEntry);
+		registerMethod("getValue() : V", mapEntry);
+
+		// AbstractMap
+		ResolvedJavaTypeInfo abstractMap = createResolvedJavaTypeInfo("java.util.AbstractMap<K,V>", cache, true);
+		abstractMap.setExtendedTypes(Arrays.asList("java.util.Map<K,V>"));
+
+		// HashMap
+		ResolvedJavaTypeInfo hashMap = createResolvedJavaTypeInfo("java.util.HashMap<K,V>", cache, true);
+		hashMap.setExtendedTypes(Arrays.asList("java.util.AbstractMap<K,V>", "java.util.Map<K,V>"));
+
+		// https://quarkus.io/guides/qute-reference#evaluation-of-completionstage-and-uni-objects
+		createResolvedJavaTypeInfo("java.util.concurrent.CompletionStage<T>", cache, true);
+		ResolvedJavaTypeInfo completableFuture = createResolvedJavaTypeInfo("java.util.concurrent.CompletableFuture<T>",
+				cache, true);
+		completableFuture.setExtendedTypes(Arrays.asList("java.util.concurrent.CompletionStage<T>"));
+		createResolvedJavaTypeInfo("io.smallrye.mutiny.Uni<T>", cache, true);
+		ResolvedJavaTypeInfo asyncResultUni = createResolvedJavaTypeInfo("io.smallrye.mutiny.vertx.AsyncResultUni<T>",
+				cache, true);
+		asyncResultUni.setExtendedTypes(Arrays.asList("io.smallrye.mutiny.Uni<T>"));
+
+		// RawString for raw and safe resolver tests
+		ResolvedJavaTypeInfo rawString = createResolvedJavaTypeInfo("io.quarkus.qute.RawString", cache, true);
+		registerMethod("getValue() : java.lang.String", rawString);
+		registerMethod("toString() : java.lang.String", rawString);
+	}
+
+}
