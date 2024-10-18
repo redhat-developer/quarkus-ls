@@ -1,0 +1,33 @@
+{
+	"signature": "io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection",
+	"extendedTypes": [
+		"java.util.ArrayList<io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage>"
+	],
+	"fields": [],
+	"methods": [
+		{
+			"signature": "resolveNextPage(page : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage) : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage"
+		},
+		{
+			"signature": "resolvePreviousPage(page : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage) : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage"
+		},
+		{
+			"signature": "resolvePrevPage(page : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage) : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage"
+		},
+		{
+			"signature": "paginated(paginator : io.quarkiverse.roq.frontmatter.runtime.model.Paginator) : java.util.List<io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage>"
+		},
+		{
+			"signature": "by(keys : java.lang.String...) : java.util.List<java.lang.Object>"
+		},
+		{
+			"signature": "group(keys : java.lang.String...) : java.util.Map<java.lang.Object,java.util.List<io.quarkiverse.roq.frontmatter.runtime.model.Page>>"
+		}
+	],
+	"binary": true,
+	"templateDataAnnotations": [
+		{}
+	],
+	"typeKind": 2,
+	"invalidMethods": {}
+}

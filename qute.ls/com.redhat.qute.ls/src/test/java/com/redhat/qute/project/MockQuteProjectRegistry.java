@@ -37,6 +37,7 @@ import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.project.multiple.QuteProjectA;
 import com.redhat.qute.project.multiple.QuteProjectB;
+import com.redhat.qute.project.roq.RoqProject;
 
 public class MockQuteProjectRegistry extends QuteProjectRegistry {
 
@@ -63,6 +64,9 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 		}
 		if (QuteProjectB.PROJECT_URI.equals(projectInfo.getUri())) {
 			return new QuteProjectB(this);
+		}
+		if (RoqProject.PROJECT_URI.equals(projectInfo.getUri())) {
+			return new RoqProject(projectInfo, this);
 		}
 		return super.createProject(projectInfo);
 	}

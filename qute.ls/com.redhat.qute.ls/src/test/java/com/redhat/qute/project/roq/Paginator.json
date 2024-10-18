@@ -1,0 +1,55 @@
+{
+	"signature": "io.quarkiverse.roq.frontmatter.runtime.model.Paginator",
+	"extendedTypes": [
+		"java.lang.Record"
+	],
+	"fields": [
+		{
+			"signature": "collection : java.lang.String"
+		},
+		{
+			"signature": "collectionSize : int"
+		},
+		{
+			"signature": "limit : int"
+		},
+		{
+			"signature": "total : int"
+		},
+		{
+			"signature": "currentIndex : int"
+		},
+		{
+			"signature": "previousIndex : java.lang.Integer"
+		},
+		{
+			"signature": "previous : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "nextIndex : java.lang.Integer"
+		},
+		{
+			"signature": "next : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		}
+	],
+	"methods": [
+		{
+			"signature": "prevIndex() : java.lang.Integer"
+		},
+		{
+			"signature": "prev() : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "isFirst() : boolean"
+		},
+		{
+			"signature": "isSecond() : boolean"
+		}
+	],
+	"binary": false,
+	"templateDataAnnotations": [
+		{}
+	],
+	"typeKind": 0,
+	"invalidMethods": {}
+}

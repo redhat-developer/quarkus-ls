@@ -1,0 +1,31 @@
+{
+	"signature": "io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage",
+	"extendedTypes": [
+		"java.lang.Record",
+		"io.quarkiverse.roq.frontmatter.runtime.model.Page"
+	],
+	"fields": [
+		{
+			"signature": "collection : java.lang.String"
+		},
+		{
+			"signature": "url : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "info : io.quarkiverse.roq.frontmatter.runtime.model.PageInfo"
+		},
+		{
+			"signature": "data : io.vertx.core.json.JsonObject"
+		},
+		{
+			"signature": "hidden : boolean"
+		}
+	],
+	"methods": [],
+	"binary": false,
+	"templateDataAnnotations": [
+		{}
+	],
+	"typeKind": 0,
+	"invalidMethods": {}
+}

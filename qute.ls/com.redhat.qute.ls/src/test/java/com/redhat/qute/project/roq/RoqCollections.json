@@ -1,0 +1,46 @@
+{
+	"signature": "io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections",
+	"extendedTypes": [
+		"java.lang.Record"
+	],
+	"fields": [
+		{
+			"signature": "collections : java.util.Map<java.lang.String,io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection>"
+		}
+	],
+	"methods": [
+		{
+			"signature": "get(name : java.lang.String) : io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection"
+		},
+		{
+			"signature": "resolveNextPage(page : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage) : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage"
+		},
+		{
+			"signature": "resolvePreviousPage(page : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage) : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage"
+		},
+		{
+			"signature": "resolveCollection(page : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage) : io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection"
+		},
+		{
+			"signature": "resolvePrevPage(page : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage) : io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage"
+		},
+		{
+			"signature": "toString() : java.lang.String"
+		},
+		{
+			"signature": "hashCode() : int"
+		},
+		{
+			"signature": "equals(o : java.lang.Object) : boolean"
+		},
+		{
+			"signature": "collections() : java.util.Map<java.lang.String,io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection>"
+		}
+	],
+	"binary": true,
+	"templateDataAnnotations": [
+		{}
+	],
+	"typeKind": 0,
+	"invalidMethods": {}
+}
