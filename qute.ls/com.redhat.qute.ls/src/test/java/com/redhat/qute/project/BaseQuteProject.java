@@ -11,14 +11,19 @@
 *******************************************************************************/
 package com.redhat.qute.project;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.gson.GsonBuilder;
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.datamodel.DataModelProject;
+import com.redhat.qute.commons.datamodel.DataModelTemplate;
 
 /**
  * Base class for project which initializes JDK resolved Java types.
@@ -27,6 +32,19 @@ public abstract class BaseQuteProject extends MockQuteProject {
 
 	public BaseQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		super(projectInfo, projectRegistry);
+	}
+
+	protected DataModelProject<DataModelTemplate<?>> loadDataModel(String fileName, Class<?> clazz) {
+		InputStream in = clazz.getResourceAsStream(fileName);
+		return new GsonBuilder().create().fromJson(new InputStreamReader(in),
+				DataModelProject.class);
+	}
+
+	protected void loadResolvedJavaType(String fileName, List<ResolvedJavaTypeInfo> resolvedJavaTypes, Class<?> clazz) {
+		InputStream in = clazz.getResourceAsStream(fileName);
+		ResolvedJavaTypeInfo resolvedJavaType = new GsonBuilder().create().fromJson(new InputStreamReader(in),
+				ResolvedJavaTypeInfo.class);
+		resolvedJavaTypes.add(resolvedJavaType);
 	}
 
 	@Override
@@ -38,6 +56,8 @@ public abstract class BaseQuteProject extends MockQuteProject {
 	@Override
 	protected void fillResolvedJavaTypes(List<ResolvedJavaTypeInfo> resolvedJavaTypes) {
 		createBinaryTypes(resolvedJavaTypes);
+		// Load JsonObject from vertx
+		loadResolvedJavaType("JsonObject.json", resolvedJavaTypes, BaseQuteProject.class);
 	}
 
 	private void createBinaryTypes(List<ResolvedJavaTypeInfo> cache) {

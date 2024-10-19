@@ -11,12 +11,9 @@
 *******************************************************************************/
 package com.redhat.qute.project.roq;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 
-import com.google.gson.GsonBuilder;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
@@ -39,27 +36,14 @@ public class RoqProject extends BaseQuteProject {
 		super(projectInfo, projectRegistry);
 	}
 
-	private DataModelProject<DataModelTemplate<?>> loadDataModel(String fileName) {
-		InputStream in = this.getClass().getResourceAsStream(fileName);
-		return new GsonBuilder().create().fromJson(new InputStreamReader(in),
-				DataModelProject.class);
-	}
-
 	@Override
 	protected void fillResolvedJavaTypes(List<ResolvedJavaTypeInfo> resolvedJavaTypes) {
 		super.fillResolvedJavaTypes(resolvedJavaTypes);
-		loadResolvedJavaType("Site.json", resolvedJavaTypes);
-		loadResolvedJavaType("RoqCollection.json", resolvedJavaTypes);
-		loadResolvedJavaType("RoqCollections.json", resolvedJavaTypes);
-		loadResolvedJavaType("Paginator.json", resolvedJavaTypes);
-		loadResolvedJavaType("DocumentPage.json", resolvedJavaTypes);
-	}
-
-	private void loadResolvedJavaType(String fileName, List<ResolvedJavaTypeInfo> resolvedJavaTypes) {
-		InputStream in = this.getClass().getResourceAsStream(fileName);
-		ResolvedJavaTypeInfo resolvedJavaType = new GsonBuilder().create().fromJson(new InputStreamReader(in),
-				ResolvedJavaTypeInfo.class);
-		resolvedJavaTypes.add(resolvedJavaType);
+		loadResolvedJavaType("Site.json", resolvedJavaTypes, RoqProject.class);
+		loadResolvedJavaType("RoqCollection.json", resolvedJavaTypes, RoqProject.class);
+		loadResolvedJavaType("RoqCollections.json", resolvedJavaTypes, RoqProject.class);
+		loadResolvedJavaType("Paginator.json", resolvedJavaTypes, RoqProject.class);
+		loadResolvedJavaType("DocumentPage.json", resolvedJavaTypes, RoqProject.class);
 	}
 
 	@Override
@@ -74,7 +58,7 @@ public class RoqProject extends BaseQuteProject {
 
 	private DataModelProject<DataModelTemplate<?>> getDataModel() {
 		if (dataModel == null) {
-			dataModel = loadDataModel("RoqDataModel.json");
+			dataModel = loadDataModel("RoqDataModel.json", RoqProject.class);
 		}
 		return dataModel;
 	}
