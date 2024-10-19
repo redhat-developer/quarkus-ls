@@ -123,6 +123,17 @@
 				"{myList.0}"
 			],
 			"url": "https://quarkus.io/guides/qute-reference#collections"
+		},
+		// ------------- Vert.x Integration --------------
+		// See https://quarkus.io/guides/qute-reference#vertx_integration
+		{
+			"signature": "get(base : io.vertx.core.json.JsonObject, key : java.lang.String) : java.lang.Object",
+			"matchName": "*", 
+			"url": "https://quarkus.io/guides/qute-reference#vertx_integration"
+		},
+		{
+			"signature": "get(base : io.vertx.core.json.JsonObject, key : java.lang.String) : java.lang.Object",
+			"url": "https://quarkus.io/guides/qute-reference#vertx_integration"
 		}
 	]
 }
