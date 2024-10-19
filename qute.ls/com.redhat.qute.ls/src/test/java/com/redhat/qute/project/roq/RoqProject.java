@@ -44,6 +44,7 @@ public class RoqProject extends BaseQuteProject {
 		loadResolvedJavaType("RoqCollections.json", resolvedJavaTypes, RoqProject.class);
 		loadResolvedJavaType("Paginator.json", resolvedJavaTypes, RoqProject.class);
 		loadResolvedJavaType("DocumentPage.json", resolvedJavaTypes, RoqProject.class);
+		loadResolvedJavaType("Page.json", resolvedJavaTypes, RoqProject.class);
 	}
 
 	@Override

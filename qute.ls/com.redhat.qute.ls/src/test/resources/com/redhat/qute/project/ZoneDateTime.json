@@ -1,0 +1,212 @@
+{
+	"signature": "java.time.ZonedDateTime",
+	"extendedTypes": [
+		"java.lang.Object",
+		"java.time.temporal.Temporal",
+		"java.time.chrono.ChronoZonedDateTime<java.time.LocalDate>",
+		"java.io.Serializable"
+	],
+	"fields": [],
+	"methods": [
+		{
+			"signature": "isSupported(field : java.time.temporal.TemporalField) : boolean"
+		},
+		{
+			"signature": "isSupported(unit : java.time.temporal.TemporalUnit) : boolean"
+		},
+		{
+			"signature": "range(field : java.time.temporal.TemporalField) : java.time.temporal.ValueRange"
+		},
+		{
+			"signature": "get(arg0 : java.time.temporal.TemporalField) : int"
+		},
+		{
+			"signature": "getLong(arg0 : java.time.temporal.TemporalField) : long"
+		},
+		{
+			"signature": "getOffset() : java.time.ZoneOffset"
+		},
+		{
+			"signature": "withEarlierOffsetAtOverlap() : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "withLaterOffsetAtOverlap() : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "getZone() : java.time.ZoneId"
+		},
+		{
+			"signature": "withZoneSameLocal(zone : java.time.ZoneId) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "withZoneSameInstant(zone : java.time.ZoneId) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "withFixedOffsetZone() : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "toLocalDateTime() : java.time.LocalDateTime"
+		},
+		{
+			"signature": "toLocalDate() : java.time.LocalDate"
+		},
+		{
+			"signature": "getYear() : int"
+		},
+		{
+			"signature": "getMonthValue() : int"
+		},
+		{
+			"signature": "getMonth() : java.time.Month"
+		},
+		{
+			"signature": "getDayOfMonth() : int"
+		},
+		{
+			"signature": "getDayOfYear() : int"
+		},
+		{
+			"signature": "getDayOfWeek() : java.time.DayOfWeek"
+		},
+		{
+			"signature": "toLocalTime() : java.time.LocalTime"
+		},
+		{
+			"signature": "getHour() : int"
+		},
+		{
+			"signature": "getMinute() : int"
+		},
+		{
+			"signature": "getSecond() : int"
+		},
+		{
+			"signature": "getNano() : int"
+		},
+		{
+			"signature": "with(arg0 : java.time.temporal.TemporalAdjuster) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "with(arg0 : java.time.temporal.TemporalField, arg1 : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "withYear(year : int) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "withMonth(month : int) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "withDayOfMonth(dayOfMonth : int) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "withDayOfYear(dayOfYear : int) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "withHour(hour : int) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "withMinute(minute : int) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "withSecond(second : int) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "withNano(nanoOfSecond : int) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "truncatedTo(unit : java.time.temporal.TemporalUnit) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "plus(arg0 : java.time.temporal.TemporalAmount) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "plus(amountToAdd : long, unit : java.time.temporal.TemporalUnit) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "plusYears(years : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "plusMonths(months : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "plusWeeks(weeks : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "plusDays(days : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "plusHours(hours : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "plusMinutes(minutes : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "plusSeconds(seconds : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "plusNanos(nanos : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "minus(arg0 : java.time.temporal.TemporalAmount) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "minus(amountToSubtract : long, unit : java.time.temporal.TemporalUnit) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "minusYears(years : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "minusMonths(months : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "minusWeeks(weeks : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "minusDays(days : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "minusHours(hours : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "minusMinutes(minutes : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "minusSeconds(seconds : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "minusNanos(nanos : long) : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "query(query : java.time.temporal.TemporalQuery<R>) : R"
+		},
+		{
+			"signature": "until(arg0 : java.time.temporal.Temporal, arg1 : java.time.temporal.TemporalUnit) : long"
+		},
+		{
+			"signature": "format(formatter : java.time.format.DateTimeFormatter) : java.lang.String"
+		},
+		{
+			"signature": "toOffsetDateTime() : java.time.OffsetDateTime"
+		},
+		{
+			"signature": "equals(arg0 : java.lang.Object) : boolean"
+		},
+		{
+			"signature": "hashCode() : int"
+		},
+		{
+			"signature": "toString() : java.lang.String"
+		}
+	],
+	"binary": true,
+	"typeKind": 2,
+	"invalidMethods": {
+		"ofLocal": 3,
+		"ofInstant": 3,
+		"now": 3,
+		"of": 3,
+		"ofStrict": 3,
+		"from": 3,
+		"parse": 3
+	}
+}
