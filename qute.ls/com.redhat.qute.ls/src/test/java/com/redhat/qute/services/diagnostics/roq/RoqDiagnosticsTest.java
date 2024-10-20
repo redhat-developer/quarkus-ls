@@ -26,12 +26,21 @@ import com.redhat.qute.project.roq.RoqProject;
 public class RoqDiagnosticsTest {
 
 	@Test
-	public void noError() throws Exception {
+	public void noErrorByUsingMatchNameAny() throws Exception {
+		// Here posts is declared although collections doesn't declare posts
+		// It uses a template extension collections.get('posts') with matchName=*
 		String template = "{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\r\n" + //
 				"{#for post in site.collections.posts.paginated(null)}\r\n" + //
 				"{#if post.hidden}\r\n" + //
 				"{/if}" + //
 				"{/for}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void noErrorWithStringParameter() {
+		String template = "{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}\r\n" + //
+				"{page.date.format('yyyy, MMM dd')}";
 		testDiagnosticsFor(template);
 	}
 

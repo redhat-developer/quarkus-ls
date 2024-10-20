@@ -1,0 +1,37 @@
+{
+	"signature": "java.time.temporal.Temporal",
+    "extendedTypes": [
+        "java.lang.Object",
+        "java.time.temporal.TemporalAccessor"
+    ],
+    "fields": [],
+    "methods": [
+        {
+            "signature": "isSupported(arg0 : java.time.temporal.TemporalUnit) : boolean"
+        },
+        {
+            "signature": "with(adjuster : java.time.temporal.TemporalAdjuster) : java.time.temporal.Temporal"
+        },
+        {
+            "signature": "with(arg0 : java.time.temporal.TemporalField, arg1 : long) : java.time.temporal.Temporal"
+        },
+        {
+            "signature": "plus(amount : java.time.temporal.TemporalAmount) : java.time.temporal.Temporal"
+        },
+        {
+            "signature": "plus(arg0 : long, arg1 : java.time.temporal.TemporalUnit) : java.time.temporal.Temporal"
+        },
+        {
+            "signature": "minus(amount : java.time.temporal.TemporalAmount) : java.time.temporal.Temporal"
+        },
+        {
+            "signature": "minus(amountToSubtract : long, unit : java.time.temporal.TemporalUnit) : java.time.temporal.Temporal"
+        },
+        {
+            "signature": "until(arg0 : java.time.temporal.Temporal, arg1 : java.time.temporal.TemporalUnit) : long"
+        }
+    ],
+    "binary": true,
+    "typeKind": 3,
+    "invalidMethods": {}
+}

@@ -166,6 +166,14 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 
 	private TokenType parseParameterName(int offset) {
 		if (methodParameters) {
+			int c = stream.peekChar();
+			if (c == '"' || c == '\'') {
+				stream.advance(1);
+				if (stream.advanceUntilChar(c)) {
+					stream.advance(1);
+				}
+				return finishToken(offset, TokenType.ParameterName);
+			}
 			stream.advanceUntilChar(PAREN_COMMA);
 			if (stream.peekChar() == '(') {
 				stream.advance(1);

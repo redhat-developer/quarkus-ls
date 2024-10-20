@@ -1,0 +1,54 @@
+{
+	"signature": "io.quarkiverse.roq.frontmatter.runtime.model.Page",
+	"extendedTypes": [],
+	"fields": [],
+	"methods": [
+		{
+			"signature": "info() : io.quarkiverse.roq.frontmatter.runtime.model.PageInfo"
+		},
+		{
+			"signature": "id() : java.lang.String"
+		},
+		{
+			"signature": "rawContent() : java.lang.String"
+		},
+		{
+			"signature": "baseFileName() : java.lang.String"
+		},
+		{
+			"signature": "sourceFileName() : java.lang.String"
+		},
+		{
+			"signature": "sourcePath() : java.lang.String"
+		},
+		{
+			"signature": "date() : java.time.ZonedDateTime"
+		},
+		{
+			"signature": "title() : java.lang.String"
+		},
+		{
+			"signature": "description() : java.lang.String"
+		},
+		{
+			"signature": "img() : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "url() : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "data() : io.vertx.core.json.JsonObject"
+		},
+		{
+			"signature": "data(name : java.lang.String) : java.lang.Object"
+		}
+	],
+	"binary": false,
+	"templateDataAnnotations": [
+		{}
+	],
+	"typeKind": 3,
+	"invalidMethods": {
+		"getImgFromData": 3
+	}
+}
