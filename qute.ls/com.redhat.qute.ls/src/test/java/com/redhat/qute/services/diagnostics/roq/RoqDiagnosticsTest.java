@@ -38,7 +38,7 @@ public class RoqDiagnosticsTest {
 	}
 
 	@Test
-	public void noError() {
+	public void noErrorWithStringParameter() {
 		String template = "{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}\r\n" + //
 				"{page.date.format('yyyy, MMM dd')}";
 		testDiagnosticsFor(template);
