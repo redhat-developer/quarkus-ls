@@ -1,5 +1,17 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## [0.20.0](https://github.com/redhat-developer/quarkus-ls/milestone/23?closed=1) (October 17, 2024)
+
+### Enhancements
+
+- feat: Available Ollama models support for quarkus.langchain4j.ollama.chat-model.model-id property value. See [#985](https://github.com/redhat-developer/quarkus-ls/pull/985).
+
+### Bug Fixes
+
+- fix: add languageId filter for options similar to microprofile. See [#999](https://github.com/redhat-developer/quarkus-ls/pull/999).
+- fix: Message: Request qute/java/documentLink failed with message: Cannot invoke "org.eclipse.jdt.core.dom.ITypeBinding.getQualifiedName()". See [#996](https://github.com/redhat-developer/quarkus-ls/pull/996).
+- NPE with {# and Qute inlay hint. See [#991](https://github.com/redhat-developer/quarkus-ls/issues/991).
+
 ## [0.19.1](https://github.com/redhat-developer/quarkus-ls/milestone/22?closed=1) (August 29, 2024)
 
 ### Bug Fixes
