@@ -14,8 +14,8 @@ import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.runtime.util.StringUtil.join;
 import static io.quarkus.runtime.util.StringUtil.lowerCase;
 import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
-import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getFirstAnnotation;
 import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getAnnotationMemberValue;
+import static org.eclipse.lsp4mp.jdt.core.utils.AnnotationUtils.getFirstAnnotation;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.findType;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getEnclosedType;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getPropertyType;
@@ -57,7 +57,6 @@ import org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils;
 import com.redhat.microprofile.jdt.internal.quarkus.QuarkusConstants;
 import com.redhat.microprofile.jdt.quarkus.JDTQuarkusUtils;
 
-import io.quarkus.arc.config.ConfigProperties;
 import io.quarkus.deployment.bean.JavaBeanUtil;
 
 /**
@@ -328,15 +327,14 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 		}
 		// Quarkus >=1.2
 		// check if the ConfigProperties use the namingStrategy
-		String namingStrategy = getAnnotationMemberValue(configPropertiesAnnotation,
-			QuarkusConstants.CONFIG_PROPERTIES_ANNOTATION_NAMING_STRATEGY);
+		ConfigProperties.NamingStrategy namingStrategy = getNamingStrategy(configPropertiesAnnotation);
 		if (namingStrategy != null) {
 			switch (namingStrategy) {
-			case QuarkusConstants.CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_FROM_CONFIG:
+			case FROM_CONFIG:
 				return convertDefaultName(name, configPropertiesContext);
-			case QuarkusConstants.CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_VERBATIM:
+			case VERBATIM:
 				return name;
-			case QuarkusConstants.CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_KEBAB_CASE:
+			case KEBAB_CASE:
 				return hyphenate(name);
 			}
 		}
@@ -346,8 +344,8 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 
 	private static String convertDefaultName(String name, ConfigPropertiesContext configPropertiesContext)
 		throws JavaModelException {
-		if (QuarkusConstants.CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_VERBATIM
-			.equals(configPropertiesContext.getDefaultNamingStrategy())) {
+		ConfigProperties.NamingStrategy namingStrategy = getNamingStrategy(configPropertiesContext.getDefaultNamingStrategy());
+		if (namingStrategy != null && namingStrategy == ConfigProperties.NamingStrategy.VERBATIM) {
 			// the application.properties declares :
 			// quarkus.arc.config-properties-default-naming-strategy = verbatim
 			return name;
@@ -401,4 +399,28 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 			withoutSuffix(lowerCase(camelHumpsIterator(simpleName)), "config", "configuration", "properties", "props"));
 	}
 
+	/**
+	 * Returns the Quarkus @ConfigProperties(namingStrategy=...) value.
+	 *
+	 * @param configPropertiesAnnotation
+	 * @return the Quarkus @ConfigProperties(namingStrategy=...) value.
+	 * @throws JavaModelException 
+	 */
+	private static ConfigProperties.NamingStrategy getNamingStrategy(IAnnotation configPropertiesAnnotation) throws JavaModelException {
+		String namingStrategy = getAnnotationMemberValue(configPropertiesAnnotation,
+				QuarkusConstants.CONFIG_PROPERTIES_ANNOTATION_NAMING_STRATEGY);
+		return getNamingStrategy(namingStrategy);
+	}
+
+	private static ConfigProperties.NamingStrategy getNamingStrategy(String namingStrategy) {
+		if (namingStrategy != null && !namingStrategy.isEmpty()) {
+			try {
+				return ConfigProperties.NamingStrategy.valueOf(namingStrategy.toUpperCase());
+			}
+			catch(Exception e) {
+
+			}
+		}
+		return null;
+	}
 }
