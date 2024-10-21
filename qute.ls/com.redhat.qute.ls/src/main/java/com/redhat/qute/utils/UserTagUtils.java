@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
@@ -60,7 +61,7 @@ public class UserTagUtils {
 		SPECIAL_KEYS.put(metadata.getName(), metadata);
 	}
 
-	public static final String TAGS_DIR = "tags";
+	public static final String TAGS_DIR = TemplateRootPath.TAGS_DIR;
 
 	public static boolean isUserTag(Template template) {
 		String templateId = template.getTemplateId();

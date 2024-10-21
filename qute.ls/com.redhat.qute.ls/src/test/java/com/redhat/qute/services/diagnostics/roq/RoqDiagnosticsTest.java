@@ -24,7 +24,7 @@ import com.redhat.qute.project.roq.RoqProject;
  *
  */
 public class RoqDiagnosticsTest {
-
+ 
 	@Test
 	public void noErrorByUsingMatchNameAny() throws Exception {
 		// Here posts is declared although collections doesn't declare posts
