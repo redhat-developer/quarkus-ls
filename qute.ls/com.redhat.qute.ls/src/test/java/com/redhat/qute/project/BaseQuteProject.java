@@ -32,7 +32,7 @@ public abstract class BaseQuteProject extends MockQuteProject {
 
 	public BaseQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		super(projectInfo, projectRegistry);
-	}
+	} 
 
 	protected DataModelProject<DataModelTemplate<?>> loadDataModel(String fileName, Class<?> clazz) {
 		InputStream in = clazz.getResourceAsStream(fileName);

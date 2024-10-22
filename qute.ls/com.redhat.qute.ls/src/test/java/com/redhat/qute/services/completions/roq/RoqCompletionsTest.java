@@ -24,7 +24,7 @@ import com.redhat.qute.project.roq.RoqProject;
  * Test completion with Roq Quarkus extension.
  *
  * @author Angelo ZERR
- *
+ * 
  */
 public class RoqCompletionsTest {
 
