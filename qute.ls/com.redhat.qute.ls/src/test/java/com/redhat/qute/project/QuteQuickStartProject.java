@@ -58,6 +58,7 @@ public class QuteQuickStartProject extends BaseQuteProject {
 		super.fillResolvedJavaTypes(cache);
 		createSourceTypes(cache);
 	}
+
 	private void createSourceTypes(List<ResolvedJavaTypeInfo> cache) {
 		createResolvedJavaTypeInfo("org.acme", cache, true).setJavaTypeKind(JavaTypeKind.Package);
 
@@ -361,35 +362,36 @@ public class QuteQuickStartProject extends BaseQuteProject {
 	protected void fillValueResolvers(List<ValueResolverInfo> resolvers) {
 
 		// Type value resolvers
-		resolvers.add(createValueResolver("inject", "plexux", null,
+		resolvers.add(createValueResolver("inject", "plexux", (String) null,
 				"org.eclipse.aether.internal.transport.wagon.PlexusWagonConfigurator",
 				"org.eclipse.aether.internal.transport.wagon.PlexusWagonConfigurator", ValueResolverKind.InjectedBean,
 				false, true));
-		resolvers.add(createValueResolver("inject", "plexux", null,
+		resolvers.add(createValueResolver("inject", "plexux", (String) null,
 				"org.eclipse.aether.internal.transport.wagon.PlexusWagonProvider",
 				"org.eclipse.aether.internal.transport.wagon.PlexusWagonProvider", ValueResolverKind.InjectedBean,
 				false, true));
 
 		// Method value resolvers
 		// No namespace
-		resolvers.add(createValueResolver(null, null, null, "org.acme.ItemResource",
+		resolvers.add(createValueResolver(null, null, (String) null, "org.acme.ItemResource",
 				"discountedPrice(item : org.acme.Item) : java.math.BigDecimal",
 				ValueResolverKind.TemplateExtensionOnMethod, false, false));
 		resolvers.add(
-				createValueResolver(null, null, null, "io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
+				createValueResolver(null, null, (String) null,
+						"io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
 						"getByIndex(list : java.util.List<T>, index : int) : T",
 						ValueResolverKind.TemplateExtensionOnClass, false, true));
-		resolvers.add(createValueResolver(null, null, null, "org.acme.ItemResource",
+		resolvers.add(createValueResolver(null, null, (String) null, "org.acme.ItemResource",
 				"pretty(item : org.acme.Item, elements : java.lang.String...) : java.lang.String",
 				ValueResolverKind.TemplateExtensionOnMethod, false, false));
 
 		// @TemplateExtension
 		// org.acme.TemplateExtensions
-		resolvers.add(createValueResolver(null, null, null, "org.acme.TemplateExtensions", "",
+		resolvers.add(createValueResolver(null, null, (String) null, "org.acme.TemplateExtensions", "",
 				ValueResolverKind.TemplateExtensionOnClass, false, false));
 		// @TemplateExtension
 		// org.acme.foo.TemplateExtensions
-		resolvers.add(createValueResolver(null, null, null, "org.acme.foo.TemplateExtensions", "",
+		resolvers.add(createValueResolver(null, null, (String) null, "org.acme.foo.TemplateExtensions", "",
 				ValueResolverKind.TemplateExtensionOnClass, false, false));
 
 		// 'config' namespace
@@ -398,7 +400,8 @@ public class QuteQuickStartProject extends BaseQuteProject {
 						"getConfigProperty(propertyName : java.lang.String) : java.lang.Object",
 						ValueResolverKind.TemplateExtensionOnMethod, false, true));
 		resolvers.add(
-				createValueResolver("config", null, null, "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
+				createValueResolver("config", null, (String) null,
+						"io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
 						"property(propertyName : java.lang.String) : java.lang.Object",
 						ValueResolverKind.TemplateExtensionOnMethod, false, true));
 
@@ -415,7 +418,7 @@ public class QuteQuickStartProject extends BaseQuteProject {
 				ValueResolverKind.TemplateGlobal, true));
 
 		// Renarde controller
-		resolvers.add(createValueResolver("uri", "Login", null, "rest.Login", "rest.Login",
+		resolvers.add(createValueResolver("uri", "Login", (String) null, "rest.Login", "rest.Login",
 				ValueResolverKind.Renarde, false, false));
 
 		// Web bundler 'bundle" field as global
@@ -424,7 +427,7 @@ public class QuteQuickStartProject extends BaseQuteProject {
 				ValueResolverKind.TemplateGlobal, true));
 
 		// Type-safe Message Bundles support
-		ValueResolverInfo hello_name = createValueResolver("msg", null, null, "org.acme.AppMessages",
+		ValueResolverInfo hello_name = createValueResolver("msg", null, (String) null, "org.acme.AppMessages",
 				"hello_name(name : java.lang.String) : java.lang.String",
 				ValueResolverKind.Message, false, false);
 		MessageResolverData hello_nameData = new MessageResolverData();
@@ -432,7 +435,7 @@ public class QuteQuickStartProject extends BaseQuteProject {
 		hello_name.setData(hello_nameData);
 		resolvers.add(hello_name);
 
-		ValueResolverInfo hello = createValueResolver("msg2", null, null, "org.acme.App2Messages",
+		ValueResolverInfo hello = createValueResolver("msg2", null, (String) null, "org.acme.App2Messages",
 				"hello() : java.lang.String",
 				ValueResolverKind.Message, false, false);
 		MessageResolverData helloData = new MessageResolverData();

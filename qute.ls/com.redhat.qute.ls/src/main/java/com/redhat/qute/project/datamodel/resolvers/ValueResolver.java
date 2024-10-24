@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.project.datamodel.resolvers;
 
+import java.util.List;
+
 import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 
@@ -44,13 +46,13 @@ public interface ValueResolver {
 	 * @return the namespace of the resolver and null otherwise.
 	 */
 	String getNamespace();
-
+	
 	/**
-	 * Returns the named of the resolver.
+	 * Returns match names of the resolver.
 	 * 
-	 * @return the named of the resolver.
+	 * @return the match names of the resolver.
 	 */
-	String getMatchName();
+	List<String> getMatchNames();
 	
 	/**
 	 * Returns the Java element signature.

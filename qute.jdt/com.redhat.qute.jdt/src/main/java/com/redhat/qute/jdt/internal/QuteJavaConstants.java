@@ -62,6 +62,8 @@ public class QuteJavaConstants {
 
 	public static final String TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAME = "matchName";
 
+	public static final String TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAMES = "matchNames";
+	
 	// @TemplateData
 
 	public static final String TEMPLATE_DATA_ANNOTATION = "io.quarkus.qute.TemplateData";
