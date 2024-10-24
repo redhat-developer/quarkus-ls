@@ -17,6 +17,7 @@ import static com.redhat.qute.jdt.QuteAssert.assertValueResolver;
 import static com.redhat.qute.jdt.QuteProjectTest.getJDTUtils;
 import static com.redhat.qute.jdt.QuteProjectTest.loadMavenProject;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -221,8 +222,12 @@ public class TemplateGetDataModelProjectTest {
 
 		// from io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions
 		assertValueResolver("config", "getConfigProperty(propertyName : java.lang.String) : java.lang.Object",
-				"io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions", resolvers);
-
+				"io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions", //
+				Arrays.asList("*"), resolvers);
+		assertValueResolver("config", "booleanProperty(propertyName : java.lang.String) : java.lang.Object",
+				"io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions", //
+				Arrays.asList("boolean"), resolvers);
+		
 		// from io.quarkus.qute.runtime.extensions.MapTemplateExtensions
 		assertValueResolver(null, "map(arg0 : java.util.Map, arg1 : java.lang.String) : java.lang.Object",
 				"io.quarkus.qute.runtime.extensions.MapTemplateExtensions", resolvers);
@@ -235,11 +240,13 @@ public class TemplateGetDataModelProjectTest {
 
 		// from io.quarkus.qute.runtime.extensions.StringTemplateExtensions
 		assertValueResolver(null,
-				"fmtInstance(format : java.lang.String, ignoredPropertyName : java.lang.String, args : java.lang.Object...) : java.lang.String",
-				"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", resolvers);
+				"fmtInstance(format : java.lang.String, ignoredPropertyName : java.lang.String, args : java.lang.Object...) : java.lang.String", //
+				"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", //
+				Arrays.asList("fmt", "format"), resolvers);
 		assertValueResolver("str",
 				"fmt(ignoredPropertyName : java.lang.String, format : java.lang.String, args : java.lang.Object...) : java.lang.String",
-				"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", resolvers);
+				"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", //
+				Arrays.asList("fmt", "format"), resolvers);
 
 		// from io.quarkus.qute.runtime.extensions.TimeTemplateExtensions
 		assertValueResolver(null,

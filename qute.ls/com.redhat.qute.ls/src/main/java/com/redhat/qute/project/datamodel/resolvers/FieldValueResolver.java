@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.project.datamodel.resolvers;
 
+import java.util.List;
+
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
 import com.redhat.qute.commons.JavaFieldInfo;
@@ -73,7 +75,7 @@ public class FieldValueResolver extends JavaFieldInfo implements ValueResolver, 
 	}
 
 	@Override
-	public String getMatchName() {
+	public List<String> getMatchNames() {
 		return null;
 	}
 

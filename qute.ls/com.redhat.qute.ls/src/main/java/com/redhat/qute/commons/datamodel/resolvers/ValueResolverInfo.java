@@ -11,6 +11,9 @@
 *******************************************************************************/
 package com.redhat.qute.commons.datamodel.resolvers;
 
+import java.util.List;
+import java.util.Objects;
+
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
 import com.redhat.qute.commons.JavaElementKind;
@@ -27,7 +30,7 @@ public class ValueResolverInfo {
 
 	private String namespace;
 
-	private String matchName;
+	private List<String> matchNames;
 
 	private String signature;
 
@@ -77,12 +80,12 @@ public class ValueResolverInfo {
 		this.namespace = namespace;
 	}
 
-	public String getMatchName() {
-		return matchName;
+	public List<String> getMatchNames() {
+		return matchNames;
 	}
 
-	public void setMatchName(String matchName) {
-		this.matchName = matchName;
+	public void setMatchNames(List<String> matchNames) {
+		this.matchNames = matchNames;
 	}
 
 	/**
@@ -199,18 +202,7 @@ public class ValueResolverInfo {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((binary == null) ? 0 : binary.hashCode());
-		result = prime * result + ((data == null) ? 0 : data.hashCode());
-		result = prime * result + ((globalVariable == null) ? 0 : globalVariable.hashCode());
-		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
-		result = prime * result + ((matchName == null) ? 0 : matchName.hashCode());
-		result = prime * result + ((named == null) ? 0 : named.hashCode());
-		result = prime * result + ((namespace == null) ? 0 : namespace.hashCode());
-		result = prime * result + ((signature == null) ? 0 : signature.hashCode());
-		result = prime * result + ((sourceType == null) ? 0 : sourceType.hashCode());
-		return result;
+		return Objects.hash(binary, data, globalVariable, kind, matchNames, named, namespace, signature, sourceType);
 	}
 
 	@Override
@@ -222,49 +214,11 @@ public class ValueResolverInfo {
 		if (getClass() != obj.getClass())
 			return false;
 		ValueResolverInfo other = (ValueResolverInfo) obj;
-		if (binary == null) {
-			if (other.binary != null)
-				return false;
-		} else if (!binary.equals(other.binary))
-			return false;
-		if (data == null) {
-			if (other.data != null)
-				return false;
-		} else if (!data.equals(other.data))
-			return false;
-		if (globalVariable == null) {
-			if (other.globalVariable != null)
-				return false;
-		} else if (!globalVariable.equals(other.globalVariable))
-			return false;
-		if (kind != other.kind)
-			return false;
-		if (matchName == null) {
-			if (other.matchName != null)
-				return false;
-		} else if (!matchName.equals(other.matchName))
-			return false;
-		if (named == null) {
-			if (other.named != null)
-				return false;
-		} else if (!named.equals(other.named))
-			return false;
-		if (namespace == null) {
-			if (other.namespace != null)
-				return false;
-		} else if (!namespace.equals(other.namespace))
-			return false;
-		if (signature == null) {
-			if (other.signature != null)
-				return false;
-		} else if (!signature.equals(other.signature))
-			return false;
-		if (sourceType == null) {
-			if (other.sourceType != null)
-				return false;
-		} else if (!sourceType.equals(other.sourceType))
-			return false;
-		return true;
+		return Objects.equals(binary, other.binary) && Objects.equals(data, other.data)
+				&& Objects.equals(globalVariable, other.globalVariable) && kind == other.kind
+				&& Objects.equals(matchNames, other.matchNames) && Objects.equals(named, other.named)
+				&& Objects.equals(namespace, other.namespace) && Objects.equals(signature, other.signature)
+				&& Objects.equals(sourceType, other.sourceType);
 	}
 
 	@Override
@@ -272,7 +226,7 @@ public class ValueResolverInfo {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("named", this.named);
 		b.add("namespace", this.namespace);
-		b.add("matchName", this.matchName);
+		b.add("matchNames", this.matchNames);
 		b.add("signature", signature);
 		b.add("sourceType", sourceType);
 		b.add("globalVariable", globalVariable);
