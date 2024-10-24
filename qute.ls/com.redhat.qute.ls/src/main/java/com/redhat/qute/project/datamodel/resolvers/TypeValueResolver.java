@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.project.datamodel.resolvers;
 
+import java.util.List;
+
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
 import com.redhat.qute.commons.JavaTypeInfo;
@@ -47,14 +49,14 @@ public class TypeValueResolver extends JavaTypeInfo implements ValueResolver, Ja
 	private Boolean globalVariable;
 
 	private ValueResolverKind kind;
-	
+
 	@Override
 	public String getNamespace() {
 		return namespace;
 	}
 
 	@Override
-	public String getMatchName() {
+	public List<String> getMatchNames() {
 		return null;
 	}
 
@@ -111,11 +113,12 @@ public class TypeValueResolver extends JavaTypeInfo implements ValueResolver, Ja
 	@Override
 	public ValueResolverKind getKind() {
 		return kind;
-	}	
+	}
+
 	public void setKind(ValueResolverKind kind) {
 		this.kind = kind;
 	}
-	
+
 	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);

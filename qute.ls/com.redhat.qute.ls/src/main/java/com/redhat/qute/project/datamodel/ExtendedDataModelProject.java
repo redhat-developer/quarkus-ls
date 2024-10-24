@@ -65,10 +65,10 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 		methodValueResolvers = new ArrayList<MethodValueResolver>();
 		updateValueResolvers(typeValueResolvers, fieldValueResolvers, methodValueResolvers, project);
 		Collections.sort(methodValueResolvers, (r1, r2) -> {
-			if (MATCH_NAME_ANY.equals(r1.getMatchName())) {
+			if (r1.getMatchNames() != null && r1.getMatchNames().contains(MATCH_NAME_ANY)) {
 				return 1;
 			}
-			if (MATCH_NAME_ANY.equals(r2.getMatchName())) {
+			if (r2.getMatchNames() != null && r2.getMatchNames().contains(MATCH_NAME_ANY)) {
 				return -1;
 			}
 			return 0;
@@ -110,7 +110,7 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 							: new MethodValueResolver();
 					methodValueResolver.setNamed(resolver.getNamed());
 					methodValueResolver.setNamespace(resolver.getNamespace());
-					methodValueResolver.setMatchName(resolver.getMatchName());
+					methodValueResolver.setMatchNames(resolver.getMatchNames());
 					methodValueResolver.setSignature(resolver.getSignature());
 					methodValueResolver.setSourceType(resolver.getSourceType());
 					methodValueResolver.setGlobalVariable(resolver.isGlobalVariable());

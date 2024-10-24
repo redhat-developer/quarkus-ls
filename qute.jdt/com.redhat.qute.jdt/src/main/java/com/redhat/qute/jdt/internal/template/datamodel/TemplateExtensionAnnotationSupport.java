@@ -13,23 +13,28 @@ package com.redhat.qute.jdt.internal.template.datamodel;
 
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_EXTENSION_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAME;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAMES;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_EXTENSION_ANNOTATION_NAMESPACE;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
-import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.jdt.QuteSupportForTemplate;
 import com.redhat.qute.jdt.internal.resolver.ITypeResolver;
 import com.redhat.qute.jdt.template.datamodel.AbstractAnnotationTypeReferenceDataModelProvider;
@@ -166,12 +171,19 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 		resolver.setBinary(method.getDeclaringType().isBinary());
 		try {
 			String namespace = AnnotationUtils.getAnnotationMemberValue(templateExtension,
-					TEMPLATE_EXTENSION_ANNOTATION_NAMESPACE);
-			String matchName = AnnotationUtils.getAnnotationMemberValue(templateExtension,
-					TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAME);
+					TEMPLATE_EXTENSION_ANNOTATION_NAMESPACE);			
 			resolver.setNamespace(namespace);
-			if (StringUtils.isNotEmpty(matchName)) {
-				resolver.setMatchName(matchName);
+
+			List<String> matchNames = getAnnotationMemberValueAsArray(templateExtension,
+					TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAMES);
+			if (matchNames != null) {
+				resolver.setMatchNames(matchNames);
+			} else {
+				String matchName = AnnotationUtils.getAnnotationMemberValue(templateExtension,
+						TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAME);
+				if (StringUtils.isNotEmpty(matchName)) {
+					resolver.setMatchNames(Arrays.asList(matchName));
+				}
 			}
 		} catch (JavaModelException e) {
 			LOGGER.log(Level.SEVERE,
@@ -190,5 +202,27 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 		// Needed to prevent NPE
 		resolver.setSignature("");
 		resolvers.add(resolver);
+	}
+
+	/**
+	 * Returns the value array of the given member name of the given annotation.
+	 *
+	 * @param annotation the annotation.
+	 * @param memberName the member name.
+	 * @return the value array of the given member name of the given annotation.
+	 * @throws JavaModelException
+	 */
+	public static List<String> getAnnotationMemberValueAsArray(IAnnotation annotation, String memberName)
+			throws JavaModelException {
+		for (IMemberValuePair pair : annotation.getMemberValuePairs()) {
+			if (memberName.equals(pair.getMemberName())) {
+				if (pair.getValue() instanceof Object[]) {
+					Object[] values = (Object[]) pair.getValue();
+					return Stream.of(values).filter(o -> o != null).map(o -> o.toString()).collect(Collectors.toList());
+				}
+				return null;
+			}
+		}
+		return null;
 	}
 }

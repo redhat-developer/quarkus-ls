@@ -1118,19 +1118,31 @@ public class QuteProject {
 		}
 		List<MethodValueResolver> resolvers = getResolversFor(baseType);
 		for (MethodValueResolver resolver : resolvers) {
-			if (isMatchMethod(resolver, property) || isMatchMethodResolver(resolver, property)) {
+			if (isMatchMethod(resolver, property) || isMatchValueResolver(resolver, property)) {
 				return resolver;
 			}
 		}
 		return null;
 	}
 
-	private boolean isMatchMethodResolver(MethodValueResolver resolver, String property) {
-		String matchName = resolver.getMatchName();
-		if (matchName == null) {
+	private static boolean isMatchValueResolver(ValueResolver resolver, String property) {
+		if (property == null) {
 			return false;
 		}
-		return ValueResolver.MATCH_NAME_ANY.equals(matchName) || matchName.equals(property);
+		String named = resolver.getNamed();
+		if (named != null) {
+			return named.equals(property);
+		}
+
+		List<String> matchNames = resolver.getMatchNames();
+		if (matchNames != null) {
+			for (String matchName : matchNames) {
+				if (ValueResolver.MATCH_NAME_ANY.equals(matchName) || matchName.equals(property)) {
+					return true;
+				}
+			}
+		}
+		return property.equals(resolver.getName());
 	}
 
 	public List<MethodValueResolver> getResolversFor(ResolvedJavaTypeInfo javaType) {
@@ -1360,25 +1372,13 @@ public class QuteProject {
 
 	private static boolean isMatchNamespaceResolver(String namespace, String partName, ValueResolver resolver,
 			ExtendedDataModelProject dataModel) {
-		String name = getResolverName(resolver);
 		return dataModel.getSimilarNamespace(namespace).equals(resolver.getNamespace())
-				&& ("*".equals(name) || partName.equals(name));
+				&& isMatchValueResolver(resolver, partName);
 	}
 
 	private static boolean isMatchGlobalVariableResolver(String partName, ValueResolver resolver,
 			ExtendedDataModelProject dataModel) {
-		String name = getResolverName(resolver);
-		return resolver.isGlobalVariable() && partName.equals(name);
-	}
-
-	private static String getResolverName(ValueResolver resolver) {
-		if (resolver.getNamed() != null) {
-			return resolver.getNamed();
-		}
-		if (resolver.getMatchName() != null) {
-			return resolver.getMatchName();
-		}
-		return resolver.getName();
+		return resolver.isGlobalVariable() && isMatchValueResolver(resolver, partName);
 	}
 
 	public CompletableFuture<NamespaceResolverInfo> getNamespaceResolverInfo(String namespace) {

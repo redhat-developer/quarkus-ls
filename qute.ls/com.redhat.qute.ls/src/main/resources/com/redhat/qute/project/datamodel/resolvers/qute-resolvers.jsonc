@@ -128,7 +128,7 @@
 		// See https://quarkus.io/guides/qute-reference#vertx_integration
 		{
 			"signature": "get(base : io.vertx.core.json.JsonObject, key : java.lang.String) : java.lang.Object",
-			"matchName": "*", 
+			"matchNames": ["*"], 
 			"url": "https://quarkus.io/guides/qute-reference#vertx_integration"
 		},
 		{

@@ -28,7 +28,7 @@
 			"kind": 4
 		},
 		{
-			"matchName": "*",
+			"matchNames": ["*"],
 			"signature": "collection(collections : io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections, key : java.lang.String) : io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection",
 			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension",
 			"binary": true,
@@ -53,7 +53,7 @@
 			"kind": 4
 		},
 		{
-			"matchName": "*",
+			"matchNames": ["*"],
 			"signature": "collection(collections : io.quarkiverse.roq.frontmatter.runtime.model.RoqCollections, key : java.lang.String) : io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection",
 			"sourceType": "io.quarkiverse.roq.frontmatter.runtime.RoqTemplateExtension",
 			"binary": true,
@@ -169,7 +169,7 @@
 		},
 		{
 			"namespace": "config",
-			"matchName": "*",
+			"matchNames": ["*"],
 			"signature": "getConfigProperty(propertyName : java.lang.String) : java.lang.Object",
 			"sourceType": "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
 			"binary": true,
@@ -184,7 +184,7 @@
 		},
 		{
 			"namespace": "config",
-			"matchName": "boolean",
+			"matchNames": ["boolean"],
 			"signature": "booleanProperty(propertyName : java.lang.String) : java.lang.Object",
 			"sourceType": "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
 			"binary": true,
@@ -192,14 +192,14 @@
 		},
 		{
 			"namespace": "config",
-			"matchName": "integer",
+			"matchNames": ["integer"],
 			"signature": "integerProperty(propertyName : java.lang.String) : java.lang.Object",
 			"sourceType": "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
 			"binary": true,
 			"kind": 3
 		},
 		{
-			"matchName": "*",
+			"matchNames": ["*"],
 			"signature": "map(arg0 : java.util.Map, arg1 : java.lang.String) : java.lang.Object",
 			"sourceType": "io.quarkus.qute.runtime.extensions.MapTemplateExtensions",
 			"binary": true,
@@ -218,7 +218,7 @@
 			"kind": 4
 		},
 		{
-			"matchName": "*",
+			"matchNames": ["*"],
 			"signature": "map(arg0 : java.util.Map, arg1 : java.lang.String) : java.lang.Object",
 			"sourceType": "io.quarkus.qute.runtime.extensions.MapTemplateExtensions",
 			"binary": true,
@@ -359,7 +359,7 @@
 			"kind": 3
 		},
 		{
-			"matchName": "+",
+			"matchNames": ["+"],
 			"signature": "plus(str : java.lang.String, val : java.lang.Object) : java.lang.String",
 			"sourceType": "io.quarkus.qute.runtime.extensions.StringTemplateExtensions",
 			"binary": true,
