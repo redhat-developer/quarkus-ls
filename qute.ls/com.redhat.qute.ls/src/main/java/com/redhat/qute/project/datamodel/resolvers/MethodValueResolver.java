@@ -37,7 +37,7 @@ public class MethodValueResolver extends JavaMethodInfo
 
 	private String namespace;
 
-	private String matchName;
+	private List<String> matchNames;
 
 	private String sourceType;
 
@@ -80,18 +80,20 @@ public class MethodValueResolver extends JavaMethodInfo
 	}
 
 	@Override
-	public String getMatchName() {
-		return matchName;
+	public List<String> getMatchNames() {
+		return matchNames;
 	}
 
-	public void setMatchName(String matchName) {
-		this.matchName = matchName;
+	public void setMatchNames(List<String> matchNames) {
+		this.matchNames = matchNames;
 	}
 
 	@Override
 	public String getMethodName() {
-		String name = super.getName();
-		return matchName != null ? matchName : name;
+		if (matchNames != null && !matchNames.isEmpty()) {
+			return matchNames.get(0);
+		}
+		return super.getName();
 	}
 
 	@Override

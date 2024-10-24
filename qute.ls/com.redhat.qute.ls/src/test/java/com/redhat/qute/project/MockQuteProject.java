@@ -153,10 +153,16 @@ public abstract class MockQuteProject extends QuteProject {
 
 	protected static ValueResolverInfo createValueResolver(String namespace, String named, String matchName,
 			String sourceType, String signature, ValueResolverKind kind, boolean globalVariable, boolean binary) {
+		return createValueResolver(namespace, named, matchName != null ? Arrays.asList(matchName) : null, sourceType,
+				signature, kind, globalVariable, binary);
+	}
+
+	protected static ValueResolverInfo createValueResolver(String namespace, String named, List<String> matchNames,
+			String sourceType, String signature, ValueResolverKind kind, boolean globalVariable, boolean binary) {
 		ValueResolverInfo resolver = new ValueResolverInfo();
 		resolver.setNamespace(namespace);
 		resolver.setNamed(named);
-		resolver.setMatchName(matchName);
+		resolver.setMatchNames(matchNames);
 		resolver.setSourceType(sourceType);
 		resolver.setSignature(signature);
 		resolver.setGlobalVariable(globalVariable);
