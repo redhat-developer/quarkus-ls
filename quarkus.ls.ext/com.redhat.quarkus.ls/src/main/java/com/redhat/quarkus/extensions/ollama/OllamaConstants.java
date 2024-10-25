@@ -13,12 +13,19 @@
 *******************************************************************************/
 package com.redhat.quarkus.extensions.ollama;
 
+import java.util.Set;
+
 /**
  * Quarkus Ollama constants.
  */
 public class OllamaConstants {
 
-	public static final String QUARKUS_LANGCHAIN4J_OLLAMA_CHAT_MODEL_MODEL_ID_KEY = "quarkus.langchain4j.ollama.chat-model.model-id";
+	private static final String QUARKUS_LANGCHAIN4J_OLLAMA_CHAT_MODEL_MODEL_ID_KEY = "quarkus.langchain4j.ollama.chat-model.model-id";
+
+	private static final String QUARKUS_LANGCHAIN4J_OLLAMA_EMBEDDING_MODEL_MODEL_ID_KEY = "quarkus.langchain4j.ollama.embedding-model.model-id";
+
+	public static final Set<String> OLLAMA_MODEL_ID_KEYS = Set.of(QUARKUS_LANGCHAIN4J_OLLAMA_CHAT_MODEL_MODEL_ID_KEY,
+			QUARKUS_LANGCHAIN4J_OLLAMA_EMBEDDING_MODEL_MODEL_ID_KEY);
 
 	public static final String QUARKUS_LANGCHAIN4J_OLLAMA_BASE_URL_KEY = "quarkus.langchain4j.ollama.base-url";
 

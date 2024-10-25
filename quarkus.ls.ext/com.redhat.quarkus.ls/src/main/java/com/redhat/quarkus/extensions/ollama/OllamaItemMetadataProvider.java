@@ -14,8 +14,8 @@
 package com.redhat.quarkus.extensions.ollama;
 
 import static com.redhat.quarkus.extensions.ollama.OllamaConstants.DEFAULT_OLLAMA_BASE_URL;
+import static com.redhat.quarkus.extensions.ollama.OllamaConstants.OLLAMA_MODEL_ID_KEYS;
 import static com.redhat.quarkus.extensions.ollama.OllamaConstants.QUARKUS_LANGCHAIN4J_OLLAMA_BASE_URL_KEY;
-import static com.redhat.quarkus.extensions.ollama.OllamaConstants.QUARKUS_LANGCHAIN4J_OLLAMA_CHAT_MODEL_MODEL_ID_KEY;
 
 import java.util.Collections;
 import java.util.List;
@@ -56,12 +56,14 @@ public class OllamaItemMetadataProvider implements ItemMetadataProvider {
 		// the Ollama models are collected only if
 		// 'quarkus.langchain4j.ollama.chat-model.model-id' property exists.
 		boolean available = this.projectInfo.getProperties().stream()
-				.anyMatch(p -> QUARKUS_LANGCHAIN4J_OLLAMA_CHAT_MODEL_MODEL_ID_KEY.equals(p.getName()));
+				.anyMatch(p -> OLLAMA_MODEL_ID_KEYS.contains(p.getName()));
 		if (available) {
-			ItemHint hint = new ItemHint();
-			hint.setName(QUARKUS_LANGCHAIN4J_OLLAMA_CHAT_MODEL_MODEL_ID_KEY);
-			hint.setValues(Collections.emptyList());
-			projectInfo.getHints().add(hint);
+			OLLAMA_MODEL_ID_KEYS.forEach(modelIdKey -> {
+				ItemHint hint = new ItemHint();
+				hint.setName(modelIdKey);
+				hint.setValues(Collections.emptyList());
+				projectInfo.getHints().add(hint);
+			});
 			this.ollamaClient = new OllamaClient();
 		}
 	}
@@ -79,9 +81,8 @@ public class OllamaItemMetadataProvider implements ItemMetadataProvider {
 		}
 		// Called when application.properties file is opened or updated (when user type
 		// something in the file).
-		boolean hasModelProperty = getProperty(document, QUARKUS_LANGCHAIN4J_OLLAMA_CHAT_MODEL_MODEL_ID_KEY) != null;
-		ItemHint hint = projectInfo.getHint(QUARKUS_LANGCHAIN4J_OLLAMA_CHAT_MODEL_MODEL_ID_KEY);
-		if (hasModelProperty && hint != null) {
+
+		if (ollamaClient != null && hasModelProperty(document)) {
 			// The application.properties declare the
 			// 'quarkus.langchain4j.ollama.chat-model.model-id' property,
 			// we need to collect available Ollama models by using Ollama Search Api
@@ -90,7 +91,7 @@ public class OllamaItemMetadataProvider implements ItemMetadataProvider {
 				// The current search url is different with the new, collect Ollama models.
 				// Update the available models values for the property
 				// 'quarkus.langchain4j.ollama.chat-model.model-id'
-				hint.setValues(ollamaClient.getModels() //
+				List<ValueHint> models = ollamaClient.getModels() //
 						.stream() //
 						.map(m -> {
 							ValueHint model = new ValueHint();
@@ -101,9 +102,22 @@ public class OllamaItemMetadataProvider implements ItemMetadataProvider {
 							model.setValue(modelId);
 							return model;
 						}) //
-						.collect(Collectors.toList()));
+						.collect(Collectors.toList());
+				OLLAMA_MODEL_ID_KEYS.forEach(modelIdKey -> {
+					ItemHint hint = projectInfo.getHint(modelIdKey);
+					hint.setValues(models);
+				});
 			}
 		}
+	}
+
+	private boolean hasModelProperty(PropertiesModel document) {
+		for (String modelIdKey : OLLAMA_MODEL_ID_KEYS) {
+			if (getProperty(document, modelIdKey) != null) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

@@ -13,7 +13,7 @@
 *******************************************************************************/
 package com.redhat.quarkus.extensions.ollama;
 
-import static com.redhat.quarkus.extensions.ollama.OllamaConstants.QUARKUS_LANGCHAIN4J_OLLAMA_CHAT_MODEL_MODEL_ID_KEY;
+import static com.redhat.quarkus.extensions.ollama.OllamaConstants.OLLAMA_MODEL_ID_KEYS;
 
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4mp.services.properties.ValidationValueContext;
@@ -26,7 +26,7 @@ public class OllamaPropertyValidatorParticipant implements IPropertyValidatorPar
 
 	@Override
 	public boolean validatePropertyValue(ValidationValueContext context, CancelChecker cancelChecker) {
-		if (QUARKUS_LANGCHAIN4J_OLLAMA_CHAT_MODEL_MODEL_ID_KEY.equals(context.getPropertyName())) {
+		if (OLLAMA_MODEL_ID_KEYS.contains(context.getPropertyName())) {
 			// No validation for Ollama model.
 			return true;
 		}
