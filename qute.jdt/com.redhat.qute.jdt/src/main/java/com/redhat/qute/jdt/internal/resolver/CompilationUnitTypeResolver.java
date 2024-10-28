@@ -72,6 +72,9 @@ public class CompilationUnitTypeResolver extends AbstractTypeResolver {
 					// Ex : Map.Entry should be updated to Map$Entry
 					className = className.replace('.', '$');
 				}
+				if (packageName.isBlank()) {
+					return className;
+				}
 				return packageName + '.' + className;
 			}
 		} catch (JavaModelException e) {
