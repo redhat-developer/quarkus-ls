@@ -33,6 +33,8 @@
        </delegateCommandHandler>
    </extension>
 
+   <!-- =========== Qute core & Quarkus Integration =========== -->
+   
    <!-- Data model providers for Qute core -->
    <extension point="com.redhat.qute.jdt.dataModelProviders">
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateFieldSupport" />
@@ -53,6 +55,8 @@
                 class="com.redhat.qute.jdt.internal.extensions.quarkus.InjectNamespaceResolverSupport" />
    </extension>
 
+   <!-- =========== Renarde extension =========== -->
+
    <!-- Data model providers for Quarkus Renarde -->
    <extension point="com.redhat.qute.jdt.dataModelProviders">
       <provider namespaces="uri,uriabs"
@@ -66,4 +70,10 @@
       <factory class="com.redhat.qute.jdt.internal.extensions.renarde.RenardeResolvedJavaTypeFactory" />
    </extension>
 
+   <!-- =========== Roq extension =========== -->
+
+   <extension point="com.redhat.qute.jdt.dataModelProviders">
+      <provider class="com.redhat.qute.jdt.internal.extensions.roq.DataMappingSupport" />
+   </extension>
+   
 </plugin>

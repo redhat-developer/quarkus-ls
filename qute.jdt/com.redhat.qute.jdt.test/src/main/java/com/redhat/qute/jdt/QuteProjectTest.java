@@ -64,7 +64,7 @@ public class QuteProjectTest {
 		public static String qute_messages = "qute-messages";
 		public static String qute_quickstart = "qute-quickstart";
 		public static String qute_record = "qute-record";
-		
+		public static String roq_blog = "roq-blog";
 	}
 
 	@BeforeClass
