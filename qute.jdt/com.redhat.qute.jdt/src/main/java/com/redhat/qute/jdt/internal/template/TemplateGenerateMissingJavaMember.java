@@ -31,6 +31,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -512,7 +513,7 @@ public class TemplateGenerateMissingJavaMember {
 	private static String constructCUContent(ICompilationUnit cu, String typeContent, String lineDelimiter)
 			throws CoreException {
 		String fileComment = CodeGeneration.getFileComment(cu, lineDelimiter);
-		String typeComment = CodeGeneration.getTypeComment(cu, cu.getElementName(), lineDelimiter);
+		String typeComment = CodeGeneration.getTypeComment(cu, JavaCore.removeJavaLikeExtension(cu.getElementName()), lineDelimiter);
 		IPackageFragment pack = (IPackageFragment) cu.getParent();
 		String content = CodeGeneration.getCompilationUnitContent(cu, fileComment, typeComment, typeContent,
 				lineDelimiter);
