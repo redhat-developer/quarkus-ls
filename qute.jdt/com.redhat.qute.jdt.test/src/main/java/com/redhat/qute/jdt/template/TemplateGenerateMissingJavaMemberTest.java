@@ -189,7 +189,6 @@ public class TemplateGenerateMissingJavaMemberTest {
 								+ "/**" + sep //
 								+ " * java" + sep //
 								+ " */" + sep //
-								+ sep //
 								+ "@io.quarkus.qute.TemplateExtension" + sep //
 								+ "public class TemplateExtensions {" + sep //
 								+ "\tpublic static String asdf(org.acme.qute.Item item) {" + sep //
@@ -237,7 +236,6 @@ public class TemplateGenerateMissingJavaMemberTest {
 							+ "/**" + sep //
 							+ " * java" + sep //
 							+ " */" + sep //
-							+ sep //
 							+ "@io.quarkus.qute.TemplateExtension" + sep //
 							+ "public class TemplateExtensions1 {" + sep //
 							+ "\tpublic static String asdf(org.acme.qute.Item item) {" + sep //
@@ -260,7 +258,6 @@ public class TemplateGenerateMissingJavaMemberTest {
 								+ "/**" + sep //
 								+ " * java" + sep //
 								+ " */" + sep //
-								+ sep //
 								+ "@io.quarkus.qute.TemplateExtension" + sep //
 								+ "public class TemplateExtensions2 {" + sep //
 								+ "\tpublic static String asdf(org.acme.qute.Item item) {" + sep //
