@@ -124,7 +124,12 @@ public class DataModelProject<T extends DataModelTemplate<?>> {
 
 	private T findDataModelTemplate(String templateUri, List<T> templates) {
 		Optional<T> dataModelForTemplate = templates.stream() //
-				.filter(t -> templateUri.endsWith(t.getTemplateUri())) //
+				.filter(t -> {
+					/*if (t instanceof ExtendedDataModelTemplate) {
+						return ((ExtendedDataModelTemplate) t).matches(templateUri);
+					}*/
+					return templateUri.endsWith(t.getTemplateUri());
+				}) //
 				.findFirst();
 		if (dataModelForTemplate.isPresent()) {
 			return dataModelForTemplate.get();

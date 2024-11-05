@@ -91,7 +91,7 @@ class QuteCodeLens {
 
 	private static void collectDataModelCodeLenses(Range range, DataModelSourceProvider templateDataModel,
 			String projectUri, SharedSettings settings, List<CodeLens> lenses, CancelChecker cancelChecker) {
-		if (templateDataModel == null || templateDataModel.getSourceType() == null) {
+		if (templateDataModel == null) {
 			return;
 		}
 
@@ -99,21 +99,27 @@ class QuteCodeLens {
 
 		boolean canSupportJavaDefinition = settings.getCommandCapabilities()
 				.isCommandSupported(COMMAND_JAVA_DEFINITION);
+		boolean hasSourceType = templateDataModel.getSourceType() != null;
 
-		// Method/Field which is bound with the template
-		String title = createCheckedTemplateTitle(templateDataModel);
-		Command command = !canSupportJavaDefinition ? new Command(title, "")
-				: new Command(title, COMMAND_JAVA_DEFINITION,
-						Arrays.asList(templateDataModel.toJavaDefinitionParams(projectUri)));
-		CodeLens codeLens = new CodeLens(range, command, null);
-		lenses.add(codeLens);
+		if (hasSourceType) {
+			// Template with source type.
+
+			// Method/Field which is bound with the template
+			String title = createCheckedTemplateTitle(templateDataModel);
+			Command command = !canSupportJavaDefinition ? new Command(title, "")
+					: new Command(title, COMMAND_JAVA_DEFINITION,
+							Arrays.asList(templateDataModel.toJavaDefinitionParams(projectUri)));
+			CodeLens codeLens = new CodeLens(range, command, null);
+			lenses.add(codeLens);
+		}
 
 		// Parameters of the template
 		List<ExtendedDataModelParameter> parameters = templateDataModel.getParameters();
 		if (parameters != null) {
 			for (ExtendedDataModelParameter parameter : parameters) {
 				String parameterTitle = createParameterTitle(parameter);
-				Command parameterCommand = !canSupportJavaDefinition ? new Command(title, "")
+				Command parameterCommand = !(canSupportJavaDefinition && hasSourceType)
+						? new Command(parameterTitle, "")
 						: new Command(parameterTitle, COMMAND_JAVA_DEFINITION,
 								Arrays.asList(parameter.toJavaDefinitionParams(projectUri)));
 				CodeLens parameterCodeLens = new CodeLens(range, parameterCommand, null);

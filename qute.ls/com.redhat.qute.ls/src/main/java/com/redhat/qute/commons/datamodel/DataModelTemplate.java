@@ -28,6 +28,8 @@ public class DataModelTemplate<T extends DataModelParameter> extends DataModelBa
 
 	private String templateUri;
 
+	private DataModelTemplateMatcher templateMatcher;
+
 	private String sourceField;
 
 	private List<DataModelFragment<T>> fragments;
@@ -48,6 +50,14 @@ public class DataModelTemplate<T extends DataModelParameter> extends DataModelBa
 	 */
 	public void setTemplateUri(String templateUri) {
 		this.templateUri = templateUri;
+	}
+
+	public DataModelTemplateMatcher getTemplateMatcher() {
+		return templateMatcher;
+	}
+
+	public void setTemplateMatcher(DataModelTemplateMatcher templateMatcher) {
+		this.templateMatcher = templateMatcher;
 	}
 
 	/**
@@ -131,6 +141,7 @@ public class DataModelTemplate<T extends DataModelParameter> extends DataModelBa
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("templateUri", this.templateUri);
+		b.add("templateMatcher", this.templateMatcher);
 		b.add("sourceType", this.getSourceType());
 		b.add("sourceMethod", this.getSourceMethod());
 		b.add("sourceField", this.sourceField);

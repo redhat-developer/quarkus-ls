@@ -382,6 +382,9 @@ class QuteDefinition {
 					cancelChecker.checkCanceled();
 					// Try to find in parameter model
 					if (parameter != null) {
+						if (parameter.getSourceType() == null) {
+							return NO_DEFINITION;
+						}
 						QuteJavaDefinitionParams params = parameter.toJavaDefinitionParams(project.getUri());
 						return findJavaDefinition(params, project, cancelChecker,
 								() -> QutePositionUtility.createRange(part));
