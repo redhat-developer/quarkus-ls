@@ -82,6 +82,7 @@
    <!-- =========== Roq extension =========== -->
    
    <extension point="com.redhat.qute.jdt.dataModelProviders">
+      <provider class="com.redhat.qute.jdt.internal.extensions.roq.RoqDataModelProvider" />
       <provider class="com.redhat.qute.jdt.internal.extensions.roq.DataMappingSupport" />
    </extension>
    

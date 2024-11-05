@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.project.roq;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import com.redhat.qute.commons.datamodel.DataModelTemplateMatcher;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.project.BaseQuteProject;
@@ -49,7 +51,23 @@ public class RoqProject extends BaseQuteProject {
 
 	@Override
 	protected void fillTemplates(List<DataModelTemplate<DataModelParameter>> templates) {
+		// Inject 'page' and 'site' for all Qute templates which belongs to a Roq application 
+		DataModelTemplate<DataModelParameter> roqTemplate = new DataModelTemplate<DataModelParameter>();
+		roqTemplate.setTemplateMatcher(new DataModelTemplateMatcher(Arrays.asList("**/**")));
 
+		// site
+		DataModelParameter site = new DataModelParameter();
+		site.setKey("site");
+		site.setSourceType("io.quarkiverse.roq.frontmatter.runtime.model.Site");
+		roqTemplate.addParameter(site);
+
+		// page
+		DataModelParameter page = new DataModelParameter();
+		page.setKey("page");
+		page.setSourceType("io.quarkiverse.roq.frontmatter.runtime.model.Page");
+		roqTemplate.addParameter(page);
+
+		templates.add(roqTemplate);
 	}
 
 	@Override

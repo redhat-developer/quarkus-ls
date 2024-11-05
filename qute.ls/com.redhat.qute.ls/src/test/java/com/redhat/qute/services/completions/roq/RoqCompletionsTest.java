@@ -54,6 +54,30 @@ public class RoqCompletionsTest {
 	}
 
 	@Test
+	public void siteWithNoDeclaration() throws Exception {
+		String template = "{site.|}";
+		testCompletionFor(template, //
+				c("or(base : T, arg : Object) : T", "or(arg)", r(0, 6, 0, 6)), //
+				c("img() : RoqUrl", "img", r(0, 6, 0, 6)), //
+				c("toString() : String", "toString", r(0, 6, 0, 6)), //
+				c("hashCode() : int", "hashCode", r(0, 6, 0, 6)), //
+				c("imagesUrl : RoqUrl", "imagesUrl", r(0, 6, 0, 6)), //
+				c("url() : RoqUrl", "url", r(0, 6, 0, 6)), //
+				c("collections : RoqCollections", "collections", r(0, 6, 0, 6)), //
+				c("collections() : RoqCollections", "collections", r(0, 6, 0, 6)), //
+				c("document(id : String) : DocumentPage", "document(id)", r(0, 6, 0, 6)), //
+				c("pages : List<NormalPage>", "pages", r(0, 6, 0, 6)), //
+				c("pages() : List<NormalPage>", "pages", r(0, 6, 0, 6)), //
+				c("data() : JsonObject", "data", r(0, 6, 0, 6)), //
+				c("orEmpty(base : T) : List<T>", "orEmpty", r(0, 6, 0, 6)), //
+				c("page(id : String) : NormalPage", "page(id)", r(0, 6, 0, 6)), //
+				c("safe(base : Object) : RawString", "safe", r(0, 6, 0, 6)), //
+				c("title() : String", "title", r(0, 6, 0, 6)), //
+				c("url(path : Object, others : Object...) : RoqUrl", "url(path, others)", r(0, 6, 0, 6)), //
+				c("title() : String", "title", r(0, 6, 0, 6)));
+	}
+	
+	@Test
 	public void site_collections() throws Exception {
 		String template = "{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\r\n" + //
 				"{site.collections.|}";

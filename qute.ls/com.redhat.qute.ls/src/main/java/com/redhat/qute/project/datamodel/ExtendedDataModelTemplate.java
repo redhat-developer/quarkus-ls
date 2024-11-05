@@ -23,8 +23,11 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 public class ExtendedDataModelTemplate extends DataModelTemplate<ExtendedDataModelParameter>
 		implements DataModelSourceProvider {
 
+	private ExtendedDataModelTemplateMatcher templateMatcher;
+
 	public ExtendedDataModelTemplate(DataModelTemplate<DataModelParameter> template) {
 		super.setTemplateUri(template.getTemplateUri());
+		super.setTemplateMatcher(template.getTemplateMatcher());
 		super.setSourceType(template.getSourceType());
 		super.setSourceMethod(template.getSourceMethod());
 		super.setSourceField(template.getSourceField());
@@ -63,5 +66,18 @@ public class ExtendedDataModelTemplate extends DataModelTemplate<ExtendedDataMod
 		params.setSourceField(sourceField);
 		params.setSourceMethod(sourceMethod);
 		return params;
+	}
+
+	public boolean matches(String templateUri) {
+		if (getTemplateUri() != null && templateUri.endsWith(getTemplateUri())) {
+			return true;
+		}
+		if (super.getTemplateMatcher() == null) {
+			return false;
+		}
+		if (templateMatcher == null) {
+			templateMatcher = new ExtendedDataModelTemplateMatcher(super.getTemplateMatcher().getIncludes());
+		}
+		return templateMatcher.matches(templateUri);
 	}
 }

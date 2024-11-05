@@ -44,6 +44,14 @@ public class RoqDiagnosticsTest {
 		testDiagnosticsFor(template);
 	}
 
+	@Test
+	public void pageWithNoDeclaration() {		
+		// As 'page' and 'site' are injected for all Qute templates for a Roq application
+		// no need to declare {@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}
+		String template = "{page.date.format('yyyy, MMM dd')}";
+		testDiagnosticsFor(template);
+	}
+	
 	private static void testDiagnosticsFor(String value, Diagnostic... expected) {
 		QuteAssert.testDiagnosticsFor(value, QuteAssert.FILE_URI, null, RoqProject.PROJECT_URI,
 				QuteAssert.TEMPLATE_BASE_DIR, true, null, expected);

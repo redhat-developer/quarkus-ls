@@ -628,7 +628,7 @@ public class QuteAssert {
 		testCodeLensFor(value, fileUri, templateId, PROJECT_URI, TEMPLATE_BASE_DIR, expected);
 	}
 
-	private static void testCodeLensFor(String value, String fileUri, String templateId, String projectUri,
+	public static void testCodeLensFor(String value, String fileUri, String templateId, String projectUri,
 			String templateBaseDir, CodeLens... expected) throws Exception {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
