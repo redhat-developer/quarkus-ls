@@ -1,0 +1,185 @@
+{
+	"signature": "io.vertx.core.http.HttpServerRequest",
+	"fields": [
+		{
+			"signature": "DEFAULT_INVALID_REQUEST_HANDLER : io.vertx.core.Handler\u003cio.vertx.core.http.HttpServerRequest\u003e"
+		}
+	],
+	"methods": [
+		{
+			"signature": "exceptionHandler(handler : io.vertx.core.Handler\u003cjava.lang.Throwable\u003e) : io.vertx.core.http.HttpServerRequest"
+		},
+		{
+			"signature": "handler(handler : io.vertx.core.Handler\u003cio.vertx.core.buffer.Buffer\u003e) : io.vertx.core.http.HttpServerRequest"
+		},
+		{
+			"signature": "pause() : io.vertx.core.http.HttpServerRequest"
+		},
+		{
+			"signature": "resume() : io.vertx.core.http.HttpServerRequest"
+		},
+		{
+			"signature": "fetch(amount : long) : io.vertx.core.http.HttpServerRequest"
+		},
+		{
+			"signature": "endHandler(endHandler : io.vertx.core.Handler\u003cjava.lang.Void\u003e) : io.vertx.core.http.HttpServerRequest"
+		},
+		{
+			"signature": "version() : io.vertx.core.http.HttpVersion"
+		},
+		{
+			"signature": "method() : io.vertx.core.http.HttpMethod"
+		},
+		{
+			"signature": "isSSL() : boolean"
+		},
+		{
+			"signature": "scheme() : java.lang.String"
+		},
+		{
+			"signature": "uri() : java.lang.String"
+		},
+		{
+			"signature": "path() : java.lang.String"
+		},
+		{
+			"signature": "query() : java.lang.String"
+		},
+		{
+			"signature": "authority() : io.vertx.core.net.HostAndPort"
+		},
+		{
+			"signature": "host() : java.lang.String"
+		},
+		{
+			"signature": "bytesRead() : long"
+		},
+		{
+			"signature": "response() : io.vertx.core.http.HttpServerResponse"
+		},
+		{
+			"signature": "headers() : io.vertx.core.MultiMap"
+		},
+		{
+			"signature": "getHeader(headerName : java.lang.String) : java.lang.String"
+		},
+		{
+			"signature": "getHeader(headerName : java.lang.CharSequence) : java.lang.String"
+		},
+		{
+			"signature": "setParamsCharset(charset : java.lang.String) : io.vertx.core.http.HttpServerRequest"
+		},
+		{
+			"signature": "getParamsCharset() : java.lang.String"
+		},
+		{
+			"signature": "params() : io.vertx.core.MultiMap"
+		},
+		{
+			"signature": "params(semicolonIsNormalChar : boolean) : io.vertx.core.MultiMap"
+		},
+		{
+			"signature": "getParam(paramName : java.lang.String) : java.lang.String"
+		},
+		{
+			"signature": "getParam(paramName : java.lang.String, defaultValue : java.lang.String) : java.lang.String"
+		},
+		{
+			"signature": "remoteAddress() : io.vertx.core.net.SocketAddress"
+		},
+		{
+			"signature": "localAddress() : io.vertx.core.net.SocketAddress"
+		},
+		{
+			"signature": "sslSession() : javax.net.ssl.SSLSession"
+		},
+		{
+			"signature": "peerCertificateChain() : javax.security.cert.X509Certificate[]"
+		},
+		{
+			"signature": "absoluteURI() : java.lang.String"
+		},
+		{
+			"signature": "bodyHandler(bodyHandler : io.vertx.core.Handler\u003cio.vertx.core.buffer.Buffer\u003e) : io.vertx.core.http.HttpServerRequest"
+		},
+		{
+			"signature": "body(handler : io.vertx.core.Handler\u003cio.vertx.core.AsyncResult\u003cio.vertx.core.buffer.Buffer\u003e\u003e) : io.vertx.core.http.HttpServerRequest"
+		},
+		{
+			"signature": "body() : io.vertx.core.Future\u003cio.vertx.core.buffer.Buffer\u003e"
+		},
+		{
+			"signature": "end() : io.vertx.core.Future\u003cjava.lang.Void\u003e"
+		},
+		{
+			"signature": "toNetSocket() : io.vertx.core.Future\u003cio.vertx.core.net.NetSocket\u003e"
+		},
+		{
+			"signature": "setExpectMultipart(expect : boolean) : io.vertx.core.http.HttpServerRequest"
+		},
+		{
+			"signature": "isExpectMultipart() : boolean"
+		},
+		{
+			"signature": "uploadHandler(uploadHandler : io.vertx.core.Handler\u003cio.vertx.core.http.HttpServerFileUpload\u003e) : io.vertx.core.http.HttpServerRequest"
+		},
+		{
+			"signature": "formAttributes() : io.vertx.core.MultiMap"
+		},
+		{
+			"signature": "getFormAttribute(attributeName : java.lang.String) : java.lang.String"
+		},
+		{
+			"signature": "streamId() : int"
+		},
+		{
+			"signature": "toWebSocket() : io.vertx.core.Future\u003cio.vertx.core.http.ServerWebSocket\u003e"
+		},
+		{
+			"signature": "isEnded() : boolean"
+		},
+		{
+			"signature": "customFrameHandler(handler : io.vertx.core.Handler\u003cio.vertx.core.http.HttpFrame\u003e) : io.vertx.core.http.HttpServerRequest"
+		},
+		{
+			"signature": "connection() : io.vertx.core.http.HttpConnection"
+		},
+		{
+			"signature": "streamPriority() : io.vertx.core.http.StreamPriority"
+		},
+		{
+			"signature": "streamPriorityHandler(handler : io.vertx.core.Handler\u003cio.vertx.core.http.StreamPriority\u003e) : io.vertx.core.http.HttpServerRequest"
+		},
+		{
+			"signature": "decoderResult() : io.netty.handler.codec.DecoderResult"
+		},
+		{
+			"signature": "getCookie(name : java.lang.String) : io.vertx.core.http.Cookie"
+		},
+		{
+			"signature": "getCookie(name : java.lang.String, domain : java.lang.String, path : java.lang.String) : io.vertx.core.http.Cookie"
+		},
+		{
+			"signature": "cookieCount() : int"
+		},
+		{
+			"signature": "cookieMap() : java.util.Map\u003cjava.lang.String,io.vertx.core.http.Cookie\u003e"
+		},
+		{
+			"signature": "cookies(name : java.lang.String) : java.util.Set\u003cio.vertx.core.http.Cookie\u003e"
+		},
+		{
+			"signature": "cookies() : java.util.Set\u003cio.vertx.core.http.Cookie\u003e"
+		},
+		{
+			"signature": "routed(route : java.lang.String) : io.vertx.core.http.HttpServerRequest"
+		}
+	],
+	"binary": true,
+	"typeKind": 3,
+	"invalidMethods": {
+		"end": 1,
+		"toNetSocket": 1,
+		"toWebSocket": 1
+	}
+}

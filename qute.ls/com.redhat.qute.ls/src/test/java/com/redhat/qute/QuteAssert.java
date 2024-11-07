@@ -671,7 +671,7 @@ public class QuteAssert {
 		testInlayHintFor(value, FILE_URI, null, PROJECT_URI, TEMPLATE_BASE_DIR, inlayHintSettings, expected);
 	}
 
-	private static void testInlayHintFor(String value, String fileUri, String templateId, String projectUri,
+	public static void testInlayHintFor(String value, String fileUri, String templateId, String projectUri,
 			String templateBaseDir, QuteInlayHintSettings inlayHintSettings, InlayHint... expected) throws Exception {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);

@@ -246,7 +246,7 @@ public class Template extends Node {
 	 * 
 	 * @return the class name found from the namespace and null otherwise.
 	 */
-	public JavaTypeInfoProvider findWithNamespace(ObjectPart objectPart) {
+	public JavaTypeInfoProvider findWithNamespace(Part objectPart) {
 		String namespace = objectPart.getNamespace();
 		if (namespace == null) {
 			return null;

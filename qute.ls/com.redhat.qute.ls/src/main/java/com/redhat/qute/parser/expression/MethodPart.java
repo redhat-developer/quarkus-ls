@@ -18,9 +18,11 @@ import com.redhat.qute.parser.CancelChecker;
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.parameter.ParameterParser;
 import com.redhat.qute.parser.template.ASTVisitor;
+import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.ParametersContainer;
+import com.redhat.qute.parser.template.Template;
 
 /**
  * Method part.
@@ -55,6 +57,17 @@ public class MethodPart extends MemberPart implements ParametersContainer {
 	@Override
 	public PartKind getPartKind() {
 		return PartKind.Method;
+	}
+	
+	@Override
+	public JavaTypeInfoProvider resolveJavaType() {
+		Template template = super.getOwnerTemplate();
+		boolean hasNamespace = getNamespace() != null;
+		if (hasNamespace) {
+			// ex : {http:request()}
+			return template.findWithNamespace(this);
+		}
+		return null;
 	}
 
 	/**
@@ -244,7 +257,7 @@ public class MethodPart extends MemberPart implements ParametersContainer {
 	public boolean isOrOperator() {
 		return false;
 	}
-	
+
 	@Override
 	public String getTemplateContent() {
 		return getOwnerTemplate().getText();
@@ -260,4 +273,5 @@ public class MethodPart extends MemberPart implements ParametersContainer {
 		visitor.visit(this);
 		visitor.endVisit(this);
 	}
+
 }

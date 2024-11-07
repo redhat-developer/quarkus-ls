@@ -33,9 +33,11 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
+import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
+import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.ExpressionParameter;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
@@ -364,7 +366,9 @@ public class JavaDataModelCache {
 					break;
 				case Property:
 				case Method:
-					if (future != null) {
+					if (future == null && current.getPartKind() == PartKind.Method) {
+						future = resolveJavaType((MethodPart) current);
+					} else if (future != null) {
 						ResolvedJavaTypeInfo actualResolvedType = future.getNow(null);
 						if (actualResolvedType != null) {
 							future = resolveJavaType(current, actualResolvedType);
@@ -463,6 +467,18 @@ public class JavaDataModelCache {
 		}
 		String memberType = member.resolveJavaElementType(resolvedType);
 		return resolveJavaType(memberType);
+	}
+
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(MethodPart objectPart) {
+		JavaTypeInfoProvider javaTypeInfo = objectPart.resolveJavaType();
+		if (javaTypeInfo == null) {
+			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+		}
+		String javaType = javaTypeInfo.getJavaType();
+		if (StringUtils.isEmpty(javaType)) {
+			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+		}
+		return resolveJavaType(javaType, javaTypeInfo);
 	}
 
 	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(ObjectPart objectPart) {

@@ -65,6 +65,7 @@ public class ObjectPart extends Part {
 		return startName;
 	}
 
+	@Override
 	public JavaTypeInfoProvider resolveJavaType() {
 		Template template = super.getOwnerTemplate();
 		String partName = getPartName();

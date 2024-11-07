@@ -13,6 +13,7 @@ package com.redhat.qute.parser.expression;
 
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.Expression;
+import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
@@ -216,6 +217,7 @@ public abstract class Part extends Node {
 		Expression expression = getParent().getParent();
 		return expression != null ? expression.getOwnerParameter() : null;
 	}
+
 	/**
 	 * Returns the part kind.
 	 * 
@@ -223,4 +225,5 @@ public abstract class Part extends Node {
 	 */
 	public abstract PartKind getPartKind();
 
+	public abstract JavaTypeInfoProvider resolveJavaType();
 }
