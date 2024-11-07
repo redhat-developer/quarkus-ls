@@ -69,6 +69,7 @@ public class QuteCompletionWithUserTagTest {
 						"name=\"${1:main.css}\"$0", //
 						r(0, 14, 0, 14)));
 	}
+
 	@Test
 	public void input() throws Exception {
 		String template = "{#|";
@@ -524,5 +525,22 @@ public class QuteCompletionWithUserTagTest {
 				true, // snippet support
 				1, //
 				c("foo", "foo=\"${1:foo}\"$0", r(0, 14, 0, 14)));
+	}
+	
+	@Test
+	public void ga4() throws Exception {
+		String template = "{#|";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("ga4", "{#ga4 /}", r(0, 0, 0, 2)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("ga4", "{#ga4 /}$0", r(0, 0, 0, 2)));
 	}
 }
