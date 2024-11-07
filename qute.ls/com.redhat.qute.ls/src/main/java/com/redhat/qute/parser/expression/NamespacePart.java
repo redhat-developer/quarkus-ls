@@ -13,6 +13,7 @@ package com.redhat.qute.parser.expression;
 
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.ASTVisitor;
+import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
@@ -40,6 +41,11 @@ public class NamespacePart extends Part {
 	@Override
 	public PartKind getPartKind() {
 		return PartKind.Namespace;
+	}
+	
+	@Override
+	public JavaTypeInfoProvider resolveJavaType() {
+		return null;
 	}
 	
 	@Override

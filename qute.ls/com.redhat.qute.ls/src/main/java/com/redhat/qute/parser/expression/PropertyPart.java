@@ -13,6 +13,7 @@ package com.redhat.qute.parser.expression;
 
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.ASTVisitor;
+import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 
 /**
  * Property part.
@@ -24,7 +25,7 @@ import com.redhat.qute.parser.template.ASTVisitor;
  * <p>
  * {item['name']}
  * </p>
- 
+ * 
  * @author Angelo ZERR
  *
  */
@@ -40,6 +41,11 @@ public class PropertyPart extends MemberPart {
 	@Override
 	public PartKind getPartKind() {
 		return PartKind.Property;
+	}
+
+	@Override
+	public JavaTypeInfoProvider resolveJavaType() {
+		return null;
 	}
 
 	@Override

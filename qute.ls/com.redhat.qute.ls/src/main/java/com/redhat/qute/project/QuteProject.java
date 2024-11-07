@@ -969,7 +969,9 @@ public class QuteProject {
 						// Check if the current resolver matches the parameters.
 						boolean matchParameters = isMatchParameters(resolver, parameterTypes);
 						result.setMatchParameters(matchParameters);
-						return true;
+						if (matchParameters) {
+							return true;
+						}
 					}
 				} else {
 					if (baseType == null) {
