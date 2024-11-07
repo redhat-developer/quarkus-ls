@@ -52,7 +52,10 @@
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateExtensionAnnotationSupport" />
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateDataAnnotationSupport" />
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateEnumAnnotationSupport" />
-      <provider class="com.redhat.qute.jdt.internal.template.datamodel.TemplateGlobalAnnotationSupport" />
+      <provider namespaces="global,"
+                description="Global Variables."
+                url="https://quarkus.io/guides/qute-reference#global_variables"
+                class="com.redhat.qute.jdt.internal.template.datamodel.TemplateGlobalAnnotationSupport" />
       <provider class="com.redhat.qute.jdt.internal.template.datamodel.TypeSafeMessageBundlesSupport" />
    </extension>
 
