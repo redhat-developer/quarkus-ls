@@ -58,6 +58,12 @@ public class QuteDiagnosticsWithUserTagTest {
 	}
 
 	@Test
+	public void ga4() {
+		String template = "{#ga4 /}";
+		testDiagnosticsFor(template);
+	}
+	
+	@Test
 	public void definedAllParameterNamesWithoutAssignment() {
 		String template = "{@java.lang.String name}\n" + //
 				"{@java.lang.String id}\n" + //
