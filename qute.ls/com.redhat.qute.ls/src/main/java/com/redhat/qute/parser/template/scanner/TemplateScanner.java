@@ -66,51 +66,54 @@ public class TemplateScanner extends AbstractScanner<TokenType, ScannerState> {
 
 			case WithinContent: {
 				if (stream.advanceIfChar('{')) {
-					// A valid identifier must start with a digit, alphabet, underscore, comment
-					// delimiter, cdata start delimiter or a tag command (e.g. # for sections)
-					// see
-					// https://github.com/quarkusio/quarkus/blob/7164bfa115d9096a3ba0b2929c98f89ac01c2dce/independent-projects/qute/core/src/main/java/io/quarkus/qute/Parser.java#L332
-					if (stream.advanceIfChar('!')) {
-						// Comment -> {! This is a comment !}
-						state = ScannerState.WithinComment;
-						return finishToken(offset, TokenType.StartComment);
-					} else if (stream.advanceIfChar('|')) {
-						// Unparsed Character Data -> {| <script>if(true){alert('Qute is
-						// cute!')};</script> |}
-						state = ScannerState.WithinCDATA;
-						return finishToken(offset, TokenType.CDATATagOpen);
-					} else if (stream.advanceIfChar('[')) {
-						// Unparsed Character Data (old syntax) -> {[ <script>if(true){alert('Qute is
-						// cute!')};</script> ]}
-						state = ScannerState.WithinCDATAOld;
-						return finishToken(offset, TokenType.CDATAOldTagOpen);
-					} else if (stream.advanceIfChar('#')) {
-						// Section (start) tag -> {#if
-						state = ScannerState.AfterOpeningStartTag;
-						return finishToken(offset, TokenType.StartTagOpen);
-					} else if (stream.advanceIfChar('/')) {
-						if (stream.advanceIfChar('}')) {
-							// Section (end) tag with name optional syntax -> {/}
-							state = ScannerState.WithinContent;
-							return finishToken(offset, TokenType.EndTagSelfClose);
-						}
-						// Section (end) tag -> {/if}
-						state = ScannerState.AfterOpeningEndTag;
-						return finishToken(offset, TokenType.EndTagOpen);
-					} else if (stream.advanceIfChar('@')) {
-						// Parameter declaration -> {@org.acme.Foo foo}
-						state = ScannerState.WithinParameterDeclaration;
-						return finishToken(offset, TokenType.StartParameterDeclaration);
-					} else {
-						int ch = stream.peekChar();
-						if (isValidIdentifierStart(ch)) {
-							// Expression
-							state = ScannerState.WithinExpression;
-							return finishToken(offset, TokenType.StartExpression);
+					// check if the bracket is not escaped
+					if (!(stream.peekCharAtOffset(stream.pos() - 2) == '\\')) {
+						// A valid identifier must start with a digit, alphabet, underscore, comment
+						// delimiter, cdata start delimiter or a tag command (e.g. # for sections)
+						// see
+						// https://github.com/quarkusio/quarkus/blob/7164bfa115d9096a3ba0b2929c98f89ac01c2dce/independent-projects/qute/core/src/main/java/io/quarkus/qute/Parser.java#L332
+						if (stream.advanceIfChar('!')) {
+							// Comment -> {! This is a comment !}
+							state = ScannerState.WithinComment;
+							return finishToken(offset, TokenType.StartComment);
+						} else if (stream.advanceIfChar('|')) {
+							// Unparsed Character Data -> {| <script>if(true){alert('Qute is
+							// cute!')};</script> |}
+							state = ScannerState.WithinCDATA;
+							return finishToken(offset, TokenType.CDATATagOpen);
+						} else if (stream.advanceIfChar('[')) {
+							// Unparsed Character Data (old syntax) -> {[ <script>if(true){alert('Qute is
+							// cute!')};</script> ]}
+							state = ScannerState.WithinCDATAOld;
+							return finishToken(offset, TokenType.CDATAOldTagOpen);
+						} else if (stream.advanceIfChar('#')) {
+							// Section (start) tag -> {#if
+							state = ScannerState.AfterOpeningStartTag;
+							return finishToken(offset, TokenType.StartTagOpen);
+						} else if (stream.advanceIfChar('/')) {
+							if (stream.advanceIfChar('}')) {
+								// Section (end) tag with name optional syntax -> {/}
+								state = ScannerState.WithinContent;
+								return finishToken(offset, TokenType.EndTagSelfClose);
+							}
+							// Section (end) tag -> {/if}
+							state = ScannerState.AfterOpeningEndTag;
+							return finishToken(offset, TokenType.EndTagOpen);
+						} else if (stream.advanceIfChar('@')) {
+							// Parameter declaration -> {@org.acme.Foo foo}
+							state = ScannerState.WithinParameterDeclaration;
+							return finishToken(offset, TokenType.StartParameterDeclaration);
 						} else {
-							// Text node, increment position if needed
-							if (!stream.eos()) {
-								stream.advance(1);
+							int ch = stream.peekChar();
+							if (isValidIdentifierStart(ch)) {
+								// Expression
+								state = ScannerState.WithinExpression;
+								return finishToken(offset, TokenType.StartExpression);
+							} else {
+								// Text node, increment position if needed
+								if (!stream.eos()) {
+									stream.advance(1);
+								}
 							}
 						}
 					}

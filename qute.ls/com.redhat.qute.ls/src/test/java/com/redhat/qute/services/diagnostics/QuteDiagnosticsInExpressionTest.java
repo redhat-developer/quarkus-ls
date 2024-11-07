@@ -684,4 +684,10 @@ public class QuteDiagnosticsInExpressionTest {
 				d(0, 1, 0, 6, QuteErrorCode.UndefinedObject, "`items` cannot be resolved to an object.",
 						DiagnosticSeverity.Warning));
 	}
+
+	@Test
+	public void escape() throws Exception {
+		String template = "function gtag()\\{dataLayer.push(arguments);\\}";
+		testDiagnosticsFor(template);
+	}
 }
