@@ -34,7 +34,7 @@ public class TemplateScanner extends AbstractScanner<TokenType, ScannerState> {
 	private static final int[] RCURLY_QUOTE = new int[] { '}', '"', '\'', };
 
 	private static final Predicate<Integer> TAG_NAME_PREDICATE = ch -> {
-		return Character.isLetterOrDigit(ch);
+		return Character.isLetterOrDigit(ch) || ch == '_' || ch == '-';
 	};
 
 	public static Scanner<TokenType, ScannerState> createScanner(String input) {

@@ -58,8 +58,14 @@ public class QuteDiagnosticsWithUserTagTest {
 	}
 
 	@Test
-	public void ga4() {
+	public void number_in_section_name() {
 		String template = "{#ga4 /}";
+		testDiagnosticsFor(template);
+	}
+	
+	@Test
+	public void underscore_in_section_name() {
+		String template = "{#reunion-card /}";
 		testDiagnosticsFor(template);
 	}
 	
