@@ -528,7 +528,7 @@ public class QuteCompletionWithUserTagTest {
 	}
 	
 	@Test
-	public void ga4() throws Exception {
+	public void number_in_section_name() throws Exception {
 		String template = "{#|";
 
 		// Without snippet
@@ -542,5 +542,22 @@ public class QuteCompletionWithUserTagTest {
 				true, // snippet support
 				SECTION_SNIPPET_SIZE, //
 				c("ga4", "{#ga4 /}$0", r(0, 0, 0, 2)));
+	}
+	
+	@Test
+	public void underscore_in_section_name() throws Exception {
+		String template = "{#|";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("reunion-card", "{#reunion-card /}", r(0, 0, 0, 2)));
+
+		// With snippet support
+		testCompletionFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("reunion-card", "{#reunion-card /}$0", r(0, 0, 0, 2)));
 	}
 }
