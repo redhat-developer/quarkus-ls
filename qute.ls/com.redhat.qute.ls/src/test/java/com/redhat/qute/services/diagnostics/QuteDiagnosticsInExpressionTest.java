@@ -690,4 +690,11 @@ public class QuteDiagnosticsInExpressionTest {
 		String template = "function gtag()\\{dataLayer.push(arguments);\\}";
 		testDiagnosticsFor(template);
 	}
+	
+	@Test
+	public void configNamepscaeWithString() throws Exception {
+		String template = "{config:\"quarkus.application.name\"}";
+		testDiagnosticsFor(template);
+	}
+	
 }
