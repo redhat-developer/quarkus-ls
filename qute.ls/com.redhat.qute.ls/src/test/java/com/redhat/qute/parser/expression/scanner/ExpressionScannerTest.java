@@ -67,7 +67,7 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(25, TokenType.CloseBracket, ")");
 		assertOffsetAndToken(26, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void testNamespaceStartWithObject() {
 		scanner = createInfixNotationScanner("data:foo");
@@ -127,6 +127,17 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(18, TokenType.EOS, "");
 	}
 
+	@Test
+	public void configNamespaceWithString() {
+		scanner = createInfixNotationScanner("config:\"quarkus.application.name\"");
+		assertOffsetAndToken(0, TokenType.NamespacePart, "config");
+		assertOffsetAndToken(6, TokenType.ColonSpace, ":");
+		assertOffsetAndToken(7, TokenType.StartString, "\"");
+		assertOffsetAndToken(8, TokenType.String, "quarkus.application.name");
+		assertOffsetAndToken(32, TokenType.EndString, "\"");
+		assertOffsetAndToken(33, TokenType.EOS, "");
+	}
+
 	/**
 	 * @see https://quarkus.io/guides/qute-reference#built-in-resolvers
 	 */
@@ -155,7 +166,7 @@ public class ExpressionScannerTest {
 	}
 
 	// Infix notation tests
-	
+
 	@Test
 	public void testTwoPartsWithInfixNotation() {
 		scanner = createInfixNotationScanner("a b");
@@ -173,7 +184,7 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(2, TokenType.ObjectPart, "b"); // No infix notation -> object part
 		assertOffsetAndToken(3, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void testThreePartsWithInfixNotation() {
 		scanner = createInfixNotationScanner("a b c");
@@ -184,7 +195,7 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(4, TokenType.InfixParameter, "c");
 		assertOffsetAndToken(5, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void testSeveralPartsWithInfixNotation() {
 		scanner = createInfixNotationScanner("a b c d e");
@@ -199,7 +210,7 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(8, TokenType.InfixParameter, "e");
 		assertOffsetAndToken(9, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void testThreePartsWithoutInfixNotation() {
 		scanner = createNoInfixNotationScanner("a b c");
@@ -210,7 +221,7 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(4, TokenType.ObjectPart, "c");
 		assertOffsetAndToken(5, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void testOrInfixNotation() {
 		scanner = createInfixNotationScanner("person.name or 'John'");
@@ -223,7 +234,7 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(15, TokenType.InfixParameter, "'John'");
 		assertOffsetAndToken(21, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void testCharAtInfixNotation() {
 		scanner = createInfixNotationScanner("foo charAt '1'");
@@ -234,7 +245,7 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(11, TokenType.InfixParameter, "'1'");
 		assertOffsetAndToken(14, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void testCharAtNoInfixNotation() {
 		scanner = createNoInfixNotationScanner("foo charAt '1'");
@@ -247,7 +258,7 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(13, TokenType.EndString, "'");
 		assertOffsetAndToken(14, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void testMethodsAndInfixNotation() {
 		scanner = createInfixNotationScanner("items.get(0) or 1");
@@ -262,7 +273,7 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(16, TokenType.InfixParameter, "1");
 		assertOffsetAndToken(17, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void dotSpace() {
 		scanner = createInfixNotationScanner("items. ");
@@ -271,7 +282,7 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(6, TokenType.Whitespace, " ");
 		assertOffsetAndToken(7, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void twoMethodsWithOr() {
 		scanner = createInfixNotationScanner("item.name or item.name");
@@ -284,7 +295,7 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(13, TokenType.InfixParameter, "item.name");
 		assertOffsetAndToken(22, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void infixNotationWithBracket() {
 		scanner = createInfixNotationScanner("foo getBytes()");
@@ -304,7 +315,7 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(8, TokenType.InfixParameter, "\"Quarkus Insights\"");
 		assertOffsetAndToken(26, TokenType.EOS, "");
 	}
-	
+
 	private void assertOffsetAndToken(int tokenOffset, TokenType tokenType, String tokenText) {
 		TokenType token = scanner.scan();
 		assertEquals(tokenOffset, scanner.getTokenOffset());
@@ -315,7 +326,7 @@ public class ExpressionScannerTest {
 	private ExpressionScanner createInfixNotationScanner(String input) {
 		return ExpressionScanner.createScanner(input, true);
 	}
-	
+
 	private ExpressionScanner createNoInfixNotationScanner(String input) {
 		return ExpressionScanner.createScanner(input, false);
 	}
