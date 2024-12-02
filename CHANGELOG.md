@@ -1,5 +1,26 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## [0.21.0](https://github.com/redhat-developer/quarkus-ls/milestone/24?closed=1) (December 3, 2024)
+
+### Enhancements
+
+- Support for global namespace. See [#1025](https://github.com/redhat-developer/quarkus-ls/pull/1025).
+- Data model template matcher support. See [#1021](https://github.com/redhat-developer/quarkus-ls/pull/1021).
+- Add completion support for `quarkus.langchain4j.ollama.embedding-model.model-id`. See [#1014](https://github.com/redhat-developer/quarkus-ls/issues/1014).
+- Support for multiple Qute template root paths. See [#1005](https://github.com/redhat-developer/quarkus-ls/pull/1005).
+- Roq DataMapping support. See [#1017](https://github.com/redhat-developer/quarkus-ls/pull/1017).
+
+### Bug Fixes
+
+- Escape sequence \{ in Qute is not supported. See [#897](https://github.com/redhat-developer/quarkus-ls/issues/897).
+- False-positive error with section name which contains underscore. See [#1028](https://github.com/redhat-developer/quarkus-ls/pull/1028).
+- False-positive error with section name which contains number. See [#1022](https://github.com/redhat-developer/quarkus-ls/pull/1022).
+- False-positive error on let-defined variable. See [#993](https://github.com/redhat-developer/quarkus-ls/issues/993).
+- Fix the qute.jdt tests. See [#1019](https://github.com/redhat-developer/quarkus-ls/pull/1019).
+- Support TemplateExtension matchNames. See [#1013](https://github.com/redhat-developer/quarkus-ls/issues/1013).
+- Qute validation fails on `{config:property}` if property contains is a string. See [#933](https://github.com/redhat-developer/quarkus-ls/issues/933).
+- Proper fix for comments in TemplateExtension quickfix test. See [#1020](https://github.com/redhat-developer/quarkus-ls/pull/1020).
+
 ## [0.20.0](https://github.com/redhat-developer/quarkus-ls/milestone/23?closed=1) (October 22, 2024)
 
 ### Enhancements
