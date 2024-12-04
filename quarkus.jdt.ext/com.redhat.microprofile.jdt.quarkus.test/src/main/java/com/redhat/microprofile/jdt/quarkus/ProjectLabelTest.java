@@ -66,18 +66,19 @@ public class ProjectLabelTest {
 
 	@Test
 	public void getProjectLabelMultipleProjects() throws Exception {
-		IJavaProject quarkusMaven = BasePropertiesManagerTest.loadMavenProject(MicroProfileMavenProjectName.using_vertx);
-		IJavaProject quarkusGradle = BasePropertiesManagerTest
-				.loadGradleProject(GradleProjectName.quarkus_gradle_project);
-		IJavaProject maven = BasePropertiesManagerTest.loadMavenProject(MicroProfileMavenProjectName.empty_maven_project);
-		IJavaProject gradle = BasePropertiesManagerTest.loadGradleProject(GradleProjectName.empty_gradle_project);
+		IJavaProject [] projects = BasePropertiesManagerTest.loadJavaProjects(new String [] {
+				"maven/" + MicroProfileMavenProjectName.using_vertx,
+				"gradle/" + GradleProjectName.quarkus_gradle_project,
+				"maven/" + MicroProfileMavenProjectName.empty_maven_project,
+				"gradle/" + GradleProjectName.empty_gradle_project
+				});
 		List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo();
 
-		assertProjectLabelInfoContainsProject(projectLabelEntries, quarkusMaven, quarkusGradle, maven, gradle);
-		assertLabels(projectLabelEntries, quarkusMaven, "quarkus", "microprofile", "maven");
-		assertLabels(projectLabelEntries, quarkusGradle, "quarkus", "microprofile", "gradle");
-		assertLabels(projectLabelEntries, maven, "maven");
-		assertLabels(projectLabelEntries, gradle, "gradle");
+		assertProjectLabelInfoContainsProject(projectLabelEntries, projects[0], projects[1], projects[2], projects[3]);
+		assertLabels(projectLabelEntries, projects[0], "quarkus", "microprofile", "maven");
+		assertLabels(projectLabelEntries, projects[1], "quarkus", "microprofile", "gradle");
+		assertLabels(projectLabelEntries, projects[2], "maven");
+		assertLabels(projectLabelEntries, projects[3], "gradle");
 	}
 
 	private void assertProjectLabelInfoContainsProject(List<ProjectLabelInfoEntry> projectLabelEntries,
