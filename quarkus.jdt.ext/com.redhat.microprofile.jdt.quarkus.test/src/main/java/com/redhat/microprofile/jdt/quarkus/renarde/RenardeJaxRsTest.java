@@ -21,8 +21,10 @@ import static org.junit.Assert.assertNotNull;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -33,9 +35,14 @@ public class RenardeJaxRsTest extends BasePropertiesManagerTest {
 
 	private static String quarkus_renarde_todo = "quarkus-renarde-todo";
 
+	@BeforeClass
+	public static void setupProject() throws Exception {
+		loadMavenProject(quarkus_renarde_todo);
+	}
+
 	@Test
 	public void codeLens() throws Exception {
-		IJavaProject javaProject = loadMavenProject(quarkus_renarde_todo);
+		IJavaProject javaProject = ProjectUtils.getJavaProject(quarkus_renarde_todo);
 
 		assertNotNull(javaProject);
 
@@ -54,7 +61,7 @@ public class RenardeJaxRsTest extends BasePropertiesManagerTest {
 
 	@Test
 	public void absolutePathCodeLens() throws Exception {
-		IJavaProject javaProject = loadMavenProject(quarkus_renarde_todo);
+		IJavaProject javaProject = ProjectUtils.getJavaProject(quarkus_renarde_todo);
 
 		assertNotNull(javaProject);
 
@@ -71,7 +78,7 @@ public class RenardeJaxRsTest extends BasePropertiesManagerTest {
 	
 	@Test
 	public void workspaceSymbols() throws Exception {
-		IJavaProject javaProject = loadMavenProject(quarkus_renarde_todo);
+		IJavaProject javaProject = ProjectUtils.getJavaProject(quarkus_renarde_todo);
 
 		assertNotNull(javaProject);
 

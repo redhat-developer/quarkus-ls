@@ -19,12 +19,14 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
+import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
 import org.eclipse.lsp4mp.jdt.core.PropertiesManager;
 import org.eclipse.lsp4mp.jdt.core.utils.IJDTUtils;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 
@@ -36,12 +38,17 @@ import org.junit.Test;
  */
 public class PropertiesManagerLocationTest extends BasePropertiesManagerTest {
 
+	@BeforeClass
+	public static void setupTests() throws CoreException, Exception {
+		loadMavenProject(MicroProfileMavenProjectName.using_vertx);
+	}
+
 	@Test
 	public void usingVertxTest() throws Exception {
 		// Enable classFileContentsSupport to generate jdt Location
 		enableClassFileContentsSupport();
 
-		IJavaProject javaProject = loadMavenProject(MicroProfileMavenProjectName.using_vertx);
+		IJavaProject javaProject = ProjectUtils.getJavaProject(MicroProfileMavenProjectName.using_vertx);
 
 		// Test with JAR
 		// quarkus.datasource.url
