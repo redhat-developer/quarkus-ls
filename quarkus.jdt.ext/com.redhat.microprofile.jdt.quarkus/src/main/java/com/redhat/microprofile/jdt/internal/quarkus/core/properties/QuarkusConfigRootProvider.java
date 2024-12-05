@@ -443,6 +443,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 						addItemMetadata(extensionName, field, fieldTypeName, fieldClass, subKey, defaultValue,
 								javadocCache, configPhase, quarkusContext, collector, monitor);
 					}
+				} else if (child.getElementType() == IJavaElement.TYPE) {
+					processConfigGroup(extensionName, child, baseKey + ".{*}", configPhase, javadocCache, quarkusContext, collector, monitor);
 				}
 			}
 		}
