@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
@@ -48,7 +49,7 @@ public class JDTTypeUtils {
 
 	public static IType findType(IJavaProject project, String className) {
 		try {
-			return project.findType(className);
+			return project.findType(className, new NullProgressMonitor());
 		} catch (JavaModelException e) {
 			LOGGER.log(Level.SEVERE, "Error while finding type for '" + className + "'.", e);
 			return null;
