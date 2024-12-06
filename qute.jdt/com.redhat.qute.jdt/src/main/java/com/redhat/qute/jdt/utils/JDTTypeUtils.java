@@ -49,7 +49,14 @@ public class JDTTypeUtils {
 
 	public static IType findType(IJavaProject project, String className) {
 		try {
-			return project.findType(className, new NullProgressMonitor());
+			IType type = project.findType(className, new NullProgressMonitor());
+			if (type != null && type.exists()) {
+				return type;
+			}
+		} catch (JavaModelException e) {
+		}
+		try {
+			return project.findType(className);
 		} catch (JavaModelException e) {
 			LOGGER.log(Level.SEVERE, "Error while finding type for '" + className + "'.", e);
 			return null;
