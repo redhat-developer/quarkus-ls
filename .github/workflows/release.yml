@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: 'rgrunber/quarkus-ls'
+          repository: 'redhat-developer/quarkus-ls'
           fetch-depth: 2
           path: quarkus-ls
       - run: |
@@ -38,7 +38,7 @@ jobs:
       - name: Checkout quarkus-ls
         uses: actions/checkout@v4
         with:
-          repository: rgrunber/quarkus-ls
+          repository: redhat-developer/quarkus-ls
       - name: Cache Maven local repository
         uses: actions/cache@v4
         with:
@@ -86,7 +86,7 @@ jobs:
       - name: Checkout quarkus-ls Maven Repo
         uses: actions/checkout@v4
         with:
-          repository: rgrunber/quarkus-ls
+          repository: redhat-developer/quarkus-ls
           ref: maven
           path: mvn-repo
       - name: Deploy Quarkus & Qute LS to Maven Repository
