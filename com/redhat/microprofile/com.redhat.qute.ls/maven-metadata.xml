@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>com.redhat.microprofile</groupId>
+  <artifactId>com.redhat.qute.ls</artifactId>
+  <versioning>
+    <versions>
+      <version>0.21.1-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20241210041922</lastUpdated>
+  </versioning>
+</metadata>
