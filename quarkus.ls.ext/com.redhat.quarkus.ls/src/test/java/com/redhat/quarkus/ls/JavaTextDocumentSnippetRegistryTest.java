@@ -63,7 +63,7 @@ public class JavaTextDocumentSnippetRegistryTest {
 		boolean match2 = ((SnippetContextForJava) context).isMatch(new JavaSnippetCompletionContext(projectInfo2, null));
 		Assert.assertTrue("Project has io.quarkus.test.junit.QuarkusTest type", match2);
 
-		boolean match3 = ((SnippetContextForJava) context).isMatch(new JavaSnippetCompletionContext(projectInfo2, new JavaCursorContextResult(JavaCursorContextKind.BEFORE_CLASS, "aaaa")));
+		boolean match3 = ((SnippetContextForJava) context).isMatch(new JavaSnippetCompletionContext(projectInfo2, new JavaCursorContextResult(JavaCursorContextKind.BEFORE_TOP_LEVEL_CLASS, "aaaa")));
 		Assert.assertFalse("Cursor is not in an empty file", match3);
 
 		boolean match4 = ((SnippetContextForJava) context).isMatch(new JavaSnippetCompletionContext(projectInfo2, new JavaCursorContextResult(JavaCursorContextKind.IN_EMPTY_FILE, "aaaa")));

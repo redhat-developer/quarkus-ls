@@ -18,10 +18,10 @@ jobs:
           path: ~/.m2/wrapper
           key: maven-wrapper-${{ hashFiles('**/mvnw') }}
           save-always: true
-      - name: Set up Eclipse Temurin JDK 17
+      - name: Set up Eclipse Temurin JDK
         uses: actions/setup-java@v2
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
       - name: Build and test Quarkus jdt component
         run: cd quarkus.jdt.ext && ./mvnw -B -U clean verify && cd ..
