@@ -22,5 +22,5 @@ Export-Package: com.redhat.microprofile.jdt.internal.quarkus;x-friends:="com.red
  com.redhat.microprofile.jdt.internal.quarkus.utils;x-friends:="com.redhat.microprofile.jdt.quarkus.test",
  com.redhat.microprofile.jdt.quarkus,
  org.yaml.snakeyaml;x-friends:="com.redhat.microprofile.jdt.quarkus.test"
-Bundle-ClassPath: lib/snakeyaml-1.25.jar,
+Bundle-ClassPath: lib/snakeyaml-2.4.jar,
  .
