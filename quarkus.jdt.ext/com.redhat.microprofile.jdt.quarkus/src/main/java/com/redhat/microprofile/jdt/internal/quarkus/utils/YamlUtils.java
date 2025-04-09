@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
@@ -41,7 +42,7 @@ public class YamlUtils {
 	public static Properties loadYamlAsProperties(InputStream input) {
 		Properties properties = new Properties();
 		// Load Yaml document
-		Yaml yaml = new Yaml(new SafeConstructor());
+		Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
 		Object yamlDocument = yaml.load(input);
 		if (yamlDocument != null) {
 			// flattern Yaml document to properties.
