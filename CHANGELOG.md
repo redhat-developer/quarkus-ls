@@ -1,5 +1,14 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## [0.21.1](https://github.com/redhat-developer/quarkus-ls/milestone/25?closed=1) (April 10, 2025)
+
+### Bug Fixes
+- Use progress monitor when finding types in project, in order to resolve nested types. See [#1037](https://github.com/redhat-developer/quarkus-ls/pull/1037).
+- Update snakeyaml to 2.4. See [#1044](https://github.com/redhat-developer/quarkus-ls/pull/1044).
+
+### Build
+- Migrate release job from Jenkins to GitHub Actions. See [#1039](https://github.com/redhat-developer/quarkus-ls/pull/1039).
+
 ## [0.21.0](https://github.com/redhat-developer/quarkus-ls/milestone/24?closed=1) (December 3, 2024)
 
 ### Enhancements
