@@ -12,6 +12,7 @@
 package com.redhat.qute.project;
 
 import com.redhat.qute.commons.JavaMemberInfo;
+import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 
 /**
  * The search result of Java member.
@@ -85,6 +86,14 @@ public class JavaMemberResult {
 	 */
 	public void setMatchVirtualMethod(boolean matchVirtualMethod) {
 		this.matchVirtualMethod = matchVirtualMethod;
+	}
+	
+	public boolean isMatchNameAny() {
+		if (member instanceof MethodValueResolver) {
+			MethodValueResolver method = (MethodValueResolver) member;
+			return method.isMatchNameAny();
+		}
+		return false;
 	}
 
 }

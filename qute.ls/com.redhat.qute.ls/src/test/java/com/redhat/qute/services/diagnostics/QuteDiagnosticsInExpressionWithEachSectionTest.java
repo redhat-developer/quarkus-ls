@@ -1,6 +1,5 @@
 package com.redhat.qute.services.diagnostics;
 
-import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.te;
@@ -10,9 +9,6 @@ import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
-
-import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
-import com.redhat.qute.services.commands.QuteClientCommandConstants;
 
 public class QuteDiagnosticsInExpressionWithEachSectionTest {
 

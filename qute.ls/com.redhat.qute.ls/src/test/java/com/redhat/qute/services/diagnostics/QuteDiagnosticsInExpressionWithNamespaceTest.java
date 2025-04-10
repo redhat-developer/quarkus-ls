@@ -11,8 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.services.diagnostics;
 
-import static com.redhat.qute.QuteAssert.c;
-import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.testCodeActionsFor;
 import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
@@ -20,9 +18,6 @@ import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
-
-import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
-import com.redhat.qute.services.commands.QuteClientCommandConstants;
 
 /**
  * Test with expressions.
@@ -117,19 +112,21 @@ public class QuteDiagnosticsInExpressionWithNamespaceTest {
 		template = "{cdi:bean.isEmpty()}";
 		testDiagnosticsFor(template);
 	}
-	
+
 	@Test
 	public void notOperatorWithNamespacePart() {
 		String template = "{#if !cdi:bean}NOK{#else}OK{/if}";
 		testDiagnosticsFor(template);
 
 		template = "{#if !cdi:foo}NOK{#else}OK{/if}";
-		testDiagnosticsFor(template, d(0, 10, 0, 13, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
-				DiagnosticSeverity.Warning));
-		
+		testDiagnosticsFor(template,
+				d(0, 10, 0, 13, QuteErrorCode.UndefinedObject, "`foo` cannot be resolved to an object.",
+						DiagnosticSeverity.Warning));
+
 		template = "{#if !foo:bar}NOK{#else}OK{/if}";
-		testDiagnosticsFor(template, d(0, 6, 0, 9, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `foo`.",
-				DiagnosticSeverity.Warning));
+		testDiagnosticsFor(template,
+				d(0, 6, 0, 9, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `foo`.",
+						DiagnosticSeverity.Warning));
 	}
 
 	@Test

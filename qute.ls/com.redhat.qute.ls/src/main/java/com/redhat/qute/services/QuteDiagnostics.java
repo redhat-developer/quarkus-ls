@@ -1136,7 +1136,6 @@ class QuteDiagnostics {
 
 		boolean matchVirtualMethod = result.isMatchVirtualMethod();
 		if (!matchVirtualMethod) {
-
 			Range range = QutePositionUtility.createRange(methodPart);
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
 					QuteErrorCode.InvalidVirtualMethod, //
@@ -1146,8 +1145,9 @@ class QuteDiagnostics {
 			return null;
 		}
 
+		List<JavaParameterInfo> applicableParamters = method.getApplicableParameters();
 		if (methodPart.isInfixNotation()) {
-			int nbParameters = method.getParameters().size() - (method.isVirtual() ? 1 : 0);
+			int nbParameters = applicableParamters.size();
 			if (nbParameters != 1) {
 				// infix notation,
 				// ex: String#codePointCount cannot be used with infix notation
@@ -1166,15 +1166,11 @@ class QuteDiagnostics {
 			// The method codePointAt(int) in the type String is not applicable for the
 			// arguments ()
 			StringBuilder expectedSignature = new StringBuilder("(");
-			boolean ignoreParameter = method.isVirtual();
-			for (JavaParameterInfo parameter : method.getParameters()) {
-				if (!ignoreParameter) {
-					if (expectedSignature.length() > 1) {
-						expectedSignature.append(", ");
-					}
-					expectedSignature.append(parameter.getJavaElementSimpleType());
+			for (JavaParameterInfo parameter : applicableParamters) {
+				if (expectedSignature.length() > 1) {
+					expectedSignature.append(", ");
 				}
-				ignoreParameter = false;
+				expectedSignature.append(parameter.getJavaElementSimpleType());
 			}
 			expectedSignature.append(")");
 			expectedSignature.insert(0, method.getName());

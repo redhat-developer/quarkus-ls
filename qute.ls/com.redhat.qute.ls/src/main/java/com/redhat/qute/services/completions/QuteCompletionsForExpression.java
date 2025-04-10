@@ -544,8 +544,7 @@ public class QuteCompletionsForExpression {
 		if (!infixNotation) {
 			return true;
 		}
-		int nbParameters = method.getParameterslength();
-		return nbParameters == 1;
+		return method.getApplicableParameters().size() == 1;
 	}
 
 	private static void fillCompletionMethod(JavaMethodInfo method, JavaTypeAccessibiltyRule javaTypeAccessibility,
@@ -604,24 +603,20 @@ public class QuteCompletionsForExpression {
 		} else {
 			snippet.append(methodName);
 			if (method.hasParameters()) {
-				int start = 0;
-				if (method.isVirtual() && ((ValueResolver) method).getNamespace() == null) {
-					start++;
-				}
-
 				if (!infixNotation) {
 					snippet.append('(');
 				} else {
 					snippet.append(' ');
 				}
 				int end = getRequiredParametersSize(method);
-				for (int i = start; i < end; i++) {
-					if (i > start) {
+				List<JavaParameterInfo> applicableParameters = method.getApplicableParameters();
+				for (int i = 0; i < end; i++) {
+					if (i > 0) {
 						snippet.append(", ");
 					}
-					JavaParameterInfo parameter = method.getParameterAt(i);
+					JavaParameterInfo parameter = applicableParameters.get(i);
 					if (snippetsSupported) {
-						SnippetsBuilder.placeholders(i - start + 1, parameter.getName(), snippet);
+						SnippetsBuilder.placeholders(i + 1, parameter.getName(), snippet);
 					} else {
 						snippet.append(parameter.getName());
 					}
@@ -638,7 +633,7 @@ public class QuteCompletionsForExpression {
 	}
 
 	private static int getRequiredParametersSize(JavaMethodInfo method) {
-		int nbParameters = method.getParameters().size();
+		int nbParameters = method.getApplicableParameters().size();
 		if (method.getJaxRsMethodKind() != null) {
 			// Renarde parameters, only @ResPath (required parameters) must be shown in the
 			// completion

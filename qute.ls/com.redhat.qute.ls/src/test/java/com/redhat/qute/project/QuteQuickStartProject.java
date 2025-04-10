@@ -42,7 +42,7 @@ import com.redhat.qute.commons.jaxrs.RestParam;
  *
  */
 public class QuteQuickStartProject extends BaseQuteProject {
- 
+
 	public final static String PROJECT_URI = "qute-quickstart";
 
 	public static final String ITEMRESOURCE_ITEMS_TEMPLATE_URI = "src/main/resources/templates/ItemResource/items";
@@ -360,7 +360,23 @@ public class QuteQuickStartProject extends BaseQuteProject {
 
 	@Override
 	protected void fillValueResolvers(List<ValueResolverInfo> resolvers) {
-
+		// io.quarkus.qute.runtime.extensions.NumberTemplateExtensions
+		resolvers.add(createValueResolver(null, null, (String) null,
+				"io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+				"mod(number : java.lang.Integer, mod : java.lang.Integer) : java.lang.Integer",
+				ValueResolverKind.TemplateExtensionOnMethod,
+				false, true));
+		resolvers.add(createValueResolver(null, null, List.of("plus", "+"),
+				"io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+				"addToInt(number : java.lang.Integer, name : java.lang.String, other : java.lang.Integer) : java.lang.Integer",
+				ValueResolverKind.TemplateExtensionOnMethod,
+				false, true));
+		resolvers.add(createValueResolver(null, null, List.of("minus", "-"),
+				"io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
+				"subtractFromInt(number : java.lang.Integer, name : java.lang.String, other : java.lang.Integer) : java.lang.Integer",
+				ValueResolverKind.TemplateExtensionOnMethod,
+				false, true));
+		
 		// Type value resolvers
 		resolvers.add(createValueResolver("inject", "plexux", (String) null,
 				"org.eclipse.aether.internal.transport.wagon.PlexusWagonConfigurator",

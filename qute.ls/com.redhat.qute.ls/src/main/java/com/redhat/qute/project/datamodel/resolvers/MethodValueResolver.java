@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.project.datamodel.resolvers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
@@ -23,6 +24,7 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.parser.template.DocumentableItem;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Node;
+import com.redhat.qute.utils.StringUtils;
 
 /**
  * Qute method value resolver.
@@ -50,6 +52,8 @@ public class MethodValueResolver extends JavaMethodInfo
 	private Boolean globalVariable;
 
 	private ValueResolverKind kind;
+
+	private transient List<JavaParameterInfo> applicableParameters;
 
 	@Override
 	public boolean isVirtual() {
@@ -242,10 +246,53 @@ public class MethodValueResolver extends JavaMethodInfo
 	}
 
 	@Override
+	public List<JavaParameterInfo> getApplicableParameters() {
+		if (applicableParameters == null) {
+			applicableParameters = new ArrayList<>();
+			boolean hasNamespace = !StringUtils.isEmpty(getNamespace());
+			List<JavaParameterInfo> parameters = getParameters();
+			for (int i = 0; i < parameters.size(); i++) {
+				boolean add = false;
+				if (i > 1) {
+					// collect the parameter in any case
+					add = true;
+				} else if ((i == 0 && hasNamespace) || i == 1) {
+					// - the first parameter is collected only if there is a namespace and resolver
+					// doesn't define a matchNames
+					// --> config:property(propertyName : java.lang.String) : java.lang.Object
+
+					// - the second parameter is collected only if resolver doesn't define a
+					// matchNames
+					// -> get(base : io.vertx.core.json.JsonObject, key : java.lang.String) :
+					// java.lang.Object"
+					boolean hasMatchNames = getMatchNames() != null && !getMatchNames().isEmpty();
+					if (!hasMatchNames) {
+						add = true;
+					}
+				}
+				if (add) {
+					applicableParameters.add(parameters.get(i));
+				}
+			}
+		}
+		return applicableParameters;
+	}
+
+	/**
+	 * Returns true if matchNames defines '*' and false otherwise.
+	 * 
+	 * @return true if matchNames defines '*' and false otherwise.
+	 */
+	public boolean isMatchNameAny() {
+		return getMatchNames() != null && getMatchNames().contains(MATCH_NAME_ANY);
+	}
+
+	@Override
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("named", this.getNamed());
 		b.add("namespace", this.getNamespace());
+		b.add("matchNames", this.getMatchNames());
 		b.add("signature", this.getSignature());
 		b.add("sourceType", this.getSourceType());
 		b.add("description", this.getDescription());
@@ -255,4 +302,5 @@ public class MethodValueResolver extends JavaMethodInfo
 		b.add("kind", this.getKind());
 		return b.toString();
 	}
+
 }
