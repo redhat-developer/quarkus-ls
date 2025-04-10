@@ -121,6 +121,77 @@ public class QuteDiagnosticsInExpressionTest {
 				ca(d, te(0, 5, 0, 5, "??")));
 	}
 
+	/**
+	 * See https://quarkus.io/guides/qute-reference#integer-numbers
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void integerNumbersMod() throws Exception {
+		String template = "{@java.lang.Integer counter}\r\n" + //
+				"\r\n" + //
+				"{#if counter.mod(5) == 0}\r\n" + //
+				"{/}";
+		testDiagnosticsFor(template);
+
+		template = "{@int counter}\r\n" + //
+				"\r\n" + //
+				"{#if counter.mod(5) == 0}\r\n" + //
+				"{/}";
+		testDiagnosticsFor(template);
+
+	}
+
+	/**
+	 * See https://quarkus.io/guides/qute-reference#integer-numbers
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void integerNumbersAddition() throws Exception {
+		String template = "{@java.lang.Integer counter}\r\n" + //
+				"{@java.lang.Integer age}\r\n" + //
+				"\r\n" + //
+				"{counter + 1}\r\n" + //
+				"{age plus 10}\r\n" + //
+				"{age.plus(10)}";
+		testDiagnosticsFor(template);
+	}
+
+	/**
+	 * See https://quarkus.io/guides/qute-reference#integer-numbers
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void integerNumbersSubstraction() throws Exception {
+		String template = "{@java.lang.Integer counter}\r\n" + //
+				"{@java.lang.Integer age}\r\n" + //
+				"\r\n" + //
+				"{counter - 1}\r\n" + //
+				"{age minus 10}\r\n" + //
+				"{age.minus(10)}";
+		testDiagnosticsFor(template);
+	}
+
+	/**
+	 * See https://quarkus.io/guides/qute-reference#integer-numbers
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void integerNumbersInFor() throws Exception {
+		String template = "{@java.lang.Integer[] ints}\r\n" + //
+				"\r\n" + //
+				"{#for item in ints}\r\n" + //
+				"  {item_count + 1}\r\n" + //
+				"  {item_count + 1 + 2 plus 3 - 5 minus 6}\r\n" + //
+				"  {item_count + ints.0 - 6}\r\n" + //
+				"  {item_count + ints.get(0) - 6}\r\n" + //
+				"{/for}";
+		testDiagnosticsFor(template);
+	}
+
 	@Test
 	public void longLiteral() throws Exception {
 		String template = "{123L}";
@@ -690,11 +761,11 @@ public class QuteDiagnosticsInExpressionTest {
 		String template = "function gtag()\\{dataLayer.push(arguments);\\}";
 		testDiagnosticsFor(template);
 	}
-	
+
 	@Test
 	public void configNamepscaeWithString() throws Exception {
 		String template = "{config:\"quarkus.application.name\"}";
 		testDiagnosticsFor(template);
 	}
-	
+
 }

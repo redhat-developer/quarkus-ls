@@ -58,12 +58,15 @@ public class JavaDataModelCache {
 
 	private static final Map<String, String> autoboxing;
 
+	private static final Map<String, String> bigNumber;
+
 	private static final Map<String, CompletableFuture<ResolvedJavaTypeInfo>> javaPrimitiveTypes;
 
 	static {
 		javaPrimitiveTypes = new HashMap<>();
 		autoboxing = new HashMap<>();
 		JavaTypeInfo.PRIMITIVE_TYPES.forEach(type -> registerPrimitiveType(type));
+		bigNumber = Map.of("java.math.BigInteger", "java.lang.Integer", "java.math.BigDouble", "java.lang.Double");
 	}
 
 	private static void registerPrimitiveType(String type) {
@@ -586,6 +589,10 @@ public class JavaDataModelCache {
 		if (primitiveType != null) {
 			// It's a Java primitive type
 			return primitiveType.equals(autoboxing.get(type2));
+		}
+		String bigNumberType = bigNumber.get(type1);
+		if (bigNumberType != null) {
+			return bigNumberType.equals(type2);
 		}
 		return false;
 	}

@@ -85,7 +85,7 @@ public class QuteCompletionInInfixNotationTest {
 
 		// Infix notation : only methods with one parameter of String class
 		testCompletionFor(template, //
-				RESOLVERS_SIZE + 1, //, //
+				RESOLVERS_SIZE + 1, // , //
 				c("item", "item", r(1, 14, 1, 14)), //
 				c("inject:bean", "inject:bean", r(1, 14, 1, 14)), //
 				c("inject:plexux", "inject:plexux", r(1, 14, 1, 14)), //
@@ -95,7 +95,7 @@ public class QuteCompletionInInfixNotationTest {
 				c("GLOBAL", "GLOBAL", r(1, 14, 1, 14)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 14, 1, 14)), //
 				c("uri:Login", "uri:Login", r(1, 14, 1, 14)), //
-				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 14, 1, 14)),//
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 14, 1, 14)), //
 				c("msg2:hello() : String", "msg2:hello", r(1, 14, 1, 14)), //
 				c("bundle", "bundle", r(1, 14, 1, 14)));
 
@@ -114,9 +114,28 @@ public class QuteCompletionInInfixNotationTest {
 				c("GLOBAL", "GLOBAL", r(1, 25, 1, 25)), //
 				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 25, 1, 25)), //
 				c("uri:Login", "uri:Login", r(1, 25, 1, 25)), //
-				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 25, 1, 25)),//
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 25, 1, 25)), //
 				c("msg2:hello() : String", "msg2:hello", r(1, 25, 1, 25)), //
 				c("bundle", "bundle", r(1, 25, 1, 25)));
+	}
+
+	@Test
+	public void infixNotationWithNumbers() throws Exception {
+		String template = "{@int foo}\r\n" + //
+				"{foo + |}";
+
+		// Infix notation : only methods with one parameter of String class
+		testCompletionFor(template, //
+				5,
+				// - resolvers
+				c("ifTruthy(base : T, arg : Object) : T", "ifTruthy ${1:arg}$0", r(1, 7, 1, 7)),
+				c("or(base : T, arg : Object) : T", "or ${1:arg}$0", r(1, 7, 1, 7)),
+				// Numbers resolvers
+				c("plus(number : Integer, name : String, other : Integer) : Integer", "plus ${1:other}$0",
+						r(1, 7, 1, 7)),
+				c("minus(number : Integer, name : String, other : Integer) : Integer", "minus ${1:other}$0",
+						r(1, 7, 1, 7)),
+				c("mod(number : Integer, mod : Integer) : Integer", "mod ${1:mod}$0", r(1, 7, 1, 7)));
 	}
 
 }

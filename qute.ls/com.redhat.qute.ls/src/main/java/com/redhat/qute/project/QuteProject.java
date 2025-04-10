@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -960,15 +961,17 @@ public class QuteProject {
 			return false;
 		}
 		for (MethodValueResolver resolver : resolvers) {
-			if (isMatchMethod(resolver, methodName, null, null)) {
+			if (isMatchMethod(resolver, methodName) || isMatchValueResolver(resolver, methodName)) {
 				// The current resolver matches the method name.
-				if (namespace != null) {
-					if (namespace.equals(resolver.getNamespace())) {
-						result.setMember(resolver);
-						result.setMatchVirtualMethod(true);
+				if (namespace != null || resolver.getNamespace() != null) {
+					if (Objects.equals(namespace, resolver.getNamespace())) {
 						// Check if the current resolver matches the parameters.
 						boolean matchParameters = isMatchParameters(resolver, parameterTypes);
-						result.setMatchParameters(matchParameters);
+						if (matchParameters || (result.getMember() == null && !resolver.isMatchNameAny())) {
+							result.setMember(resolver);
+							result.setMatchVirtualMethod(true);
+							result.setMatchParameters(matchParameters);
+						}
 						if (matchParameters) {
 							return true;
 						}
@@ -985,12 +988,13 @@ public class QuteProject {
 						// Check if the current resolver matches the parameters.
 						matchParameters = isMatchParameters(resolver, parameterTypes);
 					}
-					if (result.getMember() == null || (matchParameters && matchVirtualMethod)) {
+					boolean matchResolver = matchParameters && matchVirtualMethod;
+					if (matchResolver || (result.getMember() == null && !resolver.isMatchNameAny())) {
 						result.setMember(resolver);
 						result.setMatchParameters(matchParameters);
 						result.setMatchVirtualMethod(matchVirtualMethod);
 					}
-					if (matchParameters && matchVirtualMethod) {
+					if (matchResolver) {
 						// The current resolver matches the method name, the parameters types and the
 						// virtual method,stop the search
 						return true;
@@ -1002,8 +1006,7 @@ public class QuteProject {
 	}
 
 	private boolean isMatchParameters(JavaMethodInfo method, List<ResolvedJavaTypeInfo> parameterTypes) {
-		boolean virtualMethod = method.isVirtual();
-		int nbParameters = method.getParameterslength();
+		int nbParameters = method.getApplicableParameters().size();
 		int declaredNbParameters = parameterTypes.size();
 		JavaParameterInfo lastParameter = method.hasParameters()
 				? method.getParameterAt(method.getParameters().size() - 1)
@@ -1059,7 +1062,7 @@ public class QuteProject {
 
 		// Validate all mandatory parameters (without varargs)
 		for (int i = 0; i < nbParameters - (varargs ? 1 : 0); i++) {
-			JavaParameterInfo parameterInfo = method.getParameters().get(i + (virtualMethod ? 1 : 0));
+			JavaParameterInfo parameterInfo = method.getApplicableParameters().get(i);
 			ResolvedJavaTypeInfo result = parameterTypes.get(i);
 
 			// If the type info isn't available, assume the type matches.
@@ -1073,7 +1076,7 @@ public class QuteProject {
 			}
 		}
 
-		if (varargs) {
+		if (varargs && lastParameter != null) {
 			// Validate varargs parameters
 			for (int i = nbParameters - 1; i < declaredNbParameters; i++) {
 				String parameterType = lastParameter.getVarArgType();

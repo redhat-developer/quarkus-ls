@@ -311,12 +311,18 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	}
 
 	/**
-	 * Returns the parameters length of the method.
+	 * Returns the applicable parameters of the method.
 	 * 
-	 * @return the parameters length of the method.
+	 * <p>
+	 * By default it returns the same list that getParameters(). This method is
+	 * override
+	 * for method value resolver to returns the applicable parameters.
+	 * </p>
+	 * 
+	 * @return the applicable parameters of the method.
 	 */
-	public int getParameterslength() {
-		return getParameters().size() - (isVirtual() ? 1 : 0);
+	public List<JavaParameterInfo> getApplicableParameters() {
+		return getParameters();
 	}
 
 	private static List<JavaParameterInfo> parseParameters(String signature) {
