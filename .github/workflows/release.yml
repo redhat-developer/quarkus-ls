@@ -50,8 +50,8 @@ jobs:
       - name: Set Up Java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'adopt'
+          java-version: '21'
+          distribution: 'temurin'
       - name: Update Version Number
         if: ${{ inputs.QUARKUS_LS_VERSION != '' }}
         run: |
