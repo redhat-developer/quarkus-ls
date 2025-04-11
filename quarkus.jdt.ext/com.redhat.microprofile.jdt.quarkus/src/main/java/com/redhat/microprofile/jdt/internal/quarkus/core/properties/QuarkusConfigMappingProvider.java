@@ -147,7 +147,11 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 					// it's an optional type
 					// Optional<List<String>> databases();
 					// extract the type List<String>
-					returnTypeSignature = org.eclipse.jdt.core.Signature.getTypeArguments(returnTypeSignature)[0];
+					String[] typeArguments = org.eclipse.jdt.core.Signature.getTypeArguments(returnTypeSignature);
+					if (typeArguments.length < 1) {
+						continue;
+					}
+					returnTypeSignature = typeArguments[0];
 					resolvedTypeSignature = JavaModelUtil.getResolvedTypeName(returnTypeSignature, configMappingType);
 				}
 
@@ -194,8 +198,12 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 					} else if (isCollection(returnType, resolvedTypeSignature)) {
 						// List<String>, List<App>
 						propertyName += "[*]"; // Generate indexed property.
-						String genericTypeName = org.eclipse.jdt.core.Signature
-								.getTypeArguments(returnTypeSignature)[0];
+						String[] typeArguments = org.eclipse.jdt.core.Signature
+								.getTypeArguments(returnTypeSignature);
+						if (typeArguments.length < 1) {
+							continue;
+						}
+						String genericTypeName = typeArguments[0];
 						resolvedTypeSignature = JavaModelUtil.getResolvedTypeName(genericTypeName, configMappingType);
 						returnType = findType(method.getJavaProject(), resolvedTypeSignature);
 						simpleType = isSimpleType(resolvedTypeSignature, returnType);
