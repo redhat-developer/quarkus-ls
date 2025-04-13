@@ -387,12 +387,18 @@ public class QuteProject {
 		return projectRegistry.getDataModelProject(params);
 	}
 
-	public void resetJavaTypes() {
+	public void resetJavaTypes(Set<String> sources) {
 		if (dataModelProjectFuture != null) {
 			dataModelProjectFuture.cancel(true);
 			dataModelProjectFuture = null;
 		}
-		resolvedJavaTypes.clear();
+		if (sources != null && sources.size() > 0) {
+			for (String className : sources) {
+				resolvedJavaTypes.remove(className);
+			}
+		} else {
+			resolvedJavaTypes.clear();
+		}
 		targetAnnotations = null;
 	}
 

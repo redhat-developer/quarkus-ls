@@ -11,28 +11,25 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ElementChangedEvent;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IElementChangedListener;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
 
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
+import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent.ProjectChangeInfo;
 import com.redhat.qute.jdt.IJavaDataModelChangedListener;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
 
@@ -44,8 +41,8 @@ import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
  * <li>java sources changed on save</li>
  * </ul>
  *
- * In this case it executes the "JavaDataModelChangeEvent" command on
- * client side with array of project URIs which have classpath/sources changed.
+ * In this case it executes the "JavaDataModelChangeEvent" command on client
+ * side with array of project URIs which have classpath/sources changed.
  *
  * @author Angelo ZERR
  *
@@ -60,53 +57,128 @@ public class JavaDataModelListenerManager {
 		return INSTANCE;
 	}
 
-	private class QuteListener
-			implements IElementChangedListener, IResourceChangeListener, IResourceDeltaVisitor {
-
-		private static final String JAVA_FILE_EXTENSION = "java";
+	private class QuteListener implements IElementChangedListener {
 
 		@Override
 		public void elementChanged(ElementChangedEvent event) {
 			if (listeners.isEmpty()) {
 				return;
 			}
-			// Collect project names which have classpath changed.
-			JavaDataModelChangeEvent mpEvent = processDelta(event.getDelta(), null);
-			if (mpEvent != null) {
-				fireAsyncEvent(mpEvent);
+			// Collect project which have some Java changes:
+			// - create/delete Java project
+			// - classpath changed
+			// update, delete, add Java file
+			Map<IJavaProject, ProjectChangeInfo> changedProjects = new HashMap<>();
+			processDelta(event.getDelta(), changedProjects);
+			if (changedProjects.isEmpty()) {
+				// No changes
+				return;
 			}
+
+			// Send qute/dataModelChanged event:
+			// [Trace - 6:41:45 PM] Sending notification 'qute/dataModelChanged'.
+			// Params: {
+			// "projects": [
+			// {
+			// "uri": "quarkus-roq-frontmatter",
+			// "sources": [
+			// "io.quarkiverse.roq.frontmatter.runtime.model.NormalPage"
+			// ]
+			// }
+			// ]
+			JavaDataModelChangeEvent mpEvent = new JavaDataModelChangeEvent();
+			mpEvent.setProjects(new HashSet(changedProjects.values()));
+			fireAsyncEvent(mpEvent);
 		}
 
-		private JavaDataModelChangeEvent processDeltaChildren(IJavaElementDelta delta,
-				JavaDataModelChangeEvent event) {
-			for (IJavaElementDelta c : delta.getAffectedChildren()) {
-				event = processDelta(c, event);
-			}
-			return event;
-		}
-
-		private JavaDataModelChangeEvent processDelta(IJavaElementDelta delta,
-				JavaDataModelChangeEvent event) {
+		private void processDelta(IJavaElementDelta delta, Map<IJavaProject, ProjectChangeInfo> changedProjects) {
 			IJavaElement element = delta.getElement();
 			switch (element.getElementType()) {
 			case IJavaElement.JAVA_MODEL:
-				event = processDeltaChildren(delta, event);
+			case IJavaElement.PACKAGE_FRAGMENT_ROOT:
+			case IJavaElement.PACKAGE_FRAGMENT:
+				processDeltaChildren(delta, changedProjects);
 				break;
 			case IJavaElement.JAVA_PROJECT:
 				if (isCreatedOrDeleted(delta) || isClasspathChanged(delta.getFlags())) {
-					if (event == null) {
-						event = new JavaDataModelChangeEvent();
-						//event.setType(MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
-						event.setProjectURIs(new HashSet<String>());
-					}
+					// a project is created/deleted
+					// or a classpath changed
 					IJavaProject project = (IJavaProject) element;
-					event.getProjectURIs().add(JDTQuteProjectUtils.getProjectUri(project));
+					getProjectInfo(project, changedProjects);
+				}
+				processDeltaChildren(delta, changedProjects);
+				break;
+			case IJavaElement.COMPILATION_UNIT:
+				if (shouldReportJavaFileAsChanged(delta)) {
+					ICompilationUnit compilationUnit = (ICompilationUnit) element;
+					String fullyQualifiedName = getQualifiedName(compilationUnit);
+					ProjectChangeInfo projectChangeInfo = getProjectInfo(compilationUnit.getJavaProject(),
+							changedProjects);
+					Set<String> sources = projectChangeInfo.getSources();
+					if (sources == null) {
+						sources = new HashSet<String>();
+						projectChangeInfo.setSources(sources);
+					}
+					sources.add(fullyQualifiedName);
 				}
 				break;
 			default:
 				break;
 			}
-			return event;
+		}
+
+		private static boolean shouldReportJavaFileAsChanged(IJavaElementDelta delta) {
+			boolean javaFileCreated = (delta.getFlags() == 0 && delta.getKind() == IJavaElementDelta.ADDED);
+			if (javaFileCreated) {
+				// XXX.java[+]: {}
+				return true;
+			}
+			boolean javaFileDeleted = (delta.getFlags() == 0 && delta.getKind() == IJavaElementDelta.REMOVED);
+			if (javaFileDeleted) {
+				// XXX.java[-]: {}
+				return true;
+			}
+			// When Java file is saved, the ElementChangedEvent contains 3 delta which call
+			// this
+			// IJavaElement.COMPILATION_UNIT case:
+			// - PRIMARY_RESOURCE
+			// - PRIMARY_WORKING_COPY
+			// - PRIMARY_WORKING_COPY
+			boolean javaFileSaved = (delta.getFlags() & IJavaElementDelta.F_PRIMARY_RESOURCE) != 0;
+			if (javaFileSaved) {
+				// [Working copy] XXX.java[*]: {PRIMARY RESOURCE}
+				return true;
+			}
+			return false;
+		}
+
+		private void processDeltaChildren(IJavaElementDelta delta,
+				Map<IJavaProject, ProjectChangeInfo> changedProjects) {
+			for (IJavaElementDelta c : delta.getAffectedChildren()) {
+				processDelta(c, changedProjects);
+			}
+		}
+
+		private static String getQualifiedName(ICompilationUnit cu) {
+			String packageName = "";
+			if (cu.getParent() instanceof IPackageFragment) {
+				packageName = ((IPackageFragment) cu.getParent()).getElementName();
+			}
+			String typeName = cu.getElementName();
+			if (typeName.endsWith(".java")) {
+				typeName = typeName.substring(0, typeName.length() - ".java".length());
+			}
+			return packageName.isEmpty() ? typeName : packageName + "." + typeName;
+		}
+
+		private ProjectChangeInfo getProjectInfo(IJavaProject project,
+				Map<IJavaProject, ProjectChangeInfo> changedProjects) {
+			ProjectChangeInfo projectInfo = changedProjects.get(project);
+			if (projectInfo == null) {
+				projectInfo = new ProjectChangeInfo(JDTQuteProjectUtils.getProjectUri(project));
+				changedProjects.put(project, projectInfo);
+			}
+			return projectInfo;
 		}
 
 		private boolean isCreatedOrDeleted(IJavaElementDelta delta) {
@@ -117,48 +189,6 @@ public class JavaDataModelListenerManager {
 		private boolean isClasspathChanged(int flags) {
 			return 0 != (flags & (IJavaElementDelta.F_CLASSPATH_CHANGED | IJavaElementDelta.F_RESOLVED_CLASSPATH_CHANGED
 					| IJavaElementDelta.F_CLOSED | IJavaElementDelta.F_OPENED));
-		}
-
-		@Override
-		public void resourceChanged(IResourceChangeEvent event) {
-			switch (event.getType()) {
-			case IResourceChangeEvent.POST_CHANGE:
-				IResourceDelta resourceDelta = event.getDelta();
-				if (resourceDelta != null) {
-					try {
-						resourceDelta.accept(this);
-					} catch (CoreException e) {
-						if (LOGGER.isLoggable(Level.SEVERE)) {
-							LOGGER.log(Level.SEVERE, "Error while tracking save of Java file", e);
-						}
-					}
-				}
-				break;
-			}
-		}
-
-		@Override
-		public boolean visit(IResourceDelta delta) throws CoreException {
-			IResource resource = delta.getResource();
-			if (resource == null) {
-				return false;
-			}
-			switch (resource.getType()) {
-			case IResource.ROOT:
-			case IResource.PROJECT:
-			case IResource.FOLDER:
-				return resource.isAccessible();
-			case IResource.FILE:
-				IFile file = (IFile) resource;
-				if (isJavaFile(file) && isFileContentChanged(delta)) {
-					// A Java file has been saved
-					JavaDataModelChangeEvent event = new JavaDataModelChangeEvent();
-					event.setProjectURIs(new HashSet<String>());
-					event.getProjectURIs().add(JDTQuteProjectUtils.getProjectURI(file.getProject()));
-					fireAsyncEvent(event);
-				}
-			}
-			return false;
 		}
 
 		private void fireAsyncEvent(JavaDataModelChangeEvent event) {
@@ -172,20 +202,12 @@ public class JavaDataModelListenerManager {
 						listener.dataModelChanged(event);
 					} catch (Exception e) {
 						if (LOGGER.isLoggable(Level.SEVERE)) {
-							LOGGER.log(Level.SEVERE,
-									"Error while sending LSP 'qute/javaDataModelChanged' notification", e);
+							LOGGER.log(Level.SEVERE, "Error while sending LSP 'qute/javaDataModelChanged' notification",
+									e);
 						}
 					}
 				}
 			});
-		}
-
-		private boolean isJavaFile(IFile file) {
-			return JAVA_FILE_EXTENSION.equals(file.getFileExtension());
-		}
-
-		private boolean isFileContentChanged(IResourceDelta delta) {
-			return (delta.getKind() == IResourceDelta.CHANGED && (delta.getFlags() & IResourceDelta.CONTENT) != 0);
 		}
 
 	}
@@ -229,8 +251,6 @@ public class JavaDataModelListenerManager {
 		}
 		this.quteListener = new QuteListener();
 		JavaCore.addElementChangedListener(quteListener);
-		ResourcesPlugin.getWorkspace().addResourceChangeListener(quteListener,
-				IResourceChangeEvent.POST_CHANGE);
 	}
 
 	/**
@@ -239,7 +259,6 @@ public class JavaDataModelListenerManager {
 	public synchronized void destroy() {
 		if (quteListener != null) {
 			JavaCore.removeElementChangedListener(quteListener);
-			ResourcesPlugin.getWorkspace().removeResourceChangeListener(quteListener);
 			this.quteListener = null;
 		}
 	}
