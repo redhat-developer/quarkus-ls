@@ -47,6 +47,7 @@ import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
+import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent.ProjectChangeInfo;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
@@ -242,11 +243,11 @@ public class QuteProjectRegistry
 	}
 
 	public void dataModelChanged(JavaDataModelChangeEvent event) {
-		Set<String> projectUris = event.getProjectURIs();
-		for (String projectUri : projectUris) {
-			QuteProject project = getProject(projectUri);
+		Set<ProjectChangeInfo> projects = event.getProjects();
+		for (ProjectChangeInfo projectIndo : projects) {
+			QuteProject project = getProject(projectIndo.getUri());
 			if (project != null) {
-				project.resetJavaTypes();
+				project.resetJavaTypes(projectIndo.getSources());
 			}
 		}
 	}

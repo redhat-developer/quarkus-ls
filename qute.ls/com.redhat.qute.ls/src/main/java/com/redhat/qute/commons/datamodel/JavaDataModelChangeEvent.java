@@ -21,15 +21,42 @@ import java.util.Set;
  */
 public class JavaDataModelChangeEvent {
 
-	private Set<String> projectURIs;
+	public static class ProjectChangeInfo {
+
+		private String uri;
+		private Set</* Full qualified name of Java class */ String> sources;
+
+		public ProjectChangeInfo() {
+			
+		}
+		
+		public ProjectChangeInfo(String uri) {
+			this.uri = uri;			
+		}
+
+		public String getUri() {
+			return uri;
+		}
+
+		public void setSources(Set<String> sources) {
+			this.sources = sources;
+		}
+
+		public Set<String> getSources() {
+			return sources;
+		}
+
+	}
+
+	private Set<ProjectChangeInfo> projects;
 
 	/**
 	 * Returns the project URIs impacted by the type scope changed.
 	 *
 	 * @return the project URIs impacted by the type scope changed.
 	 */
-	public Set<String> getProjectURIs() {
-		return projectURIs;
+	public Set<ProjectChangeInfo> getProjects() {
+		return projects;
 	}
 
 	/**
@@ -37,8 +64,8 @@ public class JavaDataModelChangeEvent {
 	 *
 	 * @param projectURIs the project URIs impacted by the type scope changed.
 	 */
-	public void setProjectURIs(Set<String> projectURIs) {
-		this.projectURIs = projectURIs;
+	public void setProjects(Set<ProjectChangeInfo> projects) {
+		this.projects = projects;
 	}
 
 }
