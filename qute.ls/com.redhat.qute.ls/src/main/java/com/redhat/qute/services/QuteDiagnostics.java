@@ -307,7 +307,8 @@ class QuteDiagnostics {
 							}
 							break;
 						default:
-							validateSectionTag(section, template, resolvingJavaTypeContext, diagnostics);
+							validateSectionTag(section, template, validationSettings, resolvingJavaTypeContext,
+									diagnostics);
 					}
 					break;
 				}
@@ -359,7 +360,8 @@ class QuteDiagnostics {
 	}
 
 	private static void validateSectionTag(Section section, Template template,
-			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
+			QuteValidationSettings validationSettings, ResolvingJavaTypeContext resolvingJavaTypeContext,
+			List<Diagnostic> diagnostics) {
 		String tagName = section.getTag();
 		if (StringUtils.isEmpty(tagName) || section.isOrphanEndTag()) {
 			// {#
@@ -463,10 +465,13 @@ class QuteDiagnostics {
 					parent = parent.getParent();
 				}
 
-				Range range = QutePositionUtility.selectStartTagName(section);
-				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-						QuteErrorCode.UndefinedSectionTag, tagName);
-				diagnostics.add(diagnostic);
+				DiagnosticSeverity severity = validationSettings.getUndefinedSectionTag().getDiagnosticSeverity();
+				if (severity != null) {
+					Range range = QutePositionUtility.selectStartTagName(section);
+					Diagnostic diagnostic = createDiagnostic(range, severity,
+							QuteErrorCode.UndefinedSectionTag, tagName);
+					diagnostics.add(diagnostic);
+				}
 			}
 		}
 
