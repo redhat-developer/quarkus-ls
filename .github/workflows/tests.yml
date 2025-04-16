@@ -1,33 +1,55 @@
 name: Tests
 on: [push, pull_request]
 jobs:
-  tests:
+  quarkus-jdt-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
-      - name: Cache .m2 repository
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: maven-repository-${{ hashFiles('**/pom.xml') }}
-          save-always: true
-      - name: Cache Maven wrapper
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/wrapper
-          key: maven-wrapper-${{ hashFiles('**/mvnw') }}
-          save-always: true
       - name: Set up Eclipse Temurin JDK
         uses: actions/setup-java@v2
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Build and test Quarkus jdt component
-        run: cd quarkus.jdt.ext && ./mvnw -B -U clean verify && cd ..
+      - name: Build and test Quarkus JDT component
+        working-directory: quarkus.jdt.ext
+        run: ./mvnw -B -U clean verify
+  quarkus-ls-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Set up Eclipse Temurin JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '21'
+          distribution: 'temurin'
       - name: Build and test Quarkus language server component
-        run: cd quarkus.ls.ext/com.redhat.quarkus.ls && ./mvnw -B -U clean verify
-      - name: Build and test Qute jdt component
-        run: cd qute.jdt && ./mvnw -B -U clean verify && cd ..
-      - name: Build and test Qute language server component
-        run: cd qute.ls/com.redhat.qute.ls && ./mvnw -B -U clean verify
+        working-directory: quarkus.ls.ext/com.redhat.quarkus.ls
+        run: ./mvnw -B -U clean verify
+  qute-jdt-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Set up Eclipse Temurin JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Build and test Qute JDT component
+        working-directory: qute.jdt
+        run: ./mvnw -B -U clean verify
+  qute-ls-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Set up Eclipse Temurin JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Build and test Qute language server
+        working-directory: qute.ls/com.redhat.qute.ls
+        run: ./mvnw -B -U clean verify
