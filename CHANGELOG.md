@@ -1,5 +1,17 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## [0.22.0](https://github.com/redhat-developer/quarkus-ls/milestone/26?closed=1) (April 17, 2025)
+
+### Enhancements
+- Warning instead of error (configurable) for unknown sections in Qute files. See [#1042](https://github.com/redhat-developer/quarkus-ls/issues/1042).
+- Support for Integer operators in Qute files. See [#1049](https://github.com/redhat-developer/quarkus-ls/pull/1049).
+
+### Performance
+- Improve the Java data model cache in the Qute language server so that cache evictions are less frequent. See [#444](https://github.com/redhat-developer/quarkus-ls/issues/444).
+
+### Bug Fixes
+- Guard against index out of bounds exception for Optional returning method of ConfigMapped type. See [#1050](https://github.com/redhat-developer/quarkus-ls/pull/1050).
+
 ## [0.21.1](https://github.com/redhat-developer/quarkus-ls/milestone/25?closed=1) (April 10, 2025)
 
 ### Bug Fixes
