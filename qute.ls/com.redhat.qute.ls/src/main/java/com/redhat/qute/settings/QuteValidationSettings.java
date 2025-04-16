@@ -37,11 +37,15 @@ public class QuteValidationSettings {
 
 	private static final QuteValidationTypeSettings DEFAULT_UNDEFINED_NAMESPACE;
 
+	private static final QuteValidationTypeSettings DEFAULT_UNDEFINED_SECTION_TAG;
+
 	static {
 		DEFAULT_UNDEFINED_OBJECT = new QuteValidationTypeSettings();
 		DEFAULT_UNDEFINED_OBJECT.setSeverity(Severity.warning.name());
 		DEFAULT_UNDEFINED_NAMESPACE = new QuteValidationTypeSettings();
 		DEFAULT_UNDEFINED_NAMESPACE.setSeverity(Severity.warning.name());
+		DEFAULT_UNDEFINED_SECTION_TAG = new QuteValidationTypeSettings();
+		DEFAULT_UNDEFINED_SECTION_TAG.setSeverity(Severity.warning.name());
 		DEFAULT = new QuteValidationSettings();
 		DEFAULT.updateDefault();
 	}
@@ -51,6 +55,8 @@ public class QuteValidationSettings {
 	private QuteValidationTypeSettings undefinedObject;
 
 	private QuteValidationTypeSettings undefinedNamespace;
+
+	private QuteValidationTypeSettings undefinedSectionTag;
 
 	private List<String> excluded;
 
@@ -108,6 +114,7 @@ public class QuteValidationSettings {
 		}
 		setUndefinedObject(undefinedObject != null ? undefinedObject : DEFAULT_UNDEFINED_OBJECT);
 		setUndefinedNamespace(undefinedNamespace != null ? undefinedNamespace : DEFAULT_UNDEFINED_NAMESPACE);
+		setUndefinedSectionTag(undefinedSectionTag != null ? undefinedSectionTag : DEFAULT_UNDEFINED_SECTION_TAG);
 		updated = true;
 	}
 
@@ -121,6 +128,7 @@ public class QuteValidationSettings {
 		this.setExcluded(newValidation.getExcluded());
 		this.setUndefinedObject(newValidation.getUndefinedObject());
 		this.setUndefinedNamespace(newValidation.getUndefinedNamespace());
+		this.setUndefinedSectionTag(newValidation.getUndefinedSectionTag());
 	}
 
 	/**
@@ -161,6 +169,27 @@ public class QuteValidationSettings {
 	 */
 	public void setUndefinedNamespace(QuteValidationTypeSettings undefinedNamespace) {
 		this.undefinedNamespace = undefinedNamespace;
+		this.updated = false;
+	}
+
+	/**
+	 * Returns the settings for Qute undefined SectionTag validation.
+	 *
+	 * @return the settings for Qute undefined SectionTag validation
+	 */
+	public QuteValidationTypeSettings getUndefinedSectionTag() {
+		updateDefault();
+		return this.undefinedSectionTag;
+	}
+
+	/**
+	 * Set the settings for Qute undefined SectionTag validation.
+	 *
+	 * @param undefinedSectionTag the settings for Qute undefined SectionTag
+	 *                            validation.
+	 */
+	public void setUndefinedSectionTag(QuteValidationTypeSettings undefinedSectionTag) {
+		this.undefinedSectionTag = undefinedSectionTag;
 		this.updated = false;
 	}
 
@@ -245,6 +274,7 @@ public class QuteValidationSettings {
 		result = prime * result + ((excluded == null) ? 0 : excluded.hashCode());
 		result = prime * result + ((undefinedObject == null) ? 0 : undefinedObject.hashCode());
 		result = prime * result + ((undefinedNamespace == null) ? 0 : undefinedNamespace.hashCode());
+		result = prime * result + ((undefinedSectionTag == null) ? 0 : undefinedSectionTag.hashCode());
 		return result;
 	}
 
@@ -275,6 +305,12 @@ public class QuteValidationSettings {
 				return false;
 			}
 		} else if (!undefinedNamespace.equals(other.undefinedNamespace))
+			return false;
+		if (undefinedSectionTag == null) {
+			if (!getUndefinedSectionTag().equals(other.getUndefinedSectionTag())) {
+				return false;
+			}
+		} else if (!undefinedSectionTag.equals(other.undefinedSectionTag))
 			return false;
 		return true;
 	}

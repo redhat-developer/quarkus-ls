@@ -124,4 +124,52 @@ public class QuteDiagnosticsSeverityTest {
 		testDiagnosticsFor(template, validationSettings, d);
 	}
 
+	// UndefinedSectionTag
+
+	@Test
+	public void undefinedSectionTagSeverityDefault() throws Exception {
+		String template = "{#foo /}";
+		QuteValidationSettings validationSettings = new QuteValidationSettings();
+
+		Diagnostic d = d(0, 1, 0, 5, QuteErrorCode.UndefinedSectionTag, //
+				"No section helper found for `foo`.", DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, validationSettings, d);
+	}
+
+	@Test
+	public void undefinedSectionTagSeverityIgnore() throws Exception {
+		String template = "{#foo /}";
+		QuteValidationSettings validationSettings = new QuteValidationSettings();
+		QuteValidationTypeSettings undefinedSectionTag = new QuteValidationTypeSettings();
+		undefinedSectionTag.setSeverity(Severity.ignore.name());
+		validationSettings.setUndefinedSectionTag(undefinedSectionTag);
+		testDiagnosticsFor(template, validationSettings);
+	}
+
+	@Test
+	public void undefinedSectionTagSeverityWarning() throws Exception {
+		String template = "{#foo /}";
+		QuteValidationSettings validationSettings = new QuteValidationSettings();
+		QuteValidationTypeSettings undefinedSectionTag = new QuteValidationTypeSettings();
+		undefinedSectionTag.setSeverity(Severity.warning.name());
+		validationSettings.setUndefinedSectionTag(undefinedSectionTag);
+
+		Diagnostic d = d(0, 1, 0, 5, QuteErrorCode.UndefinedSectionTag, //
+				"No section helper found for `foo`.", DiagnosticSeverity.Warning);
+		testDiagnosticsFor(template, validationSettings, d);
+	}
+
+	@Test
+	public void undefinedSectionTagSeverityError() throws Exception {
+		String template = "{#foo /}";
+		QuteValidationSettings validationSettings = new QuteValidationSettings();
+		QuteValidationTypeSettings undefinedSectionTag = new QuteValidationTypeSettings();
+		undefinedSectionTag.setSeverity(Severity.error.name());
+		validationSettings.setUndefinedSectionTag(undefinedSectionTag);
+
+		Diagnostic d = d(0, 1, 0, 5, QuteErrorCode.UndefinedSectionTag, //
+				"No section helper found for `foo`.", DiagnosticSeverity.Error);
+		testDiagnosticsFor(template, validationSettings, d);
+	}
+
 }
