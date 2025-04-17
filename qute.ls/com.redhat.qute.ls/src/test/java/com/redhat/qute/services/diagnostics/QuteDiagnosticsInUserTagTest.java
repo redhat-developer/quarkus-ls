@@ -70,7 +70,7 @@ public class QuteDiagnosticsInUserTagTest {
 				"src/main/resources/templates/tags/user.html", //
 				"tags/user");
 	}
-	
+
 	@Test
 	public void undefinedObjectInUserTagCall() {
 		String template = "{#input name=name /}";
@@ -100,7 +100,7 @@ public class QuteDiagnosticsInUserTagTest {
 		String template = "{#undefined /}";
 
 		Diagnostic d = d(0, 1, 0, 11, QuteErrorCode.UndefinedSectionTag, "No section helper found for `undefined`.",
-				DiagnosticSeverity.Error);
+				DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, //
 				d);
 
