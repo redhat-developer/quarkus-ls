@@ -263,9 +263,13 @@ public class QuteProject {
 	}
 
 	private QuteTextDocument findDocumentByTemplateId(String templateId) {
+		// 1. Try to get the template from the Qute project
 		if (templateId.indexOf('.') != -1) {
 			// ex: base.html
-			return documents.get(templateId);
+			QuteTextDocument document = documents.get(templateId);
+			if (document != null) {
+				return document;
+			}
 		}
 		// ex : base
 		for (String variant : getTemplateVariants()) {
@@ -275,6 +279,19 @@ public class QuteProject {
 				return document;
 			}
 		}
+		if (!getProjectDependencies().isEmpty()) {
+			// 2. The Qute project have some project dependencies, try to get a valid from
+			// those dependencies
+			for (QuteProject projectDependency : getProjectDependencies()) {
+				if (projectDependency != null) {
+					QuteTextDocument documentFromDependency = projectDependency.findDocumentByTemplateId(templateId);
+					if (documentFromDependency != null) {
+						return documentFromDependency;
+					}
+				}
+			}
+		}
+
 		return null;
 	}
 
