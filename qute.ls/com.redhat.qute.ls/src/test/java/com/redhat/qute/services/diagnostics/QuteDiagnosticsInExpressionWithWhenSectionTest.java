@@ -109,7 +109,7 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 				"		{/switch}";
 		testDiagnosticsFor(template, //
 				d(2, 3, 2, 7, QuteErrorCode.UndefinedSectionTag, "No section helper found for `XXX`.",
-						DiagnosticSeverity.Error));
+						DiagnosticSeverity.Warning));
 	}
 
 	@Test
@@ -298,7 +298,7 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 				"		{#is <= ON}\r\n" + //
 				"		{/when}";
 		testDiagnosticsFor(template);
-		
+
 		template = "{@org.acme.Machine Machine}\r\n" + //
 				"		{#when Machine.getMachine()}\r\n" + //
 				"		{#is != ON OFF}\r\n" + //
@@ -309,7 +309,7 @@ public class QuteDiagnosticsInExpressionWithWhenSectionTest {
 						"Unexpected operand `OFF`. The operator `!=` in the `#is` section expects only one parameter.",
 						DiagnosticSeverity.Error));
 	}
-	
+
 	@Test
 	public void whenExpressionOperatorNoParameters() {
 		String template = "{@org.acme.Machine Machine}\r\n" + //

@@ -40,7 +40,7 @@ import com.redhat.qute.utils.IOUtils;
 /**
  * Abstract class for testing diagnostics with closed/opened Qute template in a
  * given project.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -127,7 +127,7 @@ public abstract class AbstractQuteDiagnosticsInProjectTest {
 						DiagnosticSeverity.Error), //
 				d(1, 3, 1, 9, QuteErrorCode.UndefinedSectionTag, //
 						"No section helper found for `title`.", //
-						DiagnosticSeverity.Error));
+						DiagnosticSeverity.Warning));
 
 		// base.html
 		PublishDiagnosticsParams baseDiagnostics = findPublishDiagnostics(diagnostics, "base.html");
@@ -208,7 +208,7 @@ public abstract class AbstractQuteDiagnosticsInProjectTest {
 						DiagnosticSeverity.Error), //
 				d(1, 3, 1, 9, QuteErrorCode.UndefinedSectionTag, //
 						"No section helper found for `title`.", //
-						DiagnosticSeverity.Error));
+						DiagnosticSeverity.Warning));
 
 		// base.html
 		PublishDiagnosticsParams baseDiagnostics = findPublishDiagnostics(diagnostics, "base.html");
