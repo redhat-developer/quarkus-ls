@@ -21,7 +21,6 @@ import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
 import org.eclipse.lsp4mp.jdt.core.PropertiesManager;
-import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProject;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -292,6 +291,17 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 
 		assertPropertiesDuplicate(infoFromJavaSources);
 		Assert.assertEquals("Expected Quarkus properties count", EXPECTED_PROPERTIES, nbProperties);
+	}
+	
+	@Test
+	public void configPropertiesQuarkusArcRegression() throws Exception {
+		IJavaProject javaProject = loadMavenProject(QuarkusMavenProjectName.clinit);
+		MicroProfileProjectInfo infoFromJavaSourcesAndDeps = PropertiesManager.getInstance().getMicroProfileProjectInfo(
+				javaProject, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC,
+				JDT_UTILS, DocumentFormat.Markdown, new NullProgressMonitor());
+		for (var property : infoFromJavaSourcesAndDeps.getProperties()) {
+			Assert.assertFalse("Property should not end with <clinit>", property.getName().endsWith("<clinit>"));
+		}
 	}
 
 }
