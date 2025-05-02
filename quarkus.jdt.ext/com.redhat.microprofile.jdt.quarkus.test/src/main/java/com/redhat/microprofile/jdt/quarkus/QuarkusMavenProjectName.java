@@ -20,6 +20,6 @@ public class QuarkusMavenProjectName extends MicroProfileMavenProjectName {
 	public static String scheduler_quickstart = "scheduler-quickstart";
 	public static String scheduler_diagnostic = "scheduler-diagnostic";
 	public static final String quarkus_route = "quarkus-route";
-
+	public static final String clinit = "clinit";
 	public static final String quarkus_builditems = "quarkus-builditems";
 }
