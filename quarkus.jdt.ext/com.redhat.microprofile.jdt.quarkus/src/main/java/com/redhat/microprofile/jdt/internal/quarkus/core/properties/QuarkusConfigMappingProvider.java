@@ -137,7 +137,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 			if (child.getElementType() == IJavaElement.METHOD) {
 				IMethod method = (IMethod) child;
 				if (Flags.isDefaultMethod(method.getFlags()) || method.getNumberOfParameters() > 0
-						|| "void".equals(method.getReturnType())) {
+						|| "void".equals(method.getReturnType()) || "<clinit>".equals(method.getElementName())) {
 					continue;
 				}
 
