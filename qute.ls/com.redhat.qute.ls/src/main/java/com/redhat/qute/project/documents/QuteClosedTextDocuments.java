@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.commons.TemplateRootPath;
@@ -82,8 +83,8 @@ public class QuteClosedTextDocuments {
 		}
 		// Scan all directories from src/main/resources/templates directory to collect
 		// closed Templates
-		try {
-			Files.walk(basePath).forEach(path -> {
+		try (Stream<Path> stream = Files.walk(basePath)) {
+			stream.forEach(path -> {
 				try {
 					tryToAddClosedTemplate(path, false);
 				} catch (Exception e) {
