@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
 import com.redhat.qute.project.QuteProject;
@@ -50,10 +51,11 @@ public class QuteCompletionsForSourceUserTagSection extends QuteCompletionsForUs
 		try {
 			if (snippets.isEmpty()) {
 				// create all user tags
-				Files.list(tagsDir) //
-						.forEach(path -> {
-							snippetRegistry.registerSnippet(createUserTag(path, tagsDir, project));
-						});
+				try (Stream<Path> stream = Files.list(tagsDir)) {
+					stream.forEach(path -> {
+						snippetRegistry.registerSnippet(createUserTag(path, tagsDir, project));
+					});
+				}
 			} else {
 				// Remove all user tags which doesn't exist anymore
 				List<UserTag> existingSnippets = new ArrayList<UserTag>(snippets);
@@ -67,12 +69,14 @@ public class QuteCompletionsForSourceUserTagSection extends QuteCompletionsForUs
 						.stream() //
 						.map(userTag -> ((SourceUserTag) userTag).getPath()) //
 						.collect(Collectors.toSet());
-				Files.list(tagsDir) //
-						.forEach(path -> {
-							if (!existingSnippetPaths.contains(path)) {
-								snippetRegistry.registerSnippet(createUserTag(path, tagsDir, project));
-							}
-						});
+
+				try (Stream<Path> stream = Files.list(tagsDir)) {
+					stream.forEach(path -> {
+						if (!existingSnippetPaths.contains(path)) {
+							snippetRegistry.registerSnippet(createUserTag(path, tagsDir, project));
+						}
+					});
+				}
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, "Error while collecting source user tags", e);
