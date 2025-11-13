@@ -105,7 +105,7 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 
 				// test with java.util.Optional enumeration
 				p("quarkus-agroal", "quarkus.datasource.jdbc.transaction-isolation-level",
-						"java.util.Optional<io.agroal.api.configuration.AgroalConnectionFactoryConfiguration.TransactionIsolation>",
+						"java.util.Optional<io.agroal.api.configuration.AgroalConnectionFactoryConfiguration$TransactionIsolation>",
 						"The transaction isolation level.", true, "io.quarkus.agroal.runtime.DataSourceJdbcRuntimeConfig",
 						"transactionIsolationLevel", null, CONFIG_PHASE_RUN_TIME, null),
 
@@ -128,8 +128,8 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 		// assertPropertiesDuplicate(info);
 
 		assertHints(info,
-				h("io.agroal.api.configuration.AgroalConnectionFactoryConfiguration.TransactionIsolation", null, true,
-						"io.agroal.api.configuration.AgroalConnectionFactoryConfiguration.TransactionIsolation", //
+				h("io.agroal.api.configuration.AgroalConnectionFactoryConfiguration$TransactionIsolation", null, true,
+						"io.agroal.api.configuration.AgroalConnectionFactoryConfiguration$TransactionIsolation", //
 						vh("UNDEFINED", null, null), //
 						vh("NONE", null, null), //
 						vh("READ_UNCOMMITTED", null, null), //

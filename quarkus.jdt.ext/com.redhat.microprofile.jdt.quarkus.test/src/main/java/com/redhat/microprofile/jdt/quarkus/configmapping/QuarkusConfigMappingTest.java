@@ -66,6 +66,8 @@ public class QuarkusConfigMappingTest extends BasePropertiesManagerTest {
 				p(null, "server.map.port", "int", null, false, "org.acme.map.Server", null, "port()I", 0, null),
 				p(null, "server.map.form.{*}", "java.util.Map", null, false, "org.acme.map.Server", null,
 						"form()QMap<QString;QString;>;", 0, null),
+				 p(null, "server.map.category.{*}.level", "java.util.logging.Level", null, false, "org.acme.map.Server$CategoryConfig", null,
+	                        "level()QLevel;", 0, null),
 
 				// 3) Naming strategy
 
@@ -150,7 +152,21 @@ public class QuarkusConfigMappingTest extends BasePropertiesManagerTest {
 				p(null, "server.withparentname.port", "int", null, false, "org.acme.withparentname.ServerHostAndPort",
 						null, "port()I", 0, null),
 				p(null, "server.withparentname.name", "java.lang.String", null, false,
-						"org.acme.withparentname.ServerInfo", null, "name()QString;", 0, null)
+						"org.acme.withparentname.ServerInfo", null, "name()QString;", 0, null),
+				
+                // 9) Class
+                // import java.util.logging.Level;
+                //
+                // @ConfigMapping(prefix = "server.classes")
+                // public interface Server {
+                //
+                //	Level level;
+                //}
+                //}
+
+                p(null, "server.classes.level", "java.util.logging.Level", null, false, "org.acme.classes.ServerClass", null,
+                        "level()QLevel;", 0, null)
+
 
 		);
 
