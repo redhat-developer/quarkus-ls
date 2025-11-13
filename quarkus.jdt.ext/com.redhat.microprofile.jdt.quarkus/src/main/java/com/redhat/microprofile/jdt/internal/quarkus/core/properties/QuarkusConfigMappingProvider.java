@@ -31,7 +31,6 @@ import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getResolvedResultTy
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceMethod;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceType;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.isOptional;
-import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.isPrimitiveType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -156,22 +155,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 				}
 
 				IType returnType = findType(method.getJavaProject(), resolvedTypeSignature);
-				boolean simpleType = isSimpleType(resolvedTypeSignature, returnType);
-				if (!simpleType) {
-					if (returnType != null && !returnType.isInterface()) {
-						// When type is not an interface, it requires Converters
-						// ex :
-						// interface Server {Log log; class Log {}}
-						// throw the error;
-						// java.lang.IllegalArgumentException: SRCFG00013: No Converter registered for
-						// class org.acme.Server2$Log
-						// at
-						// io.smallrye.config.SmallRyeConfig.requireConverter(SmallRyeConfig.java:466)
-						// at
-						// io.smallrye.config.ConfigMappingContext.getConverter(ConfigMappingContext.java:113)
-						continue;
-					}
-				}
+				boolean leafType = isLeafType(returnType);
 
 				String defaultValue = getWithDefault(method);
 				String propertyName = getPropertyName(method, prefixStr, configMappingAnnotation);
@@ -190,27 +174,26 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 				IType enclosedType = getEnclosedType(returnType, resolvedTypeSignature, method.getJavaProject());
 				super.updateHint(collector, enclosedType);
 
-				if (!simpleType) {
+				if (!leafType) {
 					if (isMap(returnType, resolvedTypeSignature)) {
 						// Map<String, String>
 						propertyName += ".{*}";
-						simpleType = true;
+						leafType = true;
 					} else if (isCollection(returnType, resolvedTypeSignature)) {
 						// List<String>, List<App>
 						propertyName += "[*]"; // Generate indexed property.
-						String[] typeArguments = org.eclipse.jdt.core.Signature
-								.getTypeArguments(returnTypeSignature);
+						String[] typeArguments = org.eclipse.jdt.core.Signature.getTypeArguments(returnTypeSignature);
 						if (typeArguments.length < 1) {
 							continue;
 						}
 						String genericTypeName = typeArguments[0];
 						resolvedTypeSignature = JavaModelUtil.getResolvedTypeName(genericTypeName, configMappingType);
 						returnType = findType(method.getJavaProject(), resolvedTypeSignature);
-						simpleType = isSimpleType(resolvedTypeSignature, returnType);
+						leafType = isLeafType(returnType);
 					}
 				}
 
-				if (simpleType) {
+				if (leafType) {
 					// String, int, etc
 					ItemMetadata metadata = super.addItemMetadata(collector, propertyName, type, description,
 							sourceType, null, sourceMethod, defaultValue, extensionName, method.isBinary());
@@ -224,8 +207,15 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 		}
 	}
 
-	private boolean isSimpleType(String resolvedTypeSignature, IType returnType) {
-		return returnType == null || isPrimitiveType(resolvedTypeSignature);
+	/**
+	 * Returns true if the given return type should be treated as a leaf in the
+	 * configuration tree, i.e. it is null or not an interface, and therefore not
+	 * recursively visited.
+	 * 
+	 * @throws JavaModelException
+	 */
+	private static boolean isLeafType(IType returnType) throws JavaModelException {
+		return returnType == null || !returnType.isInterface();
 	}
 
 	private static boolean isMap(IType type, String typeName) {
@@ -276,7 +266,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 		// public interface ServerVerbatimNamingStrategy
 		// --> See https://quarkus.io/guides/config-mappings#namingstrategy
 		NamingStrategy namingStrategy = getNamingStrategy(configMappingAnnotation);
-		if (namingStrategy != null) {			
+		if (namingStrategy != null) {
 			switch (namingStrategy) {
 			case VERBATIM:
 				// The method name is used as is to map the configuration property.
@@ -321,7 +311,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 		}
 		return null;
 	}
-    
+
 	/**
 	 * Returns the value of @WithDefault("a value") and null otherwise.
 	 * 
