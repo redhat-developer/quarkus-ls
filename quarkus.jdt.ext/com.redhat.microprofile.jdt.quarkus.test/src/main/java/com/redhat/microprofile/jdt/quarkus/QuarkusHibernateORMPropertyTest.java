@@ -40,7 +40,7 @@ public class QuarkusHibernateORMPropertyTest extends BasePropertiesManagerTest {
 						"Select whether the database schema is generated or not."
 						+ "\n\n`drop-and-create` is awesome in development mode."
 						+ "\n\nAccepted values: `none`, `create`, `drop-and-create`, `drop`, `update`.", true,
-						"io.quarkus.hibernate.orm.deployment.HibernateOrmConfig.HibernateOrmConfigDatabase", "generation", null, 1,
+						"io.quarkus.hibernate.orm.deployment.HibernateOrmConfig$HibernateOrmConfigDatabase", "generation", null, 1,
 						"none"));
 
 		assertPropertiesDuplicate(infoFromClasspath);

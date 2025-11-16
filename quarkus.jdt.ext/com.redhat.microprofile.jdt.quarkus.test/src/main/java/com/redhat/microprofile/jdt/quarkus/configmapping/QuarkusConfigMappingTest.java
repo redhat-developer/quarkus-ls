@@ -44,14 +44,14 @@ public class QuarkusConfigMappingTest extends BasePropertiesManagerTest {
 				// interface Environment
 
 				p(null, "server.collections.environments[*].name", "java.lang.String", null, false,
-						"org.acme.collections.ServerCollections.Environment", null, "name()QString;", 0, null),
+						"org.acme.collections.ServerCollections$Environment", null, "name()QString;", 0, null),
 				p(null, "server.collections.environments[*].apps[*].name", "java.lang.String", null, false,
-						"org.acme.collections.ServerCollections.Environment.App", null, "name()QString;", 0, null),
+						"org.acme.collections.ServerCollections$Environment$App", null, "name()QString;", 0, null),
 				p(null, "server.collections.environments[*].apps[*].services[*]", "java.util.List", null, false,
-						"org.acme.collections.ServerCollections.Environment.App", null, "services()QList<QString;>;", 0,
+						"org.acme.collections.ServerCollections$Environment$App", null, "services()QList<QString;>;", 0,
 						null),
 				p(null, "server.collections.environments[*].apps[*].databases[*]", "java.util.List", null, false,
-						"org.acme.collections.ServerCollections.Environment.App", null,
+						"org.acme.collections.ServerCollections$Environment$App", null,
 						"databases()QOptional<QList<QString;>;>;", 0, null),
 
 				// 2) map
@@ -66,6 +66,8 @@ public class QuarkusConfigMappingTest extends BasePropertiesManagerTest {
 				p(null, "server.map.port", "int", null, false, "org.acme.map.Server", null, "port()I", 0, null),
 				p(null, "server.map.form.{*}", "java.util.Map", null, false, "org.acme.map.Server", null,
 						"form()QMap<QString;QString;>;", 0, null),
+				 p(null, "server.map.category.{*}.level", "java.util.logging.Level", null, false, "org.acme.map.Server$CategoryConfig", null,
+	                        "level()QLevel;", 0, null),
 
 				// 3) Naming strategy
 
@@ -109,11 +111,11 @@ public class QuarkusConfigMappingTest extends BasePropertiesManagerTest {
 						"host()QString;", 0, null),
 				p(null, "server.nestedgroup.port", "int", null, false, "org.acme.nestedgroup.Server", null, "port()I",
 						0, null),
-				p(null, "server.nestedgroup.log.enabled", "boolean", null, false, "org.acme.nestedgroup.Server.Log",
+				p(null, "server.nestedgroup.log.enabled", "boolean", null, false, "org.acme.nestedgroup.Server$Log",
 						null, "enabled()Z", 0, null),
 				p(null, "server.nestedgroup.log.suffix", "java.lang.String", null, false,
-						"org.acme.nestedgroup.Server.Log", null, "suffix()QString;", 0, null),
-				p(null, "server.nestedgroup.log.rotate", "boolean", null, false, "org.acme.nestedgroup.Server.Log",
+						"org.acme.nestedgroup.Server$Log", null, "suffix()QString;", 0, null),
+				p(null, "server.nestedgroup.log.rotate", "boolean", null, false, "org.acme.nestedgroup.Server$Log",
 						null, "rotate()Z", 0, null),
 
 				// 5) Simple
@@ -150,7 +152,21 @@ public class QuarkusConfigMappingTest extends BasePropertiesManagerTest {
 				p(null, "server.withparentname.port", "int", null, false, "org.acme.withparentname.ServerHostAndPort",
 						null, "port()I", 0, null),
 				p(null, "server.withparentname.name", "java.lang.String", null, false,
-						"org.acme.withparentname.ServerInfo", null, "name()QString;", 0, null)
+						"org.acme.withparentname.ServerInfo", null, "name()QString;", 0, null),
+				
+                // 9) Class
+                // import java.util.logging.Level;
+                //
+                // @ConfigMapping(prefix = "server.classes")
+                // public interface Server {
+                //
+                //	Level level;
+                //}
+                //}
+
+                p(null, "server.classes.level", "java.util.logging.Level", null, false, "org.acme.classes.ServerClass", null,
+                        "level()QLevel;", 0, null)
+
 
 		);
 
