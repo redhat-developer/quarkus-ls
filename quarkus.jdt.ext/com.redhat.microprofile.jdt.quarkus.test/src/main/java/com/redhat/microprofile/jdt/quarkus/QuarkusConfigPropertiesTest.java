@@ -73,7 +73,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 
 				// public HiddenConfig hiddenConfig;
 				p(null, "greetingVerbatim.hiddenConfig.recipients", "java.util.List", null, false,
-						"org.acme.config.GreetingVerbatimNamingStrategyConfiguration.HiddenConfig", "recipients", null,
+						"org.acme.config.GreetingVerbatimNamingStrategyConfiguration$HiddenConfig", "recipients", null,
 						0, null));
 
 		// Test with interface IGreetingConfiguration bound with @ConfigProperties
@@ -110,7 +110,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 
 				// public HiddenConfig hiddenConfig;
 				p(null, "greetingPublicFields.hidden-config.recipients", "java.util.List", null, false,
-						"org.acme.config.GreetingPublicFieldsConfiguration.HiddenConfig", "recipients", null, 0, null));
+						"org.acme.config.GreetingPublicFieldsConfiguration$HiddenConfig", "recipients", null, 0, null));
 
 		// Test with class GreetingGetterConfiguration bound with
 		// @ConfigProperties
@@ -146,7 +146,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 
 				// public HiddenConfig hidden;
 				p(null, "greeting-no-prefix.hidden.recipients", "java.util.List", null, false,
-						"org.acme.config.GreetingNoPrefixConfiguration.HiddenConfig", "recipients", null, 0, null));
+						"org.acme.config.GreetingNoPrefixConfiguration$HiddenConfig", "recipients", null, 0, null));
 
 		// Test with class GreetingStackOverflowConfiguration bound with
 		// @ConfigProperties
@@ -162,7 +162,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 
 				// public HiddenConfig hidden;
 				p(null, "greetingStackOverflow.hidden.recipients", "java.util.List", null, false,
-						"org.acme.config.GreetingStackOverflowConfiguration.HiddenConfig", "recipients", null, 0,
+						"org.acme.config.GreetingStackOverflowConfiguration$HiddenConfig", "recipients", null, 0,
 						null));
 
 		assertPropertiesDuplicate(infoFromJavaSources);
@@ -197,7 +197,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 
 				// public HiddenConfig hiddenConfig;
 				p(null, "greetingVerbatim.hiddenConfig.recipients", "java.util.List", null, false,
-						"org.acme.config.GreetingVerbatimNamingStrategyConfiguration.HiddenConfig", "recipients", null,
+						"org.acme.config.GreetingVerbatimNamingStrategyConfiguration$HiddenConfig", "recipients", null,
 						0, null));
 
 		// Test with interface IGreetingConfiguration bound with @ConfigProperties
@@ -234,7 +234,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 
 				// public HiddenConfig hiddenConfig;
 				p(null, "greetingPublicFields.hiddenConfig.recipients", "java.util.List", null, false,
-						"org.acme.config.GreetingPublicFieldsConfiguration.HiddenConfig", "recipients", null, 0, null));
+						"org.acme.config.GreetingPublicFieldsConfiguration$HiddenConfig", "recipients", null, 0, null));
 
 		// Test with class GreetingGetterConfiguration bound with
 		// @ConfigProperties
@@ -270,7 +270,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 
 				// public HiddenConfig hidden;
 				p(null, "greeting-no-prefix.hidden.recipients", "java.util.List", null, false,
-						"org.acme.config.GreetingNoPrefixConfiguration.HiddenConfig", "recipients", null, 0, null));
+						"org.acme.config.GreetingNoPrefixConfiguration$HiddenConfig", "recipients", null, 0, null));
 
 		// Test with class GreetingStackOverflowConfiguration bound with
 		// @ConfigProperties
@@ -286,7 +286,7 @@ public class QuarkusConfigPropertiesTest extends BasePropertiesManagerTest {
 
 				// public HiddenConfig hidden;
 				p(null, "greetingStackOverflow.hidden.recipients", "java.util.List", null, false,
-						"org.acme.config.GreetingStackOverflowConfiguration.HiddenConfig", "recipients", null, 0,
+						"org.acme.config.GreetingStackOverflowConfiguration$HiddenConfig", "recipients", null, 0,
 						null));
 
 		assertPropertiesDuplicate(infoFromJavaSources);

@@ -96,7 +96,7 @@ public class ConfigItemIntBoolDefaultValueTest extends BasePropertiesManagerTest
 				// public boolean enabled;
 				p("quarkus-resteasy-common", "quarkus.resteasy.gzip.enabled", "boolean",
 						"If gzip is enabled", true,
-						"io.quarkus.resteasy.common.deployment.ResteasyCommonProcessor.ResteasyCommonConfigGzip", "enabled", null, CONFIG_PHASE_BUILD_TIME, booleanDefault),
+						"io.quarkus.resteasy.common.deployment.ResteasyCommonProcessor$ResteasyCommonConfigGzip", "enabled", null, CONFIG_PHASE_BUILD_TIME, booleanDefault),
 				
 				// @ConfigItem
 				// public boolean basic;
