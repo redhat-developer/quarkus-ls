@@ -85,18 +85,18 @@ public class PropertiesManagerTest extends BasePropertiesManagerTest {
 						"The version of the application.\nIf not set, defaults to the version of the project", true,
 						"io.quarkus.deployment.ApplicationConfig", "version", null, CONFIG_PHASE_BUILD_TIME, null),
 
-				// io.quarkus.deployment.JniProcessor.JniConfig
+				// io.quarkus.deployment.JniProcessor$JniConfig
 				p("quarkus-core", "quarkus.jni.enable", "boolean", "Enable JNI support.", true,
-						"io.quarkus.deployment.JniProcessor.JniConfig", "enable", null, CONFIG_PHASE_BUILD_TIME,
+						"io.quarkus.deployment.JniProcessor$JniConfig", "enable", null, CONFIG_PHASE_BUILD_TIME,
 						"false"),
 
 				p("quarkus-core", "quarkus.jni.library-paths", "java.util.List<java.lang.String>",
-						"Paths of library to load.", true, "io.quarkus.deployment.JniProcessor.JniConfig",
+						"Paths of library to load.", true, "io.quarkus.deployment.JniProcessor$JniConfig",
 						"libraryPaths", null, CONFIG_PHASE_BUILD_TIME, null),
 
-				// io.quarkus.deployment.SslProcessor.SslConfig
+				// io.quarkus.deployment.SslProcessor$SslConfig
 				p("quarkus-core", "quarkus.ssl.native", "java.util.Optional<java.lang.Boolean>",
-						"Enable native SSL support.", true, "io.quarkus.deployment.SslProcessor.SslConfig", "native_",
+						"Enable native SSL support.", true, "io.quarkus.deployment.SslProcessor$SslConfig", "native_",
 						null, CONFIG_PHASE_BUILD_TIME, null),
 
 				// io.quarkus.deployment.index.ApplicationArchiveBuildStep.IndexDependencyConfiguration

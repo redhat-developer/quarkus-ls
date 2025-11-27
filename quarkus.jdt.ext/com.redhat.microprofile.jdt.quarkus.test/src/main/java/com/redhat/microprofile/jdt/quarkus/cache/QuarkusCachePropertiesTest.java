@@ -44,7 +44,7 @@ public class QuarkusCachePropertiesTest extends BasePropertiesManagerTest {
 				p("quarkus-cache", "quarkus.cache.caffeine.${quarkus.cache.name}.initial-capacity",
 						"java.util.OptionalInt",
 						"Minimum total size for the internal data structures. Providing a large enough estimate at construction time\navoids the need for expensive resizing operations later, but setting this value unnecessarily high wastes memory.",
-						true, "io.quarkus.cache.deployment.CacheConfig.CaffeineConfig.CaffeineNamespaceConfig",
+						true, "io.quarkus.cache.deployment.CacheConfig$CaffeineConfig$CaffeineNamespaceConfig",
 						"initialCapacity", null, 1, null));
 
 		assertPropertiesDuplicate(infoFromClasspath);

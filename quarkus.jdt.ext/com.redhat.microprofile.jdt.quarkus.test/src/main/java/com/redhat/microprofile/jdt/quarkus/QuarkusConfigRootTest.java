@@ -72,12 +72,12 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 				p("quarkus-keycloak-authorization", "quarkus.keycloak.policy-enforcer.paths.{*}.name",
 						"java.util.Optional<java.lang.String>",
 						"The name of a resource on the server that is to be associated with a given path", true,
-						"io.quarkus.keycloak.pep.runtime.KeycloakPolicyEnforcerConfig.KeycloakConfigPolicyEnforcer.PathConfig",
+						"io.quarkus.keycloak.pep.runtime.KeycloakPolicyEnforcerConfig$KeycloakConfigPolicyEnforcer$PathConfig",
 						"name", null, CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED, null),
 
 				p("quarkus-keycloak-authorization", "quarkus.keycloak.policy-enforcer.paths.{*}.methods.{*}.method",
 						"java.lang.String", "The name of the HTTP method", true,
-						"io.quarkus.keycloak.pep.runtime.KeycloakPolicyEnforcerConfig.KeycloakConfigPolicyEnforcer.MethodConfig",
+						"io.quarkus.keycloak.pep.runtime.KeycloakPolicyEnforcerConfig$KeycloakConfigPolicyEnforcer$MethodConfig",
 						"method", null, CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED, null),
 
 				p("quarkus-hibernate-orm", "quarkus.hibernate-orm.dialect", "java.util.Optional<java.lang.String>",
@@ -111,7 +111,7 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 
 				// test with enumeration
 				p("quarkus-core", "quarkus.log.console.async.overflow",
-						"org.jboss.logmanager.handlers.AsyncHandler.OverflowAction",
+						"org.jboss.logmanager.handlers.AsyncHandler$OverflowAction",
 						"Determine whether to block the publisher (rather than drop the message) when the queue is full",
 						true, "io.quarkus.runtime.logging.AsyncConfig", "overflow", null, CONFIG_PHASE_RUN_TIME,
 						"block"), //
@@ -137,8 +137,8 @@ public class QuarkusConfigRootTest extends BasePropertiesManagerTest {
 						vh("REPEATABLE_READ", null, null), //
 						vh("SERIALIZABLE", null, null)), //
 
-				h("org.jboss.logmanager.handlers.AsyncHandler.OverflowAction", null, true,
-						"org.jboss.logmanager.handlers.AsyncHandler.OverflowAction", //
+				h("org.jboss.logmanager.handlers.AsyncHandler$OverflowAction", null, true,
+						"org.jboss.logmanager.handlers.AsyncHandler$OverflowAction", //
 						vh("BLOCK", null, null), //
 						vh("DISCARD", null, null)) //
 		);
