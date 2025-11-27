@@ -30,8 +30,8 @@ public class QuteDiagnosticsWithIncludeSectionTest {
 		String template = "{#include /}";
 		testDiagnosticsFor(template, //
 				// error coming from the real Qute parser
-				d(0, 11, 0, 11, QuteErrorCode.SyntaxError,
-						"Parser error: mandatory section parameters not declared for {#include /}: [template]",
+				d(0, 0, 0, 11, QuteErrorCode.SyntaxError,
+						"Parser error: Neither the template id nor the template name parameter was specified",
 						DiagnosticSeverity.Error), //
 				// error coming from Qute LS parser
 				d(0, 1, 0, 9, QuteErrorCode.TemplateNotDefined, "Template id must be defined as parameter.",
@@ -53,17 +53,13 @@ public class QuteDiagnosticsWithIncludeSectionTest {
 
 	@Test
 	public void templateFound() throws Exception {
-		String template = "{#include base.html }\r\n" +
-				"	{#body}ABCD{/body}\r\n" +
-				"{/include}";
+		String template = "{#include base.html }\r\n" + "	{#body}ABCD{/body}\r\n" + "{/include}";
 		testDiagnosticsFor(template);
 	}
 
 	@Test
 	public void templateFoundWithShortSyntax() throws Exception {
-		String template = "{#include base }\r\n" +
-				"	{#body}ABCD{/body}\r\n" +
-				"{/include}";
+		String template = "{#include base }\r\n" + "	{#body}ABCD{/body}\r\n" + "{/include}";
 		testDiagnosticsFor(template);
 	}
 }
