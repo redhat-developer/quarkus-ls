@@ -217,7 +217,7 @@ public abstract class AbstractQuteDiagnosticsInProjectTest {
 
 	private void waitForDiagnostics() {
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(3000);
 		} catch (InterruptedException e) {
 		}
 	}
