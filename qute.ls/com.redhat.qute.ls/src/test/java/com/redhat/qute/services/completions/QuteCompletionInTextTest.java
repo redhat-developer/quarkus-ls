@@ -66,4 +66,5 @@ public class QuteCompletionInTextTest {
 						"{/for}", //
 						r(1, 1, 1, 1)));
 	}
+
 }
