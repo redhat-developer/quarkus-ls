@@ -12,6 +12,7 @@
 package com.redhat.qute.services;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -23,6 +24,7 @@ import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
@@ -37,10 +39,13 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
+import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
+import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.completions.QuteCompletionForTemplateIds;
 import com.redhat.qute.services.completions.QuteCompletionsForExpression;
 import com.redhat.qute.services.completions.QuteCompletionsForParameterDeclaration;
+import com.redhat.qute.services.completions.QuteCompletionsForSmartIterable;
 import com.redhat.qute.services.completions.tags.QuteCompletionForTagSection;
 import com.redhat.qute.services.completions.tags.QuteCompletionsForSnippets;
 import com.redhat.qute.settings.QuteCompletionSettings;
@@ -67,13 +72,17 @@ public class QuteCompletions {
 	private final QuteCompletionsForExpression completionForExpression;
 
 	private final QuteCompletionsForSnippets<Snippet> completionsForSnippets;
+	
+	private final QuteCompletionsForSmartIterable completionsSmartIterables;
 
 	private final QuteCompletionForTagSection completionForTagSection;
 
 	private final QuteCompletionForTemplateIds completionForTemplateIds;
 
-	public QuteCompletions(QuteProjectRegistry projectRegistry, SnippetRegistryProvider<Snippet> snippetRegistryProvider) {
+	public QuteCompletions(QuteProjectRegistry projectRegistry,
+			SnippetRegistryProvider<Snippet> snippetRegistryProvider) {
 		this.completionsForParameterDeclaration = new QuteCompletionsForParameterDeclaration(projectRegistry);
+		this.completionsSmartIterables = new QuteCompletionsForSmartIterable();
 		this.completionsForSnippets = new QuteCompletionsForSnippets<Snippet>(snippetRegistryProvider);
 		this.completionForTagSection = new QuteCompletionForTagSection(completionsForSnippets);
 		this.completionForExpression = new QuteCompletionsForExpression(completionForTagSection, projectRegistry);
@@ -123,8 +132,8 @@ public class QuteCompletions {
 			}
 			if (expression != null && Section.isIncludeSection(expression.getOwnerSection())) {
 				// {#include | }
-				return completionForTemplateIds.doCompleteTemplateId(completionRequest,
-						completionSettings, formattingSettings, cancelChecker); 
+				return completionForTemplateIds.doCompleteTemplateId(completionRequest, completionSettings,
+						formattingSettings, cancelChecker);
 			}
 			return completionForExpression.doCompleteExpression(completionRequest, expression, nodeExpression, template,
 					offset, completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
@@ -183,8 +192,8 @@ public class QuteCompletions {
 						completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
 			} else if (Section.isIncludeSection(parameter.getOwnerSection())) {
 				// {#include ba|se }
-				return completionForTemplateIds.doCompleteTemplateId(completionRequest,
-						completionSettings, formattingSettings, cancelChecker);
+				return completionForTemplateIds.doCompleteTemplateId(completionRequest, completionSettings,
+						formattingSettings, cancelChecker);
 			}
 		}
 		return collectSnippetSuggestions(completionRequest);
@@ -216,6 +225,7 @@ public class QuteCompletions {
 		Set<CompletionItem> completionItems = new HashSet<>();
 		if (project != null) {
 			project.collectUserTagSuggestions(completionRequest, "", null, completionItems);
+			completionsSmartIterables.collectIterableSuggestions(completionRequest, completionItems);
 		}
 		completionsForSnippets.collectSnippetSuggestions(completionRequest, "", null, completionItems);
 		CompletionList list = new CompletionList();

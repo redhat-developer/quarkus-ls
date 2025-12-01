@@ -624,6 +624,9 @@ class QuteDiagnostics {
 							validationSettings, filter, resolutionContext, resolvingJavaTypeContext, diagnostics);
 				}
 			}
+			if (QuteCompletableFutures.isResolvingJavaTypeOrNull(resolvedJavaType)) {
+				return null;
+			}
 			return resolvedJavaType;
 		} catch (CancellationException e) {
 			throw e;
