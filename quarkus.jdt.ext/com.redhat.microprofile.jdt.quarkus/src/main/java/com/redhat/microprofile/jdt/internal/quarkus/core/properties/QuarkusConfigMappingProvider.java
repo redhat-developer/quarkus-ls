@@ -121,7 +121,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 		// the java.nio.file.Path case.
 		// see
 		// https://github.com/smallrye/smallrye-config/blob/22635f24dc7634706867cc52e28d5bd82d15f54e/implementation/src/main/java/io/smallrye/config/ConfigMappingInterface.java#L782C9-L783C58
-		if (type.getFullyQualifiedName() == null || type.getFullyQualifiedName().startsWith("java")) {
+		if (type == null || type.getFullyQualifiedName() == null || type.getFullyQualifiedName().startsWith("java")) {
 			return Collections.emptySet();
 		}
 		Set<IType> result = new HashSet<>();
@@ -165,7 +165,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 				}
 
 				IType returnType = findType(method.getJavaProject(), resolvedTypeSignature);
-				boolean leafType = isLeafType(returnType);
+				boolean leafType = isLeafType(returnType, resolvedTypeSignature);
 
 				String defaultValue = getWithDefault(method);
 				String propertyName = getPropertyName(method, prefixStr, configMappingAnnotation);
@@ -195,7 +195,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 							resolvedTypeSignature = JavaModelUtil.getResolvedTypeName(genericTypeName,
 									configMappingType);
 							returnType = findType(method.getJavaProject(), resolvedTypeSignature);
-							leafType = isLeafType(returnType);
+							leafType = isLeafType(returnType, resolvedTypeSignature);
 						} else {
 							leafType = false;
 						}
@@ -209,7 +209,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 							resolvedTypeSignature = JavaModelUtil.getResolvedTypeName(genericTypeName,
 									configMappingType);
 							returnType = findType(method.getJavaProject(), resolvedTypeSignature);
-							leafType = isLeafType(returnType);
+							leafType = isLeafType(returnType, resolvedTypeSignature);
 						} else {
 							leafType = false;
 						}
@@ -238,10 +238,15 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 	 * configuration tree, i.e. it is null or not an interface, and therefore not
 	 * recursively visited.
 	 * 
+	 * @param resolvedTypeSignature
+	 * 
 	 * @throws JavaModelException
 	 */
-	private static boolean isLeafType(IType returnType) throws JavaModelException {
-		return returnType == null || !returnType.isInterface();
+	private static boolean isLeafType(IType returnType, String resolvedTypeSignature) throws JavaModelException {
+		if (returnType != null) {
+			return !returnType.isInterface();
+		}
+		return !isMap(returnType, resolvedTypeSignature) && !isCollection(returnType, resolvedTypeSignature);
 	}
 
 	private static boolean isMap(IType type, String typeName) {
