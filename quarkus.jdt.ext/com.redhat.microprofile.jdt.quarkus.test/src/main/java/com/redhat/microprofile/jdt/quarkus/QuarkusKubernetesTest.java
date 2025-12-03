@@ -18,7 +18,6 @@ import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.p;
 import static org.eclipse.lsp4mp.jdt.core.MicroProfileAssert.vh;
 
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
-import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 import org.eclipse.lsp4mp.jdt.core.BasePropertiesManagerTest;
 import org.junit.Test;
 
@@ -39,14 +38,14 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
         // io.dekorate.kubernetes.annotation.KubernetesApplication
         p(null, "kubernetes.name", "java.lang.String",
             "The name of the application. This value will be used for naming Kubernetes resources like: - Deployment - Service and so on ... If no value is specified it will attempt to determine the name using the following rules: If its a maven/gradle project use the artifact id. Else if its a bazel project use the name. Else if the system property app.name is present it will be used. Else find the project root folder and use its name (root folder detection is done by moving to the parent folder until .git is found)."
-                + System.lineSeparator() + "" + System.lineSeparator() + " *  **Returns:**" + System.lineSeparator()
-                + "    " + System.lineSeparator() + "     *  The specified application name.",
+                + System.lineSeparator() + "" + System.lineSeparator() + "* **Returns:**" + System.lineSeparator()
+                + "  * The specified application name.",
             true, "io.dekorate.kubernetes.annotation.KubernetesApplication", null, "name()Ljava/lang/String;", 0, null),
 
         p(null, "kubernetes.readiness-probe.initial-delay-seconds", "int", "The amount of time to wait in seconds before starting to probe." + //
                   System.lineSeparator() + "" + System.lineSeparator() + //
-                  " *  **Returns:**" + System.lineSeparator() + //
-                  "    " + System.lineSeparator() + "     *  The initial delay.",
+                  "* **Returns:**" + System.lineSeparator() + //
+                  "  * The initial delay.",
                   true, "io.dekorate.kubernetes.annotation.Probe", null, "initialDelaySeconds()I", 0, "0"),
 
         p(null, "kubernetes.annotations[*].key", "java.lang.String", null, true,
@@ -86,14 +85,14 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
         // io.dekorate.openshift.annotation.OpenshiftApplication
         p(null, "openshift.name", "java.lang.String",
             "The name of the application. This value will be used for naming Kubernetes resources like: - Deployment - Service and so on ... If no value is specified it will attempt to determine the name using the following rules: If its a maven/gradle project use the artifact id. Else if its a bazel project use the name. Else if the system property app.name is present it will be used. Else find the project root folder and use its name (root folder detection is done by moving to the parent folder until .git is found)."
-                + System.lineSeparator() + "" + System.lineSeparator() + " *  **Returns:**" + System.lineSeparator()
-                + "    " + System.lineSeparator() + "     *  The specified application name.",
+                + System.lineSeparator() + "" + System.lineSeparator() + "* **Returns:**" + System.lineSeparator()
+                + "  * The specified application name.",
             true, "io.dekorate.openshift.annotation.OpenshiftApplication", null, "name()Ljava/lang/String;", 0, null),
 
         p(null, "openshift.readiness-probe.initial-delay-seconds", "int", "The amount of time to wait in seconds before starting to probe." + //
                   System.lineSeparator() + "" + System.lineSeparator() + //
-                  " *  **Returns:**" + System.lineSeparator() + //
-                  "    " + System.lineSeparator() + "     *  The initial delay.", true,
+                  "* **Returns:**" + System.lineSeparator() + //
+                  "  * The initial delay.", true,
             "io.dekorate.kubernetes.annotation.Probe", null, "initialDelaySeconds()I", 0, "0"),
 
         p(null, "openshift.annotations[*].key", "java.lang.String", null, true,
@@ -127,17 +126,15 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
         // io.dekorate.s2i.annotation.S2iBuild
         p(null, "s2i.docker-file", "java.lang.String", "The relative path of the Dockerfile, from the module root." + //
             System.lineSeparator() + "" + System.lineSeparator() + //
-            " *  **Returns:**" + //
+            "* **Returns:**" + //
             System.lineSeparator() + //
-            "    " + //
-            System.lineSeparator() + //
-            "     *  The relative path.", true, "io.dekorate.s2i.annotation.S2iBuild", null,
+            "  * The relative path.", true, "io.dekorate.s2i.annotation.S2iBuild", null,
             "dockerFile()Ljava/lang/String;", 0, "Dockerfile"),
 
                    p(null, "s2i.group", "java.lang.String",
             "The group of the application. This value will be use as image user."
-                  + System.lineSeparator() + "" + System.lineSeparator() + " *  **Returns:**" + System.lineSeparator()
-                  + "    " + System.lineSeparator() + "     *  The specified group name.",
+                  + System.lineSeparator() + "" + System.lineSeparator() + "* **Returns:**" + System.lineSeparator()
+                  + "  * The specified group name.",
             true, "io.dekorate.s2i.annotation.S2iBuild", null, "group()Ljava/lang/String;", 0,
             null),
 
@@ -163,11 +160,9 @@ public class QuarkusKubernetesTest extends BasePropertiesManagerTest {
         // io.dekorate.docker.annotation.DockerBuild
         p(null, "docker.docker-file", "java.lang.String", "The relative path of the Dockerfile, from the module root." + //
             System.lineSeparator() + "" + System.lineSeparator() + //
-            " *  **Returns:**" + //
+            "* **Returns:**" + //
             System.lineSeparator() + //
-            "    " + //
-            System.lineSeparator() + //
-            "     *  The relative path.", true, "io.dekorate.docker.annotation.DockerBuild", null,
+            "  * The relative path.", true, "io.dekorate.docker.annotation.DockerBuild", null,
             "dockerFile()Ljava/lang/String;", 0, "Dockerfile"));
 
     assertPropertiesDuplicate(info);
