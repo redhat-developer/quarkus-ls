@@ -94,7 +94,8 @@ public class TemplateGetJavadocTest {
 		assertEquals(expected, actual);
 	}
 	
-	@Test
+	// @Test
+	// Re-enable test when https://github.com/eclipse-jdt/eclipse.jdt.core/issues/4672 will be fixed.
 	public void getMethodJavadocCyclic() throws Exception {
 		loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
