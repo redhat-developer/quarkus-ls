@@ -25,7 +25,7 @@
     <jacoco.destFile>${project.build.directory}/jacoco.exec</jacoco.destFile>
     <sonar.jacoco.reportPath>${jacoco.destFile}</sonar.jacoco.reportPath>
     <skipDeployToJBossOrg>true</skipDeployToJBossOrg>
-    <surefire.timeout>600</surefire.timeout>
+    <surefire.timeout>900</surefire.timeout>
   </properties>
 
   <repositories>

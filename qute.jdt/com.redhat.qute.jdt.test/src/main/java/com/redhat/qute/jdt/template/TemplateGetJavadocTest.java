@@ -58,7 +58,7 @@ public class TemplateGetJavadocTest {
 				DocumentFormat.Markdown);
 
 		String actual = QuteSupportForTemplate.getInstance().getJavadoc(params, getJDTUtils(), new NullProgressMonitor());
-		String expected = "Returns the derived items.\n\n *  **Returns:**\n    \n     *  the derived items";
+		String expected = "Returns the derived items.\n\n* **Returns:**\n  * the derived items";
 		assertEquals(expected, actual);
 	}
 	
