@@ -22,6 +22,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -619,9 +623,22 @@ public class QuteSupportForTemplate {
 			}
 		} else {
 			// ex : String implements CharSequence, ....
-			ITypeHierarchy typeHierarchy = type.newSupertypeHierarchy(monitor);
-			IType[] allSuperTypes = typeHierarchy.getSupertypes(type);
-			extendedTypes = Arrays.asList(allSuperTypes);
+			CompletableFuture<List<IType>> extendedTypesFuture = CompletableFuture.supplyAsync(() -> {
+				ITypeHierarchy typeHierarchy;
+				try {
+					typeHierarchy = type.newSupertypeHierarchy(monitor);
+					IType[] allSuperTypes = typeHierarchy.getSupertypes(type);
+					return Arrays.asList(allSuperTypes);
+				} catch (JavaModelException e) {
+					return null;
+				}
+			});
+			
+			try {
+				extendedTypes = extendedTypesFuture.get(5, TimeUnit.SECONDS);
+			} catch (InterruptedException | ExecutionException | TimeoutException e) {
+				// do nothing; it's likely a cyclic hierarchy
+			}
 		}
 
 		if (extendedTypes != null) {

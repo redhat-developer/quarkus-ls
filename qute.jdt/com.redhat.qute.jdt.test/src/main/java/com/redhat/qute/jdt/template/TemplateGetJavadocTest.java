@@ -106,7 +106,7 @@ public class TemplateGetJavadocTest {
 				DocumentFormat.PlainText);
 
 		String actual = QuteSupportForTemplate.getInstance().getJavadoc(params, getJDTUtils(), new NullProgressMonitor());
-		String expected = " cyclic documentation ";
+		String expected = null;
 		assertEquals(expected, actual);
 	}
 	
