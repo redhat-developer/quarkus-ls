@@ -114,9 +114,8 @@ public class JDTUtilsLSImpl implements IJDTUtils {
 	@Override
 	public String getJavadoc(IMember member, DocumentFormat documentFormat) throws JavaModelException {
 		boolean markdown = DocumentFormat.Markdown.equals(documentFormat);
-		Reader reader = markdown ? JavadocContentAccess2.getMarkdownContentReader(member)
-				: JavadocContentAccess2.getPlainTextContentReader(member);
-		return reader != null ? toString(reader) : null;
+		return markdown ? JavadocContentAccess2.getMarkdownContent(member)
+				: JavadocContentAccess2.getPlainTextContent(member);
 	}
 
 	private static String toString(Reader reader) {
