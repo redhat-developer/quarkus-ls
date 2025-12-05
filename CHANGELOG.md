@@ -1,5 +1,18 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## [0.23.0](https://github.com/redhat-developer/quarkus-ls/milestone/27?closed=1) (December 5, 2025)
+
+### Enhancements
+
+ * Smart iterable Qute completion support. See [#1076](https://github.com/redhat-developer/quarkus-ls/pull/1076).
+
+### Bug Fixes
+
+ * 'quarkus.log.level' is no longer marked as an unrecognized in `application.properties`. See [#1068](https://github.com/redhat-developer/quarkus-ls/pull/1068).
+ * Close file stream when using `Files.walk`. See [#1064](https://github.com/redhat-developer/quarkus-ls/pull/1064).
+ * Fix a "too many open files" crash caused by user tag support. See [#1062](https://github.com/redhat-developer/quarkus-ls/issues/1062).
+ * Do not generate a property for `<clinit>`. See [#1059](https://github.com/redhat-developer/quarkus-ls/pull/1059).
+
 ## [0.22.0](https://github.com/redhat-developer/quarkus-ls/milestone/26?closed=1) (April 17, 2025)
 
 ### Enhancements
