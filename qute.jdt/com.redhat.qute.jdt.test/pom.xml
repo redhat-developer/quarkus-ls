@@ -6,7 +6,7 @@
 	<parent>
 		<artifactId>parent-qute</artifactId>
 		<groupId>com.redhat.microprofile</groupId>
-		<version>0.23.0-SNAPSHOT</version>
+		<version>0.23.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>com.redhat.qute.jdt.test</artifactId>
 	<packaging>eclipse-test-plugin</packaging>
