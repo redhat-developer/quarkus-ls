@@ -63,7 +63,7 @@ public class QuteJavaConstants {
 	public static final String TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAME = "matchName";
 
 	public static final String TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAMES = "matchNames";
-	
+
 	// @TemplateData
 
 	public static final String TEMPLATE_DATA_ANNOTATION = "io.quarkus.qute.TemplateData";
@@ -97,6 +97,10 @@ public class QuteJavaConstants {
 	public static final String REGISTER_FOR_REFLECTION_ANNOTATION_METHODS = "methods";
 
 	public static final String REGISTER_FOR_REFLECTION_ANNOTATION_TARGETS = "targets";
+
+	// @TemplateContents
+
+	public static final String TEMPLATE_CONTENTS_ANNOTATION = "io.quarkus.qute.TemplateContents";
 
 	// @Message
 	public static final String MESSAGE_BUNDLE_ANNOTATION = "io.quarkus.qute.i18n.MessageBundle";
