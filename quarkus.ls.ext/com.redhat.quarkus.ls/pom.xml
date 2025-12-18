@@ -39,7 +39,7 @@
 		<maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
 		<dev.build.timestamp>${maven.build.timestamp}</dev.build.timestamp>
 		<lsp4j.version>0.14.0</lsp4j.version>
-		<microprofile.ls.version>0.15.0-SNAPSHOT</microprofile.ls.version>
+		<microprofile.ls.version>0.16.1-SNAPSHOT</microprofile.ls.version>
 	</properties>
 	<repositories>
 		<repository>
