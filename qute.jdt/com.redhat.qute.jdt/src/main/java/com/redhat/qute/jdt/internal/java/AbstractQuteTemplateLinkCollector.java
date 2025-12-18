@@ -19,6 +19,7 @@ import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_AN
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_CLASS;
+import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_CONTENTS_ANNOTATION;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -210,7 +211,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 	 */
 	@Override
 	public boolean visit(RecordDeclaration node) {
-		if (isImplementTemplateInstance(node)) {
+		if (isImplementTemplateInstance(node) && !isTemplateContents(node)) {
 			// public class HelloResource {
 			// record Hello(String name) implements TemplateInstance {}
 			String recordName = node.getName().getIdentifier();
@@ -244,6 +245,19 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 		for (ITypeBinding current : interfaces) {
 			if (QuteJavaConstants.TEMPLATE_INSTANCE_INTERFACE.equals(current.getQualifiedName())) {
 				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean isTemplateContents(RecordDeclaration node) {
+		List modifiers = node.modifiers();
+		for (Object modifier : modifiers) {
+			if (modifier instanceof Annotation) {
+				Annotation annotation = (Annotation) modifier;
+				if (AnnotationUtils.isMatchAnnotation(annotation, TEMPLATE_CONTENTS_ANNOTATION)) {
+					return true;
+				}
 			}
 		}
 		return false;
