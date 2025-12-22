@@ -30,12 +30,24 @@ public class RenardeMessagesCompletionTest {
 
 	@Test
 	public void completionInExpressionForObjectPart() throws Exception {
-		String template = "{m:|";
+		String template = "{|";
+		testCompletionFor(template, //
+				c("m:main.login = Login/Register", "m:main.login", r(0, 1, 0, 1)), //
+				c("m:application.index.title = Welcome to Todos", "m:application.index.title", r(0, 1, 0, 1)), //
+				c("m:todos.message.added = Task added: %s", "m:todos.message.added(${1:arg0})$0", r(0, 1, 0, 1)));
+
+		template = "{m|";
+		testCompletionFor(template, //
+				c("m:main.login = Login/Register", "m:main.login", r(0, 1, 0, 2)), //
+				c("m:application.index.title = Welcome to Todos", "m:application.index.title", r(0, 1, 0, 2)), //
+				c("m:todos.message.added = Task added: %s", "m:todos.message.added(${1:arg0})$0", r(0, 1, 0, 2)));
+		
+		template = "{m:|";
 		testCompletionFor(template, //
 				c("m:main.login = Login/Register", "m:main.login", r(0, 1, 0, 3)), //
 				c("m:application.index.title = Welcome to Todos", "m:application.index.title", r(0, 1, 0, 3)), //
 				c("m:todos.message.added = Task added: %s", "m:todos.message.added(${1:arg0})$0", r(0, 1, 0, 3)));
-
+		
 		template = "{m:m|ain.login";
 		testCompletionFor(template, //
 				c("m:main.login = Login/Register", "m:main.login", r(0, 1, 0, 13)), //

@@ -82,8 +82,11 @@ public class QuteTextDocumentService implements TextDocumentService, TemplateVal
 
 	public QuteTextDocumentService(QuteLanguageServer quteLanguageServer) {
 		this.sharedSettings = quteLanguageServer.getSharedSettings();
-		this.javaFileTextDocumentService = new JavaFileTextDocumentService(quteLanguageServer, sharedSettings);
-		this.templateFileTextDocumentService = new TemplateFileTextDocumentService(quteLanguageServer, sharedSettings);
+		this.javaFileTextDocumentService = new JavaFileTextDocumentService(() -> quteLanguageServer.getLanguageClient(),
+				sharedSettings);
+		this.templateFileTextDocumentService = new TemplateFileTextDocumentService(
+				quteLanguageServer.getQuteLanguageService(), quteLanguageServer,
+				() -> quteLanguageServer.getLanguageClient(), sharedSettings);
 	}
 
 	/**
@@ -267,13 +270,7 @@ public class QuteTextDocumentService implements TextDocumentService, TemplateVal
 		CodeActionUnresolvedData data = JSONUtility.toModel(codeAction.getData(), CodeActionUnresolvedData.class);
 		if (data != null) {
 			/*
-			 * {
-			 * resolverKind: ...,
-			 * textDocumentUri: ...,
-			 * resolverData: {
-			 * ...
-			 * }
-			 * }
+			 * { resolverKind: ..., textDocumentUri: ..., resolverData: { ... } }
 			 */
 			TextDocumentIdentifier textDocument = new TextDocumentIdentifier(data.getTextDocumentUri());
 			AbstractTextDocumentService service = getTextDocumentService(textDocument);

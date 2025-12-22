@@ -13,7 +13,6 @@ package com.redhat.qute.project;
 
 import static com.redhat.qute.project.JavaDataModelCache.isSameType;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -113,7 +112,7 @@ public class QuteProject {
 	private final QuteClosedTextDocuments closedDocuments;
 
 	// Map which stores opened/closed documents identified by template id.
-	private final Map<String /* template id */, QuteTextDocument> documents;
+	private final Map<String /* template id */, QuteTextDocument> allDocumentsByTemplateId;
 
 	private final Map<String /* Full qualified name of Java class */, CompletableFuture<ResolvedJavaTypeInfo>> resolvedJavaTypes;
 
@@ -129,8 +128,6 @@ public class QuteProject {
 
 	private final TemplateValidator validator;
 
-	private final QuteProjectFilesWatcher watcher;
-
 	private final JavaDataModelCache javaCache;
 
 	private List<QuteProject> projectDependencies;
@@ -138,24 +135,19 @@ public class QuteProject {
 	// Project extensions
 	private final List<ProjectExtension> extensions;
 
-	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry, TemplateValidator validator) {
+	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		this.uri = projectInfo.getUri();
 		this.templateRootPaths = projectInfo.getTemplateRootPaths();
 		this.sourcePaths = toSourcePaths(projectInfo.getSourceFolders());
-		this.documents = new HashMap<>();
-		this.closedDocuments = new QuteClosedTextDocuments(this, documents);
+		this.allDocumentsByTemplateId = new HashMap<>();
+		this.closedDocuments = new QuteClosedTextDocuments(this, allDocumentsByTemplateId);
 		this.projectRegistry = projectRegistry;
 		this.resolvedJavaTypes = new HashMap<>();
 		this.tagRegistry = new UserTagRegistry(this, templateRootPaths, projectRegistry);
 		this.filterInNativeMode = new NativeModeJavaTypeFilter(this);
-		this.validator = validator;
-		// Create a Java file watcher to track create/delete Qute file in
-		// src/main/resources/templates to update cache of closed documents
-		// ONLY if LSP client cannot support DidChangeWatchedFiles.
-		this.watcher = !projectRegistry.isDidChangeWatchedFilesSupported() ? createFilesWatcher(this) : null;
+		this.validator = projectRegistry.getValidator();
 		this.javaCache = new JavaDataModelCache(this);
 		this.projectDependencies = new ArrayList<>();
-
 		// Project extensions
 		this.extensions = new ArrayList<>();
 		Iterator<ProjectExtension> extensions = ServiceLoader.load(ProjectExtension.class).iterator();
@@ -194,20 +186,12 @@ public class QuteProject {
 				.collect(Collectors.toSet());
 	}
 
-	private static QuteProjectFilesWatcher createFilesWatcher(QuteProject project) {
-		try {
-			return new QuteProjectFilesWatcher(project);
-		} catch (IOException e) {
-			return null;
-		}
-	}
-
-	public void validateClosedTemplates() {
+	public void validateClosedTemplates(ProgressContext progressContext) {
 		if (validator != null) {
 			// Load closed document if needed and validate all closed documents when data
 			// model is ready.
-			closedDocuments.loadClosedTemplatesIfNeeded();
-			for (QuteTextDocument document : documents.values()) {
+			closedDocuments.loadClosedTemplatesIfNeeded(progressContext);
+			for (QuteTextDocument document : allDocumentsByTemplateId.values()) {
 				if (!document.isOpened()) {
 					validator.triggerValidationFor(document);
 				}
@@ -308,7 +292,7 @@ public class QuteProject {
 	public List<Section> findSectionsByTag(String tag) {
 		closedDocuments.loadClosedTemplatesIfNeeded();
 		List<Section> allSections = new ArrayList<>();
-		for (QuteTextDocument document : documents.values()) {
+		for (QuteTextDocument document : allDocumentsByTemplateId.values()) {
 			List<Section> sections = document.findSectionsByTag(tag);
 			if (sections != null && !sections.isEmpty()) {
 				allSections.addAll(sections);
@@ -320,12 +304,12 @@ public class QuteProject {
 	private QuteTextDocument findDocumentByTemplateId(String templateId) {
 		if (templateId.indexOf('.') != -1) {
 			// ex: base.html
-			return documents.get(templateId);
+			return allDocumentsByTemplateId.get(templateId);
 		}
 		// ex : base
 		for (String variant : getTemplateVariants()) {
 			String id = templateId + variant;
-			QuteTextDocument document = documents.get(id);
+			QuteTextDocument document = allDocumentsByTemplateId.get(id);
 			if (document != null) {
 				return document;
 			}
@@ -339,7 +323,7 @@ public class QuteProject {
 	 * @param document the Qute template.
 	 */
 	public void onDidOpenTextDocument(QuteTextDocument document) {
-		documents.put(document.getTemplateId(), document);
+		allDocumentsByTemplateId.put(document.getTemplateId(), document);
 	}
 
 	/**
@@ -358,6 +342,7 @@ public class QuteProject {
 	 * @param document the Qute template.
 	 */
 	public void onDidSaveTextDocument(QuteTextDocument document) {
+		document.save();
 		UserTag userTag = getUserTag(document.getTemplate());
 		if (userTag != null) {
 			// The user tag has been saved, refresh it.
@@ -371,7 +356,10 @@ public class QuteProject {
 	 * @param templateFilePath the Qute template file path.
 	 */
 	public QuteTextDocument onDidDeleteTemplate(Path templateFilePath) {
-		return closedDocuments.onDidDeleteTemplate(templateFilePath);
+		String templateId = getTemplateId(templateFilePath);
+		synchronized (allDocumentsByTemplateId) {
+			return allDocumentsByTemplateId.remove(templateId);
+		}
 	}
 
 	/**
@@ -390,7 +378,7 @@ public class QuteProject {
 	 */
 	public Collection<QuteTextDocument> getDocuments() {
 		closedDocuments.loadClosedTemplatesIfNeeded();
-		return documents.values();
+		return allDocumentsByTemplateId.values();
 	}
 
 	public CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaType(String typeName) {
@@ -490,6 +478,10 @@ public class QuteProject {
 	 */
 	public CompletableFuture<List<UserTag>> getBinaryUserTags() {
 		return tagRegistry.getBinaryUserTags();
+	}
+
+	public UserTagRegistry getTagRegistry() {
+		return tagRegistry;
 	}
 
 	/**
@@ -669,9 +661,6 @@ public class QuteProject {
 	}
 
 	public void dispose() {
-		if (watcher != null) {
-			watcher.stop();
-		}
 	}
 
 	/**

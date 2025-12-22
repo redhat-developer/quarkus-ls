@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.InsertTextFormat;
 import org.eclipse.lsp4j.InsertTextMode;
 import org.eclipse.lsp4j.Range;
@@ -190,6 +191,7 @@ public class QuteCompletionsForSmartIterable {
 
 		// Create and configure completion item
 		CompletionItem item = new CompletionItem();
+		item.setKind(CompletionItemKind.Snippet);
 		item.setLabel("#" + sectionTag + " " + iterableInfo.name);
 		item.setFilterText(iterableInfo.name);
 		item.setInsertTextFormat(completionRequest.isCompletionSnippetsSupported() ? InsertTextFormat.Snippet

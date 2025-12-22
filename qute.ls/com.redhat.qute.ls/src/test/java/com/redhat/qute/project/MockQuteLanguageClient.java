@@ -54,7 +54,7 @@ import com.redhat.qute.ls.api.QuteLanguageClientAPI;
  */
 public class MockQuteLanguageClient implements QuteLanguageClientAPI {
 
-	private final List<PublishDiagnosticsParams> publishDiagnostics;
+	private final Collection<PublishDiagnosticsParams> publishDiagnostics;
 
 	private final List<MessageParams> showMessages;
 
@@ -101,7 +101,7 @@ public class MockQuteLanguageClient implements QuteLanguageClientAPI {
 		return CompletableFuture.completedFuture(null);
 	}
 
-	public List<PublishDiagnosticsParams> getPublishDiagnostics() {
+	public Collection<PublishDiagnosticsParams> getPublishDiagnostics() {
 		return publishDiagnostics;
 	}
 

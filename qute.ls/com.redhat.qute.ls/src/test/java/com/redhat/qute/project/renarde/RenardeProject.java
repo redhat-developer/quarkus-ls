@@ -17,35 +17,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
-import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
-import com.redhat.qute.project.MockQuteProject;
+import com.redhat.qute.project.BaseQuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 
-public class RenardeProject extends MockQuteProject {
+public class RenardeProject extends BaseQuteProject {
 
 	public final static String PROJECT_URI = "renarde";
 
-	public RenardeProject(QuteProjectRegistry projectRegistry) {
+	public RenardeProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		super(new ProjectInfo(PROJECT_URI, Collections.emptyList(),
 				Arrays.asList(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates")),
 				Set.of(getProjectPath(PROJECT_URI) + "/src/main/resources")), projectRegistry);
 	}
 
 	@Override
-	protected void fillJavaTypes(List<JavaTypeInfo> types) {
-
-	}
-
-	@Override
-	protected void fillResolvedJavaTypes(List<ResolvedJavaTypeInfo> resolvedJavaTypes) {
-
+	protected void fillNamespaceResolverInfos(Map<String, NamespaceResolverInfo> namespaces) {
+		NamespaceResolverInfo namespace = new NamespaceResolverInfo();
+		namespace.setNamespaces(List.of("m"));
+		namespaces.put("m", namespace);
 	}
 
 	@Override
@@ -56,13 +51,6 @@ public class RenardeProject extends MockQuteProject {
 	@Override
 	protected void fillValueResolvers(List<ValueResolverInfo> valueResolvers) {
 
-	}
-
-	@Override
-	protected void fillNamespaceResolverInfos(Map<String, NamespaceResolverInfo> namespaces) {
-		NamespaceResolverInfo namespace = new NamespaceResolverInfo();
-		namespace.setNamespaces(List.of("m"));
-		namespaces.put("m", namespace);
 	}
 
 }

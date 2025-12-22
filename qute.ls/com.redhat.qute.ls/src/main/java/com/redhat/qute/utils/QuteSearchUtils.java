@@ -226,6 +226,17 @@ public class QuteSearchUtils {
 						searchReferencedObjects(parameter, offset, collector, includeNode, cancelChecker);
 					}
 				}
+				var template = objectPart.getOwnerTemplate();
+				if (UserTagUtils.isUserTag(template)) {
+					var project = template.getProject();
+					if (project != null) {
+						List<Parameter> result = objectPart.getCallParams();
+						for (Parameter parameter : result) {
+							Range range = QutePositionUtility.selectParameterName(parameter);
+							collector.accept(parameter, range);
+						}
+					}
+				}
 			}
 		}
 		default:
