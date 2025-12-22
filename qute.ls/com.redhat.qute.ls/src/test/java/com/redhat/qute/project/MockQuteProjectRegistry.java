@@ -40,6 +40,7 @@ import com.redhat.qute.project.multiple.QuteProjectB;
 import com.redhat.qute.project.qute_web.QuteWebProject;
 import com.redhat.qute.project.renarde.RenardeProject;
 import com.redhat.qute.project.roq.RoqProject;
+import com.redhat.qute.project.user_tags.QuteUserTagsProject;
 
 public class MockQuteProjectRegistry extends QuteProjectRegistry {
 
@@ -75,6 +76,9 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 		}
 		if (RenardeProject.PROJECT_URI.equals(projectInfo.getUri())) {
 			return new RenardeProject(this);
+		}
+		if (QuteUserTagsProject.PROJECT_URI.equals(projectInfo.getUri())) {
+			return new QuteUserTagsProject(projectInfo, this);
 		}
 		return super.createProject(projectInfo);
 	}

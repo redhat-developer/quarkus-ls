@@ -40,6 +40,8 @@ public abstract class MockQuteProject extends QuteProject {
 
 	private static final Logger LOGGER = Logger.getLogger(MockQuteProject.class.getName());
 
+	private final ProjectInfo projectInfo;
+
 	private final List<JavaTypeInfo> typesCache;
 
 	private final List<ResolvedJavaTypeInfo> resolvedTypesCache;
@@ -52,6 +54,7 @@ public abstract class MockQuteProject extends QuteProject {
 
 	public MockQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		super(projectInfo, projectRegistry, null);
+		this.projectInfo = projectInfo;
 		this.typesCache = new ArrayList<>();
 		this.fillJavaTypes(typesCache);
 		this.resolvedTypesCache = new ArrayList<>();
@@ -62,6 +65,10 @@ public abstract class MockQuteProject extends QuteProject {
 		this.fillValueResolvers(valueResolvers);
 		this.namespaceResolverInfos = new HashMap<>();
 		this.fillNamespaceResolverInfos(namespaceResolverInfos);
+	}
+
+	public ProjectInfo getProjectInfo() {
+		return projectInfo;
 	}
 
 	public ResolvedJavaTypeInfo getResolvedJavaTypeSync(String typeName) {

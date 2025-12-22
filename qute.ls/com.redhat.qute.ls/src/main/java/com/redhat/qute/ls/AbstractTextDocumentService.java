@@ -13,6 +13,7 @@ package com.redhat.qute.ls;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.CodeAction;
@@ -49,6 +50,7 @@ import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
+import com.redhat.qute.ls.api.QuteLanguageClientAPI;
 import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.qute.settings.SharedSettings;
 
@@ -62,8 +64,6 @@ import com.redhat.qute.settings.SharedSettings;
  */
 public abstract class AbstractTextDocumentService implements TextDocumentService {
 
-	protected final QuteLanguageServer quteLanguageServer;
-
 	protected final SharedSettings sharedSettings;
 
 	private boolean hierarchicalDocumentSymbolSupport;
@@ -72,15 +72,21 @@ public abstract class AbstractTextDocumentService implements TextDocumentService
 
 	private boolean codeActionLiteralSupport;
 
+	private Supplier<QuteLanguageClientAPI> languageClientProvider;
+
 	public enum FileType {
 
-		TEMPLATE,
-		JAVA;
+		TEMPLATE, JAVA;
 	}
 
-	public AbstractTextDocumentService(QuteLanguageServer quteLanguageServer, SharedSettings sharedSettings) {
-		this.quteLanguageServer = quteLanguageServer;
+	public AbstractTextDocumentService(Supplier<QuteLanguageClientAPI> languageClientProvider,
+			SharedSettings sharedSettings) {
+		this.languageClientProvider = languageClientProvider;
 		this.sharedSettings = sharedSettings;
+	}
+
+	protected QuteLanguageClientAPI getLanguageClient() {
+		return languageClientProvider != null ? languageClientProvider.get() : null;
 	}
 
 	/**
@@ -181,7 +187,7 @@ public abstract class AbstractTextDocumentService implements TextDocumentService
 	public CompletableFuture<List<InlayHint>> inlayHint(InlayHintParams params) {
 		return CompletableFuture.completedFuture(null);
 	}
-	
+
 	@Override
 	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction unresolved) {
 		return CompletableFuture.completedFuture(null);
@@ -191,7 +197,7 @@ public abstract class AbstractTextDocumentService implements TextDocumentService
 	public CompletableFuture<WorkspaceEdit> rename(RenameParams params) {
 		return CompletableFuture.completedFuture(null);
 	}
-	
+
 	public boolean isHierarchicalDocumentSymbolSupport() {
 		return hierarchicalDocumentSymbolSupport;
 	}
