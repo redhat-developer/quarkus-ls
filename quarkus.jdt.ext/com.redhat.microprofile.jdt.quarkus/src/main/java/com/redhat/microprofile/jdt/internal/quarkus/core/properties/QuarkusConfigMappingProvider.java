@@ -32,7 +32,6 @@ import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceMethod;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.getSourceType;
 import static org.eclipse.lsp4mp.jdt.core.utils.JDTTypeUtils.isOptional;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -116,21 +115,50 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 		}
 	}
 
-	private static Set<IType> findInterfaces(IType type, IProgressMonitor progressMonitor) throws JavaModelException {
-		// No reason to use a JDK interface to generate a config class? Primarily to fix
-		// the java.nio.file.Path case.
-		// see
-		// https://github.com/smallrye/smallrye-config/blob/22635f24dc7634706867cc52e28d5bd82d15f54e/implementation/src/main/java/io/smallrye/config/ConfigMappingInterface.java#L782C9-L783C58
+	private static Set<IType> findInterfaces(IType type, IProgressMonitor monitor) throws JavaModelException {
+
+		// Ignore null types and JDK types (same behavior as SmallRye / IntelliJ code)
 		if (type == null || type.getFullyQualifiedName() == null || type.getFullyQualifiedName().startsWith("java")) {
 			return Collections.emptySet();
 		}
-		Set<IType> result = new HashSet<>();
-		result.add(type);
 
-		ITypeHierarchy typeHierarchy = type.newSupertypeHierarchy(progressMonitor);
-		IType[] allSuperInterfaces = typeHierarchy.getAllSuperInterfaces(type);
-		result.addAll(Arrays.asList(allSuperInterfaces));
+		Set<IType> result = new HashSet<>();
+
+		// Build the JDT type hierarchy once (expensive operation)
+		ITypeHierarchy hierarchy = type.newSupertypeHierarchy(monitor);
+
+		// Recursively collect all interfaces using the hierarchy
+		collectInterfaces(type, hierarchy, result, monitor);
+
 		return result;
+	}
+
+	private static void collectInterfaces(IType type, ITypeHierarchy hierarchy, Set<IType> result,
+			IProgressMonitor monitor) throws JavaModelException {
+
+		if (type == null) {
+			return;
+		}
+
+		// Add the type itself if it is an interface
+		if (type.isInterface()) {
+			result.add(type);
+		}
+
+		// Traverse direct super-interfaces
+		for (IType iface : hierarchy.getSuperInterfaces(type)) {
+			if (result.add(iface)) {
+				hierarchy = iface.newSupertypeHierarchy(monitor);
+				collectInterfaces(iface, hierarchy, result, monitor);
+			}
+		}
+
+		// Traverse the superclass (interfaces can be inherited through classes)
+		IType superClass = hierarchy.getSuperclass(type);
+		if (superClass != null) {
+			hierarchy = superClass.newSupertypeHierarchy(monitor);
+			collectInterfaces(superClass, hierarchy, result, monitor);
+		}
 	}
 
 	private void populateConfigObject(IType configMappingType, String prefixStr, String extensionName,
