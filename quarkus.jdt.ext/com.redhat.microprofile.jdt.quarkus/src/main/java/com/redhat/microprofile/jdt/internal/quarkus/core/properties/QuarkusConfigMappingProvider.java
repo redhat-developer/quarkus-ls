@@ -225,7 +225,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 					// Other type (App interface, etc)
 					Set<IType> allInterfaces = findInterfaces(returnType, monitor);
 					for (IType configMappingInterface : allInterfaces) {
-						populateConfigObject(configMappingInterface, propertyName, extensionName, typesAlreadyProcessed,
+						populateConfigObject(configMappingInterface, propertyName, extensionName, new HashSet<>(),
 								configMappingAnnotation, collector, monitor);
 					}
 				}
