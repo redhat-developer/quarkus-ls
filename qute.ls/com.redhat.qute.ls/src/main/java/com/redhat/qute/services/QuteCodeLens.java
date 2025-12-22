@@ -25,6 +25,7 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.commons.JavaElementInfo;
+import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
@@ -72,8 +73,7 @@ class QuteCodeLens {
 					// * for #insert
 					// * for #fragment
 					QuteProject project = template.getProject();
-					collectCodeLenses(templateDataModel, template, template, settings, project, lenses,
-							cancelChecker);
+					collectCodeLenses(templateDataModel, template, template, settings, project, lenses, cancelChecker);
 
 					if (UserTagUtils.isUserTag(template)) {
 						// Template is an user tag
@@ -154,24 +154,22 @@ class QuteCodeLens {
 		return title.toString();
 	}
 
-	private static void collectCodeLenses(ExtendedDataModelTemplate templateDataModel, Node parent,
-			Template template, SharedSettings settings, QuteProject project,
-			List<CodeLens> lenses, CancelChecker cancelChecker) {
+	private static void collectCodeLenses(ExtendedDataModelTemplate templateDataModel, Node parent, Template template,
+			SharedSettings settings, QuteProject project, List<CodeLens> lenses, CancelChecker cancelChecker) {
 		cancelChecker.checkCanceled();
-		String showReferencesCommandId = settings.getCommandCapabilities()
-				.isCommandSupported(QuteClientCommandConstants.COMMAND_SHOW_REFERENCES)
-						? QuteClientCommandConstants.COMMAND_SHOW_REFERENCES
+		String showReferencesCommandId = settings.getCommandCapabilities().isCommandSupported(
+				QuteClientCommandConstants.COMMAND_SHOW_REFERENCES) ? QuteClientCommandConstants.COMMAND_SHOW_REFERENCES
 						: "";
 		if (parent.getKind() == NodeKind.Section) {
 			Section section = (Section) parent;
 			switch (section.getSectionKind()) {
-				case INSERT:
-					collectInsertCodeLens(project, section, template, showReferencesCommandId, lenses);
-					break;
-				case FRAGMENT:
-					collectFragmentCodeLens(templateDataModel, section, settings, project, lenses, cancelChecker);
-					break;
-				default:
+			case INSERT:
+				collectInsertCodeLens(project, section, template, showReferencesCommandId, lenses);
+				break;
+			case FRAGMENT:
+				collectFragmentCodeLens(templateDataModel, section, settings, project, lenses, cancelChecker);
+				break;
+			default:
 			}
 		}
 		List<Node> children = parent.getChildren();
@@ -196,8 +194,7 @@ class QuteCodeLens {
 			return;
 		}
 		Range range = QutePositionUtility.selectStartTagName(section);
-		collectDataModelCodeLenses(range, fragmentDataModel, project.getUri(), settings, lenses,
-				cancelChecker);
+		collectDataModelCodeLenses(range, fragmentDataModel, project.getUri(), settings, lenses, cancelChecker);
 	}
 
 	private static void collectInsertCodeLens(QuteProject project, Section section, Template template,
@@ -233,9 +230,16 @@ class QuteCodeLens {
 		// 2) display a codelens for each expression object part
 		UserTagUtils.collectUserTagParameters(template, //
 				objectPart -> {
-					String title = objectPart.getPartName();
+					StringBuilder title = new StringBuilder(objectPart.getPartName()) //
+							.append(" : ");
+					ResolvedJavaTypeInfo result = template.getProject() //
+							.resolveJavaType(objectPart) //
+							.getNow(null);
+					title.append(result != null && !QuteCompletableFutures.isResolvingJavaType(result)
+							? JavaElementInfo.getSimpleType(result.getName())
+							: "?");
 					Range range = LEFT_TOP_RANGE;
-					Command command = new Command(title, "");
+					Command command = new Command(title.toString(), "");
 					CodeLens codeLens = new CodeLens(range, command, null);
 					lenses.add(codeLens);
 				}, cancelChecker);

@@ -55,6 +55,7 @@ import com.redhat.qute.settings.SharedSettings;
  */
 public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 
+	private final QuteProjectRegistry projectRegistry;
 	private final QuteCodeActions codeActions;
 	private final QuteCodeLens codeLens;
 	private final QuteCompletions completions;
@@ -73,6 +74,7 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	private SnippetRegistry<Snippet> coreTagSnippetRegistry;
 
 	public QuteLanguageService(QuteProjectRegistry projectRegistry) {
+		this.projectRegistry = projectRegistry;
 		this.codeActions = new QuteCodeActions(projectRegistry);
 		this.codeLens = new QuteCodeLens(projectRegistry);
 		this.completions = new QuteCompletions(projectRegistry, this);
@@ -87,6 +89,10 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 		this.rename = new QuteRename();
 		this.symbolsProvider = new QuteSymbolsProvider();
 		this.codeActionResolvers = new QuteTemplateCodeActionResolvers();
+	}
+
+	public QuteProjectRegistry getProjectRegistry() {
+		return projectRegistry;
 	}
 
 	/**
@@ -283,8 +289,8 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	 *
 	 * @param unresolved           the unresolved code action
 	 * @param javaTextEditProvider the provider that can resolve code action
-	 *                             information
-	 *                             using the associated java language server
+	 *                             information using the associated java language
+	 *                             server
 	 * @return the resolved code action
 	 */
 	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction unresolved,

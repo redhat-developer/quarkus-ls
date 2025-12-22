@@ -51,11 +51,15 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 
 	private TemplateInfoCollector collector;
 
+	private UserTagUsageCollector callVisitor;
+
 	public QuteClosedTextDocument(Path path, String templateId, QuteProject project) {
 		this.path = path;
 		this.templateId = templateId;
 		this.uri = FileUtils.toUri(path);
 		this.project = project;
+		// Force the parse the of template
+		getTemplate();
 	}
 
 	@Override
@@ -77,6 +81,7 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 			template.setTemplateId(templateId);
 			template.setProjectRegistry(project.getProjectRegistry());
 			template.setProjectUri(project.getUri());
+			processCallVisitor(template, project);
 			return template;
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Error while loading closed template '" + uri + "'.", e);
@@ -127,9 +132,7 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 		if (SearchInfoQuery.ALL.equals(insertParameter)) {
 			return parameters;
 		}
-		return parameters.stream()
-				.filter(p -> insertParameter.equals(p.getValue()))
-				.collect(Collectors.toList());
+		return parameters.stream().filter(p -> insertParameter.equals(p.getValue())).collect(Collectors.toList());
 	}
 
 	@Override
@@ -141,9 +144,7 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 		if (SearchInfoQuery.ALL.equals(tag)) {
 			return sections;
 		}
-		return sections.stream()
-				.filter(s -> tag.equals(s.getTag()))
-				.collect(Collectors.toList());
+		return sections.stream().filter(s -> tag.equals(s.getTag())).collect(Collectors.toList());
 	}
 
 	@Override
@@ -154,5 +155,20 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 	@Override
 	public boolean isOpened() {
 		return false;
+	}
+
+	private void processCallVisitor(Template template, QuteProject project) {
+		if (template != null) {
+			if (project == null) {
+				project = template.getProject();
+			}
+			if (project != null && templateId != null) {
+				if (callVisitor == null) {
+					callVisitor = new UserTagUsageCollector(getTemplateId(), project.getTagRegistry());
+				}
+				template.accept(callVisitor);
+			}
+
+		}
 	}
 }

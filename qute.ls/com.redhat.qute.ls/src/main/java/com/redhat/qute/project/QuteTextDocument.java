@@ -104,4 +104,8 @@ public interface QuteTextDocument {
 		String templateId = getTemplateId();
 		return templateId != null && templateId.startsWith("tags/");
 	}
+
+	default void save() {
+		
+	}
 }

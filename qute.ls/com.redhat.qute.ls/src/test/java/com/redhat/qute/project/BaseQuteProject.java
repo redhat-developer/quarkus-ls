@@ -24,6 +24,7 @@ import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import com.redhat.qute.project.documents.TemplateValidator;
 
 /**
  * Base class for project which initializes JDK resolved Java types.
@@ -31,13 +32,17 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 public abstract class BaseQuteProject extends MockQuteProject {
 
 	public BaseQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
-		super(projectInfo, projectRegistry);
-	} 
+		super(projectInfo, projectRegistry, null);
+	}
+
+	public BaseQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry,
+			TemplateValidator templateValidator) {
+		super(projectInfo, projectRegistry, templateValidator);
+	}
 
 	protected DataModelProject<DataModelTemplate<?>> loadDataModel(String fileName, Class<?> clazz) {
 		InputStream in = clazz.getResourceAsStream(fileName);
-		return new GsonBuilder().create().fromJson(new InputStreamReader(in),
-				DataModelProject.class);
+		return new GsonBuilder().create().fromJson(new InputStreamReader(in), DataModelProject.class);
 	}
 
 	protected void loadResolvedJavaType(String fileName, List<ResolvedJavaTypeInfo> resolvedJavaTypes, Class<?> clazz) {

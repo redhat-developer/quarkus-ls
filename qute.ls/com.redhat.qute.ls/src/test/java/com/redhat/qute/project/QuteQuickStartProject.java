@@ -34,6 +34,7 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.jaxrs.JaxRsMethodKind;
 import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
 import com.redhat.qute.commons.jaxrs.RestParam;
+import com.redhat.qute.project.documents.TemplateValidator;
 
 /**
  * Qute quick start project.
@@ -49,8 +50,8 @@ public class QuteQuickStartProject extends BaseQuteProject {
 	public static final String ITEMRESOURCE_ITEMS_WITH_FRAGMENTS_TEMPLATE_URI = "src/main/resources/templates/ItemResourceWithFragments/items";
 	public static final String NATIVEITEMRESOURCE_ITEMS_TEMPLATE_URI = "src/main/resources/templates/NativeItemResource/items";
 
-	public QuteQuickStartProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
-		super(projectInfo, projectRegistry);
+	public QuteQuickStartProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry, TemplateValidator templateValidator) {
+		super(projectInfo, projectRegistry, templateValidator);
 	}
 
 	@Override
