@@ -405,6 +405,10 @@ public class RenardeProjectExtension implements ProjectExtension {
 	public void doComplete(CompletionRequest completionRequest, Part part, Parts parts,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
 			Set<CompletionItem> completionItems, CancelChecker cancelChecker) {
+		if (!isRenardeMessageExpression(part, parts)) {
+			return;
+		}
+
 		Range range = createRange(completionRequest, part, parts);
 
 		for (MessagesFileInfo messagesFileInfo : messagesFileInfos) {
@@ -417,6 +421,26 @@ public class RenardeProjectExtension implements ProjectExtension {
 				completionItems.add(item);
 			});
 		}
+	}
+
+	private static boolean isRenardeMessageExpression(Part part, Parts parts) {
+		if (part == null) {
+			if (parts == null || parts.getChildCount() == 0) {
+				// - {|
+				return true;
+			}
+			// - {m:|
+			// - {m:name.|
+			// - {name.|
+			return M_NAMESPACE_NAME.equals(parts.getNamespace());
+		}
+		if (parts.getChildCount() == 1) {
+			// - {m|
+			return true;
+		}
+		// - {m:na|me
+		// - {name.na|me
+		return M_NAMESPACE_NAME.equals(parts.getNamespace());
 	}
 
 	/**

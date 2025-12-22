@@ -35,10 +35,13 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
+import com.redhat.qute.project.documents.TemplateValidator;
 
 public abstract class MockQuteProject extends QuteProject {
 
 	private static final Logger LOGGER = Logger.getLogger(MockQuteProject.class.getName());
+
+	private final ProjectInfo projectInfo;
 
 	private final List<JavaTypeInfo> typesCache;
 
@@ -51,7 +54,8 @@ public abstract class MockQuteProject extends QuteProject {
 	private final Map<String, NamespaceResolverInfo> namespaceResolverInfos;
 
 	public MockQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
-		super(projectInfo, projectRegistry, null);
+		super(projectInfo, projectRegistry);
+		this.projectInfo = projectInfo;
 		this.typesCache = new ArrayList<>();
 		this.fillJavaTypes(typesCache);
 		this.resolvedTypesCache = new ArrayList<>();
@@ -62,6 +66,10 @@ public abstract class MockQuteProject extends QuteProject {
 		this.fillValueResolvers(valueResolvers);
 		this.namespaceResolverInfos = new HashMap<>();
 		this.fillNamespaceResolverInfos(namespaceResolverInfos);
+	}
+
+	public ProjectInfo getProjectInfo() {
+		return projectInfo;
 	}
 
 	public ResolvedJavaTypeInfo getResolvedJavaTypeSync(String typeName) {

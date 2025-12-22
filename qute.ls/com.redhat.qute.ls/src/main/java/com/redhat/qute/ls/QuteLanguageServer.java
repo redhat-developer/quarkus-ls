@@ -110,12 +110,16 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 
 	public QuteLanguageServer() {
 		this.sharedSettings = new SharedSettings();
-		this.projectRegistry = new QuteProjectRegistry(this, this, this, this, this, this, this, this, //
-				() -> capabilityManager.getClientCapabilities()
-						.isWorkDoneProgressSupported() ? this : null);
+		this.projectRegistry = createProjectRegistry();
 		this.quteLanguageService = new QuteLanguageService(projectRegistry);
 		this.textDocumentService = new QuteTextDocumentService(this);
 		this.workspaceService = new QuteWorkspaceService(this);
+	}
+
+	protected QuteProjectRegistry createProjectRegistry() {
+		return new QuteProjectRegistry(this, this, this, this, this, this, this, this, //
+				() -> capabilityManager.getClientCapabilities()
+						.isWorkDoneProgressSupported() ? this : null);
 	}
 
 	@Override

@@ -77,9 +77,13 @@ public class FileUtils {
 			return null;
 		}
 		if (fileURi.isAbsolute()) {
+			// Real usecase
+			// ex: uriString = file://C/Users/XXX/renarde/src/main/resources
 			return new File(fileURi).toPath();
 		}
-		return new File(uriString).toPath();
+		// Usecase coming from Tests
+		// ex: uriString = src/test/resources/projects/renarde/src/main/resources
+		return new File(uriString).toPath().toAbsolutePath().normalize();
 	}
 
 	public static String toUri(Path path) {

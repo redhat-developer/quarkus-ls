@@ -110,8 +110,7 @@ public class QuteQuickStartProject extends BaseQuteProject {
 		registerField("name : java.lang.String", classA);
 
 		ResolvedJavaTypeInfo classAWithGeneric = createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassAWithGeneric<T>",
-				cache, false,
-				"org.acme.qute.cyclic.ClassCWithGeneric<T>");
+				cache, false, "org.acme.qute.cyclic.ClassCWithGeneric<T>");
 		createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassBWithGeneric<T>", cache, false,
 				"org.acme.qute.cyclic.ClassAWithGeneric<T>");
 		createResolvedJavaTypeInfo("org.acme.qute.cyclic.ClassCWithGeneric<T>", cache, false,
@@ -214,10 +213,9 @@ public class QuteQuickStartProject extends BaseQuteProject {
 		itemWithRegisterForReflectionNoMethods.setRegisterForReflectionAnnotation(registerForReflectionAnnotation);
 
 		// Renarde controller
-		createResolvedJavaTypeInfo(
-				"javax.ws.rs.core.Response", cache, true);
-		ResolvedJavaTypeInfo renardeLogin = createResolvedJavaTypeInfo(
-				"rest.Login", cache, false, "io.quarkiverse.renarde.oidc.ControllerWithUser<model.User>");
+		createResolvedJavaTypeInfo("javax.ws.rs.core.Response", cache, true);
+		ResolvedJavaTypeInfo renardeLogin = createResolvedJavaTypeInfo("rest.Login", cache, false,
+				"io.quarkiverse.renarde.oidc.ControllerWithUser<model.User>");
 
 		JavaMethodInfo loginMethod = registerMethod("login() : io.quarkus.qute.TemplateInstance", renardeLogin);
 		loginMethod.setJaxRsMethodKind(JaxRsMethodKind.POST);
@@ -364,19 +362,16 @@ public class QuteQuickStartProject extends BaseQuteProject {
 		resolvers.add(createValueResolver(null, null, (String) null,
 				"io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
 				"mod(number : java.lang.Integer, mod : java.lang.Integer) : java.lang.Integer",
-				ValueResolverKind.TemplateExtensionOnMethod,
-				false, true));
+				ValueResolverKind.TemplateExtensionOnMethod, false, true));
 		resolvers.add(createValueResolver(null, null, List.of("plus", "+"),
 				"io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
 				"addToInt(number : java.lang.Integer, name : java.lang.String, other : java.lang.Integer) : java.lang.Integer",
-				ValueResolverKind.TemplateExtensionOnMethod,
-				false, true));
+				ValueResolverKind.TemplateExtensionOnMethod, false, true));
 		resolvers.add(createValueResolver(null, null, List.of("minus", "-"),
 				"io.quarkus.qute.runtime.extensions.NumberTemplateExtensions",
 				"subtractFromInt(number : java.lang.Integer, name : java.lang.String, other : java.lang.Integer) : java.lang.Integer",
-				ValueResolverKind.TemplateExtensionOnMethod,
-				false, true));
-		
+				ValueResolverKind.TemplateExtensionOnMethod, false, true));
+
 		// Type value resolvers
 		resolvers.add(createValueResolver("inject", "plexux", (String) null,
 				"org.eclipse.aether.internal.transport.wagon.PlexusWagonConfigurator",
@@ -392,11 +387,10 @@ public class QuteQuickStartProject extends BaseQuteProject {
 		resolvers.add(createValueResolver(null, null, (String) null, "org.acme.ItemResource",
 				"discountedPrice(item : org.acme.Item) : java.math.BigDecimal",
 				ValueResolverKind.TemplateExtensionOnMethod, false, false));
-		resolvers.add(
-				createValueResolver(null, null, (String) null,
-						"io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
-						"getByIndex(list : java.util.List<T>, index : int) : T",
-						ValueResolverKind.TemplateExtensionOnClass, false, true));
+		resolvers.add(createValueResolver(null, null, (String) null,
+				"io.quarkus.qute.runtime.extensions.CollectionTemplateExtensions",
+				"getByIndex(list : java.util.List<T>, index : int) : T", ValueResolverKind.TemplateExtensionOnClass,
+				false, true));
 		resolvers.add(createValueResolver(null, null, (String) null, "org.acme.ItemResource",
 				"pretty(item : org.acme.Item, elements : java.lang.String...) : java.lang.String",
 				ValueResolverKind.TemplateExtensionOnMethod, false, false));
@@ -415,11 +409,10 @@ public class QuteQuickStartProject extends BaseQuteProject {
 				createValueResolver("config", null, "*", "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
 						"getConfigProperty(propertyName : java.lang.String) : java.lang.Object",
 						ValueResolverKind.TemplateExtensionOnMethod, false, true));
-		resolvers.add(
-				createValueResolver("config", null, (String) null,
-						"io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
-						"property(propertyName : java.lang.String) : java.lang.Object",
-						ValueResolverKind.TemplateExtensionOnMethod, false, true));
+		resolvers.add(createValueResolver("config", null, (String) null,
+				"io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
+				"property(propertyName : java.lang.String) : java.lang.Object",
+				ValueResolverKind.TemplateExtensionOnMethod, false, true));
 
 		// Static method value resolvers
 		resolvers.add(createValueResolver(null, "VARCHAR_SIZE", null, "util.Globals", "VARCHAR_SIZE() : int",
@@ -439,21 +432,18 @@ public class QuteQuickStartProject extends BaseQuteProject {
 
 		// Web bundler 'bundle" field as global
 		resolvers.add(createValueResolver(null, "bundle", null, "util.Globals",
-				"bundle : java.util.Map<java.lang.String,java.lang.String>",
-				ValueResolverKind.TemplateGlobal, true));
+				"bundle : java.util.Map<java.lang.String,java.lang.String>", ValueResolverKind.TemplateGlobal, true));
 
 		// Type-safe Message Bundles support
 		ValueResolverInfo hello_name = createValueResolver("msg", null, (String) null, "org.acme.AppMessages",
-				"hello_name(name : java.lang.String) : java.lang.String",
-				ValueResolverKind.Message, false, false);
+				"hello_name(name : java.lang.String) : java.lang.String", ValueResolverKind.Message, false, false);
 		MessageResolverData hello_nameData = new MessageResolverData();
 		hello_nameData.setMessage("Hello {name ?: 'Qute'}");
 		hello_name.setData(hello_nameData);
 		resolvers.add(hello_name);
 
 		ValueResolverInfo hello = createValueResolver("msg2", null, (String) null, "org.acme.App2Messages",
-				"hello() : java.lang.String",
-				ValueResolverKind.Message, false, false);
+				"hello() : java.lang.String", ValueResolverKind.Message, false, false);
 		MessageResolverData helloData = new MessageResolverData();
 		helloData.setMessage("Hello!");
 		hello.setData(helloData);

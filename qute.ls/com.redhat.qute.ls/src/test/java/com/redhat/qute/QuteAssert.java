@@ -231,6 +231,11 @@ public class QuteAssert {
 				}).get();
 
 		// no duplicate labels
+		assertCompletion(list, expectedCount, itemDefaultsSupport, expectedItems);
+	}
+
+	public static void assertCompletion(CompletionList list, Integer expectedCount, boolean itemDefaultsSupport,
+			CompletionItem... expectedItems) {
 		List<String> labels = list.getItems().stream().map(i -> i.getLabel()).sorted().collect(Collectors.toList());
 		String previous = null;
 		for (String label : labels) {
@@ -499,11 +504,15 @@ public class QuteAssert {
 		if (expectedHoverLabel == null) {
 			assertNull(hover);
 		} else {
-			String actualHoverLabel = getHoverLabel(hover);
-			assertEquals(expectedHoverLabel, actualHoverLabel);
-			if (expectedHoverRange != null) {
-				assertEquals(expectedHoverRange, hover.getRange());
-			}
+			assertHover(hover, expectedHoverLabel, expectedHoverRange);
+		}
+	}
+
+	public static void assertHover(Hover hover, String expectedHoverLabel, Range expectedHoverRange) {
+		String actualHoverLabel = getHoverLabel(hover);
+		assertEquals(expectedHoverLabel, actualHoverLabel);
+		if (expectedHoverRange != null) {
+			assertEquals(expectedHoverRange, hover.getRange());
 		}
 	}
 
@@ -888,7 +897,7 @@ public class QuteAssert {
 		List<? extends Location> actual = languageService.findReferences(template, position, new ReferenceContext(),
 				() -> {
 				});
-		assertLocation(actual, expected);
+		assertLocations(actual, expected);
 
 	}
 
@@ -896,7 +905,7 @@ public class QuteAssert {
 		return new Location(uri, range);
 	}
 
-	public static void assertLocation(List<? extends Location> actual, Location... expected) {
+	public static void assertLocations(List<? extends Location> actual, Location... expected) {
 		assertEquals(expected.length, actual.size());
 		assertArrayEquals(expected, actual.toArray());
 	}

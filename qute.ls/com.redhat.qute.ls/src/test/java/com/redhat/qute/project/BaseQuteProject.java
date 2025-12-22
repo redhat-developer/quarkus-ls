@@ -32,12 +32,11 @@ public abstract class BaseQuteProject extends MockQuteProject {
 
 	public BaseQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		super(projectInfo, projectRegistry);
-	} 
+	}
 
 	protected DataModelProject<DataModelTemplate<?>> loadDataModel(String fileName, Class<?> clazz) {
 		InputStream in = clazz.getResourceAsStream(fileName);
-		return new GsonBuilder().create().fromJson(new InputStreamReader(in),
-				DataModelProject.class);
+		return new GsonBuilder().create().fromJson(new InputStreamReader(in), DataModelProject.class);
 	}
 
 	protected void loadResolvedJavaType(String fileName, List<ResolvedJavaTypeInfo> resolvedJavaTypes, Class<?> clazz) {
@@ -62,11 +61,14 @@ public abstract class BaseQuteProject extends MockQuteProject {
 		// Java type primitives
 		createResolvedJavaTypeInfo("java.lang.Object", resolvedJavaTypes, true);
 		createResolvedJavaTypeInfo("java.lang.Boolean", resolvedJavaTypes, true);
-		createResolvedJavaTypeInfo("java.lang.Integer", resolvedJavaTypes, true);
 		createResolvedJavaTypeInfo("java.lang.Double", resolvedJavaTypes, true);
 		createResolvedJavaTypeInfo("java.lang.Long", resolvedJavaTypes, true);
 		createResolvedJavaTypeInfo("java.lang.Float", resolvedJavaTypes, true);
 		createResolvedJavaTypeInfo("java.math.BigDecimal", resolvedJavaTypes, true);
+
+		// Integer
+		ResolvedJavaTypeInfo integer = createResolvedJavaTypeInfo("java.lang.Integer", resolvedJavaTypes, true);
+		registerMethod("byteValue() : byte", integer);
 
 		// String
 		ResolvedJavaTypeInfo string = createResolvedJavaTypeInfo("java.lang.String", resolvedJavaTypes, true);

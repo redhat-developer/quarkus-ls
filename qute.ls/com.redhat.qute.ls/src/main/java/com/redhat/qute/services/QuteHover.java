@@ -29,6 +29,7 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.qute.commons.JavaElementInfo;
 import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
@@ -296,6 +297,24 @@ public class QuteHover {
 			// It's an user tag
 			SectionMetadata specialKey = UserTagUtils.getSpecialKey(part.getPartName());
 			if (specialKey != null) {
+				if (UserTagUtils.IT_OBJECT_PART_NAME.equals(specialKey.getName())) {
+					return project.resolveJavaType(part) //
+							.thenApply(resolvedJavaType -> {
+								// Try to show the proper type of 'it'
+								cancelChecker.checkCanceled();
+								String itType = isValidJavaType(resolvedJavaType)
+										? JavaElementInfo.getSimpleType(resolvedJavaType.getName())
+										: null;
+								SectionMetadata javaTypeInfo = itType != null
+										? new SectionMetadata(specialKey.getName(), itType, specialKey.getDescription())
+										: specialKey;
+								boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+								MarkupContent content = DocumentationUtils.getDocumentation(javaTypeInfo, hasMarkdown);
+								Range range = QutePositionUtility.createRange(part);
+								return new Hover(content, range);
+							});
+
+				}
 				// its a special key for user tag ({it} or {nested-content), display the special
 				// key documentation.
 				boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);

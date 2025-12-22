@@ -14,6 +14,7 @@ package com.redhat.qute.project;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.Location;
@@ -35,6 +36,14 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
+import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
+import com.redhat.qute.ls.api.QuteJavaDefinitionProvider;
+import com.redhat.qute.ls.api.QuteJavaTypesProvider;
+import com.redhat.qute.ls.api.QuteJavadocProvider;
+import com.redhat.qute.ls.api.QuteProjectInfoProvider;
+import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
+import com.redhat.qute.ls.api.QuteUserTagProvider;
+import com.redhat.qute.project.documents.TemplateValidator;
 import com.redhat.qute.project.multiple.QuteProjectA;
 import com.redhat.qute.project.multiple.QuteProjectB;
 import com.redhat.qute.project.qute_web.QuteWebProject;
@@ -52,7 +61,17 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	public static final Range JAVA_STATIC_METHOD_RANGE = new Range(new Position(3, 3), new Position(3, 3));
 
 	public MockQuteProjectRegistry() {
-		super(null, null, null, null, null, null, null, null, () -> null);
+		this(null, null, null, null, null, null, null, null, () -> null);
+	}
+
+	public MockQuteProjectRegistry(QuteProjectInfoProvider projectInfoProvider, QuteJavaTypesProvider javaTypeProvider,
+			QuteJavaDefinitionProvider definitionProvider, QuteResolvedJavaTypeProvider resolvedClassProvider,
+			QuteDataModelProjectProvider dataModelProvider, QuteUserTagProvider userTagsProvider,
+			QuteJavadocProvider javadocProvider, TemplateValidator validator,
+			Supplier<ProgressSupport> progressSupportProvider) {
+		super(projectInfoProvider, javaTypeProvider, definitionProvider, resolvedClassProvider, dataModelProvider,
+				userTagsProvider, javadocProvider, validator, progressSupportProvider);
+		super.setAsyncValidation(false);
 		super.setDidChangeWatchedFilesSupported(true);
 	}
 
@@ -74,7 +93,7 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 			return new QuteWebProject(projectInfo, this);
 		}
 		if (RenardeProject.PROJECT_URI.equals(projectInfo.getUri())) {
-			return new RenardeProject(this);
+			return new RenardeProject(projectInfo, this);
 		}
 		return super.createProject(projectInfo);
 	}
