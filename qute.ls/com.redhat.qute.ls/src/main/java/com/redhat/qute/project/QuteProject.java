@@ -303,6 +303,7 @@ public class QuteProject {
 	 * @param document the Qute template.
 	 */
 	public void onDidSaveTextDocument(QuteTextDocument document) {
+		document.save();
 		UserTag userTag = getUserTag(document.getTemplate());
 		if (userTag != null) {
 			// The user tag has been saved, refresh it.
@@ -430,6 +431,10 @@ public class QuteProject {
 		return tagRegistry.getBinaryUserTags();
 	}
 
+	public UserTagRegistry getTagRegistry() {
+		return tagRegistry;
+	}
+	
 	/**
 	 * Find user tag by the given tagName and null otherwise.
 	 *
