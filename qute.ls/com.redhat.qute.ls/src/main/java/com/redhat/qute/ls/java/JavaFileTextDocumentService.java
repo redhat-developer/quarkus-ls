@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.ClientCapabilities;
@@ -34,7 +35,7 @@ import com.redhat.qute.commons.QuteJavaCodeLensParams;
 import com.redhat.qute.commons.QuteJavaDiagnosticsParams;
 import com.redhat.qute.commons.QuteJavaDocumentLinkParams;
 import com.redhat.qute.ls.AbstractTextDocumentService;
-import com.redhat.qute.ls.QuteLanguageServer;
+import com.redhat.qute.ls.api.QuteLanguageClientAPI;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.ls.commons.TextDocuments;
 import com.redhat.qute.ls.commons.ValidatorDelayer;
@@ -45,8 +46,9 @@ public class JavaFileTextDocumentService extends AbstractTextDocumentService {
 	private final TextDocuments<TextDocument> textDocuments;
 	private final ValidatorDelayer<TextDocument> validatorDelayer;
 
-	public JavaFileTextDocumentService(QuteLanguageServer quteLanguageServer, SharedSettings sharedSettings) {
-		super(quteLanguageServer, sharedSettings);
+	public JavaFileTextDocumentService(Supplier<QuteLanguageClientAPI> languageClientProvider,
+			SharedSettings sharedSettings) {
+		super(languageClientProvider, sharedSettings);
 		textDocuments = new TextDocuments<>();
 		validatorDelayer = new ValidatorDelayer<>((textDocument) -> {
 			triggerValidationFor(textDocument);
@@ -70,7 +72,11 @@ public class JavaFileTextDocumentService extends AbstractTextDocumentService {
 	@Override
 	public void didClose(DidCloseTextDocumentParams params) {
 		TextDocument textDocument = textDocuments.onDidCloseTextDocument(params);
-		quteLanguageServer.getLanguageClient()
+		QuteLanguageClientAPI languageClient = getLanguageClient();
+		if (languageClient == null) {
+			return;
+		}
+		languageClient//
 				.publishDiagnostics(new PublishDiagnosticsParams(textDocument.getUri(), new ArrayList<Diagnostic>()));
 	}
 
@@ -87,19 +93,24 @@ public class JavaFileTextDocumentService extends AbstractTextDocumentService {
 
 	@Override
 	public CompletableFuture<List<? extends CodeLens>> codeLens(CodeLensParams params) {
-		if (!sharedSettings.getCodeLensSettings().isEnabled()) {
+		QuteLanguageClientAPI languageClient = getLanguageClient();
+		if (languageClient == null || !sharedSettings.getCodeLensSettings().isEnabled()) {
 			return CompletableFuture.completedFuture(Collections.emptyList());
 		}
 		QuteJavaCodeLensParams javaParams = new QuteJavaCodeLensParams(params.getTextDocument().getUri());
-		return quteLanguageServer.getLanguageClient().getJavaCodelens(javaParams);
+		return languageClient.getJavaCodelens(javaParams);
 	}
 
 	// ------------------------------ Document link ------------------------------
 
 	@Override
 	public CompletableFuture<List<DocumentLink>> documentLink(DocumentLinkParams params) {
+		QuteLanguageClientAPI languageClient = getLanguageClient();
+		if (languageClient == null) {
+			return CompletableFuture.completedFuture(Collections.emptyList());
+		}
 		QuteJavaDocumentLinkParams javaParams = new QuteJavaDocumentLinkParams(params.getTextDocument().getUri());
-		return quteLanguageServer.getLanguageClient().getJavaDocumentLink(javaParams);
+		return languageClient.getJavaDocumentLink(javaParams);
 	}
 
 	// ------------------------------ Diagnostics ------------------------------
@@ -125,16 +136,20 @@ public class JavaFileTextDocumentService extends AbstractTextDocumentService {
 		if (textDocuments.isEmpty()) {
 			return;
 		}
+		QuteLanguageClientAPI languageClient = getLanguageClient();
+		if (languageClient == null) {
+			return;
+		}
 		List<String> uris = textDocuments.stream().map(textDocument -> textDocument.getUri())
 				.collect(Collectors.toList());
 		QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams(uris);
-		quteLanguageServer.getLanguageClient().getJavaDiagnostics(params) //
+		languageClient.getJavaDiagnostics(params) //
 				.thenApply(diagnostics -> {
 					if (diagnostics == null) {
 						return null;
 					}
 					for (PublishDiagnosticsParams diagnostic : diagnostics) {
-						quteLanguageServer.getLanguageClient().publishDiagnostics(diagnostic);
+						languageClient.publishDiagnostics(diagnostic);
 					}
 					return null;
 				});
