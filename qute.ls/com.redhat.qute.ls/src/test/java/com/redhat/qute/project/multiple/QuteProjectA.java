@@ -33,8 +33,8 @@ public class QuteProjectA extends MockQuteProject {
 
 	public QuteProjectA(QuteProjectRegistry projectRegistry) {
 		super(new ProjectInfo(PROJECT_URI, Collections.emptyList(),
-				Arrays.asList(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates"))),
-				projectRegistry);
+				Arrays.asList(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates")),
+				Collections.emptySet()), projectRegistry);
 	}
 
 	@Override

@@ -13,15 +13,20 @@ package com.redhat.qute.jdt.utils;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -73,7 +78,30 @@ public class JDTQuteProjectUtils {
 		// Template root paths
 		List<TemplateRootPath> templateRootPaths = TemplateRootPathProviderRegistry.getInstance()
 				.getTemplateRootPaths(javaProject, null);
-		return new ProjectInfo(projectUri, projectDependencies, templateRootPaths);
+		Set<String> sourceFolders = getSourceFolders(javaProject);
+		return new ProjectInfo(projectUri, projectDependencies, templateRootPaths, sourceFolders);
+	}
+
+	private static Set<String> getSourceFolders(IJavaProject javaProject) {
+		try {
+			Set<String> sourceFolders = new HashSet<>();
+			for (IPackageFragmentRoot root : javaProject.getPackageFragmentRoots()) {
+				if (root.getKind() != IPackageFragmentRoot.K_SOURCE) {
+					continue;
+				}
+
+				IResource resource = root.getCorrespondingResource();
+				if (resource instanceof IFolder) {
+					sourceFolders.add(resource.getLocation().toFile().toURI().toASCIIString());
+				}
+			}
+			return sourceFolders;
+		} catch (JavaModelException e) {
+			// Should never occurs
+			LOGGER.log(Level.SEVERE, "Error while getting project source follders for '" + javaProject.getElementName()
+					+ "' Java project.", e);
+			return Collections.emptySet();
+		}
 	}
 
 	/**

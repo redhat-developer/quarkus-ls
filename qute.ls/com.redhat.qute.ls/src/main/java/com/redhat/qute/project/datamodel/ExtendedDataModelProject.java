@@ -11,8 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.project.datamodel;
 
-import static com.redhat.qute.project.datamodel.resolvers.ValueResolver.MATCH_NAME_ANY;
-
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,14 +32,17 @@ import com.redhat.qute.commons.datamodel.resolvers.MessageResolverData;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.parser.expression.NamespacePart;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
-import com.redhat.qute.project.datamodel.resolvers.MessageValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.MessageMethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
 import com.redhat.qute.utils.JSONUtility;
 import com.redhat.qute.utils.StringUtils;
 
 public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModelTemplate> {
+
+	private final QuteProject project;
 
 	private final Set<String> allNamespaces;
 
@@ -56,14 +58,16 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 
 	private Set<String> javaTypesSupportedInNativeMode;
 
-	public ExtendedDataModelProject(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
-		super.setTemplates(createTemplates(project.getTemplates()));
-		super.setNamespaceResolverInfos(project.getNamespaceResolverInfos());
+	public ExtendedDataModelProject(DataModelProject<DataModelTemplate<DataModelParameter>> dataModelProject,
+			QuteProject project) {
+		this.project = project;
+		super.setTemplates(createTemplates(dataModelProject.getTemplates()));
+		super.setNamespaceResolverInfos(dataModelProject.getNamespaceResolverInfos());
 
 		typeValueResolvers = new ArrayList<>();
 		fieldValueResolvers = new ArrayList<>();
 		methodValueResolvers = new ArrayList<MethodValueResolver>();
-		updateValueResolvers(typeValueResolvers, fieldValueResolvers, methodValueResolvers, project);
+		updateValueResolvers(typeValueResolvers, fieldValueResolvers, methodValueResolvers, dataModelProject);
 		Collections.sort(methodValueResolvers, (r1, r2) -> {
 			if (r1.isMatchNameAny()) {
 				return 1;
@@ -73,9 +77,9 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 			}
 			return 0;
 		});
-		allNamespaces = getAllNamespaces(project);
-		allTemplateExtensionsClasses = getAllTemplateExtensionsClasses(project);
-		similarNamespaces = getSimilarNamespaces(project);
+		allNamespaces = getAllNamespaces(dataModelProject);
+		allTemplateExtensionsClasses = getAllTemplateExtensionsClasses(dataModelProject);
+		similarNamespaces = getSimilarNamespaces(dataModelProject);
 	}
 
 	private static void updateValueResolvers(List<TypeValueResolver> typeValueResolvers,
@@ -84,46 +88,46 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 		project.getValueResolvers().forEach(resolver -> {
 			JavaElementKind kind = resolver.getJavaElementKind();
 			switch (kind) {
-				case TYPE:
-					TypeValueResolver typeValueResolver = new TypeValueResolver();
-					typeValueResolver.setNamed(resolver.getNamed());
-					typeValueResolver.setNamespace(resolver.getNamespace());
-					typeValueResolver.setSignature(resolver.getSignature());
-					typeValueResolver.setSourceType(resolver.getSourceType());
-					typeValueResolver.setGlobalVariable(resolver.isGlobalVariable());
-					typeValueResolver.setKind(resolver.getKind());
-					typeValueResolvers.add(typeValueResolver);
-					break;
-				case FIELD:
-					FieldValueResolver fieldValueResolver = new FieldValueResolver();
-					fieldValueResolver.setNamed(resolver.getNamed());
-					fieldValueResolver.setNamespace(resolver.getNamespace());
-					fieldValueResolver.setSignature(resolver.getSignature());
-					fieldValueResolver.setSourceType(resolver.getSourceType());
-					fieldValueResolver.setGlobalVariable(resolver.isGlobalVariable());
-					fieldValueResolver.setKind(resolver.getKind());
-					fieldValueResolvers.add(fieldValueResolver);
-					break;
-				case METHOD:
-					MethodValueResolver methodValueResolver = resolver.getKind() == ValueResolverKind.Message
-							? new MessageValueResolver()
-							: new MethodValueResolver();
-					methodValueResolver.setNamed(resolver.getNamed());
-					methodValueResolver.setNamespace(resolver.getNamespace());
-					methodValueResolver.setMatchNames(resolver.getMatchNames());
-					methodValueResolver.setSignature(resolver.getSignature());
-					methodValueResolver.setSourceType(resolver.getSourceType());
-					methodValueResolver.setGlobalVariable(resolver.isGlobalVariable());
-					methodValueResolver.setKind(resolver.getKind());
-					if (resolver.getKind() == ValueResolverKind.Message && resolver.getData() != null) {
-						MessageResolverData data = JSONUtility.toModel(resolver.getData(), MessageResolverData.class);
-						((MessageValueResolver) methodValueResolver).setLocale(data.getLocale());
-						((MessageValueResolver) methodValueResolver).setMessage(data.getMessage());
-					}
-					methodValueResolvers.add(methodValueResolver);
-					break;
-				default:
-					break;
+			case TYPE:
+				TypeValueResolver typeValueResolver = new TypeValueResolver();
+				typeValueResolver.setNamed(resolver.getNamed());
+				typeValueResolver.setNamespace(resolver.getNamespace());
+				typeValueResolver.setSignature(resolver.getSignature());
+				typeValueResolver.setSourceType(resolver.getSourceType());
+				typeValueResolver.setGlobalVariable(resolver.isGlobalVariable());
+				typeValueResolver.setKind(resolver.getKind());
+				typeValueResolvers.add(typeValueResolver);
+				break;
+			case FIELD:
+				FieldValueResolver fieldValueResolver = new FieldValueResolver();
+				fieldValueResolver.setNamed(resolver.getNamed());
+				fieldValueResolver.setNamespace(resolver.getNamespace());
+				fieldValueResolver.setSignature(resolver.getSignature());
+				fieldValueResolver.setSourceType(resolver.getSourceType());
+				fieldValueResolver.setGlobalVariable(resolver.isGlobalVariable());
+				fieldValueResolver.setKind(resolver.getKind());
+				fieldValueResolvers.add(fieldValueResolver);
+				break;
+			case METHOD:
+				MethodValueResolver methodValueResolver = resolver.getKind() == ValueResolverKind.Message
+						? new MessageMethodValueResolver()
+						: new MethodValueResolver();
+				methodValueResolver.setNamed(resolver.getNamed());
+				methodValueResolver.setNamespace(resolver.getNamespace());
+				methodValueResolver.setMatchNames(resolver.getMatchNames());
+				methodValueResolver.setSignature(resolver.getSignature());
+				methodValueResolver.setSourceType(resolver.getSourceType());
+				methodValueResolver.setGlobalVariable(resolver.isGlobalVariable());
+				methodValueResolver.setKind(resolver.getKind());
+				if (resolver.getKind() == ValueResolverKind.Message && resolver.getData() != null) {
+					MessageResolverData data = JSONUtility.toModel(resolver.getData(), MessageResolverData.class);
+					((MessageMethodValueResolver) methodValueResolver).setLocale(data.getLocale());
+					((MessageMethodValueResolver) methodValueResolver).setMessage(data.getMessage());
+				}
+				methodValueResolvers.add(methodValueResolver);
+				break;
+			default:
+				break;
 
 			}
 		});
@@ -253,6 +257,10 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 			}
 		});
 		return javaTypesSupportedInNativeMode;
+	}
+
+	public Set<Path> getSourcePaths() {
+		return project.getSourcePaths();
 	}
 
 }

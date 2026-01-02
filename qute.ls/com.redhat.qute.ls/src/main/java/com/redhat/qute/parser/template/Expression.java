@@ -136,7 +136,7 @@ public class Expression extends Node {
 		return parts != null ? (Part) parts.getLastChild() : null;
 	}
 
-	private Parts getParts() {
+	public Parts getParts() {
 		List<Node> nodes = getExpressionContent();
 		if (nodes.isEmpty()) {
 			return null;

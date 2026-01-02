@@ -13,11 +13,14 @@ package com.redhat.qute.services;
 
 import static com.redhat.qute.services.QuteCompletableFutures.isValidJavaType;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkupContent;
@@ -51,12 +54,14 @@ import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
+import com.redhat.qute.project.extensions.HoverParticipant;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.services.hover.HoverRequest;
 import com.redhat.qute.settings.QuteNativeSettings;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.DocumentationUtils;
 import com.redhat.qute.utils.QutePositionUtility;
+import com.redhat.qute.utils.StringUtils;
 import com.redhat.qute.utils.UserTagUtils;
 
 /**
@@ -68,6 +73,8 @@ import com.redhat.qute.utils.UserTagUtils;
 public class QuteHover {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteHover.class.getName());
+
+	public static final String MARKDOWN_SEPARATOR = "___";
 
 	private static CompletableFuture<Hover> NO_HOVER = CompletableFuture.completedFuture(null);
 
@@ -93,21 +100,21 @@ public class QuteHover {
 			return NO_HOVER;
 		}
 		switch (node.getKind()) {
-			case Section:
-				// - Start end tag definition
-				Section section = (Section) node;
-				return doHoverForSection(section, template, hoverRequest, cancelChecker);
-			case ParameterDeclaration:
-				ParameterDeclaration parameterDeclaration = (ParameterDeclaration) node;
-				return doHoverForParameterDeclaration(parameterDeclaration, template, hoverRequest, cancelChecker);
-			case ExpressionPart:
-				Part part = (Part) node;
-				return doHoverForExpressionPart(part, template, hoverRequest, nativeSettings, cancelChecker);
-			case Parameter:
-				Parameter parameter = (Parameter) node;
-				return doHoverForParameter(parameter, template, hoverRequest);
-			default:
-				return NO_HOVER;
+		case Section:
+			// - Start end tag definition
+			Section section = (Section) node;
+			return doHoverForSection(section, template, hoverRequest, cancelChecker);
+		case ParameterDeclaration:
+			ParameterDeclaration parameterDeclaration = (ParameterDeclaration) node;
+			return doHoverForParameterDeclaration(parameterDeclaration, template, hoverRequest, cancelChecker);
+		case ExpressionPart:
+			Part part = (Part) node;
+			return doHoverForExpressionPart(part, template, hoverRequest, nativeSettings, cancelChecker);
+		case Parameter:
+			Parameter parameter = (Parameter) node;
+			return doHoverForParameter(parameter, template, hoverRequest);
+		default:
+			return NO_HOVER;
 		}
 	}
 
@@ -200,17 +207,16 @@ public class QuteHover {
 					cancelChecker);
 		}
 		switch (part.getPartKind()) {
-			case Namespace:
-				return doHoverForNamespacePart(part, project, hoverRequest, cancelChecker);
-			case Object:
-				return doHoverForObjectPart(part, project, hoverRequest, cancelChecker);
-			case Method:
-				return doHoverForMethodInvocation((MethodPart) part, project, hoverRequest, nativeSettings,
-						cancelChecker);
-			case Property:
-				return doHoverForPropertyPart(part, project, hoverRequest, cancelChecker);
-			default:
-				return NO_HOVER;
+		case Namespace:
+			return doHoverForNamespacePart(part, project, hoverRequest, cancelChecker);
+		case Object:
+			return doHoverForObjectPart(part, project, hoverRequest, cancelChecker);
+		case Method:
+			return doHoverForMethodInvocation((MethodPart) part, project, hoverRequest, nativeSettings, cancelChecker);
+		case Property:
+			return doHoverForPropertyPart(part, project, hoverRequest, cancelChecker);
+		default:
+			return NO_HOVER;
 		}
 	}
 
@@ -243,7 +249,14 @@ public class QuteHover {
 			return project.findJavaElementWithNamespace(namespace, part.getPartName()) //
 					.thenApply(javaElement -> {
 						if (javaElement == null) {
-							return null;
+							// ex: {m:applica|tion.index.subtitle}
+							List<Hover> hovers = new ArrayList<Hover>();
+							for (HoverParticipant hoverParticipant : project.getExtensions()) {
+								if (hoverParticipant.isEnabled()) {
+									hoverParticipant.doHover(part, hovers, cancelChecker);
+								}
+							}
+							return mergeHover(hovers, null);
 						}
 						if (javaElement instanceof JavaTypeInfo) {
 							return doHoverForJavaType(part, (JavaTypeInfo) javaElement, hoverRequest);
@@ -392,8 +405,7 @@ public class QuteHover {
 
 		for (int i = 0; i < part.getParameters().size(); i++) {
 			final int index = i;
-			CompletableFuture<Void> paramResolveFuture = project
-					.resolveJavaType(part.getParameters().get(i)) //
+			CompletableFuture<Void> paramResolveFuture = project.resolveJavaType(part.getParameters().get(i)) //
 					.thenAccept(resolvedJavaType -> parameterTypes[index] = resolvedJavaType);
 			paramResolveFutures[i] = paramResolveFuture;
 		}
@@ -423,15 +435,13 @@ public class QuteHover {
 										.setDocumentation(documentation == null ? "" : documentation));
 						return javadocFetchFuture.thenApply(alsoUnused -> {
 							MarkupContent content = DocumentationUtils.getDocumentation(memberResult.getMember(),
-									iterableOfResolvedType,
-									hasMarkdown);
+									iterableOfResolvedType, hasMarkdown);
 							Range range = QutePositionUtility.createRange(part);
 							return new Hover(content, range);
 						});
 					}
 					MarkupContent content = DocumentationUtils.getDocumentation(memberResult.getMember(),
-							iterableOfResolvedType,
-							hasMarkdown);
+							iterableOfResolvedType, hasMarkdown);
 					Range range = QutePositionUtility.createRange(part);
 					return CompletableFuture.completedFuture(new Hover(content, range));
 				});
@@ -450,13 +460,19 @@ public class QuteHover {
 						return doHoverForPropertyPart(part, project, resolvedJavaType, iterableOfResolvedType,
 								hoverRequest);
 					}
-					return NO_HOVER;
+					// ex: {m:applica|tion.index.subtitle}
+					List<Hover> hovers = new ArrayList<Hover>();
+					for (HoverParticipant hoverParticipant : project.getExtensions()) {
+						if (hoverParticipant.isEnabled()) {
+							hoverParticipant.doHover(part, hovers, cancelChecker);
+						}
+					}
+					return CompletableFuture.completedFuture(mergeHover(hovers, null));
 				});
 	}
 
 	private CompletableFuture<Hover> doHoverForPropertyPart(Part part, QuteProject project,
-			ResolvedJavaTypeInfo resolvedType,
-			ResolvedJavaTypeInfo iterableOfResolvedType, HoverRequest hoverRequest) {
+			ResolvedJavaTypeInfo resolvedType, ResolvedJavaTypeInfo iterableOfResolvedType, HoverRequest hoverRequest) {
 		// The Java class type from the previous part had been resolved, resolve the
 		// property
 		if (project == null) {
@@ -468,8 +484,7 @@ public class QuteHover {
 		}
 		boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
 		if (member.getDocumentation() == null) {
-			CompletableFuture<Void> fetchDocsFuture = project
-					.getJavadoc(member, resolvedType, hasMarkdown) //
+			CompletableFuture<Void> fetchDocsFuture = project.getJavadoc(member, resolvedType, hasMarkdown) //
 					.thenAccept(documentation -> member.setDocumentation(documentation == null ? "" : documentation));
 			return fetchDocsFuture.thenApply((unusedNull) -> {
 				MarkupContent content = DocumentationUtils.getDocumentation(member, iterableOfResolvedType,
@@ -552,5 +567,98 @@ public class QuteHover {
 			}
 		}
 		return NO_HOVER;
+	}
+
+	/**
+	 * Returns the aggregated LSP hover from the given hover list.
+	 * 
+	 * @param hovers       the hover list.
+	 * @param defaultRange the default range according to the hovered DOM node.
+	 * @return the aggregated LSP hover from the given hover list.
+	 */
+	private static Hover mergeHover(List<Hover> hovers, Range defaultRange) {
+		if (hovers.isEmpty()) {
+			// no hover
+			return null;
+		}
+		if (hovers.size() == 1) {
+			// One hover
+			Hover hover = hovers.get(0);
+			if (hover.getRange() == null) {
+				hover.setRange(defaultRange);
+			}
+			return hover;
+		}
+		// Several hovers.
+
+		// Get list of markup content
+		List<MarkupContent> contents = hovers.stream() //
+				.filter(hover -> hover.getContents() != null && hover.getContents().isRight()
+						&& hover.getContents().getRight() != null) //
+				.map(hover -> hover.getContents().getRight()).collect(Collectors.toList());
+
+		// Find the best hover range
+		Range range = defaultRange;
+		for (Hover hover : hovers) {
+			if (hover.getRange() != null) {
+				if (range == null) {
+					range = hover.getRange();
+				} else {
+					// TODO : compute the best range
+				}
+			}
+		}
+		return createHover(contents, range);
+	}
+
+	/**
+	 * Create the hover from the given markup content list and range.
+	 * 
+	 * @param values       the list of documentation values
+	 * @param defaultRange the default range.
+	 * @return the hover from the given markup content list and range.
+	 */
+	public static Hover createHover(List<MarkupContent> values, Range defaultRange) {
+		if (values.isEmpty()) {
+			return null;
+		}
+		if (values.size() == 1) {
+			return new Hover(values.get(0), defaultRange);
+		}
+		// Markup kind
+		boolean hasMarkdown = values.stream() //
+				.anyMatch(contents -> MarkupKind.MARKDOWN.equals(contents.getKind()));
+		String markupKind = hasMarkdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT;
+		// Contents
+		String content = createContent(values, markupKind);
+		// Range
+		Range range = defaultRange;
+		return new Hover(new MarkupContent(markupKind, content), range);
+	}
+
+	/**
+	 * Create the content.
+	 * 
+	 * @param values     the list of documentation values
+	 * @param markupKind the markup kind.
+	 * @return the content.
+	 */
+	private static String createContent(List<MarkupContent> values, String markupKind) {
+		StringBuilder content = new StringBuilder();
+		for (MarkupContent value : values) {
+			if (!StringUtils.isEmpty(value.getValue())) {
+				if (content.length() > 0) {
+					if (markupKind.equals(MarkupKind.MARKDOWN)) {
+						content.append(System.lineSeparator());
+						content.append(System.lineSeparator());
+						content.append(MARKDOWN_SEPARATOR);
+					}
+					content.append(System.lineSeparator());
+					content.append(System.lineSeparator());
+				}
+				content.append(value.getValue());
+			}
+		}
+		return content.toString();
 	}
 }

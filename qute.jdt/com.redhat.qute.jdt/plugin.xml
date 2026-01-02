@@ -77,6 +77,13 @@
                 class="com.redhat.qute.jdt.internal.extensions.renarde.UriNamespaceResolverSupport" />
    </extension>
 
+   <extension point="com.redhat.qute.jdt.dataModelProviders">
+      <provider namespaces="m"
+                description="Localisation / Internationalisation."
+                url="https://docs.quarkiverse.io/quarkus-renarde/dev/advanced.html#localisation"
+                class="com.redhat.qute.jdt.internal.extensions.renarde.MNamespaceResolverSupport" />
+   </extension>
+   
    <!-- Resolved Java Type Factories for Quarkus Renarde -->
    <extension point="com.redhat.qute.jdt.resolvedJavaTypeFactories">
       <factory class="com.redhat.qute.jdt.internal.extensions.renarde.RenardeResolvedJavaTypeFactory" />

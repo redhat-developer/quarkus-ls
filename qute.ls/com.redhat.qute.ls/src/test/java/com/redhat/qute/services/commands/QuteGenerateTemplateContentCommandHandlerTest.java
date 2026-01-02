@@ -37,7 +37,8 @@ public class QuteGenerateTemplateContentCommandHandlerTest {
 	private QuteProjectRegistry createProjectRegistry() {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		projectRegistry.getProject(new ProjectInfo(PROJECT_URI, Collections.emptyList(),
-				Arrays.asList(new TemplateRootPath(TEMPLATE_BASE_DIR))));
+				Arrays.asList(new TemplateRootPath(TEMPLATE_BASE_DIR)), //
+				Collections.emptySet()));
 		return projectRegistry;
 	}
 

@@ -33,12 +33,11 @@ public class QuteProjectB extends MockQuteProject {
 
 	public QuteProjectB(QuteProjectRegistry projectRegistry) {
 		super(new ProjectInfo(PROJECT_URI, Collections.emptyList(),
-				Arrays.asList(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates"))),
-				projectRegistry);
+				Arrays.asList(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates")), //
+				Collections.emptySet()), projectRegistry);
 		// project-b dependends from project-a
-		super.getProjectDependencies().add(projectRegistry.getProject(
-				new ProjectInfo(QuteProjectA.PROJECT_URI, Collections.emptyList(),
-						Arrays.asList(new TemplateRootPath("")))));
+		super.getProjectDependencies().add(projectRegistry.getProject(new ProjectInfo(QuteProjectA.PROJECT_URI,
+				Collections.emptyList(), Arrays.asList(new TemplateRootPath("")), Collections.emptySet())));
 	}
 
 	@Override

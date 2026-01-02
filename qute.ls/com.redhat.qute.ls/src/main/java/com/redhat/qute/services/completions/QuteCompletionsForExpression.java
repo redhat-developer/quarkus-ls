@@ -15,11 +15,11 @@ import static com.redhat.qute.parser.template.Section.isCaseSection;
 import static com.redhat.qute.project.datamodel.resolvers.ValueResolver.MATCH_NAME_ANY;
 import static com.redhat.qute.services.QuteCompletableFutures.isResolvingJavaTypeOrNull;
 import static com.redhat.qute.services.QuteCompletableFutures.isValidJavaType;
-import static com.redhat.qute.services.QuteCompletions.EMPTY_COMPLETION;
 import static com.redhat.qute.services.QuteCompletions.EMPTY_FUTURE_COMPLETION;
 import static com.redhat.qute.utils.UserTagUtils.IT_OBJECT_PART_NAME;
 import static com.redhat.qute.utils.UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -71,6 +71,7 @@ import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
+import com.redhat.qute.project.extensions.CompletionParticipant;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
 import com.redhat.qute.services.QuteCompletableFutures;
@@ -140,34 +141,34 @@ public class QuteCompletionsForExpression {
 		if (nodeExpression.getKind() == NodeKind.ExpressionPart) {
 			Part part = (Part) nodeExpression;
 			switch (part.getPartKind()) {
-				case Object:
-					// ex : { ite|m }
-					return doCompleteExpressionForObjectPart(null, expression, part.getNamespace(), part, offset,
-							template,
-							completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
-				case Property: {
-					// ex : { item.n| }
-					// ex : { item.n|ame }
-					Parts parts = part.getParent();
-					return doCompleteExpressionForMemberPart(part, parts, template, false, completionSettings,
-							formattingSettings, nativeImagesSettings, cancelChecker);
-				}
-				case Method: {
-					// ex : { item.getN|ame() }
+			case Object:
+				// ex : { ite|m }
+				return doCompleteExpressionForObjectPart(completionRequest, expression, part.getNamespace(), part,
+						offset, template, completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
+			case Property: {
+				// ex : { item.n| }
+				// ex : { item.n|ame }
+				Parts parts = part.getParent();
+				return doCompleteExpressionForMemberPart(completionRequest, part, parts, template, false,
+						completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
+			}
+			case Method: {
+				// ex : { item.getN|ame() }
+				// ex : { item.getName(|) }
+				MethodPart methodPart = (MethodPart) part;
+				if (methodPart.isInParameters(offset)) {
 					// ex : { item.getName(|) }
-					MethodPart methodPart = (MethodPart) part;
-					if (methodPart.isInParameters(offset)) {
-						// ex : { item.getName(|) }
-						return doCompleteExpressionForObjectPart(null, expression, null, null, offset, template,
-								completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
-					}
-					// ex : { item.getN|ame() }
-					Parts parts = part.getParent();
-					return doCompleteExpressionForMemberPart(part, parts, template, methodPart.isInfixNotation(),
-							completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
+					return doCompleteExpressionForObjectPart(completionRequest, expression, null, null, offset,
+							template, completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
 				}
-				default:
-					break;
+				// ex : { item.getN|ame() }
+				Parts parts = part.getParent();
+				return doCompleteExpressionForMemberPart(completionRequest, part, parts, template,
+						methodPart.isInfixNotation(), completionSettings, formattingSettings, nativeImagesSettings,
+						cancelChecker);
+			}
+			default:
+				break;
 			}
 			return EMPTY_FUTURE_COMPLETION;
 		}
@@ -175,43 +176,43 @@ public class QuteCompletionsForExpression {
 		if (nodeExpression.getKind() == NodeKind.ExpressionParts) {
 			char previous = template.getText().charAt(offset - 1);
 			switch (previous) {
-				case ':': {
-					// ex : { data:| }
-					// ex : { data:|name }
-					Parts parts = (Parts) nodeExpression;
-					Part part = parts.getPartAt(offset + 1);
-					return doCompleteExpressionForObjectPart(null, expression, parts.getNamespace(), part, offset,
-							template,
-							completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
-				}
-				case '.': {
-					// ex : { item.| }
-					// ex : { item.|name }
-					// ex : { item.|getName() }
-					Parts parts = (Parts) nodeExpression;
-					Part part = parts.getPartAt(offset + 1);
-					return doCompleteExpressionForMemberPart(part, parts, template, false, completionSettings,
-							formattingSettings, nativeImagesSettings, cancelChecker);
-				}
-				case ' ': {
-					// Infix notation
-					// ex : { item | }
-					// ex : { item |name }
+			case ':': {
+				// ex : { data:| }
+				// ex : { data:|name }
+				Parts parts = (Parts) nodeExpression;
+				Part part = parts.getPartAt(offset + 1);
+				return doCompleteExpressionForObjectPart(completionRequest, expression, parts.getNamespace(), part,
+						offset, template, completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
+			}
+			case '.': {
+				// ex : { item.| }
+				// ex : { item.|name }
+				// ex : { item.|getName() }
+				Parts parts = (Parts) nodeExpression;
+				Part part = parts.getPartAt(offset + 1);
+				return doCompleteExpressionForMemberPart(completionRequest, part, parts, template, false,
+						completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
+			}
+			case ' ': {
+				// Infix notation
+				// ex : { item | }
+				// ex : { item |name }
+				// ex : { item ?: |name }
+				Parts parts = (Parts) nodeExpression;
+				Part part = parts.getPartAt(offset + 1);
+				Part previousPart = parts.getPreviousPart(part);
+				if (previousPart != null && previousPart.getPartKind() == PartKind.Method
+						&& ((MethodPart) previousPart).isOperator()) {
 					// ex : { item ?: |name }
-					Parts parts = (Parts) nodeExpression;
-					Part part = parts.getPartAt(offset + 1);
-					Part previousPart = parts.getPreviousPart(part);
-					if (previousPart != null && previousPart.getPartKind() == PartKind.Method
-							&& ((MethodPart) previousPart).isOperator()) {
-						// ex : { item ?: |name }
-						return doCompleteExpressionForObjectPart(null, expression, parts.getNamespace(), part, offset,
-								template, completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
-					}
-					// ex : { item | }
-					// ex : { item |name }
-					return doCompleteExpressionForMemberPart(part, parts, template, true, completionSettings,
-							formattingSettings, nativeImagesSettings, cancelChecker);
+					return doCompleteExpressionForObjectPart(completionRequest, expression, parts.getNamespace(), part,
+							offset, template, completionSettings, formattingSettings, nativeImagesSettings,
+							cancelChecker);
 				}
+				// ex : { item | }
+				// ex : { item |name }
+				return doCompleteExpressionForMemberPart(completionRequest, part, parts, template, true,
+						completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
+			}
 			}
 		}
 		return EMPTY_FUTURE_COMPLETION;
@@ -234,8 +235,8 @@ public class QuteCompletionsForExpression {
 	 *
 	 * @return the completion list.
 	 */
-	private CompletableFuture<CompletionList> doCompleteExpressionForMemberPart(Part part, Parts parts,
-			Template template, boolean infixNotation, QuteCompletionSettings completionSettings,
+	private CompletableFuture<CompletionList> doCompleteExpressionForMemberPart(CompletionRequest completionRequest,
+			Part part, Parts parts, Template template, boolean infixNotation, QuteCompletionSettings completionSettings,
 			QuteFormattingSettings formattingSettings, QuteNativeSettings nativeImagesSettings,
 			CancelChecker cancelChecker) {
 		int start = part != null ? part.getStart() : parts.getEnd();
@@ -251,13 +252,22 @@ public class QuteCompletionsForExpression {
 					cancelChecker.checkCanceled();
 
 					if (!isValidJavaType(resolvedType)) {
-						return EMPTY_COMPLETION;
+						CompletionList list = new CompletionList();
+						Set<CompletionItem> completionItems = new HashSet<>();
+						for (CompletionParticipant completionParticipant : project.getExtensions()) {
+							if (completionParticipant.isEnabled()) {
+								completionParticipant.doComplete(completionRequest, part, parts, completionSettings,
+										formattingSettings, completionItems, cancelChecker);
+							}
+						}
+						list.setItems(new ArrayList<>(completionItems));
+						return list;
 					}
 
 					// Completion for member of the given Java class
 					// ex : org.acme.Item
-					return doCompleteForJavaTypeMembers(resolvedType, start, end, template, project,
-							infixNotation, completionSettings, formattingSettings, nativeImagesSettings);
+					return doCompleteForJavaTypeMembers(resolvedType, start, end, template, project, infixNotation,
+							completionSettings, formattingSettings, nativeImagesSettings);
 				});
 
 	}
@@ -493,8 +503,7 @@ public class QuteCompletionsForExpression {
 			List<String> extendedTypes = baseType.getExtendedTypes();
 			if (extendedTypes != null) {
 				for (String extendedType : extendedTypes) {
-					ResolvedJavaTypeInfo resolvedExtendedType = project
-							.resolveJavaTypeSync(extendedType);
+					ResolvedJavaTypeInfo resolvedExtendedType = project.resolveJavaTypeSync(extendedType);
 					if (!isResolvingJavaTypeOrNull(resolvedExtendedType)) {
 						fillCompletionMethods(resolvedExtendedType, javaTypeAccessibility, filter, range, project,
 								infixNotation, completionSettings, formattingSettings, existingProperties,
@@ -699,6 +708,17 @@ public class QuteCompletionsForExpression {
 			// {inject:bean}
 			doCompleteNamespaceResolvers(namespace, template, range, completionSettings, formattingSettings,
 					completionItems);
+			QuteProject project = template.getProject();
+			if (project != null) {
+				// Custom completion (ex: renarde messages).
+				for (CompletionParticipant completionParticipant : project.getExtensions()) {
+					if (completionParticipant.isEnabled()) {
+						completionParticipant.doComplete(completionRequest, part instanceof Part ? (Part) part : null,
+								expression != null ? expression.getParts() : null, completionSettings,
+								formattingSettings, completionItems, cancelChecker);
+					}
+				}
+			}
 		}
 
 		if (namespace == null) {
@@ -736,8 +756,7 @@ public class QuteCompletionsForExpression {
 				// Loop for allowed user tag parameters
 				for (UserTagParameter parameter : parameters) {
 					String paramName = parameter.getName();
-					if (!IT_OBJECT_PART_NAME.equals(paramName)
-							&& !NESTED_CONTENT_OBJECT_PART_NAME.equals(paramName)) {
+					if (!IT_OBJECT_PART_NAME.equals(paramName) && !NESTED_CONTENT_OBJECT_PART_NAME.equals(paramName)) {
 						// The parameter is different from 'it' and 'nested-content'.
 
 						// Show the user tag parameter only if the section has not already declared the
@@ -749,9 +768,9 @@ public class QuteCompletionsForExpression {
 							TextEdit textEdit = new TextEdit(range,
 									createUserTagParameterSnippet(parameter, completionSettings));
 							item.setTextEdit(Either.forLeft(textEdit));
-							item.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported()
-									? InsertTextFormat.Snippet
-									: InsertTextFormat.PlainText);
+							item.setInsertTextFormat(
+									completionSettings.isCompletionSnippetsSupported() ? InsertTextFormat.Snippet
+											: InsertTextFormat.PlainText);
 							completionItems.add(item);
 						}
 					}
@@ -871,14 +890,14 @@ public class QuteCompletionsForExpression {
 
 	private static CompletionItemKind getCompletionKind(ValueResolver globalVariable) {
 		switch (globalVariable.getJavaElementKind()) {
-			case FIELD:
-				return CompletionItemKind.Field;
-			case METHOD:
-				return CompletionItemKind.Method;
-			case TYPE:
-				return CompletionItemKind.Class;
-			case PARAMETER:
-				return CompletionItemKind.TypeParameter;
+		case FIELD:
+			return CompletionItemKind.Field;
+		case METHOD:
+			return CompletionItemKind.Method;
+		case TYPE:
+			return CompletionItemKind.Class;
+		case PARAMETER:
+			return CompletionItemKind.TypeParameter;
 		}
 		return CompletionItemKind.Class;
 	}
@@ -928,28 +947,27 @@ public class QuteCompletionsForExpression {
 				}
 			} else {
 				switch (resolver.getJavaElementKind()) {
-					case METHOD: {
-						MethodValueResolver method = (MethodValueResolver) resolver;
-						CompletionItem item = fillCompletionMethod(method, method.getNamespace(),
-								useNamespaceInTextEdit,
-								range, false, completionSettings, formattingSettings, completionItems);
-						item.setKind(CompletionItemKind.Function);
-						// Display namespace resolvers (ex : config:getConfigProperty(...)) after
-						// declared objects
-						item.setSortText("Zc" + item.getLabel());
-						break;
-					}
-					case FIELD: {
-						FieldValueResolver field = (FieldValueResolver) resolver;
-						CompletionItem item = fillCompletionField(field, field.getNamespace(), namespace == null, range,
-								completionItems);
-						item.setKind(CompletionItemKind.Field);
-						// Display namespace resolvers (ex : inject:bean) after
-						// declared objects
-						item.setSortText("Zb" + item.getLabel());
-						break;
-					}
-					default:
+				case METHOD: {
+					MethodValueResolver method = (MethodValueResolver) resolver;
+					CompletionItem item = fillCompletionMethod(method, method.getNamespace(), useNamespaceInTextEdit,
+							range, false, completionSettings, formattingSettings, completionItems);
+					item.setKind(CompletionItemKind.Function);
+					// Display namespace resolvers (ex : config:getConfigProperty(...)) after
+					// declared objects
+					item.setSortText("Zc" + item.getLabel());
+					break;
+				}
+				case FIELD: {
+					FieldValueResolver field = (FieldValueResolver) resolver;
+					CompletionItem item = fillCompletionField(field, field.getNamespace(), namespace == null, range,
+							completionItems);
+					item.setKind(CompletionItemKind.Field);
+					// Display namespace resolvers (ex : inject:bean) after
+					// declared objects
+					item.setSortText("Zb" + item.getLabel());
+					break;
+				}
+				default:
 				}
 			}
 		}
@@ -997,29 +1015,50 @@ public class QuteCompletionsForExpression {
 
 				// 2) Completion for aliases section
 				switch (parentSection.getSectionKind()) {
-					case EACH:
-					case FOR:
-						LoopSection iterableSection = ((LoopSection) parentSection);
-						// Completion for iterable section like #each, #for
-						String alias = iterableSection.getAlias();
-						if (!StringUtils.isEmpty(alias)) {
-							if (!existingVars.contains(alias)) {
-								existingVars.add(alias);
+				case EACH:
+				case FOR:
+					LoopSection iterableSection = ((LoopSection) parentSection);
+					// Completion for iterable section like #each, #for
+					String alias = iterableSection.getAlias();
+					if (!StringUtils.isEmpty(alias)) {
+						if (!existingVars.contains(alias)) {
+							existingVars.add(alias);
+							CompletionItem item = new CompletionItem();
+							item.setLabel(alias);
+							item.setKind(CompletionItemKind.Reference);
+							TextEdit textEdit = new TextEdit(range, alias);
+							item.setTextEdit(Either.forLeft(textEdit));
+							completionItems.add(item);
+						}
+					}
+					break;
+				case LET:
+				case SET: {
+					// completion for parameters coming from #let, #set
+					List<Parameter> parameters = parentSection.getParameters();
+					if (parameters != null) {
+						for (Parameter parameter : parameters) {
+							String parameterName = parameter.getName();
+							if (!existingVars.contains(parameterName)) {
+								existingVars.add(parameterName);
 								CompletionItem item = new CompletionItem();
-								item.setLabel(alias);
+								item.setLabel(parameterName);
 								item.setKind(CompletionItemKind.Reference);
-								TextEdit textEdit = new TextEdit(range, alias);
+								TextEdit textEdit = new TextEdit(range, parameterName);
 								item.setTextEdit(Either.forLeft(textEdit));
 								completionItems.add(item);
 							}
 						}
-						break;
-					case LET:
-					case SET: {
-						// completion for parameters coming from #let, #set
-						List<Parameter> parameters = parentSection.getParameters();
-						if (parameters != null) {
-							for (Parameter parameter : parameters) {
+					}
+					break;
+				}
+				case IF: {
+					// completion for parameters coming from #if
+					List<Parameter> parameters = parentSection.getParameters();
+					if (parameters != null) {
+						for (Parameter parameter : parameters) {
+							if (parameter.isOptional()) {
+								// {#if foo??}
 								String parameterName = parameter.getName();
 								if (!existingVars.contains(parameterName)) {
 									existingVars.add(parameterName);
@@ -1032,115 +1071,87 @@ public class QuteCompletionsForExpression {
 								}
 							}
 						}
-						break;
 					}
-					case IF: {
-						// completion for parameters coming from #if
-						List<Parameter> parameters = parentSection.getParameters();
-						if (parameters != null) {
-							for (Parameter parameter : parameters) {
-								if (parameter.isOptional()) {
-									// {#if foo??}
-									String parameterName = parameter.getName();
-									if (!existingVars.contains(parameterName)) {
-										existingVars.add(parameterName);
-										CompletionItem item = new CompletionItem();
-										item.setLabel(parameterName);
-										item.setKind(CompletionItemKind.Reference);
-										TextEdit textEdit = new TextEdit(range, parameterName);
-										item.setTextEdit(Either.forLeft(textEdit));
-										completionItems.add(item);
-									}
-								}
-							}
+					break;
+				}
+				case WITH:
+					// Completion for properties/methods of with object from #with
+					Parameter object = ((WithSection) parentSection).getObjectParameter();
+					if (object != null) {
+						QuteProject project = template.getProject();
+						ResolvedJavaTypeInfo withJavaTypeInfo = project.resolveJavaType(object).getNow(null);
+						if (withJavaTypeInfo != null) {
+							JavaTypeFilter filter = projectRegistry.getJavaTypeFilter(project.getUri(),
+									nativeImagesSettings);
+							JavaTypeAccessibiltyRule javaTypeAccessibility = filter.getJavaTypeAccessibility(
+									withJavaTypeInfo, template.getJavaTypesSupportedInNativeMode());
+							fillCompletionFields(withJavaTypeInfo, javaTypeAccessibility, filter, range, project,
+									existingVars, completionItems);
+							fillCompletionMethods(withJavaTypeInfo, javaTypeAccessibility, filter, range, project,
+									false, completionSettings, formattingSettings, existingVars, new HashSet<>(),
+									completionItems);
 						}
-						break;
 					}
-					case WITH:
-						// Completion for properties/methods of with object from #with
-						Parameter object = ((WithSection) parentSection).getObjectParameter();
-						if (object != null) {
-							QuteProject project = template.getProject();
-							ResolvedJavaTypeInfo withJavaTypeInfo = project.resolveJavaType(object)
-									.getNow(null);
-							if (withJavaTypeInfo != null) {
-								JavaTypeFilter filter = projectRegistry.getJavaTypeFilter(project.getUri(),
-										nativeImagesSettings);
-								JavaTypeAccessibiltyRule javaTypeAccessibility = filter.getJavaTypeAccessibility(
-										withJavaTypeInfo, template.getJavaTypesSupportedInNativeMode());
-								fillCompletionFields(withJavaTypeInfo, javaTypeAccessibility, filter, range, project,
-										existingVars, completionItems);
-								fillCompletionMethods(withJavaTypeInfo, javaTypeAccessibility, filter, range,
-										project,
-										false, completionSettings, formattingSettings, existingVars, new HashSet<>(),
-										completionItems);
-							}
-						}
-						break;
-					case WHEN:
-					case SWITCH:
-						if (node.getKind() == NodeKind.Expression) {
-							Expression expression = (Expression) node;
-							if (Section.isCaseSection(expression.getOwnerSection())) {
-								// {#case | ...}
-								Parameter triggeredParameter = expression.getOwnerParameter();
-								CaseSection caseSection = (CaseSection) expression.getOwnerSection();
-								// Completion for properties/methods of with object from #switch and #when
-								Parameter value = ((WhenSection) parentSection).getValueParameter();
-								if (value != null) {
-									QuteProject project = template.getProject();
-									if (project != null) {
-										ResolvedJavaTypeInfo whenJavaType = project.resolveJavaTypeSync(value);
-										if (!QuteCompletableFutures.isResolvingJavaTypeOrNull(whenJavaType)
-												&& whenJavaType.isEnum()) {
-											JavaTypeFilter filter = projectRegistry.getJavaTypeFilter(project.getUri(),
-													nativeImagesSettings);
-											JavaTypeAccessibiltyRule javaTypeAccessibility = filter
-													.getJavaTypeAccessibility(
-															whenJavaType, template.getJavaTypesSupportedInNativeMode());
-											CompletionCaseResult result = caseSection.getCompletionCaseResultAt(offset,
-													triggeredParameter);
-											// Add existing variables
-											Set<String> caseExistingVars = new HashSet<String>(existingVars);
-											for (Parameter parameter : caseSection.getParameters()) {
-												caseExistingVars.add(parameter.getName());
-											}
-											boolean canSupportMarkdown = completionSettings
-													.canSupportMarkupKind(MarkupKind.MARKDOWN);
-											// Complete operator and/or field according to result
-											switch (result) {
-												case ALL_OPERATOR_AND_FIELD:
-													fillCaseOperators(caseSection, false, range, caseExistingVars,
-															completionItems,
-															canSupportMarkdown);
-													fillCompletionFields(whenJavaType, javaTypeAccessibility, filter,
-															range,
-															project, caseExistingVars, completionItems);
-													break;
-												case ALL_OPERATOR:
-													fillCaseOperators(caseSection, false, range, caseExistingVars,
-															completionItems,
-															canSupportMarkdown);
-													break;
-												case FIELD_ONLY:
-													fillCompletionFields(whenJavaType, javaTypeAccessibility, filter,
-															range,
-															project, caseExistingVars, completionItems);
-													break;
-												case MULTI_OPERATOR_ONLY:
-													fillCaseOperators(caseSection, true, range, caseExistingVars,
-															completionItems,
-															canSupportMarkdown);
-													break;
-												case NONE:
-													break;
-											}
+					break;
+				case WHEN:
+				case SWITCH:
+					if (node.getKind() == NodeKind.Expression) {
+						Expression expression = (Expression) node;
+						if (Section.isCaseSection(expression.getOwnerSection())) {
+							// {#case | ...}
+							Parameter triggeredParameter = expression.getOwnerParameter();
+							CaseSection caseSection = (CaseSection) expression.getOwnerSection();
+							// Completion for properties/methods of with object from #switch and #when
+							Parameter value = ((WhenSection) parentSection).getValueParameter();
+							if (value != null) {
+								QuteProject project = template.getProject();
+								if (project != null) {
+									ResolvedJavaTypeInfo whenJavaType = project.resolveJavaTypeSync(value);
+									if (!QuteCompletableFutures.isResolvingJavaTypeOrNull(whenJavaType)
+											&& whenJavaType.isEnum()) {
+										JavaTypeFilter filter = projectRegistry.getJavaTypeFilter(project.getUri(),
+												nativeImagesSettings);
+										JavaTypeAccessibiltyRule javaTypeAccessibility = filter
+												.getJavaTypeAccessibility(whenJavaType,
+														template.getJavaTypesSupportedInNativeMode());
+										CompletionCaseResult result = caseSection.getCompletionCaseResultAt(offset,
+												triggeredParameter);
+										// Add existing variables
+										Set<String> caseExistingVars = new HashSet<String>(existingVars);
+										for (Parameter parameter : caseSection.getParameters()) {
+											caseExistingVars.add(parameter.getName());
+										}
+										boolean canSupportMarkdown = completionSettings
+												.canSupportMarkupKind(MarkupKind.MARKDOWN);
+										// Complete operator and/or field according to result
+										switch (result) {
+										case ALL_OPERATOR_AND_FIELD:
+											fillCaseOperators(caseSection, false, range, caseExistingVars,
+													completionItems, canSupportMarkdown);
+											fillCompletionFields(whenJavaType, javaTypeAccessibility, filter, range,
+													project, caseExistingVars, completionItems);
+											break;
+										case ALL_OPERATOR:
+											fillCaseOperators(caseSection, false, range, caseExistingVars,
+													completionItems, canSupportMarkdown);
+											break;
+										case FIELD_ONLY:
+											fillCompletionFields(whenJavaType, javaTypeAccessibility, filter, range,
+													project, caseExistingVars, completionItems);
+											break;
+										case MULTI_OPERATOR_ONLY:
+											fillCaseOperators(caseSection, true, range, caseExistingVars,
+													completionItems, canSupportMarkdown);
+											break;
+										case NONE:
+											break;
 										}
 									}
 								}
 							}
 						}
-					default:
+					}
+				default:
 				}
 			}
 		}

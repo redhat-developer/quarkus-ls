@@ -27,8 +27,7 @@ public interface AppMessages {
   </code>
  * 
  * </li>
- * <li>Properties files</li>
- * msg.properties defines
+ * <li>Properties files</li> msg.properties defines
  * 
  * <code>
  * hello_name=Hello {name ?: 'Qute'}
@@ -38,45 +37,23 @@ public interface AppMessages {
  * @author Angelo ZERR
  *
  */
-public class MessageValueResolver extends MethodValueResolver {
+public interface MessageValueResolver {
 
-	private String locale;
+	String getSourceType();
 
-	private String message;
+	String getName();
 
 	/**
 	 * Returns the locale of the message and null otherwise.
 	 * 
 	 * @return the locale of the message and null otherwise.
 	 */
-	public String getLocale() {
-		return locale;
-	}
-
-	/**
-	 * Set the locale.
-	 * 
-	 * @param locale the locale.
-	 */
-	public void setLocale(String locale) {
-		this.locale = locale;
-	}
+	String getLocale();
 
 	/**
 	 * Returns the message content and null otherwise.
 	 * 
 	 * @return the message content and null otherwise.
 	 */
-	public String getMessage() {
-		return message;
-	}
-
-	/**
-	 * Set the message content.
-	 * 
-	 * @param message the message content.
-	 */
-	public void setMessage(String message) {
-		this.message = message;
-	}
+	String getMessage();
 }

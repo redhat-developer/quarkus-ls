@@ -20,11 +20,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.ServiceConfigurationError;
+import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.CompletionItem;
 
@@ -66,6 +72,7 @@ import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.project.documents.QuteClosedTextDocuments;
 import com.redhat.qute.project.documents.SearchInfoQuery;
 import com.redhat.qute.project.documents.TemplateValidator;
+import com.redhat.qute.project.extensions.ProjectExtension;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagRegistry;
 import com.redhat.qute.services.QuteCompletableFutures;
@@ -84,15 +91,24 @@ import com.redhat.qute.utils.UserTagUtils;
  */
 public class QuteProject {
 
-	private static String[] TEMPLATE_VARIANTS = { "",
-			".html", ".qute.html",
-			".json", ".qute.json",
-			".txt", ".qute.txt",
-			".yaml", ".qute.yaml", ".yml", ".qute.yml" };
+	private static final Logger LOGGER = Logger.getLogger(QuteProject.class.getName());
+
+	private static String[] TEMPLATE_VARIANTS = { "", ".html", //
+			".qute.html", //
+			".json", //
+			".qute.json", //
+			".txt", //
+			".qute.txt", //
+			".yaml", //
+			".qute.yaml", //
+			".yml", //
+			".qute.yml" };
 
 	private final String uri;
 
 	private final List<TemplateRootPath> templateRootPaths;
+
+	private final Set<Path> sourcePaths;
 
 	private final QuteClosedTextDocuments closedDocuments;
 
@@ -119,10 +135,13 @@ public class QuteProject {
 
 	private List<QuteProject> projectDependencies;
 
-	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry,
-			TemplateValidator validator) {
+	// Project extensions
+	private final List<ProjectExtension> extensions;
+
+	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry, TemplateValidator validator) {
 		this.uri = projectInfo.getUri();
 		this.templateRootPaths = projectInfo.getTemplateRootPaths();
+		this.sourcePaths = toSourcePaths(projectInfo.getSourceFolders());
 		this.documents = new HashMap<>();
 		this.closedDocuments = new QuteClosedTextDocuments(this, documents);
 		this.projectRegistry = projectRegistry;
@@ -136,6 +155,43 @@ public class QuteProject {
 		this.watcher = !projectRegistry.isDidChangeWatchedFilesSupported() ? createFilesWatcher(this) : null;
 		this.javaCache = new JavaDataModelCache(this);
 		this.projectDependencies = new ArrayList<>();
+
+		// Project extensions
+		this.extensions = new ArrayList<>();
+		Iterator<ProjectExtension> extensions = ServiceLoader.load(ProjectExtension.class).iterator();
+		while (extensions.hasNext()) {
+			try {
+				registerExtension(extensions.next());
+			} catch (ServiceConfigurationError e) {
+				LOGGER.log(Level.SEVERE, "Error while instantiating extension", e);
+			}
+		}
+	}
+
+	void registerExtension(ProjectExtension extension) {
+		try {
+			extensions.add(extension);
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while initializing extension <" + extension.getClass().getName() + ">", e);
+		}
+	}
+
+	void unregisterExtension(ProjectExtension extension) {
+		try {
+			extensions.remove(extension);
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while stopping extension <" + extension.getClass().getName() + ">", e);
+		}
+	}
+
+	private static Set<Path> toSourcePaths(Set<String> sourceFolders) {
+		if (sourceFolders == null || sourceFolders.isEmpty()) {
+			return Collections.emptySet();
+		}
+		return sourceFolders //
+				.stream() //
+				.map(uri -> FileUtils.createPath(uri)) //
+				.collect(Collectors.toSet());
 	}
 
 	private static QuteProjectFilesWatcher createFilesWatcher(QuteProject project) {
@@ -238,8 +294,7 @@ public class QuteProject {
 	 *                        will returns all declared insert parameters.
 	 * @return the insert parameter list with the given name
 	 *         <code>insertParamater</code> ({#insert name}) declared in the
-	 *         template
-	 *         identified by the given template id and null otherwise.
+	 *         template identified by the given template id and null otherwise.
 	 */
 	public List<Parameter> findInsertTagParameter(String templateId, String insertParamater) {
 		closedDocuments.loadClosedTemplatesIfNeeded();
@@ -359,6 +414,14 @@ public class QuteProject {
 				|| dataModelProjectFuture.isCompletedExceptionally()) {
 			dataModelProjectFuture = null;
 			dataModelProjectFuture = loadDataModelProject();
+			dataModelProjectFuture //
+					.thenApply(model -> {
+						for (ProjectExtension extension : extensions) {
+							extension.init(model);
+						}
+						return model;
+
+					});
 		}
 		return dataModelProjectFuture;
 	}
@@ -370,13 +433,12 @@ public class QuteProject {
 		QuteDataModelProjectParams params = new QuteDataModelProjectParams();
 		params.setProjectUri(getUri());
 		return getDataModelProject(params) //
-				.thenApply(project -> {
-					if (project == null) {
+				.thenApply(dataModelProject -> {
+					if (dataModelProject == null) {
 						return null;
 					}
-					return new ExtendedDataModelProject(project);
-				})
-				.thenApply(p -> {
+					return new ExtendedDataModelProject(dataModelProject, QuteProject.this);
+				}).thenApply(p -> {
 					tagRegistry.refreshDataModel();
 					return p;
 				});
@@ -916,8 +978,7 @@ public class QuteProject {
 	}
 
 	private boolean findMethod(ResolvedJavaTypeInfo baseType, String methodName,
-			List<ResolvedJavaTypeInfo> parameterTypes, JavaMemberResult result,
-			Set<ResolvedJavaTypeInfo> visited) {
+			List<ResolvedJavaTypeInfo> parameterTypes, JavaMemberResult result, Set<ResolvedJavaTypeInfo> visited) {
 		if (visited.contains(baseType)) {
 			return false;
 		}
@@ -1379,6 +1440,7 @@ public class QuteProject {
 					if (dataModel == null) {
 						return null;
 					}
+
 					// Search in methods resolvers
 					List<MethodValueResolver> methodResolvers = dataModel.getMethodValueResolvers();
 					for (MethodValueResolver resolver : methodResolvers) {
@@ -1543,8 +1605,27 @@ public class QuteProject {
 				: javaTypeInfo.getName();
 		String signature = javaMemberInfo.getGenericMember() == null ? javaMemberInfo.getSignature()
 				: javaMemberInfo.getGenericMember().getSignature();
-		return projectRegistry.getJavadoc(new QuteJavadocParams(typeName, getUri(), javaMemberInfo.getName(),
-				signature, hasMarkdown ? DocumentFormat.Markdown : DocumentFormat.PlainText));
+		return projectRegistry.getJavadoc(new QuteJavadocParams(typeName, getUri(), javaMemberInfo.getName(), signature,
+				hasMarkdown ? DocumentFormat.Markdown : DocumentFormat.PlainText));
 	}
 
+	/**
+	 * Returns the source paths (ex: C:/Users/foo/project/src/main/resources) of the
+	 * Qute project
+	 * 
+	 * @return the source paths (ex: C:/Users/foo/project/src/main/resources) of the
+	 *         Qute project
+	 */
+	public Set<Path> getSourcePaths() {
+		return sourcePaths;
+	}
+
+	/**
+	 * Returns the Qute project extension list.
+	 * 
+	 * @return the Qute project extension list.
+	 */
+	public List<ProjectExtension> getExtensions() {
+		return extensions;
+	}
 }

@@ -93,6 +93,7 @@ import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.commands.QuteSurroundWithCommandHandler;
 import com.redhat.qute.services.commands.QuteSurroundWithCommandHandler.SurroundWithKind;
 import com.redhat.qute.services.commands.QuteSurroundWithCommandHandler.SurroundWithResponse;
+import com.redhat.qute.services.diagnostics.QuteDiagnosticContants;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.QuteInlayHintSettings;
@@ -108,8 +109,8 @@ import com.redhat.qute.utils.StringUtils;
  *
  */
 public class QuteAssert {
- 
-	private static final String QUTE_SOURCE = "qute";
+
+	private static final String QUTE_SOURCE = QuteDiagnosticContants.QUTE_SOURCE;
 
 	public static final String TEMPLATE_BASE_DIR = "src/test/resources/templates";
 
@@ -117,9 +118,8 @@ public class QuteAssert {
 
 	public static final int USER_TAG_SIZE = 12 /*
 												 * #input, #bundleStyle, #form, #title, #simpleTitle, #user,
-												 * #formElement,
-												 * #inputRequired, #myTag, #tagWithArgs
-												 * #ga4, #reunion-card
+												 * #formElement, #inputRequired, #myTag, #tagWithArgs #ga4,
+												 * #reunion-card
 												 */;
 
 	public static final int SECTION_SNIPPET_SIZE = 15 /* #each, #for, ... #fragment ... */ + USER_TAG_SIZE;
@@ -164,8 +164,7 @@ public class QuteAssert {
 
 	public static void testCompletionFor(String value, String fileUri, boolean snippetSupport, Integer expectedCount,
 			CompletionItem... expectedItems) throws Exception {
-		testCompletionFor(value, snippetSupport, fileUri, PROJECT_URI, TEMPLATE_BASE_DIR, expectedCount,
-				expectedItems);
+		testCompletionFor(value, snippetSupport, fileUri, PROJECT_URI, TEMPLATE_BASE_DIR, expectedCount, expectedItems);
 	}
 
 	public static void testCompletionFor(String value, String fileUri, String templateId, Integer expectedCount,
@@ -470,10 +469,15 @@ public class QuteAssert {
 
 	public static void assertHover(String value, String fileURI, String templateId, String expectedHoverLabel,
 			Range expectedHoverRange) throws Exception {
+		assertHover(value, fileURI, templateId, PROJECT_URI, expectedHoverLabel, expectedHoverRange);
+	}
+
+	public static void assertHover(String value, String fileURI, String templateId, String projectUri,
+			String expectedHoverLabel, Range expectedHoverRange) throws Exception {
 		SharedSettings sharedSettings = new SharedSettings();
 		HoverCapabilities capabilities = new HoverCapabilities(Arrays.asList(MarkupKind.MARKDOWN), false);
 		sharedSettings.getHoverSettings().setCapabilities(capabilities);
-		assertHover(value, fileURI, templateId, PROJECT_URI, TEMPLATE_BASE_DIR, expectedHoverLabel, expectedHoverRange,
+		assertHover(value, fileURI, templateId, projectUri, TEMPLATE_BASE_DIR, expectedHoverLabel, expectedHoverRange,
 				sharedSettings);
 	}
 
@@ -720,8 +724,7 @@ public class QuteAssert {
 	// ------------------- CodeAction assert
 
 	public static void testCodeActionsWithConfigurationUpdateFor(String value, Diagnostic diagnostic,
-			CodeAction... expected)
-			throws Exception {
+			CodeAction... expected) throws Exception {
 		testCodeActionsFor(value, diagnostic, createSharedSettings(true), expected);
 	}
 
@@ -1006,8 +1009,8 @@ public class QuteAssert {
 		assertSurroundWith(template, kind, snippetsSupported, TEMPLATE_BASE_DIR + "/" + FILE_URI, Arrays.asList(te));
 	}
 
-	public static void assertSurroundWith(String template, SurroundWithKind kind, boolean snippetsSupported,
-			String uri, List<TextEdit> expected) throws Exception {
+	public static void assertSurroundWith(String template, SurroundWithKind kind, boolean snippetsSupported, String uri,
+			List<TextEdit> expected) throws Exception {
 		MockQuteLanguageServer languageServer = new MockQuteLanguageServer();
 		int rangeStart = template.indexOf('|');
 		int rangeEnd = template.lastIndexOf('|');
@@ -1029,8 +1032,7 @@ public class QuteAssert {
 
 		// Execute surround with tags command
 		ExecuteCommandParams params = new ExecuteCommandParams(QuteSurroundWithCommandHandler.COMMAND_ID,
-				Arrays.asList(templateIdentifier, selection, kind.name(),
-						snippetsSupported));
+				Arrays.asList(templateIdentifier, selection, kind.name(), snippetsSupported));
 		SurroundWithResponse response = (SurroundWithResponse) command.executeCommand(params, new SharedSettings(), //
 				() -> {
 				}).get();
@@ -1060,7 +1062,7 @@ public class QuteAssert {
 		Template template = TemplateParser.parse(value, fileUri != null ? fileUri : FILE_URI);
 		template.setProjectUri(projectUri);
 		projectRegistry.getProject(new ProjectInfo(projectUri, Collections.emptyList(),
-				Arrays.asList(new TemplateRootPath(templateBaseDir))));
+				Arrays.asList(new TemplateRootPath(templateBaseDir)), Collections.emptySet()));
 		template.setProjectRegistry(projectRegistry);
 		return template;
 	}
@@ -1068,12 +1070,12 @@ public class QuteAssert {
 	public static SharedSettings createSharedSettings(boolean withConfigurationUpdate) {
 		SharedSettings sharedSettings = new SharedSettings();
 		CommandCapabilities commandCapabilities = new CommandCapabilities();
-		CommandKindCapabilities kinds = new CommandKindCapabilities(
-				withConfigurationUpdate ? Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION,
+		CommandKindCapabilities kinds = new CommandKindCapabilities(withConfigurationUpdate
+				? Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION,
 						QuteClientCommandConstants.COMMAND_SHOW_REFERENCES,
 						QuteClientCommandConstants.COMMAND_CONFIGURATION_UPDATE)
-						: Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION,
-								QuteClientCommandConstants.COMMAND_SHOW_REFERENCES));
+				: Arrays.asList(QuteClientCommandConstants.COMMAND_JAVA_DEFINITION,
+						QuteClientCommandConstants.COMMAND_SHOW_REFERENCES));
 		commandCapabilities.setCommandKind(kinds);
 		sharedSettings.getCommandCapabilities().setCapabilities(commandCapabilities);
 		return sharedSettings;

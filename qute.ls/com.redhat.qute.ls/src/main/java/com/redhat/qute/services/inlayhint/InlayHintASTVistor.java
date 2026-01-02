@@ -45,6 +45,7 @@ import com.redhat.qute.parser.template.sections.LetSection;
 import com.redhat.qute.parser.template.sections.SetSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.resolvers.MessageValueResolver;
+import com.redhat.qute.project.extensions.InlayHintParticipant;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
 import com.redhat.qute.services.QuteCompletableFutures;
@@ -177,57 +178,70 @@ public class InlayHintASTVistor extends ASTVisitor {
 	public boolean visit(Expression node) {
 		cancelChecker.checkCanceled();
 
-		Part objectOrMethodPart = node.getObjectPart();
-		if (objectOrMethodPart == null) {
-			objectOrMethodPart = node.getMethodPart();
-		}
-		if (objectOrMethodPart != null) {
-			String namespace = objectOrMethodPart.getNamespace();
-			if (namespace != null) {
-				String partName = objectOrMethodPart.getPartName();
-				Template template = node.getOwnerTemplate();
-				QuteProject project = template.getProject();
-				if (project != null) {
-					CompletableFuture<MessageValueResolver> messageFuture = project
-							.findMessageValueResolver(namespace, partName);
-					MessageValueResolver message = messageFuture.getNow(null);
-					if (message != null) {
-						// It is a message value resolver
-						// {msg:hello}
-						// {msg:hello_name('Lucie')}
+		if (inlayHintSettings.isShowMessages()) {
 
-						String messageContent = message.getMessage();
-						if (messageContent != null) {
-							try {
-								// Display the message as inlay hint
-								// {msg:hello} [Hello!]
-								// {msg:hello_name('Lucie')} [Hello {name}!]
-								InlayHint hint = new InlayHint();
-								hint.setKind(InlayHintKind.Type);
-								if (canSupportJavaDefinition) {
-									// Clickable Message to edit it (ex : 'Hello {name}!')
-									InlayHintLabelPart messagePart = new InlayHintLabelPart(messageContent);
-									Command javaDefCommand = createEditJavaMessageCommand(messageContent,
-											message.getSourceType(),
-											message.getName(), project.getUri());
-									messagePart.setCommand(javaDefCommand);
-									messagePart.setTooltip(javaDefCommand.getTitle());
-									hint.setLabel(Either.forRight(Arrays.asList(messagePart)));
-								} else {
-									hint.setLabel(Either.forLeft(messageContent));
+			Template template = node.getOwnerTemplate();
+			QuteProject project = template.getProject();
+			if (project != null) {
+
+				Part objectOrMethodPart = node.getObjectPart();
+				if (objectOrMethodPart == null) {
+					objectOrMethodPart = node.getMethodPart();
+				}
+				if (objectOrMethodPart != null) {
+					String namespace = objectOrMethodPart.getNamespace();
+					if (namespace != null) {
+						String partName = objectOrMethodPart.getPartName();
+
+						CompletableFuture<MessageValueResolver> messageFuture = project
+								.findMessageValueResolver(namespace, partName);
+						MessageValueResolver message = messageFuture.getNow(null);
+						if (message != null) {
+							// It is a message value resolver
+							// {msg:hello}
+							// {msg:hello_name('Lucie')}
+
+							String messageContent = message.getMessage();
+							if (messageContent != null) {
+								try {
+									// Display the message as inlay hint
+									// {msg:hello} [Hello!]
+									// {msg:hello_name('Lucie')} [Hello {name}!]
+									InlayHint hint = new InlayHint();
+									hint.setKind(InlayHintKind.Type);
+									if (canSupportJavaDefinition) {
+										// Clickable Message to edit it (ex : 'Hello {name}!')
+										InlayHintLabelPart messagePart = new InlayHintLabelPart(messageContent);
+										Command javaDefCommand = createEditJavaMessageCommand(messageContent,
+												message.getSourceType(), message.getName(), project.getUri());
+										messagePart.setCommand(javaDefCommand);
+										messagePart.setTooltip(javaDefCommand.getTitle());
+										hint.setLabel(Either.forRight(Arrays.asList(messagePart)));
+									} else {
+										hint.setLabel(Either.forLeft(messageContent));
+									}
+									Position position = template.positionAt(node.getEnd());
+									hint.setPosition(position);
+									inlayHints.add(hint);
+								} catch (Exception e) {
+									LOGGER.log(Level.SEVERE, "Error while creating inlay hint for message", e);
 								}
-								Position position = template.positionAt(node.getEnd());
-								hint.setPosition(position);
-								inlayHints.add(hint);
-							} catch (Exception e) {
-								LOGGER.log(Level.SEVERE, "Error while creating inlay hint for message", e);
 							}
 						}
 					}
 				}
+
+				// ex: {m:application.index.subtitle}
+				for (InlayHintParticipant inlayHintParticipant : project.getExtensions()) {
+					if (inlayHintParticipant.isEnabled()) {
+						inlayHintParticipant.inlayHint(node, inlayHints, cancelChecker);
+					}
+				}
+
 			}
 		}
 		return super.visit(node);
+
 	}
 
 	private boolean isAfterStartParameterVisible(Section node) {
@@ -261,11 +275,8 @@ public class InlayHintASTVistor extends ASTVisitor {
 		UserTag userTag = isShowSectionParameterDefaultValue && project != null ? project.findUserTag(node.getTag())
 				: null;
 		if (userTag != null) {
-			userTagParameterDefaultValues = userTag.getParameters()
-					.stream()
-					.filter(p -> p.getDefaultValue() != null)
-					.map(p -> p.getName())
-					.collect(Collectors.toList());
+			userTagParameterDefaultValues = userTag.getParameters().stream().filter(p -> p.getDefaultValue() != null)
+					.map(p -> p.getName()).collect(Collectors.toList());
 
 		}
 
@@ -308,8 +319,7 @@ public class InlayHintASTVistor extends ASTVisitor {
 			hint.setPosition(position);
 			inlayHints.add(hint);
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while creating inlay hint for user tag default value parameter",
-					e);
+			LOGGER.log(Level.SEVERE, "Error while creating inlay hint for user tag default value parameter", e);
 		}
 	}
 
