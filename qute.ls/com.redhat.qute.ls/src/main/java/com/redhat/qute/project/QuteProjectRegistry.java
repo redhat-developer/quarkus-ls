@@ -64,6 +64,7 @@ import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolversRegistry;
 import com.redhat.qute.project.documents.QuteOpenedTextDocument;
 import com.redhat.qute.project.documents.TemplateValidator;
+import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.ReflectionJavaTypeFilter;
 import com.redhat.qute.settings.QuteNativeSettings;
@@ -74,8 +75,7 @@ import com.redhat.qute.settings.QuteNativeSettings;
  * @author Angelo ZERR
  *
  */
-public class QuteProjectRegistry
-		implements QuteDataModelProjectProvider, QuteUserTagProvider, QuteJavadocProvider {
+public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUserTagProvider, QuteJavadocProvider {
 
 	private final ValueResolversRegistry valueResolversRegistry;
 
@@ -102,10 +102,10 @@ public class QuteProjectRegistry
 	private boolean didChangeWatchedFilesSupported;
 
 	public QuteProjectRegistry(QuteProjectInfoProvider projectInfoProvider, QuteJavaTypesProvider javaTypeProvider,
-			QuteJavaDefinitionProvider definitionProvider,
-			QuteResolvedJavaTypeProvider resolvedClassProvider, QuteDataModelProjectProvider dataModelProvider,
-			QuteUserTagProvider userTagsProvider, QuteJavadocProvider javadocProvider,
-			TemplateValidator validator, Supplier<ProgressSupport> progressSupportProvider) {
+			QuteJavaDefinitionProvider definitionProvider, QuteResolvedJavaTypeProvider resolvedClassProvider,
+			QuteDataModelProjectProvider dataModelProvider, QuteUserTagProvider userTagsProvider,
+			QuteJavadocProvider javadocProvider, TemplateValidator validator,
+			Supplier<ProgressSupport> progressSupportProvider) {
 		this.projectInfoProvider = projectInfoProvider;
 		this.javaTypeProvider = javaTypeProvider;
 		this.definitionProvider = definitionProvider;
@@ -169,8 +169,7 @@ public class QuteProjectRegistry
 	 *
 	 * @param projectInfo    the project information.
 	 * @param validateOnLoad true if validation of templates must be validated if
-	 *                       project is created and
-	 *                       false otherwise.
+	 *                       project is created and false otherwise.
 	 *
 	 * @return the Qute project by the given info <code>projectInfo</code>.
 	 */
@@ -341,6 +340,11 @@ public class QuteProjectRegistry
 				return true;
 			}
 		}
+		for (Path sourcePath : project.getSourcePaths()) {
+			if (sourcePath != null && path.startsWith(sourcePath)) {
+				return true;
+			}
+		}
 		return false;
 	}
 
@@ -364,27 +368,33 @@ public class QuteProjectRegistry
 				} else {
 					// In case of closed document, we collect the project and update the cache
 					switch (fileEvent.getType()) {
-						case Changed:
-						case Created: {
-							// The template is created, update the cache and collect the project
-							QuteTextDocument closedTemplate = project
-									.onDidCreateTemplate(templatePath);
-							if (closedTemplate != null) {
-								projects.add(closedTemplate.getProject());
-							}
-							break;
+					case Changed:
+					case Created: {
+						// The template is created, update the cache and collect the project
+						QuteTextDocument closedTemplate = project.onDidCreateTemplate(templatePath);
+						if (closedTemplate != null) {
+							projects.add(closedTemplate.getProject());
 						}
-						case Deleted: {
-							// The template is deleted, update the cache, collect the project and publish
-							// empty diagnostics for this file
-							QuteTextDocument closedTemplate = project.onDidDeleteTemplate(templatePath);
-							if (closedTemplate != null) {
-								projects.add(closedTemplate.getProject());
-								if (validator != null) {
-									validator.clearDiagnosticsFor(fileUri);
-								}
+						break;
+					}
+					case Deleted: {
+						// The template is deleted, update the cache, collect the project and publish
+						// empty diagnostics for this file
+						QuteTextDocument closedTemplate = project.onDidDeleteTemplate(templatePath);
+						if (closedTemplate != null) {
+							projects.add(closedTemplate.getProject());
+							if (validator != null) {
+								validator.clearDiagnosticsFor(fileUri);
 							}
-							break;
+						}
+						break;
+					}
+					}
+				}
+				for (DidChangeWatchedFilesParticipant participant : project.getExtensions()) {
+					if (participant.isEnabled()) {
+						if (participant.didChangeWatchedFile(templatePath, fileEvent)) {
+							projects.add(project);
 						}
 					}
 				}
@@ -452,27 +462,25 @@ public class QuteProjectRegistry
 			report.setPercentage(10);
 			progressSupport.notifyProgress(progressId, report);
 		}
-		project.getDataModelProject()
-				.thenAccept(dataModel -> {
-					// The Java data model is collected for the project, validate all templates of
-					// the project
-					if (progressSupport != null) {
-						WorkDoneProgressReport report = new WorkDoneProgressReport();
-						report.setMessage(
-								"Validating Qute templates for '" + projectName + "' Qute project.");
-						report.setPercentage(80);
-						progressSupport.notifyProgress(progressId, report);
-					}
-					// Validate Qute templates
-					project.validateClosedTemplates();
+		project.getDataModelProject().thenAccept(dataModel -> {
+			// The Java data model is collected for the project, validate all templates of
+			// the project
+			if (progressSupport != null) {
+				WorkDoneProgressReport report = new WorkDoneProgressReport();
+				report.setMessage("Validating Qute templates for '" + projectName + "' Qute project.");
+				report.setPercentage(80);
+				progressSupport.notifyProgress(progressId, report);
+			}
+			// Validate Qute templates
+			project.validateClosedTemplates();
 
-					// End progress
-					endProgress(progressId, progressSupport);
+			// End progress
+			endProgress(progressId, progressSupport);
 
-				}).exceptionally((a) -> {
-					endProgress(progressId, progressSupport);
-					return null;
-				});
+		}).exceptionally((a) -> {
+			endProgress(progressId, progressSupport);
+			return null;
+		});
 		return project;
 	}
 

@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.settings;
 
+import java.util.Objects;
+
 /**
  * Qute inlay hint settings.
  * 
@@ -27,10 +29,13 @@ public class QuteInlayHintSettings {
 
 	private boolean showSectionParameterDefaultValue;
 
+	private boolean showMessages;
+
 	public QuteInlayHintSettings() {
 		setEnabled(true);
 		setShowSectionParameterType(true);
 		setShowSectionParameterDefaultValue(true);
+		setShowMessages(true);
 	}
 
 	/**
@@ -69,20 +74,24 @@ public class QuteInlayHintSettings {
 		this.showSectionParameterDefaultValue = showSectionParameterDefaultValue;
 	}
 
+	public boolean isShowMessages() {
+		return showMessages;
+	}
+
+	public void setShowMessages(boolean showMessages) {
+		this.showMessages = showMessages;
+	}
+
 	public void update(QuteInlayHintSettings newInlayHint) {
 		this.setEnabled(newInlayHint.isEnabled());
 		this.setShowSectionParameterType(newInlayHint.isShowSectionParameterType());
 		this.setShowSectionParameterDefaultValue(newInlayHint.isShowSectionParameterDefaultValue());
+		this.setShowMessages(newInlayHint.isShowMessages());
 	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + (enabled ? 1231 : 1237);
-		result = prime * result + (showSectionParameterDefaultValue ? 1231 : 1237);
-		result = prime * result + (showSectionParameterType ? 1231 : 1237);
-		return result;
+		return Objects.hash(enabled, showMessages, showSectionParameterDefaultValue, showSectionParameterType);
 	}
 
 	@Override
@@ -94,13 +103,9 @@ public class QuteInlayHintSettings {
 		if (getClass() != obj.getClass())
 			return false;
 		QuteInlayHintSettings other = (QuteInlayHintSettings) obj;
-		if (enabled != other.enabled)
-			return false;
-		if (showSectionParameterDefaultValue != other.showSectionParameterDefaultValue)
-			return false;
-		if (showSectionParameterType != other.showSectionParameterType)
-			return false;
-		return true;
+		return enabled == other.enabled && showMessages == other.showMessages
+				&& showSectionParameterDefaultValue == other.showSectionParameterDefaultValue
+				&& showSectionParameterType == other.showSectionParameterType;
 	}
 
 }

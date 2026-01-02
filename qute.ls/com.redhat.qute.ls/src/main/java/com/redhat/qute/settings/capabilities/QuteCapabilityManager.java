@@ -159,11 +159,15 @@ public class QuteCapabilityManager {
 
 	private void registerWatchedFiles() {
 		List<FileSystemWatcher> watchers = new ArrayList<>(5);
+		// Qute templates
 		watchers.add(new FileSystemWatcher(Either.forLeft("**/*.html")));
 		watchers.add(new FileSystemWatcher(Either.forLeft("**/*.json")));
 		watchers.add(new FileSystemWatcher(Either.forLeft("**/*.yaml")));
 		watchers.add(new FileSystemWatcher(Either.forLeft("**/*.yml")));
 		watchers.add(new FileSystemWatcher(Either.forLeft("**/*.txt")));
+		// Renarde
+		watchers.add(new FileSystemWatcher(Either.forLeft("**/messages.properties")));
+		watchers.add(new FileSystemWatcher(Either.forLeft("**/messages*.properties")));
 		DidChangeWatchedFilesRegistrationOptions options = new DidChangeWatchedFilesRegistrationOptions(watchers);
 		registerCapability(WORKSPACE_WATCHED_FILES_ID, WORKSPACE_WATCHED_FILES, options);
 	}

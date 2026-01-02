@@ -71,7 +71,7 @@ public class DocumentationUtils {
 		return createMarkupContent(documentation, markdown);
 	}
 
-	private static MarkupContent createMarkupContent(StringBuilder documentation, boolean markdown) {
+	public static MarkupContent createMarkupContent(StringBuilder documentation, boolean markdown) {
 		return new MarkupContent(markdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT, documentation.toString());
 	}
 

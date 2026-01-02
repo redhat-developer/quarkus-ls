@@ -138,7 +138,7 @@ public abstract class MockQuteProject extends QuteProject {
 		project.setTemplates(templates);
 		project.setValueResolvers(valueResolvers);
 		project.setNamespaceResolverInfos(namespaceResolverInfos);
-		return CompletableFuture.completedFuture(new ExtendedDataModelProject(project));
+		return CompletableFuture.completedFuture(new ExtendedDataModelProject(project, this));
 	}
 
 	protected static ValueResolverInfo createValueResolver(String namespace, String named, String matchName,
@@ -195,7 +195,7 @@ public abstract class MockQuteProject extends QuteProject {
 		return null;
 	}
 
-	protected static String getProjectPath(String projectUri) {
+	public static String getProjectPath(String projectUri) {
 		return "src/test/resources/projects/" + projectUri;
 	}
 }

@@ -68,9 +68,8 @@ public abstract class AbstractQuteDiagnosticsInProjectTest {
 		}
 
 		private ProjectInfo createQuickStartProject() {
-			ProjectInfo projectInfo = new ProjectInfo(QuteQuickStartProject.PROJECT_URI,
-					Collections.emptyList(),
-					Arrays.asList(new TemplateRootPath(FileUtils.toUri(templatesPath))));
+			ProjectInfo projectInfo = new ProjectInfo(QuteQuickStartProject.PROJECT_URI, Collections.emptyList(),
+					Arrays.asList(new TemplateRootPath(FileUtils.toUri(templatesPath))), Collections.emptySet());
 			return projectInfo;
 		};
 
@@ -121,10 +120,9 @@ public abstract class AbstractQuteDiagnosticsInProjectTest {
 		// detail_error.html
 		PublishDiagnosticsParams detailErrorDiagnostics = findPublishDiagnostics(diagnostics, "detail_error.html");
 		assertEquals(2, detailErrorDiagnostics.getDiagnostics().size());
-		assertDiagnostics(detailErrorDiagnostics.getDiagnostics(),
-				d(0, 10, 0, 13, QuteErrorCode.TemplateNotFound, //
-						"Template not found: `bad`.", //
-						DiagnosticSeverity.Error), //
+		assertDiagnostics(detailErrorDiagnostics.getDiagnostics(), d(0, 10, 0, 13, QuteErrorCode.TemplateNotFound, //
+				"Template not found: `bad`.", //
+				DiagnosticSeverity.Error), //
 				d(1, 3, 1, 9, QuteErrorCode.UndefinedSectionTag, //
 						"No section helper found for `title`.", //
 						DiagnosticSeverity.Warning));
@@ -180,12 +178,8 @@ public abstract class AbstractQuteDiagnosticsInProjectTest {
 	private void onChangeFile(QuteQuickStartProjectLanguageServer server) throws Exception {
 		server.getPublishDiagnostics().clear();
 
-		String template = "{#include bad} \r\n"
-				+ "  {#title}My Title{/title} \r\n"
-				+ "  <div> \r\n"
-				+ "    My body.\r\n"
-				+ "  </div>\r\n"
-				+ "{/include}";
+		String template = "{#include bad} \r\n" + "  {#title}My Title{/title} \r\n" + "  <div> \r\n"
+				+ "    My body.\r\n" + "  </div>\r\n" + "{/include}";
 
 		Path detailErrorPath = server.templatesPath.resolve("detail_error.html");
 		changeFile(detailErrorPath, template, server);
@@ -202,10 +196,9 @@ public abstract class AbstractQuteDiagnosticsInProjectTest {
 		// detail_error.html
 		PublishDiagnosticsParams detailErrorDiagnostics = findPublishDiagnostics(diagnostics, "detail_error.html");
 		assertEquals(2, detailErrorDiagnostics.getDiagnostics().size());
-		assertDiagnostics(detailErrorDiagnostics.getDiagnostics(),
-				d(0, 10, 0, 13, QuteErrorCode.TemplateNotFound, //
-						"Template not found: `bad`.", //
-						DiagnosticSeverity.Error), //
+		assertDiagnostics(detailErrorDiagnostics.getDiagnostics(), d(0, 10, 0, 13, QuteErrorCode.TemplateNotFound, //
+				"Template not found: `bad`.", //
+				DiagnosticSeverity.Error), //
 				d(1, 3, 1, 9, QuteErrorCode.UndefinedSectionTag, //
 						"No section helper found for `title`.", //
 						DiagnosticSeverity.Warning));
