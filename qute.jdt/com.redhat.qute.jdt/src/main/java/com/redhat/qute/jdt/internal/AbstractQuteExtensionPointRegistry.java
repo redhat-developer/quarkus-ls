@@ -80,11 +80,12 @@ public abstract class AbstractQuteExtensionPointRegistry<T> implements IRegistry
 		LOGGER.log(Level.INFO, "->- Loading ." + getProviderExtensionId() + " extension point ->-");
 
 		IExtensionRegistry registry = Platform.getExtensionRegistry();
-		IConfigurationElement[] cf = registry.getConfigurationElementsFor(QutePlugin.PLUGIN_ID,
-				getProviderExtensionId());
-		addExtensionProviders(cf);
-		addRegistryListenerIfNeeded();
-
+		if (registry != null) {
+			IConfigurationElement[] cf = registry.getConfigurationElementsFor(QutePlugin.PLUGIN_ID,
+					getProviderExtensionId());
+			addExtensionProviders(cf);
+			addRegistryListenerIfNeeded();
+		}
 		LOGGER.log(Level.INFO, "-<- Done loading ." + getProviderExtensionId() + " extension point -<-");
 	}
 
@@ -142,12 +143,17 @@ public abstract class AbstractQuteExtensionPointRegistry<T> implements IRegistry
 			return;
 
 		IExtensionRegistry registry = Platform.getExtensionRegistry();
-		registry.addRegistryChangeListener(this, QutePlugin.PLUGIN_ID);
-		registryListenerIntialized = true;
+		if (registry != null) {
+			registry.addRegistryChangeListener(this, QutePlugin.PLUGIN_ID);
+			registryListenerIntialized = true;
+		}
 	}
 
 	public void destroy() {
-		Platform.getExtensionRegistry().removeRegistryChangeListener(this);
+		IExtensionRegistry registry = Platform.getExtensionRegistry();
+		if (registry != null) {
+			registry.removeRegistryChangeListener(this);
+		}
 	}
 
 	public void initialize() {
