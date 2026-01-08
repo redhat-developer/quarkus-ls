@@ -37,6 +37,13 @@
        </delegateCommandHandler>
    </extension>
 
+   <!-- Delegate command handler for Qute debugging -->
+   <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
+      <delegateCommandHandler class="com.redhat.qute.jdt.internal.ls.QuteSupportForDebugDelegateCommandHandler">
+            <command id="qute/debug/resolveJavaSource"/>
+       </delegateCommandHandler>
+   </extension>
+
    <!-- =========== Qute core & Quarkus Integration =========== -->
    
    <!-- Template root path providers for Qute core (src/main/resources/templates) -->
