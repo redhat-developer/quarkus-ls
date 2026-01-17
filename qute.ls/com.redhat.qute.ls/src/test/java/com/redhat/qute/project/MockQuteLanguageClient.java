@@ -13,7 +13,9 @@ package com.redhat.qute.project;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.CodeLens;
@@ -54,14 +56,14 @@ import com.redhat.qute.ls.api.QuteLanguageClientAPI;
  */
 public class MockQuteLanguageClient implements QuteLanguageClientAPI {
 
-	private final List<PublishDiagnosticsParams> publishDiagnostics;
+	private final Set<PublishDiagnosticsParams> publishDiagnostics;
 
 	private final List<MessageParams> showMessages;
 
 	private final List<MessageParams> logMessages;
 
 	public MockQuteLanguageClient() {
-		publishDiagnostics = new ArrayList<>();
+		publishDiagnostics = new HashSet<>();
 		showMessages = new ArrayList<>();
 		logMessages = new ArrayList<>();
 	}
@@ -101,7 +103,7 @@ public class MockQuteLanguageClient implements QuteLanguageClientAPI {
 		return CompletableFuture.completedFuture(null);
 	}
 
-	public List<PublishDiagnosticsParams> getPublishDiagnostics() {
+	public Set<PublishDiagnosticsParams> getPublishDiagnostics() {
 		return publishDiagnostics;
 	}
 

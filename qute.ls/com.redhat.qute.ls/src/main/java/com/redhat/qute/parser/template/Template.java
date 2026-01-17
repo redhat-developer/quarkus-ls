@@ -189,7 +189,7 @@ public class Template extends Node {
 				return parameter;
 			}
 			// Try special keys (ex: _args)
-			if (UserTagUtils.isUserTag(this)) {
+			if (UserTagUtils.isUserTag(this) && !UserTagUtils.IT_OBJECT_PART_NAME.equals(partName)) {
 				return UserTagUtils.getSpecialKey(partName);
 			}
 			return null;
@@ -263,8 +263,8 @@ public class Template extends Node {
 			return null;
 		}
 		// {inject:bean}
-		return (JavaTypeInfoProvider) project
-				.findJavaElementWithNamespace(namespace, objectPart.getPartName()).getNow(null);
+		return (JavaTypeInfoProvider) project.findJavaElementWithNamespace(namespace, objectPart.getPartName())
+				.getNow(null);
 	}
 
 	public Set<String> getJavaTypesSupportedInNativeMode() {
@@ -293,8 +293,7 @@ public class Template extends Node {
 			return null;
 		}
 		// {inject:bean}
-		return (JavaTypeInfoProvider) project
-				.findGlobalVariableJavaElement(objectPart.getPartName()).getNow(null);
+		return (JavaTypeInfoProvider) project.findGlobalVariableJavaElement(objectPart.getPartName()).getNow(null);
 	}
 
 	@Override

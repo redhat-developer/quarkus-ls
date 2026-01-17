@@ -13,14 +13,13 @@ package com.redhat.qute.project.documents;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.commons.TemplateRootPath;
+import com.redhat.qute.project.ProgressContext;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteTextDocument;
 
@@ -33,67 +32,81 @@ import com.redhat.qute.project.QuteTextDocument;
  */
 public class QuteClosedTextDocuments {
 
-	private static final Logger LOGGER = Logger.getLogger(QuteClosedTextDocuments.class.getName());
-
 	private final QuteProject project;
 
-	private final Map<String /* template id */, QuteTextDocument> documents;
+	private final Map<String /* template id */, QuteTextDocument> allDocumentsByTemplateId;
 
 	private boolean scanned;
 
-	public QuteClosedTextDocuments(QuteProject project, Map<String, QuteTextDocument> documents) {
+	public QuteClosedTextDocuments(QuteProject project, Map<String, QuteTextDocument> allDocumentsByTemplateId) {
 		this.project = project;
-		this.documents = documents;
+		this.allDocumentsByTemplateId = allDocumentsByTemplateId;
+	}
+
+	public void loadClosedTemplatesIfNeeded() {
+		loadClosedTemplatesIfNeeded(null);
 	}
 
 	/**
 	 * Scan if needed all files (html, json, txt, yaml) from the
 	 * 'src/main/resources/templates' folder of the project which are closed.
 	 */
-	public void loadClosedTemplatesIfNeeded() {
+	public void loadClosedTemplatesIfNeeded(ProgressContext progressContext) {
 		if (scanned) {
 			return;
 		}
-		scan();
+		scan(progressContext);
 	}
 
 	/**
 	 * Scan all files (html, json, txt, yaml) from the
 	 * 'src/main/resources/templates' folder of the project which are closed.
 	 */
-	private synchronized void scan() {
+	private synchronized void scan(ProgressContext progressContext) {
 		if (scanned) {
 			return;
 		}
 
-		List<TemplateRootPath> rootPaths = project.getTemplateRootPaths();
-		for (TemplateRootPath templateRootPath : rootPaths) {
-			scan(templateRootPath.getBasePath());
+		if (progressContext != null) {
+			progressContext.report("Collecting template files", 5);
+		}
+		// Step 1: collect all template file path from all root paths
+		// (src/main/resources/templates, src/main/resources/content, etc)
+		List<Path> rootPaths = project.getTemplateRootPaths().stream() //
+				.map(TemplateRootPath::getBasePath).toList();
+		List<Path> templatePaths = collectTemplatePaths(rootPaths);
+
+		int totalFiles = templatePaths.size();
+		if (progressContext != null) {
+			progressContext.report("Parsing the " + totalFiles + " template files", 5);
+		}
+		// Step 2: loop for each template path to parse file as Qute template
+		for (int i = 0; i < totalFiles; i++) {
+			Path path = templatePaths.get(i);
+			if (progressContext != null) {
+				int percent = (i * 100) / totalFiles;
+				progressContext.report("Parsing " + path.getFileName() + " template (" + i + "/" + totalFiles + ")",
+						percent);
+			}
+			tryToAddClosedTemplate(path, false);
 		}
 		scanned = true;
 	}
 
-	private void scan(Path basePath) {
-		if (basePath == null) {
-			return;
+	private List<Path> collectTemplatePaths(List<Path> rootPaths) {
+		List<Path> templatePaths = new ArrayList<>();
+		for (Path rootPath : rootPaths) {
+			try (Stream<Path> stream = Files.walk(rootPath)) {
+				stream.forEach(path -> {
+					if (isValidTemplate(path)) {
+						templatePaths.add(path);
+					}
+				});
+			} catch (Exception e) {
+				// Do nothing
+			}
 		}
-		if (!Files.exists(basePath)) {
-			// The Qute project doesn't contain the src/main/resources/templates directory
-			return;
-		}
-		// Scan all directories from src/main/resources/templates directory to collect
-		// closed Templates
-		try (Stream<Path> stream = Files.walk(basePath)) {
-			stream.forEach(path -> {
-				try {
-					tryToAddClosedTemplate(path, false);
-				} catch (Exception e) {
-					LOGGER.log(Level.SEVERE, "Error while loading template '" + FileUtils.toUri(path) + "'.", e);
-				}
-			});
-		} catch (Exception e) {
-			// Do nothing
-		}
+		return templatePaths;
 	}
 
 	/**
@@ -112,9 +125,9 @@ public class QuteClosedTextDocuments {
 		String templateId = project.getTemplateId(path);
 		if (force || !project.isTemplateOpened(templateId)) {
 			// The template is opened or force is true
-			synchronized (documents) {
+			synchronized (allDocumentsByTemplateId) {
 				if (!force) {
-					QuteTextDocument document = documents.get(templateId);
+					QuteTextDocument document = allDocumentsByTemplateId.get(templateId);
 					if (document != null && !document.isOpened()) {
 						// The closed document already exists
 						return document;
@@ -122,7 +135,7 @@ public class QuteClosedTextDocuments {
 				}
 				// Create and cache the closed document.
 				QuteTextDocument document = new QuteClosedTextDocument(path, templateId, project);
-				documents.put(templateId, document);
+				allDocumentsByTemplateId.put(templateId, document);
 				return document;
 			}
 		}
@@ -158,18 +171,6 @@ public class QuteClosedTextDocuments {
 	 */
 	public QuteTextDocument onDidCreateTemplate(Path path) {
 		return tryToAddClosedTemplate(path, true);
-	}
-
-	/**
-	 * Callback called when a Qute text file is deleted.
-	 * 
-	 * @param path the template file path.
-	 */
-	public QuteTextDocument onDidDeleteTemplate(Path path) {
-		String templateId = project.getTemplateId(path);
-		synchronized (documents) {
-			return documents.remove(templateId);
-		}
 	}
 
 	/**

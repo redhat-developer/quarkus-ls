@@ -14,7 +14,9 @@ package com.redhat.qute.project.tags;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -25,6 +27,7 @@ import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteUserTagProvider;
+import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.services.completions.CompletionRequest;
 
@@ -47,6 +50,7 @@ public class UserTagRegistry {
 	private final QuteCompletionsForBinaryUserTagSection completionsBinaryUserTag;
 
 	private CompletableFuture<List<UserTag>> userTagFuture;
+	private final Map<String, UserTagUsages> usagesByTag;
 
 	public UserTagRegistry(QuteProject project, List<TemplateRootPath> templateRootPaths,
 			QuteUserTagProvider userTagProvider) {
@@ -55,6 +59,7 @@ public class UserTagRegistry {
 		this.userTagProvider = userTagProvider;
 		this.completionsSourceUserTag = new QuteCompletionsForSourceUserTagSection();
 		this.completionsBinaryUserTag = new QuteCompletionsForBinaryUserTagSection();
+		this.usagesByTag = new HashMap<>();
 	}
 
 	/**
@@ -156,5 +161,37 @@ public class UserTagRegistry {
 
 	public void refreshDataModel() {
 		completionsSourceUserTag.clear();
+	}
+
+	/**
+	 * Updates user tag usages for a given template.
+	 *
+	 * @param templateId         template URI
+	 * @param usages      collected parameters per user tag
+	 * @param oldTagNames previously known tag names for this template
+	 */
+	public void updateUsages(String templateId, Map<String, List<Parameter>> usages, Set<String> oldTagNames) {
+
+		for (Map.Entry<String, List<Parameter>> entry : usages.entrySet()) {
+			String tagName = entry.getKey();
+			UserTagUsages tagUsages = getOrCreateUsages(tagName);
+			tagUsages.updateUsages(templateId, entry.getValue());
+		}
+
+		// Handle removed usages
+		for (String tagName : oldTagNames) {
+			UserTagUsages tagUsages = usagesByTag.get(tagName);
+			if (tagUsages != null) {
+				tagUsages.updateUsages(templateId, List.of());
+			}
+		}
+	}
+
+	private UserTagUsages getOrCreateUsages(String tagName) {
+		return usagesByTag.computeIfAbsent(tagName, UserTagUsages::new);
+	}
+
+	public UserTagUsages getUsages(String tagName) {
+		return usagesByTag.get(tagName);
 	}
 }

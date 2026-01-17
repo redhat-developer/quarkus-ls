@@ -499,11 +499,15 @@ public class QuteAssert {
 		if (expectedHoverLabel == null) {
 			assertNull(hover);
 		} else {
-			String actualHoverLabel = getHoverLabel(hover);
-			assertEquals(expectedHoverLabel, actualHoverLabel);
-			if (expectedHoverRange != null) {
-				assertEquals(expectedHoverRange, hover.getRange());
-			}
+			assertHover(hover, expectedHoverLabel, expectedHoverRange);
+		}
+	}
+
+	public static void assertHover(Hover hover, String expectedHoverLabel, Range expectedHoverRange) {
+		String actualHoverLabel = getHoverLabel(hover);
+		assertEquals(expectedHoverLabel, actualHoverLabel);
+		if (expectedHoverRange != null) {
+			assertEquals(expectedHoverRange, hover.getRange());
 		}
 	}
 

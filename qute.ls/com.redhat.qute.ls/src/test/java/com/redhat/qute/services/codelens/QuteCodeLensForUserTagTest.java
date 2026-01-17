@@ -37,11 +37,11 @@ public class QuteCodeLensForUserTagTest {
 		testCodeLensFor(value, "src/main/resources/templates/tags/input.html", //
 				"tags/input", //
 				cl(r(0, 0, 0, 0), "User tag #input", ""), //
-				cl(r(0, 0, 0, 0), "name", ""), //
-				cl(r(0, 0, 0, 0), "type", ""), //
-				cl(r(0, 0, 0, 0), "placeholder", ""), //
-				cl(r(0, 0, 0, 0), "id", ""), //
-				cl(r(0, 0, 0, 0), "VARCHAR_SIZE", ""));
+				cl(r(0, 0, 0, 0), "name : ?", ""), //
+				cl(r(0, 0, 0, 0), "type : ?", ""), //
+				cl(r(0, 0, 0, 0), "placeholder : ?", ""), //
+				cl(r(0, 0, 0, 0), "id : ?", ""), //
+				cl(r(0, 0, 0, 0), "VARCHAR_SIZE : int", ""));
 	}
 
 	@Test
@@ -56,9 +56,9 @@ public class QuteCodeLensForUserTagTest {
 		testCodeLensFor(value, "src/main/resources/templates/tags/formElement.html", //
 				"tags/formElement", //
 				cl(r(0, 0, 0, 0), "User tag #formElement", ""), //
-				cl(r(0, 0, 0, 0), "name", ""), //
-				cl(r(0, 0, 0, 0), "label", ""), //
-				cl(r(0, 0, 0, 0), "nested-content", ""));
+				cl(r(0, 0, 0, 0), "name : ?", ""), //
+				cl(r(0, 0, 0, 0), "label : ?", ""), //
+				cl(r(0, 0, 0, 0), "nested-content : Object", ""));
 	}
 
 }
