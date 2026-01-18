@@ -27,6 +27,7 @@ import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.RangeOffset;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.UserTagUtils;
@@ -52,8 +53,11 @@ public class QuteCodeActionForMissingParameters extends AbstractQuteCodeAction {
 				return;
 			}
 			Template template = request.getTemplate();
-
-			List<String> requiredUserTagParamNames = template.getProject().findUserTag(section.getTag())
+			QuteProject project = template.getProject();
+			if (project == null) {
+				return;
+			}
+			List<String> requiredUserTagParamNames = project.findUserTag(section.getTag())
 					.getRequiredParameterNames();
 
 			int startRangeOffset = section.getStartTagNameCloseOffset();
