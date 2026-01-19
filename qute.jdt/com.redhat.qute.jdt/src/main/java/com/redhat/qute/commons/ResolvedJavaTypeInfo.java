@@ -155,12 +155,12 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
 	/**
 	 * Returns true if the Java type is / or implements
-	 * "java.util.concurrent.CompletionStage"
-	 * or "io.smallrye.mutiny.Uni" and false otherwise.
+	 * "java.util.concurrent.CompletionStage" or "io.smallrye.mutiny.Uni" and false
+	 * otherwise.
 	 * 
 	 * @return true if the Java type is / or implements
-	 *         "java.util.concurrent.CompletionStage"
-	 *         or "io.smallrye.mutiny.Uni" and false otherwise.
+	 *         "java.util.concurrent.CompletionStage" or "io.smallrye.mutiny.Uni"
+	 *         and false otherwise.
 	 */
 	public boolean isWrapperType() {
 		if (isWrapperType != null) {

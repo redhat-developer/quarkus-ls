@@ -27,5 +27,8 @@ public enum NodeKind {
 	ExpressionPart,
 
 	// Parameter in section
-	Parameter;
+	Parameter, //
+
+	// Language injection
+	LanguageInjection;
 }

@@ -51,6 +51,11 @@ public enum TokenType {
 	ParameterDeclaration, //
 	EndParameterDeclaration, //
 
+	// Language injections
+	LanguageInjectionStart, // Start of an injected zone (e.g., first ---)
+	LanguageInjectionContent, // Content of the injected zone
+	LanguageInjectionEnd, // End of an injected zone (e.g., second ---)
+
 	// Other token types
 	Content, //
 	Whitespace, //

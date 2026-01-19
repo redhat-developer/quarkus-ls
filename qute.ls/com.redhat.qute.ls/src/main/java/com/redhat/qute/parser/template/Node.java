@@ -11,29 +11,45 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
-public abstract class Node {
+import com.redhat.qute.parser.NodeBase;
+
+public abstract class Node extends NodeBase<Node> {
 
 	/**
 	 * Null value used for offset.
 	 */
 	protected static final int NULL_VALUE = -1;
 
-	private int start;
-	private int end;
-	private boolean closed;
-	private Node parent;
-	private List<Node> children;
-
 	public Node(int start, int end) {
-		this.start = start;
-		this.end = end;
-		this.closed = false;
-	};
+		super(start, end);
+	}
+
+	@Override
+	protected void setStart(int start) {
+		super.setStart(start);
+	}
+
+	@Override
+	protected void setEnd(int end) {
+		super.setEnd(end);
+	}
+
+	@Override
+	protected void setClosed(boolean closed) {
+		super.setClosed(closed);
+	}
+
+	@Override
+	protected void setParent(Node parent) {
+		super.setParent(parent);
+	}
+
+	@Override
+	protected void addChild(Node child) {
+		super.addChild(child);
+	}
 
 	/**
 	 * Returns the owner document and null otherwise.
@@ -41,7 +57,7 @@ public abstract class Node {
 	 * @return the owner document and null otherwise.
 	 */
 	public Template getOwnerTemplate() {
-		Node node = parent;
+		Node node = getParent();
 		while (node != null) {
 			if (node.getKind() == NodeKind.Template) {
 				return (Template) node;
@@ -49,122 +65,6 @@ public abstract class Node {
 			node = node.getParent();
 		}
 		return null;
-	}
-
-	public int getStart() {
-		return start;
-	}
-
-	protected void setStart(int start) {
-		this.start = start;
-	}
-
-	public int getEnd() {
-		return end;
-	}
-
-	protected void setEnd(int end) {
-		this.end = end;
-	}
-
-	void setClosed(boolean closed) {
-		this.closed = closed;
-	}
-
-	public boolean isClosed() {
-		return closed;
-	}
-
-	protected void addChild(Node child) {
-		child.setParent(this);
-		if (children == null) {
-			children = new ArrayList<>();
-		}
-		children.add(child);
-	}
-
-	protected void setParent(Node parent) {
-		this.parent = parent;
-	}
-
-	public Node getParent() {
-		return parent;
-	}
-
-	public List<Node> getChildren() {
-		if (children == null) {
-			return Collections.emptyList();
-		}
-		return children;
-	}
-
-	/**
-	 * Returns node child at the given index.
-	 * 
-	 * @param index
-	 * @return node child at the given index.
-	 */
-	public Node getChild(int index) {
-		return getChildren().get(index);
-	}
-
-	public int getChildCount() {
-		return getChildren().size();
-	}
-
-	public abstract String getNodeName();
-
-	public Node findNodeAt(int offset) {
-		List<Node> children = getChildren();
-		Node node = findNodeAt(children, offset);
-		return node != null ? node : this;
-	}
-
-	public static Node findNodeAt(List<Node> children, int offset) {
-		int idx = findFirst(children, c -> offset <= c.start) - 1;
-		if (idx >= 0) {
-			Node child = children.get(idx);
-			if (isIncluded(child, offset)) {
-				return child.findNodeAt(offset);
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Returns the node before
-	 */
-	public Node findNodeBefore(int offset) {
-		List<Node> children = getChildren();
-		int idx = findFirst(children, c -> offset <= c.start) - 1;
-		if (idx >= 0) {
-			Node child = children.get(idx);
-			if (offset > child.start) {
-				if (offset < child.end) {
-					return child.findNodeBefore(offset);
-				}
-				Node lastChild = child.getLastChild();
-				if (lastChild != null && lastChild.end == child.end) {
-					return child.findNodeBefore(offset);
-				}
-				return child;
-			}
-		}
-		return this;
-	}
-
-	public Node getLastChild() {
-		return this.children != null && this.children.size() > 0 ? this.children.get(this.children.size() - 1) : null;
-	}
-
-	public Node getNextSibling() {
-		Node parentNode = getParent();
-		if (parentNode == null) {
-			return null;
-		}
-		List<Node> children = parentNode.getChildren();
-		int nextIndex = children.indexOf(this) + 1;
-		return nextIndex < children.size() ? children.get(nextIndex) : null;
 	}
 
 	public Section getNextSiblingSection() {
@@ -193,8 +93,7 @@ public abstract class Node {
 	 * The following sample sample with tagName=foo will returns the <\foo> orphan
 	 * end section:
 	 * <p>
-	 * |
-	 * {/foo}
+	 * | {/foo}
 	 * </p>
 	 * 
 	 * @param offset  the offset.
@@ -214,8 +113,7 @@ public abstract class Node {
 	 * The following sample sample with tagName=bar will returns the <\foo> orphan
 	 * end section:
 	 * <p>
-	 * |
-	 * {/foo}
+	 * | {/foo}
 	 * </p>
 	 * 
 	 * @param offset    the offset.
@@ -238,7 +136,6 @@ public abstract class Node {
 		return null;
 	}
 
-
 	/**
 	 * Returns the parent section of the node and null otherwise.
 	 * 
@@ -247,6 +144,7 @@ public abstract class Node {
 	public Section getParentSection() {
 		return getParentSection(false);
 	}
+
 	/**
 	 * Returns the parent section of the node and null otherwise.
 	 * 
@@ -258,7 +156,7 @@ public abstract class Node {
 			if (parent != null && parent.getKind() == NodeKind.Section) {
 				Section parentSection = (Section) parent;
 				if (!excludeSupportUnterminatedSection) {
-					// we don't exclude #let, #include which can be not closed 
+					// we don't exclude #let, #include which can be not closed
 					return parentSection;
 				}
 				if (parentSection.hasEndTag()) {
@@ -278,48 +176,6 @@ public abstract class Node {
 			parent = parent.getParent();
 		}
 		return null;
-	}
-
-	/**
-	 * Returns true if the node included the given offset and false otherwise.
-	 * 
-	 * @param node
-	 * @param offset
-	 * @return true if the node included the given offset and false otherwise.
-	 */
-	public static boolean isIncluded(Node node, int offset) {
-		if (node == null) {
-			return false;
-		}
-		return isIncluded(node.getStart(), node.getEnd(), offset);
-	}
-
-	public static boolean isIncluded(int start, int end, int offset) {
-		return offset >= start && offset <= end;
-	}
-
-	/**
-	 * Takes a sorted array and a function p. The array is sorted in such a way that
-	 * all elements where p(x) is false are located before all elements where p(x)
-	 * is true.
-	 * 
-	 * @returns the least x for which p(x) is true or array.length if no element
-	 *          full fills the given function.
-	 */
-	private static <T> int findFirst(List<T> array, Function<T, Boolean> p) {
-		int low = 0, high = array.size();
-		if (high == 0) {
-			return 0; // no children
-		}
-		while (low < high) {
-			int mid = (int) Math.floor((low + high) / 2);
-			if (p.apply(array.get(mid))) {
-				high = mid;
-			} else {
-				low = mid + 1;
-			}
-		}
-		return low;
 	}
 
 	/**

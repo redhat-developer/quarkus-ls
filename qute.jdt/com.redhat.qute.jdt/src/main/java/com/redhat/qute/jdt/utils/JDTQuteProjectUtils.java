@@ -24,6 +24,8 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -32,10 +34,12 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.core.manipulation.dom.ASTResolving;
 
+import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.jdt.internal.QuteJavaConstants;
 import com.redhat.qute.jdt.internal.template.rootpath.TemplateRootPathProviderRegistry;
+import com.redhat.qute.jdt.template.project.ProjectFeatureProviderRegistry;
 import com.redhat.qute.jdt.template.rootpath.DefaultTemplateRootPathProvider;
 
 import io.quarkus.runtime.util.StringUtil;
@@ -59,7 +63,7 @@ public class JDTQuteProjectUtils {
 
 	}
 
-	public static ProjectInfo getProjectInfo(IJavaProject javaProject) {
+	public static ProjectInfo getProjectInfo(IJavaProject javaProject, IProgressMonitor monitor) {
 		IProject project = javaProject.getProject();
 		String projectUri = getProjectURI(project);
 		// Project dependencies
@@ -75,11 +79,18 @@ public class JDTQuteProjectUtils {
 					"Error while getting project dependencies for '" + javaProject.getElementName() + "' Java project.",
 					e);
 		}
+		// Project folder
+		String projectFolder = toUri(javaProject.getProject().getLocation());
 		// Template root paths
 		List<TemplateRootPath> templateRootPaths = TemplateRootPathProviderRegistry.getInstance()
-				.getTemplateRootPaths(javaProject, null);
+				.getTemplateRootPaths(javaProject, monitor);
+		// Source folders
 		Set<String> sourceFolders = getSourceFolders(javaProject);
-		return new ProjectInfo(projectUri, projectDependencies, templateRootPaths, sourceFolders);
+		// Project Features
+		Set<ProjectFeature> projectFeatures = ProjectFeatureProviderRegistry.getInstance()
+				.getProjectFeatures(javaProject, monitor);
+		return new ProjectInfo(projectUri, projectFolder, projectDependencies, templateRootPaths, sourceFolders,
+				projectFeatures);
 	}
 
 	private static Set<String> getSourceFolders(IJavaProject javaProject) {
@@ -92,7 +103,10 @@ public class JDTQuteProjectUtils {
 
 				IResource resource = root.getCorrespondingResource();
 				if (resource instanceof IFolder) {
-					sourceFolders.add(resource.getLocation().toFile().toURI().toASCIIString());
+					String uri = toUri(resource.getLocation());
+					if (uri != null) {
+						sourceFolders.add(uri);
+					}
 				}
 			}
 			return sourceFolders;
@@ -102,6 +116,13 @@ public class JDTQuteProjectUtils {
 					+ "' Java project.", e);
 			return Collections.emptySet();
 		}
+	}
+
+	private static String toUri(IPath path) {
+		if (path == null) {
+			return null;
+		}
+		return path.toFile().toURI().toASCIIString();
 	}
 
 	/**

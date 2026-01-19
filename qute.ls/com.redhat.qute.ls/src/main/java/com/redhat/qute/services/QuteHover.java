@@ -57,6 +57,7 @@ import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.extensions.HoverParticipant;
 import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.services.extensions.HoverExtensionProvider;
 import com.redhat.qute.services.hover.HoverRequest;
 import com.redhat.qute.settings.QuteNativeSettings;
 import com.redhat.qute.settings.SharedSettings;
@@ -259,18 +260,25 @@ public class QuteHover {
 							}
 							return mergeHover(hovers, null);
 						}
-						if (javaElement instanceof JavaTypeInfo) {
+						if (javaElement instanceof HoverExtensionProvider) {
+							return ((HoverExtensionProvider) javaElement).getHover(part, hoverRequest);
+						} else if (javaElement instanceof JavaTypeInfo) {
 							return doHoverForJavaType(part, (JavaTypeInfo) javaElement, hoverRequest);
+						} else if (javaElement instanceof JavaMemberInfo) {
+							return doHoverForMember(part, (JavaMemberInfo) javaElement, hoverRequest);
 						}
-						JavaMemberInfo member = (JavaMemberInfo) javaElement;
-						boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
-						MarkupContent content = DocumentationUtils.getDocumentation(member, null, hasMarkdown);
-						Range range = QutePositionUtility.createRange(part);
-						return new Hover(content, range);
+						return null;
 
 					});
 		}
 		return NO_HOVER;
+	}
+
+	private static Hover doHoverForMember(Part part, JavaMemberInfo member, HoverRequest hoverRequest) {
+		boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+		MarkupContent content = DocumentationUtils.getDocumentation(member, null, hasMarkdown);
+		Range range = QutePositionUtility.createRange(part);
+		return new Hover(content, range);
 	}
 
 	private CompletableFuture<Hover> doHoverForNamespacePart(Part part, QuteProject project, HoverRequest hoverRequest,
@@ -447,7 +455,7 @@ public class QuteHover {
 						return CompletableFuture.completedFuture(new Hover(content, range));
 					}
 
-					if (memberResult.getMember().getDocumentation() == null && resolvedType != null) {
+					if (memberResult.getMember().shouldLoadDocumentation() && resolvedType != null) {
 						CompletableFuture<Void> javadocFetchFuture = project
 								.getJavadoc(memberResult.getMember(), resolvedType, hasMarkdown) //
 								.thenAccept(documentation -> memberResult.getMember()
@@ -474,6 +482,7 @@ public class QuteHover {
 				.thenCompose(resolvedJavaType -> {
 					cancelChecker.checkCanceled();
 					if (isValidJavaType(resolvedJavaType)) {
+						// Hover for Java type
 						ResolvedJavaTypeInfo iterableOfResolvedType = resolvedJavaType.isArray() ? null
 								: resolvedJavaType;
 						return doHoverForPropertyPart(part, project, resolvedJavaType, iterableOfResolvedType,
@@ -501,8 +510,13 @@ public class QuteHover {
 		if (member == null) {
 			return NO_HOVER;
 		}
+		if (member instanceof HoverExtensionProvider) {
+			// Custom Hover
+			Hover customHover = ((HoverExtensionProvider) member).getHover(part, hoverRequest);
+			return CompletableFuture.completedFuture(customHover);
+		}
 		boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
-		if (member.getDocumentation() == null) {
+		if (member.shouldLoadDocumentation()) {
 			CompletableFuture<Void> fetchDocsFuture = project.getJavadoc(member, resolvedType, hasMarkdown) //
 					.thenAccept(documentation -> member.setDocumentation(documentation == null ? "" : documentation));
 			return fetchDocsFuture.thenApply((unusedNull) -> {
@@ -538,7 +552,12 @@ public class QuteHover {
 						return project.resolveJavaType(iterablePart) //
 								.thenCompose(resolvedJavaType -> {
 									if (resolvedJavaType != null && resolvedJavaType.isIterable()) {
-										return project.resolveJavaType(resolvedJavaType.getIterableOf()) //
+										CompletableFuture<ResolvedJavaTypeInfo> future = resolvedJavaType
+												.isTypeResolved()
+														? CompletableFuture
+																.completedFuture(resolvedJavaType.getResolvedType())
+														: project.resolveJavaType(resolvedJavaType.getIterableOf());
+										return future //
 												.thenApply(resolvedIterableOf -> {
 													MarkupContent content = DocumentationUtils
 															.getDocumentation(resolvedIterableOf, hasMarkdown);

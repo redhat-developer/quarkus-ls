@@ -20,7 +20,7 @@ import com.redhat.qute.QuteAssert;
 import com.redhat.qute.project.renarde.RenardeProject;
 
 /**
- * Tests for Qute hover in expression.
+ * Tests with Renarde Quarkus extension and resources message.
  *
  * @author Angelo ZERR
  *
@@ -28,13 +28,13 @@ import com.redhat.qute.project.renarde.RenardeProject;
 public class RenardeMessagesHoverTest {
 
 	@Test
-	public void invaliddMessageKey() throws Exception {
+	public void invalidMessageKey() throws Exception {
 		String template = "{m:main.lo|ginXXX}";
 		assertHover(template, null, null);
 	}
 
 	@Test
-	public void validdMessageKey() throws Exception {
+	public void validMessageKey() throws Exception {
 		String template = "{m:main.lo|gin}";
 		assertHover(template, //
 				" * default: **Login/Register**\n" + //
@@ -44,7 +44,7 @@ public class RenardeMessagesHoverTest {
 	}
 
 	@Test
-	public void validdMessageKeyEncoding() throws Exception {
+	public void validMessageKeyEncoding() throws Exception {
 		String template = "{m:todos.message.dele|ted}";
 		assertHover(template, //
 				" * default: **Task deleted: %s**\n" + //

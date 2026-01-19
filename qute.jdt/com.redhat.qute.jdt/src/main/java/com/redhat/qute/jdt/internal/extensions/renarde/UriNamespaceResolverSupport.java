@@ -13,6 +13,7 @@ package com.redhat.qute.jdt.internal.extensions.renarde;
 
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.JAVA_LANG_OBJECT_TYPE;
 import static com.redhat.qute.jdt.internal.extensions.renarde.RenardeJavaConstants.RENARDE_CONTROLLER_TYPE;
+import static com.redhat.qute.jdt.internal.extensions.renarde.RenardeUtils.isRenardeProject;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -123,8 +124,7 @@ public class UriNamespaceResolverSupport extends AbstractDataModelProvider {
 	@Override
 	protected boolean isNamespaceAvailable(String namespace, SearchContext context, IProgressMonitor monitor) {
 		// uri, and uriabs are available only for renarde project
-		IJavaProject javaProject = context.getJavaProject();
-		return JDTTypeUtils.findType(javaProject, RENARDE_CONTROLLER_TYPE) != null;
+		return isRenardeProject(context.getJavaProject());
 	}
 
 	@Override

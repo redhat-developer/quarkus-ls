@@ -12,8 +12,9 @@
 package com.redhat.qute.project.extensions;
 
 import java.nio.file.Path;
+import java.util.Set;
 
-import org.eclipse.lsp4j.FileEvent;
+import org.eclipse.lsp4j.FileChangeType;
 
 /**
  * Participant for handling file system changes relevant to the extension.
@@ -38,9 +39,9 @@ public interface DidChangeWatchedFilesParticipant {
 	 * </p>
 	 * 
 	 * @param filePath  the path of the changed file
-	 * @param fileEvent the file change event (type: Created, Changed, or Deleted)
+	 * @param changeTypes the file change event (type: Created, Changed, or Deleted)
 	 * @return true if this participant handled the file change, false otherwise
 	 */
-	boolean didChangeWatchedFile(Path filePath, FileEvent fileEvent);
+	boolean didChangeWatchedFile(Path filePath, Set<FileChangeType> changeTypes);
 
 }

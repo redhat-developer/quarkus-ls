@@ -2,6 +2,9 @@
 <?eclipse version="3.5"?>
 <plugin>
 
+   <extension-point id="projectFeatureProviders"
+					name="%projectFeatureProviders.name"
+					schema="schema/projectFeatureProviders.exsd" />
    <extension-point id="templateRootPathProviders"
 					name="%templateRootPathProviders.name"
 					schema="schema/templateRootPathProviders.exsd" />
@@ -76,15 +79,16 @@
 
    <!-- =========== Renarde extension =========== -->
 
+   <extension point="com.redhat.qute.jdt.projectFeatureProviders">
+      <provider class="com.redhat.qute.jdt.internal.extensions.renarde.RenardeProjectFeatureProvider" />
+   </extension>
+
    <!-- Data model providers for Quarkus Renarde -->
    <extension point="com.redhat.qute.jdt.dataModelProviders">
       <provider namespaces="uri,uriabs"
                 description="In order to generate the URI to an endpoint, in a Qute view, you can use the `uri` and `uriabs` namespace with a call to the endpoint you want to point to."
                 url="https://github.com/quarkiverse/quarkus-renarde/blob/main/docs/modules/ROOT/pages/index.adoc#obtaining-a-uri-in-qute-views"
                 class="com.redhat.qute.jdt.internal.extensions.renarde.UriNamespaceResolverSupport" />
-   </extension>
-
-   <extension point="com.redhat.qute.jdt.dataModelProviders">
       <provider namespaces="m"
                 description="Localisation / Internationalisation."
                 url="https://docs.quarkiverse.io/quarkus-renarde/dev/advanced.html#localisation"
@@ -97,7 +101,11 @@
    </extension>
 
    <!-- =========== Roq extension =========== -->
-   
+
+   <extension point="com.redhat.qute.jdt.projectFeatureProviders">
+      <provider class="com.redhat.qute.jdt.internal.extensions.roq.RoqProjectFeatureProvider" />
+   </extension>
+
    <extension point="com.redhat.qute.jdt.dataModelProviders">
       <provider class="com.redhat.qute.jdt.internal.extensions.roq.RoqDataModelProvider" />
       <provider class="com.redhat.qute.jdt.internal.extensions.roq.DataMappingSupport" />
