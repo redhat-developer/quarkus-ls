@@ -176,8 +176,7 @@ public class JavaDataModelCache {
 	}
 
 	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String javaTypeName,
-			JavaTypeInfoProvider javaTypeInfo,
-			Set<String> visited) {
+			JavaTypeInfoProvider javaTypeInfo, Set<String> visited) {
 
 		if (StringUtils.isEmpty(javaTypeName)) {
 			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
@@ -238,8 +237,7 @@ public class JavaDataModelCache {
 														new CompletableFuture[resolvingExtendedFutures.size()]));
 										return allFutures //
 												.thenApply(all -> {
-													updateIterableAndWrappedObject(
-															resolvedJavaTypeWithLoadedDeps,
+													updateIterableAndWrappedObject(resolvedJavaTypeWithLoadedDeps,
 															resolvingExtendedFutures);
 													return resolvedJavaTypeWithLoadedDeps;
 												});
@@ -279,11 +277,8 @@ public class JavaDataModelCache {
 
 	private void updateIterableAndWrappedObject(final ResolvedJavaTypeInfo resolvedJavaType,
 			Set<CompletableFuture<ResolvedJavaTypeInfo>> resolvingExtendedFutures) {
-		Set<ResolvedJavaTypeInfo> extendedTypes = resolvingExtendedFutures
-				.stream()
-				.map(r -> r.getNow(null))
-				.filter(r -> r != null)
-				.collect(Collectors.toSet());
+		Set<ResolvedJavaTypeInfo> extendedTypes = resolvingExtendedFutures.stream().map(r -> r.getNow(null))
+				.filter(r -> r != null).collect(Collectors.toSet());
 		updateIterableAndWrappedObjectSync(resolvedJavaType, extendedTypes);
 	}
 
@@ -362,32 +357,32 @@ public class JavaDataModelCache {
 		for (int i = 0; i < partIndex + 1; i++) {
 			Part current = (parts.getChild(i));
 			switch (current.getPartKind()) {
-				case Object:
-					ObjectPart objectPart = (ObjectPart) current;
-					future = resolveJavaType(objectPart);
-					future = wrapGeneric(wrapObject(future));
-					break;
-				case Property:
-				case Method:
-					if (future == null && current.getPartKind() == PartKind.Method) {
-						future = resolveJavaType((MethodPart) current);
-					} else if (future != null) {
-						ResolvedJavaTypeInfo actualResolvedType = future.getNow(null);
-						if (actualResolvedType != null) {
-							future = resolveJavaType(current, actualResolvedType);
-						} else {
-							future = future //
-									.thenCompose(resolvedType -> {
-										if (resolvedType == null) {
-											return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
-										}
-										return resolveJavaType(current, resolvedType);
-									});
-						}
+			case Object:
+				ObjectPart objectPart = (ObjectPart) current;
+				future = resolveJavaType(objectPart);
+				future = wrapGeneric(wrapObject(future));
+				break;
+			case Property:
+			case Method:
+				if (future == null && current.getPartKind() == PartKind.Method) {
+					future = resolveJavaType((MethodPart) current);
+				} else if (future != null) {
+					ResolvedJavaTypeInfo actualResolvedType = future.getNow(null);
+					if (actualResolvedType != null) {
+						future = resolveJavaType(current, actualResolvedType);
+					} else {
+						future = future //
+								.thenCompose(resolvedType -> {
+									if (resolvedType == null) {
+										return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+									}
+									return resolveJavaType(current, resolvedType);
+								});
 					}
-					future = wrapGeneric(wrapObject(future));
-					break;
-				default:
+				}
+				future = wrapGeneric(wrapObject(future));
+				break;
+			default:
 			}
 		}
 		return future != null ? future : RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
@@ -406,10 +401,8 @@ public class JavaDataModelCache {
 
 	private CompletableFuture<ResolvedJavaTypeInfo> wrapGeneric(ResolvedJavaTypeInfo resolvedJavaType,
 			CompletableFuture<ResolvedJavaTypeInfo> defaultFuture) {
-		if (resolvedJavaType != null
-				&& resolvedJavaType != NOT_ITERABLE_JAVA_TYPE
-				&& !(resolvedJavaType instanceof ResolvedGenericJavaTypeInfo)
-				&& resolvedJavaType.isGenericType()) {
+		if (resolvedJavaType != null && resolvedJavaType != NOT_ITERABLE_JAVA_TYPE
+				&& !(resolvedJavaType instanceof ResolvedGenericJavaTypeInfo) && resolvedJavaType.isGenericType()) {
 			// Here resolvedJavaType is java.util.List<E>
 			// we need to return java.util.List<java.lang.Object>
 			String key = resolvedJavaType.getName() + "@generic";
@@ -462,11 +455,13 @@ public class JavaDataModelCache {
 		return future;
 	}
 
-	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Part part,
-			ResolvedJavaTypeInfo resolvedType) {
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Part part, ResolvedJavaTypeInfo resolvedType) {
 		JavaMemberInfo member = project.findMember(resolvedType, part.getPartName());
 		if (member == null) {
 			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+		}
+		if (member.isTypeResolved()) {
+			return CompletableFuture.completedFuture(member.getResolvedType());
 		}
 		String memberType = member.resolveJavaElementType(resolvedType);
 		return resolveJavaType(memberType);
@@ -489,6 +484,9 @@ public class JavaDataModelCache {
 		JavaTypeInfoProvider javaTypeInfo = objectPart.resolveJavaType();
 		if (javaTypeInfo == null) {
 			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+		}
+		if (javaTypeInfo.getResolvedType() != null) {
+			return CompletableFuture.completedFuture(javaTypeInfo.getResolvedType());
 		}
 		String javaType = javaTypeInfo.getJavaType();
 		if (StringUtils.isEmpty(javaType)) {
@@ -519,6 +517,12 @@ public class JavaDataModelCache {
 							if (resolvedType == null) {
 								return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 							}
+
+							ResolvedJavaTypeInfo alreadyResolved = resolvedType.getResolvedType();
+							if (alreadyResolved != null) {
+								return CompletableFuture.completedFuture(alreadyResolved);
+							}
+
 							if (!resolvedType.isIterable()) {
 								// case when iterable section is associated with a Java class which is not
 								// iterable.
@@ -535,15 +539,13 @@ public class JavaDataModelCache {
 									return resolveJavaType(resolvedType.getName());
 								}
 								/*
-								 * // -> the class is not valid
-								 * // Ex:
-								 * // {@org.acme.Item items}
-								 * // {#for item in items}
-								 * // {item.|}
+								 * // -> the class is not valid // Ex: // {@org.acme.Item items} // {#for item
+								 * in items} // {item.|}
 								 */
 								return RESOLVED_JAVA_TYPE_NOT_ITERABLE_FUTURE;
 
 							}
+
 							// valid case
 							// Ex:
 							// {@java.util.List<org.acme.Item> items}

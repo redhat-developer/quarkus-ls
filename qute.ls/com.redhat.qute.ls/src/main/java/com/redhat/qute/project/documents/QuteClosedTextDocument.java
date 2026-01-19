@@ -12,6 +12,7 @@
 package com.redhat.qute.project.documents;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -22,6 +23,8 @@ import java.util.stream.Collectors;
 import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.ls.commons.TextDocument;
+import com.redhat.qute.parser.CancelChecker;
+import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
@@ -76,8 +79,7 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 		}
 		try {
 			TextDocument document = new TextDocument(IOUtils.getContent(path), uri);
-			Template template = TemplateParser.parse(document, () -> {
-			});
+			Template template = TemplateParser.parse(document, getInjectionDetectors(), CancelChecker.NO_CANCELLABLE);
 			template.setTemplateId(templateId);
 			template.setProjectRegistry(project.getProjectRegistry());
 			template.setProjectUri(project.getUri());
@@ -170,5 +172,10 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 			}
 
 		}
+	}
+
+	@Override
+	public Collection<InjectionDetector> getInjectionDetectors() {
+		return project.getInjectionDetectorsFor(path);
 	}
 }

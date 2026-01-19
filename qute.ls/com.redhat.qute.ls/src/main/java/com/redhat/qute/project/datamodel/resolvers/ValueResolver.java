@@ -13,6 +13,8 @@ package com.redhat.qute.project.datamodel.resolvers;
 
 import java.util.List;
 
+import org.eclipse.lsp4j.CompletionItemKind;
+
 import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 
@@ -46,14 +48,14 @@ public interface ValueResolver {
 	 * @return the namespace of the resolver and null otherwise.
 	 */
 	String getNamespace();
-	
+
 	/**
 	 * Returns match names of the resolver.
 	 * 
 	 * @return the match names of the resolver.
 	 */
 	List<String> getMatchNames();
-	
+
 	/**
 	 * Returns the Java element signature.
 	 *
@@ -83,4 +85,19 @@ public interface ValueResolver {
 	boolean isGlobalVariable();
 
 	ValueResolverKind getKind();
+
+	default CompletionItemKind getCompletionKind() {
+		switch (getJavaElementKind()) {
+		case FIELD:
+			return CompletionItemKind.Field;
+		case METHOD:
+			return CompletionItemKind.Method;
+		case TYPE:
+			return CompletionItemKind.Class;
+		case PARAMETER:
+			return CompletionItemKind.TypeParameter;
+		default:
+			return CompletionItemKind.Class;
+		}
+	}
 }

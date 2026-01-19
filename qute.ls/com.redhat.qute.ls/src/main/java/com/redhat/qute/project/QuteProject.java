@@ -42,6 +42,7 @@ import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
+import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
@@ -56,14 +57,17 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
 import com.redhat.qute.commons.jaxrs.RestParam;
 import com.redhat.qute.parser.expression.Part;
+import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateConfiguration;
+import com.redhat.qute.project.config.PropertyConfig;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MessageValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
@@ -105,6 +109,8 @@ public class QuteProject {
 
 	private final String uri;
 
+	private final Path projectFolder;
+
 	private final List<TemplateRootPath> templateRootPaths;
 
 	private final Set<Path> sourcePaths;
@@ -135,10 +141,14 @@ public class QuteProject {
 	// Project extensions
 	private final List<ProjectExtension> extensions;
 
+	private final Set<ProjectFeature> projectFeatures;
+
 	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		this.uri = projectInfo.getUri();
+		this.projectFolder = FileUtils.createPath(projectInfo.getProjectFolder());
 		this.templateRootPaths = projectInfo.getTemplateRootPaths();
 		this.sourcePaths = toSourcePaths(projectInfo.getSourceFolders());
+		this.projectFeatures = projectInfo.getFeatures();
 		this.allDocumentsByTemplateId = new HashMap<>();
 		this.closedDocuments = new QuteClosedTextDocuments(this, allDocumentsByTemplateId);
 		this.projectRegistry = projectRegistry;
@@ -183,6 +193,7 @@ public class QuteProject {
 		return sourceFolders //
 				.stream() //
 				.map(uri -> FileUtils.createPath(uri)) //
+				.filter(Objects::nonNull)//
 				.collect(Collectors.toSet());
 	}
 
@@ -261,6 +272,33 @@ public class QuteProject {
 	 */
 	public String getUri() {
 		return uri;
+	}
+
+	public Path getProjectFolder() {
+		return projectFolder;
+	}
+
+	public boolean isInProjectFolder(Path path) {
+		return projectFolder != null && path.startsWith(projectFolder);
+	}
+
+	public boolean isInTemplateFolders(Path path) {
+		for (TemplateRootPath rootPath : getTemplateRootPaths()) {
+			Path basePath = rootPath.getBasePath();
+			if (basePath != null && path.startsWith(basePath)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isInSourceFolders(Path path) {
+		for (Path sourcePath : getSourcePaths()) {
+			if (path.startsWith(sourcePath)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public List<QuteProject> getProjectDependencies() {
@@ -1388,6 +1426,13 @@ public class QuteProject {
 							return resolver;
 						}
 					}
+					// Search in custom resolvers
+					List<CustomValueResolver> customResolvers = dataModel.getCustomValueResolvers();
+					for (CustomValueResolver resolver : customResolvers) {
+						if (isMatchNamespaceResolver(namespace, partName, resolver, dataModel)) {
+							return resolver;
+						}
+					}
 					return null;
 				});
 	}
@@ -1557,6 +1602,15 @@ public class QuteProject {
 				}
 			}
 		}
+
+		List<CustomValueResolver> allFileResolvers = dataModel.getCustomValueResolvers();
+		if (allFileResolvers != null) {
+			for (ValueResolver resolver : allFileResolvers) {
+				if (isMatchNamespace(resolver, namespace, dataModel)) {
+					namespaceResolvers.add(resolver);
+				}
+			}
+		}
 		return namespaceResolvers;
 	}
 
@@ -1616,5 +1670,26 @@ public class QuteProject {
 	 */
 	public List<ProjectExtension> getExtensions() {
 		return extensions;
+	}
+
+	public Collection<InjectionDetector> getInjectionDetectorsFor(Path path) {
+		return Collections.emptyList();
+	}
+
+	public boolean hasProjectFeature(ProjectFeature projectFeature) {
+		return projectFeatures != null && projectFeatures.contains(projectFeature);
+	}
+
+	public Path getConfigAsPath(PropertyConfig property) {
+		if (projectFolder == null) {
+			return null;
+		}
+		String value = getConfig(property);
+		return value != null ? projectFolder.resolve(value) : projectFolder;
+	}
+
+	public String getConfig(PropertyConfig property) {
+		// TODO: search property in application.properties
+		return property.getDefaultValue();
 	}
 }

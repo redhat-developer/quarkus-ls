@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
+import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
@@ -33,7 +34,9 @@ import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.config.PropertyConfig;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MessageMethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
@@ -54,6 +57,8 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 
 	private final List<MethodValueResolver> methodValueResolvers;
 
+	private final List<CustomValueResolver> customValueResolvers;
+
 	private final Map<String, String> similarNamespaces;
 
 	private Set<String> javaTypesSupportedInNativeMode;
@@ -66,7 +71,8 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 
 		typeValueResolvers = new ArrayList<>();
 		fieldValueResolvers = new ArrayList<>();
-		methodValueResolvers = new ArrayList<MethodValueResolver>();
+		methodValueResolvers = new ArrayList<>();
+		customValueResolvers = new ArrayList<>();
 		updateValueResolvers(typeValueResolvers, fieldValueResolvers, methodValueResolvers, dataModelProject);
 		Collections.sort(methodValueResolvers, (r1, r2) -> {
 			if (r1.isMatchNameAny()) {
@@ -218,6 +224,10 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 		return fieldValueResolvers;
 	}
 
+	public List<CustomValueResolver> getCustomValueResolvers() {
+		return customValueResolvers;
+	}
+	
 	public NamespaceResolverInfo getNamespaceResolver(String namespace) {
 		String mainNamespace = getSimilarNamespace(namespace);
 		return super.getNamespaceResolverInfos().get(mainNamespace);
@@ -259,8 +269,24 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 		return javaTypesSupportedInNativeMode;
 	}
 
+	public boolean hasProjectFeature(ProjectFeature projectFeature) {
+		return project.hasProjectFeature(projectFeature);
+	}
+
+	public Path getProjectFolder() {
+		return project.getProjectFolder();
+	}
+
 	public Set<Path> getSourcePaths() {
 		return project.getSourcePaths();
+	}
+
+	public Path getConfigAsPath(PropertyConfig property) {
+		return project.getConfigAsPath(property);
+	}
+
+	public String getConfig(PropertyConfig property) {
+		return project.getConfig(property);
 	}
 
 }
