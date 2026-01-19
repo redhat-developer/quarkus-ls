@@ -26,7 +26,7 @@ import com.redhat.qute.project.roq.RoqProject;
  * @author Angelo ZERR
  * 
  */
-public class RoqCompletionsTest {
+public class RoqSiteCompletionsTest {
 
 	@Test
 	public void site() throws Exception {

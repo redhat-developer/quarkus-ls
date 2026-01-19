@@ -67,6 +67,7 @@ import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteTemplateProvider;
 import com.redhat.qute.ls.commons.ModelTextDocument;
 import com.redhat.qute.ls.commons.ValidatorDelayer;
+import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.project.QuteProject;
@@ -101,7 +102,9 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		this.quteLanguageService = quteLanguageService;
 		this.projectRegistry = quteLanguageService.getProjectRegistry();
 		this.openedDocuments = new QuteOpenedTextDocuments((document, cancelChecker) -> {
-			return TemplateParser.parse(document, () -> cancelChecker.checkCanceled());
+			Collection<InjectionDetector> injectionDetectors = ((QuteOpenedTextDocument) document)
+					.getInjectionDetectors();
+			return TemplateParser.parse(document, injectionDetectors, () -> cancelChecker.checkCanceled());
 		}, projectInfoProvider, projectRegistry);
 		this.validatorDelayer = new ValidatorDelayer<ModelTextDocument<Template>>((template) -> {
 			triggerValidationFor((QuteTextDocument) template);

@@ -11,16 +11,14 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.extensions.renarde;
 
-import static com.redhat.qute.jdt.internal.extensions.renarde.RenardeJavaConstants.RENARDE_CONTROLLER_TYPE;
+import static com.redhat.qute.jdt.internal.extensions.renarde.RenardeUtils.isRenardeProject;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchPattern;
 
 import com.redhat.qute.jdt.template.datamodel.AbstractDataModelProvider;
 import com.redhat.qute.jdt.template.datamodel.SearchContext;
-import com.redhat.qute.jdt.utils.JDTTypeUtils;
 
 /**
  * m renarde support.
@@ -37,8 +35,7 @@ public class MNamespaceResolverSupport extends AbstractDataModelProvider {
 	@Override
 	protected boolean isNamespaceAvailable(String namespace, SearchContext context, IProgressMonitor monitor) {
 		// m namespace is available only for renarde project
-		IJavaProject javaProject = context.getJavaProject();
-		return JDTTypeUtils.findType(javaProject, RENARDE_CONTROLLER_TYPE) != null;
+		return isRenardeProject(context.getJavaProject());
 	}
 
 	@Override

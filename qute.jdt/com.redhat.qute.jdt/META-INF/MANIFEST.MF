@@ -30,5 +30,6 @@ Export-Package: com.redhat.qute.commons,
  com.redhat.qute.jdt.internal.ls;x-friends:="com.redhat.qute.jdt.test",
  com.redhat.qute.jdt.internal.template;x-friends:="com.redhat.qute.jdt.test",
  com.redhat.qute.jdt.template.datamodel,
+ com.redhat.qute.jdt.template.project,
  com.redhat.qute.jdt.utils
 Bundle-Activator: com.redhat.qute.jdt.QutePlugin

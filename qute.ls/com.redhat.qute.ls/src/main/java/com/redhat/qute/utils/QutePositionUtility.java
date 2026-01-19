@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
+import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 
 import com.redhat.qute.ls.commons.BadLocationException;
@@ -32,6 +33,8 @@ import com.redhat.qute.parser.template.Template;
 public class QutePositionUtility {
 
 	private static final Logger LOGGER = Logger.getLogger(QutePositionUtility.class.getName());
+
+	public static final Range ZERO_RANGE = new Range(new Position(0, 0), new Position(0, 0));
 
 	public static Location toLocation(LocationLink locationLink) {
 		return new Location(locationLink.getTargetUri(), locationLink.getTargetRange());

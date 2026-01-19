@@ -18,6 +18,8 @@ import java.util.concurrent.CancellationException;
  */
 public interface CancelChecker {
 
+	public static final CancelChecker NO_CANCELLABLE = () -> {};
+	
 	/**
 	 * Throw a {@link CancellationException} if the currently processed request
 	 * has been canceled.

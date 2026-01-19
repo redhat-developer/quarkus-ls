@@ -11,10 +11,12 @@
 *******************************************************************************/
 package com.redhat.qute.project;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import com.redhat.qute.commons.ProjectInfo;
+import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
@@ -106,6 +108,8 @@ public interface QuteTextDocument {
 	}
 
 	default void save() {
-		
+
 	}
+
+	Collection<InjectionDetector> getInjectionDetectors();
 }

@@ -68,6 +68,7 @@ import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
+import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
@@ -425,6 +426,23 @@ public class QuteCompletionsForExpression {
 		item.setLabel(label);
 		item.setFilterText(insertText);
 		item.setKind(CompletionItemKind.Field);
+		TextEdit textEdit = new TextEdit();
+		textEdit.setRange(range);
+		textEdit.setNewText(insertText);
+		item.setTextEdit(Either.forLeft(textEdit));
+		completionItems.add(item);
+		return item;
+	}
+
+	private static CompletionItem fillCompletionFile(CustomValueResolver file, String namespace,
+			boolean useNamespaceInTextEdit, Range range, Set<CompletionItem> completionItems) {
+		String label = namespace != null ? namespace + ':' + file.getName() : file.getName();
+		String insertText = useNamespaceInTextEdit && namespace != null ? namespace + ':' + file.getName()
+				: file.getName();
+		CompletionItem item = new CompletionItem();
+		item.setLabel(label);
+		item.setFilterText(insertText);
+		item.setKind(CompletionItemKind.File);
 		TextEdit textEdit = new TextEdit();
 		textEdit.setRange(range);
 		textEdit.setNewText(insertText);
@@ -880,26 +898,12 @@ public class QuteCompletionsForExpression {
 				}
 				CompletionItem item = new CompletionItem();
 				item.setLabel(name);
-				item.setKind(getCompletionKind(globalVariable));
+				item.setKind(globalVariable.getCompletionKind());
 				TextEdit textEdit = new TextEdit(range, name);
 				item.setTextEdit(Either.forLeft(textEdit));
 				completionItems.add(item);
 			}
 		}
-	}
-
-	private static CompletionItemKind getCompletionKind(ValueResolver globalVariable) {
-		switch (globalVariable.getJavaElementKind()) {
-		case FIELD:
-			return CompletionItemKind.Field;
-		case METHOD:
-			return CompletionItemKind.Method;
-		case TYPE:
-			return CompletionItemKind.Class;
-		case PARAMETER:
-			return CompletionItemKind.TypeParameter;
-		}
-		return CompletionItemKind.Class;
 	}
 
 	public void doCompleteNamespaceResolvers(String namespace, Template template, Range range,
@@ -965,6 +969,16 @@ public class QuteCompletionsForExpression {
 					// Display namespace resolvers (ex : inject:bean) after
 					// declared objects
 					item.setSortText("Zb" + item.getLabel());
+					break;
+				}
+				case CUSTOM: {
+					CustomValueResolver file = (CustomValueResolver) resolver;
+					CompletionItem item = fillCompletionFile(file, file.getNamespace(), namespace == null, range,
+							completionItems);
+					item.setKind(CompletionItemKind.File);
+					// Display namespace resolvers (ex : inject:bean) after
+					// declared objects
+					item.setSortText("Zd" + item.getLabel());
 					break;
 				}
 				default:

@@ -23,9 +23,9 @@ public abstract class AbstractScanner<T, S> implements Scanner<T, S> {
 
 	protected final MultiLineStream stream;
 
-	private final T unknownTokenType;
+	protected final T unknownTokenType;
 
-	private final T eosTokenType;
+	protected final T eosTokenType;
 
 	protected S state;
 
@@ -49,7 +49,7 @@ public abstract class AbstractScanner<T, S> implements Scanner<T, S> {
 	}
 
 	@Override
-	public T scan() {
+	public final T scan() {
 		int offset = stream.pos();
 		S oldState = state;
 		T token = internalScan();

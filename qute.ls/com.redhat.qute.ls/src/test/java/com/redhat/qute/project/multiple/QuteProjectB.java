@@ -11,7 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.project.multiple;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -32,12 +31,20 @@ public class QuteProjectB extends MockQuteProject {
 	public final static String PROJECT_URI = "project-b";
 
 	public QuteProjectB(QuteProjectRegistry projectRegistry) {
-		super(new ProjectInfo(PROJECT_URI, Collections.emptyList(),
-				Arrays.asList(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates")), //
-				Collections.emptySet()), projectRegistry);
+		super(new ProjectInfo(PROJECT_URI, //
+				null, //
+				Collections.emptyList(), //
+				List.of(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates")),
+				Collections.emptySet(), //
+				Collections.emptySet()), //
+				projectRegistry);
 		// project-b dependends from project-a
-		super.getProjectDependencies().add(projectRegistry.getProject(new ProjectInfo(QuteProjectA.PROJECT_URI,
-				Collections.emptyList(), Arrays.asList(new TemplateRootPath("")), Collections.emptySet())));
+		super.getProjectDependencies().add(projectRegistry.getProject(new ProjectInfo(QuteProjectA.PROJECT_URI, //
+				null, //
+				Collections.emptyList(), //
+				List.of(new TemplateRootPath("")), //
+				Collections.emptySet(), //
+				Collections.emptySet())));
 	}
 
 	@Override

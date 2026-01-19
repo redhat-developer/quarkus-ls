@@ -25,6 +25,8 @@ public abstract class JavaElementInfo {
 
 	private String documentation;
 
+	private transient ResolvedJavaTypeInfo resolvedType;
+
 	/**
 	 * Returns the Java element signature.
 	 *
@@ -41,6 +43,13 @@ public abstract class JavaElementInfo {
 	 */
 	public void setSignature(String signature) {
 		this.signature = signature;
+	}
+	
+	public boolean shouldLoadDocumentation() {
+		if (isTypeResolved()) {
+			return false;
+		}
+		return getDocumentation() == null;
 	}
 
 	/**
@@ -118,7 +127,7 @@ public abstract class JavaElementInfo {
 		StringBuilder result = new StringBuilder();
 		for (int i = 0; i < type.length(); i++) {
 			char c = type.charAt(i);
-			switch(c) {
+			switch (c) {
 			case '.':
 				lastIndex = i;
 				break;
@@ -127,7 +136,7 @@ public abstract class JavaElementInfo {
 				result.append(type.substring(lastIndex + 1, i + 1));
 				lastIndex = i;
 				break;
-			}			
+			}
 		}
 		if (lastIndex != type.length()) {
 			result.append(type.substring(lastIndex + 1, type.length()));
@@ -135,4 +144,15 @@ public abstract class JavaElementInfo {
 		return result.toString();
 	}
 
+	public final boolean isTypeResolved() {
+		return resolvedType != null;
+	}
+
+	public final ResolvedJavaTypeInfo getResolvedType() {
+		return resolvedType;
+	}
+
+	public void setResolvedType(ResolvedJavaTypeInfo resolvedType) {
+		this.resolvedType = resolvedType;
+	}
 }

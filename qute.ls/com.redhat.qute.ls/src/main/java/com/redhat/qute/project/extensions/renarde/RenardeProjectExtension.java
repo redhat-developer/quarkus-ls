@@ -27,7 +27,6 @@ import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.FileChangeType;
-import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.InlayHint;
 import org.eclipse.lsp4j.InlayHintKind;
@@ -40,6 +39,7 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
+import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.ls.commons.snippets.SnippetsBuilder;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
@@ -105,7 +105,7 @@ public class RenardeProjectExtension implements ProjectExtension {
 	@Override
 	public void init(ExtendedDataModelProject dataModelProject) {
 		// Check if the m: namespace resolver exists in the project
-		enabled = dataModelProject.getNamespaceResolver(M_NAMESPACE_NAME) != null;
+		enabled = dataModelProject.hasProjectFeature(ProjectFeature.Renarde);
 		sourcePaths = dataModelProject.getSourcePaths();
 
 		if (!enabled) {
@@ -238,14 +238,14 @@ public class RenardeProjectExtension implements ProjectExtension {
 	// ========================
 
 	@Override
-	public boolean didChangeWatchedFile(Path filePath, FileEvent fileEvent) {
+	public boolean didChangeWatchedFile(Path filePath, Set<FileChangeType> changeTypes) {
 		MessagesFileName messagesFileName = MessagesFileInfo.getMessagesFileName(filePath, sourcePaths);
 		if (messagesFileName == null) {
 			return false;
 		}
 
 		MessagesFileInfo file = find(messagesFileName.getFileName());
-		boolean fileDeleted = fileEvent.getType() == FileChangeType.Deleted;
+		boolean fileDeleted = changeTypes.contains(FileChangeType.Deleted);
 
 		try {
 			if (file != null) {
@@ -278,8 +278,7 @@ public class RenardeProjectExtension implements ProjectExtension {
 
 				// TODO: Parse .properties file to find exact line number of the key
 				// Currently navigates to beginning of file (0,0)
-				Range targetRange = new Range(new Position(0, 0), new Position(0, 0));
-
+				Range targetRange = QutePositionUtility.ZERO_RANGE;
 				locationLinks.add(new LocationLink(messagesFileUri, targetRange, targetRange, originRange));
 			}
 		}

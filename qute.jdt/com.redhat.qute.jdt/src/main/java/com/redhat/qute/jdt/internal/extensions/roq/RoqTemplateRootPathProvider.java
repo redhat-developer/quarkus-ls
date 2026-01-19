@@ -13,6 +13,8 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.extensions.roq;
 
+import static com.redhat.qute.jdt.internal.extensions.roq.RoqUtils.isRoqProject;
+
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -20,7 +22,6 @@ import org.eclipse.jdt.core.IJavaProject;
 
 import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.jdt.template.rootpath.ITemplateRootPathProvider;
-import com.redhat.qute.jdt.utils.JDTTypeUtils;
 
 /**
  * Roq template root path provider for Roq project.
@@ -29,11 +30,13 @@ public class RoqTemplateRootPathProvider implements ITemplateRootPathProvider {
 
 	private static final String ORIGIN = "roq";
 
-	private static final String[] TEMPLATES_BASE_DIRS = { "templates/", "content/", "src/main/resources/content/" };
+	private static final String[] TEMPLATES_BASE_DIRS = { "templates/", //
+			"content/", //
+			"src/main/resources/content/" };
 
 	@Override
 	public boolean isApplicable(IJavaProject javaProject) {
-		return JDTTypeUtils.findType(javaProject, RoqJavaConstants.SITE_CLASS) != null;
+		return isRoqProject(javaProject);
 	}
 
 	@Override

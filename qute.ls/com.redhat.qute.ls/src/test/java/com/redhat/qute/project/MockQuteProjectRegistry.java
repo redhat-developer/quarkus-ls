@@ -87,13 +87,13 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 			return new QuteProjectB(this);
 		}
 		if (RoqProject.PROJECT_URI.equals(projectInfo.getUri())) {
-			return new RoqProject(projectInfo, this);
+			return new RoqProject(this);
 		}
 		if (QuteWebProject.PROJECT_URI.equals(projectInfo.getUri())) {
 			return new QuteWebProject(projectInfo, this);
 		}
 		if (RenardeProject.PROJECT_URI.equals(projectInfo.getUri())) {
-			return new RenardeProject(projectInfo, this);
+			return new RenardeProject(this);
 		}
 		return super.createProject(projectInfo);
 	}
