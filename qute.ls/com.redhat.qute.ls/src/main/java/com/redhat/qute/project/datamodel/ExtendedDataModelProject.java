@@ -13,6 +13,7 @@ package com.redhat.qute.project.datamodel;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
@@ -35,11 +37,12 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.config.PropertyConfig;
-import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MessageMethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
+import com.redhat.qute.project.extensions.DataModelTemplateParticipant;
 import com.redhat.qute.utils.JSONUtility;
 import com.redhat.qute.utils.StringUtils;
 
@@ -180,7 +183,7 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 
 	private List<ExtendedDataModelTemplate> createTemplates(List<DataModelTemplate<DataModelParameter>> templates) {
 		if (templates == null || templates.isEmpty()) {
-			return Collections.emptyList();
+			return new ArrayList<>();
 		}
 		return templates.stream() //
 				.map(template -> {
@@ -227,7 +230,7 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 	public List<CustomValueResolver> getCustomValueResolvers() {
 		return customValueResolvers;
 	}
-	
+
 	public NamespaceResolverInfo getNamespaceResolver(String namespace) {
 		String mainNamespace = getSimilarNamespace(namespace);
 		return super.getNamespaceResolverInfos().get(mainNamespace);
@@ -289,4 +292,32 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 		return project.getConfig(property);
 	}
 
+	@Override
+	public ExtendedDataModelTemplate findDataModelTemplate(String templateUri) {
+		ExtendedDataModelTemplate dataModelTemplate = super.findDataModelTemplate(templateUri);
+		if (dataModelTemplate == null || !dataModelTemplate.isInitialized()) {
+			// Process custom data model template (ex: Roq to inject page parameter)
+			Collection<DataModelTemplateParticipant> participants = project.getDataModelTemplateParticipants();
+			if (!participants.isEmpty()) {
+				Path templatePath = FileUtils.createPath(templateUri);
+				boolean toRegister = dataModelTemplate == null;
+				for (DataModelTemplateParticipant participant : participants) {
+					if (participant.isEnabled()) {
+						// Ass custom data model parameter (ex: Roq to inject page parameter)
+						dataModelTemplate = participant.contributeToDataModel(templateUri, templatePath,
+								dataModelTemplate);
+					}
+				}
+				if (dataModelTemplate != null) {
+					// Marks the data model template as initialized
+					dataModelTemplate.setInitialized(true);
+					if (toRegister) {
+						super.addTemplate(dataModelTemplate);
+					}
+				}
+			}
+		}
+
+		return super.findDataModelTemplate(templateUri);
+	}
 }

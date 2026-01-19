@@ -69,4 +69,9 @@ public class RoqConfig {
 	 * </p>
 	 */
 	public static final PropertyConfig ROQ_DATA_DIR = new PropertyConfig("quarkus.roq.data.dir", "data");
+	
+	// See https://docs.quarkiverse.io/quarkus-roq/dev/index.html#quarkus-roq-frontmatter_site-content-dir
+	public static final PropertyConfig ROQ_CONTENT_DIR = new PropertyConfig("site.content.dir", "content");
+	
+	
 }

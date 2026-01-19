@@ -16,9 +16,11 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.Diagnostic;
@@ -29,11 +31,15 @@ import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.commons.ProjectFeature;
+import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.template.Expression;
+import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
+import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
+import com.redhat.qute.project.extensions.DataModelTemplateParticipant;
 import com.redhat.qute.project.extensions.ProjectExtension;
 import com.redhat.qute.project.extensions.roq.data.DataLoader;
 import com.redhat.qute.project.extensions.roq.data.RoqDataFile;
@@ -96,7 +102,13 @@ import com.redhat.qute.settings.QuteValidationSettings;
  * @see RoqDataFile
  * @see DataLoader
  */
-public class RoqProjectExtension implements ProjectExtension {
+public class RoqProjectExtension implements ProjectExtension, DataModelTemplateParticipant {
+
+	// We might need to allow plugins to contribute to this at some point
+	private static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "htm", "xhtml",
+			"asciidoc", "adoc");
+	private static final Set<String> INDEX_FILES = HTML_OUTPUT_EXTENSIONS.stream().map(e -> "index." + e)
+			.collect(Collectors.toSet());
 
 	/**
 	 * Registry mapping file extensions to their corresponding data loaders.
@@ -167,6 +179,8 @@ public class RoqProjectExtension implements ProjectExtension {
 
 	/** Path to the data directory (e.g., project-root/data/) */
 	private Path dataDir;
+	private Path contentDir;
+	private Set<String> configuredCollections;
 
 	/**
 	 * Cache mapping file paths to their registered resolvers.
@@ -189,6 +203,9 @@ public class RoqProjectExtension implements ProjectExtension {
 	 */
 	public RoqProjectExtension() {
 		this.dataResolverCache = new HashMap<>();
+		this.configuredCollections = new HashSet<>();
+		// TODO: load collections from application.propertes
+		this.configuredCollections.add("posts");
 	}
 
 	/**
@@ -227,23 +244,28 @@ public class RoqProjectExtension implements ProjectExtension {
 		enabled = dataModelProject.hasProjectFeature(ProjectFeature.Roq);
 
 		if (enabled) {
-			if (dataDir == null) {
-				// Resolve the Roq root directory
-				Path roqDir = dataModelProject.getConfigAsPath(RoqConfig.ROQ_DIR);
-
-				if (roqDir != null) {
-					// Resolve the data subdirectory
-					dataDir = roqDir.resolve(dataModelProject.getConfig(RoqConfig.ROQ_DATA_DIR));
-
-					if (dataDir != null) {
-						// Load all data files from the directory
-						loadRoqDataFiles(dataModelProject);
-					}
-				}
-			}
+			scanDataDir(dataModelProject);
+			contentDir = dataModelProject.getConfigAsPath(RoqConfig.ROQ_CONTENT_DIR);
 		} else {
 			// Roq not enabled - clear data directory
 			dataDir = null;
+		}
+	}
+
+	private void scanDataDir(ExtendedDataModelProject dataModelProject) {
+		if (dataDir == null) {
+			// Resolve the Roq root directory
+			Path roqDir = dataModelProject.getConfigAsPath(RoqConfig.ROQ_DIR);
+
+			if (roqDir != null) {
+				// Resolve the data subdirectory
+				dataDir = roqDir.resolve(dataModelProject.getConfig(RoqConfig.ROQ_DATA_DIR));
+
+				if (dataDir != null) {
+					// Load all data files from the directory
+					loadRoqDataFiles(dataModelProject);
+				}
+			}
 		}
 	}
 
@@ -520,5 +542,45 @@ public class RoqProjectExtension implements ProjectExtension {
 		String name = path.getFileName().toString();
 		int lastDot = name.lastIndexOf('.');
 		return (lastDot == -1) ? "" : name.substring(lastDot + 1);
+	}
+
+	@Override
+	public ExtendedDataModelTemplate contributeToDataModel(String templateUri, Path templatePath,
+			ExtendedDataModelTemplate dataModelTemplate) {
+		if (dataModelTemplate == null) {
+			dataModelTemplate = new ExtendedDataModelTemplate(templateUri);
+		}
+
+		DataModelParameter site = new DataModelParameter();
+		site.setKey("site");
+		site.setSourceType("io.quarkiverse.roq.frontmatter.runtime.model.Site");
+		dataModelTemplate.addParameter(new ExtendedDataModelParameter(site, dataModelTemplate));
+
+		// page
+		TemplateType templateType = getTemplateType(templateUri, templatePath);
+		DataModelParameter page = new DataModelParameter();
+		page.setKey("page");
+		page.setSourceType("io.quarkiverse.roq.frontmatter.runtime.model."
+				+ (templateType == TemplateType.DOCUMENT_PAGE ? "Document" : "Normal") + "Page");
+		dataModelTemplate.addParameter(new ExtendedDataModelParameter(page, dataModelTemplate));
+
+		return dataModelTemplate;
+	}
+
+	private TemplateType getTemplateType(String templateUri, Path p) {
+		if (contentDir == null) {
+			return TemplateType.NORMAL_PAGE;
+		}
+		if (p != null && p.startsWith(contentDir)) {
+			final Path relativize = contentDir.relativize(p);
+			final String topDirName = relativize.getName(0).toString();
+			final boolean isCollectionDir = configuredCollections.contains(topDirName);
+			final boolean isCollectionIndex = isCollectionDir && INDEX_FILES.contains(p.getFileName().toString())
+					&& relativize.getNameCount() == 2;
+			if (isCollectionDir && !isCollectionIndex) {
+				return TemplateType.DOCUMENT_PAGE;
+			}
+		}
+		return TemplateType.NORMAL_PAGE;
 	}
 }

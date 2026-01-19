@@ -29,7 +29,7 @@ import com.redhat.qute.settings.QuteInlayHintSettings;
  *
  */
 public class QuteInlayHintTest {
-	
+
 	@Test
 	public void aliasForSection() throws Exception {
 		String template = "{@java.util.List<org.acme.Item> items}\r\n" + //
@@ -84,8 +84,8 @@ public class QuteInlayHintTest {
 	public void parameterLetSectionWithSpaces() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{#let name    =item.name price   =  item.price   bad=  item.XXXX}\r\n" + // name[:String]=item.name
-																				// price[:BigInteger]=item.price
-																				// bad=item.XXXX
+				// price[:BigInteger]=item.price
+				// bad=item.XXXX
 				"  \r\n" + //
 				"{/let}";
 		testInlayHintFor(template, //
@@ -179,31 +179,40 @@ public class QuteInlayHintTest {
 				"		{item.getKey()}\r\n" + //
 				"	{/for}";
 		testInlayHintFor(template, //
-				ih(p(1, 11), ihLabel(":"),
-						ihLabel("Map$Entry<String,Item>", "Open `java.util.Map$Entry` Java type.",
-								cd("java.util.Map$Entry"))));
+				ih(p(1, 11), ihLabel(":"), ihLabel("Map$Entry<String,Item>", "Open `java.util.Map$Entry` Java type.",
+						cd("java.util.Map$Entry"))));
 	}
 
 	@Test
 	public void notIterable() throws Exception {
-		String template = "{@java.lang.String items}\r\n"
-				+ "\r\n"
-				+ "	{#for item in items}\r\n"
-				+ "		{item.blank}\r\n"
-				+ "	{/for}";
+		String template = "{@java.lang.String items}\r\n" + //
+				"\r\n" + //
+				"	{#for item in items}\r\n" + //
+				"		{item.blank}\r\n" + //
+				"	{/for}";
 		testInlayHintFor(template);
 	}
 
 	@Test
 	public void list() throws Exception {
-		String template = "{@java.util.List items}\r\n"
-				+ "\r\n"
-				+ "	{#for item in items}\r\n"
-				+ "		{item.blank}\r\n"
-				+ "	{/for}";
+		String template = "{@java.util.List items}\r\n" + //
+				"\r\n" + //
+				"	{#for item in items}\r\n" + //
+				"		{item.blank}\r\n" + //
+				"	{/for}";
 		testInlayHintFor(template, //
 				ih(p(2, 11), ihLabel(":"),
 						ihLabel("Object", "Open `java.lang.Object` Java type.", cd("java.lang.Object"))));
+	}
+
+	@Test
+	public void notIterableAndParameter() throws Exception {
+		String template = "{@java.lang.String items}\r\n" + //
+				"\r\n" + //
+				"	{#for item in items}\r\n" + //
+				"		{#foo item}\r\n" + //
+				"	{/for}";
+		testInlayHintFor(template);
 	}
 
 	@Test
@@ -211,7 +220,7 @@ public class QuteInlayHintTest {
 		String template = "{#";
 		testInlayHintFor(template);
 	}
-	
+
 	private static Command cd(String javaType) {
 		return InlayHintASTVistor.createOpenJavaTypeCommand(javaType, QuteQuickStartProject.PROJECT_URI);
 	}

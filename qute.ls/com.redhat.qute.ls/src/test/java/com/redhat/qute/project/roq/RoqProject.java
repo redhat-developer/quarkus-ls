@@ -12,7 +12,6 @@
 package com.redhat.qute.project.roq;
 
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -25,11 +24,9 @@ import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
-import com.redhat.qute.commons.datamodel.DataModelTemplateMatcher;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.project.BaseQuteProject;
-import com.redhat.qute.project.MockQuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 
 /**
@@ -57,29 +54,13 @@ public class RoqProject extends BaseQuteProject {
 		loadResolvedJavaType("RoqCollections.json", resolvedJavaTypes, RoqProject.class);
 		loadResolvedJavaType("Paginator.json", resolvedJavaTypes, RoqProject.class);
 		loadResolvedJavaType("DocumentPage.json", resolvedJavaTypes, RoqProject.class);
+		loadResolvedJavaType("NormalPage.json", resolvedJavaTypes, RoqProject.class);
 		loadResolvedJavaType("Page.json", resolvedJavaTypes, RoqProject.class);
 	}
 
 	@Override
 	protected void fillTemplates(List<DataModelTemplate<DataModelParameter>> templates) {
-		// Inject 'page' and 'site' for all Qute templates which belongs to a Roq
-		// application
-		DataModelTemplate<DataModelParameter> roqTemplate = new DataModelTemplate<DataModelParameter>();
-		roqTemplate.setTemplateMatcher(new DataModelTemplateMatcher(Arrays.asList("**/**")));
 
-		// site
-		DataModelParameter site = new DataModelParameter();
-		site.setKey("site");
-		site.setSourceType("io.quarkiverse.roq.frontmatter.runtime.model.Site");
-		roqTemplate.addParameter(site);
-
-		// page
-		DataModelParameter page = new DataModelParameter();
-		page.setKey("page");
-		page.setSourceType("io.quarkiverse.roq.frontmatter.runtime.model.Page");
-		roqTemplate.addParameter(page);
-
-		templates.add(roqTemplate);
 	}
 
 	@Override
@@ -99,9 +80,19 @@ public class RoqProject extends BaseQuteProject {
 
 	}
 
-	public static String getDataFileUri(String fileName) {
-		return Paths.get(MockQuteProject.getProjectPath(RoqProject.PROJECT_URI) + "/data/" + fileName).toAbsolutePath()
-				.toUri().toASCIIString();
+	public static String getFileUri(String fileName) {
+		return Paths.get(getRoqProjectPath() + fileName).toAbsolutePath().toUri().toASCIIString();
 	}
 
+	public static String getContentFileUri(String fileName) {
+		return getFileUri("/content/" + fileName);
+	}
+
+	public static String getDataFileUri(String fileName) {
+		return getFileUri("/data/" + fileName);
+	}
+
+	private static String getRoqProjectPath() {
+		return getProjectPath(RoqProject.PROJECT_URI);
+	}
 }

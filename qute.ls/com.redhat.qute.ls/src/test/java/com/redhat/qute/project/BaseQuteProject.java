@@ -99,9 +99,14 @@ public abstract class BaseQuteProject extends MockQuteProject {
 				true);
 		collection.setExtendedTypes(Arrays.asList("java.lang.Iterable<E>"));
 
+		// SequencedCollection
+		ResolvedJavaTypeInfo sequencedCollection = createResolvedJavaTypeInfo("java.util.SequencedCollection<E>", resolvedJavaTypes,
+				true);
+		sequencedCollection.setExtendedTypes(Arrays.asList("java.util.Collection<E>"));
+
 		// List
 		ResolvedJavaTypeInfo list = createResolvedJavaTypeInfo("java.util.List<E>", resolvedJavaTypes, true);
-		list.setExtendedTypes(Arrays.asList("java.util.Collection<E>"));
+		list.setExtendedTypes(Arrays.asList("java.util.Object", "java.util.SequencedCollection<E>"));
 		registerMethod("size() : int", list);
 		registerMethod("get(index : int) : E", list);
 		registerMethod("subList(fromIndex : int, toIndex: int) : java.util.List<E>", list);
