@@ -66,8 +66,8 @@ import com.redhat.qute.parser.template.TemplateConfiguration;
 import com.redhat.qute.project.config.PropertyConfig;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
-import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
+import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MessageValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
@@ -75,6 +75,7 @@ import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.project.documents.QuteClosedTextDocuments;
 import com.redhat.qute.project.documents.SearchInfoQuery;
 import com.redhat.qute.project.documents.TemplateValidator;
+import com.redhat.qute.project.extensions.DataModelTemplateParticipant;
 import com.redhat.qute.project.extensions.ProjectExtension;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagRegistry;
@@ -143,6 +144,8 @@ public class QuteProject {
 
 	private final Set<ProjectFeature> projectFeatures;
 
+	private final Collection<DataModelTemplateParticipant> dataModelTemplateParticipants;
+
 	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		this.uri = projectInfo.getUri();
 		this.projectFolder = FileUtils.createPath(projectInfo.getProjectFolder());
@@ -160,6 +163,7 @@ public class QuteProject {
 		this.projectDependencies = new ArrayList<>();
 		// Project extensions
 		this.extensions = new ArrayList<>();
+		this.dataModelTemplateParticipants = new ArrayList<>();
 		Iterator<ProjectExtension> extensions = ServiceLoader.load(ProjectExtension.class).iterator();
 		while (extensions.hasNext()) {
 			try {
@@ -173,6 +177,9 @@ public class QuteProject {
 	void registerExtension(ProjectExtension extension) {
 		try {
 			extensions.add(extension);
+			if (extension instanceof DataModelTemplateParticipant) {
+				dataModelTemplateParticipants.add((DataModelTemplateParticipant) extension);
+			}
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Error while initializing extension <" + extension.getClass().getName() + ">", e);
 		}
@@ -1551,13 +1558,12 @@ public class QuteProject {
 	}
 
 	public CompletableFuture<ExtendedDataModelTemplate> getDataModelTemplate(Template template) {
-		String templateUri = template.getUri();
 		return getDataModelProject() //
 				.thenApply(dataModel -> {
 					if (dataModel == null) {
 						return null;
 					}
-					return dataModel.findDataModelTemplate(templateUri);
+					return dataModel.findDataModelTemplate(template.getUri());
 				});
 	}
 
@@ -1691,5 +1697,11 @@ public class QuteProject {
 	public String getConfig(PropertyConfig property) {
 		// TODO: search property in application.properties
 		return property.getDefaultValue();
+	}
+
+	// Participants
+
+	public Collection<DataModelTemplateParticipant> getDataModelTemplateParticipants() {
+		return dataModelTemplateParticipants;
 	}
 }

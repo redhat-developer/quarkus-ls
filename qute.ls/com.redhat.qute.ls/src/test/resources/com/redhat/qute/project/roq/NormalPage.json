@@ -1,0 +1,27 @@
+{
+    "extendedTypes": [
+        "io.quarkiverse.roq.frontmatter.runtime.model.Page"
+    ],
+    "fields": [],
+    "methods": [
+        {
+            "signature": "paginator() : io.quarkiverse.roq.frontmatter.runtime.model.Paginator"
+        },
+        {
+            "signature": "equals(o : java.lang.Object) : boolean"
+        },
+        {
+            "signature": "hashCode() : int"
+        },
+        {
+            "signature": "toString() : java.lang.String"
+        }
+    ],
+    "binary": true,
+    "templateDataAnnotations": [
+        {}
+    ],
+    "typeKind": 2,
+    "invalidMethods": {},
+    "signature": "io.quarkiverse.roq.frontmatter.runtime.model.NormalPage"
+}

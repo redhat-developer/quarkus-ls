@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.project.datamodel;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,11 +24,10 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 public class ExtendedDataModelTemplate extends DataModelTemplate<ExtendedDataModelParameter>
 		implements DataModelSourceProvider {
 
-	private ExtendedDataModelTemplateMatcher templateMatcher;
+	private boolean initialized;
 
 	public ExtendedDataModelTemplate(DataModelTemplate<DataModelParameter> template) {
-		super.setTemplateUri(template.getTemplateUri());
-		super.setTemplateMatcher(template.getTemplateMatcher());
+		this(template.getTemplateUri());
 		super.setSourceType(template.getSourceType());
 		super.setSourceMethod(template.getSourceMethod());
 		super.setSourceField(template.getSourceField());
@@ -35,9 +35,21 @@ public class ExtendedDataModelTemplate extends DataModelTemplate<ExtendedDataMod
 		super.setFragments(createFragments(template.getFragments(), this));
 	}
 
+	public ExtendedDataModelTemplate(String templateUri) {
+		super.setTemplateUri(templateUri);
+	}
+
+	public void addParameter(ExtendedDataModelParameter parameter) {
+		List<ExtendedDataModelParameter> parameters = super.getParameters();
+		if (parameters == null) {
+			parameters = new ArrayList<>();
+			super.setParameters(parameters);
+		}
+		parameters.add(parameter);
+	}
+
 	private List<DataModelFragment<ExtendedDataModelParameter>> createFragments(
-			List<DataModelFragment<DataModelParameter>> fragments,
-			ExtendedDataModelTemplate template) {
+			List<DataModelFragment<DataModelParameter>> fragments, ExtendedDataModelTemplate template) {
 		if (fragments == null) {
 			return Collections.emptyList();
 		}
@@ -49,7 +61,7 @@ public class ExtendedDataModelTemplate extends DataModelTemplate<ExtendedDataMod
 	protected static List<ExtendedDataModelParameter> createParameters(List<DataModelParameter> parameters,
 			DataModelSourceProvider template) {
 		if (parameters == null) {
-			return Collections.emptyList();
+			return new ArrayList<>();
 		}
 		return parameters.stream() //
 				.map(parameter -> new ExtendedDataModelParameter(parameter, template)) //
@@ -68,16 +80,11 @@ public class ExtendedDataModelTemplate extends DataModelTemplate<ExtendedDataMod
 		return params;
 	}
 
-	public boolean matches(String templateUri) {
-		if (getTemplateUri() != null && templateUri.endsWith(getTemplateUri())) {
-			return true;
-		}
-		if (super.getTemplateMatcher() == null) {
-			return false;
-		}
-		if (templateMatcher == null) {
-			templateMatcher = new ExtendedDataModelTemplateMatcher(super.getTemplateMatcher().getIncludes());
-		}
-		return templateMatcher.matches(templateUri);
+	public boolean isInitialized() {
+		return initialized;
+	}
+
+	public void setInitialized(boolean initialized) {
+		this.initialized = initialized;
 	}
 }

@@ -338,6 +338,9 @@ public class InlayHintASTVistor extends ASTVisitor {
 			resolvingJavaTypeContext.add(javaTypeFuture);
 			return;
 		}
+		if (QuteCompletableFutures.isNotIterableType(javaType)) {
+			return;
+		}
 		if ((!parameter.isOptional() && javaType == null)) {
 			return;
 		}

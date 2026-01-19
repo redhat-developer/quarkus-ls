@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.commons.datamodel;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,7 +20,6 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
-import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 
 /**
  * Data model project hosts for a given Qute project:
@@ -61,6 +61,13 @@ public class DataModelProject<T extends DataModelTemplate<?>> {
 	 */
 	public void setTemplates(List<T> templates) {
 		this.templates = templates;
+	}
+
+	public void addTemplate(T template) {
+		if (this.templates == null) {
+			this.templates = new ArrayList<>();
+		}
+		this.templates.add(template);
 	}
 
 	public Map<String, NamespaceResolverInfo> getNamespaceResolverInfos() {
@@ -126,9 +133,6 @@ public class DataModelProject<T extends DataModelTemplate<?>> {
 	private T findDataModelTemplate(String templateUri, List<T> templates) {
 		Optional<T> dataModelForTemplate = templates.stream() //
 				.filter(t -> {
-					if (t instanceof ExtendedDataModelTemplate) {
-						return ((ExtendedDataModelTemplate) t).matches(templateUri);
-					}
 					return templateUri.endsWith(t.getTemplateUri());
 				}) //
 				.findFirst();

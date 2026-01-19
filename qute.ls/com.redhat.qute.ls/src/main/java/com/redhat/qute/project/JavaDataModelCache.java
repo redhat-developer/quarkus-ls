@@ -12,7 +12,6 @@
 package com.redhat.qute.project;
 
 import static com.redhat.qute.parser.template.LiteralSupport.getPrimitiveObjectType;
-import static com.redhat.qute.services.QuteCompletableFutures.NOT_ITERABLE_JAVA_TYPE;
 import static com.redhat.qute.services.QuteCompletableFutures.RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 import static com.redhat.qute.services.QuteCompletableFutures.RESOLVED_JAVA_TYPE_NOT_ITERABLE_FUTURE;
 
@@ -46,6 +45,7 @@ import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
+import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.utils.StringUtils;
 
 /**
@@ -225,7 +225,8 @@ public class JavaDataModelCache {
 
 								final ResolvedJavaTypeInfo resolvedJavaTypeWithLoadedDeps = resolvedJavaType;
 								// Load extended Java types
-								if (resolvedJavaType.getExtendedTypes() != null) {
+								if (resolvedJavaType.getExtendedTypes() != null
+										&& !resolvedJavaType.getExtendedTypes().isEmpty()) {
 									Set<CompletableFuture<ResolvedJavaTypeInfo>> resolvingExtendedFutures = new HashSet<>();
 									for (String extendedType : resolvedJavaType.getExtendedTypes()) {
 										resolvingExtendedFutures
@@ -369,6 +370,9 @@ public class JavaDataModelCache {
 				} else if (future != null) {
 					ResolvedJavaTypeInfo actualResolvedType = future.getNow(null);
 					if (actualResolvedType != null) {
+						if (QuteCompletableFutures.isNotIterableType(actualResolvedType)) {
+							return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+						}
 						future = resolveJavaType(current, actualResolvedType);
 					} else {
 						future = future //
@@ -401,7 +405,7 @@ public class JavaDataModelCache {
 
 	private CompletableFuture<ResolvedJavaTypeInfo> wrapGeneric(ResolvedJavaTypeInfo resolvedJavaType,
 			CompletableFuture<ResolvedJavaTypeInfo> defaultFuture) {
-		if (resolvedJavaType != null && resolvedJavaType != NOT_ITERABLE_JAVA_TYPE
+		if (resolvedJavaType != null && !QuteCompletableFutures.isNotIterableType(resolvedJavaType)
 				&& !(resolvedJavaType instanceof ResolvedGenericJavaTypeInfo) && resolvedJavaType.isGenericType()) {
 			// Here resolvedJavaType is java.util.List<E>
 			// we need to return java.util.List<java.lang.Object>
@@ -439,7 +443,7 @@ public class JavaDataModelCache {
 
 	CompletableFuture<ResolvedJavaTypeInfo> wrapObject(ResolvedJavaTypeInfo resolvedJavaType,
 			CompletableFuture<ResolvedJavaTypeInfo> future) {
-		if (resolvedJavaType != null && resolvedJavaType != NOT_ITERABLE_JAVA_TYPE
+		if (resolvedJavaType != null && !QuteCompletableFutures.isNotIterableType(resolvedJavaType)
 				&& resolvedJavaType.isWrapperType()) {
 			List<JavaParameterInfo> types = resolvedJavaType.getTypeParameters();
 			if (types != null && !types.isEmpty()) {
