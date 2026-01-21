@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.redhat.qute.commons.TemplateRootPath;
@@ -72,8 +73,10 @@ public class QuteClosedTextDocuments {
 		}
 		// Step 1: collect all template file path from all root paths
 		// (src/main/resources/templates, src/main/resources/content, etc)
-		List<Path> rootPaths = project.getTemplateRootPaths().stream() //
-				.map(TemplateRootPath::getBasePath).toList();
+		List<Path> rootPaths = project.getTemplateRootPaths() //
+				.stream() //
+				.map(TemplateRootPath::getBasePath) //
+				.collect(Collectors.toList());
 		List<Path> templatePaths = collectTemplatePaths(rootPaths);
 
 		int totalFiles = templatePaths.size();
