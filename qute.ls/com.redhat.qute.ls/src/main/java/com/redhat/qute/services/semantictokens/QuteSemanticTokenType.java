@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.SemanticTokenModifiers;
 import org.eclipse.lsp4j.SemanticTokenTypes;
@@ -76,7 +77,7 @@ public enum QuteSemanticTokenType {
 	 */
 	public static final List<String> TOKEN_TYPES = Arrays.stream(values())
 			.map(QuteSemanticTokenType::getTokenType)
-			.toList();
+			.collect(Collectors.toList());
 
 	/**
 	 * Semantic token modifiers legend.
