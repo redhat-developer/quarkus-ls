@@ -15,7 +15,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,11 +56,21 @@ public class JavaDataModelListenerManager {
 
 	private static final JavaDataModelListenerManager INSTANCE = new JavaDataModelListenerManager();
 
+	// Debounce delay to group multiple file changes into a single notification
+	private static final long DEBOUNCE_DELAY_MS = 2000;
+
 	public static JavaDataModelListenerManager getInstance() {
 		return INSTANCE;
 	}
 
 	private class QuteListener implements IElementChangedListener {
+
+		// Lock for synchronizing access to pending event state
+		private final Object eventLock = new Object();
+		// Event waiting to be fired after debounce delay
+		private JavaDataModelChangeEvent pendingEvent = null;
+		// Scheduled task for firing the pending event
+		private ScheduledFuture<?> scheduledNotification = null;
 
 		@Override
 		public void elementChanged(ElementChangedEvent event) {
@@ -87,7 +100,7 @@ public class JavaDataModelListenerManager {
 			// }
 			// ]
 			JavaDataModelChangeEvent mpEvent = new JavaDataModelChangeEvent();
-			mpEvent.setProjects(new HashSet(changedProjects.values()));
+			mpEvent.setProjects(new HashSet<>(changedProjects.values()));
 			fireAsyncEvent(mpEvent);
 		}
 
@@ -192,22 +205,88 @@ public class JavaDataModelListenerManager {
 		}
 
 		private void fireAsyncEvent(JavaDataModelChangeEvent event) {
-			// IMPORTANT: The LSP notification 'qute/javaDataModelChanged' must be
-			// executed
-			// in background otherwise it breaks everything (JDT LS for Java completion,
-			// hover, etc are broken)
-			CompletableFuture.runAsync(() -> {
-				for (IJavaDataModelChangedListener listener : listeners) {
-					try {
-						listener.dataModelChanged(event);
-					} catch (Exception e) {
-						if (LOGGER.isLoggable(Level.SEVERE)) {
-							LOGGER.log(Level.SEVERE, "Error while sending LSP 'qute/javaDataModelChanged' notification",
-									e);
+			synchronized (eventLock) {
+				// Merge with pending event if one exists
+				if (pendingEvent == null) {
+					pendingEvent = event;
+				} else {
+					mergeEvents(pendingEvent, event);
+				}
+
+				// Cancel previous timer if it exists
+				if (scheduledNotification != null && !scheduledNotification.isDone()) {
+					scheduledNotification.cancel(false);
+				}
+
+				// Schedule notification after debounce delay
+				scheduledNotification = scheduler.schedule(() -> {
+					JavaDataModelChangeEvent eventToFire;
+					synchronized (eventLock) {
+						eventToFire = pendingEvent;
+						pendingEvent = null;
+						scheduledNotification = null;
+					}
+
+					if (eventToFire != null) {
+						notifyListeners(eventToFire);
+					}
+				}, DEBOUNCE_DELAY_MS, TimeUnit.MILLISECONDS);
+			}
+		}
+
+		/**
+		 * Merges two events by combining their project information. For each project,
+		 * combines the source class names from both events.
+		 */
+		private void mergeEvents(JavaDataModelChangeEvent target, JavaDataModelChangeEvent source) {
+			if (source.getProjects() == null) {
+				return;
+			}
+
+			if (target.getProjects() == null) {
+				target.setProjects(new HashSet<>());
+			}
+
+			// Create a map for quick lookup of existing project info by URI
+			Map<String, JavaDataModelChangeEvent.ProjectChangeInfo> targetProjectMap = new HashMap<>();
+			for (JavaDataModelChangeEvent.ProjectChangeInfo projectInfo : target.getProjects()) {
+				targetProjectMap.put(projectInfo.getUri(), projectInfo);
+			}
+
+			// Merge source projects into target
+			for (JavaDataModelChangeEvent.ProjectChangeInfo sourceProject : source.getProjects()) {
+				String uri = sourceProject.getUri();
+				JavaDataModelChangeEvent.ProjectChangeInfo targetProject = targetProjectMap.get(uri);
+
+				if (targetProject == null) {
+					// Project doesn't exist in target, add it
+					target.getProjects().add(sourceProject);
+					targetProjectMap.put(uri, sourceProject);
+				} else {
+					// Project exists, merge the sources
+					if (sourceProject.getSources() != null) {
+						if (targetProject.getSources() == null) {
+							targetProject.setSources(new HashSet<>());
 						}
+						targetProject.getSources().addAll(sourceProject.getSources());
 					}
 				}
-			});
+			}
+		}
+
+		/**
+		 * Notifies all registered listeners about the java data model change event.
+		 */
+		private void notifyListeners(JavaDataModelChangeEvent event) {
+			for (IJavaDataModelChangedListener listener : listeners) {
+				try {
+					listener.dataModelChanged(event);
+				} catch (Exception e) {
+					if (LOGGER.isLoggable(Level.SEVERE)) {
+						LOGGER.log(Level.SEVERE, "Error while sending LSP 'qute/dataModelChanged' notification", e);
+					}
+				}
+			}
 		}
 
 	}
@@ -216,12 +295,14 @@ public class JavaDataModelListenerManager {
 
 	private final Set<IJavaDataModelChangedListener> listeners;
 
+	private ScheduledExecutorService scheduler;
+
 	private JavaDataModelListenerManager() {
 		listeners = new HashSet<>();
 	}
 
 	/**
-	 * Add the given MicroProfile properties changed listener.
+	 * Add the given Java data model changed listener.
 	 *
 	 * @param listener the listener to add
 	 */
@@ -232,7 +313,7 @@ public class JavaDataModelListenerManager {
 	}
 
 	/**
-	 * Remove the given MicroProfile properties changed listener.
+	 * Remove the given Java data model changed listener.
 	 *
 	 * @param listener the listener to remove
 	 */
@@ -249,6 +330,11 @@ public class JavaDataModelListenerManager {
 		if (quteListener != null) {
 			return;
 		}
+		this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+			Thread t = new Thread(r, "Qute_JavaDataModel-Debouncer");
+			t.setDaemon(true);
+			return t;
+		});
 		this.quteListener = new QuteListener();
 		JavaCore.addElementChangedListener(quteListener);
 	}
@@ -260,6 +346,18 @@ public class JavaDataModelListenerManager {
 		if (quteListener != null) {
 			JavaCore.removeElementChangedListener(quteListener);
 			this.quteListener = null;
+		}
+		if (scheduler != null && !scheduler.isShutdown()) {
+			scheduler.shutdown();
+			try {
+				if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+					scheduler.shutdownNow();
+				}
+			} catch (InterruptedException e) {
+				scheduler.shutdownNow();
+				Thread.currentThread().interrupt();
+			}
+			scheduler = null;
 		}
 	}
 
