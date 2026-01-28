@@ -1,0 +1,14 @@
+sandwiches:
+  - name: Turkey and Brie
+    ingredients:
+     - turkey
+     - brie
+     - apple
+     - ciabatta
+  - name: Ham and Cheese
+    ingredients:
+     - ham
+     - cheddar
+     - mustard
+     - green leaf lettuce
+     - whole grain bread

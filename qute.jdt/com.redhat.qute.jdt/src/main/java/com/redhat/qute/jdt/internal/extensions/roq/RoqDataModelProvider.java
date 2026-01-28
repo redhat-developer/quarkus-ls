@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.extensions.roq;
 
+import static com.redhat.qute.jdt.internal.extensions.roq.RoqUtils.isRoqProject;
+
 import java.util.Arrays;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -22,7 +24,6 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.DataModelTemplateMatcher;
 import com.redhat.qute.jdt.template.datamodel.AbstractDataModelProvider;
 import com.redhat.qute.jdt.template.datamodel.SearchContext;
-import com.redhat.qute.jdt.utils.JDTTypeUtils;
 
 /**
  * Inject 'site' and 'page' as data model parameters for all Qute templates
@@ -32,7 +33,7 @@ public class RoqDataModelProvider extends AbstractDataModelProvider {
 
 	@Override
 	public void beginSearch(SearchContext context, IProgressMonitor monitor) {
-		if (JDTTypeUtils.findType(context.getJavaProject(), RoqJavaConstants.SITE_CLASS) == null) {
+		if (!isRoqProject(context.getJavaProject())) {
 			// It is not a Roq application, don't inject site and page.
 			return;
 		}

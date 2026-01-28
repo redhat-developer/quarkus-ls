@@ -57,6 +57,7 @@ import com.redhat.qute.project.tags.ObjectPartCollector;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
 import com.redhat.qute.services.definition.DefinitionRequest;
+import com.redhat.qute.services.extensions.DefinitionExtensionProvider;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.QuteSearchUtils;
 
@@ -447,6 +448,10 @@ class QuteDefinition {
 			Part part, QuteProject project, CancelChecker cancelChecker) {
 		if (member == null) {
 			return NO_DEFINITION;
+		}
+
+		if (member instanceof DefinitionExtensionProvider) {
+			return CompletableFuture.completedFuture(((DefinitionExtensionProvider) member).getLocations(part));
 		}
 
 		String sourceType = member.getJavaElementKind() == JavaElementKind.TYPE ? member.getName()

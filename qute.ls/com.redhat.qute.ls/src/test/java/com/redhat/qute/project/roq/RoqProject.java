@@ -11,12 +11,17 @@
 *******************************************************************************/
 package com.redhat.qute.project.roq;
 
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
@@ -24,6 +29,7 @@ import com.redhat.qute.commons.datamodel.DataModelTemplateMatcher;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.project.BaseQuteProject;
+import com.redhat.qute.project.MockQuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 
 /**
@@ -34,8 +40,13 @@ public class RoqProject extends BaseQuteProject {
 	public static final String PROJECT_URI = "roq";
 	private DataModelProject<DataModelTemplate<?>> dataModel;
 
-	public RoqProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
-		super(projectInfo, projectRegistry);
+	public RoqProject(QuteProjectRegistry projectRegistry) {
+		super(new ProjectInfo(PROJECT_URI, //
+				getProjectPath(PROJECT_URI), //
+				Collections.emptyList(), //
+				List.of(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates")), //
+				Set.of(getProjectPath(PROJECT_URI) + "/src/main/resources"), //
+				Set.of(ProjectFeature.Roq)), projectRegistry);
 	}
 
 	@Override
@@ -51,7 +62,8 @@ public class RoqProject extends BaseQuteProject {
 
 	@Override
 	protected void fillTemplates(List<DataModelTemplate<DataModelParameter>> templates) {
-		// Inject 'page' and 'site' for all Qute templates which belongs to a Roq application 
+		// Inject 'page' and 'site' for all Qute templates which belongs to a Roq
+		// application
 		DataModelTemplate<DataModelParameter> roqTemplate = new DataModelTemplate<DataModelParameter>();
 		roqTemplate.setTemplateMatcher(new DataModelTemplateMatcher(Arrays.asList("**/**")));
 
@@ -85,6 +97,11 @@ public class RoqProject extends BaseQuteProject {
 	@Override
 	protected void fillNamespaceResolverInfos(Map<String, NamespaceResolverInfo> namespaces) {
 
+	}
+
+	public static String getDataFileUri(String fileName) {
+		return Paths.get(MockQuteProject.getProjectPath(RoqProject.PROJECT_URI) + "/data/" + fileName).toAbsolutePath()
+				.toUri().toASCIIString();
 	}
 
 }

@@ -14,6 +14,8 @@ package com.redhat.qute.project.documents;
 import static com.redhat.qute.commons.FileUtils.createPath;
 
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
@@ -26,6 +28,7 @@ import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.commons.ModelTextDocument;
 import com.redhat.qute.ls.commons.TextDocument;
+import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
@@ -157,5 +160,17 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 			}
 
 		}
+	}
+
+	@Override
+	public Collection<InjectionDetector> getInjectionDetectors() {
+		if (templatePath == null) {
+			return Collections.emptyList();
+		}
+		QuteProject project = projectUri != null ? projectRegistry.getProject(projectUri) : null;
+		if (project == null) {
+			return Collections.emptyList();
+		}
+		return project.getInjectionDetectorsFor(templatePath);
 	}
 }

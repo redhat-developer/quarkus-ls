@@ -24,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
+import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.Location;
 
@@ -36,7 +37,6 @@ import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
@@ -338,18 +338,8 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 	}
 
 	private static boolean isBelongToProject(Path path, QuteProject project) {
-		for (TemplateRootPath rootPath : project.getTemplateRootPaths()) {
-			Path basePath = rootPath.getBasePath();
-			if (basePath != null && path.startsWith(basePath)) {
-				return true;
-			}
-		}
-		for (Path sourcePath : project.getSourcePaths()) {
-			if (sourcePath != null && path.startsWith(sourcePath)) {
-				return true;
-			}
-		}
-		return false;
+		return (project.isInProjectFolder(path) || project.isInTemplateFolders(path)
+				|| project.isInSourceFolders(path));
 	}
 
 	public Collection<QuteProject> getProjects() {
@@ -359,45 +349,47 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 	public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
 		Set<QuteProject> projects = new HashSet<>();
 		List<FileEvent> changes = params.getChanges();
-		// Some qute templates are deleted, created, or changed
-		// Collect impacted Qute projects
-		for (FileEvent fileEvent : changes) {
-			String fileUri = fileEvent.getUri();
-			Path templatePath = FileUtils.createPath(fileUri);
-			QuteProject project = findProjectFor(templatePath);
+		// For some reason, vscode fill changes with several FileEvent which are the
+		// same
+		// Filter it.
+		Map<Path, Set<FileChangeType>> fileEvents = toFileEventMap(changes);
+		for (Map.Entry<Path, Set<FileChangeType>> pathEvent : fileEvents.entrySet()) {
+			Path filePath = pathEvent.getKey();
+			Set<FileChangeType> changeTypes = pathEvent.getValue();
+			QuteProject project = findProjectFor(filePath);
 			if (project != null) {
-				String templateId = project.getTemplateId(templatePath);
-				if (project.isTemplateOpened(templateId)) {
-					projects.add(project);
-				} else {
-					// In case of closed document, we collect the project and update the cache
-					switch (fileEvent.getType()) {
-					case Changed:
-					case Created: {
-						// The template is created, update the cache and collect the project
-						QuteTextDocument closedTemplate = project.onDidCreateTemplate(templatePath);
-						if (closedTemplate != null) {
-							projects.add(closedTemplate.getProject());
-						}
-						break;
-					}
-					case Deleted: {
-						// The template is deleted, update the cache, collect the project and publish
-						// empty diagnostics for this file
-						QuteTextDocument closedTemplate = project.onDidDeleteTemplate(templatePath);
-						if (closedTemplate != null) {
-							projects.add(closedTemplate.getProject());
-							if (validator != null) {
-								validator.clearDiagnosticsFor(fileUri);
+				if (project.isInTemplateFolders(filePath)) {
+					// Some qute templates are deleted, created, or changed
+					// Collect impacted Qute projects
+					Path templatePath = filePath;
+					String templateId = project.getTemplateId(templatePath);
+					if (project.isTemplateOpened(templateId)) {
+						projects.add(project);
+					} else {
+						// In case of closed document, we collect the project and update the cache
+						if (changeTypes.contains(FileChangeType.Changed)
+								|| changeTypes.contains(FileChangeType.Created)) {
+							// The template is created, update the cache and collect the project
+							QuteTextDocument closedTemplate = project.onDidCreateTemplate(templatePath);
+							if (closedTemplate != null) {
+								projects.add(closedTemplate.getProject());
+							}
+						} else if (changeTypes.contains(FileChangeType.Deleted)) {
+							// The template is deleted, update the cache, collect the project and publish
+							// empty diagnostics for this file
+							QuteTextDocument closedTemplate = project.onDidDeleteTemplate(templatePath);
+							if (closedTemplate != null) {
+								projects.add(closedTemplate.getProject());
+								if (validator != null) {
+									validator.clearDiagnosticsFor(FileUtils.toUri(filePath));
+								}
 							}
 						}
-						break;
-					}
 					}
 				}
 				for (DidChangeWatchedFilesParticipant participant : project.getExtensions()) {
 					if (participant.isEnabled()) {
-						if (participant.didChangeWatchedFile(templatePath, fileEvent)) {
+						if (participant.didChangeWatchedFile(filePath, changeTypes)) {
 							projects.add(project);
 						}
 					}
@@ -414,6 +406,23 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 		if (validator != null) {
 			validator.triggerValidationFor(projects);
 		}
+	}
+
+	private Map<Path, Set<FileChangeType>> toFileEventMap(List<FileEvent> changes) {
+		Map<Path, Set<FileChangeType>> result = new HashMap<>();
+		for (FileEvent fileEvent : changes) {
+			String fileUri = fileEvent.getUri();
+			Path filePath = FileUtils.createPath(fileUri);
+			if (filePath != null) {
+				Set<FileChangeType> changeTypes = result.get(filePath);
+				if (changeTypes == null) {
+					changeTypes = new HashSet<>();
+					result.put(filePath, changeTypes);
+				}
+				changeTypes.add(fileEvent.getType());
+			}
+		}
+		return result;
 	}
 
 	public void dispose() {

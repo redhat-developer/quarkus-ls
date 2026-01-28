@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.commons;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Base class for Java element (Java types, methods, fields, parameters)
  *
@@ -25,6 +27,8 @@ public abstract class JavaElementInfo {
 
 	private String documentation;
 
+	private transient ResolvedJavaTypeInfo resolvedType;
+	
 	/**
 	 * Returns the Java element signature.
 	 *
@@ -135,4 +139,11 @@ public abstract class JavaElementInfo {
 		return result.toString();
 	}
 
+	public final boolean isTypeResolved() {
+		return resolvedType != null;
+	}
+
+	public final ResolvedJavaTypeInfo getResolvedType() {
+		return resolvedType;
+	}
 }

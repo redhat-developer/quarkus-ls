@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template;
 
+import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+
 /**
  * Java type provider.
  * 
@@ -62,4 +64,8 @@ public interface JavaTypeInfoProvider {
 	 * @return the owner node where the Java type comes from and null otherwise.
 	 */
 	Node getJavaTypeOwnerNode();
+
+	default ResolvedJavaTypeInfo getResolvedType() {
+		return null;
+	}
 }

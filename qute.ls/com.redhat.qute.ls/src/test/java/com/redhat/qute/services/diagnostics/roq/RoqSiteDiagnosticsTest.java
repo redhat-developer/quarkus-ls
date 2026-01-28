@@ -18,12 +18,12 @@ import com.redhat.qute.QuteAssert;
 import com.redhat.qute.project.roq.RoqProject;
 
 /**
- * Test diagnostics with Roq Quarkus extension.
+ * Test diagnostics with Roq Quarkus extension and site data model.
  *
  * @author Angelo ZERR
  *
  */
-public class RoqDiagnosticsTest {
+public class RoqSiteDiagnosticsTest {
  
 	@Test
 	public void noErrorByUsingMatchNameAny() throws Exception {

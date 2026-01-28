@@ -803,6 +803,14 @@ class QuteDiagnostics {
 			return null;
 		}
 
+		ResolvedJavaTypeInfo resolvedJavaType = javaTypeInfo.getResolvedType();
+		if (resolvedJavaType != null) {
+			// ex : validation of 'books' part from {inject:books} which comes Roq Data
+			// books.yaml file
+			// (See RoqDataFile)
+			return resolvedJavaType;
+		}
+
 		String javaTypeToResolve = javaTypeInfo.getJavaType();
 		if (javaTypeToResolve == null) {
 			// case of (#for item as data.items) where data.items expression must be
@@ -827,6 +835,15 @@ class QuteDiagnostics {
 								return null;
 							}
 						} else {
+							if (alias.isTypeResolved()) {
+								// ex: validation of 'b' part in #for which uses {inject:books} which comes Roq
+								// Data
+								// books.yaml file
+								// {#for b in inject:books.list}
+								// {b <-- validate this b part
+								// (See RoqDataFile)
+								return alias.getResolvedType();
+							}
 							javaTypeToResolve = alias.getSignature();
 						}
 					}
@@ -901,7 +918,9 @@ class QuteDiagnostics {
 			String property = part.getPartName();
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnknownProperty,
 					property, signature);
-			diagnostic.setData(new JavaBaseTypeOfPartData(signature));
+			if (signature != null && !baseType.isTypeResolved()) {
+				diagnostic.setData(new JavaBaseTypeOfPartData(signature));
+			}
 			diagnostics.add(diagnostic);
 			return null;
 		} else if (canValidateMemberInNativeMode(filter, javaMember)) {
@@ -965,6 +984,10 @@ class QuteDiagnostics {
 				default:
 				}
 			}
+		}
+
+		if (javaMember.isTypeResolved()) {
+			return javaMember.getResolvedType();
 		}
 
 		if (javaMember.getJavaElementKind() == JavaElementKind.METHOD && ((JavaMethodInfo) javaMember).isVoidMethod()) {
@@ -1078,7 +1101,7 @@ class QuteDiagnostics {
 			if (signature != null || errorCode == QuteErrorCode.UnknownNamespaceResolverMethod) {
 				Range range = QutePositionUtility.createRange(methodPart);
 				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode, methodName, arg);
-				if (signature != null) {
+				if (signature != null && !baseType.isTypeResolved()) {
 					diagnostic.setData(new JavaBaseTypeOfPartData(signature));
 				}
 				diagnostics.add(diagnostic);

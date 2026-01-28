@@ -74,17 +74,17 @@ public abstract class UserTag extends Snippet {
 		for (UserTagParameter parameter : parameters) {
 			if (parameter.isRequired()) {
 				switch (parameter.getName()) {
-					case UserTagUtils.IT_OBJECT_PART_NAME:
-						startSection.append(" ");
-						SnippetsBuilder.placeholders(index++, parameter.getName(), startSection);
-						break;
-					case UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME:
-						hasNestedContent = true;
-						break;
-					default:
-						startSection.append(" ");
-						generateUserTagParameter(parameter, true, index++, startSection);
-						break;
+				case UserTagUtils.IT_OBJECT_PART_NAME:
+					startSection.append(" ");
+					SnippetsBuilder.placeholders(index++, parameter.getName(), startSection);
+					break;
+				case UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME:
+					hasNestedContent = true;
+					break;
+				default:
+					startSection.append(" ");
+					generateUserTagParameter(parameter, true, index++, startSection);
+					break;
 				}
 			}
 		}
@@ -135,11 +135,11 @@ public abstract class UserTag extends Snippet {
 				quote = null;
 			}
 		}
-		
+
 		if (quote != null) {
 			snippet.append(quote);
 		}
-		
+
 		if (snippetsSupported) {
 			SnippetsBuilder.placeholders(index, value, snippet);
 		} else {
@@ -194,7 +194,7 @@ public abstract class UserTag extends Snippet {
 		}
 		return parameters.values();
 	}
-	
+
 	public boolean hasArgs() {
 		getParameters();
 		return hasArgs;
@@ -206,9 +206,7 @@ public abstract class UserTag extends Snippet {
 	 * @return all required parameter names.
 	 */
 	public List<String> getRequiredParameterNames() {
-		return getParameters().stream()
-				.filter(UserTagParameter::isRequired)
-				.map(UserTagParameter::getName)
+		return getParameters().stream().filter(UserTagParameter::isRequired).map(UserTagParameter::getName)
 				.filter(paramName -> !paramName.equals(UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME))
 				.collect(Collectors.toList());
 	}
@@ -256,7 +254,7 @@ public abstract class UserTag extends Snippet {
 		if (content == null) {
 			return null;
 		}
-		return TemplateParser.parse(content, getUri());
+		return TemplateParser.parse(content, getUri(), Collections.emptyList());
 	}
 
 	/**

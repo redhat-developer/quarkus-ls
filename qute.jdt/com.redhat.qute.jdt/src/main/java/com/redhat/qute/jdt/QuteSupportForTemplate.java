@@ -116,7 +116,7 @@ public class QuteSupportForTemplate {
 			IJavaProject javaProject = getJavaProject(project);
 			if (isQuteProject(javaProject)) {
 				// It is a Qute project
-				quteProjects.add(JDTQuteProjectUtils.getProjectInfo(javaProject));
+				quteProjects.add(JDTQuteProjectUtils.getProjectInfo(javaProject, monitor));
 			}
 		}
 		return quteProjects;
@@ -136,7 +136,7 @@ public class QuteSupportForTemplate {
 		if (javaProject == null) {
 			return null;
 		}
-		return JDTQuteProjectUtils.getProjectInfo(javaProject);
+		return JDTQuteProjectUtils.getProjectInfo(javaProject, monitor);
 	}
 
 	/**
