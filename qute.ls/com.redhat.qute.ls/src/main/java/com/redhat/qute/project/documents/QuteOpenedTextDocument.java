@@ -58,6 +58,11 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 		this.projectInfoProvider = projectInfoProvider;
 		this.projectRegistry = projectRegistry;
 		this.templatePath = createPath(document.getUri());
+		QuteProject project = projectRegistry.findProjectFor(templatePath);
+		if (project != null) {
+			this.projectUri = project.getUri();
+			this.templateId = project.getTemplateId(templatePath);
+		}
 	}
 
 	@Override
@@ -172,5 +177,10 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 			return Collections.emptyList();
 		}
 		return project.getInjectionDetectorsFor(templatePath);
+	}
+
+	@Override
+	public Path getTemplatePath() {
+		return templatePath;
 	}
 }

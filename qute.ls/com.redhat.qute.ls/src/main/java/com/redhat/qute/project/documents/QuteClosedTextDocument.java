@@ -45,7 +45,7 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 
 	private final String uri;
 
-	private final Path path;
+	private final Path templatePath;
 	private final String templateId;
 
 	private final QuteProject project;
@@ -56,10 +56,10 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 
 	private UserTagUsageCollector callVisitor;
 
-	public QuteClosedTextDocument(Path path, String templateId, QuteProject project) {
-		this.path = path;
+	public QuteClosedTextDocument(Path templatePath, String templateId, QuteProject project) {
+		this.templatePath = templatePath;
 		this.templateId = templateId;
-		this.uri = FileUtils.toUri(path);
+		this.uri = FileUtils.toUri(templatePath);
 		this.project = project;
 		// Force the parse the of template
 		getTemplate();
@@ -78,7 +78,7 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 			return template;
 		}
 		try {
-			TextDocument document = new TextDocument(IOUtils.getContent(path), uri);
+			TextDocument document = new TextDocument(IOUtils.getContent(templatePath), uri);
 			Template template = TemplateParser.parse(document, getInjectionDetectors(), CancelChecker.NO_CANCELLABLE);
 			template.setTemplateId(templateId);
 			template.setProjectRegistry(project.getProjectRegistry());
@@ -176,6 +176,11 @@ public class QuteClosedTextDocument implements QuteTextDocument {
 
 	@Override
 	public Collection<InjectionDetector> getInjectionDetectors() {
-		return project.getInjectionDetectorsFor(path);
+		return project.getInjectionDetectorsFor(templatePath);
+	}
+
+	@Override
+	public Path getTemplatePath() {
+		return templatePath;
 	}
 }

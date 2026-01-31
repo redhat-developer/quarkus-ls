@@ -16,7 +16,7 @@ package com.redhat.qute.parser.yaml;
  */
 public class YamlProperty extends YamlNode {
 
-	private YamlNode key;
+	private YamlScalar key;
 	private YamlNode value;
 	private int colonOffset = NULL_VALUE;
 
@@ -34,11 +34,11 @@ public class YamlProperty extends YamlNode {
 		return "property";
 	}
 
-	public YamlNode getKey() {
+	public YamlScalar getKey() {
 		return key;
 	}
 
-	public void setKey(YamlNode key) {
+	public void setKey(YamlScalar key) {
 		this.key = key;
 		if (key != null) {
 			key.setParent(this);
@@ -77,4 +77,13 @@ public class YamlProperty extends YamlNode {
 		}
 		visitor.endVisit(this);
 	}
+
+	public boolean isInKey(int offset) {
+		return isIncluded(key, offset);
+	}
+
+	public boolean isInValue(int offset) {
+		return isIncluded(value, offset);
+	}
+
 }

@@ -28,14 +28,7 @@ import com.redhat.qute.parser.template.Expression;
  * 
  * @author Angelo ZERR
  */
-public interface InlayHintParticipant {
-
-	/**
-	 * Checks if this participant is enabled.
-	 * 
-	 * @return true if this participant should provide inlay hints
-	 */
-	boolean isEnabled();
+public interface InlayHintParticipant extends BaseParticpant {
 
 	/**
 	 * Provides inlay hints for the given expression.

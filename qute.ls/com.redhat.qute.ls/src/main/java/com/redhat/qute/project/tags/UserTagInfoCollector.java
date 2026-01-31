@@ -212,7 +212,7 @@ public class UserTagInfoCollector extends ASTVisitor {
 			// required
 			// 2. foo is declared in #if section -> user tag parameter is optional
 			// 3. foo is declared in #let section with default value (#let foo?="bar") ->
-			// user tag parameter is optional and have a defaut value
+			// user tag parameter is optional and have a default value
 
 			// Get or create the user tag parameter
 			UserTagParameter parameter = parameters.get(partName);

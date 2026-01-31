@@ -21,6 +21,7 @@ import org.eclipse.lsp4j.DocumentLink;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.qute.parser.injection.LanguageInjectionNode;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
@@ -29,6 +30,9 @@ import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.QuteProjectRegistry;
+import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
+import com.redhat.qute.project.extensions.LanguageInjectionService;
 import com.redhat.qute.utils.QutePositionUtility;
 
 /**
@@ -38,17 +42,15 @@ import com.redhat.qute.utils.QutePositionUtility;
  *
  */
 public class QuteDocumentLink {
+	private final QuteProjectRegistry projectRegistry;
+
+	public QuteDocumentLink(QuteProjectRegistry projectRegistry) {
+		this.projectRegistry = projectRegistry;
+	}
 
 	public CompletableFuture<List<DocumentLink>> findDocumentLinks(Template template, CancelChecker cancelChecker) {
-		QuteProject project = template.getProject();
-		if (project != null) {
-			return CompletableFuture.completedFuture(findDocumentLinksSync(template, cancelChecker));
-		}
-		return template.getProjectFuture()
-				.thenApply(p -> {
-					if (p == null) {
-						return Collections.emptyList();
-					}
+		return projectRegistry.getDataModelTemplate(template) //
+				.thenApply(templateDataModel -> {
 					return findDocumentLinksSync(template, cancelChecker);
 				});
 	}
@@ -81,6 +83,20 @@ public class QuteDocumentLink {
 								String target = templateFile.toUri().toASCIIString();
 								links.add(new DocumentLink(range, target != null ? target : ""));
 							}
+						}
+					}
+				}
+			} else if (child.getKind() == NodeKind.LanguageInjection) {
+				LanguageInjectionNode languageInjection = (LanguageInjectionNode) child;
+				LanguageInjectionService service = languageInjection.getLanguageService();
+				if (service != null) {
+					// Language injection, ensure data model project is loaded (ex: to get the
+					// project folder, source folders etc)
+					QuteProject project = template.getProject();
+					if (project != null) {
+						ExtendedDataModelTemplate dataModel = project.getDataModelTemplate(template).getNow(null);
+						if (dataModel != null) {
+							service.findDocumentLinks(languageInjection, template, links, cancelChecker);
 						}
 					}
 				}

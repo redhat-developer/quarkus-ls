@@ -15,41 +15,47 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.FileChangeType;
-import org.eclipse.lsp4j.Hover;
-import org.eclipse.lsp4j.InlayHint;
-import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
-import com.redhat.qute.parser.expression.Part;
-import com.redhat.qute.parser.expression.Parts;
-import com.redhat.qute.parser.template.Expression;
+import com.redhat.qute.parser.injection.InjectionDetector;
+import com.redhat.qute.parser.injection.LanguageInjectionNode;
+import com.redhat.qute.parser.template.Node;
+import com.redhat.qute.parser.template.NodeKind;
+import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
+import com.redhat.qute.project.extensions.CodeLensParticipant;
 import com.redhat.qute.project.extensions.DataModelTemplateParticipant;
+import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
 import com.redhat.qute.project.extensions.ProjectExtension;
+import com.redhat.qute.project.extensions.TemplateLanguageInjectionParticipant;
 import com.redhat.qute.project.extensions.roq.data.DataLoader;
 import com.redhat.qute.project.extensions.roq.data.RoqDataFile;
 import com.redhat.qute.project.extensions.roq.data.json.JsonDataLoader;
 import com.redhat.qute.project.extensions.roq.data.yaml.YamlDataLoader;
-import com.redhat.qute.services.ResolvingJavaTypeContext;
-import com.redhat.qute.services.completions.CompletionRequest;
-import com.redhat.qute.settings.QuteCompletionSettings;
-import com.redhat.qute.settings.QuteFormattingSettings;
-import com.redhat.qute.settings.QuteValidationSettings;
+import com.redhat.qute.project.extensions.roq.frontmatter.YamlFrontMatterDetector;
+import com.redhat.qute.settings.SharedSettings;
+import com.redhat.qute.utils.QutePositionUtility;
 
 /**
  * Qute project extension for Roq integration.
@@ -102,7 +108,8 @@ import com.redhat.qute.settings.QuteValidationSettings;
  * @see RoqDataFile
  * @see DataLoader
  */
-public class RoqProjectExtension implements ProjectExtension, DataModelTemplateParticipant {
+public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFilesParticipant,
+		DataModelTemplateParticipant, TemplateLanguageInjectionParticipant, CodeLensParticipant {
 
 	// We might need to allow plugins to contribute to this at some point
 	private static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "htm", "xhtml",
@@ -133,6 +140,9 @@ public class RoqProjectExtension implements ProjectExtension, DataModelTemplateP
 	 * </pre>
 	 */
 	private static final Map<String /* file extension */, DataLoader> dataLoaderRegistrty;
+
+	private static Collection<InjectionDetector> INJECTOR_DETECTORS = Collections
+			.singletonList(new YamlFrontMatterDetector());
 
 	static {
 		// Initialize the loader registry
@@ -180,6 +190,7 @@ public class RoqProjectExtension implements ProjectExtension, DataModelTemplateP
 	/** Path to the data directory (e.g., project-root/data/) */
 	private Path dataDir;
 	private Path contentDir;
+
 	private Set<String> configuredCollections;
 
 	/**
@@ -365,51 +376,6 @@ public class RoqProjectExtension implements ProjectExtension, DataModelTemplateP
 	}
 
 	/**
-	 * Handles autocomplete requests.
-	 * 
-	 * <p>
-	 * Currently not implemented for Roq extension. Autocomplete for data files is
-	 * handled by the standard Qute completion mechanism using the registered
-	 * resolvers.
-	 * </p>
-	 */
-	@Override
-	public void doComplete(CompletionRequest completionRequest, Part part, Parts parts,
-			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
-			Set<CompletionItem> completionItems, CancelChecker cancelChecker) {
-		// Not implemented - standard completion handles data file resolvers
-	}
-
-	/**
-	 * Handles go-to-definition requests.
-	 * 
-	 * <p>
-	 * Currently not implemented for Roq extension. Definition navigation for data
-	 * files is handled by the DefinitionExtensionProvider interface implemented by
-	 * RoqDataFile.
-	 * </p>
-	 */
-	@Override
-	public void definition(Part part, List<LocationLink> locationLinks, CancelChecker cancelChecker) {
-		// Not implemented - RoqDataFile handles its own definition navigation
-	}
-
-	/**
-	 * Validates template expressions.
-	 * 
-	 * <p>
-	 * Currently not implemented for Roq extension. Validation is handled by the
-	 * standard Qute validation mechanism using the registered resolvers.
-	 * </p>
-	 */
-	@Override
-	public boolean validateExpression(Parts parts, QuteValidationSettings validationSettings,
-			ResolvingJavaTypeContext resolvingJavaTypeContext, List<Diagnostic> diagnostics) {
-		// Not implemented - standard validation handles data file resolvers
-		return false;
-	}
-
-	/**
 	 * Handles file system change events for data files.
 	 * 
 	 * <p>
@@ -481,32 +447,6 @@ public class RoqProjectExtension implements ProjectExtension, DataModelTemplateP
 
 		// Not our file
 		return false;
-	}
-
-	/**
-	 * Handles hover requests.
-	 * 
-	 * <p>
-	 * Currently not implemented for Roq extension. Hover support for data files is
-	 * handled by the HoverExtensionProvider interface implemented by RoqDataFile.
-	 * </p>
-	 */
-	@Override
-	public void doHover(Part part, List<Hover> hovers, CancelChecker cancelChecker) {
-		// Not implemented - RoqDataFile handles its own hover documentation
-	}
-
-	/**
-	 * Handles inlay hint requests.
-	 * 
-	 * <p>
-	 * Currently not implemented for Roq extension. Inlay hints (inline parameter
-	 * names, type hints, etc.) are not currently provided for data file access.
-	 * </p>
-	 */
-	@Override
-	public void inlayHint(Expression node, List<InlayHint> inlayHints, CancelChecker cancelChecker) {
-		// Not implemented - no inlay hints for data files yet
 	}
 
 	/**
@@ -583,4 +523,153 @@ public class RoqProjectExtension implements ProjectExtension, DataModelTemplateP
 		}
 		return TemplateType.NORMAL_PAGE;
 	}
+
+	@Override
+	public Collection<InjectionDetector> getInjectionDetectorsFor(Path path) {
+		return INJECTOR_DETECTORS;
+	}
+
+	public Path getContentDir() {
+		return contentDir;
+	}
+
+	public Path getDataDir() {
+		return dataDir;
+	}
+
+	public void collectLayouts(Path filePath, Consumer<Path> collector) {
+		// collect layouts from templates/layouts
+
+		Path projectFolder = dataModelProject.getProjectFolder();
+		if (projectFolder != null) {
+			Path layoutsFolder = projectFolder.resolve("templates/layouts");
+			collectFiles(layoutsFolder, collector);
+		}
+
+		// collect layouts from src/main/resources/templates/layouts
+		Set<Path> sourcePaths = dataModelProject.getSourcePaths();
+		for (Path sourcePath : sourcePaths) {
+			Path layoutsFolder = sourcePath.resolve("templates/layouts");
+			collectFiles(layoutsFolder, collector);
+		}
+	}
+
+	private void collectFiles(Path dir, Consumer<Path> collector) {
+		if (dir != null && Files.isDirectory(dir)) {
+			try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+				for (Path file : stream) {
+					// Only process regular files (skip directories, symlinks, etc.)
+					if (Files.isRegularFile(file)) {
+						collector.accept(file);
+					}
+				}
+			} catch (IOException e) {
+				// Silently ignore - data directory may not exist yet
+			}
+		}
+	}
+
+	public static RoqProjectExtension getRoqProjectExtension(Template template) {
+		QuteProject project = template.getProject();
+		if (project == null) {
+			return null;
+		}
+		Optional<ProjectExtension> roqProject = project.getExtensions() //
+				.stream() //
+				.filter(e -> e instanceof RoqProjectExtension).findFirst();
+		if (roqProject.isPresent()) {
+			return (RoqProjectExtension) roqProject.get();
+		}
+		return null;
+	}
+
+	public Path getLayoutPath(Path filePath, String layoutFileName) {
+		Path projectFolder = dataModelProject.getProjectFolder();
+
+		// 1. Collect existing templates folder (templates,
+		// src/main/resources/templates)
+		// templates
+		List<Path> existingTemplatesFolder = new ArrayList<>();
+		if (projectFolder != null) {
+			Path templatesFolder = projectFolder.resolve("templates");
+			if (Files.exists(templatesFolder)) {
+				existingTemplatesFolder.add(templatesFolder);
+			}
+		}
+		// src/main/resources/temmplates
+		for (Path sourcePath : dataModelProject.getSourcePaths()) {
+			Path templatesFolder = sourcePath.resolve("templates");
+			if (Files.exists(templatesFolder)) {
+				existingTemplatesFolder.add(templatesFolder);
+			}
+		}
+
+		// templates folder doesn't exist
+		if (existingTemplatesFolder.isEmpty()) {
+			Path baseDir = projectFolder != null ? projectFolder : null;
+			if (baseDir == null) {
+				if (dataModelProject.getSourcePaths().isEmpty()) {
+					return null;
+				}
+				baseDir = dataModelProject.getSourcePaths().iterator().next();
+			}
+			return baseDir.resolve("templates/layouts").resolve(layoutFileName + ".html");
+		}
+
+		// 2. Collect existing templates/layouts folder (templates,
+		// src/main/resources/templates)
+		// templates
+		List<Path> existingLayoutFolder = new ArrayList<>();
+		for (Path templatesFolder : existingTemplatesFolder) {
+			Path layoutsFolder = templatesFolder.resolve("layouts");
+			if (Files.exists(layoutsFolder)) {
+				existingLayoutFolder.add(layoutsFolder);
+			}
+		}
+
+		// layouts folder doesn't exist
+		if (existingLayoutFolder.isEmpty()) {
+			return existingTemplatesFolder.get(0).resolve("layouts").resolve(layoutFileName + ".html");
+		}
+
+		for (Path layoutsFolder : existingLayoutFolder) {
+			Path layoutFile = layoutsFolder.resolve(layoutFileName + ".html");
+			if (Files.exists(layoutFile)) {
+				return layoutFile;
+			}
+		}
+
+		return existingLayoutFolder.get(0).resolve(layoutFileName + ".html");
+	}
+
+	public Set<String> getConfiguredCollections() {
+		return configuredCollections;
+	}
+
+	@Override
+	public void collectCodeLenses(Template template, SharedSettings settings, List<CodeLens> lenses,
+			CancelChecker cancelChecker) {
+		if (hasYamlFrontMatter(template)) {
+			// The template already defines a yaml front matter, don't show "Insert
+			// Frontmatter"
+			return;
+		}
+		CodeLens codeLens = new CodeLens(QutePositionUtility.ZERO_RANGE);
+		Command command = new Command("Insert Frontmatter", RoqInsertFrontMatterCommanHandler.COMMAND_ID);
+		command.setArguments(List.of(template.getUri()));
+		codeLens.setCommand(command);
+		lenses.add(codeLens);
+	}
+
+	private static boolean hasYamlFrontMatter(Template template) {
+		Node node = template.getChildCount() > 0 ? template.getChild(0) : null;
+		if (node != null && node.getKind() == NodeKind.LanguageInjection) {
+			LanguageInjectionNode injectionNode = (LanguageInjectionNode) node;
+			if (YamlFrontMatterDetector.YAML_FRONT_MATTER_LANGUAGE_ID.equals(injectionNode.getLanguageId())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 }

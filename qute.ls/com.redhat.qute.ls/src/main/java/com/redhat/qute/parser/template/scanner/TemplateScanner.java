@@ -312,4 +312,9 @@ public class TemplateScanner extends AbstractScannerWithInjection<TokenType, Sca
 		return stream.advanceWhileChar(TAG_NAME_PREDICATE) > 0;
 	}
 
+	@Override
+	protected boolean supportInjection() {
+		return state == ScannerState.WithinContent;
+	}
+
 }

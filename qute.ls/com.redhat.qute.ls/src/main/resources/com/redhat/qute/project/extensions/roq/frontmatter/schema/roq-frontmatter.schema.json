@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://quarkus.io/schemas/roq-frontmatter.json",
+  "title": "Quarkus Roq Frontmatter Schema",
+  "description": "JSON Schema for YAML frontmatter in Quarkus Roq static site generator documents",
+  "type": "object",
+  "properties": {
+    "layout": {
+      "type": "string",
+      "description": "The layout template to use for rendering this page. Use ':theme/' prefix to reference theme layouts (e.g., ':theme/post', ':theme/page')",
+      "examples": [":theme/post", ":theme/page", ":theme/main", "custom-layout"]
+    },
+    "title": {
+      "type": "string",
+      "description": "The title of the page or blog post",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "description": "A brief description of the page content. Used for SEO and social media sharing"
+    },
+    "date": {
+      "type": "string",
+      "description": "Publication date. Format: yyyy-MM-dd[ HH:mm][:ss][ Z] (e.g., '2025-02-05' or '2025-02-05 14:30:00')",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}(\\s+\\d{2}:\\d{2}(:\\d{2})?(\\s+[+-]?\\d{2}:\\d{2})?)?$",
+      "examples": ["2025-02-05", "2025-02-05 14:30", "2025-02-05 14:30:00 +02:00"]
+    },
+    "author": {
+      "type": "string",
+      "description": "Name of the content author. Accessible via {page.data.author} in templates"
+    },
+    "tags": {
+      "type": "array",
+      "description": "Tags or keywords associated with this content. Used with the Roq tagging plugin to generate tag pages",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "draft": {
+      "type": "boolean",
+      "description": "Mark this content as a draft. Drafts are hidden unless site.draft=true is set (typically in dev mode)",
+      "default": false
+    },
+    "image": {
+      "type": "string",
+      "description": "Path to the cover image for this page. Accessible via {page.image} in templates. Can be relative to page directory for index pages, or from the public/images/ directory",
+      "examples": ["cover.jpg", "2024/10/my-image.jpg", "/images/banner.png"]
+    },
+    "img": {
+      "type": "string",
+      "description": "Alias for 'image'. Path to the cover image for this page",
+      "examples": ["cover.jpg", "2024/10/my-image.jpg"]
+    },
+    "link": {
+      "type": "string",
+      "description": "Custom URL path for this page. Supports placeholders like :path, :slug, :name, :year, :month, :day, :collection, :page. Default for pages: '/:path:ext'. Default for documents: '/:collection/:slug/'",
+      "examples": ["/my-custom-url/", "/:year/:month/:slug/", "/blog/:name/"]
+    },
+    "slug": {
+      "type": "string",
+      "description": "Custom slug for the URL. Used in :slug placeholder in link template. Auto-generated from title if not specified"
+    },
+    "escape": {
+      "type": "boolean",
+      "description": "When true, the page content will not be parsed by Qute. Useful for content that contains Qute-like syntax that shouldn't be processed",
+      "default": false
+    },
+    "paginate": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Name of the collection to paginate (e.g., 'posts')"
+        },
+        {
+          "type": "object",
+          "description": "Pagination configuration",
+          "properties": {
+            "collection": {
+              "type": "string",
+              "description": "Name of the collection to paginate"
+            },
+            "size": {
+              "type": "integer",
+              "description": "Number of items per page",
+              "minimum": 1,
+              "default": 10
+            },
+            "link": {
+              "type": "string",
+              "description": "URL template for paginated pages. Use :page placeholder for page number",
+              "examples": ["posts/page-:page", "blog/:page/"]
+            }
+          },
+          "required": ["collection"]
+        }
+      ],
+      "description": "Enable pagination for a collection. Use string for collection name, or object for advanced configuration"
+    },
+    "locale": {
+      "type": "string",
+      "description": "Language/locale code for this content (e.g., 'en', 'fr', 'de'). Used for internationalization",
+      "pattern": "^[a-z]{2}(-[A-Z]{2})?$",
+      "examples": ["en", "fr", "de", "en-US", "fr-FR"]
+    }
+  },
+  "additionalProperties": true,
+  "examples": [
+    {
+      "layout": ":theme/post",
+      "title": "Getting Started with Quarkus Roq",
+      "description": "Learn how to build static sites with Quarkus Roq",
+      "date": "2025-02-05",
+      "author": "Quarkus Team",
+      "tags": ["quarkus", "roq", "static-site"],
+      "draft": false,
+      "image": "2025/02/roq-banner.jpg"
+    },
+    {
+      "layout": ":theme/page",
+      "title": "About Us",
+      "description": "Learn about our team and mission",
+      "link": "/about/"
+    },
+    {
+      "title": "Blog",
+      "layout": ":theme/index",
+      "paginate": {
+        "collection": "posts",
+        "size": 5,
+        "link": "blog/page-:page"
+      }
+    }
+  ]
+}

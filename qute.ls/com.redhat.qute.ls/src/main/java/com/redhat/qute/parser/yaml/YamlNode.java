@@ -83,4 +83,9 @@ public abstract class YamlNode extends NodeBase<YamlNode> {
 	}
 
 	public abstract YamlNodeKind getKind();
+	
+	@Override
+	public String toString() {
+		return getOwnerDocument().getText(getStart(), getEnd());
+	}
 }

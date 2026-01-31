@@ -63,7 +63,6 @@ import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateConfiguration;
-import com.redhat.qute.project.config.PropertyConfig;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
@@ -75,8 +74,17 @@ import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.project.documents.QuteClosedTextDocuments;
 import com.redhat.qute.project.documents.SearchInfoQuery;
 import com.redhat.qute.project.documents.TemplateValidator;
+import com.redhat.qute.project.extensions.CodeLensParticipant;
+import com.redhat.qute.project.extensions.CompletionParticipant;
 import com.redhat.qute.project.extensions.DataModelTemplateParticipant;
+import com.redhat.qute.project.extensions.DefinitionParticipant;
+import com.redhat.qute.project.extensions.DiagnosticsParticipant;
+import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
+import com.redhat.qute.project.extensions.HoverParticipant;
+import com.redhat.qute.project.extensions.InlayHintParticipant;
 import com.redhat.qute.project.extensions.ProjectExtension;
+import com.redhat.qute.project.extensions.TemplateLanguageInjectionParticipant;
+import com.redhat.qute.project.extensions.config.PropertyConfig;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagRegistry;
 import com.redhat.qute.services.QuteCompletableFutures;
@@ -144,7 +152,16 @@ public class QuteProject {
 
 	private final Set<ProjectFeature> projectFeatures;
 
+	// Participants
+	private final Collection<CodeLensParticipant> codeLensParticipants;
+	private final Collection<CompletionParticipant> completionParticipants;
 	private final Collection<DataModelTemplateParticipant> dataModelTemplateParticipants;
+	private final Collection<DidChangeWatchedFilesParticipant> didChangeWatchedFilesParticipants;
+	private final Collection<DiagnosticsParticipant> diagnosticsParticipants;
+	private final Collection<DefinitionParticipant> definitionParticipants;
+	private final Collection<HoverParticipant> hoverParticipants;
+	private final Collection<InlayHintParticipant> inlayHintParticipants;
+	private final Collection<TemplateLanguageInjectionParticipant> languageInjectionParticipants;
 
 	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		this.uri = projectInfo.getUri();
@@ -163,7 +180,15 @@ public class QuteProject {
 		this.projectDependencies = new ArrayList<>();
 		// Project extensions
 		this.extensions = new ArrayList<>();
+		this.codeLensParticipants = new ArrayList<>();
+		this.completionParticipants = new ArrayList<>();
 		this.dataModelTemplateParticipants = new ArrayList<>();
+		this.didChangeWatchedFilesParticipants = new ArrayList<>();
+		this.diagnosticsParticipants = new ArrayList<>();
+		this.definitionParticipants = new ArrayList<>();
+		this.hoverParticipants = new ArrayList<>();
+		this.inlayHintParticipants = new ArrayList<>();
+		this.languageInjectionParticipants = new ArrayList<>();
 		Iterator<ProjectExtension> extensions = ServiceLoader.load(ProjectExtension.class).iterator();
 		while (extensions.hasNext()) {
 			try {
@@ -177,8 +202,32 @@ public class QuteProject {
 	void registerExtension(ProjectExtension extension) {
 		try {
 			extensions.add(extension);
+			if (extension instanceof CodeLensParticipant) {
+				codeLensParticipants.add((CodeLensParticipant) extension);
+			}
+			if (extension instanceof CompletionParticipant) {
+				completionParticipants.add((CompletionParticipant) extension);
+			}
+			if (extension instanceof DidChangeWatchedFilesParticipant) {
+				didChangeWatchedFilesParticipants.add((DidChangeWatchedFilesParticipant) extension);
+			}
 			if (extension instanceof DataModelTemplateParticipant) {
 				dataModelTemplateParticipants.add((DataModelTemplateParticipant) extension);
+			}
+			if (extension instanceof DiagnosticsParticipant) {
+				diagnosticsParticipants.add((DiagnosticsParticipant) extension);
+			}
+			if (extension instanceof DefinitionParticipant) {
+				definitionParticipants.add((DefinitionParticipant) extension);
+			}
+			if (extension instanceof HoverParticipant) {
+				hoverParticipants.add((HoverParticipant) extension);
+			}
+			if (extension instanceof InlayHintParticipant) {
+				inlayHintParticipants.add((InlayHintParticipant) extension);
+			}
+			if (extension instanceof TemplateLanguageInjectionParticipant) {
+				languageInjectionParticipants.add((TemplateLanguageInjectionParticipant) extension);
 			}
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Error while initializing extension <" + extension.getClass().getName() + ">", e);
@@ -1683,10 +1732,6 @@ public class QuteProject {
 		return extensions;
 	}
 
-	public Collection<InjectionDetector> getInjectionDetectorsFor(Path path) {
-		return Collections.emptyList();
-	}
-
 	public boolean hasProjectFeature(ProjectFeature projectFeature) {
 		return projectFeatures != null && projectFeatures.contains(projectFeature);
 	}
@@ -1706,7 +1751,55 @@ public class QuteProject {
 
 	// Participants
 
+	public Collection<CodeLensParticipant> getCodeLensParticipants() {
+		return codeLensParticipants;
+	}
+
+	public Collection<CompletionParticipant> getCompletionParticipants() {
+		return completionParticipants;
+	}
+
 	public Collection<DataModelTemplateParticipant> getDataModelTemplateParticipants() {
 		return dataModelTemplateParticipants;
+	}
+
+	public Collection<DefinitionParticipant> getDefinitionParticipants() {
+		return definitionParticipants;
+	}
+
+	public Collection<DidChangeWatchedFilesParticipant> getDidChangeWatchedFilesParticipants() {
+		return didChangeWatchedFilesParticipants;
+	}
+
+	public Collection<DiagnosticsParticipant> getDiagnosticsParticipants() {
+		return diagnosticsParticipants;
+	}
+
+	public Collection<HoverParticipant> getHoverParticipants() {
+		return hoverParticipants;
+	}
+
+	public Collection<InlayHintParticipant> getInlayHintParticipants() {
+		return inlayHintParticipants;
+	}
+
+	public Collection<InjectionDetector> getInjectionDetectorsFor(Path path) {
+		Collection<TemplateLanguageInjectionParticipant> participants = languageInjectionParticipants;
+		if (!participants.isEmpty()) {
+			Collection<InjectionDetector> allInjectors = null;
+			for (TemplateLanguageInjectionParticipant participant : participants) {
+				if (participant.isEnabled()) {
+					Collection<InjectionDetector> injectors = participant.getInjectionDetectorsFor(path);
+					if (injectors != null && !injectors.isEmpty()) {
+						if (allInjectors == null) {
+							allInjectors = new ArrayList<>();
+						}
+						allInjectors.addAll(injectors);
+					}
+				}
+			}
+			return allInjectors != null ? allInjectors : Collections.emptyList();
+		}
+		return Collections.emptyList();
 	}
 }

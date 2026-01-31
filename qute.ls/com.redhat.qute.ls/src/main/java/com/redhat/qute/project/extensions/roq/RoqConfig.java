@@ -11,7 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.project.extensions.roq;
 
-import com.redhat.qute.project.config.PropertyConfig;
+import com.redhat.qute.project.extensions.config.PropertyConfig;
 
 /**
  * Configuration properties for Roq integration.

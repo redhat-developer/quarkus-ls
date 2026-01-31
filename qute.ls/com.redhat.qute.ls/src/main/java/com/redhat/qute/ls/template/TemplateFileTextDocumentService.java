@@ -168,7 +168,8 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		return getTemplateCompose(params.getTextDocument(), (template, cancelChecker) -> {
 			return getQuteLanguageService()
 					.doComplete(template, params.getPosition(), sharedSettings.getCompletionSettings(),
-							sharedSettings.getFormattingSettings(), sharedSettings.getNativeSettings(), cancelChecker) //
+							sharedSettings.getFormattingSettings(), sharedSettings.getNativeSettings(),
+							sharedSettings.getCommandCapabilities(), cancelChecker) //
 					.thenApply(list -> {
 						return Either.forRight(list);
 					});

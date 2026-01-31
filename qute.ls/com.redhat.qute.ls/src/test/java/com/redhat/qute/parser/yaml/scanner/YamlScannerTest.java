@@ -992,6 +992,17 @@ public class YamlScannerTest {
 		assertOffsetAndToken(8, YamlTokenType.EOS, "");
 	}
 
+	@Test
+	public void testLayoutT() {
+		scanner = YamlScanner.createScanner("layout: \nt");
+		assertOffsetAndToken(0, YamlTokenType.Key, "layout");
+		assertOffsetAndToken(6, YamlTokenType.Colon, ":");
+		assertOffsetAndToken(7, YamlTokenType.Whitespace, " ");
+		assertOffsetAndToken(8, YamlTokenType.Newline, "\n");
+		assertOffsetAndToken(9, YamlTokenType.Key, "t");
+		assertOffsetAndToken(10, YamlTokenType.EOS, "");
+	}
+
 	public void assertOffsetAndToken(int tokenOffset, YamlTokenType tokenType) {
 		YamlTokenType token = scanner.scan();
 		assertEquals(tokenOffset, scanner.getTokenOffset());

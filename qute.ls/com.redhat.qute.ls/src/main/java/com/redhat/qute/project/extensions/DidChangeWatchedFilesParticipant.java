@@ -21,14 +21,7 @@ import org.eclipse.lsp4j.FileChangeType;
  * 
  * @author Angelo ZERR
  */
-public interface DidChangeWatchedFilesParticipant {
-
-	/**
-	 * Checks if this participant is enabled.
-	 * 
-	 * @return true if this participant should handle file changes
-	 */
-	boolean isEnabled();
+public interface DidChangeWatchedFilesParticipant extends BaseParticpant {
 
 	/**
 	 * Handles a file system change event.
@@ -38,7 +31,7 @@ public interface DidChangeWatchedFilesParticipant {
 	 * reload resources, update caches, or trigger re-validation.
 	 * </p>
 	 * 
-	 * @param filePath  the path of the changed file
+	 * @param filePath    the path of the changed file
 	 * @param changeTypes the file change event (type: Created, Changed, or Deleted)
 	 * @return true if this participant handled the file change, false otherwise
 	 */

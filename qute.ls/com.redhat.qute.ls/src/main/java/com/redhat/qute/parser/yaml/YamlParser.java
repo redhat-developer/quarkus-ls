@@ -3,6 +3,7 @@ package com.redhat.qute.parser.yaml;
 import java.util.Stack;
 
 import com.redhat.qute.ls.commons.TextDocument;
+import com.redhat.qute.parser.CancelChecker;
 import com.redhat.qute.parser.scanner.Scanner;
 import com.redhat.qute.parser.yaml.scanner.YamlScanner;
 import com.redhat.qute.parser.yaml.scanner.YamlScannerState;
@@ -18,9 +19,16 @@ public class YamlParser {
 	}
 
 	public static YamlDocument parse(TextDocument textDocument) {
+		return parse(textDocument, 0, textDocument.getText().length(), CancelChecker.NO_CANCELLABLE);
+	}
+
+	public static YamlDocument parse(TextDocument textDocument, int start, int end, CancelChecker cancelChecker) {
 		YamlDocument document = new YamlDocument(textDocument);
+		document.setCancelChecker(cancelChecker);
+		document.setStart(start);
+
 		String content = textDocument.getText();
-		Scanner<YamlTokenType, YamlScannerState> scanner = YamlScanner.createScanner(content);
+		Scanner<YamlTokenType, YamlScannerState> scanner = YamlScanner.createScanner(content, start, end);
 
 		YamlNode curr = document;
 		Stack<Integer> indentStack = new Stack<>();
@@ -50,7 +58,7 @@ public class YamlParser {
 
 					if (currentProperty != null && currentProperty.getValue() != null) {
 						currentProperty.setClosed(true);
-						currentProperty.setEnd(scanner.getTokenOffset());
+						//currentProperty.setEnd(scanner.getTokenOffset());
 						currentProperty = null;
 					}
 				}
@@ -352,7 +360,7 @@ public class YamlParser {
 
 		// Close any remaining open nodes
 		while (curr.getParent() != null) {
-			curr.setEnd(content.length());
+			curr.setEnd(end);
 			if (!curr.isClosed()) {
 				if (shouldBeClosed(curr)) {
 					curr.setClosed(true);

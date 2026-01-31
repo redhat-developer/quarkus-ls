@@ -34,8 +34,7 @@ import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
  * @author Red Hat Inc.
  * @since 1.0
  */
-public interface ProjectExtension extends CompletionParticipant, DefinitionParticipant, DiagnosticsParticipant,
-		DidChangeWatchedFilesParticipant, HoverParticipant, InlayHintParticipant {
+public interface ProjectExtension {
 
 	/**
 	 * Initializes this extension for the given project.

@@ -22,11 +22,7 @@ import com.redhat.qute.parser.scanner.Scanner;
 public class YamlScanner extends AbstractScanner<YamlTokenType, YamlScannerState> {
 
 	private static final int[] QUOTE = new int[] { '"', '\'', };
-	private static final char[] QUOTE_C = new char[] { '"', '\'', };
 	private static final int[] NEWLINE_CHARS = new int[] { '\n', '\r' };
-	private static final int[] STRUCTURAL_CHARS = new int[] { ':', '-', '#', '[', ']', '{', '}', ',', '\n', '\r' };
-	private static final int[] VALUE_END_CHARS = new int[] { '\n', '\r', '#', ',', ']', '}' };
-	private static final int[] FLOW_END_CHARS = new int[] { ',', ']', '}', '\n', '\r' };
 
 	private static final Predicate<Integer> KEY_CHAR_PREDICATE = ch -> {
 		return ch != ':' && ch != '\n' && ch != '\r' && ch != '#' && ch != '[' && ch != ']' && ch != '{' && ch != '}'
@@ -42,16 +38,17 @@ public class YamlScanner extends AbstractScanner<YamlTokenType, YamlScannerState
 	};
 
 	public static Scanner<YamlTokenType, YamlScannerState> createScanner(String input) {
-		return createScanner(input, 0);
-	}
-
-	public static Scanner<YamlTokenType, YamlScannerState> createScanner(String input, int initialOffset) {
-		return createScanner(input, initialOffset, YamlScannerState.WithinContent);
+		return createScanner(input, 0, input.length());
 	}
 
 	public static Scanner<YamlTokenType, YamlScannerState> createScanner(String input, int initialOffset,
+			int endOffset) {
+		return createScanner(input, initialOffset, endOffset, YamlScannerState.WithinContent);
+	}
+
+	public static Scanner<YamlTokenType, YamlScannerState> createScanner(String input, int initialOffset, int endOffset,
 			YamlScannerState initialState) {
-		return new YamlScanner(input, initialOffset, initialState);
+		return new YamlScanner(input, initialOffset, endOffset, initialState);
 	}
 
 	private int flowSequenceDepth = 0;
@@ -60,8 +57,8 @@ public class YamlScanner extends AbstractScanner<YamlTokenType, YamlScannerState
 	private char stringQuote;
 	private YamlTokenType previousNoWhitespacesToken;
 
-	YamlScanner(String input, int initialOffset, YamlScannerState initialState) {
-		super(input, initialOffset, initialState, YamlTokenType.Unknown, YamlTokenType.EOS);
+	YamlScanner(String input, int initialOffset, int endOffset, YamlScannerState initialState) {
+		super(input, initialOffset, endOffset, initialState, YamlTokenType.Unknown, YamlTokenType.EOS);
 	}
 
 	@Override
@@ -272,7 +269,7 @@ public class YamlScanner extends AbstractScanner<YamlTokenType, YamlScannerState
 			if (ch == ']') {
 				stream.advance(1);
 				flowSequenceDepth--;
-				
+
 				// Determine next state based on what we're still in
 				if (flowSequenceDepth > 0) {
 					// Still in nested flow sequence
@@ -334,7 +331,7 @@ public class YamlScanner extends AbstractScanner<YamlTokenType, YamlScannerState
 
 			if (stream.advanceIfChar('}')) {
 				flowMappingDepth--;
-				
+
 				// Determine next state based on what we're still in
 				if (flowMappingDepth > 0) {
 					// Still in nested flow mapping
@@ -402,7 +399,6 @@ public class YamlScanner extends AbstractScanner<YamlTokenType, YamlScannerState
 	}
 
 	private YamlTokenType scanKeyOrValue(int offset) {
-		int start = stream.pos();
 
 		// Skip leading whitespace
 		while (!stream.eos() && (stream.peekChar() == ' ' || stream.peekChar() == '\t')) {
@@ -433,7 +429,7 @@ public class YamlScanner extends AbstractScanner<YamlTokenType, YamlScannerState
 			stream.advance(1);
 		}
 
-		boolean isKey = stream.peekChar() == ':';
+		boolean isKey = stream.peekChar() == ':' || (previousNoWhitespacesToken != null && previousNoWhitespacesToken == YamlTokenType.Newline);
 		stream.goBackTo(savePos);
 
 		if (isKey) {
@@ -509,8 +505,8 @@ public class YamlScanner extends AbstractScanner<YamlTokenType, YamlScannerState
 		if (returnState == YamlScannerState.WithinFlowMapping) {
 			// In flow mapping, determine if this is a key or value
 			// It's a key if we just opened the object, after a comma, or after ObjectOpen
-			if (previousNoWhitespacesToken == YamlTokenType.Comma || 
-			    previousNoWhitespacesToken == YamlTokenType.ObjectOpen) {
+			if (previousNoWhitespacesToken == YamlTokenType.Comma
+					|| previousNoWhitespacesToken == YamlTokenType.ObjectOpen) {
 				return finishToken(offset, YamlTokenType.Key);
 			}
 		}

@@ -36,6 +36,10 @@ public class QutePositionUtility {
 
 	public static final Range ZERO_RANGE = new Range(new Position(0, 0), new Position(0, 0));
 
+	private QutePositionUtility() {
+
+	}
+
 	public static Location toLocation(LocationLink locationLink) {
 		return new Location(locationLink.getTargetUri(), locationLink.getTargetRange());
 	}

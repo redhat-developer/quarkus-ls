@@ -27,14 +27,7 @@ import com.redhat.qute.settings.QuteFormattingSettings;
  * 
  * @author Angelo ZERR
  */
-public interface CompletionParticipant {
-
-	/**
-	 * Checks if this participant is enabled.
-	 * 
-	 * @return true if this participant should provide completions
-	 */
-	boolean isEnabled();
+public interface CompletionParticipant extends BaseParticpant {
 
 	/**
 	 * Provides completion items for the given template expression.

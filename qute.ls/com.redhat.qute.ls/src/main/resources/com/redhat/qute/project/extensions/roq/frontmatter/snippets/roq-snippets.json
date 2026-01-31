@@ -1,0 +1,13 @@
+{
+    "roq-frontmatter": {
+        "prefix": "---",
+        "body": [
+            "---",
+			"layout: ${1:default}",
+			"title: ${2:My title}",
+			"---",
+			"$0"
+        ],
+        "description": "Roq front-matter"
+    }
+}

@@ -11,11 +11,16 @@
 *******************************************************************************/
 package com.redhat.qute.parser.yaml;
 
+import org.eclipse.lsp4j.Position;
+
+import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.TextDocument;
+import com.redhat.qute.parser.CancelChecker;
 
 public class YamlDocument extends YamlNode {
 
 	private final TextDocument textDocument;
+	private CancelChecker cancelChecker;
 
 	public YamlDocument(TextDocument textDocument) {
 		super(0, textDocument.getText().length());
@@ -53,6 +58,30 @@ public class YamlDocument extends YamlNode {
 	public String getText(int start, int end) {
 		String text = getText();
 		return text.substring(start, end);
+	}
+
+	public void setCancelChecker(CancelChecker cancelChecker) {
+		this.cancelChecker = cancelChecker;
+	}
+
+	public CancelChecker getCancelChecker() {
+		return cancelChecker;
+	}
+
+	public Position positionAt(int offset) throws BadLocationException {
+		checkCanceled();
+		return textDocument.positionAt(offset);
+	}
+
+	public int offsetAt(Position position) throws BadLocationException {
+		checkCanceled();
+		return textDocument.offsetAt(position);
+	}
+
+	public void checkCanceled() {
+		if (cancelChecker != null) {
+			cancelChecker.checkCanceled();
+		}
 	}
 
 	@Override
