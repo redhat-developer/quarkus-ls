@@ -377,13 +377,12 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 						} else if (changeTypes.contains(FileChangeType.Deleted)) {
 							// The template is deleted, update the cache, collect the project and publish
 							// empty diagnostics for this file
-							QuteTextDocument closedTemplate = project.onDidDeleteTemplate(templatePath);
-							if (closedTemplate != null) {
-								projects.add(closedTemplate.getProject());
-								if (validator != null) {
-									validator.clearDiagnosticsFor(FileUtils.toUri(filePath));
-								}
+							project.onDidDeleteTemplate(templatePath);
+							if (validator != null) {
+								// Clear diagnostics for the deleted file in this case.
+								validator.clearDiagnosticsFor(FileUtils.toUri(filePath));
 							}
+							projects.add(project);
 						}
 					}
 				}
