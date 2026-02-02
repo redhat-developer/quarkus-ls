@@ -13,9 +13,11 @@ package com.redhat.qute.project.tags;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.redhat.qute.parser.expression.MethodPart;
@@ -28,6 +30,7 @@ import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
+import com.redhat.qute.parser.template.sections.ForSection;
 import com.redhat.qute.parser.template.sections.IfSection;
 import com.redhat.qute.parser.template.sections.LetSection;
 import com.redhat.qute.parser.template.sections.SetSection;
@@ -59,6 +62,8 @@ public class UserTagInfoCollector extends ASTVisitor {
 
 	private boolean hasArgs;
 
+	private Set<String> ignoreNames;
+
 	private static class ParamInfo {
 		public final String name;
 		public final boolean assigned; // true if parameter comes from a #let, #set and false otherwise.
@@ -89,6 +94,29 @@ public class UserTagInfoCollector extends ASTVisitor {
 		super.endVisit(node);
 	}
 
+	@Override
+	public boolean visit(ForSection node) {
+		String alias = node.getAlias();
+		if (!StringUtils.isEmpty(alias)) {
+			if (ignoreNames == null) {
+				ignoreNames = new HashSet<>();
+			}
+			ignoreNames.add(alias);
+		}
+		return super.visit(node);
+	}
+
+	@Override
+	public void endVisit(ForSection node) {
+		String alias = node.getAlias();
+		if (!StringUtils.isEmpty(alias)) {
+			if (ignoreNames != null) {
+				ignoreNames.remove(alias);
+			}
+		}
+		super.endVisit(node);
+	}
+
 	private void addOptionalStack(Section node) {
 		List<ParamInfo> optionalParameterNames = null;
 		List<Parameter> parameters = node.getParameters();
@@ -101,8 +129,7 @@ public class UserTagInfoCollector extends ASTVisitor {
 				optionalParameterNames.add(new ParamInfo(name, false, null));
 			}
 		}
-		parameterNamesStack
-				.add(optionalParameterNames != null ? optionalParameterNames : Collections.emptyList());
+		parameterNamesStack.add(optionalParameterNames != null ? optionalParameterNames : Collections.emptyList());
 	}
 
 	private void removeParameterStack() {
@@ -237,18 +264,24 @@ public class UserTagInfoCollector extends ASTVisitor {
 			// The object part have a namespace,ignore it
 			return false;
 		}
+		String partName = node.getPartName();
+		if (ignoreNames != null && ignoreNames.contains(partName)) {
+			// ex: {#for item in items}
+			// {item} <-- item must be ignored as user tag parameter
+			return false;
+		}
 		if (globalVariables == null) {
 			List<ValueResolver> resolvers = project.getGlobalVariables().getNow(null);
-			globalVariables = resolvers != null ? resolvers.stream()
-					.map(ValueResolver::getName).collect(Collectors.toList())
+			globalVariables = resolvers != null
+					? resolvers.stream().map(ValueResolver::getName).collect(Collectors.toList())
 					: Collections.emptyList();
 		}
-		if (globalVariables.contains(node.getPartName())) {
+		if (globalVariables.contains(partName)) {
 			// The object part is a global variable declared in Java with @TemplateGlobal,
 			// ignore it
 			return false;
 		}
-		if (LiteralSupport.getLiteralJavaType(node.getPartName()) != null) {
+		if (LiteralSupport.getLiteralJavaType(partName) != null) {
 			// The part is a number, boolean, etc, ignore it
 			return false;
 		}
@@ -264,9 +297,13 @@ public class UserTagInfoCollector extends ASTVisitor {
 	 * otherwise.
 	 * 
 	 * @return true if the user tag declares an object part with _args and false
-	 * otherwise.
+	 *         otherwise.
 	 */
 	public boolean hasArgs() {
 		return hasArgs;
+	}
+
+	public boolean hasParameter(String parameterName) {
+		return parameters.containsKey(parameterName);
 	}
 }

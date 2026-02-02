@@ -862,8 +862,7 @@ public class QuteCompletionsForExpression {
 		if (userTag == null) {
 			return false;
 		}
-		UserTagParameter it = userTag.findParameter(IT_OBJECT_PART_NAME);
-		if (it == null) {
+		if (!userTag.hasParameter(IT_OBJECT_PART_NAME)) {
 			// The user tag doesn't define 'it' parameter
 			return false;
 		}

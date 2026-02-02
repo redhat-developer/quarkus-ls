@@ -40,8 +40,7 @@ public class QuteCodeLensForUserTagTest {
 				cl(r(0, 0, 0, 0), "name : ?", ""), //
 				cl(r(0, 0, 0, 0), "type : ?", ""), //
 				cl(r(0, 0, 0, 0), "placeholder : ?", ""), //
-				cl(r(0, 0, 0, 0), "id : ?", ""), //
-				cl(r(0, 0, 0, 0), "VARCHAR_SIZE : int", ""));
+				cl(r(0, 0, 0, 0), "id : ?", ""));
 	}
 
 	@Test
@@ -59,6 +58,20 @@ public class QuteCodeLensForUserTagTest {
 				cl(r(0, 0, 0, 0), "name : ?", ""), //
 				cl(r(0, 0, 0, 0), "label : ?", ""), //
 				cl(r(0, 0, 0, 0), "nested-content : Object", ""));
+	}
+
+	@Test
+	public void forSection() throws Exception {
+		String value = "{@java.util.List<java.lang.String> items}\r\n" + //
+				"{#for item in items}\r\n" + //
+				"    {item}\r\n" + // <-- item is not an user tag parameter
+				"    {foo}\r\n" + // <-- foo is an user tag parameter
+				"{/for}";
+		testCodeLensFor(value, "src/main/resources/templates/tags/forSection.html", //
+				"tags/forSection", //
+				cl(r(0, 0, 0, 0), "User tag #forSection", ""), //
+				cl(r(0, 0, 0, 0), "items : List", ""), //
+				cl(r(0, 0, 0, 0), "foo : ?", ""));
 	}
 
 }

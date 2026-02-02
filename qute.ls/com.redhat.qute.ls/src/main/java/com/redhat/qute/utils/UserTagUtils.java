@@ -30,6 +30,9 @@ import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.tags.UserTagInfoCollector;
 
 /**
  * User tag utilities.
@@ -42,7 +45,7 @@ import com.redhat.qute.parser.template.Template;
 public class UserTagUtils {
 	public static final String IT_OBJECT_PART_NAME = "it";
 	public static final String NESTED_CONTENT_OBJECT_PART_NAME = "nested-content";
-	
+
 	public static final String ARGS_OBJECT_PART_NAME = "_args";
 	private static final Map<String, SectionMetadata> SPECIAL_KEYS;
 
@@ -54,7 +57,7 @@ public class UserTagUtils {
 				"`nested-content` is a special key that will be replaced by the content of the tag"));
 		register(new SectionMetadata(ARGS_OBJECT_PART_NAME, "io.quarkus.qute.UserTagSectionHelper.Arguments",
 				"`io.quarkus.qute.UserTagSectionHelper.Arguments` metadata are accessible in a tag using the `_args` alias."
-				+ "\nSee [here](https://quarkus.io/guides/qute-reference#arguments) for more information."));
+						+ "\nSee [here](https://quarkus.io/guides/qute-reference#arguments) for more information."));
 	}
 
 	private static void register(SectionMetadata metadata) {
@@ -97,21 +100,41 @@ public class UserTagUtils {
 	/**
 	 * Collect user tag parameters from the given template.
 	 * 
+	 * @param userTagName   the user tag name.
 	 * @param template      the Qute template.
 	 * @param collector     the object part collector.
 	 * @param cancelChecker the cancel checker.
 	 */
-	public static void collectUserTagParameters(Template template, Consumer<ObjectPart> collector,
+	public static void collectUserTagParameters(String userTagName, Template template, Consumer<ObjectPart> collector,
 			CancelChecker cancelChecker) {
-		collectUserTagParameters(template, template, new HashSet<String>(), collector, cancelChecker);
+		QuteProject project = template.getProject();
+		if (project == null) {
+			return;
+		}
+		final UserTag userTag = project.findUserTag(userTagName);
+		// In real usecase, user tag exists, but for test user tag could not exists and
+		// in this case we create an UserTagInfoCollector
+		final UserTagInfoCollector userTagCollector = userTag == null ? getUserTagInfoCollector(template, project)
+				: null;
+
+		collectUserTagParameters(template, template, userTag, userTagCollector, new HashSet<String>(), collector,
+				cancelChecker);
 	}
 
-	private static void collectUserTagParameters(Node parent, Template template, Set<String> extistingObjectParts,
-			Consumer<ObjectPart> collector, CancelChecker cancelChecker) {
+	private static UserTagInfoCollector getUserTagInfoCollector(Template template, QuteProject project) {
+		UserTagInfoCollector collector = new UserTagInfoCollector(project);
+		template.accept(collector);
+		return collector;
+	}
+
+	private static void collectUserTagParameters(Node parent, Template template, UserTag userTag,
+			UserTagInfoCollector userTagInfoCollector, Set<String> extistingObjectParts, Consumer<ObjectPart> collector,
+			CancelChecker cancelChecker) {
 		cancelChecker.checkCanceled();
 		if (parent.getKind() == NodeKind.Expression) {
 			Expression expression = (Expression) parent;
-			collectUserTagParameters(expression, extistingObjectParts, collector, cancelChecker);
+			collectUserTagParameters(expression, userTag, userTagInfoCollector, extistingObjectParts, collector,
+					cancelChecker);
 			return;
 		} else if (parent.getKind() == NodeKind.Section) {
 			Section section = (Section) parent;
@@ -119,24 +142,31 @@ public class UserTagUtils {
 			for (Parameter parameter : parameters) {
 				if (parameter.canHaveExpression()) {
 					Expression expression = parameter.getJavaTypeExpression();
-					collectUserTagParameters(expression, extistingObjectParts, collector, cancelChecker);
+					collectUserTagParameters(expression, userTag, userTagInfoCollector, extistingObjectParts, collector,
+							cancelChecker);
 				}
 			}
 		}
 		List<Node> children = parent.getChildren();
 		for (Node node : children) {
-			collectUserTagParameters(node, template, extistingObjectParts, collector, cancelChecker);
+			collectUserTagParameters(node, template, userTag, userTagInfoCollector, extistingObjectParts, collector,
+					cancelChecker);
 		}
 	}
 
-	private static void collectUserTagParameters(Expression expression, Set<String> extistingObjectParts,
-			Consumer<ObjectPart> collector, CancelChecker cancelChecker) {
+	private static void collectUserTagParameters(Expression expression, UserTag userTag,
+			UserTagInfoCollector userTagInfoCollector, Set<String> extistingObjectParts, Consumer<ObjectPart> collector,
+			CancelChecker cancelChecker) {
 		ObjectPart objectPart = expression.getObjectPart();
-		if (objectPart != null && expression.getNamespacePart() == null) {
+		if (objectPart != null) {
 			String partName = objectPart.getPartName();
 			if (!extistingObjectParts.contains(partName)) {
-				extistingObjectParts.add(partName);
-				collector.accept(objectPart);
+				if ((userTag != null && userTag.hasParameter(partName))
+						|| (userTagInfoCollector != null && userTagInfoCollector.hasParameter(partName))) {
+					// The current object part is an user tag
+					extistingObjectParts.add(partName);
+					collector.accept(objectPart);
+				}
 			}
 		}
 	}
