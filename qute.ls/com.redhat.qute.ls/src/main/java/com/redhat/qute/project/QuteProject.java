@@ -377,8 +377,9 @@ public class QuteProject {
 	 * @param document the Qute template.
 	 */
 	public void onDidCloseTextDocument(QuteTextDocument document) {
-		Path path = FileUtils.createPath(document.getUri());
-		closedDocuments.onDidCloseTemplate(path);
+		Path templateFilePath = FileUtils.createPath(document.getUri());
+		removeDocumentFromCache(templateFilePath);
+		closedDocuments.onDidCloseTemplate(templateFilePath);
 	}
 
 	/**
@@ -401,6 +402,10 @@ public class QuteProject {
 	 * @param templateFilePath the Qute template file path.
 	 */
 	public QuteTextDocument onDidDeleteTemplate(Path templateFilePath) {
+		return removeDocumentFromCache(templateFilePath);
+	}
+
+	private QuteTextDocument removeDocumentFromCache(Path templateFilePath) {
 		String templateId = getTemplateId(templateFilePath);
 		synchronized (allDocumentsByTemplateId) {
 			return allDocumentsByTemplateId.remove(templateId);

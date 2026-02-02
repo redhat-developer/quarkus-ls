@@ -155,7 +155,7 @@ public class QuteClosedTextDocuments {
 	 *         *.yaml, *.json) and false otherwise.
 	 */
 	private boolean isValidTemplate(Path path) {
-		if (Files.isDirectory(path)) {
+		if (!Files.exists(path) || Files.isDirectory(path)) {
 			return false;
 		}
 		String uri = path.toString();
