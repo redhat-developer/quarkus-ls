@@ -221,12 +221,13 @@ public abstract class UserTag extends Snippet {
 	 *         and null otherwise.
 	 */
 	public UserTagParameter findParameter(String parameterName) {
-		for (UserTagParameter parameter : getParameters()) {
-			if (parameterName.equals(parameter.getName())) {
-				return parameter;
-			}
-		}
-		return null;
+		getParameters();
+		return parameters.get(parameterName);
+	}
+
+	public boolean hasParameter(String parameterName) {
+		getParameters();
+		return parameters.containsKey(parameterName);
 	}
 
 	/**

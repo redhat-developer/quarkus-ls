@@ -222,26 +222,32 @@ class QuteCodeLens {
 	private static void collectUserTagCodeLenses(Template template, CancelChecker cancelChecker,
 			List<CodeLens> lenses) {
 		// 1) display the user tag name as codelens
-		String userTagTitle = "User tag #" + UserTagUtils.getUserTagName(template.getUri());
+		String userTagName = UserTagUtils.getUserTagName(template.getUri());
+		String userTagTitle = "User tag #" + userTagName;
 		Command userTagCommand = new Command(userTagTitle, "");
 		CodeLens userTagCodeLens = new CodeLens(LEFT_TOP_RANGE, userTagCommand, null);
 		lenses.add(userTagCodeLens);
 
-		// 2) display a codelens for each expression object part
-		UserTagUtils.collectUserTagParameters(template, //
-				objectPart -> {
-					StringBuilder title = new StringBuilder(objectPart.getPartName()) //
-							.append(" : ");
-					ResolvedJavaTypeInfo result = template.getProject() //
-							.resolveJavaType(objectPart) //
-							.getNow(null);
-					title.append(result != null && !QuteCompletableFutures.isResolvingJavaType(result)
-							? JavaElementInfo.getSimpleType(result.getName())
-							: "?");
-					Range range = LEFT_TOP_RANGE;
-					Command command = new Command(title.toString(), "");
-					CodeLens codeLens = new CodeLens(range, command, null);
-					lenses.add(codeLens);
-				}, cancelChecker);
+		// 2) display a codelens for each user tag parameters
+		QuteProject project = template.getProject();
+		if (project != null) {
+			UserTagUtils.collectUserTagParameters(userTagName, template, //
+					objectPart -> {
+						StringBuilder title = new StringBuilder(objectPart.getPartName()) //
+								.append(" : ");
+						ResolvedJavaTypeInfo result = template.getProject() //
+								.resolveJavaType(objectPart) //
+								.getNow(null);
+						title.append(result != null && !QuteCompletableFutures.isResolvingJavaType(result)
+								? JavaElementInfo.getSimpleType(result.getName())
+								: "?");
+						Range range = LEFT_TOP_RANGE;
+						Command command = new Command(title.toString(), "");
+						CodeLens codeLens = new CodeLens(range, command, null);
+						lenses.add(codeLens);
+					}, cancelChecker);
+
+		}
 	}
+
 }
