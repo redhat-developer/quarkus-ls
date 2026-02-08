@@ -38,6 +38,7 @@ import com.redhat.qute.project.datamodel.DataModelSourceProvider;
 import com.redhat.qute.project.datamodel.ExtendedDataModelFragment;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
+import com.redhat.qute.project.extensions.CodeLensParticipant;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
@@ -79,6 +80,14 @@ class QuteCodeLens {
 						// Template is an user tag
 						collectUserTagCodeLenses(template, cancelChecker, lenses);
 					}
+
+					// Collect code lenses from custom participant (ex: "Insert FontMatter" for Roq application)
+					for (CodeLensParticipant codeLensParticipant : project.getCodeLensParticipants()) {
+						if (codeLensParticipant.isEnabled()) {
+							codeLensParticipant.collectCodeLenses(template, settings, lenses, cancelChecker);
+						}
+					}
+
 					return lenses;
 				});
 	}

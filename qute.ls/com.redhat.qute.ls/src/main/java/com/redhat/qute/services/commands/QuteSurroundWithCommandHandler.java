@@ -36,7 +36,7 @@ import com.redhat.qute.settings.SharedSettings;
  *
  */
 public class QuteSurroundWithCommandHandler extends AbstractTemplateCommandHandler {
-
+ 
 	public static final String COMMAND_ID = "qute.refactor.surround.with";
 
 	public static class SurroundWithResponse {

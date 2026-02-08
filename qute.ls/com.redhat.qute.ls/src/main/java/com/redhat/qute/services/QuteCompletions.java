@@ -12,7 +12,6 @@
 package com.redhat.qute.services;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -24,12 +23,12 @@ import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
-import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
+import com.redhat.qute.parser.injection.LanguageInjectionNode;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
@@ -39,8 +38,8 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
-import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
+import com.redhat.qute.project.extensions.LanguageInjectionService;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.completions.QuteCompletionForTemplateIds;
 import com.redhat.qute.services.completions.QuteCompletionsForExpression;
@@ -48,6 +47,7 @@ import com.redhat.qute.services.completions.QuteCompletionsForParameterDeclarati
 import com.redhat.qute.services.completions.QuteCompletionsForSmartIterable;
 import com.redhat.qute.services.completions.tags.QuteCompletionForTagSection;
 import com.redhat.qute.services.completions.tags.QuteCompletionsForSnippets;
+import com.redhat.qute.settings.QuteCommandCapabilities;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.QuteNativeSettings;
@@ -72,7 +72,7 @@ public class QuteCompletions {
 	private final QuteCompletionsForExpression completionForExpression;
 
 	private final QuteCompletionsForSnippets<Snippet> completionsForSnippets;
-	
+
 	private final QuteCompletionsForSmartIterable completionsSmartIterables;
 
 	private final QuteCompletionForTagSection completionForTagSection;
@@ -102,7 +102,8 @@ public class QuteCompletions {
 	 */
 	public CompletableFuture<CompletionList> doComplete(Template template, Position position,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
-			QuteNativeSettings nativeImagesSettings, CancelChecker cancelChecker) {
+			QuteNativeSettings nativeImagesSettings, QuteCommandCapabilities commandCapabilities,
+			CancelChecker cancelChecker) {
 		CompletionRequest completionRequest = null;
 		try {
 			completionRequest = new CompletionRequest(template, position, completionSettings, formattingSettings);
@@ -195,6 +196,24 @@ public class QuteCompletions {
 				return completionForTemplateIds.doCompleteTemplateId(completionRequest, completionSettings,
 						formattingSettings, cancelChecker);
 			}
+		} else if (node.getKind() == NodeKind.LanguageInjection) {
+			LanguageInjectionNode languageInjection = (LanguageInjectionNode) node;
+			LanguageInjectionService service = languageInjection.getLanguageService();
+			if (service != null) {
+				// Language injection, ensure data model project is loaded (ex: to get the
+				// project folder, source folders etc)
+				QuteProject project = template.getProject();
+				if (project == null) {
+					return EMPTY_FUTURE_COMPLETION;
+				}
+				ExtendedDataModelTemplate dataModel = project.getDataModelTemplate(template).getNow(null);
+				if (dataModel == null) {
+					return EMPTY_FUTURE_COMPLETION;
+				}
+				return service.doComplete(languageInjection, completionRequest, completionSettings, formattingSettings,
+						commandCapabilities, cancelChecker);
+			}
+			return EMPTY_FUTURE_COMPLETION;
 		}
 		return collectSnippetSuggestions(completionRequest);
 	}

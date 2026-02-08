@@ -328,7 +328,7 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 		return javadocProvider.getJavadoc(params);
 	}
 
-	private QuteProject findProjectFor(Path path) {
+	public QuteProject findProjectFor(Path path) {
 		for (QuteProject project : projects.values()) {
 			if (isBelongToProject(path, project)) {
 				return project;
@@ -386,7 +386,7 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 						}
 					}
 				}
-				for (DidChangeWatchedFilesParticipant participant : project.getExtensions()) {
+				for (DidChangeWatchedFilesParticipant participant : project.getDidChangeWatchedFilesParticipants()) {
 					if (participant.isEnabled()) {
 						if (participant.didChangeWatchedFile(filePath, changeTypes)) {
 							projects.add(project);

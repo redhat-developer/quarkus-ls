@@ -36,13 +36,13 @@ import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.project.QuteProject;
-import com.redhat.qute.project.config.PropertyConfig;
 import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MessageMethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
 import com.redhat.qute.project.extensions.DataModelTemplateParticipant;
+import com.redhat.qute.project.extensions.config.PropertyConfig;
 import com.redhat.qute.utils.JSONUtility;
 import com.redhat.qute.utils.StringUtils;
 

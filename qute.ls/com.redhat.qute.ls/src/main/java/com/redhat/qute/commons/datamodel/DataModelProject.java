@@ -119,7 +119,7 @@ public class DataModelProject<T extends DataModelTemplate<?>> {
 		return findDataModelTemplate(templateUriWithoutExtension, templates);
 	}
 
-	public String getUriWithoutExtension(String templateUri) {
+	public static String getUriWithoutExtension(String templateUri) {
 		int dotIndex = templateUri.lastIndexOf('.');
 		if (dotIndex != -1) {
 			templateUri = templateUri.substring(0, dotIndex);

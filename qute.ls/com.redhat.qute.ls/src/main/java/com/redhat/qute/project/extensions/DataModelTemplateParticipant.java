@@ -20,10 +20,9 @@ import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
  * 
  * @author Angelo ZERR
  */
-public interface DataModelTemplateParticipant {
+public interface DataModelTemplateParticipant extends BaseParticpant {
 
 	ExtendedDataModelTemplate contributeToDataModel(String templateUri, Path templatePath,
 			ExtendedDataModelTemplate dataModelTemplate);
 
-	boolean isEnabled();
 }

@@ -40,6 +40,7 @@ import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
+import com.redhat.qute.parser.injection.LanguageInjectionNode;
 import com.redhat.qute.parser.template.CaseOperator;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.Node;
@@ -54,8 +55,10 @@ import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.extensions.HoverParticipant;
+import com.redhat.qute.project.extensions.LanguageInjectionService;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.services.extensions.HoverExtensionProvider;
 import com.redhat.qute.services.hover.HoverRequest;
@@ -78,7 +81,7 @@ public class QuteHover {
 
 	public static final String MARKDOWN_SEPARATOR = "___";
 
-	private static CompletableFuture<Hover> NO_HOVER = CompletableFuture.completedFuture(null);
+	public static CompletableFuture<Hover> NO_HOVER = CompletableFuture.completedFuture(null);
 
 	private final SnippetRegistryProvider<Snippet> snippetRegistryProvider;
 
@@ -115,9 +118,27 @@ public class QuteHover {
 		case Parameter:
 			Parameter parameter = (Parameter) node;
 			return doHoverForParameter(parameter, template, hoverRequest);
+		case LanguageInjection:
+			LanguageInjectionNode languageInjection = (LanguageInjectionNode) node;
+			LanguageInjectionService service = languageInjection.getLanguageService();
+			if (service != null) {
+				// Language injection, ensure data model project is loaded (ex: to get the
+				// project folder, source folders etc)
+				QuteProject project = template.getProject();
+				if (project == null) {
+					return NO_HOVER;
+				}
+				ExtendedDataModelTemplate dataModel = project.getDataModelTemplate(template).getNow(null);
+				if (dataModel == null) {
+					return NO_HOVER;
+				}
+				return service.doHover(languageInjection, hoverRequest, cancelChecker);
+			}
+			return NO_HOVER;
 		default:
 			return NO_HOVER;
 		}
+
 	}
 
 	private CompletableFuture<Hover> doHoverForSection(Section section, Template template, HoverRequest hoverRequest,
@@ -253,7 +274,7 @@ public class QuteHover {
 						if (javaElement == null) {
 							// ex: {m:applica|tion.index.subtitle}
 							List<Hover> hovers = new ArrayList<Hover>();
-							for (HoverParticipant hoverParticipant : project.getExtensions()) {
+							for (HoverParticipant hoverParticipant : project.getHoverParticipants()) {
 								if (hoverParticipant.isEnabled()) {
 									hoverParticipant.doHover(part, hovers, cancelChecker);
 								}
@@ -490,7 +511,7 @@ public class QuteHover {
 					}
 					// ex: {m:applica|tion.index.subtitle}
 					List<Hover> hovers = new ArrayList<Hover>();
-					for (HoverParticipant hoverParticipant : project.getExtensions()) {
+					for (HoverParticipant hoverParticipant : project.getHoverParticipants()) {
 						if (hoverParticipant.isEnabled()) {
 							hoverParticipant.doHover(part, hovers, cancelChecker);
 						}

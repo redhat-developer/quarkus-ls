@@ -1,1 +1,2 @@
 com.redhat.qute.services.snippets.QuteSnippetRegistryLoader
+com.redhat.qute.project.extensions.roq.frontmatter.snippets.YamlFrontMatterSnippetRegistryLoader

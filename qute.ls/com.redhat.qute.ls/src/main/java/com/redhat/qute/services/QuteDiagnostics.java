@@ -725,7 +725,7 @@ class QuteDiagnostics {
 				return null;
 			} else {
 				Parts parts = namespacePart.getParent();
-				for (DiagnosticsParticipant diagnosticsParticipant : project.getExtensions()) {
+				for (DiagnosticsParticipant diagnosticsParticipant : project.getDiagnosticsParticipants()) {
 					if (diagnosticsParticipant.isEnabled()) {
 						if (diagnosticsParticipant.validateExpression(parts, validationSettings,
 								resolvingJavaTypeContext, diagnostics)) {

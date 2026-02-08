@@ -29,6 +29,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.ResponseError;
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseErrorCode;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
+import com.redhat.qute.project.extensions.roq.RoqInsertFrontMatterCommanHandler;
 import com.redhat.qute.services.commands.IDelegateCommandHandler;
 import com.redhat.qute.services.commands.QuteGenerateCommandHandler;
 import com.redhat.qute.services.commands.QuteGenerateTemplateContentCommandHandler;
@@ -91,8 +92,11 @@ public class QuteWorkspaceService implements WorkspaceService {
 		commands.put(QuteGenerateCommandHandler.COMMAND_ID, new QuteGenerateCommandHandler());
 		commands.put(QuteGenerateTemplateContentCommandHandler.COMMAND_ID,
 				new QuteGenerateTemplateContentCommandHandler(quteLanguageServer.getProjectRegistry()));
-		commands.put(QuteSurroundWithCommandHandler.COMMAND_ID,
-				new QuteSurroundWithCommandHandler(quteLanguageServer));
+		commands.put(QuteSurroundWithCommandHandler.COMMAND_ID, new QuteSurroundWithCommandHandler(quteLanguageServer));
+		// Roq command handler
+		// TODO: implement an extensible command service to register this Roq
+		// command handler outside here.
+		commands.put(RoqInsertFrontMatterCommanHandler.COMMAND_ID, new RoqInsertFrontMatterCommanHandler(quteLanguageServer));
 		return commands;
 	}
 

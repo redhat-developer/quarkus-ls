@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 public class UserTagsUsagesCompletionTest {
 
 	@Test
-	public void copletion() throws Exception {
+	public void completion() throws Exception {
 		RenardeProjectQuteLanguageServer server = new RenardeProjectQuteLanguageServer();
 
 		// Open user tag -> name parameter has no type

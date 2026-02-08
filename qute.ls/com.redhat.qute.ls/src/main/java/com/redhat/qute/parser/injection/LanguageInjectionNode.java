@@ -1,8 +1,24 @@
+/*******************************************************************************
+* Copyright (c) 2026 Red Hat Inc. and others.
+* All rights reserved. This program and the accompanying materials
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v20.html
+*
+* SPDX-License-Identifier: EPL-2.0
+*
+* Contributors:
+*     Red Hat Inc. - initial API and implementation
+*******************************************************************************/
 package com.redhat.qute.parser.injection;
 
+import com.redhat.qute.parser.CancelChecker;
+import com.redhat.qute.parser.NodeBase;
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
+import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.project.extensions.LanguageInjectionService;
+import com.redhat.qute.project.extensions.LanguageInjectionServiceRegistry;
 
 public class LanguageInjectionNode extends Node {
 
@@ -10,6 +26,8 @@ public class LanguageInjectionNode extends Node {
 
 	private int contentStart;
 	private int contentEnd;
+
+	private NodeBase<?> injectedNode;
 
 	public LanguageInjectionNode(int start, int end, String languageId) {
 		super(start, end);
@@ -44,6 +62,24 @@ public class LanguageInjectionNode extends Node {
 	@Override
 	protected void accept0(ASTVisitor visitor) {
 
+	}
+
+	public NodeBase<?> getInjectedNode(CancelChecker cancelChecker) {
+		if (injectedNode != null) {
+			return injectedNode;
+		}
+		LanguageInjectionService injectionService = getLanguageService();
+		if (injectionService != null) {
+			Template template = this.getOwnerTemplate();
+			int start = this.getContentStart();
+			int end = this.getContentEnd();
+			injectedNode = injectionService.parse(template.getTextDocument(), start, end, cancelChecker);
+		}
+		return injectedNode;
+	}
+
+	public LanguageInjectionService getLanguageService() {
+		return LanguageInjectionServiceRegistry.getInstance().getLanguageService(languageId);
 	}
 
 	@Override

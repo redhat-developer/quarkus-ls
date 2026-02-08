@@ -23,14 +23,7 @@ import com.redhat.qute.parser.expression.Part;
  * 
  * @author Angelo ZERR
  */
-public interface DefinitionParticipant {
-
-	/**
-	 * Checks if this participant is enabled.
-	 * 
-	 * @return true if this participant should provide definition links
-	 */
-	boolean isEnabled();
+public interface DefinitionParticipant extends BaseParticpant {
 
 	/**
 	 * Provides definition locations for the given part.

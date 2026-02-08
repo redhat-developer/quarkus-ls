@@ -41,6 +41,7 @@ import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.services.codeactions.QuteTemplateCodeActionResolvers;
+import com.redhat.qute.settings.QuteCommandCapabilities;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.QuteNativeSettings;
@@ -80,7 +81,7 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 		this.completions = new QuteCompletions(projectRegistry, this);
 		this.definition = new QuteDefinition();
 		this.diagnostics = new QuteDiagnostics(projectRegistry);
-		this.documentLink = new QuteDocumentLink();
+		this.documentLink = new QuteDocumentLink(projectRegistry);
 		this.highlighting = new QuteHighlighting();
 		this.hover = new QuteHover(this);
 		this.inlayHint = new QuteInlayHint(projectRegistry);
@@ -129,14 +130,16 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	 * @param completionSettings   the completion settings.
 	 * @param formattingSettings   the formatting settings.
 	 * @param nativeImagesSettings the native image settings.
+	 * @param commandCapabilities  the command capabilities.
 	 * @param cancelChecker        the cancel checker
 	 * @return completion list for the given position
 	 */
 	public CompletableFuture<CompletionList> doComplete(Template template, Position position,
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
-			QuteNativeSettings nativeImagesSettings, CancelChecker cancelChecker) {
+			QuteNativeSettings nativeImagesSettings, QuteCommandCapabilities commandCapabilities,
+			CancelChecker cancelChecker) {
 		return completions.doComplete(template, position, completionSettings, formattingSettings, nativeImagesSettings,
-				cancelChecker);
+				commandCapabilities, cancelChecker);
 	}
 
 	/**

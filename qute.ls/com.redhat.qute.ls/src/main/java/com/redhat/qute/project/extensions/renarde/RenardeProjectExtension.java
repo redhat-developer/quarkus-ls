@@ -49,6 +49,12 @@ import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
+import com.redhat.qute.project.extensions.CompletionParticipant;
+import com.redhat.qute.project.extensions.DefinitionParticipant;
+import com.redhat.qute.project.extensions.DiagnosticsParticipant;
+import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
+import com.redhat.qute.project.extensions.HoverParticipant;
+import com.redhat.qute.project.extensions.InlayHintParticipant;
 import com.redhat.qute.project.extensions.ProjectExtension;
 import com.redhat.qute.project.extensions.renarde.MessagesFileInfo.MessagesFileName;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
@@ -87,7 +93,8 @@ import com.redhat.qute.utils.QutePositionUtility;
  * 
  * @author Angelo ZERR
  */
-public class RenardeProjectExtension implements ProjectExtension {
+public class RenardeProjectExtension implements ProjectExtension, CompletionParticipant, DefinitionParticipant,
+		DiagnosticsParticipant, DidChangeWatchedFilesParticipant, HoverParticipant, InlayHintParticipant {
 
 	private static final String M_NAMESPACE_NAME = "m";
 	private static final String M_NAMESPACE = "m:";

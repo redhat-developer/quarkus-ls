@@ -300,7 +300,7 @@ class QuteDefinition {
 						if (member == null) {
 							// ex: {m:applica|tion.index.subtitle}
 							List<LocationLink> locationLinks = new ArrayList<LocationLink>();
-							for (DefinitionParticipant definitionParticipant : project.getExtensions()) {
+							for (DefinitionParticipant definitionParticipant : project.getDefinitionParticipants()) {
 								if (definitionParticipant.isEnabled()) {
 									definitionParticipant.definition(part, locationLinks, cancelChecker);
 								}
@@ -423,7 +423,7 @@ class QuteDefinition {
 						if (previousResolvedType == null) {
 							// ex: {m:application.ind|ex.subtitle}
 							List<LocationLink> locationLinks = new ArrayList<LocationLink>();
-							for (DefinitionParticipant definitionParticipant : project.getExtensions()) {
+							for (DefinitionParticipant definitionParticipant : project.getDefinitionParticipants()) {
 								if (definitionParticipant.isEnabled()) {
 									definitionParticipant.definition(part, locationLinks, cancelChecker);
 								}

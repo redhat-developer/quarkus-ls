@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.project;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -90,6 +91,8 @@ public interface QuteTextDocument {
 	 */
 	String getUri();
 
+	Path getTemplatePath();
+	
 	/**
 	 * Returns true if the document is opened and false otherwise.
 	 * 

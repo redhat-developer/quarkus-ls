@@ -255,7 +255,7 @@ public class QuteCompletionsForExpression {
 					if (!isValidJavaType(resolvedType)) {
 						CompletionList list = new CompletionList();
 						Set<CompletionItem> completionItems = new HashSet<>();
-						for (CompletionParticipant completionParticipant : project.getExtensions()) {
+						for (CompletionParticipant completionParticipant : project.getCompletionParticipants()) {
 							if (completionParticipant.isEnabled()) {
 								completionParticipant.doComplete(completionRequest, part, parts, completionSettings,
 										formattingSettings, completionItems, cancelChecker);
@@ -729,7 +729,7 @@ public class QuteCompletionsForExpression {
 			QuteProject project = template.getProject();
 			if (project != null) {
 				// Custom completion (ex: renarde messages).
-				for (CompletionParticipant completionParticipant : project.getExtensions()) {
+				for (CompletionParticipant completionParticipant : project.getCompletionParticipants()) {
 					if (completionParticipant.isEnabled()) {
 						completionParticipant.doComplete(completionRequest, part instanceof Part ? (Part) part : null,
 								expression != null ? expression.getParts() : null, completionSettings,
