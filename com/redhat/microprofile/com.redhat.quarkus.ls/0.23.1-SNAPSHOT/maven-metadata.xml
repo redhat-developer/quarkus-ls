@@ -3,27 +3,27 @@
   <groupId>com.redhat.microprofile</groupId>
   <artifactId>com.redhat.quarkus.ls</artifactId>
   <versioning>
-    <lastUpdated>20260211090736</lastUpdated>
+    <lastUpdated>20260218184520</lastUpdated>
     <snapshot>
-      <timestamp>20260211.090736</timestamp>
-      <buildNumber>17</buildNumber>
+      <timestamp>20260218.184520</timestamp>
+      <buildNumber>18</buildNumber>
     </snapshot>
     <snapshotVersions>
       <snapshotVersion>
         <extension>pom</extension>
-        <value>0.23.1-20260211.090736-17</value>
-        <updated>20260211090736</updated>
+        <value>0.23.1-20260218.184520-18</value>
+        <updated>20260218184520</updated>
       </snapshotVersion>
       <snapshotVersion>
         <extension>jar</extension>
-        <value>0.23.1-20260211.090736-17</value>
-        <updated>20260211090736</updated>
+        <value>0.23.1-20260218.184520-18</value>
+        <updated>20260218184520</updated>
       </snapshotVersion>
       <snapshotVersion>
         <classifier>sources</classifier>
         <extension>jar</extension>
-        <value>0.23.1-20260211.090736-17</value>
-        <updated>20260211090736</updated>
+        <value>0.23.1-20260218.184520-18</value>
+        <updated>20260218184520</updated>
       </snapshotVersion>
     </snapshotVersions>
   </versioning>
