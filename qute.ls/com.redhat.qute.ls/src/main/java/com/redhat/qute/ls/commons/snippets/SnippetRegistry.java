@@ -98,6 +98,17 @@ public class SnippetRegistry<T extends Snippet> {
 		}
 	}
 
+	/**
+	 * Un-register the given snippet.
+	 * 
+	 * @param snippet the snippet to register.
+	 */
+	public void unregisterSnippet(T snippet) {
+		if (isValid(snippet)) {
+			snippets.remove(snippet);
+		}
+	}
+
 	private boolean isValid(T snippet) {
 		return snippet.getBody() != null;
 	}
@@ -294,7 +305,8 @@ public class SnippetRegistry<T extends Snippet> {
 		}).map(snippet -> {
 			CompletionItem item = new CompletionItem();
 			item.setLabel(snippet.getLabel());
-			item.setKind(CompletionItemKind.Snippet);
+			item.setLabelDetails(snippet.getLabelDetails());
+			item.setKind(snippet.getKind() != null ? snippet.getKind() :  CompletionItemKind.Snippet);
 			item.setDocumentation(
 					Either.forRight(createDocumentation(snippet, model, canSupportMarkdown, lineDelimiter)));
 			String prefix = snippet.getPrefixes().get(0);
@@ -324,8 +336,7 @@ public class SnippetRegistry<T extends Snippet> {
 
 	public static void updateInsertTextMode(CompletionItem item, String whitespacesIndent,
 			InsertTextMode defaultInsertTextMode) {
-		updateInsertTextMode(item,
-				whitespacesIndent == null ? InsertTextMode.AdjustIndentation : InsertTextMode.AsIs,
+		updateInsertTextMode(item, whitespacesIndent == null ? InsertTextMode.AdjustIndentation : InsertTextMode.AsIs,
 				defaultInsertTextMode);
 	}
 

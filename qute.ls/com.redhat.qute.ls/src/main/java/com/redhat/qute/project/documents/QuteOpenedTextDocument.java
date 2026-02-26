@@ -35,6 +35,7 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.QuteTextDocument;
+import com.redhat.qute.project.tags.UserTag;
 
 public class QuteOpenedTextDocument extends ModelTextDocument<Template> implements QuteTextDocument {
 
@@ -51,6 +52,8 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 	private String templateId;
 
 	private UserTagUsageCollector callVisitor;
+
+	private UserTag userTag;
 
 	public QuteOpenedTextDocument(TextDocumentItem document, BiFunction<TextDocument, CancelChecker, Template> parse,
 			QuteProjectInfoProvider projectInfoProvider, QuteProjectRegistry projectRegistry) {
@@ -157,6 +160,9 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 	@Override
 	public void save() {
 		processCallVisitor(getModel(), null);
+		if (userTag != null) {
+			userTag.clear();
+		}
 	}
 
 	private void processCallVisitor(Template template, QuteProject project) {
@@ -189,5 +195,35 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 	@Override
 	public Path getTemplatePath() {
 		return templatePath;
+	}
+	
+
+	@Override
+	protected void cancelModel() {
+		super.cancelModel();
+		if (userTag != null) {
+			userTag.clear();
+		}
+	}
+	
+	@Override
+	public UserTag getUserTag() {
+		if (!isUserTag()) {
+			return null;
+		}
+		if (userTag == null) {
+			userTag = new UserTag(this);
+		}
+		return userTag;
+	}
+	
+	@Override
+	public String getFileName() {
+		return templatePath.getFileName().toString();
+	}
+	
+	@Override
+	public String getOrigin() {
+		return null;
 	}
 }

@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -128,6 +129,12 @@ public class QuteAssert {
 	public static final int SECTION_SNIPPET_SIZE = 15 /* #each, #for, ... #fragment ... */ + USER_TAG_SIZE;
 
 	public static final int RESOLVERS_SIZE = 10;
+
+	private static final Comparator<Location> LOCATION_COMPARATOR = Comparator.comparing(Location::getUri) //
+			.thenComparingInt(l -> l.getRange().getStart().getLine()) //
+			.thenComparingInt(l -> l.getRange().getStart().getCharacter()) //
+			.thenComparingInt(l -> l.getRange().getEnd().getLine()) //
+			.thenComparingInt(l -> l.getRange().getEnd().getCharacter());
 
 	public static String getFileUri(String templateFile) {
 		return Paths.get(TEMPLATE_BASE_DIR + templateFile).toUri().toString();
@@ -956,7 +963,10 @@ public class QuteAssert {
 
 	public static void assertLocations(List<? extends Location> actual, Location... expected) {
 		assertEquals(expected.length, actual.size());
-		assertArrayEquals(expected, actual.toArray());
+		Arrays.sort(expected, LOCATION_COMPARATOR);
+		Location[] actualArray = actual.toArray(new Location[actual.size()]);
+		Arrays.sort(actualArray, LOCATION_COMPARATOR);
+		assertArrayEquals(expected, actualArray);
 	}
 
 	// ------------------- Rename assert

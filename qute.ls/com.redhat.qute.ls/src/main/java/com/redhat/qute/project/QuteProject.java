@@ -48,6 +48,9 @@ import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.annotations.TemplateDataAnnotation;
+import com.redhat.qute.commons.binary.BinaryTemplate;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.binary.QuteBinaryTemplateParams;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
@@ -63,6 +66,7 @@ import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateConfiguration;
+import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
@@ -71,6 +75,7 @@ import com.redhat.qute.project.datamodel.resolvers.MessageValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
+import com.redhat.qute.project.documents.QuteBinaryTextDocument;
 import com.redhat.qute.project.documents.QuteClosedTextDocuments;
 import com.redhat.qute.project.documents.SearchInfoQuery;
 import com.redhat.qute.project.documents.TemplateValidator;
@@ -93,7 +98,6 @@ import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.NativeModeJavaTypeFilter;
 import com.redhat.qute.utils.StringUtils;
-import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * A Qute project.
@@ -126,12 +130,19 @@ public class QuteProject {
 
 	private final QuteClosedTextDocuments closedDocuments;
 
-	// Map which stores opened/closed documents identified by template id.
-	private final Map<String /* template id */, QuteTextDocument> allDocumentsByTemplateId;
+	// Map which stores opened/closed documents identified by template uri.
+	private final Map<Path /* template uri */, QuteTextDocument> sourceDocuments;
+
+	// Map which stores binary template documents identified by template uri.
+	private final Map<String /* template uri */, QuteTextDocument> binaryDocuments;
+
+	private final Map<String /* template id */, List<QuteTextDocument>> documentsByTemplateId;
 
 	private final Map<String /* Full qualified name of Java class */, CompletableFuture<ResolvedJavaTypeInfo>> resolvedJavaTypes;
 
 	private Map<String /* Full qualified name of Java class */, JavaTypeAccessibiltyRule> targetAnnotations;
+
+	private CompletableFuture<List<BinaryTemplateInfo>> binaryTemplatesFuture;
 
 	private CompletableFuture<ExtendedDataModelProject> dataModelProjectFuture;
 
@@ -169,11 +180,13 @@ public class QuteProject {
 		this.templateRootPaths = projectInfo.getTemplateRootPaths();
 		this.sourcePaths = toSourcePaths(projectInfo.getSourceFolders());
 		this.projectFeatures = projectInfo.getFeatures();
-		this.allDocumentsByTemplateId = new HashMap<>();
-		this.closedDocuments = new QuteClosedTextDocuments(this, allDocumentsByTemplateId);
+		this.sourceDocuments = new HashMap<>();
+		this.binaryDocuments = new HashMap<>();
+		this.documentsByTemplateId = new HashMap<>();
+		this.closedDocuments = new QuteClosedTextDocuments(this, sourceDocuments);
 		this.projectRegistry = projectRegistry;
 		this.resolvedJavaTypes = new HashMap<>();
-		this.tagRegistry = new UserTagRegistry(this, templateRootPaths, projectRegistry);
+		this.tagRegistry = new UserTagRegistry(this, templateRootPaths);
 		this.filterInNativeMode = new NativeModeJavaTypeFilter(this);
 		this.validator = projectRegistry.getValidator();
 		this.javaCache = new JavaDataModelCache(this);
@@ -258,7 +271,7 @@ public class QuteProject {
 			// Load closed document if needed and validate all closed documents when data
 			// model is ready.
 			closedDocuments.loadClosedTemplatesIfNeeded(progressContext);
-			for (QuteTextDocument document : allDocumentsByTemplateId.values()) {
+			for (QuteTextDocument document : sourceDocuments.values()) {
 				if (!document.isOpened()) {
 					validator.triggerValidationFor(document);
 				}
@@ -316,9 +329,13 @@ public class QuteProject {
 	 * @return true if the document retrieved by template id is opened and false
 	 *         otherwise.
 	 */
-	public boolean isTemplateOpened(String templateId) {
-		QuteTextDocument document = findDocumentByTemplateId(templateId);
+	public boolean isTemplateOpened(Path templatePath) {
+		QuteTextDocument document = findSourceDocument(templatePath);
 		return document != null && document.isOpened();
+	}
+
+	public QuteTextDocument findSourceDocument(Path templatePath) {
+		return sourceDocuments.get(templatePath);
 	}
 
 	/**
@@ -374,7 +391,8 @@ public class QuteProject {
 	 *         <code>insertParamater</code> ({#insert name}) declared in the
 	 *         template identified by the given template id and null otherwise.
 	 */
-	public List<Parameter> findInsertTagParameter(String templateId, String insertParamater) {
+	public List<Parameter> findInsertTagParameter(IncludeSection includeSection, String insertParamater) {
+		String templateId = includeSection.getReferencedTemplateId();
 		closedDocuments.loadClosedTemplatesIfNeeded();
 		QuteTextDocument document = findDocumentByTemplateId(templateId);
 		if (document != null) {
@@ -386,27 +404,52 @@ public class QuteProject {
 	public List<Section> findSectionsByTag(String tag) {
 		closedDocuments.loadClosedTemplatesIfNeeded();
 		List<Section> allSections = new ArrayList<>();
-		for (QuteTextDocument document : allDocumentsByTemplateId.values()) {
+		// from sources
+		fillSection(tag, sourceDocuments.values(), allSections);
+		// from binary (JARs)
+		fillSection(tag, binaryDocuments.values(), allSections);
+		return allSections;
+	}
+
+	private void fillSection(String tag, Collection<QuteTextDocument> documents, List<Section> allSections) {
+		for (QuteTextDocument document : documents) {
 			List<Section> sections = document.findSectionsByTag(tag);
 			if (sections != null && !sections.isEmpty()) {
 				allSections.addAll(sections);
 			}
 		}
-		return allSections;
+	}
+
+	public String findTemplateUriByTemplateId(String templateId) {
+		QuteTextDocument document = findDocumentByTemplateId(templateId);
+		return document != null ? document.getUri() : null;
 	}
 
 	private QuteTextDocument findDocumentByTemplateId(String templateId) {
 		if (templateId.indexOf('.') != -1) {
 			// ex: base.html
-			return allDocumentsByTemplateId.get(templateId);
+			return findDocumentByTemplateIdInCache(templateId);
 		}
+
 		// ex : base
+		QuteTextDocument binaryDocument = null;
 		for (String variant : getTemplateVariants()) {
 			String id = templateId + variant;
-			QuteTextDocument document = allDocumentsByTemplateId.get(id);
+			QuteTextDocument document = findDocumentByTemplateIdInCache(id);
 			if (document != null) {
 				return document;
 			}
+			if (binaryDocument == null) {
+				binaryDocument = findDocumentByTemplateIdInCache(id);
+			}
+		}
+		return binaryDocument;
+	}
+
+	private QuteTextDocument findDocumentByTemplateIdInCache(String templateId) {
+		List<QuteTextDocument> cache = documentsByTemplateId.get(templateId);
+		if (cache != null && !cache.isEmpty()) {
+			return cache.get(0);
 		}
 		return null;
 	}
@@ -417,7 +460,7 @@ public class QuteProject {
 	 * @param document the Qute template.
 	 */
 	public void onDidOpenTextDocument(QuteTextDocument document) {
-		allDocumentsByTemplateId.put(document.getTemplateId(), document);
+		registerSourceDocument(document);
 	}
 
 	/**
@@ -426,7 +469,7 @@ public class QuteProject {
 	 * @param document the Qute template.
 	 */
 	public void onDidCloseTextDocument(QuteTextDocument document) {
-		Path templateFilePath = FileUtils.createPath(document.getUri());
+		Path templateFilePath = document.getTemplatePath();
 		removeDocumentFromCache(templateFilePath);
 		closedDocuments.onDidCloseTemplate(templateFilePath);
 	}
@@ -438,11 +481,6 @@ public class QuteProject {
 	 */
 	public void onDidSaveTextDocument(QuteTextDocument document) {
 		document.save();
-		UserTag userTag = getUserTag(document.getTemplate());
-		if (userTag != null) {
-			// The user tag has been saved, refresh it.
-			userTag.clear();
-		}
 	}
 
 	/**
@@ -451,13 +489,29 @@ public class QuteProject {
 	 * @param templateFilePath the Qute template file path.
 	 */
 	public QuteTextDocument onDidDeleteTemplate(Path templateFilePath) {
-		return removeDocumentFromCache(templateFilePath);
+		QuteTextDocument document = removeDocumentFromCache(templateFilePath);
+		if (document != null && document.isUserTag()) {
+			UserTag userTag = document.getUserTag();
+			tagRegistry.unregisterUserTag(userTag);
+		}
+		return document;
 	}
 
 	private QuteTextDocument removeDocumentFromCache(Path templateFilePath) {
-		String templateId = getTemplateId(templateFilePath);
-		synchronized (allDocumentsByTemplateId) {
-			return allDocumentsByTemplateId.remove(templateId);
+		synchronized (sourceDocuments) {
+			QuteTextDocument document = sourceDocuments.remove(templateFilePath);
+			if (document != null) {
+				List<QuteTextDocument> cache = documentsByTemplateId.get(document.getTemplateId());
+				if (cache != null) {
+					cache.remove(document);
+				}
+				if (document.isUserTag()) {
+					UserTag userTag = document.getUserTag();
+					tagRegistry.unregisterUserTag(userTag);
+				}
+
+			}
+			return document;
 		}
 	}
 
@@ -475,9 +529,19 @@ public class QuteProject {
 	 * 
 	 * @return list of all opened/closed Qute template document of the project.
 	 */
-	public Collection<QuteTextDocument> getDocuments() {
+	public Collection<QuteTextDocument> getSourceDocuments() {
 		closedDocuments.loadClosedTemplatesIfNeeded();
-		return allDocumentsByTemplateId.values();
+		return sourceDocuments.values();
+	}
+
+	/**
+	 * Returns list of all binary Qute template document of the project.
+	 * 
+	 * @return list of all binary Qute template document of the project.
+	 */
+	public Collection<QuteTextDocument> getBinaryDocuments() {
+		closedDocuments.loadClosedTemplatesIfNeeded();
+		return binaryDocuments.values();
 	}
 
 	public CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaType(String typeName) {
@@ -494,6 +558,28 @@ public class QuteProject {
 					}
 					return c;
 				});
+	}
+
+	public CompletableFuture<List<BinaryTemplateInfo>> getBinaryTemplates() {
+		if (binaryTemplatesFuture == null || binaryTemplatesFuture.isCancelled()
+				|| binaryTemplatesFuture.isCompletedExceptionally()) {
+			binaryTemplatesFuture = null;
+			binaryTemplatesFuture = loadBinaryTemplates();
+		}
+		return binaryTemplatesFuture;
+	}
+
+	protected synchronized CompletableFuture<List<BinaryTemplateInfo>> loadBinaryTemplates() {
+		if (binaryTemplatesFuture != null) {
+			return binaryTemplatesFuture;
+		}
+		QuteBinaryTemplateParams params = new QuteBinaryTemplateParams();
+		params.setProjectUri(getUri());
+		return getBinaryTemplates(params);
+	}
+
+	protected CompletableFuture<List<BinaryTemplateInfo>> getBinaryTemplates(QuteBinaryTemplateParams params) {
+		return projectRegistry.getBinaryTemplates(params);
 	}
 
 	public CompletableFuture<ExtendedDataModelProject> getDataModelProject() {
@@ -525,9 +611,6 @@ public class QuteProject {
 						return null;
 					}
 					return new ExtendedDataModelProject(dataModelProject, QuteProject.this);
-				}).thenApply(p -> {
-					tagRegistry.refreshDataModel();
-					return p;
 				});
 	}
 
@@ -562,21 +645,15 @@ public class QuteProject {
 	}
 
 	/**
-	 * Returns list of source ('src/main/resources/templates/tags') user tags.
+	 * Returns list of source ('src/main/resources/templates/tags') and list of
+	 * binary ('templates.tags') user tags.
 	 *
-	 * @return list of source ('src/main/resources/templates/tags') user tags.
+	 * @return list of source ('src/main/resources/templates/tags') and list of
+	 *         binary ('templates.tags') user tags.
 	 */
-	public Collection<UserTag> getSourceUserTags() {
-		return tagRegistry.getSourceUserTags();
-	}
-
-	/**
-	 * Returns list of binary ('templates.tags') user tags.
-	 *
-	 * @return list of binary ('templates.tags') user tags.
-	 */
-	public CompletableFuture<List<UserTag>> getBinaryUserTags() {
-		return tagRegistry.getBinaryUserTags();
+	public Collection<UserTag> getUserTags() {
+		closedDocuments.loadClosedTemplatesIfNeeded();
+		return tagRegistry.getUserTags();
 	}
 
 	public UserTagRegistry getTagRegistry() {
@@ -594,41 +671,10 @@ public class QuteProject {
 		if (StringUtils.isEmpty(tagName)) {
 			return null;
 		}
-		// Source tags
-		Collection<UserTag> tags = getSourceUserTags();
+		// binary + Source tags
+		Collection<UserTag> tags = getUserTags();
 		for (UserTag userTag : tags) {
 			if (tagName.equals(userTag.getName())) {
-				return userTag;
-			}
-		}
-		// Binary tags
-		tags = getBinaryUserTags().getNow(Collections.emptyList());
-		for (UserTag userTag : tags) {
-			if (tagName.equals(userTag.getName())) {
-				return userTag;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Returns the user tag from the given template and null otherwise.
-	 *
-	 * @param template the Qute template.
-	 *
-	 * @return the user tag from the given template and null otherwise.
-	 */
-	public UserTag getUserTag(Template template) {
-		if (!UserTagUtils.isUserTag(template)) {
-			return null;
-		}
-		String templateId = template.getTemplateId();
-		int index = templateId.indexOf('.');
-		if (index != -1) {
-			templateId = templateId.substring(0, index);
-		}
-		for (UserTag userTag : getSourceUserTags()) {
-			if (userTag.getTemplateId().equals(templateId)) {
 				return userTag;
 			}
 		}
@@ -646,6 +692,7 @@ public class QuteProject {
 	 */
 	public void collectUserTagSuggestions(CompletionRequest completionRequest, String prefixFilter, String suffixToFind,
 			Set<CompletionItem> completionItems) {
+		closedDocuments.loadClosedTemplatesIfNeeded();
 		tagRegistry.collectUserTagSuggestions(completionRequest, prefixFilter, suffixToFind, completionItems);
 	}
 
@@ -1801,5 +1848,47 @@ public class QuteProject {
 			return allInjectors != null ? allInjectors : Collections.emptyList();
 		}
 		return Collections.emptyList();
+	}
+
+	void registerBinaryTemplates(List<BinaryTemplateInfo> binaryTemplates) {
+		for (BinaryTemplateInfo binaryTemplate : binaryTemplates) {
+			String binaryName = binaryTemplate.getBinaryName();
+			Map<String, String> properties = binaryTemplate.getProperties();
+			List<BinaryTemplate> templates = binaryTemplate.getTemplates();
+			for (BinaryTemplate template : templates) {
+				QuteBinaryTextDocument document = new QuteBinaryTextDocument(template, binaryName, properties, this);
+				registerBinaryDocument(document);
+			}
+		}
+	}
+
+	public void registerSourceDocument(QuteTextDocument document) {
+		QuteTextDocument oldDocument = sourceDocuments.get(document.getTemplatePath());
+		if  (oldDocument != null) {
+			removeDocumentFromCache(oldDocument.getTemplatePath());
+		}
+		
+		sourceDocuments.put(document.getTemplatePath(), document);
+		addInTemplateIdCache(document);
+		if (document.isUserTag()) {
+			UserTag tag = document.getUserTag();
+			tagRegistry.registerUserTag(tag);
+		}
+	}
+
+	void registerBinaryDocument(QuteTextDocument document) {
+		binaryDocuments.put(document.getUri(), document);
+		addInTemplateIdCache(document);
+		if (document.isUserTag()) {
+			UserTag tag = document.getUserTag();
+			tagRegistry.registerUserTag(tag);
+		}
+	}
+
+	private void addInTemplateIdCache(QuteTextDocument document) {
+		String templateId = document.getTemplateId();
+		List<QuteTextDocument> cache = documentsByTemplateId.computeIfAbsent(templateId,
+				_unused -> new ArrayList<QuteTextDocument>());
+		cache.add(document);
 	}
 }

@@ -30,6 +30,13 @@ public class FileUtils {
 	private static final String FILE_SCHEME = "file";
 
 	/**
+	 * True if the current OS is Windows.
+	 * Stored as a constant to avoid repeated system property lookups.
+	 */
+	private static final boolean IS_WINDOWS =
+			System.getProperty("os.name").toLowerCase().contains("windows");
+
+	/**
 	 * Returns true if the given uri is a file uri and false otherwise.
 	 * 
 	 * @param uri the uri
@@ -46,13 +53,41 @@ public class FileUtils {
 		}
 
 		try {
+			// Normalize "file://" and "file:///" to "file:/" for consistent parsing.
+			// Some LSP clients (e.g. VSCode on Windows) may send "file:///c:/..." or
+			// "file://c:/..." which need to be unified before further processing.
 			if (uriString.startsWith("file:/")) {
-				String convertedUri = uriString.replace("file:///", "file:/"); //$NON-NLS-1$//$NON-NLS-2$
-				convertedUri = convertedUri.replace("file://", "file:/"); //$NON-NLS-1$//$NON-NLS-2$
+				uriString = uriString.replace("file:///", "file:/"); //$NON-NLS-1$//$NON-NLS-2$
+				uriString = uriString.replace("file://", "file:/"); //$NON-NLS-1$//$NON-NLS-2$
 			}
+
+			// Decode percent-encoded characters (e.g. %3A -> :, %2F -> /).
+			// Some LSP clients (e.g. VSCode) send URIs with percent-encoded characters
+			// for open files while closed files may have decoded URIs, causing mismatches
+			// in the document map lookups.
 			if (uriString.indexOf('%') != -1) {
 				uriString = uriDecode(uriString, StandardCharsets.UTF_8);
 			}
+
+			// On Windows, normalize the drive letter to uppercase.
+			// Some LSP clients send "file:/c:/..." while others send "file:/C:/...",
+			// which would result in different URIs for the same file and cause
+			// mismatches in document map lookups.
+			// ex: file:/c:/Users/... -> file:/C:/Users/...
+			if (IS_WINDOWS) {
+				// Search for the drive letter colon, skipping the "file:/" prefix (6 chars).
+				// The drive letter is the char just before the colon, e.g. "file:/c:/" -> 'c'.
+				int colonIdx = uriString.indexOf(':', 6);
+				if (colonIdx > 0) {
+					char drive = uriString.charAt(colonIdx - 1);
+					if (drive >= 'a' && drive <= 'z') {
+						uriString = uriString.substring(0, colonIdx - 1)
+								+ Character.toUpperCase(drive)
+								+ uriString.substring(colonIdx);
+					}
+				}
+			}
+
 			URI uri = URI.create(uriString);
 			if (!isFileURI(uri)) {
 				// The uri is not a file URI, ignore it.
@@ -119,7 +154,6 @@ public class FileUtils {
 		if (length == 0) {
 			return source;
 		}
-		// Assert.notNull(charset, "Charset must not be null");
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(length);
 		boolean changed = false;
@@ -159,4 +193,17 @@ public class FileUtils {
 		return value == null || value.isEmpty();
 	}
 
+	/**
+	 * Returns a canonical URI string from a Path, normalized the same way as
+	 * {@link #createUri(String)} to ensure consistent map lookups between
+	 * open files (URI from LSP client) and closed files (Path from filesystem scan).
+	 *
+	 * @param path the path
+	 * @return the canonical URI string
+	 */
+	public static URI toCanonicalUri(Path path) {
+	    // path.toUri() on Windows gives file:///C:/... (uppercase, not encoded)
+	    // so we just reuse createUri to apply the same normalization pipeline
+	    return createUri(path.toUri().toString());
+	}
 }

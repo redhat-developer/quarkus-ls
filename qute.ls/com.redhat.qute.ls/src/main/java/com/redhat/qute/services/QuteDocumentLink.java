@@ -11,9 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -29,6 +27,7 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.IncludeSection;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
@@ -78,9 +77,9 @@ public class QuteDocumentLink {
 						Range range = QutePositionUtility.createRange(includedTemplateId.getStart(),
 								includedTemplateId.getEnd(), template);
 						if (range != null) {
-							Path templateFile = includeSection.getReferencedTemplateFile();
+							TemplatePath templateFile = includeSection.getReferencedTemplatePath();
 							if (templateFile != null) {
-								String target = templateFile.toUri().toASCIIString();
+								String target = templateFile.getUri();
 								links.add(new DocumentLink(range, target != null ? target : ""));
 							}
 						}
