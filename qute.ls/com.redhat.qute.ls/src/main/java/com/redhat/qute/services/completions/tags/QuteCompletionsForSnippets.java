@@ -120,8 +120,7 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 							return (((AbstractQuteSnippetContext) context).isMatch(completionRequest, model));
 						}
 						return false;
-					}, contentProvider, suffixToFind, prefixFilter,
-					contentProvider);
+					}, contentProvider, suffixToFind, prefixFilter, contentProvider);
 
 			completionItems.addAll(snippets);
 
@@ -130,8 +129,8 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 			if (end != null) {
 				range = new Range(replaceRange.getStart(), end);
 			}
-			collectInsertParameterSuggestions(completionRequest, range, prefixFilter, suffixToFind,
-					whitespacesIndent, defaultInsertTextMode, completionItems);
+			collectInsertParameterSuggestions(completionRequest, range, prefixFilter, suffixToFind, whitespacesIndent,
+					defaultInsertTextMode, completionItems);
 
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In QuteCompletions, collectSnippetSuggestions position error", e);
@@ -139,8 +138,8 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 	}
 
 	private void collectInsertParameterSuggestions(CompletionRequest completionRequest, Range replaceRange,
-			String prefixFilter, String suffixToFind,
-			String whitespacesIndent, InsertTextMode defaultInsertTextMode, Set<CompletionItem> completionItems) {
+			String prefixFilter, String suffixToFind, String whitespacesIndent, InsertTextMode defaultInsertTextMode,
+			Set<CompletionItem> completionItems) {
 		Node node = completionRequest.getNode();
 		if (node == null) {
 			return;
@@ -155,8 +154,7 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 				Section parentSection = (Section) parent;
 				if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
 					IncludeSection includeSection = (IncludeSection) parentSection;
-					List<Parameter> parameters = project
-							.findInsertTagParameter(includeSection.getReferencedTemplateId(), SearchInfoQuery.ALL);
+					List<Parameter> parameters = project.findInsertTagParameter(includeSection, SearchInfoQuery.ALL);
 					if (parameters != null) {
 						for (Parameter parameter : parameters) {
 							String tagName = parameter.getName();

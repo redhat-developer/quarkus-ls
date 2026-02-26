@@ -37,21 +37,21 @@ import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.binary.QuteBinaryTemplateParams;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent.ProjectChangeInfo;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
-import com.redhat.qute.commons.usertags.QuteUserTagParams;
-import com.redhat.qute.commons.usertags.UserTagInfo;
+import com.redhat.qute.ls.api.QuteBinaryTemplateProvider;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteJavaDefinitionProvider;
 import com.redhat.qute.ls.api.QuteJavaTypesProvider;
 import com.redhat.qute.ls.api.QuteJavadocProvider;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
-import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
@@ -69,7 +69,8 @@ import com.redhat.qute.settings.QuteNativeSettings;
  * @author Angelo ZERR
  *
  */
-public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUserTagProvider, QuteJavadocProvider {
+public class QuteProjectRegistry
+		implements QuteDataModelProjectProvider, QuteBinaryTemplateProvider, QuteJavadocProvider {
 
 	private final ValueResolversRegistry valueResolversRegistry;
 
@@ -81,7 +82,7 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 
 	private final QuteDataModelProjectProvider dataModelProvider;
 
-	private final QuteUserTagProvider userTagProvider;
+	private final QuteBinaryTemplateProvider binaryTemplateProvider;
 
 	private final QuteJavaTypesProvider javaTypeProvider;
 
@@ -99,7 +100,7 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 
 	public QuteProjectRegistry(QuteProjectInfoProvider projectInfoProvider, QuteJavaTypesProvider javaTypeProvider,
 			QuteJavaDefinitionProvider definitionProvider, QuteResolvedJavaTypeProvider resolvedClassProvider,
-			QuteDataModelProjectProvider dataModelProvider, QuteUserTagProvider userTagsProvider,
+			QuteDataModelProjectProvider dataModelProvider, QuteBinaryTemplateProvider binaryTemplateProvider,
 			QuteJavadocProvider javadocProvider, TemplateValidator validator,
 			Supplier<ProgressSupport> progressSupportProvider) {
 		this.projectInfoProvider = projectInfoProvider;
@@ -108,7 +109,7 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 		this.projects = new HashMap<>();
 		this.resolvedTypeProvider = resolvedClassProvider;
 		this.dataModelProvider = dataModelProvider;
-		this.userTagProvider = userTagsProvider;
+		this.binaryTemplateProvider = binaryTemplateProvider;
 		this.javadocProvider = javadocProvider;
 		this.valueResolversRegistry = new ValueResolversRegistry();
 		this.validator = validator;
@@ -282,14 +283,14 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 	}
 
 	@Override
-	public CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
-			QuteDataModelProjectParams params) {
-		return dataModelProvider.getDataModelProject(params);
+	public CompletableFuture<List<BinaryTemplateInfo>> getBinaryTemplates(QuteBinaryTemplateParams params) {
+		return binaryTemplateProvider.getBinaryTemplates(params);
 	}
 
 	@Override
-	public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
-		return userTagProvider.getUserTags(params);
+	public CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
+			QuteDataModelProjectParams params) {
+		return dataModelProvider.getDataModelProject(params);
 	}
 
 	/**
@@ -362,8 +363,7 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 					// Some qute templates are deleted, created, or changed
 					// Collect impacted Qute projects
 					Path templatePath = filePath;
-					String templateId = project.getTemplateId(templatePath);
-					if (project.isTemplateOpened(templateId)) {
+					if (project.isTemplateOpened(filePath)) {
 						projects.add(project);
 					} else {
 						// In case of closed document, we collect the project and update the cache
@@ -476,29 +476,48 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 		QuteProject project = getProject(projectInfo, false);
 
 		if (progressContext != null) {
-			progressContext.report("Loading data model for '" + projectName + "' Qute project.", 10);
+			progressContext.report("Loading binary templates for '" + projectName + "' Qute project.", 10);
 		}
 
-		project.getDataModelProject().thenAccept(dataModel -> {
-			// The Java data model is collected for the project, validate all templates of
-			// the project
-			if (progressContext != null) {
-				progressContext.report("Loading Qute templates for '" + projectName + "' Qute project.", 40);
-			}
-			// Validate Qute templates
-			project.validateClosedTemplates(progressContext);
+		project.getBinaryTemplates() //
+				.thenAccept(binaryTemplates -> {
+					project.registerBinaryTemplates(binaryTemplates);
 
-			// End progress
-			if (progressContext != null) {
-				progressContext.endProgress();
-			}
+					if (progressContext != null) {
+						progressContext.report("Loading data model for '" + projectName + "' Qute project.", 20);
+					}
 
-		}).exceptionally((a) -> {
-			if (progressContext != null) {
-				progressContext.endProgress();
-			}
-			return null;
-		});
+					project.getDataModelProject() //
+							.thenAccept(dataModel -> {
+								// The Java data model is collected for the project, validate all templates of
+								// the project
+								if (progressContext != null) {
+									progressContext.report(
+											"Loading Qute templates for '" + projectName + "' Qute project.", 40);
+								}
+
+								// Validate Qute templates
+								project.validateClosedTemplates(progressContext);
+
+								// End progress
+								if (progressContext != null) {
+									progressContext.endProgress();
+								}
+
+							}).exceptionally((a) -> {
+								if (progressContext != null) {
+									progressContext.endProgress();
+								}
+								return null;
+							});
+
+				}).exceptionally((a) -> {
+					if (progressContext != null) {
+						progressContext.endProgress();
+					}
+					return null;
+				});
+
 		return project;
 	}
 

@@ -22,6 +22,7 @@ import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.documents.SearchInfoQuery;
+import com.redhat.qute.project.tags.UserTag;
 
 /**
  * Qute text document of a project which are opend and closed.
@@ -100,6 +101,10 @@ public interface QuteTextDocument {
 	 */
 	boolean isOpened();
 
+	default boolean isBinary() {
+		return false;
+	}
+	
 	/**
 	 * Returns true if the document is an user tag and false otherwise.
 	 * 
@@ -115,4 +120,10 @@ public interface QuteTextDocument {
 	}
 
 	Collection<InjectionDetector> getInjectionDetectors();
+
+	UserTag getUserTag();
+
+	String getFileName();
+	
+	String getOrigin();
 }

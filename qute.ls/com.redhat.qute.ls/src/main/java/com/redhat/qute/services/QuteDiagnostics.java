@@ -17,8 +17,6 @@ import static com.redhat.qute.services.diagnostics.DiagnosticDataFactory.createD
 import static com.redhat.qute.utils.UserTagUtils.IT_OBJECT_PART_NAME;
 import static com.redhat.qute.utils.UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -68,6 +66,7 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
@@ -300,7 +299,8 @@ class QuteDiagnostics {
 				}
 				switch (section.getSectionKind()) {
 				case INCLUDE:
-					validateIncludeSection((IncludeSection) section, project, diagnostics);
+					validateIncludeSection((IncludeSection) section, resolvingJavaTypeContext.isBinaryUserTagResolved(),
+							project, diagnostics);
 					break;
 				case CASE:
 				case IS:
@@ -470,7 +470,7 @@ class QuteDiagnostics {
 						if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
 							IncludeSection includeSection = (IncludeSection) parentSection;
 							List<Parameter> parameters = project
-									.findInsertTagParameter(includeSection.getReferencedTemplateId(), tagName);
+									.findInsertTagParameter(includeSection, tagName);
 							if (parameters != null) {
 								// The parameter exists
 								return;
@@ -523,20 +523,21 @@ class QuteDiagnostics {
 	/**
 	 * Validate #include section.
 	 *
-	 * @param includeSection the include section
+	 * @param includeSection        the include section
+	 * @param binaryUserTagResolved
 	 * @param project
-	 * @param diagnostics    the diagnostics to fill.
+	 * @param diagnostics           the diagnostics to fill.
 	 */
-	private static void validateIncludeSection(IncludeSection includeSection, QuteProject project,
-			List<Diagnostic> diagnostics) {
+	private static void validateIncludeSection(IncludeSection includeSection, boolean binaryUserTagResolved,
+			QuteProject project, List<Diagnostic> diagnostics) {
 		Parameter templateParameter = includeSection.getTemplateParameter();
 		if (templateParameter != null) {
 			// Validate template id, only if project exists.
-			if (project != null) {
+			if (project != null && binaryUserTagResolved) {
 				// include defines a template to include
 				// ex : {#include base}
-				Path templateFile = includeSection.getReferencedTemplateFile();
-				if (templateFile == null || Files.notExists(templateFile)) {
+				TemplatePath templateFile = includeSection.getReferencedTemplatePath();
+				if (templateFile == null || !templateFile.isExists()) {
 					// It doesn't exists a file named base, base.qute.html, base.html, etc
 					Range range = QutePositionUtility.createRange(templateParameter);
 					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,

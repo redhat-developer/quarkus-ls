@@ -166,7 +166,7 @@ class QuteDefinition {
 								if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
 									IncludeSection includeSection = (IncludeSection) parentSection;
 									List<Parameter> parameters = project
-											.findInsertTagParameter(includeSection.getReferencedTemplateId(), tagName);
+											.findInsertTagParameter(includeSection, tagName);
 									if (parameters != null) {
 										for (Parameter index : parameters) {
 											String linkedTemplateUri = index.getOwnerTemplate().getUri();

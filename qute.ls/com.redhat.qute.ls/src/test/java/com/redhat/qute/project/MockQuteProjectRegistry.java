@@ -30,19 +30,19 @@ import com.redhat.qute.commons.QuteJavaTypesParams;
 import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.binary.QuteBinaryTemplateParams;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
-import com.redhat.qute.commons.usertags.QuteUserTagParams;
-import com.redhat.qute.commons.usertags.UserTagInfo;
+import com.redhat.qute.ls.api.QuteBinaryTemplateProvider;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteJavaDefinitionProvider;
 import com.redhat.qute.ls.api.QuteJavaTypesProvider;
 import com.redhat.qute.ls.api.QuteJavadocProvider;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
-import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.project.documents.TemplateValidator;
 import com.redhat.qute.project.multiple.QuteProjectA;
 import com.redhat.qute.project.multiple.QuteProjectB;
@@ -66,11 +66,11 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 
 	public MockQuteProjectRegistry(QuteProjectInfoProvider projectInfoProvider, QuteJavaTypesProvider javaTypeProvider,
 			QuteJavaDefinitionProvider definitionProvider, QuteResolvedJavaTypeProvider resolvedClassProvider,
-			QuteDataModelProjectProvider dataModelProvider, QuteUserTagProvider userTagsProvider,
+			QuteDataModelProjectProvider dataModelProvider, QuteBinaryTemplateProvider binaryTemplateProvider,
 			QuteJavadocProvider javadocProvider, TemplateValidator validator,
 			Supplier<ProgressSupport> progressSupportProvider) {
 		super(projectInfoProvider, javaTypeProvider, definitionProvider, resolvedClassProvider, dataModelProvider,
-				userTagsProvider, javadocProvider, validator, progressSupportProvider);
+				binaryTemplateProvider, javadocProvider, validator, progressSupportProvider);
 		super.setAsyncValidation(false);
 		super.setDidChangeWatchedFilesSupported(true);
 	}
@@ -185,14 +185,14 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	}
 
 	@Override
-	public CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
-			QuteDataModelProjectParams params) {
-		return CompletableFuture.completedFuture(null);
+	public CompletableFuture<List<BinaryTemplateInfo>> getBinaryTemplates(QuteBinaryTemplateParams params) {
+		return CompletableFuture.completedFuture(Collections.emptyList());
 	}
 
 	@Override
-	public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
-		return CompletableFuture.completedFuture(Collections.emptyList());
+	public CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
+			QuteDataModelProjectParams params) {
+		return CompletableFuture.completedFuture(null);
 	}
 
 	@Override

@@ -42,13 +42,13 @@ import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.TemplateRootPath;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.binary.QuteBinaryTemplateParams;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
-import com.redhat.qute.commons.usertags.QuteUserTagParams;
-import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.jdt.QuteSupportForTemplate;
 
 /**
@@ -82,7 +82,7 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 
 	private static final String QUTE_TEMPLATE_PROJECT_DATA_MODEL_COMMAND_ID = "qute/template/projectDataModel";
 
-	private static final String QUTE_TEMPLATE_USER_TAGS_COMMAND_ID = "qute/template/userTags";
+	private static final String QUTE_TEMPLATE_BINARY_TEMPLATES_COMMAND_ID = "qute/template/binaryTemplates";
 
 	private static final String QUTE_TEMPLATE_JAVA_TYPES_COMMAND_ID = "qute/template/javaTypes";
 
@@ -105,8 +105,8 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 			return getProjectInfo(arguments, commandId, monitor);
 		case QUTE_TEMPLATE_PROJECT_DATA_MODEL_COMMAND_ID:
 			return getProjectDataModel(arguments, commandId, monitor);
-		case QUTE_TEMPLATE_USER_TAGS_COMMAND_ID:
-			return getUserTags(arguments, commandId, monitor);
+		case QUTE_TEMPLATE_BINARY_TEMPLATES_COMMAND_ID:
+			return getBinaryTemplates(arguments, commandId, monitor);
 		case QUTE_TEMPLATE_JAVA_TYPES_COMMAND_ID:
 			return getJavaTypes(arguments, commandId, monitor);
 		case QUTE_TEMPLATE_RESOLVED_JAVA_TYPE_COMMAND_ID:
@@ -193,36 +193,25 @@ public class QuteSupportForTemplateDelegateCommandHandler extends AbstractQuteDe
 		return new QuteDataModelProjectParams(projectUri);
 	}
 
-	/**
-	 * Collect user tags from a given project Uri.
-	 *
-	 * @param arguments
-	 * @param commandId
-	 * @param monitor
-	 *
-	 * @return user tags from a given project Uri.
-	 *
-	 * @throws CoreException
-	 */
-	private static List<UserTagInfo> getUserTags(List<Object> arguments, String commandId, IProgressMonitor monitor)
-			throws CoreException {
-		QuteUserTagParams params = createQuteUserTagParams(arguments, commandId);
-		return QuteSupportForTemplate.getInstance().getUserTags(params, JDTUtilsLSImpl.getInstance(), monitor);
+	private static List<BinaryTemplateInfo> getBinaryTemplates(List<Object> arguments, String commandId,
+			IProgressMonitor monitor) throws CoreException {
+		QuteBinaryTemplateParams params = createBinaryTemplateParams(arguments, commandId);
+		return QuteSupportForTemplate.getInstance().getBinaryTemplates(params, JDTUtilsLSImpl.getInstance(), monitor);
 	}
 
-	private static QuteUserTagParams createQuteUserTagParams(List<Object> arguments, String commandId) {
+	private static QuteBinaryTemplateParams createBinaryTemplateParams(List<Object> arguments, String commandId) {
 		Map<String, Object> obj = getFirst(arguments);
 		if (obj == null) {
-			throw new UnsupportedOperationException(
-					String.format("Command '%s' must be called with one QuteUserTagParams argument!", commandId));
+			throw new UnsupportedOperationException(String
+					.format("Command '%s' must be called with one QuteBinaryTemplateParams argument!", commandId));
 		}
 		// Get project name from the java file URI
 		String projectUri = getString(obj, PROJECT_URI_ATTR);
 		if (projectUri == null) {
-			throw new UnsupportedOperationException(String
-					.format("Command '%s' must be called with required QuteUserTagParams.projectUri!", commandId));
+			throw new UnsupportedOperationException(String.format(
+					"Command '%s' must be called with required QuteBinaryTemplateParams.projectUri!", commandId));
 		}
-		return new QuteUserTagParams(projectUri);
+		return new QuteBinaryTemplateParams(projectUri);
 	}
 
 	/**

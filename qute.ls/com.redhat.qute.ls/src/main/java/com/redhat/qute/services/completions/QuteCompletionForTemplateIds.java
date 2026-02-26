@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
+import org.eclipse.lsp4j.CompletionItemLabelDetails;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
@@ -73,32 +74,30 @@ public class QuteCompletionForTemplateIds {
 		QuteProject project = template.getProject();
 		if (project != null) {
 			String currentTemplateId = template.getTemplateId();
-			Range range = getReplaceRange(completionRequest.getNode(), completionRequest.getOffset(),
-					template);
+			Range range = getReplaceRange(completionRequest.getNode(), completionRequest.getOffset(), template);
 
 			// Add all templates from the Qute project
-			List<QuteTextDocument> documents = new ArrayList<>(project.getDocuments());
+			List<QuteTextDocument> allDocuments = new ArrayList<>(project.getSourceDocuments());
+			allDocuments.addAll(project.getBinaryDocuments());
 			// Add all templates from the Qute project dependencies
 			for (QuteProject projectDependency : project.getProjectDependencies()) {
-				documents.addAll(projectDependency.getDocuments());
+				allDocuments.addAll(projectDependency.getSourceDocuments());
+				allDocuments.addAll(projectDependency.getBinaryDocuments());
 			}
 
 			// Sort template ids to show at first the root files of the
 			// src/main/resources/templates folder (ex : base,main).
-			Collections.sort(documents, TEMPLATE_ID_COMPARATOR);
+			Collections.sort(allDocuments, TEMPLATE_ID_COMPARATOR);
 
 			// To keep the sort in LSP we generates a basic sort text by adding the 'a'
 			// letter.
 			StringBuilder sortText = new StringBuilder();
 
 			/*
-			 * Map with:
-			 * - key: template if with short syntax (ex : base)
-			 * - value: list of document which matches the short syntax (ex :base.html,
-			 * base.json,base.txt)
+			 * Map with: - key: template if with short syntax (ex : base) - value: list of
+			 * document which matches the short syntax (ex :base.html, base.json,base.txt)
 			 */
-			Map<String, List<QuteTextDocument>> templateIds = createTemplateIds(
-					documents, currentTemplateId);
+			Map<String, List<QuteTextDocument>> templateIds = createTemplateIds(allDocuments, currentTemplateId);
 			for (Map.Entry<String, List<QuteTextDocument>> ids : templateIds.entrySet()) {
 				String sort = sortText.append("a").toString();
 				List<QuteTextDocument> documentsForId = ids.getValue();
@@ -137,7 +136,16 @@ public class QuteCompletionForTemplateIds {
 						documentsForId = new ArrayList<>();
 						templateIds.put(shortSyntax, documentsForId);
 					}
-					documentsForId.add(document);
+					if (documentsForId.isEmpty()) {
+						documentsForId.add(document);
+					} else {
+						boolean templateIdExists = documentsForId //
+								.stream() //
+								.anyMatch(d -> d.getTemplateId().equals(templateId));
+						if (!templateIdExists) {
+							documentsForId.add(document);
+						}
+					}
 				}
 			}
 		}
@@ -151,13 +159,19 @@ public class QuteCompletionForTemplateIds {
 		return QutePositionUtility.createRange(node);
 	}
 
-	private void addTemplateId(String templateId, QuteTextDocument template, Range range, String sortText,
-			CompletionList list) {
+	private void addTemplateId(String templateId,
+			QuteTextDocument document, Range range, String sortText, CompletionList list) {
 		CompletionItem item = new CompletionItem();
 		item.setLabel(templateId);
+		String origin = document.getOrigin();
+		if (origin != null) {
+			CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+			labelDetails.setDescription(origin);
+			item.setLabelDetails(labelDetails);
+		}
 		item.setFilterText(templateId);
 		item.setSortText(sortText);
-		item.setKind(CompletionItemKind.Field);
+		item.setKind(CompletionItemKind.File);
 		TextEdit textEdit = new TextEdit(range, templateId);
 		item.setTextEdit(Either.forLeft(textEdit));
 		list.getItems().add(item);

@@ -13,20 +13,14 @@ package com.redhat.qute.project.tags;
 
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.CompletionItem;
 
 import com.redhat.qute.commons.TemplateRootPath;
-import com.redhat.qute.commons.usertags.QuteUserTagParams;
-import com.redhat.qute.commons.usertags.UserTagInfo;
-import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.services.completions.CompletionRequest;
@@ -40,51 +34,26 @@ import com.redhat.qute.services.completions.CompletionRequest;
  *
  */
 public class UserTagRegistry {
-
-	private final QuteProject project;
 	private final List<TemplateRootPath> templateRootPaths;
 
-	private final QuteCompletionsForSourceUserTagSection completionsSourceUserTag;
-
-	private final QuteUserTagProvider userTagProvider;
-	private final QuteCompletionsForBinaryUserTagSection completionsBinaryUserTag;
-
-	private CompletableFuture<List<UserTag>> userTagFuture;
+	private final QuteCompletionsForUserTagSection completionsForUserTag;
 	private final Map<String, UserTagUsages> usagesByTag;
 
-	public UserTagRegistry(QuteProject project, List<TemplateRootPath> templateRootPaths,
-			QuteUserTagProvider userTagProvider) {
-		this.project = project;
+	public UserTagRegistry(QuteProject project, List<TemplateRootPath> templateRootPaths) {
 		this.templateRootPaths = templateRootPaths;
-		this.userTagProvider = userTagProvider;
-		this.completionsSourceUserTag = new QuteCompletionsForSourceUserTagSection();
-		this.completionsBinaryUserTag = new QuteCompletionsForBinaryUserTagSection();
+		this.completionsForUserTag = new QuteCompletionsForUserTagSection();
 		this.usagesByTag = new HashMap<>();
 	}
 
 	/**
-	 * Returns list of source ('src/main/resources/templates/tags') user tags.
+	 * Returns list of source ('src/main/resources/templates/tags') and binary user
+	 * tags.
 	 * 
-	 * @return list of source ('src/main/resources/templates/tags') user tags.
+	 * @return list of source ('src/main/resources/templates/tags') and binary user
+	 *         tags.
 	 */
-	public Collection<UserTag> getSourceUserTags() {
-		refresh();
-		return completionsSourceUserTag.getUserTags();
-	}
-
-	/**
-	 * Refresh user tags
-	 */
-	private void refresh() {
-		// Loop for files from src/main/resources/tags to update list of user tags.
-		for (TemplateRootPath templateRootPath : templateRootPaths) {
-			Path tagsDir = templateRootPath.getTagsDir();
-			if (tagsDir != null) {
-				completionsSourceUserTag.refresh(tagsDir, project);
-			}
-		}
-		// Update from the 'templates.tags' entries of JARs of the classpath
-		completionsBinaryUserTag.refresh(getBinaryUserTags());
+	public Collection<UserTag> getUserTags() {
+		return completionsForUserTag.getUserTags();
 	}
 
 	/**
@@ -98,48 +67,9 @@ public class UserTagRegistry {
 	 */
 	public void collectUserTagSuggestions(CompletionRequest completionRequest, String prefixFilter, String suffixToFind,
 			Set<CompletionItem> completionItems) {
-		// Completion for sources user tags (from src/main/resources/templates/tags)
-		refresh();
-		completionsSourceUserTag.collectSnippetSuggestions(completionRequest, prefixFilter, suffixToFind,
-				completionItems);
-		// Completion for binaries user tags
-		completionsBinaryUserTag.collectSnippetSuggestions(completionRequest, prefixFilter, suffixToFind,
-				completionItems);
-	}
-
-	/**
-	 * Returns list of binary ('templates.tags') user tags.
-	 * 
-	 * @return list of binary ('templates.tags') user tags.
-	 */
-	public CompletableFuture<List<UserTag>> getBinaryUserTags() {
-		if (userTagFuture == null || userTagFuture.isCancelled() || userTagFuture.isCompletedExceptionally()) {
-			userTagFuture = null;
-			userTagFuture = loadBinaryUserTags();
-		}
-		return userTagFuture;
-	}
-
-	protected synchronized CompletableFuture<List<UserTag>> loadBinaryUserTags() {
-		if (userTagFuture != null) {
-			return userTagFuture;
-		}
-		QuteUserTagParams params = new QuteUserTagParams();
-		params.setProjectUri(project.getUri());
-		return getBinaryUserTags(params) //
-				.thenApply(tagInfos -> {
-					if (tagInfos == null) {
-						return Collections.emptyList();
-					}
-					return tagInfos //
-							.stream() //
-							.map(info -> new BinaryUserTag(info, project)) //
-							.collect(Collectors.toList());
-				});
-	}
-
-	protected CompletableFuture<List<UserTagInfo>> getBinaryUserTags(QuteUserTagParams params) {
-		return userTagProvider.getUserTags(params);
+		// Completion for binaries + sources user tags (from
+		// src/main/resources/templates/tags)
+		completionsForUserTag.collectSnippetSuggestions(completionRequest, prefixFilter, suffixToFind, completionItems);
 	}
 
 	/**
@@ -159,14 +89,10 @@ public class UserTagRegistry {
 		return null;
 	}
 
-	public void refreshDataModel() {
-		completionsSourceUserTag.clear();
-	}
-
 	/**
 	 * Updates user tag usages for a given template.
 	 *
-	 * @param templateId         template URI
+	 * @param templateId  template URI
 	 * @param usages      collected parameters per user tag
 	 * @param oldTagNames previously known tag names for this template
 	 */
@@ -193,5 +119,16 @@ public class UserTagRegistry {
 
 	public UserTagUsages getUsages(String tagName) {
 		return usagesByTag.get(tagName);
+	}
+
+	public void registerUserTag(UserTag tag) {
+		completionsForUserTag.registerUserTag(tag);
+	}
+
+	public void unregisterUserTag(UserTag tag) {
+		// Handle removed usages
+		usagesByTag.remove(tag.getName());
+		// Unregister snippet
+		completionsForUserTag.unregisterUserTag(tag);
 	}
 }

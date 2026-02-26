@@ -21,7 +21,7 @@
             <command id="qute/template/projects"/>
             <command id="qute/template/project"/>
             <command id="qute/template/projectDataModel"/>
-            <command id="qute/template/userTags"/>
+            <command id="qute/template/binaryTemplates"/>
             <command id="qute/template/javaTypes"/>
             <command id="qute/template/resolvedJavaType"/>
             <command id="qute/template/javaDefinition"/>

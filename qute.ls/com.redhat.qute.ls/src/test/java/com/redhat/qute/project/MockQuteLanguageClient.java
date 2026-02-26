@@ -39,12 +39,12 @@ import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.binary.QuteBinaryTemplateParams;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
-import com.redhat.qute.commons.usertags.QuteUserTagParams;
-import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteLanguageClientAPI;
 
 /**
@@ -140,7 +140,7 @@ public class MockQuteLanguageClient implements QuteLanguageClientAPI {
 	}
 
 	@Override
-	public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
+	public CompletableFuture<List<BinaryTemplateInfo>> getBinaryTemplates(QuteBinaryTemplateParams params) {
 		return CompletableFuture.completedFuture(null);
 	}
 

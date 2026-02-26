@@ -114,7 +114,7 @@ public class ModelTextDocument<T> extends TextDocument {
 	/**
 	 * Mark the model as dirty
 	 */
-	private void cancelModel() {
+	protected void cancelModel() {
 		model = null;
 	}
 

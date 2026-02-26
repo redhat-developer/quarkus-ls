@@ -49,7 +49,7 @@ public class IncludeSection extends Section {
 	 * @return the referenced template file defined in the first parameter of the
 	 *         section and null otherwise.
 	 */
-	public Path getReferencedTemplateFile() {
+	public TemplatePath getReferencedTemplatePath() {
 		String referencedTemplateId = getReferencedTemplateId();
 		if (referencedTemplateId == null) {
 			return null;
@@ -58,11 +58,12 @@ public class IncludeSection extends Section {
 		if (project == null) {
 			return null;
 		}
+
 		// 1. Try to get a valid template from the Qute project
 		Path templatePath = getReferencedTemplateFile(referencedTemplateId, project);
 		if (templatePath != null && Files.exists(templatePath)) {
 			// Returns the valid template from the Qute project
-			return templatePath;
+			return new TemplatePath(templatePath, true);
 		}
 
 		if (!project.getProjectDependencies().isEmpty()) {
@@ -72,14 +73,20 @@ public class IncludeSection extends Section {
 				if (projectDependency != null) {
 					Path dependencyTemplatePath = getReferencedTemplateFile(referencedTemplateId, projectDependency);
 					if (dependencyTemplatePath != null && Files.exists(dependencyTemplatePath)) {
-						return dependencyTemplatePath;
+						return new TemplatePath(dependencyTemplatePath, true);
 					}
 				}
 			}
 		}
 
+		// 3. template from binary
+		String binaryUri = project.findTemplateUriByTemplateId(referencedTemplateId);
+		if (binaryUri != null) {
+			return new TemplatePath(binaryUri, true);
+		}
+
 		// Returns the invalid template from the Qute project
-		return templatePath;
+		return new TemplatePath(templatePath, false);
 	}
 
 	/**
