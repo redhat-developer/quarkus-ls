@@ -1664,7 +1664,7 @@ public class QuteProject {
 					if (dataModel == null) {
 						return null;
 					}
-					return dataModel.findDataModelTemplate(template.getUri());
+					return dataModel.findDataModelTemplate(template.getUri(), template.isUserTag());
 				});
 	}
 

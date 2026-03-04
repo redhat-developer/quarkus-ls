@@ -71,15 +71,18 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 	@Override
 	public Template getModel() {
 		var template = super.getModel();
-		if (template != null && template.getProjectUri() == null) {
-			template.setTemplateInfoProvider(this);
-			QuteProject project = findProject();
-			if (project != null) {
-				template.setProjectUri(project.getUri());
-				template.setTemplateId(templateId);
-				processCallVisitor(super.getModel(), project);
+		if (template != null) {
+			if (template.getProjectUri() == null) {
+				template.setTemplateInfoProvider(this);
+				QuteProject project = findProject();
+				if (project != null) {
+					template.setProjectUri(project.getUri());
+					template.setTemplateId(templateId);
+					processCallVisitor(super.getModel(), project);
+				}
+				template.setProjectRegistry(projectRegistry);
 			}
-			template.setProjectRegistry(projectRegistry);
+			template.setUserTag(isUserTag());
 		}
 		return template;
 	}
@@ -196,7 +199,6 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 	public Path getTemplatePath() {
 		return templatePath;
 	}
-	
 
 	@Override
 	protected void cancelModel() {
@@ -205,7 +207,7 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 			userTag.clear();
 		}
 	}
-	
+
 	@Override
 	public UserTag getUserTag() {
 		if (!isUserTag()) {
@@ -216,12 +218,12 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 		}
 		return userTag;
 	}
-	
+
 	@Override
 	public String getFileName() {
 		return templatePath.getFileName().toString();
 	}
-	
+
 	@Override
 	public String getOrigin() {
 		return null;

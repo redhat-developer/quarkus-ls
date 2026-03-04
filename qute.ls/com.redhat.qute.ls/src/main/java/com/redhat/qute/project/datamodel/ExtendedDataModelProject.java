@@ -292,8 +292,7 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 		return project.getConfig(property);
 	}
 
-	@Override
-	public ExtendedDataModelTemplate findDataModelTemplate(String templateUri) {
+	public ExtendedDataModelTemplate findDataModelTemplate(String templateUri, boolean userTags) {
 		ExtendedDataModelTemplate dataModelTemplate = super.findDataModelTemplate(templateUri);
 		if (dataModelTemplate == null || !dataModelTemplate.isInitialized()) {
 			// Process custom data model template (ex: Roq to inject page parameter)
@@ -304,7 +303,7 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 				for (DataModelTemplateParticipant participant : participants) {
 					if (participant.isEnabled()) {
 						// Ass custom data model parameter (ex: Roq to inject page parameter)
-						dataModelTemplate = participant.contributeToDataModel(templateUri, templatePath,
+						dataModelTemplate = participant.contributeToDataModel(templateUri, userTags, templatePath,
 								dataModelTemplate);
 					}
 				}
