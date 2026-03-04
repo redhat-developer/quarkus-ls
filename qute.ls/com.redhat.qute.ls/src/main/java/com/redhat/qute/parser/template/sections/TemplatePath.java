@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template.sections;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -20,6 +21,10 @@ public class TemplatePath {
 
 	private final String uri;
 	private final boolean exists;
+
+	public TemplatePath(Path templatePath) {
+		this(templatePath, Files.exists(templatePath));
+	}
 
 	public TemplatePath(Path templatePath, boolean exists) {
 		this(templatePath.toUri().toASCIIString(), exists);

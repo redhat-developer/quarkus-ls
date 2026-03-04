@@ -60,4 +60,11 @@ public interface ProjectExtension {
 	 *         operations
 	 */
 	boolean isEnabled();
+
+	/**
+	 * Returns the project extension id;
+	 * 
+	 * @return the project extension id
+	 */
+	String getId();
 }

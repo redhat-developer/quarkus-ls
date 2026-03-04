@@ -21,6 +21,7 @@ import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.TemplateRootPath;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
@@ -78,6 +79,11 @@ public class RoqProject extends BaseQuteProject {
 	@Override
 	protected void fillNamespaceResolverInfos(Map<String, NamespaceResolverInfo> namespaces) {
 
+	}
+
+	@Override
+	protected List<BinaryTemplateInfo> loadBinaryTemplatesSync() {
+		return loadDataBinaryTemplates("binary/BinaryTemplates.json", RoqProject.class);
 	}
 
 	public static String getFileUri(String fileName) {

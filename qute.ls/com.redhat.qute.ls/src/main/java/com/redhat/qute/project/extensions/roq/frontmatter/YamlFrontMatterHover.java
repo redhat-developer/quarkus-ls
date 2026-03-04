@@ -27,6 +27,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.parser.yaml.YamlDocument;
 import com.redhat.qute.parser.yaml.YamlNode;
 import com.redhat.qute.parser.yaml.YamlNodeKind;
@@ -83,8 +84,8 @@ public class YamlFrontMatterHover {
 			Path filePath = FileUtils.createPath(template.getUri());
 			String imageFilePath = ((YamlScalar) property.getValue()).getValue();
 			try {
-				Path imagePath = roq.getImagePath(filePath, imageFilePath);
-				if (imagePath != null && Files.exists(imagePath)) {
+				TemplatePath imagePath = roq.getImagePath(filePath, imageFilePath);
+				if (imagePath != null && imagePath.isExists()) {
 					boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
 					MarkupContent content = getImageDocumentation(imagePath, hasMarkdown);
 					Range range = YamlPositionUtility.createRange(property.getKey());

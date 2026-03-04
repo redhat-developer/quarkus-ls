@@ -17,6 +17,7 @@ import java.util.List;
 import org.eclipse.lsp4j.MarkupContent;
 
 import com.redhat.qute.QuteLanguageIds;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.project.extensions.roq.frontmatter.schema.FrontMatterProperty;
 import com.redhat.qute.utils.DocumentationUtils;
 import com.redhat.qute.utils.StringUtils;
@@ -74,13 +75,13 @@ public class YamlFrontMatterDocumentationUtils {
 		return DocumentationUtils.createMarkupContent(documentation, markdown);
 	}
 
-	public static MarkupContent getImageDocumentation(Path imagePath, boolean markdown) {
+	public static MarkupContent getImageDocumentation(TemplatePath imagePath, boolean markdown) {
 		StringBuilder documentation = new StringBuilder();
 
 		// Title
 		if (markdown) {
 			documentation.append("![image](");
-			documentation.append(imagePath.toUri().toASCIIString());
+			documentation.append(imagePath.getUri());
 			documentation.append(")");
 			documentation.append(System.lineSeparator());
 		}

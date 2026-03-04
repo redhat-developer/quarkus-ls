@@ -39,15 +39,6 @@ public class ExtendedDataModelTemplate extends DataModelTemplate<ExtendedDataMod
 		super.setTemplateUri(templateUri);
 	}
 
-	public void addParameter(ExtendedDataModelParameter parameter) {
-		List<ExtendedDataModelParameter> parameters = super.getParameters();
-		if (parameters == null) {
-			parameters = new ArrayList<>();
-			super.setParameters(parameters);
-		}
-		parameters.add(parameter);
-	}
-
 	private List<DataModelFragment<ExtendedDataModelParameter>> createFragments(
 			List<DataModelFragment<DataModelParameter>> fragments, ExtendedDataModelTemplate template) {
 		if (fragments == null) {

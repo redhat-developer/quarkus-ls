@@ -117,4 +117,12 @@ public class QuteBinaryTextDocument extends QuteReadOnlyTextDocument {
 		return binaryName;
 	}
 
+	@Override
+	public String getProperty(String name) {
+		if (properties == null) {
+			return null;
+		}
+		return properties.get(name);
+	}
+
 }

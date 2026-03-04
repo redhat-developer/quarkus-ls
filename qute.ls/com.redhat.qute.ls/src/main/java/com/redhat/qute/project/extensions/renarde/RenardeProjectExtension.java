@@ -96,6 +96,8 @@ import com.redhat.qute.utils.QutePositionUtility;
 public class RenardeProjectExtension implements ProjectExtension, CompletionParticipant, DefinitionParticipant,
 		DiagnosticsParticipant, DidChangeWatchedFilesParticipant, HoverParticipant, InlayHintParticipant {
 
+	private static final String RENARDE_PROJECT_EXTENSION_ID = "renarde";
+
 	private static final String M_NAMESPACE_NAME = "m";
 	private static final String M_NAMESPACE = "m:";
 
@@ -579,5 +581,10 @@ public class RenardeProjectExtension implements ProjectExtension, CompletionPart
 		}
 
 		return count;
+	}
+
+	@Override
+	public String getId() {
+		return RENARDE_PROJECT_EXTENSION_ID;
 	}
 }

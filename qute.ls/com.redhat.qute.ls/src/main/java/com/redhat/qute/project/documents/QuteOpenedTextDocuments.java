@@ -49,20 +49,26 @@ public class QuteOpenedTextDocuments extends ModelTextDocuments<Template> {
 	@Override
 	public ModelTextDocument<Template> onDidOpenTextDocument(DidOpenTextDocumentParams params) {
 		QuteOpenedTextDocument document = (QuteOpenedTextDocument) super.onDidOpenTextDocument(params);
-		projectRegistry.onDidOpenTextDocument(document);
+		if (document != null) {
+			projectRegistry.onDidOpenTextDocument(document);
+		}
 		return document;
 	}
 
 	@Override
 	public ModelTextDocument<Template> onDidCloseTextDocument(DidCloseTextDocumentParams params) {
 		QuteOpenedTextDocument document = (QuteOpenedTextDocument) super.onDidCloseTextDocument(params);
-		projectRegistry.onDidCloseTextDocument(document);
+		if (document != null) {
+			projectRegistry.onDidCloseTextDocument(document);
+		}
 		return document;
 	}
 
 	public ModelTextDocument<Template> onDidSaveTextDocument(DidSaveTextDocumentParams params) {
 		QuteOpenedTextDocument document = (QuteOpenedTextDocument) super.onDidSaveTextDocument(params);
-		projectRegistry.onDidSaveTextDocument(document);
+		if (document != null) {
+			projectRegistry.onDidSaveTextDocument(document);
+		}
 		return document;
 	}
 }
