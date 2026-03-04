@@ -52,6 +52,8 @@ public class Template extends Node {
 
 	private QuteTextDocument templateInfoProvider;
 
+	private boolean userTag;
+	
 	public Template(TextDocument textDocument) {
 		super(0, textDocument.getText().length());
 		this.textDocument = textDocument;
@@ -314,5 +316,13 @@ public class Template extends Node {
 			return CompletableFuture.completedFuture(null);
 		}
 		return templateInfoProvider.getProjectInfoFuture();
+	}
+	
+	public void setUserTag(boolean userTag) {
+		this.userTag = userTag;
+	}
+	
+	public boolean isUserTag() {
+		return userTag;
 	}
 }

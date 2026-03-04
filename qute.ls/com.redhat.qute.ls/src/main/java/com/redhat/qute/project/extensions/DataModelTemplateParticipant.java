@@ -22,7 +22,7 @@ import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
  */
 public interface DataModelTemplateParticipant extends BaseParticpant {
 
-	ExtendedDataModelTemplate contributeToDataModel(String templateUri, Path templatePath,
+	ExtendedDataModelTemplate contributeToDataModel(String templateUri, boolean userTags, Path templatePath,
 			ExtendedDataModelTemplate dataModelTemplate);
 
 }

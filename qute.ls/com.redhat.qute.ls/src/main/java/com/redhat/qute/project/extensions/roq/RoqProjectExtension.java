@@ -57,6 +57,7 @@ import com.redhat.qute.project.extensions.roq.data.yaml.YamlDataLoader;
 import com.redhat.qute.project.extensions.roq.frontmatter.YamlFrontMatterDetector;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
+import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * Qute project extension for Roq integration.
@@ -503,19 +504,25 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	}
 
 	@Override
-	public ExtendedDataModelTemplate contributeToDataModel(String templateUri, Path templatePath,
+	public ExtendedDataModelTemplate contributeToDataModel(String templateUri, boolean userTags, Path templatePath,
 			ExtendedDataModelTemplate dataModelTemplate) {
+		if (userTags) {
+			// Template is an user tag, page and site must not be injected in the template
+			return null;
+		}
 		if (dataModelTemplate == null) {
 			dataModelTemplate = new ExtendedDataModelTemplate(templateUri);
 		}
 
+		TemplateType templateType = getTemplateType(templateUri, templatePath);
 		DataModelParameter site = new DataModelParameter();
+
+		// site
 		site.setKey("site");
 		site.setSourceType("io.quarkiverse.roq.frontmatter.runtime.model.Site");
 		dataModelTemplate.addParameter(new ExtendedDataModelParameter(site, dataModelTemplate));
 
 		// page
-		TemplateType templateType = getTemplateType(templateUri, templatePath);
 		DataModelParameter page = new DataModelParameter();
 		page.setKey("page");
 		page.setSourceType("io.quarkiverse.roq.frontmatter.runtime.model."
@@ -703,9 +710,10 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	@Override
 	public void collectCodeLenses(Template template, SharedSettings settings, List<CodeLens> lenses,
 			CancelChecker cancelChecker) {
-		if (hasYamlFrontMatter(template)) {
-			// The template already defines a yaml front matter, don't show "Insert
-			// Frontmatter"
+		if (UserTagUtils.isUserTag(template) || hasYamlFrontMatter(template)) {
+			// Don't show "Insert FrontMatter" codelens when:
+			// - template is an user tag -
+			// -the template already defines a yaml front matter,
 			return;
 		}
 		CodeLens codeLens = new CodeLens(QutePositionUtility.ZERO_RANGE);
