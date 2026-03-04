@@ -93,7 +93,6 @@ import com.redhat.qute.project.extensions.HoverParticipant;
 import com.redhat.qute.project.extensions.InlayHintParticipant;
 import com.redhat.qute.project.extensions.ProjectExtension;
 import com.redhat.qute.project.extensions.TemplateLanguageInjectionParticipant;
-import com.redhat.qute.project.extensions.config.PropertyConfig;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagRegistry;
 import com.redhat.qute.services.QuteCompletableFutures;
@@ -163,7 +162,7 @@ public class QuteProject {
 	private List<QuteProject> projectDependencies;
 
 	// Project extensions
-	private final List<ProjectExtension> extensions;
+	private final Map<String, ProjectExtension> extensions;
 
 	private final Set<ProjectFeature> projectFeatures;
 
@@ -196,7 +195,7 @@ public class QuteProject {
 		this.javaCache = new JavaDataModelCache(this);
 		this.projectDependencies = new ArrayList<>();
 		// Project extensions
-		this.extensions = new ArrayList<>();
+		this.extensions = new HashMap<>();
 		this.codeLensParticipants = new ArrayList<>();
 		this.completionParticipants = new ArrayList<>();
 		this.dataModelTemplateParticipants = new ArrayList<>();
@@ -218,7 +217,7 @@ public class QuteProject {
 
 	void registerExtension(ProjectExtension extension) {
 		try {
-			extensions.add(extension);
+			extensions.put(extension.getId(), extension);
 			if (extension instanceof CodeLensParticipant) {
 				codeLensParticipants.add((CodeLensParticipant) extension);
 			}
@@ -253,10 +252,14 @@ public class QuteProject {
 
 	void unregisterExtension(ProjectExtension extension) {
 		try {
-			extensions.remove(extension);
+			extensions.remove(extension.getId());
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Error while stopping extension <" + extension.getClass().getName() + ">", e);
 		}
+	}
+
+	public ProjectExtension getExtension(String id) {
+		return extensions.get(id);
 	}
 
 	private static Set<Path> toSourcePaths(Set<String> sourceFolders) {
@@ -588,7 +591,7 @@ public class QuteProject {
 		if (!isFutureLoaded(dataModelProjectFuture)) {
 			dataModelProjectFuture = loadDataModelProject() //
 					.thenApply(model -> {
-						for (ProjectExtension extension : extensions) {
+						for (ProjectExtension extension : getExtensions()) {
 							extension.init(model);
 						}
 						return model;
@@ -1774,25 +1777,12 @@ public class QuteProject {
 	 * 
 	 * @return the Qute project extension list.
 	 */
-	public List<ProjectExtension> getExtensions() {
-		return extensions;
+	public Collection<ProjectExtension> getExtensions() {
+		return extensions.values();
 	}
 
 	public boolean hasProjectFeature(ProjectFeature projectFeature) {
 		return projectFeatures != null && projectFeatures.contains(projectFeature);
-	}
-
-	public Path getConfigAsPath(PropertyConfig property) {
-		if (projectFolder == null) {
-			return null;
-		}
-		String value = getConfig(property);
-		return value != null ? projectFolder.resolve(value) : projectFolder;
-	}
-
-	public String getConfig(PropertyConfig property) {
-		// TODO: search property in application.properties
-		return property.getDefaultValue();
 	}
 
 	// Participants
@@ -1849,7 +1839,7 @@ public class QuteProject {
 		return Collections.emptyList();
 	}
 
-	void registerBinaryTemplates(List<BinaryTemplateInfo> binaryTemplates) {
+	protected void registerBinaryTemplates(List<BinaryTemplateInfo> binaryTemplates) {
 		for (BinaryTemplateInfo binaryTemplate : binaryTemplates) {
 			String binaryName = binaryTemplate.getBinaryName();
 			Map<String, String> properties = binaryTemplate.getProperties();

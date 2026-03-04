@@ -93,7 +93,7 @@ public interface QuteTextDocument {
 	String getUri();
 
 	Path getTemplatePath();
-	
+
 	/**
 	 * Returns true if the document is opened and false otherwise.
 	 * 
@@ -104,7 +104,7 @@ public interface QuteTextDocument {
 	default boolean isBinary() {
 		return false;
 	}
-	
+
 	/**
 	 * Returns true if the document is an user tag and false otherwise.
 	 * 
@@ -124,6 +124,10 @@ public interface QuteTextDocument {
 	UserTag getUserTag();
 
 	String getFileName();
-	
+
 	String getOrigin();
+
+	default String getProperty(String name) {
+		return null;
+	}
 }

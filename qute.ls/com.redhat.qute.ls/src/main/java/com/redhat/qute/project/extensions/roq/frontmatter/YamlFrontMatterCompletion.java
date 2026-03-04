@@ -41,6 +41,7 @@ import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.ls.commons.snippets.SnippetsBuilder;
 import com.redhat.qute.parser.NodeBase;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.parser.yaml.YamlDocument;
 import com.redhat.qute.parser.yaml.YamlNode;
 import com.redhat.qute.parser.yaml.YamlNodeKind;
@@ -270,10 +271,17 @@ public class YamlFrontMatterCompletion {
 			boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
 
 			Path filePath = FileUtils.createPath(template.getUri());
-			roq.collectLayouts(filePath, (folder, layout) -> {
-				String fileName = folder.relativize(layout).toString().replace('\\', '/');
-				fileName = DataModelProject.getUriWithoutExtension(fileName);
-				CompletionItem item = createCompletionFile(fileName, range, snippetsSupported);
+			roq.collectLayouts(filePath, (folder, layout, templateId, binary, origin) -> {
+				if (templateId == null) {
+					templateId = folder.relativize(layout).toString().replace('\\', '/');
+					templateId = DataModelProject.getUriWithoutExtension(templateId);
+				}
+				CompletionItem item = createCompletionFile(templateId, range, snippetsSupported);
+				if (origin != null) {
+					CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+					labelDetails.setDescription(origin);
+					item.setLabelDetails(labelDetails);
+				}
 				completionItems.add(item);
 			});
 		}
@@ -352,7 +360,7 @@ public class YamlFrontMatterCompletion {
 			boolean hasMarkdown = completionSettings.canSupportMarkupKind(MarkupKind.MARKDOWN);
 
 			Path templatePath = FileUtils.createPath(template.getUri());
-			roq.collectImages(templatePath, (folder, image) -> {
+			roq.collectImages(templatePath, (folder, image, templateId, binary, origin) -> {
 				String imagePath = folder.relativize(image).toString().replace('\\', '/');
 				if (propertyValue != null && propertyValue.getKind() == YamlNodeKind.YamlScalar) {
 					String path = ((YamlScalar) propertyValue).getValue();
@@ -363,7 +371,7 @@ public class YamlFrontMatterCompletion {
 				CompletionItem item = createCompletionFile(imagePath, range, snippetsSupported);
 
 				// Documentation
-				MarkupContent documentation = getImageDocumentation(image, hasMarkdown);
+				MarkupContent documentation = getImageDocumentation(new TemplatePath(image), hasMarkdown);
 				item.setDocumentation(documentation);
 
 				completionItems.add(item);

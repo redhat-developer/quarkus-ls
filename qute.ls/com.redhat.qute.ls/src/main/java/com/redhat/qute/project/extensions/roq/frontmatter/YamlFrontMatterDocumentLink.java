@@ -20,6 +20,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.parser.yaml.YamlDocument;
 import com.redhat.qute.parser.yaml.YamlMapping;
 import com.redhat.qute.parser.yaml.YamlNode;
@@ -57,18 +58,16 @@ public class YamlFrontMatterDocumentLink {
 								Range range = YamlPositionUtility.createRange(propertyValue);
 								if (range != null) {
 									String layoutFileName = ((YamlScalar) propertyValue).getValue();
-									if (layoutFileName.indexOf(':') == -1) {
-										// Ignore path with :theme/
-										try {
-											Path layoutPath = roq.getLayoutPath(filePath, layoutFileName);
-											if (layoutPath != null) {
-												String target = layoutPath.toUri().toASCIIString();
-												links.add(new DocumentLink(range, target != null ? target : ""));
-											}
-										} catch (Exception e) {
-											// Ignore error with invalid path
+									try {
+										TemplatePath layoutPath = roq.getLayoutPath(filePath, layoutFileName);
+										if (layoutPath != null) {
+											String target = layoutPath.getUri();
+											links.add(new DocumentLink(range, target != null ? target : ""));
 										}
+									} catch (Exception e) {
+										// Ignore error with invalid path
 									}
+
 								}
 							} else if (property.isProperty(FrontMatterProperty.IMAGE_PROPERTY)) {
 								// ex: image: foo.png --> foo.png must be a link.
@@ -76,9 +75,9 @@ public class YamlFrontMatterDocumentLink {
 								if (range != null) {
 									String imageFilePath = ((YamlScalar) propertyValue).getValue();
 									try {
-										Path imagePath = roq.getImagePath(filePath, imageFilePath);
+										TemplatePath imagePath = roq.getImagePath(filePath, imageFilePath);
 										if (imagePath != null) {
-											String target = imagePath.toUri().toASCIIString();
+											String target = imagePath.getUri();
 											links.add(new DocumentLink(range, target != null ? target : ""));
 										}
 									} catch (Exception e) {
