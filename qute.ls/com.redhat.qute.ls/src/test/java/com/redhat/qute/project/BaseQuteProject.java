@@ -14,6 +14,8 @@ package com.redhat.qute.project;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.gson.GsonBuilder;
@@ -22,6 +24,7 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 
@@ -30,6 +33,12 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
  */
 public abstract class BaseQuteProject extends MockQuteProject {
 
+	private static class BinaryTemplateInfoLoader {
+		List<BinaryTemplateInfo> binaries;
+	}
+
+	private boolean binaryDoumentsLoaded;
+
 	public BaseQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		super(projectInfo, projectRegistry);
 	}
@@ -37,6 +46,11 @@ public abstract class BaseQuteProject extends MockQuteProject {
 	protected DataModelProject<DataModelTemplate<?>> loadDataModel(String fileName, Class<?> clazz) {
 		InputStream in = clazz.getResourceAsStream(fileName);
 		return new GsonBuilder().create().fromJson(new InputStreamReader(in), DataModelProject.class);
+	}
+
+	protected List<BinaryTemplateInfo> loadDataBinaryTemplates(String fileName, Class<?> clazz) {
+		InputStream in = clazz.getResourceAsStream(fileName);
+		return new GsonBuilder().create().fromJson(new InputStreamReader(in), BinaryTemplateInfoLoader.class).binaries;
 	}
 
 	protected void loadResolvedJavaType(String fileName, List<ResolvedJavaTypeInfo> resolvedJavaTypes, Class<?> clazz) {
@@ -173,6 +187,19 @@ public abstract class BaseQuteProject extends MockQuteProject {
 		// Load JsonObject from vertx
 		loadResolvedJavaType("JsonObject.json", resolvedJavaTypes, BaseQuteProject.class);
 
+	}
+
+	@Override
+	public Collection<QuteTextDocument> getBinaryDocuments() {
+		if (!binaryDoumentsLoaded) {
+			binaryDoumentsLoaded = true;
+			super.registerBinaryTemplates(loadBinaryTemplatesSync());
+		}
+		return super.getBinaryDocuments();
+	}
+
+	protected List<BinaryTemplateInfo> loadBinaryTemplatesSync() {
+		return Collections.emptyList();
 	}
 
 }

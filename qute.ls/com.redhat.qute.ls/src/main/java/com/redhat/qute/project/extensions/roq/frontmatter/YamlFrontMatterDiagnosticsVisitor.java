@@ -13,7 +13,6 @@ package com.redhat.qute.project.extensions.roq.frontmatter;
 
 import static com.redhat.qute.services.diagnostics.DiagnosticDataFactory.createDiagnostic;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -23,6 +22,7 @@ import org.eclipse.lsp4j.Range;
 
 import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.parser.yaml.YamlASTVisitor;
 import com.redhat.qute.parser.yaml.YamlNode;
 import com.redhat.qute.parser.yaml.YamlNodeKind;
@@ -55,28 +55,54 @@ public class YamlFrontMatterDiagnosticsVisitor extends YamlASTVisitor {
 
 	@Override
 	public boolean visit(YamlProperty node) {
-		if (node.isProperty(FrontMatterProperty.IMAGE_PROPERTY)) {
-			YamlNode propertyValue = node.getValue();
-			if (propertyValue != null && propertyValue.getKind() == YamlNodeKind.YamlScalar) {
-				String imageFilePath = ((YamlScalar) propertyValue).getValue();
-				try {
-					Path imagePath = roq.getImagePath(filePath, imageFilePath);
-					if (!Files.exists(imagePath)) {
-						Range range = YamlPositionUtility.createRange(propertyValue);
-						Diagnostic d = createDiagnostic(range, DiagnosticSeverity.Warning,
-								YamlFrontMatterErrorCode.ImageNotFound, imageFilePath);
-						diagnostics.add(d);
-					}
-				} catch (Exception e) {
-					Range range = YamlPositionUtility.createRange(propertyValue);
-					Diagnostic d = createDiagnostic(range, DiagnosticSeverity.Warning,
-							YamlFrontMatterErrorCode.InvalidImagePath, imageFilePath, e.getMessage());
-					diagnostics.add(d);
-				}
-			}
-
+		if (node.isProperty(FrontMatterProperty.LAYOUT_PROPERTY)) {
+			validateLayoutProperty(node);
+		} else if (node.isProperty(FrontMatterProperty.IMAGE_PROPERTY)) {
+			validateImageProperty(node);
 		}
 		return super.visit(node);
+	}
+
+	private void validateLayoutProperty(YamlProperty node) {
+		YamlNode propertyValue = node.getValue();
+		if (propertyValue != null && propertyValue.getKind() == YamlNodeKind.YamlScalar) {
+			String layoutFilePath = ((YamlScalar) propertyValue).getValue();
+			try {
+				TemplatePath layoutPath = roq.getLayoutPath(filePath, layoutFilePath);
+				if (layoutPath != null && !layoutPath.isExists()) {
+					Range range = YamlPositionUtility.createRange(propertyValue);
+					Diagnostic d = createDiagnostic(range, DiagnosticSeverity.Warning,
+							YamlFrontMatterErrorCode.LayoutNotFound, layoutFilePath);
+					diagnostics.add(d);
+				}
+			} catch (Exception e) {
+				Range range = YamlPositionUtility.createRange(propertyValue);
+				Diagnostic d = createDiagnostic(range, DiagnosticSeverity.Warning,
+						YamlFrontMatterErrorCode.InvalidLayoutPath, layoutFilePath, e.getMessage());
+				diagnostics.add(d);
+			}
+		}
+	}
+
+	private void validateImageProperty(YamlProperty node) {
+		YamlNode propertyValue = node.getValue();
+		if (propertyValue != null && propertyValue.getKind() == YamlNodeKind.YamlScalar) {
+			String imageFilePath = ((YamlScalar) propertyValue).getValue();
+			try {
+				TemplatePath imagePath = roq.getImagePath(filePath, imageFilePath);
+				if (imagePath != null && !imagePath.isExists()) {
+					Range range = YamlPositionUtility.createRange(propertyValue);
+					Diagnostic d = createDiagnostic(range, DiagnosticSeverity.Warning,
+							YamlFrontMatterErrorCode.ImageNotFound, imageFilePath);
+					diagnostics.add(d);
+				}
+			} catch (Exception e) {
+				Range range = YamlPositionUtility.createRange(propertyValue);
+				Diagnostic d = createDiagnostic(range, DiagnosticSeverity.Warning,
+						YamlFrontMatterErrorCode.InvalidImagePath, imageFilePath, e.getMessage());
+				diagnostics.add(d);
+			}
+		}
 	}
 
 }

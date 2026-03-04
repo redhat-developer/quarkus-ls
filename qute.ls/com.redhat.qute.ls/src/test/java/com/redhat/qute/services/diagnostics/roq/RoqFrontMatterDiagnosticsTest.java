@@ -35,6 +35,50 @@ import com.redhat.qute.project.roq.RoqProject;
  */
 public class RoqFrontMatterDiagnosticsTest {
 
+	// Layout validation
+
+	@Test
+	public void validLayout() throws Exception {
+		String template = "---\r\n" + //
+				"layout: default\r\n" + //
+				"title: My title\r\n" + //
+				"---";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void layoutNotFound() throws Exception {
+		String template = "---\r\n" + //
+				"layout: defaultXXXX\r\n" + //
+				"title: My title\r\n" + //
+				"---";
+		testDiagnosticsFor(template, //
+				d(1, 8, 1, 19, YamlFrontMatterErrorCode.LayoutNotFound, "Layout not found: `defaultXXXX`.", //
+						"qute", DiagnosticSeverity.Warning));
+	}
+
+	@Test
+	public void validLayoutTheme() throws Exception {
+		String template = "---\r\n" + //
+				"layout: :theme/default\r\n" + //
+				"title: My title\r\n" + //
+				"---";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void layoutThemeNotFound() throws Exception {
+		String template = "---\r\n" + //
+				"layout: :theme/defaultXXXX\r\n" + //
+				"title: My title\r\n" + //
+				"---";
+		testDiagnosticsFor(template, //
+				d(1, 8, 1, 26, YamlFrontMatterErrorCode.LayoutNotFound, "Layout not found: `:theme/defaultXXXX`.", //
+						"qute", DiagnosticSeverity.Warning));
+	}
+
+	// Image validation
+
 	@Test
 	public void validImage() throws Exception {
 		String template = "---\r\n" + //

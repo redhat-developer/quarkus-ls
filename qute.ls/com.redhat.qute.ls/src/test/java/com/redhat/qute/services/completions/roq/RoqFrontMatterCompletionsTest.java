@@ -120,21 +120,30 @@ public class RoqFrontMatterCompletionsTest {
 				"layout: |\r\n";
 		testCompletionFor(template, //
 				c("default", "default", r(1, 8, 1, 8)), //
-				c("page", "page", r(1, 8, 1, 8)));
+				c("page", "page", r(1, 8, 1, 8)), //
+				// binaries
+				c(":theme/default", ":theme/default", r(1, 8, 1, 8)),
+				c("theme-layouts/roq-default/default", "theme-layouts/roq-default/default", r(1, 8, 1, 8)));
 
 		template = "---\r\n" + //
 				"layout: |\r\n" + //
 				"title: My title\r\n";
 		testCompletionFor(template, //
 				c("default", "default", r(1, 8, 1, 8)), //
-				c("page", "page", r(1, 8, 1, 8)));
+				c("page", "page", r(1, 8, 1, 8)), //
+				// binaries
+				c(":theme/default", ":theme/default", r(1, 8, 1, 8)),
+				c("theme-layouts/roq-default/default", "theme-layouts/roq-default/default", r(1, 8, 1, 8)));
 
 		template = "---\r\n" + //
 				"title: My title\r\n" + //
 				"layout: |\r\n";
 		testCompletionFor(template, //
 				c("default", "default", r(2, 8, 2, 8)), //
-				c("page", "page", r(2, 8, 2, 8)));
+				c("page", "page", r(2, 8, 2, 8)), //
+				// binaries
+				c(":theme/default", ":theme/default", r(2, 8, 2, 8)),
+				c("theme-layouts/roq-default/default", "theme-layouts/roq-default/default", r(2, 8, 2, 8)));
 
 		template = "---\r\n" + //
 				"title: My title\r\n" + //
@@ -142,7 +151,10 @@ public class RoqFrontMatterCompletionsTest {
 				"description: Some description\r\n";
 		testCompletionFor(template, //
 				c("default", "default", r(2, 8, 2, 8)), //
-				c("page", "page", r(2, 8, 2, 8)));
+				c("page", "page", r(2, 8, 2, 8)), //
+				// binaries
+				c(":theme/default", ":theme/default", r(2, 8, 2, 8)),
+				c("theme-layouts/roq-default/default", "theme-layouts/roq-default/default", r(2, 8, 2, 8)));
 	}
 
 	@Test

@@ -36,12 +36,15 @@ import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MessageMethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
 import com.redhat.qute.project.extensions.DataModelTemplateParticipant;
+import com.redhat.qute.project.extensions.ProjectExtension;
+import com.redhat.qute.project.extensions.config.ApplicationPropertiesProjectExtension;
 import com.redhat.qute.project.extensions.config.PropertyConfig;
 import com.redhat.qute.utils.JSONUtility;
 import com.redhat.qute.utils.StringUtils;
@@ -66,9 +69,13 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 
 	private Set<String> javaTypesSupportedInNativeMode;
 
+	private final ApplicationPropertiesProjectExtension applicationProperties;
+
 	public ExtendedDataModelProject(DataModelProject<DataModelTemplate<DataModelParameter>> dataModelProject,
 			QuteProject project) {
 		this.project = project;
+		this.applicationProperties = (ApplicationPropertiesProjectExtension) project
+				.getExtension(ApplicationPropertiesProjectExtension.APPLICATION_PROPERTIES_PROJECT_EXTENSION_ID);
 		super.setTemplates(createTemplates(dataModelProject.getTemplates()));
 		super.setNamespaceResolverInfos(dataModelProject.getNamespaceResolverInfos());
 
@@ -285,11 +292,19 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 	}
 
 	public Path getConfigAsPath(PropertyConfig property) {
-		return project.getConfigAsPath(property);
+		Path projectFolder = project.getProjectFolder();
+		if (projectFolder == null) {
+			return null;
+		}
+		String value = getConfig(property);
+		return value != null ? projectFolder.resolve(value) : projectFolder;
 	}
 
 	public String getConfig(PropertyConfig property) {
-		return project.getConfig(property);
+		if (applicationProperties != null) {
+			return applicationProperties.getConfig(property);
+		}
+		return property.getDefaultValue();
 	}
 
 	public ExtendedDataModelTemplate findDataModelTemplate(String templateUri, boolean userTags) {
@@ -318,5 +333,17 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 		}
 
 		return super.findDataModelTemplate(templateUri);
+	}
+
+	public String findTemplateUriByTemplateId(String templateId) {
+		return project.findTemplateUriByTemplateId(templateId);
+	}
+
+	public Collection<QuteTextDocument> getBinaryDocuments() {
+		return project.getBinaryDocuments();
+	}
+
+	public ProjectExtension getExtension(String id) {
+		return project.getExtension(id);
 	}
 }

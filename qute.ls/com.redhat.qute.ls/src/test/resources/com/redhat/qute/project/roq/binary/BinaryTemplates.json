@@ -1,0 +1,273 @@
+{
+	"binaries": [
+		{
+			"binaryName": "quarkus-roq-frontmatter-2.1.0.BETA2.jar",
+			"templates": [
+				{
+					"path": "fm/pagination.html",
+					"uri": "jdt://jarentry/templates/fm/pagination.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}\n\n{#if page.paginator}\n  <nav class=\"pagination\" role=\"navigation\">\n    <ul>\n      {#if page.paginator.previous}\n      <p><a class=\"newer-posts\" href=\"{page.paginator.previous}\">{#insert newer}‹{/insert}</a></p>\n      {/if}\n\n      {#if page.paginator.total > 1}\n      <p><span class=\"page-number\">{fm:pageNumber(page.paginator.currentIndex, page.paginator.total)}</span></p>\n      {/if}\n\n      {#if page.paginator.next}\n      <p><a class=\"older-posts\" href=\"{page.paginator.next}\">{#insert older}›{/insert}</a></p>\n      {/if}\n    </ul>\n  </nav>\n{/if}"
+				},
+				{
+					"path": "fm/rss.html",
+					"uri": "jdt://jarentry/templates/fm/rss.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@java.lang.String collectionName}\n{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\n{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}\n{#let name=(collectionName ?: 'posts')}\n<rss xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:content=\"http://purl.org/rss/1.0/modules/content/\" xmlns:atom=\"http://www.w3.org/2005/Atom\" version=\"2.0\">\n  <channel>\n    <title><![CDATA[ {site.title} ]]></title>\n    <description><![CDATA[ {site.description} ]]></description>\n    <link>{site.url.absolute}</link>\n    <atom:link href=\"{site.url('rss.xml').absolute}\" rel=\"self\" type=\"application/rss+xml\"/>\n    <generator>Quarkus Roq</generator>\n    {#if site.collections.get(name)}\n    <lastBuildDate>{#if site.collections.get(name).size > 0}{site.collections.get(name).get(0).date.format('EEE, dd MMM yyyy HH:mm:ss Z')}{/if}</lastBuildDate>\n    {#for post in site.collections.get(name)}\n      <item>\n        <title><![CDATA[{post.title}]]></title>\n        <link>{post.url.absolute}</link>\n        <guid isPermaLink=\"false\">{post.url.absolute}</guid>\n        <pubDate>{post.date.format('EEE, dd MMM yyyy HH:mm:ss Z')}</pubDate>\n        <description><![CDATA[{post.description}]]></description>\n        <content:encoded><![CDATA[<p>{post.description}</p><div style=\"margin-top: 50px; font-style: italic;\"><strong><a href=\"{post.url.absolute}\">Keep reading</a>.</strong></div><br /> <br />]]></content:encoded>\n      </item>\n    {/for}\n    {/if}\n  </channel>\n</rss>\n\n"
+				},
+				{
+					"path": "tags/seoTitle.html",
+					"uri": "jdt://jarentry/templates/tags/seoTitle.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@java.lang.String pageTitle}\n{@java.lang.String siteTitle}\n\n{#if pageTitle || siteTitle}\n  <!-- SEO TITLE -->\n  {#capture title}{#if pageTitle && pageTitle ne siteTitle}{pageTitle} - {siteTitle}{#else}{siteTitle}{/if}{/capture}\n  <title>{#include $title /}</title>\n  <meta property=\"og:title\" content=\"{pageTitle ?: siteTitle}\" />\n  <meta name=\"twitter:title\" content=\"{pageTitle ?: siteTitle}\">\n{/if}\n{#if siteTitle}\n  <meta property=\"og:site_name\" content=\"{siteTitle}\">\n{/if}"
+				},
+				{
+					"path": "tags/seoLocale.html",
+					"uri": "jdt://jarentry/templates/tags/seoLocale.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{#if pageLocale || siteLocale}\n  <!-- SEO LOCALE -->\n  <meta property=\"og:locale\" content=\"{pageLocale ?: siteLocale}\" />\n{#else}\n  <!-- SEO LOCALE -->\n  <meta property=\"og:locale\" content=\"{defaultLocale}\" />\n{/if}"
+				},
+				{
+					"path": "tags/seoAuthor.html",
+					"uri": "jdt://jarentry/templates/tags/seoAuthor.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{#if pageAuthor || siteAuthor}\n  <!-- SEO AUTHOR -->\n  <meta property=\"article:author\" content=\"{pageAuthor ?: siteAuthor}\" />\n  <meta name=\"author\" content=\"{pageAuthor ?: siteAuthor}\" />\n{/if}"
+				},
+				{
+					"path": "tags/seoImage.html",
+					"uri": "jdt://jarentry/templates/tags/seoImage.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\n{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}\n\n{#if page.image}\n  <!-- SEO IMAGE -->\n  <meta name=\"twitter:card\" content=\"summary_large_image\" />\n  <meta name=\"twitter:image:src\" content=\"{page.image.absolute}\" />\n  <meta property=\"og:image\" content=\"{page.image.absolute}\" />\n{#else}\n  <!-- SEO IMAGE -->\n  <meta name=\"twitter:card\" content=\"summary\">\n{/if}"
+				},
+				{
+					"path": "tags/ga4.html",
+					"uri": "jdt://jarentry/templates/tags/ga4.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@java.lang.String tag}\n{#if tag}\n    <script async src=\"https://www.googletagmanager.com/gtag/js?id=G-{tag}\"></script>\n    <script>\n        window.dataLayer = window.dataLayer || [];\n        function gtag()\\{dataLayer.push(arguments);\\}\n        gtag('js', new Date());\n\n        gtag('config', 'G-{tag}');\n    </script>\n{/if}"
+				},
+				{
+					"path": "tags/seoType.html",
+					"uri": "jdt://jarentry/templates/tags/seoType.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}\n\n{#if page.date}\n  <!-- SEO TYPE -->\n  <meta property=\"og:type\" content=\"article\" />\n  <meta property=\"article:published_time\" content=\"{page.date}\" />\n{#else}\n  <!-- SEO TYPE -->\n  <meta property=\"og:type\" content=\"website\" />\n{/if}"
+				},
+				{
+					"path": "tags/seoTwitter.html",
+					"uri": "jdt://jarentry/templates/tags/seoTwitter.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{#if twitter}\n  <!-- SEO TWITTER -->\n  <meta name=\"twitter:site\" content=\"@{twitter}\" />\n  <meta name=\"twitter:creator\" content=\"@{twitter}\" />\n{/if}"
+				},
+				{
+					"path": "tags/seoPaginator.html",
+					"uri": "jdt://jarentry/templates/tags/seoPaginator.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{#seoPaginatorNormal page/}\n{#seoPaginatorDocument page /}"
+				},
+				{
+					"path": "tags/seoPaginatorDocument.html",
+					"uri": "jdt://jarentry/templates/tags/seoPaginatorDocument.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}\n{#if page.collection??}\n  <!-- SEO COLLECTION PAGES -->\n  {#if page.prevPage}\n  <link rel=\"prev\" href=\"{page.prevPage.url.absolute}\" />\n  {/if}\n  {#if page.nextPage}\n  <link rel=\"next\" href=\"{page.nextPage.url.absolute}\" />\n  {/if}\n{/if}\n"
+				},
+				{
+					"path": "tags/seoUrl.html",
+					"uri": "jdt://jarentry/templates/tags/seoUrl.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{#if url}\n  <!-- SEO URL -->\n  <link rel=\"canonical\" href=\"{url.absolute}\" />\n  <meta property=\"og:url\" content=\"{url.absolute}\" />\n  <meta name=\"twitter:url\" content=\"{url.absolute}\">\n{/if}"
+				},
+				{
+					"path": "tags/seo.html",
+					"uri": "jdt://jarentry/templates/tags/seo.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\n{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}\n\n{#seoTitle pageTitle=page.title siteTitle=site.title /}\n{#seoDescription pageDescription=page.description siteDescription=site.description /}\n{#seoAuthor pageAuthor=page.data.author?? siteAuthor=site.data.author?? /}\n{#seoUrl url=page.url /}\n{#seoType page /}\n{#seoImage page site /}\n{#seoVerifications webmasterVerifications=site.data.webmasterVerifications?? /}\n{#seoPaginator page site /}\n{#seoFacebook facebook=site.data.facebook?? /}\n{#seoTwitter twitter=site.data.twitter?? /}\n{#seoLocale pageLocale=page.data.lang?? siteLocale=site.data.lang?? defaultLocale=global:locale /}\n{#seoGenerator name=\"Quarkus Roq\" version=global:roqVersion /}"
+				},
+				{
+					"path": "tags/seoGenerator.html",
+					"uri": "jdt://jarentry/templates/tags/seoGenerator.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{#if name}\n  <!-- SEO GENERATOR -->\n  <meta name=\"generator\" content=\"{name} v{version}\" />\n{/if}"
+				},
+				{
+					"path": "tags/seoVerifications.html",
+					"uri": "jdt://jarentry/templates/tags/seoVerifications.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{#if webmasterVerifications}\n  <!-- SEO VERIFICATION -->\n  {#if webmasterVerifications.google}\n    <meta name=\"google-site-verification\" content=\"{webmasterVerifications.google}\">\n  {/if}\n  {#if webmasterVerifications.bing}\n    <meta name=\"msvalidate.01\" content=\"{webmasterVerifications.bing}\">\n  {/if}\n  {#if webmasterVerifications.alexa}\n    <meta name=\"alexaVerifyID\" content=\"{webmasterVerifications.alexa}\">\n  {/if}\n  {#if webmasterVerifications.yandex}\n    <meta name=\"yandex-verification\" content=\"{webmasterVerifications.yandex}\">\n  {/if}\n  {#if webmasterVerifications.baidu}\n    <meta name=\"baidu-site-verification\" content=\"{webmasterVerifications.baidu}\">\n  {/if}\n  {#if webmasterVerifications.facebook}\n    <meta name=\"facebook-domain-verification\" content=\"{webmasterVerifications.facebook}\">\n  {/if}\n{/if}"
+				},
+				{
+					"path": "tags/seoPaginatorNormal.html",
+					"uri": "jdt://jarentry/templates/tags/seoPaginatorNormal.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}\n{#if page.paginator??}\n  <!-- SEO PAGINATOR -->\n  {#if page.paginator.previous}\n  <link rel=\"prev\" href=\"{page.paginator.previous.absolute}\"/>\n  {/if}\n  {#if page.paginator.next}\n  <link rel=\"next\" href=\"{page.paginator.next.absolute}\"/>\n  {/if}\n{/if}"
+				},
+				{
+					"path": "tags/seoFacebook.html",
+					"uri": "jdt://jarentry/templates/tags/seoFacebook.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{#if facebook}\n  <!-- SEO FACEBOOK -->\n  {#if facebook.admins}\n    <meta property=\"fb:admins\" content=\"{facebook.admins}\" />\n  {/if}\n\n  {#if facebook.publisher}\n    <meta property=\"article:publisher\" content=\"{facebook.publisher}\" />\n  {/if}\n\n  {#if facebook.app_id}\n    <meta property=\"fb:app_id\" content=\"{facebook.app_id}\" />\n  {/if}\n{/if}"
+				},
+				{
+					"path": "tags/favicon.html",
+					"uri": "jdt://jarentry/templates/tags/favicon.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "<!-- Favicon -->\n{#if site.data.containsKey('icon')}\n{#let icon=site.data.getString('icon')}\n<link rel=\"shortcut icon\" href=\"{site.image(icon)}\" type=\"{icon.mimeType}\">\n{/let}\n{#else if site.data.containsKey('favicon')}\n{#let icon=site.data.getString('favicon')}\n<link rel=\"shortcut icon\" href=\"{site.image(icon)}\" type=\"{icon.mimeType}\">\n{/let}\n{#else if site.imageExists('favicon.ico')}\n<link rel=\"shortcut icon\" href=\"{site.image('favicon.ico')}\" sizes=\"any\" type=\"image/x-icon\">\n{#else if site.imageExists('favicon.svg')}\n<link rel=\"shortcut icon\" href=\"{site.image('favicon.svg')}\" sizes=\"any\" type=\"image/svg+xml\">\n{#else if site.imageExists('favicon.png')}\n<link rel=\"shortcut icon\" href=\"{site.image('favicon.png')}\" type=\"image/png\">\n{#else if site.imageExists('site-icon.svg')}\n<link rel=\"shortcut icon\" href=\"{site.image('site-icon.svg')}\" type=\"image/svg+xml\">\n{/if}"
+				},
+				{
+					"path": "tags/seoDescription.html",
+					"uri": "jdt://jarentry/templates/tags/seoDescription.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{#if pageDescription || siteDescription}\n  <!-- SEO DESCRIPTION -->\n  <meta name=\"description\" content=\"{pageDescription ?: siteDescription}\">\n  <meta property=\"og:description\" content=\"{pageDescription ?: siteDescription}\" />\n  <meta name=\"twitter:description\" content=\"{pageDescription ?: siteDescription}\">\n{/if}"
+				},
+				{
+					"path": "tags/rss.html",
+					"uri": "jdt://jarentry/templates/tags/rss.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-frontmatter%5C/2.1.0.BETA2%5C/quarkus-roq-frontmatter-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-frontmatter=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\n\n{#if site.page(\"rss.xml\")}\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"{site.title}\" href=\"{site.url('rss.xml').absolute}\"/>\n{/if}"
+				}
+			],
+			"properties": {
+				"quarkus.qute.suffixes": "html,xhtml,htm,json,yaml,yml,xml"
+			}
+		},
+		{
+			"binaryName": "quarkus-web-bundler-common-2.2.1.jar",
+			"templates": [
+				{
+					"path": "tags/script.html",
+					"uri": "jdt://jarentry/templates/tags/script.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/web-bundler%5C/quarkus-web-bundler-common%5C/2.2.1%5C/quarkus-web-bundler-common-2.2.1.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.web-bundler=/=/maven.artifactId=/quarkus-web-bundler-common=/=/maven.version=/2.2.1=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@java.lang.String script}\n<script type=\"text/javascript\" src=\"{script}\"></script>"
+				},
+				{
+					"path": "tags/style.html",
+					"uri": "jdt://jarentry/templates/tags/style.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/web-bundler%5C/quarkus-web-bundler-common%5C/2.2.1%5C/quarkus-web-bundler-common-2.2.1.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.web-bundler=/=/maven.artifactId=/quarkus-web-bundler-common=/=/maven.version=/2.2.1=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@java.lang.String css}\n<link rel=\"stylesheet\" media=\"screen\" href=\"{css}\" />"
+				},
+				{
+					"path": "tags/bundleImportMap.html",
+					"uri": "jdt://jarentry/templates/tags/bundleImportMap.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/web-bundler%5C/quarkus-web-bundler-common%5C/2.2.1%5C/quarkus-web-bundler-common-2.2.1.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.web-bundler=/=/maven.artifactId=/quarkus-web-bundler-common=/=/maven.version=/2.2.1=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "<script type=\"importmap\">\n  {cdi:bundle.importMap.safe}\n</script>"
+				},
+				{
+					"path": "tags/bundle.html",
+					"uri": "jdt://jarentry/templates/tags/bundle.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/web-bundler%5C/quarkus-web-bundler-common%5C/2.2.1%5C/quarkus-web-bundler-common-2.2.1.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.web-bundler=/=/maven.artifactId=/quarkus-web-bundler-common=/=/maven.version=/2.2.1=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{#let key?=\"app\" tag?=\"both\"}\n{#if tag is \"script\" or tag is \"both\"}\n  {#let src=inject:bundle.script(key)}\n  {#if src}\n    <script type=\"module\" src=\"{src}\"></script>\n  {#else}\n    <!-- no script found for key '{key}' in Bundler mapping !-->\n  {/if}\n{/if}\n{#if key != \"chunk\"}\n  {#if tag is \"style\" or tag is \"both\"}\n    {#let href=inject:bundle.style(key)}\n    {#if href}\n      <link rel=\"stylesheet\" href=\"{href}\" />\n    {#else}\n      <!-- no style found for key '{key}' in Bundler mapping !-->\n    {/if}\n  {/if}\n{/if}\n"
+				}
+			],
+			"properties": {
+				"%dev.quarkus.http.filter.static.matches": "/static/bundle/.+",
+				"%dev.quarkus.http.filter.static.methods": "GET",
+				"%dev.quarkus.http.filter.static.order": "10",
+				"%dev.quarkus.http.static-resources.caching-enabled": "false",
+				"%dev.quarkus.http.filter.static.header.\"Cache-Control\"": "no-cache"
+			}
+		},
+		{
+			"binaryName": "quarkus-roq-theme-default-2.1.0.BETA2.jar",
+			"templates": [
+				{
+					"path": "theme-layouts/roq-default/index.html",
+					"uri": "jdt://jarentry/templates/theme-layouts/roq-default/index.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "---\nlayout: roq-default/main\n---\n\n\n{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}\n\n<div class=\"hero\">\n  {#insert /}\n</div>\n\n{#if site.collections.get('posts')}\n{#for post in site.collections.get('posts').paginated(page.paginator)}\n<article class=\"post\">\n  {#if post.image}\n  <a class=\"post-thumbnail\" style='background-image: url(\"{post.image}\")' href=\"{post.url}\"></a>\n  {/if}\n  <div class=\"post-content\">\n    <h2 class=\"post-title\"><a href=\"{post.url}\">{post.title}</a></h2>\n    <p>{post.description ?: post.contentAbstract}</p>\n    <span class=\"post-date\">{post.date.format('yyyy, MMM dd')}&nbsp;&nbsp;&nbsp;—&nbsp;</span>\n    <span class=\"post-words\">\n      {post.readTime} minute(s) read\n    </span>\n  </div>\n</article>\n{/for}\n\n{#include partials/roq-default/pagination.html/}\n{/if}"
+				},
+				{
+					"path": "theme-layouts/roq-default/main.html",
+					"uri": "jdt://jarentry/templates/theme-layouts/roq-default/main.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "---\nlayout: roq-default/default\n---\n\n{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\n\n<aside class=\"sidebar main\">\n  {#insert header}\n  <header>\n    {#insert about}{#include partials/roq-default/sidebar-about /}{/}\n    {#insert menu}{#include partials/roq-default/sidebar-menu menu=cdi:menu.items /}{/}\n  </header> <!-- End Header -->\n  {/}\n  {#insert footer}\n  <footer>\n    {#insert contact}{#include partials/roq-default/sidebar-contact /}{/}\n    {#insert copyright}{#include partials/roq-default/sidebar-copyright /}{/}\n  </footer> <!-- End Footer -->\n  {/}\n</aside> <!-- End Sidebar -->\n<div class=\"content-box clearfix\">\n  {#insert /}\n</div>\n"
+				},
+				{
+					"path": "theme-layouts/roq-default/post.html",
+					"uri": "jdt://jarentry/templates/theme-layouts/roq-default/post.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "---\nlayout: roq-default/main\nasciidoc-attributes:\n  notitle: true\n---\n\n{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}\n\n{#insert before-article /}\n\n<article class=\"article-page\" xmlns=\"http://www.w3.org/1999/html\">\n  {#insert article-start /}\n  <section class=\"page-content\">\n    {#if page.image}\n    <div class=\"page-cover-image\">\n      <figure>\n        <img class=\"page-image\" src=\"{page.image}\" alt=\"{page.title}\">\n        {#if page.data.figCaption??}\n        <figcaption>{page.data.figCaption}</figcaption>\n        {/if}\n      </figure>\n    </div> <!-- End Page Cover Image -->\n    {/if}\n    <section class=\"wrap-content\">\n      <header class=\"header-page\">\n        <h1 class=\"page-title\">{page.title}</h1>\n        <div class=\"page-date\"><span>{page.date.format('yyyy, MMM dd')}&nbsp;&nbsp;&nbsp;&nbsp;</span></div>\n      </header>\n      <section>\n        {#insert /}\n      </section>\n      <div class=\"page-footer\">\n        <div class=\"footer-links\">\n          <div class=\"page-share\">\n            <a href=\"https://twitter.com/intent/tweet?text={page.title}&url={page.url.encoded}\"\n               title=\"Share on Twitter\" rel=\"nofollow\" target=\"_blank\">Twitter</a>\n            <a href=\"https://facebook.com/sharer.php?u={page.url.encoded}\" title=\"Share on Facebook\"\n               rel=\"nofollow\" target=\"_blank\">Facebook</a>\n            <a href=\"https://bsky.app/intent/compose?text={page.title}%0ACheck%20it%20out%20{page.url.encoded}\" title=\"Share on Bluesky\"\n                           rel=\"nofollow\" target=\"_blank\">Bluesky</a>\n          </div>\n          <div class=\"page-tag\">\n            {#for tag in page.data.tags.asStrings}\n            {#let tagSlug = tag.slugify}\n            <a href=\"{site.url('/posts/tag', tagSlug)}\" class=\"tag\">&#35; {tagSlug}</a>\n            {/for}\n          </div>\n\n        </div>\n        {#if page.data.author??}\n        {#let author=cdi:authors.get(page.data.author)}\n        {#if author}\n        <div class=\"author\">\n          <img src=\"{site.image(author.avatar)}\" alt=\"author-{page.data.author}\"/>\n          <div class=\"author-data\">\n            <a target=\"_blank\" href=\"{author.profile}\"\n               class=\"author-name\">{author.name}</a>\n            <span class=\"author-job-title\">{author.job}</span>\n          </div>\n        </div>\n        {/if}\n        {/let}\n        {/if}\n      </div>\n    </section> <!-- End Wrap Content -->\n  </section> <!-- End Page Content -->\n  {#insert article-end /}\n</article> <!-- End Article Page -->\n\n{#insert after-article /}\n"
+				},
+				{
+					"path": "theme-layouts/roq-default/default.html",
+					"uri": "jdt://jarentry/templates/theme-layouts/roq-default/default.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  {#include partials/roq-default/head.html /}\n  {#insert head /}\n</head>\n<body class=\"{page.data.bodyClass ?: 'default'}\">\n\n  <div class=\"wrapper\">\n    {#insert /}\n  </div>\n  \n</body>\n</html>\n"
+				},
+				{
+					"path": "theme-layouts/roq-default/404.html",
+					"uri": "jdt://jarentry/templates/theme-layouts/roq-default/404.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "---\ntitle: Oops! Roq is saying 404\nlayout: roq-default/default\nbodyClass: page-not-found\nlink: 404.html\nsitemap: false\nsearch: false\n---\n\n{#insert content}\n{#include partials/roq-default/404 /}\n{/insert}\n"
+				},
+				{
+					"path": "theme-layouts/roq-default/page.html",
+					"uri": "jdt://jarentry/templates/theme-layouts/roq-default/page.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "---\nlayout: roq-default/main\n---\n\n{#insert before-page/}\n\n{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}\n<div class=\"page-content\">\n  {#insert /}\n</div>\n\n{#insert after-page/}\n\n"
+				},
+				{
+					"path": "theme-layouts/roq-default/tag.html",
+					"uri": "jdt://jarentry/templates/theme-layouts/roq-default/tag.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "---\nlayout: roq-default/main\npaginate: true\ntagging: posts\n---\n\n{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}\n\n\n<header class=\"header-page\">\n  <h1 class=\"page-title\">{page.data.tag}</h1>\n</header>\n\n{#for post in site.collections.get(page.data.tagCollection).paginated(page.paginator)}\n<article class=\"post\">\n  {#if post.image}\n  <a class=\"post-thumbnail\" style='background-image: url(\"{post.image}\")' href=\"{post.url}\"></a>\n  {/if}\n  <div class=\"post-content\">\n    <h2 class=\"post-title\"><a href=\"{post.url}\">{post.title}</a></h2>\n    <p>{post.description}</p>\n    <span class=\"post-date\">{post.date.format('yyyy, MMM dd')}&nbsp;&nbsp;&nbsp;—&nbsp;</span>\n    <span class=\"post-words\">\n      {post.readTime} minute(s) read\n    </span>\n  </div>\n</article>\n{/for}\n\n{#include partials/roq-default/pagination.html/}"
+				},
+				{
+					"path": "partials/roq-default/sidebar-menu.html",
+					"uri": "jdt://jarentry/templates/partials/roq-default/sidebar-menu.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\n{@java.util.List<io.vertx.core.json.JsonObject> menu}\n{@java.lang.String menuTitle}\n\n<section class=\"menu\">\n  <h3 class=\"menu-title\">{menuTitle ?: 'MENU'}</h3>\n  <ul>\n    {#for item in menu}\n    <li><a href=\"{site.url(item.path)}\" {#if item.target??}target=\"{item.target}\"{/if}><i class=\"{item.icon}\"></i>{item.title}</a> </li>\n    {/for}\n  </ul>\n</section>\n"
+				},
+				{
+					"path": "partials/roq-default/pagination.html",
+					"uri": "jdt://jarentry/templates/partials/roq-default/pagination.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "<div class=\"container\">\n  {#include fm/pagination.html}\n    {#newer}<i class=\"fa fa-long-arrow-left\" aria-hidden=\"true\"></i>{/newer}\n    {#older}<i class=\"fa fa-long-arrow-right\" aria-hidden=\"true\"></i>{/older}\n  {/include}\n</div>"
+				},
+				{
+					"path": "partials/roq-default/head.html",
+					"uri": "jdt://jarentry/templates/partials/roq-default/head.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@java.lang.String tag}\n\n<meta charset=\"utf-8\">\n\n{#seo page site /}\n{#rss site /}\n{#favicon site/}\n\n<base href=\"{page.url.relative}\">\n<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\">\n\n\n{#let color=site.data.getString('theme-color').or(\"#263959\")}\n<meta name=\"theme-color\" content=\"{color}\">\n<meta name=\"msapplication-navbutton-color\" content=\"{color}\">\n<meta name=\"apple-mobile-web-app-status-bar-style\" content=\"{color}\">\n<link rel=\"stylesheet\" href=\"{site.url.fromRoot('/static/bundle/roq.css')}?id={config:[\"roq-default.uuid\"]}\">\n\n{#bundle /}\n\n{#if site.data.containsKey(\"analytics\")}\n{#ga4 tag=site.data.getJsonObject('analytics').getString(\"ga4\", \"\") /}\n{/if}"
+				},
+				{
+					"path": "partials/roq-default/sidebar-about.html",
+					"uri": "jdt://jarentry/templates/partials/roq-default/sidebar-about.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "<section class=\"about\">\n  {#if site.image}\n  <div class=\"cover-author-image\">\n    <a href=\"{site.url}\"><img src=\"{site.image}\" alt=\"{site.data.name}\"></a>\n  </div>\n  {/if}\n  <div class=\"author-name\">{site.data.name}</div>\n  {#insert description}<p>{site.description}</p>{/}\n</section>"
+				},
+				{
+					"path": "partials/roq-default/sidebar-contact.html",
+					"uri": "jdt://jarentry/templates/partials/roq-default/sidebar-contact.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "<section class=\"contact\">\n    <h3 class=\"contact-title\">{roq_theme:contact_title}</h3>\n    <ul>\n        {#for entry in brand.entrySet()}\n        {#if site.data.get(entry.key)??}\n        <li>\n            <a href=\"{entry.value.prefix()}{site.data.get(entry.key)}\" target=\"_blank\">\n                <i class=\"{entry.value.icon()}\" aria-hidden=\"true\"></i>\n            </a>\n        </li>\n        {/if}\n        {/for}\n    </ul>\n</section>\n"
+				},
+				{
+					"path": "partials/roq-default/sidebar-copyright.html",
+					"uri": "jdt://jarentry/templates/partials/roq-default/sidebar-copyright.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "<section class=\"copyright\">\n  <p>{now.format('Y')} &copy; {site.data.simple-name}</p>\n</section>"
+				},
+				{
+					"path": "partials/roq-default/404.html",
+					"uri": "jdt://jarentry/templates/partials/roq-default/404.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage page}\n\n<div class=\"main\">\n    <h1>{roq_theme:notfound_title}</h1>\n    {#if page.image}\n    <img class=\"page-image\" src=\"{page.image}\" alt=\"{page.title}\">\n    {/}\n    <p><b>Roq</b>: {roq_theme:notfound_text} <a href=\"{site.url}\">{roq_theme:notfound_link}</a>.</p>\n</div>"
+				},
+				{
+					"path": "tags/author-card.html",
+					"uri": "jdt://jarentry/templates/tags/author-card.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "  <div class=\"author-card\">\n    <div class=\"avatar\">\n      <img src=\"{cdi:site.image(avatar)}\" alt=\"{name}'s Avatar\"/>\n    </div>\n    <div class=\"details\">\n      <h2 class=\"name\">{name}</h2>\n      {#if nested-content??}{nested-content}{/if}<a href=\"{profile}\" target=\"_blank\" class=\"login\">@{nickname}</a>\n    </div>\n  </div>\n"
+				}
+			],
+			"properties": {
+				"roq-default.uuid": "${quarkus.uuid}",
+				"site.theme": "roq-default"
+			}
+		},
+		{
+			"binaryName": "quarkus-roq-plugin-sitemap-2.1.0.BETA2.jar",
+			"templates": [
+				{
+					"path": "fm/sitemap.xml",
+					"uri": "jdt://jarentry/templates/fm/sitemap.xml?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-plugin-sitemap%5C/2.1.0.BETA2%5C/quarkus-roq-plugin-sitemap-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-plugin-sitemap=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@io.quarkiverse.roq.frontmatter.runtime.model.NormalPage page}\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n{#if site.fileExists('sitemap.xsl')}\n<?xml-stylesheet type=\"text/xsl\" href=\"{site.file(\"sitemap.xsl\").absolute}\"?>\n{/if}\n<urlset xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\" xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n\n    {#for collection in site.collections.list}\n    {#if !collection.hidden && !collection.derived}\n    {#for doc in collection}\n    {#if doc.sitemap}\n    <url>\n        <loc>{doc.url.absolute}</loc>\n        <lastmod>{doc.lastModifiedAt.iso}</lastmod>\n    </url>\n    {/if}\n    {/for}\n    {/if}\n    {/for}\n    {#for page in site.pages}\n    {#if page.source.isTargetHtml && page.sitemap}\n    <url>\n        <loc>{page.url.absolute}</loc>\n        <lastmod>{page.lastModifiedAt.iso}</lastmod>\n    </url>\n    {/if}\n    {/for}\n</urlset>"
+				}
+			]
+		},
+		{
+			"binaryName": "quarkus-roq-plugin-lunr-2.1.0.BETA2.jar",
+			"templates": [
+				{
+					"path": "fm/search-index.json",
+					"uri": "jdt://jarentry/templates/fm/search-index.json?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-plugin-lunr%5C/2.1.0.BETA2%5C/quarkus-roq-plugin-lunr-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-plugin-lunr=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{site.searchIndex}"
+				},
+				{
+					"path": "tags/search-overlay.html",
+					"uri": "jdt://jarentry/templates/tags/search-overlay.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-plugin-lunr%5C/2.1.0.BETA2%5C/quarkus-roq-plugin-lunr-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-plugin-lunr=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "<div class=\"search-overlay\" id=\"search-overlay\">\n  <div class=\"search-overlay-content\">\n    <button class=\"search-close\" id=\"search-close\">&times;</button>\n    <div id=\"search-field\">\n      <input\n        type=\"search\"\n        class=\"search-input\"\n        id=\"search-input\"\n        placeholder=\"Search...\"\n        autocomplete=\"off\"\n        autofocus\n      />\n    </div>\n    <div class=\"search-results\" id=\"search-results\">\n      <!-- Search results will be dynamically inserted here -->\n    </div>\n  </div>\n</div>"
+				},
+				{
+					"path": "tags/search-button.html",
+					"uri": "jdt://jarentry/templates/tags/search-button.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-plugin-lunr%5C/2.1.0.BETA2%5C/quarkus-roq-plugin-lunr-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-plugin-lunr=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "<div id=\"search-button\" class=\"search-button\"></div>"
+				},
+				{
+					"path": "tags/search-script.html",
+					"uri": "jdt://jarentry/templates/tags/search-script.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-plugin-lunr%5C/2.1.0.BETA2%5C/quarkus-roq-plugin-lunr-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-plugin-lunr=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "<script type=\"module\" src=\"{cdi:site.url.fromRoot('/static/bundle/search.js')}?id={config:[\"quarkus.uuid\"]}\"></script>\n<script type=\"module\">\n  setupSearch({\n    url: '{cdi:site.url.fromRoot('/search-index.json')}'\n  });\n</script>\n<link rel=\"stylesheet\" href=\"{cdi:site.url.fromRoot('/static/bundle/search.css')}?id={config:[\"quarkus.uuid\"]}\">"
+				}
+			]
+		},
+		{
+			"binaryName": "quarkus-roq-plugin-series-2.1.0.BETA2.jar",
+			"templates": [
+				{
+					"path": "partials/roq-series.html",
+					"uri": "jdt://jarentry/templates/partials/roq-series.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-plugin-series%5C/2.1.0.BETA2%5C/quarkus-roq-plugin-series-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-plugin-series=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/",
+					"content": "{@io.quarkiverse.roq.frontmatter.runtime.model.Page page}\n\n{#if cdi:series}\n{#let series=cdi:series.get(page)}\n{#if series}\n<section class=\"series\">\n  <h3>{series:header(series.title, series.documents.size)}</h3>\n  <ul>\n    {#for doc in series.documents}\n    <li>\n      {#if doc.id == page.id}\n      <span class=\"index\">{doc_count}</span>\n      <span class=\"title\">{doc.title}</span>\n      {#else}\n      <a href=\"{doc.url}\">\n        <span class=\"index\">{doc_count}</span>\n        <span class=\"title\">{doc.title}</span>\n      </a>\n      {/if}\n    </li>\n    {/for}\n  </ul>\n</section>\n{/if}\n{/let}\n{/if}"
+				}
+			]
+		}
+	]
+}
