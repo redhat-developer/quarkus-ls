@@ -12,6 +12,7 @@
 package com.redhat.qute.project;
 
 import static com.redhat.qute.services.QuteCompletableFutures.EXTENDED_TEMPLATE_DATAMODEL_NULL_FUTURE;
+import static com.redhat.qute.utils.FutureUtils.isFutureLoaded;
 
 import java.nio.file.Path;
 import java.util.Collection;
@@ -461,8 +462,7 @@ public class QuteProjectRegistry
 	}
 
 	private boolean isQuteProjectLoaded() {
-		return loadQuteProjectsFuture != null && !loadQuteProjectsFuture.isCompletedExceptionally()
-				&& !loadQuteProjectsFuture.isCancelled();
+		return isFutureLoaded(loadQuteProjectsFuture);
 	}
 
 	private CompletableFuture<Collection<QuteProject>> loadQuteProjects(Collection<ProjectInfo> projects) {
