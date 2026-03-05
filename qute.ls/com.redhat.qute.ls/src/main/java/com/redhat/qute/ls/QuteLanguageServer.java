@@ -156,21 +156,15 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	public void initialized(InitializedParams params) {
 		capabilityManager.initializeCapabilities();
 		getCapabilityManager().registerExecuteCommand(getWorkspaceService().getCommandIds());
-		// The Qute language server is initialized, try to load a Qute project per
-		// workspace folder.
+		// The Qute language server is initialized, load all Qute projects
 		loadQuteProjects();
 	}
 
 	/**
-	 * Try to load the Qute project for each workspace folder.
+	 * Try to load all Qute projects
 	 */
 	private void loadQuteProjects() {
-		getLanguageClient().getProjects().thenAccept(projects -> {
-			if (projects != null && !projects.isEmpty()) {
-				// There are some Qute projects in the workspace, load them
-				projectRegistry.loadQuteProjects(projects);
-			}
-		});
+		projectRegistry.loadQuteProjects();
 	}
 
 	/**
