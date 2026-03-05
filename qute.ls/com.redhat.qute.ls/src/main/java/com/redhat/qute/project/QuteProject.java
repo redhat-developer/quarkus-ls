@@ -13,6 +13,7 @@ package com.redhat.qute.project;
 
 import static com.redhat.qute.ls.template.TemplateFileTextDocumentService.isJdtUri;
 import static com.redhat.qute.project.JavaDataModelCache.isSameType;
+import static com.redhat.qute.utils.FutureUtils.isFutureLoaded;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -564,16 +565,14 @@ public class QuteProject {
 	}
 
 	public CompletableFuture<List<BinaryTemplateInfo>> getBinaryTemplates() {
-		if (binaryTemplatesFuture == null || binaryTemplatesFuture.isCancelled()
-				|| binaryTemplatesFuture.isCompletedExceptionally()) {
-			binaryTemplatesFuture = null;
+		if (!isFutureLoaded(binaryTemplatesFuture)) {
 			binaryTemplatesFuture = loadBinaryTemplates();
 		}
 		return binaryTemplatesFuture;
 	}
 
 	protected synchronized CompletableFuture<List<BinaryTemplateInfo>> loadBinaryTemplates() {
-		if (binaryTemplatesFuture != null) {
+		if (isFutureLoaded(binaryTemplatesFuture)) {
 			return binaryTemplatesFuture;
 		}
 		QuteBinaryTemplateParams params = new QuteBinaryTemplateParams();
@@ -586,11 +585,8 @@ public class QuteProject {
 	}
 
 	public CompletableFuture<ExtendedDataModelProject> getDataModelProject() {
-		if (dataModelProjectFuture == null || dataModelProjectFuture.isCancelled()
-				|| dataModelProjectFuture.isCompletedExceptionally()) {
-			dataModelProjectFuture = null;
-			dataModelProjectFuture = loadDataModelProject();
-			dataModelProjectFuture //
+		if (!isFutureLoaded(dataModelProjectFuture)) {
+			dataModelProjectFuture = loadDataModelProject() //
 					.thenApply(model -> {
 						for (ProjectExtension extension : extensions) {
 							extension.init(model);
@@ -603,7 +599,7 @@ public class QuteProject {
 	}
 
 	protected synchronized CompletableFuture<ExtendedDataModelProject> loadDataModelProject() {
-		if (dataModelProjectFuture != null) {
+		if (isFutureLoaded(dataModelProjectFuture)) {
 			return dataModelProjectFuture;
 		}
 		QuteDataModelProjectParams params = new QuteDataModelProjectParams();

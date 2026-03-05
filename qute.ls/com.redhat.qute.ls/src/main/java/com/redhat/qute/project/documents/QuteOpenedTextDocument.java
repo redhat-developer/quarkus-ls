@@ -12,6 +12,7 @@
 package com.redhat.qute.project.documents;
 
 import static com.redhat.qute.commons.FileUtils.createPath;
+import static com.redhat.qute.utils.FutureUtils.isFutureLoaded;
 
 import java.nio.file.Path;
 import java.util.Collection;
@@ -97,8 +98,7 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 
 	@Override
 	public CompletableFuture<ProjectInfo> getProjectInfoFuture() {
-		if (projectInfoFuture == null || projectInfoFuture.isCompletedExceptionally()
-				|| projectInfoFuture.isCancelled()) {
+		if (!isFutureLoaded(projectInfoFuture)) {
 			QuteProjectParams params = new QuteProjectParams(super.getUri());
 			projectInfoFuture = projectInfoProvider.getProjectInfo(params) //
 					.thenApply(projectInfo -> {

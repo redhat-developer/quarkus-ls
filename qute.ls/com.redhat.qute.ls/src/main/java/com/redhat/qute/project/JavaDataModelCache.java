@@ -14,6 +14,7 @@ package com.redhat.qute.project;
 import static com.redhat.qute.parser.template.LiteralSupport.getPrimitiveObjectType;
 import static com.redhat.qute.services.QuteCompletableFutures.RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 import static com.redhat.qute.services.QuteCompletableFutures.RESOLVED_JAVA_TYPE_NOT_ITERABLE_FUTURE;
+import static com.redhat.qute.utils.FutureUtils.isFutureLoaded;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -348,7 +349,7 @@ public class JavaDataModelCache {
 		}
 
 		CompletableFuture<ResolvedJavaTypeInfo> future = project.getResolvedJavaType(javaTypeName);
-		if (future == null || future.isCancelled() || future.isCompletedExceptionally()) {
+		if (!isFutureLoaded(future)) {
 			return null;
 		}
 		return future;
