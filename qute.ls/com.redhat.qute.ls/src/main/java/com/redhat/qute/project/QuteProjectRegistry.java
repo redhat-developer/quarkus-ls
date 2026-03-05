@@ -15,6 +15,7 @@ import static com.redhat.qute.services.QuteCompletableFutures.EXTENDED_TEMPLATE_
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -97,6 +98,8 @@ public class QuteProjectRegistry
 	private boolean didChangeWatchedFilesSupported;
 
 	private boolean asyncValidation = true;
+
+	private CompletableFuture<Collection<QuteProject>> loadQuteProjectsFuture;
 
 	public QuteProjectRegistry(QuteProjectInfoProvider projectInfoProvider, QuteJavaTypesProvider javaTypeProvider,
 			QuteJavaDefinitionProvider definitionProvider, QuteResolvedJavaTypeProvider resolvedClassProvider,
@@ -434,12 +437,44 @@ public class QuteProjectRegistry
 		return projectInfoProvider.getProjectInfo(params);
 	}
 
-	public void loadQuteProjects(Collection<ProjectInfo> projects) {
+	public CompletableFuture<Collection<QuteProject>> loadQuteProjects() {
+		if (isQuteProjectLoaded()) {
+			return loadQuteProjectsFuture;
+		}
+		return loadQuteProjectsSync();
+
+	}
+
+	private synchronized CompletableFuture<Collection<QuteProject>> loadQuteProjectsSync() {
+		if (isQuteProjectLoaded()) {
+			return loadQuteProjectsFuture;
+		}
+		return loadQuteProjectsFuture = projectInfoProvider //
+				.getProjects() //
+				.thenCompose(projects -> {
+					if (projects != null && !projects.isEmpty()) {
+						// There are some Qute projects in the workspace, load them
+						return this.loadQuteProjects(projects);
+					}
+					return CompletableFuture.completedFuture(Collections.emptyList());
+				});
+	}
+
+	private boolean isQuteProjectLoaded() {
+		return loadQuteProjectsFuture != null && !loadQuteProjectsFuture.isCompletedExceptionally()
+				&& !loadQuteProjectsFuture.isCancelled();
+	}
+
+	private CompletableFuture<Collection<QuteProject>> loadQuteProjects(Collection<ProjectInfo> projects) {
+		CompletableFuture<?>[] futures = new CompletableFuture[projects.size()];
+
 		// 1. Load all Qute projects
+		int i = 0;
 		for (ProjectInfo projectInfo : projects) {
 			// Load the Qute project
-			loadQuteProject(projectInfo);
+			futures[i++] = loadQuteProject(projectInfo);
 		}
+
 		// 2. Update project dependencies
 		for (ProjectInfo projectInfo : projects) {
 			if (projectInfo.getProjectDependencyUris() != null && !projectInfo.getProjectDependencyUris().isEmpty()) {
@@ -452,7 +487,10 @@ public class QuteProjectRegistry
 				}
 			}
 		}
-
+		return CompletableFuture.allOf(futures) //
+				.thenApply(_unused -> {
+					return this.projects.values();
+				});
 	}
 
 	/**
@@ -460,9 +498,7 @@ public class QuteProjectRegistry
 	 * 
 	 * @param projectInfo the project information.
 	 */
-	private QuteProject loadQuteProject(ProjectInfo projectInfo) {
-		// Get the LSP client progress support (or null if LSP client cannot support
-		// progress)
+	private CompletableFuture<QuteProject> loadQuteProject(ProjectInfo projectInfo) {
 		ProgressSupport progressSupport = progressSupportProvider.get();
 		ProgressContext progressContext = progressSupport != null ? new ProgressContext(progressSupport) : null;
 		String projectName = projectInfo.getUri();
@@ -472,53 +508,47 @@ public class QuteProjectRegistry
 					"Trying to load '" + projectName + "' as Qute project.");
 		}
 
-		// Load Qute project from the Java component (collect Java data model)
 		QuteProject project = getProject(projectInfo, false);
 
 		if (progressContext != null) {
 			progressContext.report("Loading binary templates for '" + projectName + "' Qute project.", 10);
 		}
 
-		project.getBinaryTemplates() //
-				.thenAccept(binaryTemplates -> {
+		return project.getBinaryTemplates() //
+				.thenCompose(binaryTemplates -> {
 					project.registerBinaryTemplates(binaryTemplates);
 
 					if (progressContext != null) {
 						progressContext.report("Loading data model for '" + projectName + "' Qute project.", 20);
 					}
 
-					project.getDataModelProject() //
-							.thenAccept(dataModel -> {
-								// The Java data model is collected for the project, validate all templates of
-								// the project
+					return project.getDataModelProject() //
+							.thenCompose(dataModel -> {
 								if (progressContext != null) {
 									progressContext.report(
 											"Loading Qute templates for '" + projectName + "' Qute project.", 40);
 								}
 
-								// Validate Qute templates
 								project.validateClosedTemplates(progressContext);
 
-								// End progress
 								if (progressContext != null) {
 									progressContext.endProgress();
 								}
 
+								return CompletableFuture.completedFuture(project);
 							}).exceptionally((a) -> {
 								if (progressContext != null) {
 									progressContext.endProgress();
 								}
-								return null;
+								return project;
 							});
 
 				}).exceptionally((a) -> {
 					if (progressContext != null) {
 						progressContext.endProgress();
 					}
-					return null;
+					return project;
 				});
-
-		return project;
 	}
 
 	public void projectAdded(ProjectInfo project) {
@@ -541,4 +571,18 @@ public class QuteProjectRegistry
 	public boolean isAsyncValidation() {
 		return asyncValidation;
 	}
+
+	public CompletableFuture<QuteTextDocument> getBinaryDocument(String uri) {
+		return loadQuteProjects() //
+				.thenApply(projects -> {
+					for (QuteProject project : projects) {
+						QuteTextDocument document = project.getBinaryDocument(uri);
+						if (document != null) {
+							return document;
+						}
+					}
+					return null;
+				});
+	}
+
 }

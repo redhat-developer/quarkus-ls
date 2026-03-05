@@ -11,8 +11,11 @@
 *******************************************************************************/
 package com.redhat.qute.project;
 
+import static com.redhat.qute.ls.template.TemplateFileTextDocumentService.isJdtUri;
 import static com.redhat.qute.project.JavaDataModelCache.isSameType;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1864,10 +1867,10 @@ public class QuteProject {
 
 	public void registerSourceDocument(QuteTextDocument document) {
 		QuteTextDocument oldDocument = sourceDocuments.get(document.getTemplatePath());
-		if  (oldDocument != null) {
+		if (oldDocument != null) {
 			removeDocumentFromCache(oldDocument.getTemplatePath());
 		}
-		
+
 		sourceDocuments.put(document.getTemplatePath(), document);
 		addInTemplateIdCache(document);
 		if (document.isUserTag()) {
@@ -1877,7 +1880,7 @@ public class QuteProject {
 	}
 
 	void registerBinaryDocument(QuteTextDocument document) {
-		binaryDocuments.put(document.getUri(), document);
+		binaryDocuments.put(normalizeUriIfNeeded(document.getUri()), document);
 		addInTemplateIdCache(document);
 		if (document.isUserTag()) {
 			UserTag tag = document.getUserTag();
@@ -1891,4 +1894,47 @@ public class QuteProject {
 				_unused -> new ArrayList<QuteTextDocument>());
 		cache.add(document);
 	}
+
+	/**
+	 * Returns list of all binary Qute template document of the project.
+	 * 
+	 * @return list of all binary Qute template document of the project.
+	 */
+	public QuteTextDocument getBinaryDocument(String uri) {
+		closedDocuments.loadClosedTemplatesIfNeeded();
+		return binaryDocuments.get(normalizeUriIfNeeded(uri));
+	}
+
+	private static String normalizeUriIfNeeded(String uri) {
+		if (isJdtUri(uri)) {
+			return normalizeJdtUri(uri);
+		}
+		return uri;
+	}
+
+	// Normalize the URI to a canonical form so that URIs built by our LS
+	// and URIs received from vscode-java (didOpen) can be compared reliably.
+	private static String normalizeJdtUri(String uri) {
+		// vscode-java call didOpen with this Uri
+		// jdt://jarentry/templates/tags/bundle.html?%3Dthe-code-site%2FC%3A%5C%2FUsers%5C%2FAngeloZerr%5C%2F.m2%5C%2Frepository%5C%2Fio%5C%2Fquarkiverse%5C%2Fweb-bundler%5C%2Fquarkus-web-bundler-common%5C%2F2.2.0%5C%2Fquarkus-web-bundler-common-2.2.0.jar%3D%2Fmaven.pomderived%3D%2Ftrue%3D%2F%3D%2Fmaven.groupId%3D%2Fio.quarkiverse.web-bundler%3D%2F%3D%2Fmaven.artifactId%3D%2Fquarkus-web-bundler-common%3D%2F%3D%2Fmaven.version%3D%2F2.2.0%3D%2F%3D%2Fmaven.scope%3D%2Fcompile%3D%2F%3D%2Fmaven.pomderived%3D%2Ftrue%3D%2F
+
+		// Qute JDT generate this uri
+		// jdt://jarentry/templates/tags/bundle.html?=the-code-site/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/web-bundler%5C/quarkus-web-bundler-common%5C/2.2.0%5C/quarkus-web-bundler-common-2.2.0.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.web-bundler=/=/maven.artifactId=/quarkus-web-bundler-common=/=/maven.version=/2.2.0=/=/maven.scope=/compile=/=/maven.pomderived=/true=/
+
+		// Normalize those 2 uris
+		if (uri == null)
+			return null;
+		try {
+			// 1. Decode percent-encoded characters (%3D, %2F, etc.)
+			String decoded = URLDecoder.decode(uri, StandardCharsets.UTF_8);
+			// 2. Replace __xxx__ segments back to xxx (vscode-java encoding)
+			decoded = decoded.replaceAll("__([^_]+)__", "$1");
+			// 3. Normalize backslashes to forward slashes
+			decoded = decoded.replace("\\", "/");
+			return decoded;
+		} catch (Exception e) {
+			return uri;
+		}
+	}
+
 }
