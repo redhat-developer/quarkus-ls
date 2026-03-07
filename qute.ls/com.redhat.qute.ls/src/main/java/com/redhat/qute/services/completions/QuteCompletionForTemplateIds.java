@@ -12,6 +12,7 @@
 package com.redhat.qute.services.completions;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -119,7 +120,7 @@ public class QuteCompletionForTemplateIds {
 		return CompletableFuture.completedFuture(list);
 	}
 
-	private Map<String, List<QuteTextDocument>> createTemplateIds(List<QuteTextDocument> documents,
+	public static Map<String, List<QuteTextDocument>> createTemplateIds(Collection<QuteTextDocument> documents,
 			String currentTemplateId) {
 		Map<String, List<QuteTextDocument>> templateIds = new LinkedHashMap<>();
 		for (QuteTextDocument document : documents) {
@@ -159,8 +160,8 @@ public class QuteCompletionForTemplateIds {
 		return QutePositionUtility.createRange(node);
 	}
 
-	private void addTemplateId(String templateId,
-			QuteTextDocument document, Range range, String sortText, CompletionList list) {
+	private void addTemplateId(String templateId, QuteTextDocument document, Range range, String sortText,
+			CompletionList list) {
 		CompletionItem item = new CompletionItem();
 		item.setLabel(templateId);
 		String origin = document.getOrigin();

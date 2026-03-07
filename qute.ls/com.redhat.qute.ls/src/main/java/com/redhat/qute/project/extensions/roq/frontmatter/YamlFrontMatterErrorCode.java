@@ -20,10 +20,12 @@ import com.redhat.qute.parser.validator.IQuteErrorCode;
  */
 public enum YamlFrontMatterErrorCode implements IQuteErrorCode {
 
-	ImageNotFound("Image not found: `{0}`."),
+	ImageNotFound("Image not found: `{0}`."), //
+	InvalidImagePath("Invalid image path `{0}: `{1}`."), //
 
-	InvalidImagePath("Invalid image path `{0}: `{1}`.");
-	
+	LayoutNotFound("Layout not found: `{0}`."), //
+	InvalidLayoutPath("Invalid layout path `{0}: `{1}`.");
+
 	private final String rawMessage;
 
 	YamlFrontMatterErrorCode(String rawMessage) {
