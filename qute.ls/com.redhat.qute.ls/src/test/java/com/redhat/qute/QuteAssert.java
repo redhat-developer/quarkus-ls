@@ -636,7 +636,9 @@ public class QuteAssert {
 		for (int i = 0; i < expected.length; i++) {
 			assertEquals(expected[i].getRange(), actual.get(i).getRange(), " Range test '" + i + "' link");
 			String expectedTarget = expected[i].getTarget();
-			if (expectedTarget.startsWith("file:")) {
+			if (expectedTarget.startsWith("jdt:")) {
+				assertEquals(expected[i].getTarget(), actual.get(i).getTarget(), " Target test '" + i + "' link");
+			} else if (expectedTarget.startsWith("file:")) {
 				assertEquals(expected[i].getTarget().replace("file:///", "file:/"),
 						actual.get(i).getTarget().replace("file:///", "file:/"), " Target test '" + i + "' link");
 

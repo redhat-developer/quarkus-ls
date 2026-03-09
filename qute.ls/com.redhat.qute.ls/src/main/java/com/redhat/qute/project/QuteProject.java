@@ -1273,7 +1273,7 @@ public class QuteProject {
 			// This is helpful eg. when getting the docs for a method whose
 			// parameters haven't been input correctly yet.
 			if (result != null) {
-				String parameterType = parameterInfo.getType();
+				JavaTypeInfo parameterType = parameterInfo.getJavaType();
 				if (!isMatchType(result, parameterType)) {
 					return false;
 				}
@@ -1283,7 +1283,7 @@ public class QuteProject {
 		if (varargs && lastParameter != null) {
 			// Validate varargs parameters
 			for (int i = nbParameters - 1; i < declaredNbParameters; i++) {
-				String parameterType = lastParameter.getVarArgType();
+				JavaTypeInfo parameterType = lastParameter.getVarArgJavaType();
 				ResolvedJavaTypeInfo result = parameterTypes.get(i);
 				// If the type info isn't available, assume the type matches
 				// (see note above)
@@ -1409,34 +1409,36 @@ public class QuteProject {
 			// - <T[]>
 			return javaType.isArray() == parameter.getJavaType().isArray();
 		}
-		String parameterType = parameter.getJavaType().getName();
+		JavaTypeInfo parameterType = parameter.getJavaType();
 		return isMatchType(javaType, parameterType);
 	}
 
-	private boolean isMatchType(ResolvedJavaTypeInfo javaType, String parameterType) {
+	private boolean isMatchType(ResolvedJavaTypeInfo javaType, JavaTypeInfo parameterType) {
 		return isMatchType(javaType, parameterType, new HashSet<>());
 	}
 
-	private boolean isMatchType(ResolvedJavaTypeInfo javaType, String parameterType,
+	private boolean isMatchType(ResolvedJavaTypeInfo javaType, JavaTypeInfo parameterType,
 			Set<ResolvedJavaTypeInfo> visited) {
 		if (visited.contains(javaType)) {
 			return false;
 		}
 		visited.add(javaType);
 
-		String resolvedTypeName = javaType.getName();
-		if ("java.lang.Object".equals(parameterType)) {
+		if ("java.lang.Object".equals(parameterType.getSignature())) {
 			return true;
 		}
-		if (isSameType(parameterType, resolvedTypeName)) {
+
+		if (isSameType(parameterType, javaType)) {
 			return true;
 		}
+
 		// class BigItem <- Item <- SmallItem
 		// javaType = BigItem => javaType.getExtendedTypes() = [Item]
 		if (javaType.getExtendedTypes() != null) {
 			// Loop for first level of super types (ex Item)
 			for (String superType : javaType.getExtendedTypes()) {
-				if (isSameType(parameterType, superType)) {
+				// Fast check
+				if (isSameType(parameterType.getSignature(), superType)) {
 					return true;
 				}
 
@@ -1449,16 +1451,14 @@ public class QuteProject {
 				}
 			}
 		}
-		if (!javaType.getTypeParameters().isEmpty()) {
-			ResolvedJavaTypeInfo result = resolveJavaTypeSync(resolvedTypeName);
-			if (!QuteCompletableFutures.isResolvingJavaTypeOrNull(result) && result.getExtendedTypes() != null) {
-				for (String superType : result.getExtendedTypes()) {
-					if (isSameType(parameterType, superType)) {
-						return true;
-					}
-				}
-			}
-		}
+		/*
+		 * if (!javaType.getTypeParameters().isEmpty()) { ResolvedJavaTypeInfo result =
+		 * resolveJavaTypeSync(resolvedTypeName); if
+		 * (!QuteCompletableFutures.isResolvingJavaTypeOrNull(result) &&
+		 * result.getExtendedTypes() != null) { for (String superType :
+		 * result.getExtendedTypes()) { if (isSameType(parameterType, superType)) {
+		 * return true; } } } }
+		 */
 		return false;
 	}
 
