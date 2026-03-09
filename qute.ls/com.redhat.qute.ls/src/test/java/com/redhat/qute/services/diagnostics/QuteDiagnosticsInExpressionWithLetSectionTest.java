@@ -90,8 +90,7 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 						"Parser error: section start tag not found for {/let}", DiagnosticSeverity.Error), //
 				d);
 		testCodeActionsFor(template, d, //
-				ca(d, te(0, 0, 0, 0, "{@java.lang.String name}\r\n")),
-				ca(d, te(1, 6, 1, 6, "??")));
+				ca(d, te(0, 0, 0, 0, "{@java.lang.String name}\r\n")), ca(d, te(1, 6, 1, 6, "??")));
 
 	}
 
@@ -101,11 +100,40 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 				"{#let name=!value /}";
 		testDiagnosticsFor(template);
 	}
-	
+
 	@Test
 	public void letAssignedToMathodWithParametersWhichContainsSpaces() {
 		String template = "{@java.util.List items}\r\n" + //
 				"{#let name=items.subList(0, 5)}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void parametersWithNewLine() throws Exception {
+		String template = "{#let name=\"value\" }\r\n" + //
+				"{#let name2=name\r\n" + //
+				"}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void parametersWithTab() throws Exception {
+		String template = "{#let name=\"value\" }\r\n" + //
+				"{#let name2=name\t}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void parametersWithOnSpace() throws Exception {
+		String template = "{#let name=\"value\" }\r\n" + //
+				"{#let name2=name }";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void parametersWithSeveralSpaces() throws Exception {
+		String template = "{#let name=\"value\" }\r\n" + //
+				"{#let name2=name     }";
 		testDiagnosticsFor(template);
 	}
 }
