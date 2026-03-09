@@ -112,6 +112,7 @@ public abstract class BaseQuteProject extends MockQuteProject {
 		ResolvedJavaTypeInfo collection = createResolvedJavaTypeInfo("java.util.Collection<E>", resolvedJavaTypes,
 				true);
 		collection.setExtendedTypes(Arrays.asList("java.lang.Iterable<E>"));
+		registerMethod("addAll(arg0 : java.util.Collection<? extends E>) : boolean", collection);
 
 		// AbstractCollection
 		ResolvedJavaTypeInfo abstractCollection = createResolvedJavaTypeInfo("java.util.AbstractCollection<E>",
@@ -129,6 +130,7 @@ public abstract class BaseQuteProject extends MockQuteProject {
 		registerMethod("size() : int", list);
 		registerMethod("get(index : int) : E", list);
 		registerMethod("subList(fromIndex : int, toIndex: int) : java.util.List<E>", list);
+		registerMethod("containsAll(arg0 : java.util.Collection<?>) : boolean", list);
 
 		// AbstractList
 		ResolvedJavaTypeInfo abstractList = createResolvedJavaTypeInfo("java.util.AbstractList<E>", resolvedJavaTypes,

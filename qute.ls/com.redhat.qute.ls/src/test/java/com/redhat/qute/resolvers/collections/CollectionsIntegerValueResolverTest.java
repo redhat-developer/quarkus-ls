@@ -47,11 +47,13 @@ public class CollectionsIntegerValueResolverTest {
 		// test to check @java.lang.Integer(base : T[]) : T is not returned by the
 		// completion
 		testCompletionFor(template, //
-				12, //				
+				14, //				
 				c("iterator() : Iterator<Item>", "iterator", r(1, 13, 1, 13)), //
 				c("size() : int", "size", r(1, 13, 1, 13)), //
 				c("get(index : int) : Item", "get(${1:index})$0", r(1, 13, 1, 13)), //
 				c("subList(fromIndex : int, toIndex : int) : List<Item>", "subList(${1:fromIndex}, ${2:toIndex})$0", r(1, 13, 1, 13)), //
+				c("containsAll(arg0 : Collection<?>) : boolean", "containsAll(${1:arg0})$0", r(1, 13, 1, 13)), //
+				c("addAll(arg0 : Collection<?extendsE>) : boolean", "addAll(${1:arg0})$0", r(1, 13, 1, 13)), // from Collection
 				c("raw(base : Object) : RawString", "raw", r(1, 13, 1, 13)), //
 				c("safe(base : Object) : RawString", "safe", r(1, 13, 1, 13)));
 

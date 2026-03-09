@@ -581,6 +581,29 @@ public class JavaDataModelCache {
 		return null;
 	}
 
+	public static boolean isSameType(JavaTypeInfo type1, JavaTypeInfo type2) {
+		if (isSameType(type1.getSignature(), type2.getSignature())) {
+			return true;
+		}
+		List<JavaParameterInfo> typeParameters1 = type1.getTypeParameters();
+		List<JavaParameterInfo> typeParameters2 = type2.getTypeParameters();
+		if (typeParameters1.isEmpty() || (typeParameters1.size() != typeParameters2.size())) {
+			return false;
+		}
+		if (!type1.getName().equals(type2.getName())) {
+			return false;
+		}
+		for (int i = 0; i < typeParameters1.size(); i++) {
+			JavaTypeInfo typeParameter1 = typeParameters1.get(i).getJavaType();
+			JavaTypeInfo typeParameter2 = typeParameters2.get(i).getJavaType();
+			if (!typeParameter1.isGenericType() && !typeParameter2.isGenericType()
+					&& !isSameType(typeParameter1, typeParameter2)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	/**
 	 * Returns true if the given type1 and type2 are the same and false otherwise.
 	 *
