@@ -14,6 +14,7 @@ package com.redhat.qute.project;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -96,6 +97,17 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 			return new RenardeProject(this);
 		}
 		return super.createProject(projectInfo);
+	}
+
+	@Override
+	protected void registerProject(QuteProject project) {
+		super.registerProject(project);
+		try {
+			project.load(null) //
+					.get(5000, TimeUnit.MILLISECONDS);
+		} catch (Exception e) {
+			
+		}
 	}
 
 	@Override

@@ -514,41 +514,7 @@ public class QuteProjectRegistry
 			progressContext.report("Loading binary templates for '" + projectName + "' Qute project.", 10);
 		}
 
-		return project.getBinaryTemplates() //
-				.thenCompose(binaryTemplates -> {
-					project.registerBinaryTemplates(binaryTemplates);
-
-					if (progressContext != null) {
-						progressContext.report("Loading data model for '" + projectName + "' Qute project.", 20);
-					}
-
-					return project.getDataModelProject() //
-							.thenCompose(dataModel -> {
-								if (progressContext != null) {
-									progressContext.report(
-											"Loading Qute templates for '" + projectName + "' Qute project.", 40);
-								}
-
-								project.validateClosedTemplates(progressContext);
-
-								if (progressContext != null) {
-									progressContext.endProgress();
-								}
-
-								return CompletableFuture.completedFuture(project);
-							}).exceptionally((a) -> {
-								if (progressContext != null) {
-									progressContext.endProgress();
-								}
-								return project;
-							});
-
-				}).exceptionally((a) -> {
-					if (progressContext != null) {
-						progressContext.endProgress();
-					}
-					return project;
-				});
+		return project.load(progressContext);
 	}
 
 	public void projectAdded(ProjectInfo project) {

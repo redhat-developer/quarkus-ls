@@ -76,7 +76,7 @@ class QuteCodeLens {
 					QuteProject project = template.getProject();
 					collectCodeLenses(templateDataModel, template, template, settings, project, lenses, cancelChecker);
 
-					if (UserTagUtils.isUserTag(template)) {
+					if (template.isUserTag()) {
 						// Template is an user tag
 						collectUserTagCodeLenses(template, cancelChecker, lenses);
 					}
@@ -234,7 +234,7 @@ class QuteCodeLens {
 	private static void collectUserTagCodeLenses(Template template, CancelChecker cancelChecker,
 			List<CodeLens> lenses) {
 		// 1) display the user tag name as codelens
-		String userTagName = UserTagUtils.getUserTagName(template.getUri());
+		String userTagName = template.getUserTagName();
 		String userTagTitle = "User tag #" + userTagName;
 		Command userTagCommand = new Command(userTagTitle, "");
 		CodeLens userTagCodeLens = new CodeLens(LEFT_TOP_RANGE, userTagCommand, null);

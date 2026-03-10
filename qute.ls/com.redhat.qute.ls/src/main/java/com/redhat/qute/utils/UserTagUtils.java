@@ -66,37 +66,6 @@ public class UserTagUtils {
 
 	public static final String TAGS_DIR = TemplateRootPath.TAGS_DIR;
 
-	public static boolean isUserTag(Template template) {
-		String templateId = template.getTemplateId();
-		return templateId != null && templateId.startsWith(TAGS_DIR);
-	}
-
-	/**
-	 * Returns the template id of the given tag name.
-	 * 
-	 * @param tagName the tag name(ex : form)
-	 * 
-	 * @return the template id of the given tag name.
-	 */
-	public static String getTemplateId(String tagName) {
-		return TAGS_DIR + '/' + tagName;
-	}
-
-	/**
-	 * Returns the user tag name (ex : form) from the given uri (ex :
-	 * file://C:/form.html, form.html).
-	 * 
-	 * @param uri the URI
-	 * 
-	 * @return the user tag name (ex : form) from the given uri (ex :
-	 *         file://C:/form.html, form.html).
-	 */
-	public static String getUserTagName(String uri) {
-		int index = uri.lastIndexOf('/');
-		String fileName = index != -1 ? uri.substring(index + 1, uri.length()) : uri;
-		return fileName.contains(".") ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
-	}
-
 	/**
 	 * Collect user tag parameters from the given template.
 	 * 

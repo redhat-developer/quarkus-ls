@@ -93,7 +93,7 @@ public class SnippetRegistry<T extends Snippet> {
 	 * @param snippet the snippet to register.
 	 */
 	public void registerSnippet(T snippet) {
-		if (isValid(snippet)) {
+		if (isValid(snippet) && !snippets.contains(snippet)) {
 			snippets.add(snippet);
 		}
 	}
@@ -306,7 +306,7 @@ public class SnippetRegistry<T extends Snippet> {
 			CompletionItem item = new CompletionItem();
 			item.setLabel(snippet.getLabel());
 			item.setLabelDetails(snippet.getLabelDetails());
-			item.setKind(snippet.getKind() != null ? snippet.getKind() :  CompletionItemKind.Snippet);
+			item.setKind(snippet.getKind() != null ? snippet.getKind() : CompletionItemKind.Snippet);
 			item.setDocumentation(
 					Either.forRight(createDocumentation(snippet, model, canSupportMarkdown, lineDelimiter)));
 			String prefix = snippet.getPrefixes().get(0);

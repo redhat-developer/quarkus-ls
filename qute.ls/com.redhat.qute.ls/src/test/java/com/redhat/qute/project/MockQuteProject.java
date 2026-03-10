@@ -13,10 +13,12 @@ package com.redhat.qute.project;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -27,6 +29,8 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.binary.QuteBinaryTemplateParams;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
@@ -64,7 +68,7 @@ public abstract class MockQuteProject extends QuteProject {
 		this.valueResolvers = new ArrayList<>();
 		this.fillValueResolvers(valueResolvers);
 		this.namespaceResolverInfos = new HashMap<>();
-		this.fillNamespaceResolverInfos(namespaceResolverInfos);
+		this.fillNamespaceResolverInfos(namespaceResolverInfos);		
 	}
 
 	public ProjectInfo getProjectInfo() {
@@ -205,4 +209,14 @@ public abstract class MockQuteProject extends QuteProject {
 	public static String getProjectPath(String projectUri) {
 		return "src/test/resources/projects/" + projectUri;
 	}
+
+	@Override
+	protected CompletableFuture<List<BinaryTemplateInfo>> getBinaryTemplates(QuteBinaryTemplateParams params) {
+		return CompletableFuture.completedFuture(loadBinaryTemplatesSync());
+	}
+
+	protected List<BinaryTemplateInfo> loadBinaryTemplatesSync() {
+		return Collections.emptyList();
+	}
+
 }

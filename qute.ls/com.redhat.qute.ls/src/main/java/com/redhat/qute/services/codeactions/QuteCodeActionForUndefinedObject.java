@@ -194,7 +194,7 @@ public class QuteCodeActionForUndefinedObject extends AbstractQuteCodeAction {
 			}
 		}
 
-		if (UserTagUtils.isUserTag(template)) {
+		if (template.isUserTag()) {
 			Collection<SectionMetadata> specialKeysMetadatas = UserTagUtils.getSpecialKeys();
 			for (SectionMetadata metadata : specialKeysMetadatas) {
 				String name = metadata.getName();

@@ -166,7 +166,7 @@ public class ObjectPart extends Part {
 	}
 	
 	private static UserTagUsages getUsages(Template template) {
-		if (UserTagUtils.isUserTag(template)) {
+		if (template.isUserTag()) {
 			QuteProject project = template.getProject();
 			if (project != null) {
 				int index = template.getTemplateId().lastIndexOf('/');

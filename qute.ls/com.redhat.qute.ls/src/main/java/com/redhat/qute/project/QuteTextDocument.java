@@ -112,7 +112,7 @@ public interface QuteTextDocument {
 	 */
 	default boolean isUserTag() {
 		String templateId = getTemplateId();
-		return templateId != null && templateId.startsWith("tags/");
+		return templateId != null && templateId.startsWith(getUserTagsFolder());
 	}
 
 	default void save() {
@@ -123,7 +123,25 @@ public interface QuteTextDocument {
 
 	UserTag getUserTag();
 
-	String getFileName();
+	default String getUserTagName() {
+		if (!isUserTag()) {
+			return null;
+		}
+		String templateId = getTemplateId();
+		if (templateId != null) {
+			String tagName = templateId.substring(getUserTagsFolder().length());
+			int index = tagName.lastIndexOf('.');
+			if (index != -1) {
+				return tagName.substring(0, index);
+			}
+			return tagName;
+		}
+		return null;
+	}
+
+	default String getUserTagsFolder() {
+		return "tags/";
+	}
 
 	String getOrigin();
 

@@ -52,8 +52,8 @@ public class Template extends Node {
 
 	private QuteTextDocument templateInfoProvider;
 
-	private boolean userTag;
-	
+	private String userTagName;
+
 	public Template(TextDocument textDocument) {
 		super(0, textDocument.getText().length());
 		this.textDocument = textDocument;
@@ -191,7 +191,7 @@ public class Template extends Node {
 				return parameter;
 			}
 			// Try special keys (ex: _args)
-			if (UserTagUtils.isUserTag(this) && !UserTagUtils.IT_OBJECT_PART_NAME.equals(partName)) {
+			if (isUserTag() && !UserTagUtils.IT_OBJECT_PART_NAME.equals(partName)) {
 				return UserTagUtils.getSpecialKey(partName);
 			}
 			return null;
@@ -317,12 +317,26 @@ public class Template extends Node {
 		}
 		return templateInfoProvider.getProjectInfoFuture();
 	}
-	
-	public void setUserTag(boolean userTag) {
-		this.userTag = userTag;
-	}
-	
+
 	public boolean isUserTag() {
-		return userTag;
+		getUserTagName();
+		return userTagName != null && !userTagName.isEmpty();
+	}
+
+	public String getUserTagName() {
+		if (userTagName == null) {
+			if (templateId != null) {
+				if (templateId.startsWith(UserTagUtils.TAGS_DIR + "/")) {
+					userTagName = templateId.substring(UserTagUtils.TAGS_DIR.length() + 1);
+				} else {
+					userTagName = "";
+				}
+			}
+		}
+		return userTagName;
+	}
+
+	public void setUserTagName(String userTagName) {
+		this.userTagName = userTagName;
 	}
 }

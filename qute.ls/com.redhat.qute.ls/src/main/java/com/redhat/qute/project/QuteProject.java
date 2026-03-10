@@ -262,6 +262,47 @@ public class QuteProject {
 		return extensions.get(id);
 	}
 
+	public CompletableFuture<QuteProject> load(ProgressContext progressContext) {
+		return this.getBinaryTemplates() //
+				.thenCompose(binaryTemplates -> {
+					String projectName = getUri();
+					if (progressContext != null) {
+						progressContext.report("Loading data model for '" + projectName + "' Qute project.", 20);
+					}
+
+					return this.getDataModelProject() //
+							.thenCompose(dataModel -> {
+								if (progressContext != null) {
+									progressContext.report(
+											"Loading Qute templates for '" + projectName + "' Qute project.", 40);
+								}
+								
+								// Register use tags
+								registerUserTags();
+
+								// Validate closed templates
+								validateClosedTemplates(progressContext);
+
+								if (progressContext != null) {
+									progressContext.endProgress();
+								}
+
+								return CompletableFuture.completedFuture(this);
+							}).exceptionally((a) -> {
+								if (progressContext != null) {
+									progressContext.endProgress();
+								}
+								return this;
+							});
+
+				}).exceptionally((a) -> {
+					if (progressContext != null) {
+						progressContext.endProgress();
+					}
+					return this;
+				});
+	}
+
 	private static Set<Path> toSourcePaths(Set<String> sourceFolders) {
 		if (sourceFolders == null || sourceFolders.isEmpty()) {
 			return Collections.emptySet();
@@ -574,13 +615,18 @@ public class QuteProject {
 		return binaryTemplatesFuture;
 	}
 
-	protected synchronized CompletableFuture<List<BinaryTemplateInfo>> loadBinaryTemplates() {
+	private synchronized CompletableFuture<List<BinaryTemplateInfo>> loadBinaryTemplates() {
 		if (isFutureLoaded(binaryTemplatesFuture)) {
 			return binaryTemplatesFuture;
 		}
 		QuteBinaryTemplateParams params = new QuteBinaryTemplateParams();
 		params.setProjectUri(getUri());
-		return getBinaryTemplates(params);
+		return getBinaryTemplates(params) //
+				.thenApply(binaryTemplates -> {
+					// Register binary templates
+					registerBinaryTemplates(binaryTemplates);
+					return binaryTemplates;
+				});
 	}
 
 	protected CompletableFuture<List<BinaryTemplateInfo>> getBinaryTemplates(QuteBinaryTemplateParams params) {
@@ -599,6 +645,15 @@ public class QuteProject {
 					});
 		}
 		return dataModelProjectFuture;
+	}
+
+	private void registerUserTags() {
+		for (QuteTextDocument document : sourceDocuments.values()) {
+			registerUserTagIfNeeded(document);
+		}
+		for (QuteTextDocument document : binaryDocuments.values()) {
+			registerUserTagIfNeeded(document);
+		}
 	}
 
 	protected synchronized CompletableFuture<ExtendedDataModelProject> loadDataModelProject() {
@@ -1859,15 +1914,15 @@ public class QuteProject {
 
 		sourceDocuments.put(document.getTemplatePath(), document);
 		addInTemplateIdCache(document);
-		if (document.isUserTag()) {
-			UserTag tag = document.getUserTag();
-			tagRegistry.registerUserTag(tag);
-		}
+		registerUserTagIfNeeded(document);
 	}
 
 	void registerBinaryDocument(QuteTextDocument document) {
 		binaryDocuments.put(normalizeUriIfNeeded(document.getUri()), document);
 		addInTemplateIdCache(document);
+	}
+
+	private void registerUserTagIfNeeded(QuteTextDocument document) {
 		if (document.isUserTag()) {
 			UserTag tag = document.getUserTag();
 			tagRegistry.registerUserTag(tag);

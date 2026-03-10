@@ -14,8 +14,6 @@ package com.redhat.qute.project;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import com.google.gson.GsonBuilder;
@@ -40,7 +38,7 @@ public abstract class BaseQuteProject extends MockQuteProject {
 	private boolean binaryDoumentsLoaded;
 
 	public BaseQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
-		super(projectInfo, projectRegistry);
+		super(projectInfo, projectRegistry);		
 	}
 
 	protected DataModelProject<DataModelTemplate<?>> loadDataModel(String fileName, Class<?> clazz) {
@@ -191,17 +189,14 @@ public abstract class BaseQuteProject extends MockQuteProject {
 
 	}
 
-	@Override
+	/*@Override
 	public Collection<QuteTextDocument> getBinaryDocuments() {
 		if (!binaryDoumentsLoaded) {
 			binaryDoumentsLoaded = true;
 			super.registerBinaryTemplates(loadBinaryTemplatesSync());
 		}
 		return super.getBinaryDocuments();
-	}
+	}*/
 
-	protected List<BinaryTemplateInfo> loadBinaryTemplatesSync() {
-		return Collections.emptyList();
-	}
 
 }
