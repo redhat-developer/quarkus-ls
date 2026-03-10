@@ -471,7 +471,7 @@ class QuteDiagnostics {
 							IncludeSection includeSection = (IncludeSection) parentSection;
 							List<Parameter> parameters = project
 									.findInsertTagParameter(includeSection, tagName);
-							if (parameters != null) {
+							if (parameters != null && !parameters.isEmpty()) {
 								// The parameter exists
 								return;
 							}
