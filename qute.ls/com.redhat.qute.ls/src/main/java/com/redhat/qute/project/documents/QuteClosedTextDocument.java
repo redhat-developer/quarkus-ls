@@ -109,11 +109,6 @@ public class QuteClosedTextDocument extends QuteReadOnlyTextDocument {
 	}
 
 	@Override
-	public String getFileName() {
-		return templatePath.getFileName().toString();
-	}
-
-	@Override
 	public String getOrigin() {
 		return null;
 	}

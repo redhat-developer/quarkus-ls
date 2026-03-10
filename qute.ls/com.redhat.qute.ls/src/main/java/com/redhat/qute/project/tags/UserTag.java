@@ -45,8 +45,7 @@ public class UserTag extends Snippet {
 
 	public UserTag(QuteTextDocument document) {
 		this.document = document;
-		String fileName = document.getFileName();
-		String name = UserTagUtils.getUserTagName(fileName);
+		String name = document.getUserTagName();
 		super.setLabel(name);
 		super.setPrefixes(Arrays.asList(name));
 		super.setContext(QuteSnippetContext.IN_TEXT);
@@ -166,12 +165,14 @@ public class UserTag extends Snippet {
 	}
 
 	/**
-	 * Returns the file name of the user tag.
+	 * Returns the user tag name.
 	 *
-	 * @return the file name of the user tag.
+	 * @return the the user tag name.
 	 */
 	public String getFileName() {
-		return document.getFileName();
+		String uri = document.getUri();
+		int index = uri.lastIndexOf('/');
+		return uri.substring(index + 1);
 	}
 
 	/**

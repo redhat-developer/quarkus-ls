@@ -817,7 +817,7 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	@Override
 	public void collectCodeLenses(Template template, SharedSettings settings, List<CodeLens> lenses,
 			CancelChecker cancelChecker) {
-		if (UserTagUtils.isUserTag(template) || hasYamlFrontMatter(template)) {
+		if (template.isUserTag() || hasYamlFrontMatter(template)) {
 			// Don't show "Insert FrontMatter" codelens when:
 			// - template is an user tag -
 			// -the template already defines a yaml front matter,

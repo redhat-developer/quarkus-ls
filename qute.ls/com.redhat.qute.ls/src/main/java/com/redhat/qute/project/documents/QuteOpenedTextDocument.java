@@ -83,7 +83,7 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 				}
 				template.setProjectRegistry(projectRegistry);
 			}
-			template.setUserTag(isUserTag());
+			template.setUserTagName(getUserTagName());
 		}
 		return template;
 	}
@@ -217,11 +217,6 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 			userTag = new UserTag(this);
 		}
 		return userTag;
-	}
-
-	@Override
-	public String getFileName() {
-		return templatePath.getFileName().toString();
 	}
 
 	@Override

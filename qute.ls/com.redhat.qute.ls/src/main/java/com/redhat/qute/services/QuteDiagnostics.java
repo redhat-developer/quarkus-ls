@@ -800,7 +800,7 @@ class QuteDiagnostics {
 				return null;
 			}
 
-			if (UserTagUtils.isUserTag(template)) {
+			if (template.isUserTag()) {
 				// Ignore undefined object diagnostic for user tag
 				return null;
 			}

@@ -322,7 +322,7 @@ public class QuteHover {
 
 	private CompletableFuture<Hover> doHoverForObjectPart(Part part, QuteProject project, HoverRequest hoverRequest,
 			CancelChecker cancelChecker) {
-		if (UserTagUtils.isUserTag(hoverRequest.getTemplate())) {
+		if (hoverRequest.getTemplate().isUserTag()) {
 			// It's an user tag
 			SectionMetadata specialKey = UserTagUtils.getSpecialKey(part.getPartName());
 			if (specialKey != null) {

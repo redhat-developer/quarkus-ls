@@ -227,7 +227,7 @@ public class QuteSearchUtils {
 					}
 				}
 				var template = objectPart.getOwnerTemplate();
-				if (UserTagUtils.isUserTag(template)) {
+				if (template.isUserTag()) {
 					var project = template.getProject();
 					if (project != null) {
 						List<Parameter> result = objectPart.getCallParams();

@@ -220,13 +220,52 @@ public class TemplateScannerTest {
 		assertOffsetAndToken(5, TokenType.EndTagClose, "}");
 		assertOffsetAndToken(6, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void emptyEndSection() {
 		scanner = TemplateScanner.createScanner("{/}");
 		assertOffsetAndToken(0, TokenType.EndTagSelfClose, "{/}");
 		assertOffsetAndToken(3, TokenType.EOS, "");
 	}
+
+	@Test
+	public void customSection() {
+		scanner = TemplateScanner.createScanner("{#foo p='' /}");
+		assertOffsetAndToken(0, TokenType.StartTagOpen, "{#");
+		assertOffsetAndToken(2, TokenType.StartTag, "foo");
+		assertOffsetAndToken(5, TokenType.Whitespace, " ");
+		assertOffsetAndToken(6, TokenType.ParameterTag, "p=''");
+		assertOffsetAndToken(10, TokenType.Whitespace, " ");
+		assertOffsetAndToken(11, TokenType.StartTagSelfClose, "/}");
+		assertOffsetAndToken(13, TokenType.EOS, "");
+	}
+
+	@Test
+	public void namespacedSection() {
+		scanner = TemplateScanner.createScanner("{#roq-default/hero p='' /}");
+		assertOffsetAndToken(0, TokenType.StartTagOpen, "{#");
+		assertOffsetAndToken(2, TokenType.StartTag, "roq-default/hero");
+		assertOffsetAndToken(18, TokenType.Whitespace, " ");
+		assertOffsetAndToken(19, TokenType.ParameterTag, "p=''");
+		assertOffsetAndToken(23, TokenType.Whitespace, " ");
+		assertOffsetAndToken(24, TokenType.StartTagSelfClose, "/}");
+		assertOffsetAndToken(26, TokenType.EOS, "");
+	}
+
+	@Test
+	public void sectionWithParametersAndNewLine() {
+		scanner = TemplateScanner.createScanner("{#foo \r\n\t p1=''   \r\n p2='' /}");
+		assertOffsetAndToken(0, TokenType.StartTagOpen, "{#");
+		assertOffsetAndToken(2, TokenType.StartTag, "foo");
+		assertOffsetAndToken(5, TokenType.Whitespace, " \r\n\t ");
+		assertOffsetAndToken(10, TokenType.ParameterTag, "p1=''");
+		assertOffsetAndToken(15, TokenType.Whitespace, "   \r\n ");
+		assertOffsetAndToken(21, TokenType.ParameterTag, "p2=''");
+		assertOffsetAndToken(26, TokenType.Whitespace, " ");
+		assertOffsetAndToken(27, TokenType.StartTagSelfClose, "/}");
+		assertOffsetAndToken(29, TokenType.EOS, "");
+	}
+
 	public void assertOffsetAndToken(int tokenOffset, TokenType tokenType) {
 		TokenType token = scanner.scan();
 		assertEquals(tokenOffset, scanner.getTokenOffset());
