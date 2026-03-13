@@ -72,7 +72,7 @@ public class QuteDocumentLink {
 					IncludeSection includeSection = (IncludeSection) section;
 					// {#include base.qute.html}
 					// In this case 'base.qute.html' is a document link
-					Parameter includedTemplateId = includeSection.getParameterAtIndex(0);
+					Parameter includedTemplateId = includeSection.getTemplateParameter();
 					if (includedTemplateId != null) {
 						Range range = QutePositionUtility.createRange(includedTemplateId.getStart(),
 								includedTemplateId.getEnd(), template);

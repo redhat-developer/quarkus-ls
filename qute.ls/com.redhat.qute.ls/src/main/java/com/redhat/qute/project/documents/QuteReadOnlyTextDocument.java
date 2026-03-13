@@ -1,14 +1,14 @@
 /*******************************************************************************
-* Copyright (c) 2026 Red Hat Inc. and others.
-* All rights reserved. This program and the accompanying materials
-* which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v20.html
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Contributors:
-*     Red Hat Inc. - initial API and implementation
-*******************************************************************************/
+ * Copyright (c) 2026 Red Hat Inc. and others.
+ * All rights reserved. This program and the accompanying materials
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v20.html
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     Red Hat Inc. - initial API and implementation
+ *******************************************************************************/
 package com.redhat.qute.project.documents;
 
 import java.util.concurrent.CompletableFuture;
@@ -23,9 +23,18 @@ import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.usages.UsagesCollector;
+import com.redhat.qute.project.usages.UsagesCollector.UsageTracker;
 
 /**
- * Qure read only text document.
+ * Qute read-only text document.
+ *
+ * <p>
+ * Unlike {@link QuteOpenedTextDocument}, this document is parsed only once at
+ * construction time and never re-parsed. The {@link UsagesCollector} and its
+ * {@link UsageTracker} instances are therefore created inline, used once, and
+ * discarded — no reuse is needed.
+ * </p>
  */
 public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 
@@ -38,8 +47,6 @@ public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 	private final QuteProject project;
 
 	private final Template template;
-
-	private UserTagUsageCollector callVisitor;
 
 	private UserTag userTag;
 
@@ -107,19 +114,30 @@ public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 		return null;
 	}
 
+	/**
+	 * Runs the usage collector on the given template once at load time.
+	 *
+	 * <p>
+	 * Since this document is read-only and parsed only once, the
+	 * {@link UsageTracker} instances are created inline and discarded after the
+	 * single visit. There is no need to store them for reuse.
+	 * </p>
+	 *
+	 * @param template the parsed template to visit
+	 * @param project  the owning project
+	 */
 	private void processCallVisitor(Template template, QuteProject project) {
 		if (template != null) {
 			if (project == null) {
 				project = template.getProject();
 			}
-			String templateId = getTemplateId();
 			if (project != null && templateId != null) {
-				if (callVisitor == null) {
-					callVisitor = new UserTagUsageCollector(getTemplateId(), project.getTagRegistry());
-				}
-				template.accept(callVisitor);
+				// Trackers created inline — single use only, not stored
+				UsageTracker userTagTracker = new UsageTracker(project.getTagRegistry());
+				UsageTracker includeTracker = new UsageTracker(project.getIncludeUsagesRegistry());
+				UsagesCollector collector = new UsagesCollector(templateId, userTagTracker, includeTracker);
+				template.accept(collector);
 			}
-
 		}
 	}
 

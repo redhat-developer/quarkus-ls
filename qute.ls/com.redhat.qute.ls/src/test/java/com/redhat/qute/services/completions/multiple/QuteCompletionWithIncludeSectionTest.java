@@ -30,47 +30,128 @@ public class QuteCompletionWithIncludeSectionTest {
 
 	@Test
 	public void includeTemplateIds() throws Exception {
-		String template = "{#include |} \r\n"
-				+ "  |\r\n"
-				+ "{/include}";
+		String template = "{#include |} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
+
+		// Without snippet
+//		testCompletionFor(template, //
+//				false, // no snippet support
+//				QuteProjectB.PROJECT_URI, //
+//				2, //
+//				c("root", "root", r(0, 10, 0, 10)), //
+//				c("index", "index", r(0, 10, 0, 10)));
+
+		template = "{#include r|o} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
 
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				QuteProjectB.PROJECT_URI,
+				QuteProjectB.PROJECT_URI, //
 				2, //
-				c("root", "root", r(0, 10, 0, 10)),
-				c("index", "index", r(0, 10, 0, 10)));
+				c("root", "root", r(0, 10, 0, 12)), //
+				c("index", "index", r(0, 10, 0, 12)));
 
+		template = "{#include |ro} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				QuteProjectB.PROJECT_URI, //
+				2, //
+				c("root", "root", r(0, 10, 0, 12)), //
+				c("index", "index", r(0, 10, 0, 12)));
+
+		template = "{#include ro|} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				QuteProjectB.PROJECT_URI, //
+				2, //
+				c("root", "root", r(0, 10, 0, 12)), //
+				c("index", "index", r(0, 10, 0, 12)));
 	}
 
 	@Test
 	public void includeTemplateIdsSelf() throws Exception {
-		String template = "{#include |} \r\n"
-				+ "  |\r\n"
-				+ "{/include}";
+		String template = "{#include |} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
 
 		// Without snippet
 		testCompletionFor(template, //
-				"src/test/resources/projects/project-b/src/main/resources/templates/index.html",
-				false, // no snippet support
-				QuteProjectB.PROJECT_URI,
-				1, //
+				"src/test/resources/projects/project-b/src/main/resources/templates/index.html", false, // no snippet
+																										// support
+				QuteProjectB.PROJECT_URI, 1, //
 				c("root", "root", r(0, 10, 0, 10)) // ,
 		// c("index", "index", r(0, 10, 0, 10))
 		);
 
 	}
 
-	private static void testCompletionFor(String value, boolean snippetSupport,
-			String projectUri, Integer expectedCount, CompletionItem... expectedItems)
-			throws Exception {
+	@Test
+	public void noCompletionWhenIncludedTemplateIdIsDefined() throws Exception {
+		String template = "{#include root |} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				QuteProjectB.PROJECT_URI, 0);
+
+		template = "{#include root r|o} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				QuteProjectB.PROJECT_URI, 0);
+
+		template = "{#include root |ro} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				QuteProjectB.PROJECT_URI, 0);
+
+		template = "{#include root ro|} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				QuteProjectB.PROJECT_URI, 0);
+
+		template = "{#include root |ro} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
+
+		// Without snippet
+		testCompletionFor(template, //
+				false, // no snippet support
+				QuteProjectB.PROJECT_URI, 0);
+
+	}
+
+	private static void testCompletionFor(String value, boolean snippetSupport, String projectUri,
+			Integer expectedCount, CompletionItem... expectedItems) throws Exception {
 		testCompletionFor(value, QuteAssert.FILE_URI, snippetSupport, projectUri, expectedCount, expectedItems);
 	}
 
-	private static void testCompletionFor(String value, String fileUri, boolean snippetSupport,
-			String projectUri, Integer expectedCount, CompletionItem... expectedItems)
-			throws Exception {
+	private static void testCompletionFor(String value, String fileUri, boolean snippetSupport, String projectUri,
+			Integer expectedCount, CompletionItem... expectedItems) throws Exception {
 		QuteAssert.testCompletionFor(value, snippetSupport, fileUri, null, projectUri, "", expectedCount,
 				expectedItems);
 	}

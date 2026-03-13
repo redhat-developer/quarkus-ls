@@ -1,14 +1,14 @@
 /*******************************************************************************
-* Copyright (c) 2023 Red Hat Inc. and others.
-* All rights reserved. This program and the accompanying materials
-* which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v20.html
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Contributors:
-*     Red Hat Inc. - initial API and implementation
-*******************************************************************************/
+ * Copyright (c) 2023 Red Hat Inc. and others.
+ * All rights reserved. This program and the accompanying materials
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v20.html
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     Red Hat Inc. - initial API and implementation
+ *******************************************************************************/
 package com.redhat.qute.project.documents;
 
 import static com.redhat.qute.commons.FileUtils.createPath;
@@ -37,6 +37,8 @@ import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.usages.UsagesCollector;
+import com.redhat.qute.project.usages.UsagesCollector.UsageTracker;
 
 public class QuteOpenedTextDocument extends ModelTextDocument<Template> implements QuteTextDocument {
 
@@ -52,7 +54,24 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 
 	private String templateId;
 
-	private UserTagUsageCollector callVisitor;
+	/**
+	 * Reusable visitor that collects user tag and include usages on each parse.
+	 * Created lazily once the project and template id are known, then reused
+	 * across all subsequent parses to avoid repeated allocations.
+	 */
+	private UsagesCollector callVisitor;
+
+	/**
+	 * Tracks user tag usages across visits for this template.
+	 * Owned here so that its internal maps survive between keystrokes.
+	 */
+	private UsageTracker userTagTracker;
+
+	/**
+	 * Tracks include section usages across visits for this template.
+	 * Owned here so that its internal maps survive between keystrokes.
+	 */
+	private UsageTracker includeTracker;
 
 	private UserTag userTag;
 
@@ -168,6 +187,19 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 		}
 	}
 
+	/**
+	 * Runs the usage collector on the given template if the project is known.
+	 *
+	 * <p>
+	 * The {@link UsagesCollector} and its {@link UsageTracker} instances are
+	 * created lazily on the first call, once both the project and the template id
+	 * are available. On subsequent calls (i.e. every keystroke), the existing
+	 * instances are reused — no allocations occur beyond the AST traversal itself.
+	 * </p>
+	 *
+	 * @param template the parsed template to visit, may be {@code null}
+	 * @param project  the owning project, or {@code null} to resolve from the template
+	 */
 	private void processCallVisitor(Template template, QuteProject project) {
 		if (template != null) {
 			if (project == null) {
@@ -175,11 +207,14 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 			}
 			if (project != null && templateId != null) {
 				if (callVisitor == null) {
-					callVisitor = new UserTagUsageCollector(getTemplateId(), project.getTagRegistry());
+					// Trackers are allocated once per opened document and reused across
+					// all subsequent visits via an internal map-swap strategy
+					userTagTracker = new UsageTracker(project.getTagRegistry());
+					includeTracker = new UsageTracker(project.getIncludeUsagesRegistry());
+					callVisitor = new UsagesCollector(getTemplateId(), userTagTracker, includeTracker);
 				}
 				template.accept(callVisitor);
 			}
-
 		}
 	}
 

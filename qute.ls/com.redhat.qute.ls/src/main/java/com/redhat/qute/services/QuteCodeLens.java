@@ -12,10 +12,12 @@
 package com.redhat.qute.services;
 
 import static com.redhat.qute.services.commands.QuteClientCommandConstants.COMMAND_JAVA_DEFINITION;
+import static com.redhat.qute.services.commands.QuteClientCommandConstants.COMMAND_OPEN_URI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.CodeLens;
@@ -39,6 +41,7 @@ import com.redhat.qute.project.datamodel.ExtendedDataModelFragment;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.extensions.CodeLensParticipant;
+import com.redhat.qute.project.usages.IncludeUsages;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
@@ -84,6 +87,11 @@ class QuteCodeLens {
 					// Collect code lenses from custom participant (ex: "Insert FontMatter" for Roq
 					// application)
 					if (project != null) {
+
+						// Included By CodeLens
+						collectIncludedByCodeLenses(template, project, settings, cancelChecker, lenses);
+
+						// Codelens from participant (ex: Roq page)
 						for (CodeLensParticipant codeLensParticipant : project.getCodeLensParticipants()) {
 							if (codeLensParticipant.isEnabled()) {
 								codeLensParticipant.collectCodeLenses(template, settings, lenses, cancelChecker);
@@ -120,7 +128,7 @@ class QuteCodeLens {
 			String title = createCheckedTemplateTitle(templateDataModel);
 			Command command = !canSupportJavaDefinition ? new Command(title, "")
 					: new Command(title, COMMAND_JAVA_DEFINITION,
-							Arrays.asList(templateDataModel.toJavaDefinitionParams(projectUri)));
+							List.of(templateDataModel.toJavaDefinitionParams(projectUri)));
 			CodeLens codeLens = new CodeLens(range, command, null);
 			lenses.add(codeLens);
 		}
@@ -258,6 +266,35 @@ class QuteCodeLens {
 						CodeLens codeLens = new CodeLens(range, command, null);
 						lenses.add(codeLens);
 					}, cancelChecker);
+
+		}
+	}
+
+	private static void collectIncludedByCodeLenses(Template template, QuteProject project, SharedSettings settings,
+			CancelChecker cancelChecker, List<CodeLens> lenses) {
+		boolean canSupportOpenUri = settings.getCommandCapabilities().isCommandSupported(COMMAND_OPEN_URI);
+		IncludeUsages includeUsages = project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
+		if (includeUsages == null) {
+			return;
+		}
+
+		Set<String> includeTemplateUris = includeUsages.getUsagesByUri().keySet();
+
+		Range range = LEFT_TOP_RANGE;
+		Command command = new Command("Included by:", "");
+		CodeLens codeLens = new CodeLens(range, command, null);
+		lenses.add(codeLens);
+
+		for (String templateId : includeTemplateUris) {
+			Command includedUriCommand = null;
+			String uri = canSupportOpenUri ? project.findTemplateUriByTemplateId(templateId) : null;
+			if (uri == null) {
+				includedUriCommand = new Command(templateId, "");
+			} else {
+				includedUriCommand = new Command(templateId, COMMAND_OPEN_URI, List.of(uri));
+			}
+			CodeLens includedUriCodeLens = new CodeLens(range, includedUriCommand, null);
+			lenses.add(includedUriCodeLens);
 
 		}
 	}
