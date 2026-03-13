@@ -140,6 +140,7 @@ public class QuteSearchUtils {
 					}
 					break;
 				}
+				case INCLUDE:
 				case CUSTOM: {
 					List<Parameter> parameters = section.getParameters();
 					if (parameters != null) {
@@ -230,7 +231,7 @@ public class QuteSearchUtils {
 				if (template.isUserTag()) {
 					var project = template.getProject();
 					if (project != null) {
-						List<Parameter> result = objectPart.getCallParams();
+						List<Parameter> result = objectPart.getUserTagCallParams();
 						for (Parameter parameter : result) {
 							Range range = QutePositionUtility.selectParameterName(parameter);
 							collector.accept(parameter, range);
@@ -313,6 +314,7 @@ public class QuteSearchUtils {
 					tryToCollectObjectPartOrParameter(partName, matcher, parameterExpr, ownerNode, collector);
 					break;
 				}
+				case INCLUDE:
 				case CUSTOM: {
 					List<Parameter> parameters = section.getParameters();
 					if (parameters != null) {

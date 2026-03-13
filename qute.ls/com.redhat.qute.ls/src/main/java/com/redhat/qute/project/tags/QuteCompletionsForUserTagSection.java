@@ -12,7 +12,6 @@
 package com.redhat.qute.project.tags;
 
 import java.util.Collection;
-import java.util.List;
 
 import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
 import com.redhat.qute.services.completions.tags.QuteCompletionsForSnippets;

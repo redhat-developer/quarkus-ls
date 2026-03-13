@@ -23,6 +23,7 @@ import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.usages.UsagesCollector;
 
 /**
  * Qure read only text document.
@@ -39,7 +40,7 @@ public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 
 	private final Template template;
 
-	private UserTagUsageCollector callVisitor;
+	private UsagesCollector callVisitor;
 
 	private UserTag userTag;
 
@@ -115,7 +116,7 @@ public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 			String templateId = getTemplateId();
 			if (project != null && templateId != null) {
 				if (callVisitor == null) {
-					callVisitor = new UserTagUsageCollector(getTemplateId(), project.getTagRegistry());
+					callVisitor = new UsagesCollector(getTemplateId(), project);
 				}
 				template.accept(callVisitor);
 			}

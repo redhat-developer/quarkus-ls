@@ -41,6 +41,7 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CustomSection;
 import com.redhat.qute.parser.template.sections.ForSection;
 import com.redhat.qute.parser.template.sections.IfSection;
+import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.LetSection;
 import com.redhat.qute.parser.template.sections.SetSection;
 import com.redhat.qute.project.QuteProject;
@@ -174,6 +175,18 @@ public class InlayHintASTVistor extends ASTVisitor {
 		return isAfterEndParameterVisible(node);
 	}
 
+	public boolean visit(IncludeSection node) {
+		cancelChecker.checkCanceled();
+
+		if (!isAfterStartParameterVisible(node)) {
+			return false;
+		}
+		// {#form id[:String]=item.id }
+		// {#form item.id[:String] }
+		createInlayHintParametersSection(node);
+		return isAfterEndParameterVisible(node);
+	}
+	
 	@Override
 	public boolean visit(Expression node) {
 		cancelChecker.checkCanceled();

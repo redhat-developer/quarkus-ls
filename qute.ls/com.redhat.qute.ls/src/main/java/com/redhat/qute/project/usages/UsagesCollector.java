@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.project.documents;
+package com.redhat.qute.project.usages;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +22,8 @@ import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CustomSection;
+import com.redhat.qute.parser.template.sections.IncludeSection;
+import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.tags.UserTagRegistry;
 
 /**
@@ -57,7 +59,7 @@ import com.redhat.qute.project.tags.UserTagRegistry;
  * </ul>
  * </p>
  */
-public class UserTagUsageCollector extends ASTVisitor {
+public class UsagesCollector extends ASTVisitor {
 
 	/** URI of the template currently being visited */
 	private final String templateId;
@@ -70,7 +72,7 @@ public class UserTagUsageCollector extends ASTVisitor {
 	 *
 	 * Key : user tag name Value : list of parameters used when calling the tag
 	 */
-	private final Map<String, List<Parameter>> usages;
+	private final Map<String, List<Parameter>> userTagUsages;
 
 	/**
 	 * Set of user tag names that were previously used in this template. Used to
@@ -78,19 +80,30 @@ public class UserTagUsageCollector extends ASTVisitor {
 	 */
 	private Set<String> previousTagNames;
 
-	public UserTagUsageCollector(String templateId, UserTagRegistry userTagRegistry) {
+	private final IncludeUsagesRegistry includeUsagesRegistry;
+
+	private final Map<String, List<Parameter>> includeUsages;
+
+	private Set<String> previousInclude;
+
+	public UsagesCollector(String templateId, QuteProject project) {
 		this.templateId = templateId;
-		this.userTagRegistry = userTagRegistry;
-		this.usages = new HashMap<>();
+		this.userTagRegistry = project.getTagRegistry();
+		this.includeUsagesRegistry = project.getIncludeUsagesRegistry();
+		this.userTagUsages = new HashMap<>();
+		this.includeUsages = new HashMap<>();
 	}
 
 	@Override
 	public boolean visit(Template node) {
 		// Keep track of previously known user tag usages for this template
-		previousTagNames = new HashSet<>(usages.keySet());
-
+		previousTagNames = new HashSet<>(userTagUsages.keySet());
 		// Clear current usages before collecting them again
-		usages.clear();
+		userTagUsages.clear();
+
+		// Keep track of previously known user tag usages for this template
+		previousInclude = new HashSet<>(includeUsages.keySet());
+		includeUsages.clear();
 
 		return super.visit(node);
 	}
@@ -98,7 +111,11 @@ public class UserTagUsageCollector extends ASTVisitor {
 	@Override
 	public void endVisit(Template node) {
 		// Notify the registry that usages for this template have been updated
-		userTagRegistry.updateUsages(templateId, usages, previousTagNames);
+		userTagRegistry.updateUsages(templateId, userTagUsages, previousTagNames);
+
+		// Notify the registry that usages for this template have been updated
+		includeUsagesRegistry.updateUsages(templateId, includeUsages, previousInclude);
+
 		super.endVisit(node);
 	}
 
@@ -112,8 +129,25 @@ public class UserTagUsageCollector extends ASTVisitor {
 			previousTagNames.remove(userTagName);
 
 			// Register parameters for this user tag
-			usages.computeIfAbsent(userTagName, k -> new ArrayList<>()).addAll(parameters);
+			userTagUsages.computeIfAbsent(userTagName, k -> new ArrayList<>()).addAll(parameters);
 		}
 		return super.visit(node);
 	}
+
+	@Override
+	public boolean visit(IncludeSection section) {
+		List<Parameter> parameters = section.getParameters();
+		if (!parameters.isEmpty()) {
+			Parameter includedTemplate = parameters.get(0);
+			String templateId = includedTemplate.getValue();
+
+			// This tag is still in use
+			previousInclude.remove(templateId);
+
+			// Register parameters for this include section
+			includeUsages.computeIfAbsent(templateId, k -> new ArrayList<>()).addAll(parameters);
+		}
+		return super.visit(section);
+	}
+
 }

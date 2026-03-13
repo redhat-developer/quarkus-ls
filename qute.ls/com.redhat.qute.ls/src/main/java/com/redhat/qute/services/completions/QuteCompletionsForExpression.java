@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -75,6 +76,7 @@ import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.project.extensions.CompletionParticipant;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
+import com.redhat.qute.project.usages.IncludeUsages;
 import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.services.completions.tags.QuteCompletionForTagSection;
 import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
@@ -813,6 +815,38 @@ public class QuteCompletionsForExpression {
 						completionItems.add(item);
 					}
 				}
+			}
+
+			// Show parameters of included sections
+			QuteProject project = template.getProject();
+			if (project != null) {
+				IncludeUsages includeUsages = project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
+				if (includeUsages != null) {
+					Set<String> existingNames = new HashSet<>();
+					Map<String, List<Parameter>> usages = includeUsages.getUsagesByUri();
+					for (Map.Entry<String, List<Parameter>> entry : usages.entrySet()) {
+
+						for (Parameter p : entry.getValue()) {
+							String paramName = p.getName();
+							if (p.canHaveExpression() && !StringUtils.isEmpty(paramName)
+									&& !existingNames.contains(paramName)) {
+								existingNames.add(paramName);
+
+								CompletionItem item = new CompletionItem();
+								item.setLabel(paramName);
+								item.setKind(CompletionItemKind.Reference);
+								TextEdit textEdit = new TextEdit(range, paramName);
+								item.setTextEdit(Either.forLeft(textEdit));
+								item.setInsertTextFormat(
+										completionSettings.isCompletionSnippetsSupported() ? InsertTextFormat.Snippet
+												: InsertTextFormat.PlainText);
+								completionItems.add(item);
+
+							}
+						}
+					}
+				}
+
 			}
 		}
 

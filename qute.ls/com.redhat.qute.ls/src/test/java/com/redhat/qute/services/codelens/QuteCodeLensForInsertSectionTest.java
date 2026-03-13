@@ -29,20 +29,24 @@ public class QuteCodeLensForInsertSectionTest {
 
 	@Test
 	public void insert() throws Exception {
-		String value = "<!DOCTYPE html>\r\n"
-				+ "<html lang=\"en\">\r\n"
-				+ "<head>  \r\n"
-				+ "  <title>{#insert includedTitle}Default Title{/}</title>\r\n"
-				+ "</head>\r\n"
-				+ "<body>\r\n"
-				+ "{#each items}\r\n"
-				+ "{/each}\r\n"
-				// [2 references]
-				+ "{#insert body}No body!{/}\r\n"
-				+ "</body>\r\n"
-				+ "</html>";
-		testCodeLensFor(value, "src/main/resources/templates/tags/base.html",
-				cl(r(8, 9, 8, 13), "2 references", QuteClientCommandConstants.COMMAND_SHOW_REFERENCES));
+		String value = // Included by: | BookPage/books.html | BookPage/book.html
+				"<!DOCTYPE html>\r\n" + //
+						"<html lang=\"en\">\r\n" + //
+						"<head>  \r\n" + //
+						"  <title>{#insert includedTitle}Default Title{/}</title>\r\n" + //
+						"</head>\r\n" + //
+						"<body>\r\n" + //
+						"{#each items}\r\n" + //
+						"{/each}\r\n" +
+						// [2 references]
+						"{#insert body}No body!{/}\r\n" + //
+						"</body>\r\n" + //
+						"</html>";
+		testCodeLensFor(value, "src/main/resources/templates/base.html", //
+				cl(r(8, 9, 8, 13), "2 references", QuteClientCommandConstants.COMMAND_SHOW_REFERENCES), //
+				cl(r(0, 0, 0, 0), "Included by:", ""), //
+				cl(r(0, 0, 0, 0), "BookPage/books.html", ""), //
+				cl(r(0, 0, 0, 0), "BookPage/book.html", ""));
 	}
 
 }

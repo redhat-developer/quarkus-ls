@@ -95,6 +95,7 @@ import com.redhat.qute.project.extensions.ProjectExtension;
 import com.redhat.qute.project.extensions.TemplateLanguageInjectionParticipant;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagRegistry;
+import com.redhat.qute.project.usages.IncludeUsagesRegistry;
 import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
@@ -177,6 +178,8 @@ public class QuteProject {
 	private final Collection<InlayHintParticipant> inlayHintParticipants;
 	private final Collection<TemplateLanguageInjectionParticipant> languageInjectionParticipants;
 
+	private final IncludeUsagesRegistry includeUsagesRegistry;
+
 	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		this.uri = projectInfo.getUri();
 		this.projectFolder = FileUtils.createPath(projectInfo.getProjectFolder());
@@ -190,6 +193,7 @@ public class QuteProject {
 		this.projectRegistry = projectRegistry;
 		this.resolvedJavaTypes = new HashMap<>();
 		this.tagRegistry = new UserTagRegistry(this, templateRootPaths);
+		this.includeUsagesRegistry = new IncludeUsagesRegistry(this);
 		this.filterInNativeMode = new NativeModeJavaTypeFilter(this);
 		this.validator = projectRegistry.getValidator();
 		this.javaCache = new JavaDataModelCache(this);
@@ -315,10 +319,10 @@ public class QuteProject {
 	}
 
 	public void validateClosedTemplates(ProgressContext progressContext) {
+		closedDocuments.loadClosedTemplatesIfNeeded(progressContext);
 		if (validator != null) {
 			// Load closed document if needed and validate all closed documents when data
-			// model is ready.
-			closedDocuments.loadClosedTemplatesIfNeeded(progressContext);
+			// model is ready.			
 			for (QuteTextDocument document : sourceDocuments.values()) {
 				if (!document.isOpened()) {
 					validator.triggerValidationFor(document);
@@ -1976,6 +1980,10 @@ public class QuteProject {
 		} catch (Exception e) {
 			return uri;
 		}
+	}
+
+	public IncludeUsagesRegistry getIncludeUsagesRegistry() {
+		return includeUsagesRegistry;
 	}
 
 }

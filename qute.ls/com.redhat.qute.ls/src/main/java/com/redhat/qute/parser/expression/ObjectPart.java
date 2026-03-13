@@ -24,7 +24,7 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.tags.UserTagUsages;
-import com.redhat.qute.utils.UserTagUtils;
+import com.redhat.qute.project.usages.IncludeUsages;
 
 /**
  * Object part.
@@ -141,9 +141,17 @@ public class ObjectPart extends Part {
 			return globalVariable;
 		}
 
-		UserTagUsages call = getUsages(template);
+		UserTagUsages call = getUserTagUsages(template);
 		if (call != null) {
 			JavaTypeInfoProvider provider = call.getTypeProvider(partName);
+			if (provider != null) {
+				return provider;
+			}
+		}
+
+		IncludeUsages include = getIncludeUsages(template);
+		if (include != null) {
+			JavaTypeInfoProvider provider = include.getTypeProvider(partName);
 			if (provider != null) {
 				return provider;
 			}
@@ -157,15 +165,31 @@ public class ObjectPart extends Part {
 		return matchedOptionalParameter;
 	}
 
-	public List<Parameter> getCallParams() {
-		UserTagUsages usages = getUsages(getOwnerTemplate());
+	public List<Parameter> getIncludeCallParams() {
+		IncludeUsages usages = getIncludeUsages(getOwnerTemplate());
 		if (usages != null) {
 			return usages.getParameters(getPartName());
 		}
 		return Collections.emptyList();
 	}
-	
-	private static UserTagUsages getUsages(Template template) {
+
+	private IncludeUsages getIncludeUsages(Template template) {
+		QuteProject project = template.getProject();
+		if (project != null) {			
+			return project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
+		}
+		return null;
+	}
+
+	public List<Parameter> getUserTagCallParams() {
+		UserTagUsages usages = getUserTagUsages(getOwnerTemplate());
+		if (usages != null) {
+			return usages.getParameters(getPartName());
+		}
+		return Collections.emptyList();
+	}
+
+	private static UserTagUsages getUserTagUsages(Template template) {
 		if (template.isUserTag()) {
 			QuteProject project = template.getProject();
 			if (project != null) {

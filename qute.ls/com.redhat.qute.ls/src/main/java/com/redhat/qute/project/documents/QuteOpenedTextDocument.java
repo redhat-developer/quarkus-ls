@@ -37,6 +37,7 @@ import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.usages.UsagesCollector;
 
 public class QuteOpenedTextDocument extends ModelTextDocument<Template> implements QuteTextDocument {
 
@@ -52,7 +53,7 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 
 	private String templateId;
 
-	private UserTagUsageCollector callVisitor;
+	private UsagesCollector callVisitor;
 
 	private UserTag userTag;
 
@@ -175,7 +176,7 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 			}
 			if (project != null && templateId != null) {
 				if (callVisitor == null) {
-					callVisitor = new UserTagUsageCollector(getTemplateId(), project.getTagRegistry());
+					callVisitor = new UsagesCollector(getTemplateId(), project);
 				}
 				template.accept(callVisitor);
 			}
