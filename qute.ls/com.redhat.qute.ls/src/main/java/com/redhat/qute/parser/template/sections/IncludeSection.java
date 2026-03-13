@@ -42,6 +42,17 @@ public class IncludeSection extends Section {
 		return SectionKind.INCLUDE;
 	}
 
+	@Override
+	protected void initializeParameters(List<Parameter> parameters) {
+		// the first parameter (included template id) cannot have some expressions
+		// the other parameters can have expression
+		if (parameters.size() > 1) {
+			for (int i = 1; i < parameters.size(); i++) {
+				parameters.get(i).setCanHaveExpression(true);
+			}
+		}
+	}
+
 	/**
 	 * Returns the referenced template file defined in the first parameter of the
 	 * section and null otherwise.

@@ -41,6 +41,7 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CustomSection;
 import com.redhat.qute.parser.template.sections.ForSection;
 import com.redhat.qute.parser.template.sections.IfSection;
+import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.LetSection;
 import com.redhat.qute.parser.template.sections.SetSection;
 import com.redhat.qute.project.QuteProject;
@@ -52,6 +53,7 @@ import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.QuteInlayHintSettings;
 import com.redhat.qute.settings.SharedSettings;
+import com.redhat.qute.utils.StringUtils;
 
 /**
  * AST visitor used to show inferred Java type for section parameter as inlay
@@ -163,6 +165,18 @@ public class InlayHintASTVistor extends ASTVisitor {
 	}
 
 	public boolean visit(CustomSection node) {
+		cancelChecker.checkCanceled();
+
+		if (!isAfterStartParameterVisible(node)) {
+			return false;
+		}
+		// {#form id[:String]=item.id }
+		// {#form item.id[:String] }
+		createInlayHintParametersSection(node);
+		return isAfterEndParameterVisible(node);
+	}
+
+	public boolean visit(IncludeSection node) {
 		cancelChecker.checkCanceled();
 
 		if (!isAfterStartParameterVisible(node)) {
@@ -349,10 +363,14 @@ public class InlayHintASTVistor extends ASTVisitor {
 
 	private void createInlayHint(Parameter parameter, ResolvedJavaTypeInfo javaType, Template template) {
 		try {
+			String type = getLabel(javaType);
+			if (StringUtils.isEmpty(type)) {
+				return;
+			}
 			InlayHint hint = new InlayHint();
 			hint.setKind(InlayHintKind.Type);
 			// The Java type is resolved, display it as inlay hint
-			updateJavaType(hint, javaType, template.getProjectUri());
+			updateJavaType(hint, javaType, type, template.getProjectUri());
 			int end = parameter.hasValueAssigned() ? parameter.getEndName() : parameter.getEnd();
 			Position position = template.positionAt(end);
 			hint.setPosition(position);
@@ -397,8 +415,7 @@ public class InlayHintASTVistor extends ASTVisitor {
 		return javaType;
 	}
 
-	private void updateJavaType(InlayHint hint, ResolvedJavaTypeInfo javaType, String projectUri) {
-		String type = getLabel(javaType);
+	private void updateJavaType(InlayHint hint, ResolvedJavaTypeInfo javaType, String type, String projectUri) {
 		if (javaType != null && canSupportJavaDefinition) {
 			// first part : ":"
 			InlayHintLabelPart separatorPart = new InlayHintLabelPart(":");

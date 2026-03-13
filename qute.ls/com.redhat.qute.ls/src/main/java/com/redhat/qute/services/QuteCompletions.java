@@ -36,6 +36,7 @@ import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.ParameterDeclaration;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
@@ -131,10 +132,14 @@ public class QuteCompletions {
 				nodeExpression = node;
 				expression = ((Part) node).getParent().getParent();
 			}
-			if (expression != null && Section.isIncludeSection(expression.getOwnerSection())) {
+			Section parentSection = expression != null ? expression.getOwnerSection() : null;
+			if (Section.isIncludeSection(parentSection)) {
 				// {#include | }
-				return completionForTemplateIds.doCompleteTemplateId(completionRequest, completionSettings,
-						formattingSettings, cancelChecker);
+				CompletableFuture<CompletionList> result = doCompleteTemplateIds((IncludeSection) parentSection,
+						completionRequest, completionSettings, formattingSettings, cancelChecker);
+				if (result != null) {
+					return result;
+				}
 			}
 			return completionForExpression.doCompleteExpression(completionRequest, expression, nodeExpression, template,
 					offset, completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
@@ -193,8 +198,13 @@ public class QuteCompletions {
 						completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);
 			} else if (Section.isIncludeSection(parameter.getOwnerSection())) {
 				// {#include ba|se }
-				return completionForTemplateIds.doCompleteTemplateId(completionRequest, completionSettings,
+				CompletableFuture<CompletionList> result = doCompleteTemplateIds(
+						(IncludeSection) parameter.getOwnerSection(), completionRequest, completionSettings,
 						formattingSettings, cancelChecker);
+				if (result != null) {
+					return result;
+				}
+				return EMPTY_FUTURE_COMPLETION;
 			}
 		} else if (node.getKind() == NodeKind.LanguageInjection) {
 			LanguageInjectionNode languageInjection = (LanguageInjectionNode) node;
@@ -216,6 +226,18 @@ public class QuteCompletions {
 			return EMPTY_FUTURE_COMPLETION;
 		}
 		return collectSnippetSuggestions(completionRequest);
+	}
+
+	private CompletableFuture<CompletionList> doCompleteTemplateIds(IncludeSection includeSection,
+			CompletionRequest completionRequest, QuteCompletionSettings completionSettings,
+			QuteFormattingSettings formattingSettings, CancelChecker cancelChecker) {
+		Parameter templateParameter = includeSection.getTemplateParameter();
+		int offset = completionRequest.getOffset();
+		if (templateParameter == null || Node.isIncluded(templateParameter, offset)) {
+			return completionForTemplateIds.doCompleteTemplateId(completionRequest, completionSettings,
+					formattingSettings, cancelChecker);
+		}
+		return null;
 	}
 
 	/**
