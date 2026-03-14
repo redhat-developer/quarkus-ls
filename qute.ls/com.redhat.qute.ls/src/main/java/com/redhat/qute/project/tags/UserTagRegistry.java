@@ -13,16 +13,14 @@ package com.redhat.qute.project.tags;
 
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.lsp4j.CompletionItem;
 
 import com.redhat.qute.commons.TemplateRootPath;
-import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.usages.UsagesRegistry;
 import com.redhat.qute.services.completions.CompletionRequest;
 
 /**
@@ -33,16 +31,16 @@ import com.redhat.qute.services.completions.CompletionRequest;
  * @see https://quarkus.io/guides/qute-reference#user_tags
  *
  */
-public class UserTagRegistry {
+public class UserTagRegistry extends UsagesRegistry<UserTagUsages> {
+
 	private final List<TemplateRootPath> templateRootPaths;
 
 	private final QuteCompletionsForUserTagSection completionsForUserTag;
-	private final Map<String, UserTagUsages> usagesByTag;
 
 	public UserTagRegistry(QuteProject project, List<TemplateRootPath> templateRootPaths) {
+		super();
 		this.templateRootPaths = templateRootPaths;
 		this.completionsForUserTag = new QuteCompletionsForUserTagSection();
-		this.usagesByTag = new HashMap<>();
 	}
 
 	/**
@@ -89,46 +87,19 @@ public class UserTagRegistry {
 		return null;
 	}
 
-	/**
-	 * Updates user tag usages for a given template.
-	 *
-	 * @param templateId  template URI
-	 * @param usages      collected parameters per user tag
-	 * @param oldTagNames previously known tag names for this template
-	 */
-	public void updateUsages(String templateId, Map<String, List<Parameter>> usages, Set<String> oldTagNames) {
-
-		for (Map.Entry<String, List<Parameter>> entry : usages.entrySet()) {
-			String tagName = entry.getKey();
-			UserTagUsages tagUsages = getOrCreateUsages(tagName);
-			tagUsages.updateUsages(templateId, entry.getValue());
-		}
-
-		// Handle removed usages
-		for (String tagName : oldTagNames) {
-			UserTagUsages tagUsages = usagesByTag.get(tagName);
-			if (tagUsages != null) {
-				tagUsages.updateUsages(templateId, List.of());
-			}
-		}
-	}
-
-	private UserTagUsages getOrCreateUsages(String tagName) {
-		return usagesByTag.computeIfAbsent(tagName, UserTagUsages::new);
-	}
-
-	public UserTagUsages getUsages(String tagName) {
-		return usagesByTag.get(tagName);
-	}
-
 	public void registerUserTag(UserTag tag) {
 		completionsForUserTag.registerUserTag(tag);
 	}
 
 	public void unregisterUserTag(UserTag tag) {
 		// Handle removed usages
-		usagesByTag.remove(tag.getName());
+		super.removeUsages(tag.getName());
 		// Unregister snippet
 		completionsForUserTag.unregisterUserTag(tag);
+	}
+
+	@Override
+	protected UserTagUsages createUsages(String tagName) {
+		return new UserTagUsages(tagName);
 	}
 }

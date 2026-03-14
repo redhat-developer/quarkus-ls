@@ -56,6 +56,7 @@ import com.redhat.qute.project.extensions.DefinitionParticipant;
 import com.redhat.qute.project.tags.ObjectPartCollector;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
+import com.redhat.qute.project.usages.IncludeUsages;
 import com.redhat.qute.services.definition.DefinitionRequest;
 import com.redhat.qute.services.extensions.DefinitionExtensionProvider;
 import com.redhat.qute.utils.QutePositionUtility;
@@ -165,8 +166,8 @@ class QuteDefinition {
 								Section parentSection = (Section) parent;
 								if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
 									IncludeSection includeSection = (IncludeSection) parentSection;
-									List<Parameter> parameters = project
-											.findInsertTagParameter(includeSection, tagName);
+									List<Parameter> parameters = project.findInsertTagParameter(includeSection,
+											tagName);
 									if (parameters != null) {
 										for (Parameter index : parameters) {
 											String linkedTemplateUri = index.getOwnerTemplate().getUri();
@@ -287,7 +288,7 @@ class QuteDefinition {
 			}
 			// check if it is defined with @CheckedTemplate
 			if (project != null) {
-				return findDefinitionFromParameterDataModel(part, template, project, cancelChecker);
+				return findDefinitionFromParameterDataModelOrIncludedTemplate(part, template, project, cancelChecker);
 			}
 			return NO_DEFINITION;
 		}
@@ -337,7 +338,7 @@ class QuteDefinition {
 		QuteProject project = template.getProject();
 		if (project != null) {
 			// Try to find in parameter data model
-			return findDefinitionFromParameterDataModel(part, template, project, cancelChecker);
+			return findDefinitionFromParameterDataModelOrIncludedTemplate(part, template, project, cancelChecker);
 		}
 		return NO_DEFINITION;
 	}
@@ -388,8 +389,8 @@ class QuteDefinition {
 		return NO_DEFINITION;
 	}
 
-	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameterDataModel(Part part,
-			Template template, QuteProject project, CancelChecker cancelChecker) {
+	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameterDataModelOrIncludedTemplate(
+			Part part, Template template, QuteProject project, CancelChecker cancelChecker) {
 		return template.getParameterDataModel(part.getPartName()) //
 				.thenCompose(parameter -> {
 					cancelChecker.checkCanceled();
@@ -401,6 +402,25 @@ class QuteDefinition {
 						QuteJavaDefinitionParams params = parameter.toJavaDefinitionParams(project.getUri());
 						return findJavaDefinition(params, project, cancelChecker,
 								() -> QutePositionUtility.createRange(part));
+					} else {
+						// Include parameters
+						IncludeUsages includeUsages = project.getIncludeUsagesRegistry()
+								.getUsages(template.getTemplateId());
+						if (includeUsages != null) {
+							List<Parameter> parameters = includeUsages.getParameters(part.getPartName());
+							if (parameters != null && !parameters.isEmpty()) {
+								List<LocationLink> locations = new ArrayList<LocationLink>();
+								for (Parameter includeParameter : parameters) {
+									String targetUri = includeParameter.getOwnerTemplate().getUri();
+									Range targetRange = QutePositionUtility.selectParameterName(includeParameter);
+									Range originSelectionRange = QutePositionUtility.createRange(part);
+									LocationLink locationLink = new LocationLink(targetUri, targetRange, targetRange,
+											originSelectionRange);
+									locations.add(locationLink);
+								}
+								return CompletableFuture.completedFuture(locations);
+							}
+						}
 					}
 					// try to find in global variables
 					return project.findGlobalVariableJavaElement(part.getPartName()) //
