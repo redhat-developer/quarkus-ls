@@ -35,6 +35,7 @@ import com.redhat.qute.commons.datamodel.resolvers.MessageResolverData;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.parser.expression.NamespacePart;
+import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
@@ -339,11 +340,19 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 		return project.findTemplateUriByTemplateId(templateId);
 	}
 
+	public Collection<QuteTextDocument> getSourceDocuments() {
+		return project.getSourceDocuments();
+	}
+
 	public Collection<QuteTextDocument> getBinaryDocuments() {
 		return project.getBinaryDocuments();
 	}
 
 	public ProjectExtension getExtension(String id) {
 		return project.getExtension(id);
+	}
+
+	public boolean isBinary(Template template) {
+		return project.findBinaryDocument(template.getUri()) != null;
 	}
 }

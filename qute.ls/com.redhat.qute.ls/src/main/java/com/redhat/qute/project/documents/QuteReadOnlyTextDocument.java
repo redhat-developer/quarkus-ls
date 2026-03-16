@@ -11,6 +11,8 @@
  *******************************************************************************/
 package com.redhat.qute.project.documents;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,6 +24,7 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteTextDocument;
+import com.redhat.qute.project.QuteTextDocument.Key;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.usages.UsagesCollector;
 import com.redhat.qute.project.usages.UsagesCollector.UsageTracker;
@@ -46,10 +49,12 @@ public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 
 	private final QuteProject project;
 
-	private final Template template;
+	protected Template template;
 
 	private UserTag userTag;
 
+	private Map<Key<Object>, Object> cache;
+	
 	public QuteReadOnlyTextDocument(String uri, String templateId, String templateContent, QuteProject project) {
 		this.uri = uri;
 		this.templateId = templateId;
@@ -57,7 +62,7 @@ public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 		this.template = loadTemplate(uri, templateId, templateContent);
 	}
 
-	private Template loadTemplate(String uri, String templateId, String templateContent) {
+	protected Template loadTemplate(String uri, String templateId, String templateContent) {
 		try {
 			QuteProject project = getProject();
 			TextDocument document = new TextDocument(templateContent, uri);
@@ -69,8 +74,8 @@ public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 			return template;
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Error while loading template '" + uri + "'.", e);
+			return null;
 		}
-		return null;
 	}
 
 	@Override
@@ -135,10 +140,27 @@ public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 				// Trackers created inline — single use only, not stored
 				UsageTracker userTagTracker = new UsageTracker(project.getTagRegistry());
 				UsageTracker includeTracker = new UsageTracker(project.getIncludeUsagesRegistry());
-				UsagesCollector collector = new UsagesCollector(templateId, userTagTracker, includeTracker);
+				UsagesCollector collector = new UsagesCollector(this, userTagTracker, includeTracker);
 				template.accept(collector);
 			}
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T getUserData(Key<T> key) {
+		if (cache == null) {
+			return null;
+		}
+		return (T) cache.get(key);
+	}
+
+	@Override
+	public <T> void putUserData(Key<T> key, T data) {
+		if (cache == null) {
+			cache = new HashMap<>();
+		}
+		cache.put((Key<Object>) key, data);
 	}
 
 }

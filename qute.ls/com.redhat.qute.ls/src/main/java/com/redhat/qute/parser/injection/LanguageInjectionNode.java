@@ -61,10 +61,18 @@ public class LanguageInjectionNode extends Node {
 
 	@Override
 	protected void accept0(ASTVisitor visitor) {
-
+		boolean visitChildren = visitor.visit(this);
+		visitor.endVisit(this);
 	}
 
 	public NodeBase<?> getInjectedNode(CancelChecker cancelChecker) {
+		if (injectedNode != null) {
+			return injectedNode;
+		}
+		return injectedNode = getInjectedNodeSync(cancelChecker);
+	}
+
+	private synchronized NodeBase<?> getInjectedNodeSync(CancelChecker cancelChecker) {
 		if (injectedNode != null) {
 			return injectedNode;
 		}
@@ -73,9 +81,9 @@ public class LanguageInjectionNode extends Node {
 			Template template = this.getOwnerTemplate();
 			int start = this.getContentStart();
 			int end = this.getContentEnd();
-			injectedNode = injectionService.parse(template.getTextDocument(), start, end, cancelChecker);
+			return injectionService.parse(template.getTextDocument(), start, end, cancelChecker);
 		}
-		return injectedNode;
+		return null;
 	}
 
 	public LanguageInjectionService getLanguageService() {

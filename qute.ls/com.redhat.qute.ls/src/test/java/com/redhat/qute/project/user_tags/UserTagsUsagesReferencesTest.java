@@ -21,6 +21,8 @@ import java.util.List;
 import org.eclipse.lsp4j.Location;
 import org.junit.jupiter.api.Test;
 
+import com.redhat.qute.project.renarde.RenardeProjectQuteLanguageServer;
+
 /**
  * Test references on user tag parameters that infer their type based on how the
  * user tag is used.

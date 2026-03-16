@@ -42,7 +42,8 @@ public class RoqProject extends BaseQuteProject {
 		super(new ProjectInfo(PROJECT_URI, //
 				getProjectPath(PROJECT_URI), //
 				Collections.emptyList(), //
-				List.of(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates")), //
+				List.of(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates"), //
+						new TemplateRootPath(getProjectPath(PROJECT_URI) + "/templates")), //
 				Set.of(getProjectPath(PROJECT_URI) + "/src/main/resources"), //
 				Set.of(ProjectFeature.Roq)), projectRegistry);
 	}

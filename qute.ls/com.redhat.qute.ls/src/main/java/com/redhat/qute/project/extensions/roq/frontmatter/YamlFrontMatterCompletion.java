@@ -371,7 +371,7 @@ public class YamlFrontMatterCompletion {
 				CompletionItem item = createCompletionFile(imagePath, range, snippetsSupported);
 
 				// Documentation
-				MarkupContent documentation = getImageDocumentation(new TemplatePath(image), hasMarkdown);
+				MarkupContent documentation = getImageDocumentation(new TemplatePath(image, templateId), hasMarkdown);
 				item.setDocumentation(documentation);
 
 				completionItems.add(item);

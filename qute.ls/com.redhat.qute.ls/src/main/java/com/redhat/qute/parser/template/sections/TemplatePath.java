@@ -13,6 +13,7 @@ package com.redhat.qute.parser.template.sections;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 
 /**
  * Template path info.
@@ -20,18 +21,20 @@ import java.nio.file.Path;
 public class TemplatePath {
 
 	private final String uri;
+	private final String templateId;
 	private final boolean exists;
 
-	public TemplatePath(Path templatePath) {
-		this(templatePath, Files.exists(templatePath));
+	public TemplatePath(Path templatePath, String templateId) {
+		this(templatePath, templateId, Files.exists(templatePath));
 	}
 
-	public TemplatePath(Path templatePath, boolean exists) {
-		this(templatePath.toUri().toASCIIString(), exists);
+	public TemplatePath(Path templatePath, String templateId, boolean exists) {
+		this(templatePath.toUri().toASCIIString(), templateId, exists);
 	}
 
-	public TemplatePath(String uri, boolean valid) {
+	public TemplatePath(String uri, String templateId, boolean valid) {
 		this.uri = uri;
+		this.templateId = templateId;
 		this.exists = valid;
 	}
 
@@ -43,6 +46,10 @@ public class TemplatePath {
 	public String getUri() {
 		return uri;
 	}
+	
+	public String getTemplateId() {
+		return templateId;
+	}
 
 	/**
 	 * Returns true if the template exists and false otherwise.
@@ -53,4 +60,22 @@ public class TemplatePath {
 		return exists;
 	}
 
+	@Override
+	public int hashCode() {
+		return Objects.hash(templateId, uri);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TemplatePath other = (TemplatePath) obj;
+		return Objects.equals(templateId, other.templateId) && Objects.equals(uri, other.uri);
+	}
+
+	
 }

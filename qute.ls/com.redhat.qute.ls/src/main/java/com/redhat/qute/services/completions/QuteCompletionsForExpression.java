@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -45,6 +46,7 @@ import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
 import com.redhat.qute.commons.jaxrs.RestParam;
 import com.redhat.qute.ls.commons.snippets.SnippetsBuilder;
+import com.redhat.qute.parser.NodeBase;
 import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.Part;
@@ -823,25 +825,28 @@ public class QuteCompletionsForExpression {
 				IncludeUsages includeUsages = project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
 				if (includeUsages != null) {
 					Set<String> existingNames = new HashSet<>();
-					Map<String, List<Parameter>> usages = includeUsages.getUsagesByUri();
-					for (Map.Entry<String, List<Parameter>> entry : usages.entrySet()) {
+					Map<String, List<? extends NodeBase<?>>> usages = includeUsages.getParametersByTemplateId();
+					for (Entry<String, List<? extends NodeBase<?>>> entry : usages.entrySet()) {
 
-						for (Parameter p : entry.getValue()) {
-							String paramName = p.getName();
-							if (p.canHaveExpression() && !StringUtils.isEmpty(paramName)
-									&& !existingNames.contains(paramName)) {
-								existingNames.add(paramName);
+						for (NodeBase<?> node : entry.getValue()) {
+							if (node instanceof Parameter) {
+								Parameter p = (Parameter) node;
+								String paramName = p.getName();
+								if (p.canHaveExpression() && !StringUtils.isEmpty(paramName)
+										&& !existingNames.contains(paramName)) {
+									existingNames.add(paramName);
 
-								CompletionItem item = new CompletionItem();
-								item.setLabel(paramName);
-								item.setKind(CompletionItemKind.Reference);
-								TextEdit textEdit = new TextEdit(range, paramName);
-								item.setTextEdit(Either.forLeft(textEdit));
-								item.setInsertTextFormat(
-										completionSettings.isCompletionSnippetsSupported() ? InsertTextFormat.Snippet
-												: InsertTextFormat.PlainText);
-								completionItems.add(item);
+									CompletionItem item = new CompletionItem();
+									item.setLabel(paramName);
+									item.setKind(CompletionItemKind.Reference);
+									TextEdit textEdit = new TextEdit(range, paramName);
+									item.setTextEdit(Either.forLeft(textEdit));
+									item.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported()
+											? InsertTextFormat.Snippet
+											: InsertTextFormat.PlainText);
+									completionItems.add(item);
 
+								}
 							}
 						}
 					}

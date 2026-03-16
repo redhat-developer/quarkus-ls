@@ -24,6 +24,7 @@ import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.parser.NodeBase;
 import com.redhat.qute.parser.injection.LanguageInjectionNode;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.hover.HoverRequest;
 import com.redhat.qute.settings.QuteCommandCapabilities;
@@ -94,5 +95,7 @@ public interface LanguageInjectionService {
 
 	void collectDiagnostics(LanguageInjectionNode languageInjection, Template template,
 			QuteValidationSettings validationSettings, List<Diagnostic> diagnostics);
+
+	void collectUsages(LanguageInjectionNode node, QuteTextDocument document);
 
 }

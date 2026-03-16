@@ -14,6 +14,7 @@ package com.redhat.qute.parser.expression;
 import java.util.Collections;
 import java.util.List;
 
+import com.redhat.qute.parser.NodeBase;
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
@@ -177,7 +178,7 @@ public class ObjectPart extends Part {
 			// e.g.: {#myTag name="foo" /} → {name} inside myTag.html resolves to String
 			UserTagUsages userTagUsages = getUserTagUsages(template);
 			if (userTagUsages != null) {
-				JavaTypeInfoProvider provider = userTagUsages.getTypeProvider(partName);
+				JavaTypeInfoProvider provider = userTagUsages.findTypeProvider(partName);
 				if (provider != null) {
 					return provider;
 				}
@@ -186,7 +187,7 @@ public class ObjectPart extends Part {
 			// e.g.: {#include myTemplate title="foo" /} → {title} inside myTemplate resolves to String
 			IncludeUsages includeUsages = getIncludeUsages(template);
 			if (includeUsages != null) {
-				JavaTypeInfoProvider provider = includeUsages.getTypeProvider(partName);
+				JavaTypeInfoProvider provider = includeUsages.findTypeProvider(partName);
 				if (provider != null) {
 					return provider;
 				}
@@ -215,10 +216,10 @@ public class ObjectPart extends Part {
 	 *
 	 * @return the include call parameters for this part name, or an empty list
 	 */
-	public List<Parameter> getIncludeCallParameters() {
+	public List<? extends NodeBase<?>> getIncludeCallParameters() {
 		IncludeUsages usages = getIncludeUsages(getOwnerTemplate());
 		if (usages != null) {
-			return usages.getParameters(getPartName());
+			return usages.findParameters(getPartName());
 		}
 		return Collections.emptyList();
 	}
@@ -266,10 +267,10 @@ public class ObjectPart extends Part {
 	 *
 	 * @return the user tag call parameters for this part name, or an empty list
 	 */
-	public List<Parameter> getUserTagCallParameters() {
+	public List<? extends NodeBase<?>> getUserTagCallParameters() {
 		UserTagUsages usages = getUserTagUsages(getOwnerTemplate());
 		if (usages != null) {
-			return usages.getParameters(getPartName());
+			return usages.findParameters(getPartName());
 		}
 		return Collections.emptyList();
 	}

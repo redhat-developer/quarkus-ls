@@ -17,7 +17,9 @@ import static com.redhat.qute.utils.FutureUtils.isFutureLoaded;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
@@ -56,24 +58,26 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 
 	/**
 	 * Reusable visitor that collects user tag and include usages on each parse.
-	 * Created lazily once the project and template id are known, then reused
-	 * across all subsequent parses to avoid repeated allocations.
+	 * Created lazily once the project and template id are known, then reused across
+	 * all subsequent parses to avoid repeated allocations.
 	 */
 	private UsagesCollector callVisitor;
 
 	/**
-	 * Tracks user tag usages across visits for this template.
-	 * Owned here so that its internal maps survive between keystrokes.
+	 * Tracks user tag usages across visits for this template. Owned here so that
+	 * its internal maps survive between keystrokes.
 	 */
 	private UsageTracker userTagTracker;
 
 	/**
-	 * Tracks include section usages across visits for this template.
-	 * Owned here so that its internal maps survive between keystrokes.
+	 * Tracks include section usages across visits for this template. Owned here so
+	 * that its internal maps survive between keystrokes.
 	 */
 	private UsageTracker includeTracker;
 
 	private UserTag userTag;
+
+	private Map<Key<Object>, Object> cache;
 
 	public QuteOpenedTextDocument(TextDocumentItem document, BiFunction<TextDocument, CancelChecker, Template> parse,
 			QuteProjectInfoProvider projectInfoProvider, QuteProjectRegistry projectRegistry) {
@@ -92,17 +96,19 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 	public Template getModel() {
 		var template = super.getModel();
 		if (template != null) {
+
+			template.setTemplateId(templateId);
+			template.setProjectRegistry(projectRegistry);
+			template.setUserTagName(getUserTagName());
+
 			if (template.getProjectUri() == null) {
 				template.setTemplateInfoProvider(this);
 				QuteProject project = findProject();
 				if (project != null) {
 					template.setProjectUri(project.getUri());
-					template.setTemplateId(templateId);
-					processCallVisitor(super.getModel(), project);
+					processCallVisitor(template, project);
 				}
-				template.setProjectRegistry(projectRegistry);
 			}
-			template.setUserTagName(getUserTagName());
 		}
 		return template;
 	}
@@ -198,7 +204,8 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 	 * </p>
 	 *
 	 * @param template the parsed template to visit, may be {@code null}
-	 * @param project  the owning project, or {@code null} to resolve from the template
+	 * @param project  the owning project, or {@code null} to resolve from the
+	 *                 template
 	 */
 	private void processCallVisitor(Template template, QuteProject project) {
 		if (template != null) {
@@ -211,7 +218,7 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 					// all subsequent visits via an internal map-swap strategy
 					userTagTracker = new UsageTracker(project.getTagRegistry());
 					includeTracker = new UsageTracker(project.getIncludeUsagesRegistry());
-					callVisitor = new UsagesCollector(getTemplateId(), userTagTracker, includeTracker);
+					callVisitor = new UsagesCollector(this, userTagTracker, includeTracker);
 				}
 				template.accept(callVisitor);
 			}
@@ -258,4 +265,28 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 	public String getOrigin() {
 		return null;
 	}
+
+	@Override
+	public void reparseTemplate() {
+		cancelModel();
+		getTemplate();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T getUserData(Key<T> key) {
+		if (cache == null) {
+			return null;
+		}
+		return (T) cache.get(key);
+	}
+
+	@Override
+	public <T> void putUserData(Key<T> key, T data) {
+		if (cache == null) {
+			cache = new HashMap<>();
+		}
+		cache.put((Key<Object>) key, data);
+	}
+
 }

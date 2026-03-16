@@ -35,10 +35,8 @@ public abstract class BaseQuteProject extends MockQuteProject {
 		List<BinaryTemplateInfo> binaries;
 	}
 
-	private boolean binaryDoumentsLoaded;
-
 	public BaseQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
-		super(projectInfo, projectRegistry);		
+		super(projectInfo, projectRegistry);
 	}
 
 	protected DataModelProject<DataModelTemplate<?>> loadDataModel(String fileName, Class<?> clazz) {
@@ -189,14 +187,11 @@ public abstract class BaseQuteProject extends MockQuteProject {
 
 	}
 
-	/*@Override
-	public Collection<QuteTextDocument> getBinaryDocuments() {
-		if (!binaryDoumentsLoaded) {
-			binaryDoumentsLoaded = true;
-			super.registerBinaryTemplates(loadBinaryTemplatesSync());
-		}
-		return super.getBinaryDocuments();
-	}*/
-
+	/*
+	 * @Override public Collection<QuteTextDocument> getBinaryDocuments() { if
+	 * (!binaryDoumentsLoaded) { binaryDoumentsLoaded = true;
+	 * super.registerBinaryTemplates(loadBinaryTemplatesSync()); } return
+	 * super.getBinaryDocuments(); }
+	 */
 
 }

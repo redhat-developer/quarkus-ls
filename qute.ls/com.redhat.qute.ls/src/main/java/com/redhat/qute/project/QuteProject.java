@@ -71,6 +71,7 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateConfiguration;
 import com.redhat.qute.parser.template.sections.IncludeSection;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
@@ -180,6 +181,8 @@ public class QuteProject {
 
 	private final IncludeUsagesRegistry includeUsagesRegistry;
 
+	private CompletableFuture<QuteProject> loadQuteProjectFuture;
+
 	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		this.uri = projectInfo.getUri();
 		this.projectFolder = FileUtils.createPath(projectInfo.getProjectFolder());
@@ -266,10 +269,33 @@ public class QuteProject {
 		return extensions.get(id);
 	}
 
-	public CompletableFuture<QuteProject> load(ProgressContext progressContext) {
-		return this.getBinaryTemplates() //
+	public CompletableFuture<QuteProject> load() {
+		if (isQuteProjectLoaded()) {
+			return loadQuteProjectFuture;
+		}
+		return loadSync();
+	}
+
+	private synchronized CompletableFuture<QuteProject> loadSync() {
+		if (isQuteProjectLoaded()) {
+			return loadQuteProjectFuture;
+		}
+
+		ProgressSupport progressSupport = projectRegistry.getProgressSupportProvider().get();
+		ProgressContext progressContext = progressSupport != null ? new ProgressContext(progressSupport) : null;
+		String projectName = getUri();
+
+		if (progressContext != null) {
+			progressContext.startProgress("Loading '" + projectName + "' project",
+					"Trying to load '" + projectName + "' as Qute project.");
+		}
+
+		if (progressContext != null) {
+			progressContext.report("Loading binary templates for '" + projectName + "' Qute project.", 10);
+		}
+
+		loadQuteProjectFuture = this.getBinaryTemplates() //
 				.thenCompose(binaryTemplates -> {
-					String projectName = getUri();
 					if (progressContext != null) {
 						progressContext.report("Loading data model for '" + projectName + "' Qute project.", 20);
 					}
@@ -280,12 +306,12 @@ public class QuteProject {
 									progressContext.report(
 											"Loading Qute templates for '" + projectName + "' Qute project.", 40);
 								}
-								
+
 								// Register use tags
 								registerUserTags();
 
-								// Validate closed templates
-								validateClosedTemplates(progressContext);
+								// Load closed templates
+								closedDocuments.loadClosedTemplatesIfNeeded(progressContext);
 
 								if (progressContext != null) {
 									progressContext.endProgress();
@@ -305,6 +331,14 @@ public class QuteProject {
 					}
 					return this;
 				});
+		loadQuteProjectFuture.thenAccept(unused -> {
+			validateClosedTemplates(progressContext);
+		});
+		return loadQuteProjectFuture;
+	}
+
+	private boolean isQuteProjectLoaded() {
+		return isFutureLoaded(loadQuteProjectFuture);
 	}
 
 	private static Set<Path> toSourcePaths(Set<String> sourceFolders) {
@@ -319,10 +353,9 @@ public class QuteProject {
 	}
 
 	public void validateClosedTemplates(ProgressContext progressContext) {
-		closedDocuments.loadClosedTemplatesIfNeeded(progressContext);
 		if (validator != null) {
 			// Load closed document if needed and validate all closed documents when data
-			// model is ready.			
+			// model is ready.
 			for (QuteTextDocument document : sourceDocuments.values()) {
 				if (!document.isOpened()) {
 					validator.triggerValidationFor(document);
@@ -390,6 +423,10 @@ public class QuteProject {
 		return sourceDocuments.get(templatePath);
 	}
 
+	public QuteTextDocument findBinaryDocument(String uri) {
+		return binaryDocuments.get(uri);
+	}
+
 	/**
 	 * Returns the project Uri.
 	 *
@@ -445,7 +482,10 @@ public class QuteProject {
 	 */
 	public List<Parameter> findInsertTagParameter(IncludeSection includeSection, String insertParamater) {
 		String templateId = includeSection.getReferencedTemplateId();
-		closedDocuments.loadClosedTemplatesIfNeeded();
+		return findInsertTagParameter(templateId, insertParamater);
+	}
+
+	public List<Parameter> findInsertTagParameter(String templateId, String insertParamater) {
 		QuteTextDocument document = findDocumentByTemplateId(templateId);
 		if (document != null) {
 			return document.findInsertTagParameter(insertParamater);
@@ -453,8 +493,25 @@ public class QuteProject {
 		return null;
 	}
 
+	public List<Parameter> findInsertTagParameter(TemplatePath templatePath, String insertParamater) {
+		String uri = templatePath.getUri();
+		if (uri != null) {
+			QuteTextDocument document = getBinaryDocument(uri);
+			if (document == null) {
+				// C:\Users\AngeloZerr\git\quarkus-ls\qute.ls\com.redhat.qute.ls\src\test\resources\projects\roq\src\main\resources\templates\layouts\default.html
+				Path filePath = FileUtils.createPath(templatePath.getUri());
+				if (filePath != null) {
+					document = sourceDocuments.get(filePath);
+				}
+			}
+			if (document != null) {
+				return document.findInsertTagParameter(insertParamater);
+			}
+		}
+		return findInsertTagParameter(templatePath.getTemplateId(), insertParamater);
+	}
+
 	public List<Section> findSectionsByTag(String tag) {
-		closedDocuments.loadClosedTemplatesIfNeeded();
 		List<Section> allSections = new ArrayList<>();
 		// from sources
 		fillSection(tag, sourceDocuments.values(), allSections);
@@ -582,7 +639,6 @@ public class QuteProject {
 	 * @return list of all opened/closed Qute template document of the project.
 	 */
 	public Collection<QuteTextDocument> getSourceDocuments() {
-		closedDocuments.loadClosedTemplatesIfNeeded();
 		return sourceDocuments.values();
 	}
 
@@ -592,7 +648,6 @@ public class QuteProject {
 	 * @return list of all binary Qute template document of the project.
 	 */
 	public Collection<QuteTextDocument> getBinaryDocuments() {
-		closedDocuments.loadClosedTemplatesIfNeeded();
 		return binaryDocuments.values();
 	}
 
@@ -713,7 +768,6 @@ public class QuteProject {
 	 *         binary ('templates.tags') user tags.
 	 */
 	public Collection<UserTag> getUserTags() {
-		closedDocuments.loadClosedTemplatesIfNeeded();
 		return tagRegistry.getUserTags();
 	}
 
@@ -753,7 +807,6 @@ public class QuteProject {
 	 */
 	public void collectUserTagSuggestions(CompletionRequest completionRequest, String prefixFilter, String suffixToFind,
 			Set<CompletionItem> completionItems) {
-		closedDocuments.loadClosedTemplatesIfNeeded();
 		tagRegistry.collectUserTagSuggestions(completionRequest, prefixFilter, suffixToFind, completionItems);
 	}
 
@@ -1946,7 +1999,6 @@ public class QuteProject {
 	 * @return list of all binary Qute template document of the project.
 	 */
 	public QuteTextDocument getBinaryDocument(String uri) {
-		closedDocuments.loadClosedTemplatesIfNeeded();
 		return binaryDocuments.get(normalizeUriIfNeeded(uri));
 	}
 

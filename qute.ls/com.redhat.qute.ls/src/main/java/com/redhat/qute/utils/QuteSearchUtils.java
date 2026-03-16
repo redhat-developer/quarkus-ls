@@ -17,6 +17,7 @@ import java.util.function.BiConsumer;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.qute.parser.NodeBase;
 import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
@@ -232,24 +233,26 @@ public class QuteSearchUtils {
 				if (project != null) {
 					if (template.isUserTag()) {
 						// Use tag parameters call
-						List<Parameter> result = objectPart.getUserTagCallParameters();
-						for (Parameter parameter : result) {
-							Range range = QutePositionUtility.selectParameterName(parameter);
-							collector.accept(parameter, range);
-						}
+						collect(objectPart.getUserTagCallParameters(), collector);
 					} else {
 						// include parameters call
-						List<Parameter> result = objectPart.getIncludeCallParameters();
-						for (Parameter parameter : result) {
-							Range range = QutePositionUtility.selectParameterName(parameter);
-							collector.accept(parameter, range);
-						}
+						collect(objectPart.getIncludeCallParameters(), collector);
 					}
 				}
 			}
 		}
 		default:
 			break;
+		}
+	}
+
+	private static void collect(List<? extends NodeBase<?>> result, BiConsumer<Node, Range> collector) {
+		for (NodeBase<?> nodeBase : result) {
+			if (nodeBase instanceof Parameter) {
+				Parameter parameter = (Parameter) nodeBase;
+				Range range = QutePositionUtility.selectParameterName(parameter);
+				collector.accept(parameter, range);
+			}
 		}
 	}
 

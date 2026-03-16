@@ -26,6 +26,8 @@ import com.redhat.qute.parser.injection.LanguageInjectionNode;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.yaml.YamlDocument;
 import com.redhat.qute.parser.yaml.YamlParser;
+import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.extensions.LanguageInjectionService;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.hover.HoverRequest;
@@ -93,6 +95,17 @@ public class YamlFrontMatterLanguageInjectionService implements LanguageInjectio
 		YamlDocument document = (YamlDocument) node.getInjectedNode(() -> {
 		});
 		document.accept(new YamlFrontMatterDiagnosticsVisitor(template, validationSettings, diagnostics));
+	}
+
+	@Override
+	public void collectUsages(LanguageInjectionNode node, QuteTextDocument document) {
+		YamlDocument yamlDocument = (YamlDocument) node.getInjectedNode(() -> {
+		});
+		Template template = node.getOwnerTemplate();
+		QuteProject project = template.getProject();
+		if (project != null) {
+			yamlDocument.accept(new YamlFrontMatterUsagesVisitor(document, project));
+		}
 	}
 
 }
