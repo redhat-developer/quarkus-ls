@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -75,6 +76,7 @@ import com.redhat.qute.project.extensions.DiagnosticsParticipant;
 import com.redhat.qute.project.extensions.LanguageInjectionService;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
+import com.redhat.qute.project.usages.IncludeUsages;
 import com.redhat.qute.services.diagnostics.CollectHtmlInputNamesVisitor;
 import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
 import com.redhat.qute.services.diagnostics.QuteDiagnosticsForSyntax;
@@ -86,7 +88,6 @@ import com.redhat.qute.settings.QuteNativeSettings;
 import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.StringUtils;
-import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * Qute diagnostics support.
@@ -299,8 +300,8 @@ class QuteDiagnostics {
 				}
 				switch (section.getSectionKind()) {
 				case INCLUDE:
-					validateIncludeSection((IncludeSection) section, resolvingJavaTypeContext.isBinaryUserTagResolved(),
-							project, diagnostics);
+					validateIncludeSection((IncludeSection) section,
+							resolvingJavaTypeContext.isBinaryTemplatesResolved(), project, diagnostics);
 					break;
 				case CASE:
 				case IS:
@@ -387,8 +388,9 @@ class QuteDiagnostics {
 		}
 		SectionKind sectionKind = section.getSectionKind();
 		if (sectionKind == SectionKind.CUSTOM) {
-			if (!resolvingJavaTypeContext.isBinaryUserTagResolved()) {
-				// Don't validate custom tag, if the binary user tags are not loaded.
+			if (!(resolvingJavaTypeContext.isProjectLoaded())) {
+				// Don't validate custom tag, if the binary templates and data model are not
+				// resolved
 				return;
 			}
 
@@ -469,8 +471,7 @@ class QuteDiagnostics {
 						Section parentSection = (Section) parent;
 						if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
 							IncludeSection includeSection = (IncludeSection) parentSection;
-							List<Parameter> parameters = project
-									.findInsertTagParameter(includeSection, tagName);
+							List<Parameter> parameters = project.findInsertTagParameter(includeSection, tagName);
 							if (parameters != null && !parameters.isEmpty()) {
 								// The parameter exists
 								return;
@@ -478,6 +479,28 @@ class QuteDiagnostics {
 						}
 					}
 					parent = parent.getParent();
+				}
+
+				// Check if section tag is a parameter from an include section
+				IncludeUsages includeUsages = project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
+				if (includeUsages != null) {
+					Set<String> includedByTemplateIds = includeUsages.getCallingTemplateIds();
+					for (String templateId : includedByTemplateIds) {
+						List<Parameter> parameters = project.findInsertTagParameter(templateId, tagName);
+						if (parameters != null && !parameters.isEmpty()) {
+							// The parameter exists
+							return;
+						}
+					}
+
+					Set<TemplatePath> includedByTemplatePaths = includeUsages.getCallingTemplatePaths();
+					for (TemplatePath templatePath : includedByTemplatePaths) {
+						List<Parameter> parameters = project.findInsertTagParameter(templatePath, tagName);
+						if (parameters != null && !parameters.isEmpty()) {
+							// The parameter exists
+							return;
+						}
+					}
 				}
 
 				DiagnosticSeverity severity = validationSettings.getUndefinedSectionTag().getDiagnosticSeverity();

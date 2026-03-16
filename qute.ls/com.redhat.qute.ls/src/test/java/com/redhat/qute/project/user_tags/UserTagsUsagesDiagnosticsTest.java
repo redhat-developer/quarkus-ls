@@ -23,6 +23,7 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.junit.jupiter.api.Test;
 
+import com.redhat.qute.project.renarde.RenardeProjectQuteLanguageServer;
 import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 

@@ -49,7 +49,6 @@ public class RoqInsertFrontMatterCommanHandler implements IDelegateCommandHandle
 		TextEdit edit = new TextEdit();
 		edit.setRange(QutePositionUtility.ZERO_RANGE);
 		edit.setNewText("---" + System.lineSeparator() + //
-				"layout: default" + System.lineSeparator() + //
 				"title: My title" + System.lineSeparator() + //
 				"---" + System.lineSeparator());
 		edits.add(edit);

@@ -103,7 +103,7 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	protected void registerProject(QuteProject project) {
 		super.registerProject(project);
 		try {
-			project.load(null) //
+			project.load() //
 					.get(5000, TimeUnit.MILLISECONDS);
 		} catch (Exception e) {
 			

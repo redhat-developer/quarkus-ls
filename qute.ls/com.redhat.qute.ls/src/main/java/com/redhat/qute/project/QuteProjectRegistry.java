@@ -162,32 +162,10 @@ public class QuteProjectRegistry
 	 * @return the Qute project by the given info <code>projectInfo</code>.
 	 */
 	public QuteProject getProject(ProjectInfo projectInfo) {
-		return getProject(projectInfo, true);
-	}
-
-	/**
-	 * Returns the Qute project by the given info <code>projectInfo</code>.
-	 *
-	 * @param projectInfo    the project information.
-	 * @param validateOnLoad true if validation of templates must be validated if
-	 *                       project is created and false otherwise.
-	 *
-	 * @return the Qute project by the given info <code>projectInfo</code>.
-	 */
-	private QuteProject getProject(ProjectInfo projectInfo, boolean validateOnLoad) {
 		String projectUri = projectInfo.getUri();
 		QuteProject project = getProject(projectUri);
 		if (project == null) {
 			project = registerProjectSync(projectInfo);
-			if (validator != null && validateOnLoad) {
-				QuteProject newProject = project;
-				// Validate closed Qute template on project load.
-				if (asyncValidation) {
-					CompletableFuture.runAsync(() -> newProject.validateClosedTemplates(null));
-				} else {
-					newProject.validateClosedTemplates(null);
-				}
-			}
 		}
 		return project;
 	}
@@ -443,7 +421,6 @@ public class QuteProjectRegistry
 			return loadQuteProjectsFuture;
 		}
 		return loadQuteProjectsSync();
-
 	}
 
 	private synchronized CompletableFuture<Collection<QuteProject>> loadQuteProjectsSync() {
@@ -499,22 +476,8 @@ public class QuteProjectRegistry
 	 * @param projectInfo the project information.
 	 */
 	private CompletableFuture<QuteProject> loadQuteProject(ProjectInfo projectInfo) {
-		ProgressSupport progressSupport = progressSupportProvider.get();
-		ProgressContext progressContext = progressSupport != null ? new ProgressContext(progressSupport) : null;
-		String projectName = projectInfo.getUri();
-
-		if (progressContext != null) {
-			progressContext.startProgress("Loading '" + projectName + "' project",
-					"Trying to load '" + projectName + "' as Qute project.");
-		}
-
-		QuteProject project = getProject(projectInfo, false);
-
-		if (progressContext != null) {
-			progressContext.report("Loading binary templates for '" + projectName + "' Qute project.", 10);
-		}
-
-		return project.load(progressContext);
+		QuteProject project = getProject(projectInfo);
+		return project.load();
 	}
 
 	public void projectAdded(ProjectInfo project) {
@@ -551,4 +514,7 @@ public class QuteProjectRegistry
 				});
 	}
 
+	public Supplier<ProgressSupport> getProgressSupportProvider() {
+		return progressSupportProvider;
+	}
 }

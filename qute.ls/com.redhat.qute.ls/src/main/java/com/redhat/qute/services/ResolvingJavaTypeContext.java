@@ -36,6 +36,8 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 	private static final Logger LOGGER = Logger.getLogger(ResolvingJavaTypeContext.class.getName());
 
 	private boolean projectResolved;
+	
+	private boolean projectLoaded;
 
 	private boolean dataModelTemplateResolved;
 
@@ -64,11 +66,19 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 			binaryTemplatesResolved = false;
 			QuteProject project = template.getProject();
 			if (project != null) {
+				CompletableFuture<?> projectLoad = project.load();
+				projectLoaded = projectLoad.isDone();
+				if (!projectLoaded) {
+					super.add(projectLoad);
+				}
+				
 				CompletableFuture<?> tags = project.getBinaryTemplates();
 				binaryTemplatesResolved = tags.isDone();
 				if (!binaryTemplatesResolved) {
 					super.add(tags);
 				}
+				
+				
 			}
 		}
 	}
@@ -80,6 +90,15 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 	 */
 	public boolean isProjectResolved() {
 		return projectResolved;
+	}
+	
+	/**
+	 * Returns true if the binary user tag is resolved and false otherwise.
+	 * 
+	 * @return true if the binary user tag is resolved and false otherwise.
+	 */
+	public boolean isProjectLoaded() {
+		return projectLoaded;
 	}
 
 	/**
@@ -96,7 +115,7 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 	 * 
 	 * @return true if the binary user tag is resolved and false otherwise.
 	 */
-	public boolean isBinaryUserTagResolved() {
+	public boolean isBinaryTemplatesResolved() {
 		return binaryTemplatesResolved;
 	}
 

@@ -41,8 +41,10 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.IncludeSection;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.documents.SearchInfoQuery;
+import com.redhat.qute.project.usages.IncludeUsages;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.snippets.AbstractQuteSnippetContext;
 
@@ -144,10 +146,13 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 		if (node == null) {
 			return;
 		}
-		QuteProject project = completionRequest.getTemplate().getProject();
+		Template template = completionRequest.getTemplate();
+		QuteProject project = template.getProject();
 		if (project == null) {
 			return;
 		}
+
+		// Local include
 		Node parent = node.getParent();
 		while (parent != null) {
 			if (parent.getKind() == NodeKind.Section) {
@@ -155,39 +160,64 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 				if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
 					IncludeSection includeSection = (IncludeSection) parentSection;
 					List<Parameter> parameters = project.findInsertTagParameter(includeSection, SearchInfoQuery.ALL);
-					if (parameters != null) {
-						for (Parameter parameter : parameters) {
-							String tagName = parameter.getName();
-							CompletionItem item = new CompletionItem();
-							item.setKind(CompletionItemKind.Reference);
-							item.setLabel(tagName);
-							item.setInsertTextFormat(
-									completionRequest.isCompletionSnippetsSupported() ? InsertTextFormat.Snippet
-											: InsertTextFormat.PlainText);
-							updateInsertTextMode(item, whitespacesIndent, defaultInsertTextMode);
-							item.setFilterText(prefixFilter + tagName);
-
-							StringBuilder insertText = new StringBuilder("{#");
-							insertText.append(parameter.getName());
-							insertText.append("}");
-							if (completionRequest.isCompletionSnippetsSupported()) {
-								SnippetsBuilder.tabstops(1, insertText);
-							}
-							insertText.append("{/");
-							insertText.append(parameter.getName());
-							insertText.append("}");
-							if (completionRequest.isCompletionSnippetsSupported()) {
-								SnippetsBuilder.tabstops(0, insertText);
-							}
-							item.setTextEdit(Either.forLeft(new TextEdit(replaceRange, insertText.toString())));
-							completionItems.add(item);
-						}
-					}
+					fillWithInsertParameters(parameters, completionRequest, replaceRange, prefixFilter,
+							whitespacesIndent, defaultInsertTextMode, completionItems);
 				}
 			}
 			parent = parent.getParent();
 		}
 
+		// Included by
+		IncludeUsages includeUsages = project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
+		if (includeUsages != null) {
+
+			Set<String> includedByTemplateIds = includeUsages.getCallingTemplateIds();
+			for (String templateId : includedByTemplateIds) {
+				List<Parameter> parameters = project.findInsertTagParameter(templateId, SearchInfoQuery.ALL);
+				fillWithInsertParameters(parameters, completionRequest, replaceRange, prefixFilter, whitespacesIndent,
+						defaultInsertTextMode, completionItems);
+			}
+
+			Set<TemplatePath> includedByTemplatePaths = includeUsages.getCallingTemplatePaths();
+			for (TemplatePath templatePath : includedByTemplatePaths) {
+				List<Parameter> parameters = project.findInsertTagParameter(templatePath, SearchInfoQuery.ALL);
+				fillWithInsertParameters(parameters, completionRequest, replaceRange, prefixFilter, whitespacesIndent,
+						defaultInsertTextMode, completionItems);
+			}
+		}
+
+	}
+
+	private void fillWithInsertParameters(List<Parameter> parameters, CompletionRequest completionRequest,
+			Range replaceRange, String prefixFilter, String whitespacesIndent, InsertTextMode defaultInsertTextMode,
+			Set<CompletionItem> completionItems) {
+		if (parameters != null && !parameters.isEmpty()) {
+			for (Parameter parameter : parameters) {
+				String tagName = parameter.getName();
+				CompletionItem item = new CompletionItem();
+				item.setKind(CompletionItemKind.Reference);
+				item.setLabel(tagName);
+				item.setInsertTextFormat(completionRequest.isCompletionSnippetsSupported() ? InsertTextFormat.Snippet
+						: InsertTextFormat.PlainText);
+				updateInsertTextMode(item, whitespacesIndent, defaultInsertTextMode);
+				item.setFilterText(prefixFilter + tagName);
+
+				StringBuilder insertText = new StringBuilder("{#");
+				insertText.append(parameter.getName());
+				insertText.append("}");
+				if (completionRequest.isCompletionSnippetsSupported()) {
+					SnippetsBuilder.tabstops(1, insertText);
+				}
+				insertText.append("{/");
+				insertText.append(parameter.getName());
+				insertText.append("}");
+				if (completionRequest.isCompletionSnippetsSupported()) {
+					SnippetsBuilder.tabstops(0, insertText);
+				}
+				item.setTextEdit(Either.forLeft(new TextEdit(replaceRange, insertText.toString())));
+				completionItems.add(item);
+			}
+		}
 	}
 
 	/**

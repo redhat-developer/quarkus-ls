@@ -21,10 +21,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.commons.ProjectFeature;
@@ -101,6 +104,19 @@ public class MockProjectQuteLanguageServer extends MockQuteLanguageServer {
 		Path filePath = getFilePath(fileName);
 		String fileUri = FileUtils.toUri(filePath);
 		return super.references(fileUri, line, character);
+	}
+
+	public Either<List<? extends Location>, List<? extends LocationLink>> definitionFile(String fileName, int line,
+			int character) {
+		Path filePath = getFilePath(fileName);
+		String fileUri = FileUtils.toUri(filePath);
+		return super.definition(fileUri, line, character);
+	}
+
+	public List<? extends CodeLens> codeLensFile(String fileName) {
+		Path filePath = getFilePath(fileName);
+		String fileUri = FileUtils.toUri(filePath);
+		return super.codeLens(fileUri);
 	}
 
 	public Path getFilePath(String fileName) {

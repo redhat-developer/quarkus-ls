@@ -16,11 +16,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.redhat.qute.parser.NodeBase;
+import com.redhat.qute.parser.injection.LanguageInjectionNode;
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CustomSection;
 import com.redhat.qute.parser.template.sections.IncludeSection;
+import com.redhat.qute.project.QuteTextDocument;
+import com.redhat.qute.project.extensions.LanguageInjectionService;
 
 /**
  * Collects usages of Qute user tags and include sections inside a template.
@@ -101,13 +105,13 @@ public class UsagesCollector extends ASTVisitor {
 		 * Parameters collected during the current visit, keyed by tag or template name.
 		 * Reused across visits via map swap — never reallocated after construction.
 		 */
-		private Map<String, List<Parameter>> current = new HashMap<>();
+		private Map<String, List<? extends NodeBase<?>>> current = new HashMap<>();
 
 		/**
 		 * Parameters from the previous visit, used to detect removed usages. Reused
 		 * across visits via map swap — never reallocated after construction.
 		 */
-		private Map<String, List<Parameter>> previous = new HashMap<>();
+		private Map<String, List<? extends NodeBase<?>>> previous = new HashMap<>();
 
 		/** Registry to notify once the visit is complete. */
 		private final UsagesRegistry<?> registry;
@@ -125,9 +129,9 @@ public class UsagesCollector extends ASTVisitor {
 		 * No new collections are allocated.
 		 * </p>
 		 */
-		void beginVisit() {
+		public void beginVisit() {
 			// Swap: previous recycles the old current map, current is cleared for reuse
-			Map<String, List<Parameter>> tmp = previous;
+			Map<String, List<? extends NodeBase<?>>> tmp = previous;
 			previous = current;
 			current = tmp;
 			current.clear();
@@ -144,10 +148,11 @@ public class UsagesCollector extends ASTVisitor {
 		 * @param key        the user tag name or included template id
 		 * @param parameters the parameters collected at this call site
 		 */
-		void collect(String key, List<Parameter> parameters) {
+		public void collect(String key, List<? extends NodeBase<?>> parameters) {
 			// Mark this name as still active so it won't be treated as removed
 			previous.remove(key);
-			current.computeIfAbsent(key, k -> new ArrayList<>()).addAll(parameters);
+			((List<NodeBase<?>>) (List<?>) current.computeIfAbsent(key, k -> new ArrayList<>()))
+					.addAll((List<NodeBase<?>>) (List<?>) parameters);
 		}
 
 		/**
@@ -160,11 +165,13 @@ public class UsagesCollector extends ASTVisitor {
 		 *
 		 * @param templateId URI of the visited template
 		 */
-		void endVisit(String templateId) {
+		public void endVisit(String templateId) {
 			// previous.keySet() holds names that disappeared since the last visit
 			registry.updateUsages(templateId, current, previous.keySet());
 		}
 	}
+
+	private final QuteTextDocument document;
 
 	/** URI of the template currently being visited. */
 	private final String templateId;
@@ -188,8 +195,9 @@ public class UsagesCollector extends ASTVisitor {
 	 * @param userTagTracker tracker for user tag usages
 	 * @param includeTracker tracker for include section usages
 	 */
-	public UsagesCollector(String templateId, UsageTracker userTagTracker, UsageTracker includeTracker) {
-		this.templateId = templateId;
+	public UsagesCollector(QuteTextDocument document, UsageTracker userTagTracker, UsageTracker includeTracker) {
+		this.document = document;
+		this.templateId = document.getTemplateId();
 		this.userTagTracker = userTagTracker;
 		this.includeTracker = includeTracker;
 	}
@@ -226,9 +234,22 @@ public class UsagesCollector extends ASTVisitor {
 			// {#include templateId title="foo" /}
 			// First parameter is the included template id
 			String includedTemplateId = parameters.get(0).getValue();
-			includeTracker.collect(includedTemplateId, parameters);
+			collectIncludeUsages(includedTemplateId, parameters);
 		}
 		return super.visit(section);
+	}
+
+	private void collectIncludeUsages(String includedTemplateId, List<? extends NodeBase<?>> parameters) {
+		includeTracker.collect(includedTemplateId, parameters);
+	}
+
+	@Override
+	public boolean visit(LanguageInjectionNode node) {
+		LanguageInjectionService service = node.getLanguageService();
+		if (service != null) {
+			service.collectUsages(node, document);
+		}
+		return super.visit(node);
 	}
 
 }

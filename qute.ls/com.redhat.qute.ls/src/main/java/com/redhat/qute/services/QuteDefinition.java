@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -33,6 +34,7 @@ import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
+import com.redhat.qute.parser.NodeBase;
 import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
@@ -50,6 +52,7 @@ import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.IncludeSection;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.parser.template.sections.WhenSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.extensions.DefinitionParticipant;
@@ -168,20 +171,28 @@ class QuteDefinition {
 									IncludeSection includeSection = (IncludeSection) parentSection;
 									List<Parameter> parameters = project.findInsertTagParameter(includeSection,
 											tagName);
-									if (parameters != null) {
-										for (Parameter index : parameters) {
-											String linkedTemplateUri = index.getOwnerTemplate().getUri();
-											Range linkedTargetRange = QutePositionUtility.selectParameterName(index);
-											if (originRange == null) {
-												originRange = QutePositionUtility.selectStartTagName(section);
-											}
-											locations.add(new LocationLink(linkedTemplateUri, linkedTargetRange,
-													linkedTargetRange, originRange));
-										}
-									}
+									originRange = fillWithInsertParameters(section, parameters, originRange, locations);
 								}
 							}
 							parent = parent.getParent();
+						}
+						
+						// Included by
+						IncludeUsages includeUsages = project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
+						if (includeUsages != null) {
+							
+							Set<String> includedByTemplateIds = includeUsages.getCallingTemplateIds();
+							for (String templateId : includedByTemplateIds) {
+								List<Parameter> parameters = project.findInsertTagParameter(templateId, tagName);
+								originRange = fillWithInsertParameters(section, parameters, originRange, locations);
+							}
+							
+							Set<TemplatePath> includedByTemplatePaths = includeUsages.getCallingTemplatePaths();
+							for (TemplatePath templatePath : includedByTemplatePaths) {
+								List<Parameter> parameters = project.findInsertTagParameter(templatePath, tagName);
+								originRange = fillWithInsertParameters(section, parameters, originRange, locations);
+							}
+							
 						}
 					}
 				}
@@ -205,6 +216,22 @@ class QuteDefinition {
 			return true;
 		}
 		return false;
+	}
+
+	private static Range fillWithInsertParameters(Section section, List<Parameter> parameters, Range originRange,
+			List<LocationLink> locations) {
+		if (parameters != null) {
+			for (Parameter index : parameters) {
+				String linkedTemplateUri = index.getOwnerTemplate().getUri();
+				Range linkedTargetRange = QutePositionUtility.selectParameterName(index);
+				if (originRange == null) {
+					originRange = QutePositionUtility.selectStartTagName(section);
+				}
+				locations.add(new LocationLink(linkedTemplateUri, linkedTargetRange,
+						linkedTargetRange, originRange));
+			}
+		}
+		return originRange;
 	}
 
 	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameterDeclaration(int offset,
@@ -407,16 +434,19 @@ class QuteDefinition {
 						IncludeUsages includeUsages = project.getIncludeUsagesRegistry()
 								.getUsages(template.getTemplateId());
 						if (includeUsages != null) {
-							List<Parameter> parameters = includeUsages.getParameters(part.getPartName());
+							var parameters = includeUsages.findParameters(part.getPartName());
 							if (parameters != null && !parameters.isEmpty()) {
-								List<LocationLink> locations = new ArrayList<LocationLink>();
-								for (Parameter includeParameter : parameters) {
-									String targetUri = includeParameter.getOwnerTemplate().getUri();
-									Range targetRange = QutePositionUtility.selectParameterName(includeParameter);
-									Range originSelectionRange = QutePositionUtility.createRange(part);
-									LocationLink locationLink = new LocationLink(targetUri, targetRange, targetRange,
-											originSelectionRange);
-									locations.add(locationLink);
+								List<LocationLink> locations = new ArrayList<>();
+								for (NodeBase<?> node : parameters) {
+									if (node instanceof Parameter) {
+										Parameter includeParameter = (Parameter) node;
+										String targetUri = includeParameter.getOwnerTemplate().getUri();
+										Range targetRange = QutePositionUtility.selectParameterName(includeParameter);
+										Range originSelectionRange = QutePositionUtility.createRange(part);
+										LocationLink locationLink = new LocationLink(targetUri, targetRange,
+												targetRange, originSelectionRange);
+										locations.add(locationLink);
+									}
 								}
 								return CompletableFuture.completedFuture(locations);
 							}

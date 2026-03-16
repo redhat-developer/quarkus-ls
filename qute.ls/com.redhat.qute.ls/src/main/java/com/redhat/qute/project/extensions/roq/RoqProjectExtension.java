@@ -59,7 +59,6 @@ import com.redhat.qute.project.extensions.roq.data.yaml.YamlDataLoader;
 import com.redhat.qute.project.extensions.roq.frontmatter.YamlFrontMatterDetector;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
-import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * Qute project extension for Roq integration.
@@ -289,16 +288,41 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 		if (enabled) {
 			scanDataDir(dataModelProject);
 			contentDir = dataModelProject.getConfigAsPath(RoqConfig.ROQ_CONTENT_DIR);
+
 			if (availableThemes == null) {
+				// Find available themes
 				availableThemes = findAvailableThemes(dataModelProject.getBinaryDocuments());
+
+				// When Qute language server is started, opened and binary templates are parsed
+				// without parsing the Yaml frontmatter (because the Roq project extension is
+				// not initialized and
+				// template are parsed with INJECTOR_DETECTORS.
+				// We need to reparse all binary and opened templates.
+				reparseTemplates(dataModelProject);
 			}
+
 		} else {
 			// Roq not enabled - clear data directory
 			dataDir = null;
 		}
 	}
 
-	private Set<String> findAvailableThemes(Collection<QuteTextDocument> documents) {
+	private static void reparseTemplates(ExtendedDataModelProject dataModelProject) {
+		// Reparse opened source document
+		for (QuteTextDocument document : dataModelProject.getSourceDocuments()) {
+			if (!document.isUserTag() && document.isOpened()) {
+				document.reparseTemplate();
+			}
+		}
+		// Reparse binary document
+		for (QuteTextDocument document : dataModelProject.getBinaryDocuments()) {
+			if (!document.isUserTag()) {
+				document.reparseTemplate();
+			}
+		}
+	}
+
+	private static Set<String> findAvailableThemes(Collection<QuteTextDocument> documents) {
 		Set<String> themes = new HashSet<>();
 		for (QuteTextDocument document : documents) {
 			String theme = document.getProperty(RoqConfig.ROQ_THEME.getName());
@@ -360,7 +384,7 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 			for (Path file : stream) {
 				// Only process regular files (skip directories, symlinks, etc.)
 				if (Files.isRegularFile(file)) {
-					regsterRoqDataFile(file, dataModelProject);
+					registerRoqDataFile(file, dataModelProject);
 				}
 			}
 		} catch (IOException e) {
@@ -405,7 +429,7 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	 * @param file             The data file to register
 	 * @param dataModelProject The project to register with
 	 */
-	private void regsterRoqDataFile(Path file, ExtendedDataModelProject dataModelProject) {
+	private void registerRoqDataFile(Path file, ExtendedDataModelProject dataModelProject) {
 		// Get file extension (e.g., "yaml", "json")
 		String fileExtension = getFileExtension(file);
 
@@ -479,12 +503,12 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 				}
 
 				// Register new resolvers with fresh data
-				regsterRoqDataFile(filePath, dataModelProject);
+				registerRoqDataFile(filePath, dataModelProject);
 				return true;
 
 			} else if (changeTypes.contains(FileChangeType.Created)) {
 				// New file created - register it
-				regsterRoqDataFile(filePath, dataModelProject);
+				registerRoqDataFile(filePath, dataModelProject);
 				return true;
 
 			} else if (changeTypes.contains(FileChangeType.Deleted)) {
@@ -696,7 +720,10 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	}
 
 	public static RoqProjectExtension getRoqProjectExtension(Template template) {
-		QuteProject project = template.getProject();
+		return getRoqProjectExtension(template.getProject());
+	}
+
+	public static RoqProjectExtension getRoqProjectExtension(QuteProject project) {
 		if (project == null) {
 			return null;
 		}
@@ -710,10 +737,10 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 				String expanded = THEME_LAYOUTS_FOLDER + theme + "/" + layoutFileName.substring(THEME_VAR.length());
 				String uri = dataModelProject.findTemplateUriByTemplateId(expanded);
 				if (uri != null) {
-					return new TemplatePath(uri, true);
+					return new TemplatePath(uri, layoutFileName, true);
 				}
 			}
-			return new TemplatePath((String) null, false);
+			return new TemplatePath((String) null, layoutFileName, false);
 		}
 
 		// 1. Template from source
@@ -722,7 +749,7 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 			// 2. template from binary
 			String binaryUri = dataModelProject.findTemplateUriByTemplateId(layoutFileName);
 			if (binaryUri != null) {
-				return new TemplatePath(binaryUri, true);
+				return new TemplatePath(binaryUri, layoutFileName, true);
 			}
 		}
 		return sourcePath;
@@ -759,7 +786,8 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 				baseDir = dataModelProject.getSourcePaths().iterator().next();
 			}
 			return new TemplatePath(
-					baseDir.resolve(TEMPLATES_FOLDER).resolve(LAYOUTS_FOLDER).resolve(layoutFileName + ".html"));
+					baseDir.resolve(TEMPLATES_FOLDER).resolve(LAYOUTS_FOLDER).resolve(layoutFileName + ".html"),
+					layoutFileName);
 		}
 
 		// 2. Collect existing templates/layouts folder (templates,
@@ -776,17 +804,18 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 		// layouts folder doesn't exist
 		if (existingLayoutFolder.isEmpty()) {
 			return new TemplatePath(
-					existingTemplatesFolder.get(0).resolve(LAYOUTS_FOLDER).resolve(layoutFileName + ".html"));
+					existingTemplatesFolder.get(0).resolve(LAYOUTS_FOLDER).resolve(layoutFileName + ".html"),
+					layoutFileName);
 		}
 
 		for (Path layoutsFolder : existingLayoutFolder) {
 			Path layoutFile = layoutsFolder.resolve(layoutFileName + ".html");
 			if (Files.exists(layoutFile)) {
-				return new TemplatePath(layoutFile, true);
+				return new TemplatePath(layoutFile, layoutFileName, true);
 			}
 		}
 
-		return new TemplatePath(existingLayoutFolder.get(0).resolve(layoutFileName + ".html"));
+		return new TemplatePath(existingLayoutFolder.get(0).resolve(layoutFileName + ".html"), layoutFileName);
 	}
 
 	public TemplatePath getImagePath(Path filePath, String imageFilePath) {
@@ -801,13 +830,13 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 		Path imagesFolder = filePath.getParent();
 		Path imagesPath = imagesFolder.resolve(imageFilePath);
 		if (Files.exists(imagesPath)) {
-			return new TemplatePath(imagesPath, true);
+			return new TemplatePath(imagesPath, imageFilePath, true);
 		}
 		// 2. Check if image exists in the public.images folder
 		Path projectFolder = dataModelProject.getProjectFolder();
 		imagesFolder = projectFolder.resolve(PUBLIC_IMAGES_FOLDER);
 		Path publicImagePath = imagesFolder.resolve(imageFilePath);
-		return new TemplatePath(publicImagePath);
+		return new TemplatePath(publicImagePath, imageFilePath);
 	}
 
 	public Set<String> getConfiguredCollections() {
@@ -817,9 +846,10 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	@Override
 	public void collectCodeLenses(Template template, SharedSettings settings, List<CodeLens> lenses,
 			CancelChecker cancelChecker) {
-		if (template.isUserTag() || hasYamlFrontMatter(template)) {
+		if (template.isUserTag() || dataModelProject.isBinary(template) || hasYamlFrontMatter(template)) {
 			// Don't show "Insert FrontMatter" codelens when:
-			// - template is an user tag -
+			// - template is an user tag
+			// - template is binary
 			// -the template already defines a yaml front matter,
 			return;
 		}

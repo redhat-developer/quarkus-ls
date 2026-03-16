@@ -24,9 +24,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.lsp4j.CodeLensParams;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
@@ -36,6 +39,7 @@ import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
@@ -128,6 +132,20 @@ public class MockQuteLanguageServer extends QuteLanguageServer {
 		params.setTextDocument(new TextDocumentIdentifier(fileUri));
 		params.setPosition(new Position(line, character));
 		return getResult(getTextDocumentService().references(params));
+	}
+
+	public Either<List<? extends Location>, List<? extends LocationLink>> definition(String fileUri, int line,
+			int character) {
+		DefinitionParams params = new DefinitionParams();
+		params.setTextDocument(new TextDocumentIdentifier(fileUri));
+		params.setPosition(new Position(line, character));
+		return getResult(getTextDocumentService().definition(params));
+	}
+
+	public List<? extends CodeLens> codeLens(String fileUri) {
+		CodeLensParams params = new CodeLensParams();
+		params.setTextDocument(new TextDocumentIdentifier(fileUri));
+		return getResult(getTextDocumentService().codeLens(params));
 	}
 
 	public void deleteFile(Path filePath) throws Exception {

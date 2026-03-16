@@ -81,7 +81,9 @@ public class QuteBinaryTextDocument extends QuteReadOnlyTextDocument {
 		if (SearchInfoQuery.ALL.equals(insertParameter)) {
 			return parameters;
 		}
-		return parameters.stream().filter(p -> insertParameter.equals(p.getValue())).collect(Collectors.toList());
+		return parameters.stream() //
+				.filter(p -> insertParameter.equals(p.getValue())) //
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -98,8 +100,8 @@ public class QuteBinaryTextDocument extends QuteReadOnlyTextDocument {
 
 	@Override
 	public Collection<InjectionDetector> getInjectionDetectors() {
-		// TODO: manage InjectionDetector for binary template
-		return Collections.emptyList();
+		QuteProject project = getProject();
+		return project.getInjectionDetectorsFor(getTemplatePath());
 	}
 
 	@Override
@@ -120,4 +122,8 @@ public class QuteBinaryTextDocument extends QuteReadOnlyTextDocument {
 		return properties.get(name);
 	}
 
+	@Override
+	public void reparseTemplate() {
+		super.template = loadTemplate(binaryTemplate.getUri(), binaryTemplate.getPath(), binaryTemplate.getContent());
+	}
 }

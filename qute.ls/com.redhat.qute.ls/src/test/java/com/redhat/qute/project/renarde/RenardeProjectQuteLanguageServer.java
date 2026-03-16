@@ -1,10 +1,9 @@
-package com.redhat.qute.project.user_tags;
+package com.redhat.qute.project.renarde;
 
 import java.util.Set;
 
 import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.project.MockProjectQuteLanguageServer;
-import com.redhat.qute.project.renarde.RenardeProject;
 
 public class RenardeProjectQuteLanguageServer extends MockProjectQuteLanguageServer {
 

@@ -23,6 +23,7 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.documents.SearchInfoQuery;
 import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.usages.UsagesRegistry;
 
 /**
  * Qute text document of a project which are opend and closed.
@@ -31,6 +32,20 @@ import com.redhat.qute.project.tags.UserTag;
  *
  */
 public interface QuteTextDocument {
+
+	public static class Key<T> {
+
+		private final String name;
+
+		public Key(String name) {
+			this.name = name;
+
+		}
+
+		public static <T> Key<T> create(String name) {
+			return new Key<>(name);
+		}
+	}
 
 	/**
 	 * Returns the current parsed template.
@@ -148,4 +163,16 @@ public interface QuteTextDocument {
 	default String getProperty(String name) {
 		return null;
 	}
+
+	/**
+	 * Re-parse template from the current template content and update usages
+	 * {@link UsagesRegistry} (call of user tag parameters, include parameters).
+	 */
+	default void reparseTemplate() {
+		// Do nothing
+	}
+
+	<T> T getUserData(Key<T> key);
+
+	<T> void putUserData(Key<T> key, T data);
 }

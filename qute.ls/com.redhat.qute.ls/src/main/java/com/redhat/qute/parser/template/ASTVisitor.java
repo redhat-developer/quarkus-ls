@@ -17,6 +17,7 @@ import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.expression.PropertyPart;
+import com.redhat.qute.parser.injection.LanguageInjectionNode;
 import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.CustomSection;
 import com.redhat.qute.parser.template.sections.EachSection;
@@ -276,6 +277,21 @@ public abstract class ASTVisitor extends ASTVisitorBase<Node> {
 	 *         <code>false</code> if the children of this node should be skipped
 	 */
 	public boolean visit(IsSection node) {
+		return true;
+	}
+
+	/**
+	 * Visits the given type-specific AST node.
+	 * <p>
+	 * The default implementation does nothing and return true. Subclasses may
+	 * reimplement.
+	 * </p>
+	 *
+	 * @param node the node to visit
+	 * @return <code>true</code> if the children of this node should be visited, and
+	 *         <code>false</code> if the children of this node should be skipped
+	 */
+	public boolean visit(LanguageInjectionNode node) {
 		return true;
 	}
 
@@ -639,6 +655,18 @@ public abstract class ASTVisitor extends ASTVisitorBase<Node> {
 		// default implementation: do nothing
 	}
 
+	/**
+	 * End of visit the given type-specific AST node.
+	 * <p>
+	 * The default implementation does nothing. Subclasses may reimplement.
+	 * </p>
+	 *
+	 * @param node the node to visit
+	 */
+	public void endVisit(LanguageInjectionNode node) {
+		// default implementation: do nothing
+	}
+	
 	/**
 	 * End of visit the given type-specific AST node.
 	 * <p>

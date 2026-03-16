@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.eclipse.lsp4j.CompletionList;
 import org.junit.jupiter.api.Test;
 
+import com.redhat.qute.project.renarde.RenardeProjectQuteLanguageServer;
+
 /**
  * Test completion on user tag parameters that infer their type based on how the
  * user tag is used.

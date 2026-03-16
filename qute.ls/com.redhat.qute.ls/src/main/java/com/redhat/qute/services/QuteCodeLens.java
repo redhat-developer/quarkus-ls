@@ -34,6 +34,7 @@ import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.FragmentSection;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.DataModelSourceProvider;
@@ -272,20 +273,25 @@ class QuteCodeLens {
 
 	private static void collectIncludedByCodeLenses(Template template, QuteProject project, SharedSettings settings,
 			CancelChecker cancelChecker, List<CodeLens> lenses) {
-		boolean canSupportOpenUri = settings.getCommandCapabilities().isCommandSupported(COMMAND_OPEN_URI);
 		IncludeUsages includeUsages = project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
 		if (includeUsages == null) {
 			return;
 		}
 
-		Set<String> includeTemplateUris = includeUsages.getUsagesByUri().keySet();
+		Set<String> includedByTemplateIds = includeUsages.getCallingTemplateIds();
+		Set<TemplatePath> includedByTemplatePaths = includeUsages.getCallingTemplatePaths();
+		if (includedByTemplateIds.isEmpty() && includedByTemplatePaths.isEmpty()) {
+			return;
+		}
 
 		Range range = LEFT_TOP_RANGE;
 		Command command = new Command("Included by:", "");
 		CodeLens codeLens = new CodeLens(range, command, null);
 		lenses.add(codeLens);
 
-		for (String templateId : includeTemplateUris) {
+		boolean canSupportOpenUri = settings.getCommandCapabilities().isCommandSupported(COMMAND_OPEN_URI);
+
+		for (String templateId : includedByTemplateIds) {
 			Command includedUriCommand = null;
 			String uri = canSupportOpenUri ? project.findTemplateUriByTemplateId(templateId) : null;
 			if (uri == null) {
@@ -295,7 +301,19 @@ class QuteCodeLens {
 			}
 			CodeLens includedUriCodeLens = new CodeLens(range, includedUriCommand, null);
 			lenses.add(includedUriCodeLens);
+		}
 
+		for (TemplatePath templatePath : includedByTemplatePaths) {
+			String templateId = templatePath.getTemplateId();
+			Command includedUriCommand = null;
+			String uri = canSupportOpenUri ? templatePath.getUri() : null;
+			if (uri == null) {
+				includedUriCommand = new Command(templateId, "");
+			} else {
+				includedUriCommand = new Command(templateId, COMMAND_OPEN_URI, List.of(uri));
+			}
+			CodeLens includedUriCodeLens = new CodeLens(range, includedUriCommand, null);
+			lenses.add(includedUriCodeLens);
 		}
 	}
 
