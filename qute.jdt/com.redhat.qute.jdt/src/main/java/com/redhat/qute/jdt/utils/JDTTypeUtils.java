@@ -25,6 +25,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
@@ -124,23 +125,23 @@ public class JDTTypeUtils {
 	}
 
 	/**
-	 * Return true if node is a native, and false otherwise
+	 * Return true if member is a native, and false otherwise
 	 *
-	 * @param node the node to check for native
-	 * @return true if node is a native, and false otherwise
+	 * @param node the member to check for native
+	 * @return true if member is a native, and false otherwise
 	 */
-	public static boolean isNativeNode(ASTNode node) {
-		return Modifier.isNative(node.getFlags());
+	public static boolean isNativeMember(BodyDeclaration member) {
+		return Modifier.isNative(member.getModifiers());
 	}
 
 	/**
-	 * Return true if node is a static, and false otherwise
+	 * Return true if member is a static, and false otherwise
 	 *
-	 * @param node the node to check for static
-	 * @return true if node is a static, and false otherwise
+	 * @param node the member to check for static
+	 * @return true if member is a static, and false otherwise
 	 */
-	public static boolean isStaticNode(ASTNode node) {
-		return Modifier.isStatic(node.getFlags());
+	public static boolean isStaticMember(BodyDeclaration member) {
+		return Modifier.isStatic(member.getModifiers());
 	}
 
 	/**
