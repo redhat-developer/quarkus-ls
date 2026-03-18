@@ -20,6 +20,9 @@ import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_AN
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_CLASS;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_CONTENTS_ANNOTATION;
+import static com.redhat.qute.jdt.utils.JDTTypeUtils.isConstructor;
+import static com.redhat.qute.jdt.utils.JDTTypeUtils.isNativeNode;
+import static com.redhat.qute.jdt.utils.JDTTypeUtils.isStaticNode;
 
 import java.util.Arrays;
 import java.util.List;
@@ -213,7 +216,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 			List body = node.bodyDeclarations();
 			for (Object declaration : body) {
 				if (declaration instanceof MethodDeclaration methodDeclaration) {
-					if (!isConstructor(methodDeclaration)) {
+					if (isCheckedTemplateMethod(methodDeclaration)) {
 						String methodName = methodDeclaration.getName().getIdentifier();
 						collectTemplateLinkForMethodOrRecord(basePath, methodDeclaration, methodName, node,
 								ignoreFragments, templateNameStrategy);
@@ -224,8 +227,8 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 		return super.visit(node);
 	}
 
-	private static boolean isConstructor(MethodDeclaration methodDeclaration) {
-		return methodDeclaration.getReturnType2() == null;
+	private static boolean isCheckedTemplateMethod(MethodDeclaration methodDeclaration) {
+		return !isConstructor(methodDeclaration) && isStaticNode(methodDeclaration) && isNativeNode(methodDeclaration);
 	}
 
 	/**

@@ -17,6 +17,8 @@ import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_AN
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.qute.jdt.utils.JDTQuteProjectUtils.getTemplatePath;
+import static com.redhat.qute.jdt.utils.JDTTypeUtils.isNativeMember;
+import static com.redhat.qute.jdt.utils.JDTTypeUtils.isStaticMember;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -209,40 +211,49 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 		// method.
 		IMethod[] methods = type.getMethods();
 		for (IMethod method : methods) {
+			if (isCheckedTemplateMethod(method)) {
+				// src/main/resources/templates/${className}/${methodName}.qute.html
+				TemplatePathInfo templatePathInfo = getTemplatePath(basePath, className, method.getElementName(),
+						ignoreFragments, templateNameStrategy);
 
-			// src/main/resources/templates/${className}/${methodName}.qute.html
-			TemplatePathInfo templatePathInfo = getTemplatePath(basePath, className, method.getElementName(),
-					ignoreFragments, templateNameStrategy);
+				// Get or create template
+				String templateUri = templatePathInfo.getTemplateUri();
+				String fragmentId = templatePathInfo.getFragmentId();
 
-			// Get or create template
-			String templateUri = templatePathInfo.getTemplateUri();
-			String fragmentId = templatePathInfo.getFragmentId();
+				DataModelTemplate<DataModelParameter> template = null;
+				Optional<DataModelTemplate<DataModelParameter>> existingTemplate = templates.stream()
+						.filter(t -> t.getTemplateUri().equals(templateUri)) //
+						.findFirst();
+				if (existingTemplate.isEmpty()) {
+					template = createTemplateDataModel(templateUri, method, type);
+					templates.add(template);
+				} else {
+					template = existingTemplate.get();
+					if (fragmentId == null) {
+						template.setSourceMethod(method.getElementName());
+					}
+				}
 
-			DataModelTemplate<DataModelParameter> template = null;
-			Optional<DataModelTemplate<DataModelParameter>> existingTemplate = templates.stream()
-					.filter(t -> t.getTemplateUri().equals(templateUri)) //
-					.findFirst();
-			if (existingTemplate.isEmpty()) {
-				template = createTemplateDataModel(templateUri, method, type);
-				templates.add(template);
-			} else {
-				template = existingTemplate.get();
-				if (fragmentId == null) {
-					template.setSourceMethod(method.getElementName());
+				if (fragmentId != null && fragmentId.length() > 0) {
+					// The method name has '$' to define fragment id (ex : foo$bar)
+					// Create fragment
+					DataModelFragment<DataModelParameter> fragment = createFragmentDataModel(fragmentId, method, type);
+					template.addFragment(fragment);
+					// collect parameters for the fragment
+					collectParameters(method, typeResolver, fragment, monitor);
+				} else {
+					// collect parameters for the template
+					collectParameters(method, typeResolver, template, monitor);
 				}
 			}
+		}
+	}
 
-			if (fragmentId != null && fragmentId.length() > 0) {
-				// The method name has '$' to define fragment id (ex : foo$bar)
-				// Create fragment
-				DataModelFragment<DataModelParameter> fragment = createFragmentDataModel(fragmentId, method, type);
-				template.addFragment(fragment);
-				// collect parameters for the fragment
-				collectParameters(method, typeResolver, fragment, monitor);
-			} else {
-				// collect parameters for the template
-				collectParameters(method, typeResolver, template, monitor);
-			}
+	private static boolean isCheckedTemplateMethod(IMethod method) {
+		try {
+			return !method.isConstructor() && isStaticMember(method) && isNativeMember(method);
+		} catch (JavaModelException e) {
+			return false;
 		}
 	}
 
