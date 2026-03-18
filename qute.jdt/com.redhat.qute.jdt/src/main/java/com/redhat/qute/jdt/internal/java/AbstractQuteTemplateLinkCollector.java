@@ -21,8 +21,8 @@ import static com.redhat.qute.jdt.internal.QuteJavaConstants.OLD_CHECKED_TEMPLAT
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_CLASS;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_CONTENTS_ANNOTATION;
 import static com.redhat.qute.jdt.utils.JDTTypeUtils.isConstructor;
-import static com.redhat.qute.jdt.utils.JDTTypeUtils.isNativeNode;
-import static com.redhat.qute.jdt.utils.JDTTypeUtils.isStaticNode;
+import static com.redhat.qute.jdt.utils.JDTTypeUtils.isNativeMember;
+import static com.redhat.qute.jdt.utils.JDTTypeUtils.isStaticMember;
 
 import java.util.Arrays;
 import java.util.List;
@@ -228,7 +228,8 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 	}
 
 	private static boolean isCheckedTemplateMethod(MethodDeclaration methodDeclaration) {
-		return !isConstructor(methodDeclaration) && isStaticNode(methodDeclaration) && isNativeNode(methodDeclaration);
+		return !isConstructor(methodDeclaration) && isStaticMember(methodDeclaration)
+				&& isNativeMember(methodDeclaration);
 	}
 
 	/**
