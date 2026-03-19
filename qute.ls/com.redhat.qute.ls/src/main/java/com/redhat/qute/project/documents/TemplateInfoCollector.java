@@ -16,8 +16,8 @@ import java.util.List;
 
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Parameter;
-import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.sections.CustomSection;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.parser.template.sections.InsertSection;
 
 /**
@@ -36,7 +36,9 @@ public class TemplateInfoCollector extends ASTVisitor {
 
 	private List<Parameter> insertParameters;
 
-	private List<Section> sectionsByTag;
+	private List<CustomSection> customSections;
+
+	private List<FragmentSection> fragmentSections;
 
 	public TemplateInfoCollector(SearchInfoQuery query) {
 		this.query = query;
@@ -48,6 +50,8 @@ public class TemplateInfoCollector extends ASTVisitor {
 		if (insertParameter != null) {
 			Parameter parameter = section.getParameterAtIndex(0);
 			if (parameter != null) {
+				// Collect insert parameter from the template
+				// {#insert param /}
 				if (SearchInfoQuery.ALL.equals(insertParameter) || insertParameter.equals(parameter.getValue())) {
 					if (insertParameters == null) {
 						insertParameters = new ArrayList<>();
@@ -63,14 +67,32 @@ public class TemplateInfoCollector extends ASTVisitor {
 	public boolean visit(CustomSection section) {
 		String sectionTag = query.getSectionTag();
 		if (sectionTag != null) {
+			// Collect custom section tag from the template
+			// {#myTag /}
 			if (SearchInfoQuery.ALL.equals(sectionTag) || sectionTag.equals(section.getTag())) {
-				if (sectionsByTag == null) {
-					sectionsByTag = new ArrayList<>();
+				if (customSections == null) {
+					customSections = new ArrayList<>();
 				}
-				sectionsByTag.add(section);
+				customSections.add(section);
 			}
 		}
 		return super.visit(section);
+	}
+
+	@Override
+	public boolean visit(FragmentSection fragment) {
+		String fragmentId = query.getFragmentId();
+		if (fragmentId != null) {
+			// Collect fragment from the template
+			// {#fragment id="foo" /}
+			if (SearchInfoQuery.ALL.equals(fragmentId) || fragmentId.equals(fragment.getId())) {
+				if (fragmentSections == null) {
+					fragmentSections = new ArrayList<>();
+				}
+				fragmentSections.add(fragment);
+			}
+		}
+		return super.visit(fragment);
 	}
 
 	/**
@@ -82,7 +104,21 @@ public class TemplateInfoCollector extends ASTVisitor {
 		return insertParameters;
 	}
 
-	public List<Section> getSectionsByTag() {
-		return sectionsByTag;
+	/**
+	 * Returns the collected custom sections which matches the search query.
+	 * 
+	 * @return the collected custom sections which matches the search query.
+	 */
+	public List<CustomSection> getCustomSections() {
+		return customSections;
+	}
+
+	/**
+	 * Returns the collected fragment sections which matches the search query.
+	 * 
+	 * @return the collected fragment sections which matches the search query.
+	 */
+	public List<FragmentSection> getFragmentSections() {
+		return fragmentSections;
 	}
 }

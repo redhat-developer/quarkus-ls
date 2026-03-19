@@ -51,6 +51,7 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CaseSection;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.parser.template.sections.WhenSection;
@@ -176,23 +177,24 @@ class QuteDefinition {
 							}
 							parent = parent.getParent();
 						}
-						
+
 						// Included by
-						IncludeUsages includeUsages = project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
+						IncludeUsages includeUsages = project.getIncludeUsagesRegistry()
+								.getUsages(template.getTemplateId());
 						if (includeUsages != null) {
-							
+
 							Set<String> includedByTemplateIds = includeUsages.getCallingTemplateIds();
 							for (String templateId : includedByTemplateIds) {
 								List<Parameter> parameters = project.findInsertTagParameter(templateId, tagName);
 								originRange = fillWithInsertParameters(section, parameters, originRange, locations);
 							}
-							
+
 							Set<TemplatePath> includedByTemplatePaths = includeUsages.getCallingTemplatePaths();
 							for (TemplatePath templatePath : includedByTemplatePaths) {
 								List<Parameter> parameters = project.findInsertTagParameter(templatePath, tagName);
 								originRange = fillWithInsertParameters(section, parameters, originRange, locations);
 							}
-							
+
 						}
 					}
 				}
@@ -227,8 +229,7 @@ class QuteDefinition {
 				if (originRange == null) {
 					originRange = QutePositionUtility.selectStartTagName(section);
 				}
-				locations.add(new LocationLink(linkedTemplateUri, linkedTargetRange,
-						linkedTargetRange, originRange));
+				locations.add(new LocationLink(linkedTemplateUri, linkedTargetRange, linkedTargetRange, originRange));
 			}
 		}
 		return originRange;
@@ -537,11 +538,68 @@ class QuteDefinition {
 	 */
 	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameter(int offset, Parameter parameter,
 			Template template, CancelChecker cancelChecker) {
-		if (!parameter.isInName(offset)) {
+		Section section = parameter.getOwnerSection();
+		if (section == null) {
 			return NO_DEFINITION;
 		}
-		Section section = parameter.getOwnerSection();
-		if (section == null || section.getSectionKind() != SectionKind.CUSTOM) {
+
+		switch (section.getSectionKind()) {
+		case CUSTOM:
+			// {#myTag na[me='' }
+			return findDefinitionFromParameterUserTag(parameter, section, template, offset);
+		case INCLUDE:
+			// {#include $me[nu }
+			return findDefinitionFromParameterInclude(parameter, (IncludeSection) section, template, offset);
+		default:
+			return NO_DEFINITION;
+		}
+	}
+
+	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameterInclude(Parameter parameter,
+			IncludeSection section, Template template, int offset) {
+		QuteProject project = template.getProject();
+		if (project == null) {
+			return NO_DEFINITION;
+		}
+		Parameter templateParameter = section.getTemplateParameter();
+		if (parameter.equals(templateParameter)) {
+			// Definition is done in the include template parameter
+			// ex: {#include ba|se
+			// ex: {#include base$me|nu
+			String referenceTemplateId = templateParameter.getValue();
+			int dollarIndex = referenceTemplateId.indexOf('$');
+			if (dollarIndex == -1) {
+				return NO_DEFINITION;
+			}
+			if (offset >= templateParameter.getStart() + dollarIndex) {
+				// ex: {#include base$me|nu
+				// ex: {#include $me|nu
+				TemplatePath templatePath = section.getReferencedTemplatePath();
+				String templateId = templatePath.getTemplateId();
+				String resolvedTemplateId = templateId.isEmpty() ? template.getTemplateId() : templateId;
+				List<FragmentSection> fragments = project.findFragmentSections(resolvedTemplateId,
+						templatePath.getFragmentId());
+				if (fragments.isEmpty()) {
+					return NO_DEFINITION;
+				}
+				List<LocationLink> locations = new ArrayList<>(fragments.size());
+				for (FragmentSection fragment : fragments) {
+					String targetUri = fragment.getOwnerTemplate().getUri();
+					Range targetRange = QutePositionUtility.selectParameterValue(fragment.getIdParameter());
+					Range originSelectionRange = QutePositionUtility.selectParameterName(parameter);
+					LocationLink locationLink = new LocationLink(targetUri, targetRange, targetRange,
+							originSelectionRange);
+					locations.add(locationLink);
+				}
+				return CompletableFuture.completedFuture(locations);
+			}
+		}
+		return NO_DEFINITION;
+	}
+
+	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameterUserTag(Parameter parameter,
+			Section section, Template template, int offset) {
+		if (!parameter.isInName(offset)) {
 			return NO_DEFINITION;
 		}
 		QuteProject project = template.getProject();

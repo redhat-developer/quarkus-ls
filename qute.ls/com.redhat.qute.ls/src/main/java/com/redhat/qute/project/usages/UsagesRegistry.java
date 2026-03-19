@@ -12,12 +12,16 @@
 package com.redhat.qute.project.usages;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.redhat.qute.parser.NodeBase;
 import com.redhat.qute.parser.template.sections.TemplatePath;
+import com.redhat.qute.project.QuteTextDocument;
+import com.redhat.qute.project.tags.UserTagUsages;
 
 /**
  * Abstract registry that stores and manages {@link ParameterUsages} instances,
@@ -33,16 +37,18 @@ import com.redhat.qute.parser.template.sections.TemplatePath;
  *
  * <p>
  * For each key, a {@link ParameterUsages} instance accumulates the parameters
- * passed at every call site across all templates. This data is then consumed by
- * language features such as type inference, hover, completion, and find
- * references.
+ * passed at every call site across all source documents. This data is then
+ * consumed by language features such as type inference, hover, completion, and
+ * find references.
  * </p>
  *
  * <p>
  * Usages come from two sources:
  * <ul>
- * <li>the template parsing cycle — managed via {@link #updateUsages}</li>
- * <li>extensions — managed via {@link #addUsage} and {@link #removeUsage}</li>
+ * <li>the template parsing cycle — managed via {@link #updateUsages}, keyed by
+ * template id string</li>
+ * <li>extensions — managed via {@link #addUsage} and {@link #removeUsage},
+ * keyed by {@link TemplatePath}</li>
  * </ul>
  * </p>
  *
@@ -62,72 +68,99 @@ public abstract class UsagesRegistry<T extends ParameterUsages> {
 	private final Map<String, T> usagesByKey = new HashMap<>();
 
 	/**
-	 * Updates the usages contributed by a given template during the parsing cycle.
+	 * Reverse index: for each source document, the set of keys it contributes to.
 	 *
 	 * <p>
-	 * For each key in {@code usages}, the corresponding {@link ParameterUsages} is
-	 * created if absent and updated with the new parameters. Keys present in
-	 * {@code oldKeys} but absent from {@code usages} are treated as removed: their
-	 * parameters for this template are cleared.
+	 * Used to efficiently clean up all previous usages of a source document on
+	 * re-parse, without iterating over all keys in {@link #usagesByKey}. The
+	 * template id is retrieved from the source document via
+	 * {@link QuteTextDocument#getTemplateId()}.
 	 * </p>
-	 *
-	 * <p>
-	 * Extension usages registered via {@link #addUsage} are never affected by this
-	 * method.
-	 * </p>
-	 *
-	 * @param templateId the id of the template that was just parsed
-	 * @param usages     parameters collected per key (user tag name or included
-	 *                   template id) during this parse
-	 * @param oldKeys    keys that were known from the previous parse of this
-	 *                   template, used to detect removals
 	 */
-	public void updateUsages(String templateId, Map<String, List<? extends NodeBase<?>>> usages, Set<String> oldKeys) {
-		// Register or update parameters for each key seen in this parse
-		for (Map.Entry<String, List<? extends NodeBase<?>>> entry : usages.entrySet()) {
-			String key = entry.getKey();
-			T keyUsages = getOrCreateUsages(key);
-			keyUsages.putParameters(templateId, entry.getValue());
+	private final Map<QuteTextDocument, Set<String>> keysBySource = new IdentityHashMap<>();
+
+	/**
+	 * Updates the usages contributed by a given source document during the parsing
+	 * cycle.
+	 *
+	 * <p>
+	 * All previous usages contributed by this source are removed first using the
+	 * reverse index, then the new usages are registered. This ensures correctness
+	 * even when the user types fast and intermediate parses are cancelled — no
+	 * stale {@code oldKeys} tracking is needed.
+	 * </p>
+	 *
+	 * <p>
+	 * The template id is retrieved from {@code source.getTemplateId()}. Extension
+	 * usages registered via {@link #addUsage} are never affected.
+	 * </p>
+	 *
+	 * @param source the document that was just parsed
+	 * @param usages parameters collected per key (user tag name or included
+	 *               template id) during this parse
+	 */
+	public synchronized void updateUsages(QuteTextDocument source, Map<String, List<? extends NodeBase<?>>> usages) {
+		String templateId = source.getTemplateId();
+
+		// Remove all previous usages contributed by this source using the reverse index
+		Set<String> oldKeys = keysBySource.get(source);
+		if (oldKeys != null) {
+		    for (String key : oldKeys) {
+		        T keyUsages = usagesByKey.get(key);
+		        if (keyUsages != null) {
+		            keyUsages.removeParameters(templateId);
+		            // Remove the entry from usagesByKey if it has no more usages
+		            if (keyUsages.isEmpty()) {
+		                usagesByKey.remove(key);
+		            }
+		        }
+		    }
 		}
 
-		// Clear parameters for keys that were removed since the last parse
-		for (String key : oldKeys) {
-			T keyUsages = usagesByKey.get(key);
-			if (keyUsages != null) {
-				keyUsages.putParameters(templateId, List.of());
+		// Register new usages and rebuild the reverse index for this source
+		if (usages.isEmpty()) {
+			keysBySource.remove(source);
+		} else {
+			Set<String> newKeys = new HashSet<>();
+			for (Map.Entry<String, List<? extends NodeBase<?>>> entry : usages.entrySet()) {
+				String key = entry.getKey();
+				T keyUsages = getOrCreateUsages(key);
+				keyUsages.putParameters(templateId, entry.getValue());
+				newKeys.add(key);
 			}
+			keysBySource.put(source, newKeys);
 		}
 	}
 
 	/**
-	 * Registers or replaces the single node contributed by an extension for a
-	 * given calling template and key.
+	 * Registers or replaces the single node contributed by an extension for a given
+	 * template path and key.
 	 *
 	 * <p>
 	 * Unlike {@link #updateUsages}, which is driven by the template parsing cycle,
 	 * this method allows extensions to register individual usages directly — for
 	 * example, usages discovered through language injection or other external
 	 * sources. Extension usages are stored separately and are never cleared by a
-	 * re-parse. If the extension re-registers a node for the same key and template,
-	 * the previous instance is simply replaced.
+	 * re-parse. If the extension re-registers a node for the same key and path, the
+	 * previous instance is simply replaced.
 	 * </p>
 	 *
-	 * @param key        the user tag name or included template id
-	 * @param templatePath the template path of the calling template
-	 * @param usage      the node to register
+	 * @param key          the user tag name or included template id
+	 * @param templatePath the path of the calling template
+	 * @param usage        the node to register
 	 */
-	public void addUsage(String key, TemplatePath templatePath, NodeBase<?> usage) {
+	public synchronized void addUsage(String key, TemplatePath templatePath, NodeBase<?> usage) {
 		getOrCreateUsages(key).addParameter(templatePath, usage);
 	}
 
 	/**
-	 * Removes the node previously registered by an extension for a given calling
-	 * template and key.
+	 * Removes the node previously registered by an extension for a given template
+	 * path and key.
 	 *
-	 * @param key        the user tag name or included template id
-	 * @param templateId the id of the calling template
+	 * @param key          the user tag name or included template id
+	 * @param templatePath the path of the calling template
 	 */
-	public void removeUsage(String key, TemplatePath templatePath) {
+	public synchronized void removeUsage(String key, TemplatePath templatePath) {
 		T usages = usagesByKey.get(key);
 		if (usages != null) {
 			usages.removeParameter(templatePath);

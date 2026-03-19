@@ -70,6 +70,8 @@ import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateConfiguration;
+import com.redhat.qute.parser.template.sections.CustomSection;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
@@ -511,7 +513,7 @@ public class QuteProject {
 		return findInsertTagParameter(templatePath.getTemplateId(), insertParamater);
 	}
 
-	public List<Section> findSectionsByTag(String tag) {
+	public List<Section> findCustomSectionsByTag(String tag) {
 		List<Section> allSections = new ArrayList<>();
 		// from sources
 		fillSection(tag, sourceDocuments.values(), allSections);
@@ -522,11 +524,17 @@ public class QuteProject {
 
 	private void fillSection(String tag, Collection<QuteTextDocument> documents, List<Section> allSections) {
 		for (QuteTextDocument document : documents) {
-			List<Section> sections = document.findSectionsByTag(tag);
+			List<CustomSection> sections = document.findCustomSectionsByTag(tag);
 			if (sections != null && !sections.isEmpty()) {
 				allSections.addAll(sections);
 			}
 		}
+	}
+
+	public List<FragmentSection> findFragmentSections(String templateId, String fragmentId) {
+		QuteTextDocument document = findDocumentByTemplateId(templateId);
+		List<FragmentSection> fragments = document != null ? document.findFragmentSectionById(fragmentId) : null;
+		return fragments != null ? fragments : Collections.emptyList();
 	}
 
 	public String findTemplateUriByTemplateId(String templateId) {
@@ -534,7 +542,7 @@ public class QuteProject {
 		return document != null ? document.getUri() : null;
 	}
 
-	private QuteTextDocument findDocumentByTemplateId(String templateId) {
+	public QuteTextDocument findDocumentByTemplateId(String templateId) {
 		if (templateId.indexOf('.') != -1) {
 			// ex: base.html
 			return findDocumentByTemplateIdInCache(templateId);

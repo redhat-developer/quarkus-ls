@@ -11,7 +11,11 @@
 *******************************************************************************/
 package com.redhat.qute.utils;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 import org.eclipse.lsp4j.Range;
@@ -34,9 +38,13 @@ import com.redhat.qute.parser.template.RangeOffset;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.parser.template.sections.WhenSection;
 import com.redhat.qute.parser.template.sections.WithSection;
+import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.usages.IncludeUsages;
+import com.redhat.qute.project.usages.IncludeUsagesRegistry;
 
 /**
  * Qute search utilities to search:
@@ -78,7 +86,9 @@ public class QuteSearchUtils {
 		if (NamespacePart.DATA_NAMESPACE.equals(namespace)) {
 			searchDeclaredObjectInParameterDeclaration(part, collector);
 		} else {
-			Parameter parameter = searchDeclaredObjectInParameter(part, cancelChecker);
+			Template template = part.getOwnerTemplate();
+			QuteProject project = template.getProject();
+			Parameter parameter = searchDeclaredObjectInParameter(part, template, project, cancelChecker);
 			if (parameter != null) {
 				Range targetRange = QutePositionUtility.selectParameterName(parameter);
 				collector.accept(parameter, targetRange);
@@ -97,7 +107,8 @@ public class QuteSearchUtils {
 		}
 	}
 
-	private static Parameter searchDeclaredObjectInParameter(ObjectPart part, CancelChecker cancelChecker) {
+	private static Parameter searchDeclaredObjectInParameter(ObjectPart part, Template template, QuteProject project,
+			CancelChecker cancelChecker) {
 		String partName = part.getPartName();
 		Node parent = part.getParentSection();
 		Parameter matchedOptionalParameter = null;
@@ -105,6 +116,7 @@ public class QuteSearchUtils {
 			if (parent.getKind() == NodeKind.Section) {
 				Section section = (Section) parent;
 				switch (section.getSectionKind()) {
+
 				case EACH:
 				case FOR:
 					LoopSection iterableSection = (LoopSection) section;
@@ -118,6 +130,7 @@ public class QuteSearchUtils {
 						}
 					}
 					break;
+
 				case LET:
 				case SET: {
 					List<Parameter> parameters = section.getParameters();
@@ -128,6 +141,7 @@ public class QuteSearchUtils {
 					}
 				}
 					break;
+
 				case IF: {
 					if (matchedOptionalParameter == null) {
 						List<Parameter> parameters = section.getParameters();
@@ -141,6 +155,7 @@ public class QuteSearchUtils {
 					}
 					break;
 				}
+
 				case INCLUDE:
 				case CUSTOM: {
 					List<Parameter> parameters = section.getParameters();
@@ -160,6 +175,26 @@ public class QuteSearchUtils {
 					}
 					break;
 				}
+
+				case FRAGMENT: {
+					if (project != null) {
+						// Try to find fragment parameter declared in include {#include $menu
+						// device='mobile' /}
+						// - fragmentId = $menu
+						// - partName = device
+						String fragmentId = ((FragmentSection) section).getId();
+						if (!StringUtils.isEmpty(fragmentId)) {
+							IncludeUsagesRegistry registry = project.getIncludeUsagesRegistry();
+							Parameter parameter = registry.findFragmentParameter(template.getTemplateId(), fragmentId,
+									partName);
+							if (parameter != null) {
+								return parameter;
+							}
+						}
+					}
+					break;
+				}
+
 				default:
 				}
 			}
@@ -209,8 +244,40 @@ public class QuteSearchUtils {
 				Range range = QutePositionUtility.selectParameterName(parameter);
 				collector.accept(parameter, range);
 			}
-			String alias = parameter.getName();
-			searchReferencedObjects(alias, PartNameMatcher.ONLY_NAME, parameter.getParent(), collector, cancelChecker);
+			Section section = parameter.getOwnerSection();
+			if (section != null && section.getSectionKind() == SectionKind.FRAGMENT) {
+				String fragmentId = parameter.getValue();
+				if (fragmentId != null) {
+					Template template = section.getOwnerTemplate();
+					QuteProject project = template.getProject();
+					if (project != null) {
+						FragmentSection fragment = (FragmentSection) section;
+						if (parameter.equals(fragment.getIdParameter())) {
+							IncludeUsages includeUsages = project.getIncludeUsagesRegistry()
+									.getFragmentUsages(template.getTemplateId(), fragmentId);
+							if (includeUsages != null) {
+								Map<String, List<? extends NodeBase<?>>> usages = includeUsages
+										.getParametersByTemplateId();
+								for (Entry<String, List<? extends NodeBase<?>>> entry : usages.entrySet()) {
+									for (NodeBase<?> usageNode : entry.getValue()) {
+										if (usageNode instanceof Parameter) {
+											Parameter p = (Parameter) usageNode;
+											if (!p.canHaveExpression()) {
+												Range range = QutePositionUtility.createRange(p);
+												collector.accept(p, range);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			} else {
+				String alias = parameter.getName();
+				searchReferencedObjects(alias, PartNameMatcher.ONLY_NAME, parameter.getParent(), collector,
+						cancelChecker);
+			}
 			break;
 		}
 		case ExpressionPart: {
@@ -274,6 +341,7 @@ public class QuteSearchUtils {
 			case Section:
 				Section section = (Section) parent;
 				switch (section.getSectionKind()) {
+
 				case EACH:
 				case FOR: {
 					LoopSection iterableSection = (LoopSection) parent;
@@ -288,6 +356,7 @@ public class QuteSearchUtils {
 					}
 					break;
 				}
+
 				case LET:
 				case SET: {
 					List<Parameter> parameters = section.getParameters();
@@ -302,6 +371,7 @@ public class QuteSearchUtils {
 					}
 					break;
 				}
+
 				case IF: {
 					List<Parameter> parameters = section.getParameters();
 					if (parameters != null) {
@@ -312,12 +382,14 @@ public class QuteSearchUtils {
 					}
 					break;
 				}
+
 				case WITH: {
 					Parameter parameter = ((WithSection) section).getObjectParameter();
 					Expression parameterExpr = parameter.getJavaTypeExpression();
 					tryToCollectObjectPartOrParameter(partName, matcher, parameterExpr, ownerNode, collector);
 					break;
 				}
+
 				case WHEN:
 				case SWITCH: {
 					Parameter parameter = ((WhenSection) section).getValueParameter();
@@ -325,6 +397,7 @@ public class QuteSearchUtils {
 					tryToCollectObjectPartOrParameter(partName, matcher, parameterExpr, ownerNode, collector);
 					break;
 				}
+
 				case INCLUDE:
 				case CUSTOM: {
 					List<Parameter> parameters = section.getParameters();
@@ -344,6 +417,7 @@ public class QuteSearchUtils {
 					}
 					break;
 				}
+
 				default:
 					break;
 				}

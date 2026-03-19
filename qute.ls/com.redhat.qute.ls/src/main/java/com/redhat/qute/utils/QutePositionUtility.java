@@ -29,6 +29,7 @@ import com.redhat.qute.parser.template.ParameterDeclaration;
 import com.redhat.qute.parser.template.RangeOffset;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 
 public class QutePositionUtility {
 
@@ -87,7 +88,49 @@ public class QutePositionUtility {
 		return createRange(startOffset, endOffset, template);
 	}
 
+	public static Range selectParameterValue(Parameter parameter) {
+		Template template = parameter.getOwnerTemplate();
+		int startOffset = parameter.getStartValue();
+		int endOffset = parameter.getEndValue();
+		return createRange(startOffset, endOffset, template);
+	}
+
+	public static Range selectIncludeTemplateIdPart(Parameter templateParameter, Template template,
+			TemplatePath templatePath) {
+		String fragmentId = templatePath.getFragmentId();
+		String templateId = templatePath.getTemplateId();
+		if (fragmentId != null && templateId.isEmpty()) {
+			// fragment only (ex: $menu)
+			return null;
+		}
+		Range range = createRange(templateParameter.getStart(), templateParameter.getEnd(), template);
+		// Adjust range for fragment
+		if (fragmentId != null) {
+			range.getEnd().setCharacter(range.getEnd().getCharacter() - fragmentId.length());
+		}
+		return range;
+	}
+
+	public static Range selectIncludeFragmentPart(Parameter templateParameter, Template template,
+			TemplatePath templatePath) {
+		String fragmentId = templatePath.getFragmentId();
+		if (fragmentId == null) {
+			return null;
+		}
+		Range range = createRange(templateParameter.getStart(), templateParameter.getEnd(), template);
+		if (templatePath.getTemplateId().isEmpty()) {
+			return range;
+		}
+		String templateId = templatePath.getTemplateId();
+		// Adjust range for fragment
+		if (!templateId.isEmpty()) {
+			range.getStart().setCharacter(range.getStart().getCharacter() + templateId.length());
+		}
+		return range;
+	}
+
 	public static Range createRange(Part part) {
+
 		Template template = part.getOwnerTemplate();
 		return createRange(part.getStartName(), part.getEndName(), template);
 	}

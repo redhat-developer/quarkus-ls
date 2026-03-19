@@ -91,7 +91,7 @@ class QuteReference {
 			return false;
 		}
 		
-		List<Section> sections = project.findSectionsByTag(tag);
+		List<Section> sections = project.findCustomSectionsByTag(tag);
 		for (Section matchedSection : sections) {
 			Template targetDocument = matchedSection.getOwnerTemplate();
 			Range targetRange = QutePositionUtility.selectStartTagName(matchedSection);

@@ -87,8 +87,9 @@ public class QuteCompletionWithIncludeSectionTest {
 
 		// Without snippet
 		testCompletionFor(template, //
-				"src/test/resources/projects/project-b/src/main/resources/templates/index.html", false, // no snippet
-																										// support
+				"src/test/resources/projects/project-b/src/main/resources/templates/index.html", //
+				"index.html", //
+				false, // no snippet support
 				QuteProjectB.PROJECT_URI, 1, //
 				c("root", "root", r(0, 10, 0, 10)) // ,
 		// c("index", "index", r(0, 10, 0, 10))
@@ -147,12 +148,12 @@ public class QuteCompletionWithIncludeSectionTest {
 
 	private static void testCompletionFor(String value, boolean snippetSupport, String projectUri,
 			Integer expectedCount, CompletionItem... expectedItems) throws Exception {
-		testCompletionFor(value, QuteAssert.FILE_URI, snippetSupport, projectUri, expectedCount, expectedItems);
+		testCompletionFor(value, QuteAssert.FILE_URI, null, snippetSupport, projectUri, expectedCount, expectedItems);
 	}
 
-	private static void testCompletionFor(String value, String fileUri, boolean snippetSupport, String projectUri,
-			Integer expectedCount, CompletionItem... expectedItems) throws Exception {
-		QuteAssert.testCompletionFor(value, snippetSupport, fileUri, null, projectUri, "", expectedCount,
+	private static void testCompletionFor(String value, String fileUri, String templateId, boolean snippetSupport,
+			String projectUri, Integer expectedCount, CompletionItem... expectedItems) throws Exception {
+		QuteAssert.testCompletionFor(value, snippetSupport, fileUri, templateId, projectUri, "", expectedCount,
 				expectedItems);
 	}
 

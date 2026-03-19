@@ -89,12 +89,16 @@ public class RoqCodeLensTest {
 		String fileUri = getFileUri("/content/foo.html");
 		testCodeLensFor(value, fileUri, //
 				cl(r(0, 0, 0, 0), "site : Site", ""), //
-				cl(r(0, 0, 0, 0), "page : NormalPage", ""));
+				cl(r(0, 0, 0, 0), "page : NormalPage", ""), //
+				cl(r(0, 0, 0, 0), "Included by:", ""), //
+				cl(r(0, 0, 0, 0), "default", ""));
 
 		fileUri = getFileUri("/content/no-collecton/foo.html");
 		testCodeLensFor(value, fileUri, //
 				cl(r(0, 0, 0, 0), "site : Site", ""), //
-				cl(r(0, 0, 0, 0), "page : NormalPage", ""));
+				cl(r(0, 0, 0, 0), "page : NormalPage", ""), //
+				cl(r(0, 0, 0, 0), "Included by:", ""), //
+				cl(r(0, 0, 0, 0), "default", ""));
 	}
 
 	public static void testCodeLensFor(String value, String fileUri, CodeLens... expected) throws Exception {

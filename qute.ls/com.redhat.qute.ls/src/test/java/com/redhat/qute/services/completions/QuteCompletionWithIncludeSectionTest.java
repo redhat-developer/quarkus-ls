@@ -55,7 +55,7 @@ public class QuteCompletionWithIncludeSectionTest {
 		// Without snippet
 		testCompletionFor(template, //
 				"src/test/resources/templates/base.html", //
-				false, // no snippet support
+				"base.html", //				
 				18 /* all files from src/test/resources/templates */ - 1 /* base.html */ - 1 /* README.md */
 						- USER_TAG_SIZE, //
 				// c("base", "base", r(0, 10, 0, 10)),

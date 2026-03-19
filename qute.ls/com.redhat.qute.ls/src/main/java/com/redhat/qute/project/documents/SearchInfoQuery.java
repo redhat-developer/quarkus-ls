@@ -26,8 +26,10 @@ public class SearchInfoQuery {
 	public static final String ALL = "@all";
 
 	private String insertParameter;
-	
+
 	private String sectionTag;
+
+	private String fragmentId;
 
 	/**
 	 * Set the insert parameter name to search in the Qute template where search is
@@ -53,11 +55,48 @@ public class SearchInfoQuery {
 		return insertParameter;
 	}
 
+	/**
+	 * Returns the custom section tag name to search in the Qute template where
+	 * search is done.
+	 * 
+	 * @return the custom section tag name to search in the Qute template where
+	 *         search is done.
+	 */
+	public String getSectionTag() {
+		return sectionTag;
+	}
+
+	/**
+	 * Set the custom section tag name to search in the Qute template where search
+	 * is done.
+	 * 
+	 * If section tag is set with {@link SearchInfoQuery#ALL} it will collect all
+	 * custom sections declared in the template.
+	 * 
+	 * @param sectionTag the custom section tag name to find.
+	 */
 	public void setSectionTag(String sectionTag) {
 		this.sectionTag = sectionTag;
 	}
-	
-	public String getSectionTag() {
-		return sectionTag;
+
+	/**
+	 * Returns the fragment id to search in the Qute template where search is done.
+	 * 
+	 * @return the fragment id to search in the Qute template where search is done.
+	 */
+	public String getFragmentId() {
+		return fragmentId;
+	}
+
+	/**
+	 * Set the fragment id to search in the Qute template where search is done.
+	 * 
+	 * If fragment id is set with {@link SearchInfoQuery#ALL} it will collect all
+	 * fragments declared in the template.
+	 * 
+	 * @param sectionTag the custom section tag name to find.
+	 */
+	public void setFragmentId(String fragmentId) {
+		this.fragmentId = fragmentId;
 	}
 }

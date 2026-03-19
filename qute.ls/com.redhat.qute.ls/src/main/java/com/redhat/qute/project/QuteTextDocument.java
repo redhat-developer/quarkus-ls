@@ -21,6 +21,8 @@ import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.CustomSection;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.project.documents.SearchInfoQuery;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.usages.UsagesRegistry;
@@ -98,7 +100,18 @@ public interface QuteTextDocument {
 	 * @return list of section with the given section tag name declared in all
 	 *         templates of the project and an empty list otherwise.
 	 */
-	List<Section> findSectionsByTag(String tag);
+	List<CustomSection> findCustomSectionsByTag(String tag);
+
+	/**
+	 * Returns list of fragment section with the given fragment id declared in all
+	 * templates of the project and an empty list otherwise.
+	 * 
+	 * @param fragmentId the fragment id.
+	 * 
+	 * @return list of fragment section with the given fragment id declared in all
+	 *         templates of the project and an empty list otherwise.
+	 */
+	List<FragmentSection> findFragmentSectionById(String fragmentId);
 
 	/**
 	 * Returns the file template uri.

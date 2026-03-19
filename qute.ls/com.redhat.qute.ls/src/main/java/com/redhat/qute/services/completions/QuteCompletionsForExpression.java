@@ -64,6 +64,7 @@ import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.CaseSection.CompletionCaseResult;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.parser.template.sections.WhenSection;
 import com.redhat.qute.parser.template.sections.WithSection;
@@ -824,32 +825,7 @@ public class QuteCompletionsForExpression {
 			if (project != null) {
 				IncludeUsages includeUsages = project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
 				if (includeUsages != null) {
-					Set<String> existingNames = new HashSet<>();
-					Map<String, List<? extends NodeBase<?>>> usages = includeUsages.getParametersByTemplateId();
-					for (Entry<String, List<? extends NodeBase<?>>> entry : usages.entrySet()) {
-
-						for (NodeBase<?> node : entry.getValue()) {
-							if (node instanceof Parameter) {
-								Parameter p = (Parameter) node;
-								String paramName = p.getName();
-								if (p.canHaveExpression() && !StringUtils.isEmpty(paramName)
-										&& !existingNames.contains(paramName)) {
-									existingNames.add(paramName);
-
-									CompletionItem item = new CompletionItem();
-									item.setLabel(paramName);
-									item.setKind(CompletionItemKind.Reference);
-									TextEdit textEdit = new TextEdit(range, paramName);
-									item.setTextEdit(Either.forLeft(textEdit));
-									item.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported()
-											? InsertTextFormat.Snippet
-											: InsertTextFormat.PlainText);
-									completionItems.add(item);
-
-								}
-							}
-						}
-					}
+					fillFromUsages(includeUsages, range, completionSettings, completionItems);
 				}
 
 			}
@@ -858,6 +834,36 @@ public class QuteCompletionsForExpression {
 		CompletionList list = new CompletionList();
 		list.setItems(completionItems.stream().collect(Collectors.toList()));
 		return CompletableFuture.completedFuture(list);
+	}
+
+	private static void fillFromUsages(IncludeUsages includeUsages, Range range, QuteCompletionSettings completionSettings,
+			Set<CompletionItem> completionItems) {
+		Set<String> existingNames = new HashSet<>();
+		Map<String, List<? extends NodeBase<?>>> usages = includeUsages.getParametersByTemplateId();
+		for (Entry<String, List<? extends NodeBase<?>>> entry : usages.entrySet()) {
+
+			for (NodeBase<?> node : entry.getValue()) {
+				if (node instanceof Parameter) {
+					Parameter p = (Parameter) node;
+					String paramName = p.getName();
+					if (p.canHaveExpression() && !StringUtils.isEmpty(paramName)
+							&& !existingNames.contains(paramName)) {
+						existingNames.add(paramName);
+
+						CompletionItem item = new CompletionItem();
+						item.setLabel(paramName);
+						item.setKind(CompletionItemKind.Reference);
+						TextEdit textEdit = new TextEdit(range, paramName);
+						item.setTextEdit(Either.forLeft(textEdit));
+						item.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported()
+								? InsertTextFormat.Snippet
+								: InsertTextFormat.PlainText);
+						completionItems.add(item);
+
+					}
+				}
+			}
+		}
 	}
 
 	private static String createUserTagParameterSnippet(UserTagParameter parameter,
@@ -1067,6 +1073,7 @@ public class QuteCompletionsForExpression {
 
 				// 2) Completion for aliases section
 				switch (parentSection.getSectionKind()) {
+
 				case EACH:
 				case FOR:
 					LoopSection iterableSection = ((LoopSection) parentSection);
@@ -1084,6 +1091,7 @@ public class QuteCompletionsForExpression {
 						}
 					}
 					break;
+
 				case LET:
 				case SET: {
 					// completion for parameters coming from #let, #set
@@ -1104,6 +1112,23 @@ public class QuteCompletionsForExpression {
 					}
 					break;
 				}
+
+				case FRAGMENT: {
+					QuteProject project = template.getProject();
+					if (project != null) {
+						String templateId = template.getTemplateId();
+						String fragmentId = ((FragmentSection) parentSection).getId();
+						if (!StringUtils.isEmpty(fragmentId)) {
+							IncludeUsages usages = project.getIncludeUsagesRegistry().getFragmentUsages(templateId,
+									fragmentId);
+							if (usages != null) {
+								fillFromUsages(usages, range, completionSettings, completionItems);
+							}
+						}
+					}
+				}
+					break;
+
 				case IF: {
 					// completion for parameters coming from #if
 					List<Parameter> parameters = parentSection.getParameters();
@@ -1126,6 +1151,7 @@ public class QuteCompletionsForExpression {
 					}
 					break;
 				}
+
 				case WITH:
 					// Completion for properties/methods of with object from #with
 					Parameter object = ((WithSection) parentSection).getObjectParameter();
@@ -1145,6 +1171,7 @@ public class QuteCompletionsForExpression {
 						}
 					}
 					break;
+
 				case WHEN:
 				case SWITCH:
 					if (node.getKind() == NodeKind.Expression) {

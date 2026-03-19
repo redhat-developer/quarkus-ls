@@ -22,10 +22,13 @@ import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.tags.UserTagUsages;
 import com.redhat.qute.project.usages.IncludeUsages;
+import com.redhat.qute.project.usages.IncludeUsagesRegistry;
+import com.redhat.qute.utils.StringUtils;
 
 /**
  * Represents an object part in a Qute expression.
@@ -41,8 +44,8 @@ import com.redhat.qute.project.usages.IncludeUsages;
  *
  * It is responsible for resolving the Java type of the object it refers to by
  * walking up the section hierarchy and consulting various sources: loop
- * aliases, let/set bindings, the initial data model, global variables, and
- * user tag or include call parameters.
+ * aliases, let/set bindings, the initial data model, global variables, and user
+ * tag or include call parameters.
  * </p>
  */
 public class ObjectPart extends Part {
@@ -87,17 +90,21 @@ public class ObjectPart extends Part {
 	 * <ol>
 	 * <li>Namespace expressions (e.g. {@code {data:item}})</li>
 	 * <li>Loop aliases from enclosing {@code #for} / {@code #each} sections</li>
-	 * <li>Variable bindings from enclosing {@code #let} / {@code #set} sections</li>
+	 * <li>Variable bindings from enclosing {@code #let} / {@code #set}
+	 * sections</li>
 	 * <li>Optional parameters from enclosing {@code #if} sections</li>
 	 * <li>Section metadata (e.g. {@code count} in {@code #each})</li>
-	 * <li>Initial data model from parameter declarations or {@code @CheckedTemplate}</li>
+	 * <li>Initial data model from parameter declarations or
+	 * {@code @CheckedTemplate}</li>
 	 * <li>Global variables</li>
-	 * <li>User tag call parameters collected from call sites (if user tag template)</li>
+	 * <li>User tag call parameters collected from call sites (if user tag
+	 * template)</li>
 	 * <li>Include call parameters collected from call sites (otherwise)</li>
 	 * </ol>
 	 * </p>
 	 *
-	 * @return the resolved {@link JavaTypeInfoProvider}, or {@code null} if none found
+	 * @return the resolved {@link JavaTypeInfoProvider}, or {@code null} if none
+	 *         found
 	 */
 	@Override
 	public JavaTypeInfoProvider resolveJavaType() {
@@ -120,6 +127,7 @@ public class ObjectPart extends Part {
 		Section section = super.getParentSection();
 		while (section != null) {
 			switch (section.getSectionKind()) {
+
 			case EACH:
 			case FOR:
 				LoopSection iterableSection = (LoopSection) section;
@@ -130,6 +138,7 @@ public class ObjectPart extends Part {
 					}
 				}
 				break;
+
 			case LET:
 			case SET: {
 				Parameter parameter = section.findParameter(partName);
@@ -138,6 +147,7 @@ public class ObjectPart extends Part {
 				}
 				break;
 			}
+
 			case IF: {
 				if (matchedOptionalParameter == null) {
 					Parameter parameter = section.findParameter(partName);
@@ -148,8 +158,29 @@ public class ObjectPart extends Part {
 				}
 				break;
 			}
+
+			case FRAGMENT: {
+				QuteProject project = template.getProject();
+				if (project != null) {
+					// Try to find fragment parameter declared in include {#include $menu
+					// device='mobile' /}
+					// - fragmentId = $menu
+					// - partName = device
+					String fragmentId = ((FragmentSection) section).getId();
+					if (!StringUtils.isEmpty(fragmentId)) {
+						IncludeUsagesRegistry registry = project.getIncludeUsagesRegistry();
+						Parameter parameter = registry.findFragmentParameter(template.getTemplateId(), fragmentId,
+								partName);
+						if (parameter != null) {
+							return parameter;
+						}
+					}
+				}
+				break;
+			}
 			default:
 			}
+
 			// Check for section metadata, e.g.: {count} inside {#each}
 			JavaTypeInfoProvider metadata = section.getMetadata(partName);
 			if (metadata != null) {
@@ -184,7 +215,8 @@ public class ObjectPart extends Part {
 				}
 			}
 		} else {
-			// e.g.: {#include myTemplate title="foo" /} → {title} inside myTemplate resolves to String
+			// e.g.: {#include myTemplate title="foo" /} → {title} inside myTemplate
+			// resolves to String
 			IncludeUsages includeUsages = getIncludeUsages(template);
 			if (includeUsages != null) {
 				JavaTypeInfoProvider provider = includeUsages.findTypeProvider(partName);
@@ -228,11 +260,11 @@ public class ObjectPart extends Part {
 	 * Returns the {@link IncludeUsages} for the template that owns this part.
 	 *
 	 * <p>
-	 * Include parameters (e.g. {@code title} in
-	 * {@code {#include myTemplate title="foo" /}}) are resolved from the call sites
-	 * collected by {@link com.redhat.qute.project.usages.UsagesCollector}. This
-	 * method retrieves those usages so that type inference can determine the Java
-	 * type of an object part inside an included template.
+	 * Include parameters (e.g. {@code title} in {@code {#include myTemplate
+	 * title="foo" /}}) are resolved from the call sites collected by
+	 * {@link com.redhat.qute.project.usages.UsagesCollector}. This method retrieves
+	 * those usages so that type inference can determine the Java type of an object
+	 * part inside an included template.
 	 * </p>
 	 *
 	 * <p>
@@ -280,11 +312,11 @@ public class ObjectPart extends Part {
 	 * part.
 	 *
 	 * <p>
-	 * User tag parameters (e.g. {@code name}, {@code count} in
-	 * {@code {#myTag name="foo" count=10 /}}) are resolved from the call sites
-	 * collected by {@link com.redhat.qute.project.usages.UsagesCollector}. This
-	 * method retrieves those usages so that type inference can determine the Java
-	 * type of an object part inside a user tag template.
+	 * User tag parameters (e.g. {@code name}, {@code count} in {@code {#myTag
+	 * name="foo" count=10 /}}) are resolved from the call sites collected by
+	 * {@link com.redhat.qute.project.usages.UsagesCollector}. This method retrieves
+	 * those usages so that type inference can determine the Java type of an object
+	 * part inside a user tag template.
 	 * </p>
 	 *
 	 * <p>

@@ -33,8 +33,9 @@ import com.redhat.qute.ls.commons.ModelTextDocument;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.Parameter;
-import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.CustomSection;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.QuteTextDocument;
@@ -172,12 +173,21 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 	}
 
 	@Override
-	public List<Section> findSectionsByTag(String tag) {
+	public List<CustomSection> findCustomSectionsByTag(String tag) {
 		SearchInfoQuery query = new SearchInfoQuery();
 		query.setSectionTag(tag);
 		TemplateInfoCollector collector = new TemplateInfoCollector(query);
 		getTemplate().accept(collector);
-		return collector.getSectionsByTag();
+		return collector.getCustomSections();
+	}
+
+	@Override
+	public List<FragmentSection> findFragmentSectionById(String fragmentId) {
+		SearchInfoQuery query = new SearchInfoQuery();
+		query.setFragmentId(fragmentId);
+		TemplateInfoCollector collector = new TemplateInfoCollector(query);
+		getTemplate().accept(collector);
+		return collector.getFragmentSections();
 	}
 
 	@Override

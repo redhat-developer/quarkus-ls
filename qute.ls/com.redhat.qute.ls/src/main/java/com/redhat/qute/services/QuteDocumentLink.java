@@ -72,14 +72,14 @@ public class QuteDocumentLink {
 					IncludeSection includeSection = (IncludeSection) section;
 					// {#include base.qute.html}
 					// In this case 'base.qute.html' is a document link
-					Parameter includedTemplateId = includeSection.getTemplateParameter();
-					if (includedTemplateId != null) {
-						Range range = QutePositionUtility.createRange(includedTemplateId.getStart(),
-								includedTemplateId.getEnd(), template);
-						if (range != null) {
-							TemplatePath templateFile = includeSection.getReferencedTemplatePath();
-							if (templateFile != null) {
-								String target = templateFile.getUri();
+					Parameter templateParameter = includeSection.getTemplateParameter();
+					if (templateParameter != null) {
+						TemplatePath templatePath = includeSection.getReferencedTemplatePath();
+						if (templatePath != null) {
+							Range range = QutePositionUtility.selectIncludeTemplateIdPart(templateParameter, template,
+									templatePath);
+							if (range != null) {
+								String target = templatePath.getUri();
 								links.add(new DocumentLink(range, target != null ? target : ""));
 							}
 						}

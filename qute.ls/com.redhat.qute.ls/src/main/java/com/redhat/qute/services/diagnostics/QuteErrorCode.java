@@ -77,6 +77,8 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	TemplateNotFound("Template not found: `{0}`."), //
 	TemplateNotDefined("Template id must be defined as parameter."),
 
+	FragmentNotFound("Fragment not found: `{0}` in `{1}` template."), //
+
 	UndefinedSectionTag("No section helper found for `{0}`."), //
 
 	UndefinedParameter("No parameter `{0}` found for `{1}` user tag."), //
