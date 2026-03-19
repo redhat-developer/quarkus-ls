@@ -42,7 +42,9 @@ public class TextDocument extends TextDocumentItem {
 	public TextDocument(TextDocumentItem document) {
 		this(document.getText(), document.getUri());
 		super.setVersion(document.getVersion());
-		super.setLanguageId(document.getLanguageId());
+		if (document.getLanguageId() != null) {
+			super.setLanguageId(document.getLanguageId());
+		}
 	}
 
 	public TextDocument(String text, String uri) {

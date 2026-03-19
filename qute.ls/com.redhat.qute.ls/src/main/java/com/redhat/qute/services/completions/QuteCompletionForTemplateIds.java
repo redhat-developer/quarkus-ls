@@ -31,8 +31,10 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteTextDocument;
+import com.redhat.qute.project.documents.SearchInfoQuery;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.utils.QutePositionUtility;
@@ -116,6 +118,14 @@ public class QuteCompletionForTemplateIds {
 					}
 				}
 			}
+
+			// Add local fragments
+			QuteTextDocument currentDocument = project.findDocumentByTemplateId(currentTemplateId);
+			if (currentDocument != null) {
+				String sort = sortText.append("a").toString();
+				addTemplateIdForFragments("", currentDocument, range, sort, list);
+			}
+
 		}
 		return CompletableFuture.completedFuture(list);
 	}
@@ -161,6 +171,26 @@ public class QuteCompletionForTemplateIds {
 	}
 
 	private void addTemplateId(String templateId, QuteTextDocument document, Range range, String sortText,
+			CompletionList list) {
+		// Add completion item for templateId
+		addCompletionItem(templateId, document, range, sortText, list);
+
+		// Add completion items for all fragments of templateId
+		addTemplateIdForFragments(templateId, document, range, sortText, list);
+	}
+
+	private void addTemplateIdForFragments(String templateId, QuteTextDocument document, Range range, String sortText,
+			CompletionList list) {
+		List<FragmentSection> fragments = document.findFragmentSectionById(SearchInfoQuery.ALL);
+		if (fragments != null) {
+			for (FragmentSection fragment : fragments) {
+				String fragmentId = fragment.getId();
+				addCompletionItem(templateId + "$" + fragmentId, document, range, sortText, list);
+			}
+		}
+	}
+
+	private void addCompletionItem(String templateId, QuteTextDocument document, Range range, String sortText,
 			CompletionList list) {
 		CompletionItem item = new CompletionItem();
 		item.setLabel(templateId);

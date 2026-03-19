@@ -106,7 +106,7 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 			project.load() //
 					.get(5000, TimeUnit.MILLISECONDS);
 		} catch (Exception e) {
-			
+
 		}
 	}
 
@@ -126,10 +126,11 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 
 	@Override
 	protected CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaType(QuteResolvedJavaTypeParams params) {
-		MockQuteProject project = (MockQuteProject) getProject(params.getProjectUri());
-		if (project == null) {
+		QuteProject p = getProject(params.getProjectUri());
+		if (!(p instanceof MockQuteProject)) {
 			return CompletableFuture.completedFuture(null);
 		}
+		MockQuteProject project = (MockQuteProject) getProject(params.getProjectUri());
 		return CompletableFuture.completedFuture(project.getResolvedJavaTypeSync(params.getClassName()));
 	}
 

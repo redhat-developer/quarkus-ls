@@ -89,6 +89,7 @@ import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.parser.validator.IQuteErrorCode;
 import com.redhat.qute.project.MockQuteLanguageServer;
 import com.redhat.qute.project.MockQuteProjectRegistry;
+import com.redhat.qute.project.MockQuteTextDocument;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.services.QuteLanguageService;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
@@ -245,7 +246,7 @@ public class QuteAssert {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, p.getFileUri(), p.getProjectUri(), p.getTemplateBaseDir(),
 				p.getInjectionDetectors(), projectRegistry);
-		template.setTemplateId(p.getTemplateId());
+		onDidOpenTextDocument(p.getTemplateId(), p.getProjectUri(), projectRegistry, template);
 
 		Position position = template.positionAt(offset);
 
@@ -578,6 +579,7 @@ public class QuteAssert {
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		onDidOpenTextDocument(null, projectUri, projectRegistry, template);
 
 		Position position = template.positionAt(offset);
 
@@ -704,6 +706,7 @@ public class QuteAssert {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, p.getFileUri(), p.getProjectUri(), p.getTemplateBaseDir(),
 				p.getInjectionDetectors(), projectRegistry);
+		onDidOpenTextDocument(p.getTemplateId(), p.getProjectUri(), projectRegistry, template);
 		template.setTemplateId(p.getTemplateId());
 
 		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
@@ -938,17 +941,20 @@ public class QuteAssert {
 
 	// ------------------- Reference assert
 
-	public static void testReferencesFor(String value, Location... expected) throws BadLocationException {
-		testReferencesFor(value, FILE_URI, PROJECT_URI, TEMPLATE_BASE_DIR, expected);
+	public static void testReferencesFor(String value, String templateId, Location... expected)
+			throws BadLocationException {
+		testReferencesFor(value, FILE_URI, templateId, PROJECT_URI, TEMPLATE_BASE_DIR, expected);
 	}
 
-	public static void testReferencesFor(String value, String fileUri, String projectUri, String templateBaseDir,
-			Location... expected) throws BadLocationException {
+	public static void testReferencesFor(String value, String fileUri, String templateId, String projectUri,
+			String templateBaseDir, Location... expected) throws BadLocationException {
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		onDidOpenTextDocument(templateId, projectUri, projectRegistry, template);
+		
 		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 
 		Position position = template.positionAt(offset);
@@ -1156,4 +1162,13 @@ public class QuteAssert {
 		return sharedSettings;
 	}
 
+	private static void onDidOpenTextDocument(String templateId, String projectUri, QuteProjectRegistry projectRegistry,
+			Template template) {
+		if (projectUri != null) {
+			template.setTemplateId(templateId);
+			template.setProjectUri(projectUri);
+			MockQuteTextDocument document = new MockQuteTextDocument(template);
+			projectRegistry.onDidOpenTextDocument(document);
+		}
+	}
 }

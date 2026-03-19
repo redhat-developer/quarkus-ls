@@ -33,6 +33,7 @@ public class QuteReferenceWithObjectPartTest {
 				"{item.name}}\r\n" + //
 				"{item}";
 		testReferencesFor(template, //
+				null, //
 				l("test.qute", r(1, 1, 1, 5)), //
 				l("test.qute", r(2, 1, 2, 5)));
 	}

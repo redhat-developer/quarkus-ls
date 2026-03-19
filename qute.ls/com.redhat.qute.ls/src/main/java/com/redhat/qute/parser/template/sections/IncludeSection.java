@@ -20,6 +20,7 @@ import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
+import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
 
 /**
@@ -65,16 +66,33 @@ public class IncludeSection extends Section {
 		if (referencedTemplateId == null) {
 			return null;
 		}
-		QuteProject project = getOwnerTemplate().getProject();
+		Template template = getOwnerTemplate();
+		QuteProject project = template.getProject();
 		if (project == null) {
 			return null;
+		}
+
+		// referencedTemplateId can have those values:
+		// - foo.html
+		// - foo.html$menu
+		// - $menu (local fragment)
+		String fragmentId = null;
+		int dollarIndex = referencedTemplateId.indexOf('$');
+		if (dollarIndex != -1) {
+			fragmentId = referencedTemplateId.substring(dollarIndex + 1, referencedTemplateId.length());
+			referencedTemplateId = referencedTemplateId.substring(0, dollarIndex);
+		}
+
+		if (referencedTemplateId.isEmpty() && fragmentId != null) {
+			// local fragment (ex: {#include $menu
+			return new TemplatePath(template.getUri(), "", fragmentId, true);
 		}
 
 		// 1. Try to get a valid template from the Qute project
 		Path templatePath = getReferencedTemplateFile(referencedTemplateId, project);
 		if (templatePath != null && Files.exists(templatePath)) {
 			// Returns the valid template from the Qute project
-			return new TemplatePath(templatePath, referencedTemplateId, true);
+			return new TemplatePath(templatePath, referencedTemplateId, fragmentId, true);
 		}
 
 		if (!project.getProjectDependencies().isEmpty()) {
@@ -84,7 +102,7 @@ public class IncludeSection extends Section {
 				if (projectDependency != null) {
 					Path dependencyTemplatePath = getReferencedTemplateFile(referencedTemplateId, projectDependency);
 					if (dependencyTemplatePath != null && Files.exists(dependencyTemplatePath)) {
-						return new TemplatePath(dependencyTemplatePath, referencedTemplateId, true);
+						return new TemplatePath(dependencyTemplatePath, referencedTemplateId, fragmentId, true);
 					}
 				}
 			}
@@ -93,11 +111,11 @@ public class IncludeSection extends Section {
 		// 3. template from binary
 		String binaryUri = project.findTemplateUriByTemplateId(referencedTemplateId);
 		if (binaryUri != null) {
-			return new TemplatePath(binaryUri, referencedTemplateId, true);
+			return new TemplatePath(binaryUri, referencedTemplateId, fragmentId, true);
 		}
 
 		// Returns the invalid template from the Qute project
-		return new TemplatePath(templatePath, referencedTemplateId, false);
+		return new TemplatePath(templatePath, referencedTemplateId, fragmentId, false);
 	}
 
 	/**

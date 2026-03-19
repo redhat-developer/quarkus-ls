@@ -559,13 +559,30 @@ class QuteDiagnostics {
 			if (project != null && binaryUserTagResolved) {
 				// include defines a template to include
 				// ex : {#include base}
-				TemplatePath templateFile = includeSection.getReferencedTemplatePath();
-				if (templateFile == null || !templateFile.isExists()) {
+				Template template = includeSection.getOwnerTemplate();
+				TemplatePath templatePath = includeSection.getReferencedTemplatePath();
+				if (templatePath == null || !templatePath.isExists()) {
 					// It doesn't exists a file named base, base.qute.html, base.html, etc
-					Range range = QutePositionUtility.createRange(templateParameter);
+					Range range = QutePositionUtility.selectIncludeTemplateIdPart(templateParameter, template,
+							templatePath);
+					String templateId = templatePath != null ? templatePath.getTemplateId() : template.getTemplateId();
+					String resolvedTemplateId = templateId.isEmpty() ? template.getTemplateId() : templateId;
 					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-							QuteErrorCode.TemplateNotFound, templateParameter.getValue());
+							QuteErrorCode.TemplateNotFound, resolvedTemplateId);
 					diagnostics.add(diagnostic);
+				} else if (templatePath.getFragmentId() != null) {
+					// Template id exists, validate fragment id
+					String templateId = templatePath.getTemplateId();
+					String resolvedTemplateId = templateId.isEmpty() ? template.getTemplateId() : templateId;
+					String fragmentId = templatePath.getFragmentId();
+					if (project.findFragmentSections(resolvedTemplateId, fragmentId).isEmpty()) {
+						// Fragment doesn't exist
+						Range range = QutePositionUtility.selectIncludeFragmentPart(templateParameter, template,
+								templatePath);
+						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+								QuteErrorCode.FragmentNotFound, fragmentId, resolvedTemplateId);
+						diagnostics.add(diagnostic);
+					}
 				}
 			}
 		} else {

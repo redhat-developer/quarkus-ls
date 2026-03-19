@@ -47,16 +47,19 @@ import com.redhat.qute.parser.template.sections.TemplatePath;
  * <p>
  * Usages are stored in two separate maps:
  * <ul>
- * <li>parse usages — collected during the template parsing cycle, cleared and
- * replaced on every re-parse</li>
- * <li>extension usages — registered directly by extensions, never cleared by a
- * re-parse. At most one node per calling template is stored — on
- * re-registration the previous node is simply replaced.</li>
+ * <li>parse usages — collected during the template parsing cycle, keyed by
+ * template id string. Replaced on every re-parse via {@link #putParameters}.
+ * </li>
+ * <li>extension usages — registered directly by extensions, keyed by
+ * {@link TemplatePath}. Never cleared by a re-parse. At most one node per
+ * template path is stored — on re-registration the previous node is simply
+ * replaced.</li>
  * </ul>
  *
  * <p>
  * All search methods ({@link #findParameters}, {@link #findTypeProvider},
- * {@link #getCallingTemplateIds}) consult both maps transparently.
+ * {@link #getCallingTemplateIds}, {@link #getCallingTemplatePaths}) consult
+ * both maps transparently.
  * </p>
  *
  * <p>
@@ -67,25 +70,28 @@ import com.redhat.qute.parser.template.sections.TemplatePath;
 public class ParameterUsages {
 
 	/**
-	 * Parameters collected during the template parsing cycle, grouped by the id of
+	 * Parameters collected during the template parsing cycle, keyed by the id of
 	 * the calling template.
 	 *
 	 * <p>
-	 * Cleared and replaced on every re-parse via {@link #putParameters}.
+	 * Replaced on every re-parse via {@link #putParameters}. Cleanup of stale
+	 * entries is handled by {@link UsagesRegistry} via its reverse index —
+	 * no {@code oldKeys} tracking is needed here.
 	 * </p>
 	 */
 	private final Map<String, List<? extends NodeBase<?>>> parametersByTemplateId = new HashMap<>();
 
 	/**
-	 * Single node registered by an extension per calling template.
+	 * Single node registered by an extension per template path.
 	 *
 	 * <p>
-	 * Never cleared by a re-parse — managed exclusively via {@link #addParameter}
-	 * and {@link #removeParameter}. Storing one node per template avoids
-	 * instance-identity issues when the AST is re-parsed.
+	 * Never cleared by a re-parse — managed exclusively via
+	 * {@link #addParameter} and {@link #removeParameter}. Keyed by
+	 * {@link TemplatePath} rather than a node instance to avoid identity issues
+	 * when the AST is re-parsed.
 	 * </p>
 	 */
-	private final Map<TemplatePath, NodeBase<?>> extensionParameterByTemplateId = new HashMap<>();
+	private final Map<TemplatePath, NodeBase<?>> extensionParameterByTemplatePath = new HashMap<>();
 
 	/**
 	 * Registers or replaces the parameters contributed by a given calling template
@@ -105,68 +111,69 @@ public class ParameterUsages {
 	}
 
 	/**
+	 * Removes all parameters contributed by a given calling template during the
+	 * parsing cycle.
+	 *
+	 * <p>
+	 * Called by {@link UsagesRegistry} when a document is re-parsed, to cleanly
+	 * replace all its previous contributions. Extension usages are never affected.
+	 * </p>
+	 *
+	 * @param templateId the id of the calling template
+	 */
+	public void removeParameters(String templateId) {
+		parametersByTemplateId.remove(templateId);
+	}
+
+	/**
 	 * Registers or replaces the single node contributed by an extension for a given
-	 * calling template.
+	 * template path.
 	 *
 	 * <p>
 	 * Extension parameters are stored separately from parse parameters and are
 	 * never cleared by a re-parse. If the extension re-registers a node for the
-	 * same template (e.g. after a fast re-parse), the previous instance is simply
-	 * replaced — no instance-identity comparison is needed.
+	 * same path, the previous instance is simply replaced.
 	 * </p>
 	 *
-	 * @param templateId the id of the calling template
-	 * @param parameter  the node to register
+	 * @param templatePath the path of the calling template
+	 * @param parameter    the node to register
 	 */
 	public void addParameter(TemplatePath templatePath, NodeBase<?> parameter) {
-		extensionParameterByTemplateId.put(templatePath, parameter);
+		extensionParameterByTemplatePath.put(templatePath, parameter);
 	}
 
 	/**
-	 * Removes the node previously registered by an extension for a given calling
-	 * template.
+	 * Removes the node previously registered by an extension for a given template
+	 * path.
 	 *
-	 * @param templatePath the template path of the calling template
+	 * @param templatePath the path of the calling template
 	 */
 	public void removeParameter(TemplatePath templatePath) {
-		extensionParameterByTemplateId.remove(templatePath);
+		extensionParameterByTemplatePath.remove(templatePath);
 	}
 
 	/**
 	 * Returns the parameters contributed by a given calling template.
 	 *
 	 * <p>
-	 * Returns parameters from both the parsing cycle and extensions.
+	 * Returns parameters from the parsing cycle only. Use
+	 * {@link #getCallingTemplatePaths()} to access extension parameters.
 	 * </p>
 	 *
 	 * @param templateId the id of the calling template
 	 * @return the parameters for that template, or an empty list if none found
 	 */
 	public List<? extends NodeBase<?>> getParameters(String templateId) {
-		List<? extends NodeBase<?>> parseParams = parametersByTemplateId.get(templateId);
-		NodeBase<?> extensionParam = extensionParameterByTemplateId.get(templateId);
-		if (parseParams == null && extensionParam == null) {
-			return Collections.emptyList();
-		}
-		if (extensionParam == null) {
-			return parseParams;
-		}
-		if (parseParams == null) {
-			return Collections.singletonList(extensionParam);
-		}
-		// Both maps have entries for this templateId — merge them
-		List<NodeBase<?>> merged = new ArrayList<>(parseParams);
-		merged.add(extensionParam);
-		return merged;
+		List<? extends NodeBase<?>> params = parametersByTemplateId.get(templateId);
+		return params != null ? params : Collections.emptyList();
 	}
 
 	/**
 	 * Returns the ids of all templates that contain a call site for this user tag
-	 * or included template.
+	 * or included template, collected during the parsing cycle.
 	 *
 	 * <p>
-	 * Includes template ids from both the parsing cycle and extensions. Intended
-	 * for use by find references and call hierarchy features.
+	 * Intended for use by find references and call hierarchy features.
 	 * </p>
 	 *
 	 * @return the set of calling template ids, never {@code null}
@@ -176,18 +183,17 @@ public class ParameterUsages {
 	}
 
 	/**
-	 * Returns the ids of all templates that contain a call site for this user tag
-	 * or included template.
+	 * Returns the paths of all templates that contain a call site for this user tag
+	 * or included template, registered by extensions.
 	 *
 	 * <p>
-	 * Includes template ids from both the parsing cycle and extensions. Intended
-	 * for use by find references and call hierarchy features.
+	 * Intended for use by find references and call hierarchy features.
 	 * </p>
 	 *
-	 * @return the set of calling template ids, never {@code null}
+	 * @return the set of calling template paths, never {@code null}
 	 */
 	public Set<TemplatePath> getCallingTemplatePaths() {
-		return extensionParameterByTemplateId.keySet();
+		return extensionParameterByTemplatePath.keySet();
 	}
 
 	/**
@@ -211,7 +217,7 @@ public class ParameterUsages {
 				}
 			}
 		}
-		for (NodeBase<?> p : extensionParameterByTemplateId.values()) {
+		for (NodeBase<?> p : extensionParameterByTemplatePath.values()) {
 			if (isMatchParameter(name, p)) {
 				matches.add(p);
 			}
@@ -241,7 +247,7 @@ public class ParameterUsages {
 				}
 			}
 		}
-		for (NodeBase<?> p : extensionParameterByTemplateId.values()) {
+		for (NodeBase<?> p : extensionParameterByTemplatePath.values()) {
 			if (isMatchParameter(name, p)) {
 				return (JavaTypeInfoProvider) p;
 			}
@@ -297,5 +303,10 @@ public class ParameterUsages {
 	 */
 	protected boolean isMatchParameter(String name, Parameter p) {
 		return name.equals(p.getName());
+	}
+	
+	public boolean isEmpty() {
+	    return parametersByTemplateId.isEmpty() 
+	        && extensionParameterByTemplatePath.isEmpty();
 	}
 }
