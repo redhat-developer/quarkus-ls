@@ -38,7 +38,7 @@ public class QuteCodeLensForFragmentSectionTest {
 				"\r\n" + //
 				"{#include $menu device='mobile' /}\r\n" + //
 				"{#include $menu device='mobile' /}\r\n" + //
-				//"{#include test$menu device_test='mobile' /}\r\n" + //
+				"{#include test$menu device_test='mobile' /}\r\n" + //
 				"{#include test.html$menu device_test_html='mobile' /}\r\n" + //
 				"{#include $menu2 foo='bar' baz=10 /}";
 		testCodeLensFor(template, //
@@ -46,8 +46,8 @@ public class QuteCodeLensForFragmentSectionTest {
 				"test.html", //
 				// fragment menu
 				cl(r(1, 1, 1, 10), "device : String", ""), //
-				//cl(r(1, 1, 1, 10), "device_test : String", ""), //
 				cl(r(1, 1, 1, 10), "device_test_html : String", ""), //
+				cl(r(1, 1, 1, 10), "device_test : String", ""), //
 				// fragment menu2
 				cl(r(4, 1, 4, 10), "foo : String", ""), //
 				cl(r(4, 1, 4, 10), "baz : Integer", ""));

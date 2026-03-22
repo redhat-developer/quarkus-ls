@@ -75,8 +75,8 @@ public class ParameterUsages {
 	 *
 	 * <p>
 	 * Replaced on every re-parse via {@link #putParameters}. Cleanup of stale
-	 * entries is handled by {@link UsagesRegistry} via its reverse index —
-	 * no {@code oldKeys} tracking is needed here.
+	 * entries is handled by {@link UsagesRegistry} via its reverse index — no
+	 * {@code oldKeys} tracking is needed here.
 	 * </p>
 	 */
 	private final Map<String, List<? extends NodeBase<?>>> parametersByTemplateId = new HashMap<>();
@@ -270,6 +270,73 @@ public class ParameterUsages {
 	}
 
 	/**
+	 * Returns {@code true} if this instance has no parse usages and no extension
+	 * usages.
+	 *
+	 * @return {@code true} if empty
+	 */
+	public boolean isEmpty() {
+		return parametersByTemplateId.isEmpty()
+				&& extensionParameterByTemplatePath.isEmpty();
+	}
+
+	/**
+	 * Creates an empty instance of this {@link ParameterUsages}.
+	 *
+	 * <p>
+	 * Used by {@link #mergedWith} to create the merged result of the correct
+	 * subtype. Subclasses must override this method to return their own type.
+	 * </p>
+	 *
+	 * @return a new empty instance of the same type
+	 */
+	protected ParameterUsages createEmpty() {
+		return new ParameterUsages();
+	}
+
+	/**
+	 * Returns a new {@link ParameterUsages} that merges this instance with
+	 * {@code other}.
+	 *
+	 * <p>
+	 * Used when resolving template variants — for example, merging usages of
+	 * {@code myTemplate} and {@code myTemplate.html} into a single instance so
+	 * that type inference, hover, completion and find references work regardless of
+	 * which variant was used at the call site.
+	 * </p>
+	 *
+	 * <p>
+	 * For parse usages, parameters from both instances are combined for the same
+	 * template id. For extension usages, last write wins per template path.
+	 * </p>
+	 *
+	 * <p>
+	 * The returned instance is of the same subtype as {@code this}, created via
+	 * {@link #createEmpty()}.
+	 * </p>
+	 *
+	 * @param other the usages to merge with, must not be {@code null}
+	 * @return a new merged instance, never {@code null}
+	 */
+	public ParameterUsages mergedWith(ParameterUsages other) {
+		ParameterUsages merged = createEmpty();
+		// Copy this instance's parse usages
+		merged.parametersByTemplateId.putAll(this.parametersByTemplateId);
+		// Merge other's parse usages — combine lists for the same template id
+		for (Map.Entry<String, List<? extends NodeBase<?>>> entry : other.parametersByTemplateId.entrySet()) {
+			merged.parametersByTemplateId.merge(entry.getKey(), entry.getValue(), (existing, incoming) -> {
+				List<NodeBase<?>> result = new ArrayList<>(existing);
+				result.addAll(incoming);
+				return result;
+			});
+		}
+		// Merge extension usages — last write wins per template path
+		merged.extensionParameterByTemplatePath.putAll(this.extensionParameterByTemplatePath);
+		merged.extensionParameterByTemplatePath.putAll(other.extensionParameterByTemplatePath);
+		return merged;
+	}
+
+	/**
 	 * Checks whether the given node matches the given parameter name.
 	 *
 	 * <p>
@@ -303,10 +370,5 @@ public class ParameterUsages {
 	 */
 	protected boolean isMatchParameter(String name, Parameter p) {
 		return name.equals(p.getName());
-	}
-	
-	public boolean isEmpty() {
-	    return parametersByTemplateId.isEmpty() 
-	        && extensionParameterByTemplatePath.isEmpty();
 	}
 }
