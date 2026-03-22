@@ -20,7 +20,21 @@ public class IncludeUsagesRegistry extends UsagesRegistry<IncludeUsages> {
 	}
 
 	public IncludeUsages getFragmentUsages(String templateId, String fragmentId) {
-		return getUsages(templateId, fragmentId);
+		IncludeUsages usages = getUsages(templateId, fragmentId);
+		IncludeUsages shortUsages = null;
+		int index = templateId.indexOf('.');
+		if (index != -1) {
+			String id = templateId.substring(0, index);
+			shortUsages = getUsages(id, fragmentId);
+		}
+		if (usages != null) {
+			if (shortUsages != null) {
+				// Merge both variants into a single instance
+				return (IncludeUsages) usages.mergedWith(shortUsages);
+			}
+			return usages;
+		}
+		return shortUsages;
 	}
 
 	public Parameter findFragmentParameter(String templateId, String fragmentId, String parameterName) {
