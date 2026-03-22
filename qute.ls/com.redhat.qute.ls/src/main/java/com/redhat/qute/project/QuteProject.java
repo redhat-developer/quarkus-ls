@@ -607,28 +607,28 @@ public class QuteProject {
 	 */
 	public QuteTextDocument onDidDeleteTemplate(Path templateFilePath) {
 		QuteTextDocument document = removeDocumentFromCache(templateFilePath);
-		if (document != null && document.isUserTag()) {
-			UserTag userTag = document.getUserTag();
-			tagRegistry.unregisterUserTag(userTag);
-		}
 		return document;
 	}
 
 	private QuteTextDocument removeDocumentFromCache(Path templateFilePath) {
 		synchronized (sourceDocuments) {
-			QuteTextDocument document = sourceDocuments.remove(templateFilePath);
-			if (document != null) {
-				List<QuteTextDocument> cache = documentsByTemplateId.get(document.getTemplateId());
+			QuteTextDocument removedDocument = sourceDocuments.remove(templateFilePath);
+			if (removedDocument != null) {
+				List<QuteTextDocument> cache = documentsByTemplateId.get(removedDocument.getTemplateId());
 				if (cache != null) {
-					cache.remove(document);
+					cache.remove(removedDocument);
 				}
-				if (document.isUserTag()) {
-					UserTag userTag = document.getUserTag();
+				// Evict user tag registry cache + usages for the removed document
+				if (removedDocument.isUserTag()) {
+					UserTag userTag = removedDocument.getUserTag();
 					tagRegistry.unregisterUserTag(userTag);
+					tagRegistry.removeUsages(removedDocument);
 				}
+				// Evict include usages for the removed document
+				includeUsagesRegistry.removeUsages(removedDocument);
 
 			}
-			return document;
+			return removedDocument;
 		}
 	}
 
