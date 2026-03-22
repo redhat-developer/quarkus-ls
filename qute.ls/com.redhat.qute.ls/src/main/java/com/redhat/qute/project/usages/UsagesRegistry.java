@@ -105,16 +105,16 @@ public abstract class UsagesRegistry<T extends ParameterUsages> {
 		// Remove all previous usages contributed by this source using the reverse index
 		Set<String> oldKeys = keysBySource.get(source);
 		if (oldKeys != null) {
-		    for (String key : oldKeys) {
-		        T keyUsages = usagesByKey.get(key);
-		        if (keyUsages != null) {
-		            keyUsages.removeParameters(templateId);
-		            // Remove the entry from usagesByKey if it has no more usages
-		            if (keyUsages.isEmpty()) {
-		                usagesByKey.remove(key);
-		            }
-		        }
-		    }
+			for (String key : oldKeys) {
+				T keyUsages = usagesByKey.get(key);
+				if (keyUsages != null) {
+					keyUsages.removeParameters(templateId);
+					// Remove the entry from usagesByKey if it has no more usages
+					if (keyUsages.isEmpty()) {
+						usagesByKey.remove(key);
+					}
+				}
+			}
 		}
 
 		// Register new usages and rebuild the reverse index for this source
@@ -129,6 +129,33 @@ public abstract class UsagesRegistry<T extends ParameterUsages> {
 				newKeys.add(key);
 			}
 			keysBySource.put(source, newKeys);
+		}
+	}
+
+	/**
+	 * Removes all usages contributed by a given source document.
+	 *
+	 * <p>
+	 * Called when the source document is deleted, to cleanly remove all its
+	 * contributions from the registry. Entries in {@link #usagesByKey} that become
+	 * empty after removal are also deleted.
+	 * </p>
+	 *
+	 * @param source the document that was deleted
+	 */
+	public synchronized void removeUsages(QuteTextDocument source) {
+		String templateId = source.getTemplateId();
+		Set<String> oldKeys = keysBySource.remove(source);
+		if (oldKeys != null) {
+			for (String key : oldKeys) {
+				T keyUsages = usagesByKey.get(key);
+				if (keyUsages != null) {
+					keyUsages.removeParameters(templateId);
+					if (keyUsages.isEmpty()) {
+						usagesByKey.remove(key);
+					}
+				}
+			}
 		}
 	}
 
