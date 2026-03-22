@@ -16,6 +16,7 @@ import static com.redhat.qute.services.commands.QuteClientCommandConstants.COMMA
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -191,6 +192,8 @@ class QuteCodeLens {
 				collectInsertCodeLens(project, section, template, showReferencesCommandId, lenses);
 				break;
 			case FRAGMENT:
+				// [device : String]
+				// {#fragment id="menu"
 				collectFragmentCodeLens(templateDataModel, section, template, settings, project, lenses, cancelChecker);
 				break;
 			default:
@@ -227,22 +230,23 @@ class QuteCodeLens {
 			String templateId = template.getTemplateId();
 			IncludeUsages fragmentUsages = project.getIncludeUsagesRegistry().getFragmentUsages(templateId, fragmentId);
 			if (fragmentUsages != null) {
+				Set<String> existingNames = new HashSet<>();
 				Range fragmentRange = QutePositionUtility.selectStartTagName(section);
 				Map<String, List<? extends NodeBase<?>>> usages = fragmentUsages.getParametersByTemplateId();
 				for (Entry<String, List<? extends NodeBase<?>>> entry : usages.entrySet()) {
-					boolean firstParameter = true;
 					for (NodeBase<?> node : entry.getValue()) {
 						if (node instanceof Parameter) {
-							if (firstParameter) {
+							Parameter p = (Parameter) node;
+							String parameterName = p.getName();
+							if (!existingNames.contains(parameterName)) {
+								existingNames.add(parameterName);
 								// Don't generate codelens for template parameter of the #include
-								firstParameter = false;
-							} else {
-								Parameter p = (Parameter) node;
-
-								String title = createNameAndTypeTitle(p.getName(), project.resolveJavaType(p));
-								Command command = new Command(title.toString(), "");
-								CodeLens codeLens = new CodeLens(fragmentRange, command, null);
-								lenses.add(codeLens);
+								if (p.canHaveExpression()) {
+									String title = createNameAndTypeTitle(parameterName, project.resolveJavaType(p));
+									Command command = new Command(title.toString(), "");
+									CodeLens codeLens = new CodeLens(fragmentRange, command, null);
+									lenses.add(codeLens);
+								}
 							}
 						}
 					}

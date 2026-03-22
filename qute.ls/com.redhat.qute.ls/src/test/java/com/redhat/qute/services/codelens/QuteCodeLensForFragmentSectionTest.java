@@ -17,8 +17,6 @@ import static com.redhat.qute.QuteAssert.testCodeLensFor;
 
 import org.junit.jupiter.api.Test;
 
-import com.redhat.qute.services.commands.QuteClientCommandConstants;
-
 /**
  * Tests for Qute code lens and {#insert name} section tags.
  * 
@@ -38,6 +36,7 @@ public class QuteCodeLensForFragmentSectionTest {
 				"    {device}\r\n" + //
 				"{/fragment}\r\n" + //
 				"\r\n" + //
+				"{#include $menu device='mobile' /}\r\n" + //
 				"{#include $menu device='mobile' /}\r\n" + //
 				"{#include $menu2 foo='bar' baz=10 /}";
 		testCodeLensFor(template, //

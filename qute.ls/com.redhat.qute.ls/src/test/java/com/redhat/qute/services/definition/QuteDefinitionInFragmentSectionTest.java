@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 public class QuteDefinitionInFragmentSectionTest {
 
 	@Test
-	public void localFragment() throws Exception {
+	public void includeToFragmentId() throws Exception {
 		String template = "<html>\r\n" + //
 				"{#fragment id=menu}\r\n" + //
 				"    {device}\r\n" + //
@@ -38,4 +38,18 @@ public class QuteDefinitionInFragmentSectionTest {
 				ll("foo.html", r(4, 10, 4, 15), r(1, 14, 1, 18)));
 	}
 
+	@Test
+	public void objectPartFromIncludeParameter() throws Exception {
+		String template = "<html>\r\n" + //
+				"{#fragment id=menu}\r\n" + //
+				"    {dev|ice}\r\n" + //
+				"{/fragment}\r\n" + //
+				"{#include $menu device='mobile' /}\r\n" + //
+				"{#include $menu device='mobile' /}";
+
+		testDefinitionFor(template, //
+				"foo.html", //
+				ll("foo.html", r(2, 5, 2, 11), r(4, 16, 4, 22)), //
+				ll("foo.html", r(2, 5, 2, 11), r(5, 16, 5, 22)));
+	}
 }
