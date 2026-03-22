@@ -11,11 +11,9 @@
 *******************************************************************************/
 package com.redhat.qute.utils;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.function.BiConsumer;
 
 import org.eclipse.lsp4j.Range;
@@ -88,11 +86,7 @@ public class QuteSearchUtils {
 		} else {
 			Template template = part.getOwnerTemplate();
 			QuteProject project = template.getProject();
-			Parameter parameter = searchDeclaredObjectInParameter(part, template, project, cancelChecker);
-			if (parameter != null) {
-				Range targetRange = QutePositionUtility.selectParameterName(parameter);
-				collector.accept(parameter, targetRange);
-			} else {
+			if (!searchDeclaredObjectInParameter(part, template, project, collector, cancelChecker)) {
 				searchDeclaredObjectInParameterDeclaration(part, collector);
 			}
 		}
@@ -107,8 +101,8 @@ public class QuteSearchUtils {
 		}
 	}
 
-	private static Parameter searchDeclaredObjectInParameter(ObjectPart part, Template template, QuteProject project,
-			CancelChecker cancelChecker) {
+	private static boolean searchDeclaredObjectInParameter(ObjectPart part, Template template, QuteProject project,
+			BiConsumer<Node, Range> collector, CancelChecker cancelChecker) {
 		String partName = part.getPartName();
 		Node parent = part.getParentSection();
 		Parameter matchedOptionalParameter = null;
@@ -126,7 +120,7 @@ public class QuteSearchUtils {
 							// the part name matches
 							// - the #for alias of the section (ex : item)
 							// - or the metadata of the section (ex : item_count)
-							return iterableSection.getAliasParameter();
+							return collectParameter(iterableSection.getAliasParameter(), collector);
 						}
 					}
 					break;
@@ -136,7 +130,7 @@ public class QuteSearchUtils {
 					List<Parameter> parameters = section.getParameters();
 					for (Parameter parameter : parameters) {
 						if (partName.equals(parameter.getName())) {
-							return parameter;
+							return collectParameter(parameter, collector);
 						}
 					}
 				}
@@ -168,7 +162,7 @@ public class QuteSearchUtils {
 								// - name=it|em.name is collected
 								// - last item is not collected because we can have just one it.
 								if (partName.equals(parameter.getName())) {
-									return parameter;
+									return collectParameter(parameter, collector);
 								}
 							}
 						}
@@ -185,10 +179,15 @@ public class QuteSearchUtils {
 						String fragmentId = ((FragmentSection) section).getId();
 						if (!StringUtils.isEmpty(fragmentId)) {
 							IncludeUsagesRegistry registry = project.getIncludeUsagesRegistry();
-							Parameter parameter = registry.findFragmentParameter(template.getTemplateId(), fragmentId,
-									partName);
-							if (parameter != null) {
-								return parameter;
+							List<? extends NodeBase<?>> parameters = registry
+									.findFragmentParameters(template.getTemplateId(), fragmentId, partName);
+							if (parameters != null && !parameters.isEmpty()) {
+								for (NodeBase<?> parameter : parameters) {
+									if (parameter instanceof Parameter) {
+										collectParameter((Parameter) parameter, collector);
+									}
+								}
+								return true;
 							}
 						}
 					}
@@ -200,7 +199,19 @@ public class QuteSearchUtils {
 			}
 			parent = parent.getParent();
 		}
-		return matchedOptionalParameter;
+		if (matchedOptionalParameter != null) {
+			return collectParameter(matchedOptionalParameter, collector);
+		}
+		return false;
+	}
+
+	private static boolean collectParameter(Parameter parameter, BiConsumer<Node, Range> collector) {
+		if (parameter == null) {
+			return false;
+		}
+		Range targetRange = QutePositionUtility.selectParameterName(parameter);
+		collector.accept(parameter, targetRange);
+		return true;
 	}
 
 	// ------------------- Search referenced objects

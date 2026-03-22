@@ -24,18 +24,21 @@ public class IncludeUsagesRegistry extends UsagesRegistry<IncludeUsages> {
 	}
 
 	public Parameter findFragmentParameter(String templateId, String fragmentId, String parameterName) {
-		IncludeUsages usages = getFragmentUsages(templateId, fragmentId);
-		if (usages != null) {
-			List<? extends NodeBase<?>> parameters = usages.findParameters(parameterName);
-			if (parameters != null) {
-				for (NodeBase<?> parameter : parameters) {
-					if (parameter instanceof Parameter) {
-						return (Parameter) parameter;
-					}
+		List<? extends NodeBase<?>> parameters = findFragmentParameters(templateId, fragmentId, parameterName);
+		if (parameters != null) {
+			for (NodeBase<?> parameter : parameters) {
+				if (parameter instanceof Parameter) {
+					return (Parameter) parameter;
 				}
 			}
 		}
 		return null;
+	}
+
+	public List<? extends NodeBase<?>> findFragmentParameters(String templateId, String fragmentId,
+			String parameterName) {
+		IncludeUsages usages = getFragmentUsages(templateId, fragmentId);
+		return usages != null ? usages.findParameters(parameterName) : null;
 	}
 
 	@Override
