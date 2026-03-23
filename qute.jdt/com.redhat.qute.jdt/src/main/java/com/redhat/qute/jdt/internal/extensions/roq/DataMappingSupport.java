@@ -12,7 +12,7 @@
 package com.redhat.qute.jdt.internal.extensions.roq;
 
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.VALUE_ANNOTATION_NAME;
-import static com.redhat.qute.jdt.internal.extensions.roq.RoqJavaConstants.DATA_MAPPING_ANNOTATION;
+import static com.redhat.qute.commons.config.roq.RoqConfig.DATA_MAPPING_ANNOTATION;
 
 import java.util.List;
 import java.util.logging.Level;

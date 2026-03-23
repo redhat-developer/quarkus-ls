@@ -28,6 +28,7 @@ import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectFeature;
+import com.redhat.qute.commons.config.PropertyConfig;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
@@ -46,7 +47,6 @@ import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
 import com.redhat.qute.project.extensions.DataModelTemplateParticipant;
 import com.redhat.qute.project.extensions.ProjectExtension;
 import com.redhat.qute.project.extensions.config.ApplicationPropertiesProjectExtension;
-import com.redhat.qute.project.extensions.config.PropertyConfig;
 import com.redhat.qute.utils.JSONUtility;
 import com.redhat.qute.utils.StringUtils;
 

@@ -17,11 +17,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.config.roq.RoqConfig;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
@@ -45,7 +45,7 @@ public class RoqProject extends BaseQuteProject {
 				List.of(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates"), //
 						new TemplateRootPath(getProjectPath(PROJECT_URI) + "/templates")), //
 				Set.of(getProjectPath(PROJECT_URI) + "/src/main/resources"), //
-				Set.of(ProjectFeature.Roq)), projectRegistry);
+				Set.of(RoqConfig.PROJECT_FEATURE)), projectRegistry);
 	}
 
 	@Override

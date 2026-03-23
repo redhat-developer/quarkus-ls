@@ -64,6 +64,8 @@ public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 
 	private Map<Key<Object>, Object> cache;
 
+	private String userTagName;
+
 	public QuteReadOnlyTextDocument(String uri, String templateId, String templateContent, QuteProject project) {
 		this.uri = uri;
 		this.templateId = templateId;
@@ -121,6 +123,13 @@ public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 			userTag = new UserTag(this);
 		}
 		return userTag;
+	}
+	
+	public String getUserTagName() {
+		if (userTagName == null) {
+			userTagName = QuteTextDocument.super.getUserTagName();
+		}
+		return userTagName;
 	}
 
 	@Override

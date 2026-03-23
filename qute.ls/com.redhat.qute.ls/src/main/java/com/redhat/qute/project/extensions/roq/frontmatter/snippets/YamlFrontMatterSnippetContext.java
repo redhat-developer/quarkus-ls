@@ -13,7 +13,7 @@ package com.redhat.qute.project.extensions.roq.frontmatter.snippets;
 
 import java.util.Map;
 
-import com.redhat.qute.commons.ProjectFeature;
+import com.redhat.qute.commons.config.roq.RoqConfig;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.snippets.AbstractQuteSnippetContext;
@@ -31,7 +31,7 @@ public abstract class YamlFrontMatterSnippetContext extends AbstractQuteSnippetC
 			if (project == null) {
 				return false;
 			}
-			return project.hasProjectFeature(ProjectFeature.Roq);
+			return project.hasProjectFeature(RoqConfig.PROJECT_FEATURE);
 		}
 
 	};

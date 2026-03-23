@@ -26,6 +26,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -80,12 +81,12 @@ public class JDTQuteProjectUtils {
 					e);
 		}
 		// Project folder
-		String projectFolder = toUri(javaProject.getProject().getLocation());
-		// Template root paths
-		List<TemplateRootPath> templateRootPaths = TemplateRootPathProviderRegistry.getInstance()
-				.getTemplateRootPaths(javaProject, monitor);
+		String projectFolder = getProjectFolder(javaProject);
 		// Source folders
 		Set<String> sourceFolders = getSourceFolders(javaProject);
+		// Template root paths
+		List<TemplateRootPath> templateRootPaths = TemplateRootPathProviderRegistry.getInstance()
+				.getTemplateRootPaths(javaProject, projectFolder, sourceFolders, monitor);
 		// Project Features
 		Set<ProjectFeature> projectFeatures = ProjectFeatureProviderRegistry.getInstance()
 				.getProjectFeatures(javaProject, monitor);
@@ -93,14 +94,67 @@ public class JDTQuteProjectUtils {
 				projectFeatures);
 	}
 
-	private static Set<String> getSourceFolders(IJavaProject javaProject) {
+	public static String getProjectFolder(IJavaProject javaProject) {
+		return toUri(javaProject.getProject().getLocation());
+	}
+
+	/**
+	 * Returns the set of source folders that are not Java source folders and not
+	 * output locations (e.g. {@code src/main/resources}) for the given Java
+	 * project.
+	 *
+	 * <p>
+	 * The following folders are excluded:
+	 * <ul>
+	 * <li>Folders whose last segment is {@code java} (e.g.
+	 * {@code src/main/java})</li>
+	 * <li>Folders that are under an output location (e.g.
+	 * {@code target/generated-sources/annotations})</li>
+	 * </ul>
+	 *
+	 * <p>
+	 * If no resource source folders are found, falls back to all source folders
+	 * that are not output locations (regardless of their name).
+	 *
+	 * @param javaProject the Java project to retrieve source folders from
+	 * @return a set of URI strings representing the resource source folders, or an
+	 *         empty set if an error occurs
+	 */
+	public static Set<String> getSourceFolders(IJavaProject javaProject) {
 		try {
+			// Collect all output locations (default + per-entry) to exclude generated
+			// sources
+			Set<IPath> outputLocations = new HashSet<>();
+			outputLocations.add(javaProject.getOutputLocation());
+			for (IClasspathEntry entry : javaProject.getRawClasspath()) {
+				if (entry.getOutputLocation() != null) {
+					outputLocations.add(entry.getOutputLocation());
+				}
+			}
+
 			Set<String> sourceFolders = new HashSet<>();
 			for (IPackageFragmentRoot root : javaProject.getPackageFragmentRoots()) {
+				// Only consider source folders
 				if (root.getKind() != IPackageFragmentRoot.K_SOURCE) {
 					continue;
 				}
 
+				IPath path = root.getPath();
+
+				// Exclude folders that are under an output location (e.g.
+				// target/generated-sources/annotations)
+				// Exclude folders that are under an output location (e.g.
+				// target/generated-sources/annotations)
+				if (outputLocations.stream().anyMatch(output -> output.isPrefixOf(path))) {
+					continue;
+				}
+
+				// Exclude Java source folders (e.g. src/main/java)
+				if ("java".equals(path.lastSegment())) {
+					continue;
+				}
+
+				// Only consider IFolder resources (excludes IProject root)
 				IResource resource = root.getCorrespondingResource();
 				if (resource instanceof IFolder) {
 					String uri = toUri(resource.getLocation());
@@ -109,12 +163,91 @@ public class JDTQuteProjectUtils {
 					}
 				}
 			}
+
+			// If no resource source folders were found, fall back to all non-output source
+			// folders
+			// (regardless of their name, e.g. src/main/resources in a non-standard project
+			// layout)
+			if (sourceFolders.isEmpty()) {
+				for (IPackageFragmentRoot root : javaProject.getPackageFragmentRoots()) {
+					if (root.getKind() != IPackageFragmentRoot.K_SOURCE) {
+						continue;
+					}
+
+					IPath path = root.getPath();
+
+					// Still exclude output locations
+					if (outputLocations.stream().anyMatch(path::isPrefixOf)) {
+						continue;
+					}
+
+					// Only consider IFolder resources (excludes IProject root)
+					IResource resource = root.getCorrespondingResource();
+					if (resource instanceof IFolder) {
+						String uri = toUri(resource.getLocation());
+						if (uri != null) {
+							sourceFolders.add(uri);
+						}
+					}
+				}
+			}
+
 			return sourceFolders;
 		} catch (JavaModelException e) {
-			// Should never occurs
-			LOGGER.log(Level.SEVERE, "Error while getting project source follders for '" + javaProject.getElementName()
+			LOGGER.log(Level.SEVERE, "Error while getting project source folders for '" + javaProject.getElementName()
 					+ "' Java project.", e);
 			return Collections.emptySet();
+		}
+	}
+
+	/**
+	 * Returns the relative path of the first resource source folder found for the
+	 * given Java project (e.g. {@code src/main/resources}).
+	 *
+	 * @param javaProject the Java project to retrieve the relative source folder
+	 *                    from
+	 * @return the relative path of the first resource source folder, or
+	 *         {@code null} if none is found
+	 */
+	public static String getRelativeResourcesFolder(IJavaProject javaProject) {
+		try {
+			// Collect all output locations to exclude generated sources
+			Set<IPath> outputLocations = new HashSet<>();
+			outputLocations.add(javaProject.getOutputLocation());
+			for (IClasspathEntry entry : javaProject.getRawClasspath()) {
+				if (entry.getOutputLocation() != null) {
+					outputLocations.add(entry.getOutputLocation());
+				}
+			}
+
+			IPath projectPath = javaProject.getProject().getFullPath();
+
+			for (IPackageFragmentRoot root : javaProject.getPackageFragmentRoots()) {
+				if (root.getKind() != IPackageFragmentRoot.K_SOURCE) {
+					continue;
+				}
+
+				IPath path = root.getPath();
+
+				if (outputLocations.stream().anyMatch(output -> output.isPrefixOf(path))) {
+					continue;
+				}
+
+				if ("java".equals(path.lastSegment())) {
+					continue;
+				}
+
+				if (root.getCorrespondingResource() instanceof IFolder) {
+					// Make the path relative to the project (e.g. /myproject/src/main/resources ->
+					// src/main/resources)
+					return path.makeRelativeTo(projectPath).toString();
+				}
+			}
+			return null;
+		} catch (JavaModelException e) {
+			LOGGER.log(Level.SEVERE, "Error while getting relative source folder for '" + javaProject.getElementName()
+					+ "' Java project.", e);
+			return null;
 		}
 	}
 
@@ -167,9 +300,10 @@ public class JDTQuteProjectUtils {
 	}
 
 	public static TemplatePathInfo getTemplatePath(String basePath, String className, String methodOrFieldName,
-			boolean ignoreFragments, TemplateNameStrategy templateNameStrategy) {
+			boolean ignoreFragments, TemplateNameStrategy templateNameStrategy, String relativeSourceFolder) {
 		String fragmentId = null;
-		StringBuilder templateUri = new StringBuilder(DefaultTemplateRootPathProvider.TEMPLATES_BASE_DIR);
+		StringBuilder templateUri = new StringBuilder(TemplateRootPath.resolveSinglePath("", relativeSourceFolder,
+				DefaultTemplateRootPathProvider.TEMPLATES_BASE_DIR));
 		if (basePath != null && !DEFAULTED.equals(basePath)) {
 			appendAndSlash(templateUri, basePath);
 		} else if (className != null) {

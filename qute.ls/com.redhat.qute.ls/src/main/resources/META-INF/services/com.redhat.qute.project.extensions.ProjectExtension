@@ -1,3 +1,4 @@
+com.redhat.qute.project.extensions.config.ApplicationPropertiesProjectExtension
 com.redhat.qute.project.extensions.renarde.RenardeProjectExtension
 com.redhat.qute.project.extensions.roq.RoqProjectExtension
-com.redhat.qute.project.extensions.config.ApplicationPropertiesProjectExtension
+com.redhat.qute.project.extensions.webbundler.WebBundlerProjectExtension

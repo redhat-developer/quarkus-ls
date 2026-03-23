@@ -389,6 +389,21 @@ public class QuteProject {
 	 * @return the template id of the given template file path.
 	 */
 	public String getTemplateId(Path templateFilePath) {
+		TemplateRootPath rootPath = findTemplateRootPathFor(templateFilePath);
+		if (rootPath != null) {
+			try {
+				boolean forceAsUserTag = rootPath.isOnlyTags();
+				Path basePath = rootPath.getBasePath();
+				return getTemplateId(basePath.relativize(templateFilePath).toString().replace('\\', '/'),
+						forceAsUserTag);
+			} catch (Exception e) {
+				// Do nothing
+			}
+		}
+		return getTemplateId(templateFilePath.getFileName().toString(), false);
+	}
+
+	public TemplateRootPath findTemplateRootPathFor(Path templateFilePath) {
 		if (templateFilePath == null || templateRootPaths == null) {
 			return null;
 		}
@@ -397,14 +412,21 @@ public class QuteProject {
 			if (basePath != null) {
 				if (templateFilePath.startsWith(basePath)) {
 					try {
-						return basePath.relativize(templateFilePath).toString().replace('\\', '/');
+						return rootPath;
 					} catch (Exception e) {
 						// Do nothing
 					}
 				}
 			}
 		}
-		return templateFilePath.getFileName().toString();
+		return null;
+	}
+
+	private static String getTemplateId(String templateId, boolean forceAsUserTag) {
+		if (forceAsUserTag && !templateId.startsWith(TemplateRootPath.TAGS_DIR + "/")) {
+			return TemplateRootPath.TAGS_DIR + "/" + templateId;
+		}
+		return templateId;
 	}
 
 	/**
@@ -705,7 +727,12 @@ public class QuteProject {
 			dataModelProjectFuture = loadDataModelProject() //
 					.thenApply(model -> {
 						for (ProjectExtension extension : getExtensions()) {
-							extension.init(model);
+							try {
+								extension.init(model);
+							} catch (Exception e) {
+								LOGGER.log(Level.SEVERE,
+										"Error while loading project extension '" + extension.getId() + "'", e);
+							}
 						}
 						return model;
 
@@ -1976,7 +2003,6 @@ public class QuteProject {
 		if (oldDocument != null) {
 			removeDocumentFromCache(oldDocument.getTemplatePath());
 		}
-
 		sourceDocuments.put(document.getTemplatePath(), document);
 		addInTemplateIdCache(document);
 		registerUserTagIfNeeded(document);

@@ -28,7 +28,7 @@ public class IncludeUsagesRegistry extends UsagesRegistry<IncludeUsages> {
 			shortUsages = getUsages(id, fragmentId);
 		}
 		if (usages != null) {
-			if (shortUsages != null) {
+			if (shortUsages != null && shortUsages != usages) {
 				// Merge both variants into a single instance
 				return (IncludeUsages) usages.mergedWith(shortUsages);
 			}

@@ -17,9 +17,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import com.redhat.qute.commons.ProjectInfo;
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.Parameter;
-import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CustomSection;
 import com.redhat.qute.parser.template.sections.FragmentSection;
@@ -157,7 +157,17 @@ public interface QuteTextDocument {
 		}
 		String templateId = getTemplateId();
 		if (templateId != null) {
-			String tagName = templateId.substring(getUserTagsFolder().length());
+			QuteProject project = getProject();
+			TemplateRootPath rootPath = project != null ? project.findTemplateRootPathFor(getTemplatePath()) : null;
+			boolean namespacedTagSupported = rootPath != null ? rootPath.isNamespacedTagSupported() : true;
+			String tagName = null;
+			if (namespacedTagSupported) {
+				// ex : {#roq-default/hero
+				tagName = templateId.substring(getUserTagsFolder().length());
+			} else {
+				// ex : {#bundle
+				tagName = getTemplatePath().getFileName().toString();
+			}
 			int index = tagName.lastIndexOf('.');
 			if (index != -1) {
 				return tagName.substring(0, index);

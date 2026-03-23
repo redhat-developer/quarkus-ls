@@ -20,6 +20,7 @@ import java.util.Map;
 import org.eclipse.jdt.core.IJavaProject;
 
 import com.redhat.qute.commons.QuteProjectScope;
+import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
 
 /**
  * Class for base context.
@@ -32,6 +33,8 @@ public class BaseContext {
 	private final IJavaProject javaProject;
 	private final List<QuteProjectScope> scopes;
 	private final Map<String, Object> cache;
+
+	private String relativeResourcesFolder;
 
 	public BaseContext(IJavaProject javaProject, List<QuteProjectScope> scopes) {
 		this.javaProject = javaProject;
@@ -77,5 +80,12 @@ public class BaseContext {
 	 */
 	public List<QuteProjectScope> getScopes() {
 		return scopes;
+	}
+
+	public String getRelativeResourcesFolder() {
+		if (relativeResourcesFolder == null) {
+			this.relativeResourcesFolder = JDTQuteProjectUtils.getRelativeResourcesFolder(javaProject);
+		}
+		return relativeResourcesFolder;
 	}
 }

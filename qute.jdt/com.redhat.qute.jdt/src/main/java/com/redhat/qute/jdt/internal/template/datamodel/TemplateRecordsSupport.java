@@ -81,17 +81,20 @@ public class TemplateRecordsSupport extends AbstractInterfaceImplementationDataM
 		}
 		ITypeResolver typeResolver = context.getTypeResolver(type);
 		collectDataModelTemplateForTemplateRecord(type, typeResolver, context.getDataModelProject().getTemplates(),
-				monitor);
+				context.getRelativeResourcesFolder(), monitor);
 	}
 
 	private static void collectDataModelTemplateForTemplateRecord(IType type, ITypeResolver typeResolver,
-			List<DataModelTemplate<DataModelParameter>> templates, IProgressMonitor monitor) throws JavaModelException {
-		DataModelTemplate<DataModelParameter> template = createTemplateDataModel(type, typeResolver, monitor);
+			List<DataModelTemplate<DataModelParameter>> templates, String relativeSourceFolder,
+			IProgressMonitor monitor) throws JavaModelException {
+		DataModelTemplate<DataModelParameter> template = createTemplateDataModel(type, typeResolver,
+				relativeSourceFolder, monitor);
 		templates.add(template);
 	}
 
 	private static DataModelTemplate<DataModelParameter> createTemplateDataModel(IType recordType,
-			ITypeResolver typeResolver, IProgressMonitor monitor) throws JavaModelException {
+			ITypeResolver typeResolver, String relativeSourceFolder, IProgressMonitor monitor)
+			throws JavaModelException {
 
 		IAnnotation checkedTemplateAnnotation = AnnotationUtils.getAnnotation(recordType, CHECKED_TEMPLATE_ANNOTATION,
 				OLD_CHECKED_TEMPLATE_ANNOTATION);
@@ -102,8 +105,8 @@ public class TemplateRecordsSupport extends AbstractInterfaceImplementationDataM
 
 		String recordName = recordType.getElementName();
 		// src/main/resources/templates/${recordName}.qute.html
-		String templateUri = getTemplatePath(basePath, className, recordName, ignoreFragments, templateNameStrategy)
-				.getTemplateUri();
+		String templateUri = getTemplatePath(basePath, className, recordName, ignoreFragments, templateNameStrategy,
+				relativeSourceFolder).getTemplateUri();
 
 		// Create template data model with:
 		// - template uri : Qute template file which must be bind with data model.

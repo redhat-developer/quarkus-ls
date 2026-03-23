@@ -80,6 +80,8 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 
 	private Map<Key<Object>, Object> cache;
 
+	private String userTagName;
+
 	public QuteOpenedTextDocument(TextDocumentItem document, BiFunction<TextDocument, CancelChecker, Template> parse,
 			QuteProjectInfoProvider projectInfoProvider, QuteProjectRegistry projectRegistry) {
 		super(document, parse);
@@ -297,6 +299,14 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 			cache = new HashMap<>();
 		}
 		cache.put((Key<Object>) key, data);
+	}
+	
+	@Override
+	public String getUserTagName() {
+		if (userTagName == null) {
+			userTagName = QuteTextDocument.super.getUserTagName();
+		}
+		return userTagName;
 	}
 
 }

@@ -9,15 +9,24 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.jdt.internal.extensions.renarde;
+package com.redhat.qute.commons.config.renarde;
+
+import com.redhat.qute.commons.ProjectFeature;
 
 /**
- * Renarde Java constants.
+ * Configuration for Renarde integration.
  * 
- * @author Angelo ZERR
- *
+ * @see <a href=
+ *      "https://github.com/quarkiverse/quarkus-renarde">quarkus-renarde</a>
+ * 
  */
-public class RenardeJavaConstants {
+public class RenardeConfig {
+
+	public static final String EXTENSION_ID = "renarde";
+
+	public static final ProjectFeature PROJECT_FEATURE = new ProjectFeature(EXTENSION_ID);
+
+	// ---------------------- Java Renarde classes
 
 	public static final String RENARDE_CONTROLLER_TYPE = "io.quarkiverse.renarde.Controller";
 

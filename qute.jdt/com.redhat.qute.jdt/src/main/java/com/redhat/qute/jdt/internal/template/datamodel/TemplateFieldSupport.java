@@ -88,7 +88,7 @@ public class TemplateFieldSupport extends AbstractFieldDeclarationTypeReferenceD
 		StringLiteral location = annotationLocationSupport
 				.getLocationExpressionFromConstructorParameter(field.getElementName());
 		collectDataModelTemplateForTemplateField(field, context.getDataModelProject().getTemplates(),
-				location != null ? location.getLiteralValue() : null, monitor);
+				location != null ? location.getLiteralValue() : null, context.getRelativeResourcesFolder(), monitor);
 	}
 
 	private static AnnotationLocationSupport getAnnotationLocationSupport(ICompilationUnit compilationUnit,
@@ -112,20 +112,22 @@ public class TemplateFieldSupport extends AbstractFieldDeclarationTypeReferenceD
 	}
 
 	private static void collectDataModelTemplateForTemplateField(IField field,
-			List<DataModelTemplate<DataModelParameter>> templates, String location, IProgressMonitor monitor) {
-		DataModelTemplate<DataModelParameter> template = createTemplateDataModel(field, location, monitor);
+			List<DataModelTemplate<DataModelParameter>> templates, String location, String relativeSourceFolder,
+			IProgressMonitor monitor) {
+		DataModelTemplate<DataModelParameter> template = createTemplateDataModel(field, location, relativeSourceFolder,
+				monitor);
 		templates.add(template);
 	}
 
 	private static DataModelTemplate<DataModelParameter> createTemplateDataModel(IField field,
-			String locationFromConstructorParameter, IProgressMonitor monitor) {
+			String locationFromConstructorParameter, String relativeSourceFolder, IProgressMonitor monitor) {
 
 		String location = locationFromConstructorParameter != null ? locationFromConstructorParameter
 				: getLocation(field);
 		String fieldName = field.getElementName();
 		// src/main/resources/templates/${methodName}.qute.html
 		String templateUri = getTemplatePath(null, null, location != null ? location : fieldName, true,
-				TemplateNameStrategy.ELEMENT_NAME).getTemplateUri();
+				TemplateNameStrategy.ELEMENT_NAME, relativeSourceFolder).getTemplateUri();
 
 		// Create template data model with:
 		// - template uri : Qute template file which must be bind with data model.

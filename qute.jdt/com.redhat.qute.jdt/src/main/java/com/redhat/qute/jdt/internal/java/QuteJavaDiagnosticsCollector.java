@@ -11,16 +11,14 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.java;
 
-import static com.redhat.qute.jdt.utils.JDTQuteProjectUtils.appendAndSlash;
-
 import static com.redhat.qute.jdt.utils.JDTQuteProjectUtils.DEFAULTED;
+import static com.redhat.qute.jdt.utils.JDTQuteProjectUtils.appendAndSlash;
 
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
@@ -29,7 +27,6 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Range;
 
-import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.TemplatePathInfo;
 
 /**
@@ -43,22 +40,18 @@ import com.redhat.qute.jdt.utils.TemplatePathInfo;
  * @author Angelo ZERR
  *
  */
-public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollector {
+public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollector<QuteJavaDiagnosticsCollectorContext> {
 
 	public static final String QUTE_SOURCE = "qute";
 
-	private final List<Diagnostic> diagnostics;
-
-	public QuteJavaDiagnosticsCollector(ITypeRoot typeRoot, List<Diagnostic> diagnostics, IJDTUtils utils,
-			IProgressMonitor monitor) {
-		super(typeRoot, utils, monitor);
-		this.diagnostics = diagnostics;
+	public QuteJavaDiagnosticsCollector(QuteJavaDiagnosticsCollectorContext context, IProgressMonitor monitor) {
+		super(context, monitor);
 	}
 
 	@Override
-	protected void collectTemplateLink(String basePath, ASTNode fieldOrMethod, ASTNode locationAnnotation, AbstractTypeDeclaration type,
-			String className, String fieldOrMethodName, String location, IFile templateFile,
-			TemplatePathInfo templatePathInfo) throws JavaModelException {
+	protected void collectTemplateLink(String basePath, ASTNode fieldOrMethod, ASTNode locationAnnotation,
+			AbstractTypeDeclaration type, String className, String fieldOrMethodName, String location,
+			IFile templateFile, TemplatePathInfo templatePathInfo) throws JavaModelException {
 		QuteErrorCode error = getQuteErrorCode(templatePathInfo, templateFile);
 		if (error == null) {
 			return;
@@ -71,20 +64,20 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
 			path = path.substring(0, path.length() - (1 /* '$') */ + fragmentId.length()));
 		}
 		Range range = createRange(locationAnnotation != null ? locationAnnotation : fieldOrMethod);
-		
+
 		switch (error) {
 		case FragmentNotDefined: {
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, error, "", path);
-			this.diagnostics.add(diagnostic);
+			getContext().getDiagnostics().add(diagnostic);
 			break;
 		}
-		case NoMatchingTemplate: {			
+		case NoMatchingTemplate: {
 			ITypeBinding binding = type.resolveBinding();
 			if (binding != null) {
 				String fullQualifiedName = ((IType) binding.getJavaElement()).getFullyQualifiedName();
 				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, error, path,
 						fullQualifiedName);
-				this.diagnostics.add(diagnostic);
+				getContext().getDiagnostics().add(diagnostic);
 			}
 			break;
 		}
@@ -106,17 +99,17 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
 	}
 
 	private static String createPath(String basePath, String className, String fieldOrMethodName, String location) {
-        if (location != null) {
-            return location;
-        }
-        StringBuilder path = new StringBuilder();
-        if (basePath != null && !DEFAULTED.equals(basePath)) {
-            appendAndSlash(path, basePath);
-        } else if (className != null){
-            appendAndSlash(path, className);
-        }
-        return path.append(fieldOrMethodName).toString();
-    }
+		if (location != null) {
+			return location;
+		}
+		StringBuilder path = new StringBuilder();
+		if (basePath != null && !DEFAULTED.equals(basePath)) {
+			appendAndSlash(path, basePath);
+		} else if (className != null) {
+			appendAndSlash(path, className);
+		}
+		return path.append(fieldOrMethodName).toString();
+	}
 
 	private static Diagnostic createDiagnostic(Range range, DiagnosticSeverity severity, IQuteErrorCode errorCode,
 			Object... arguments) {
