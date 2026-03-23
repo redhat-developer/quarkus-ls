@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.project.extensions.config;
+package com.redhat.qute.commons.config;
 
 /**
  * Property config.

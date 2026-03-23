@@ -14,6 +14,7 @@
 package com.redhat.qute.jdt.template.rootpath;
 
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jdt.core.IJavaProject;
 
@@ -40,7 +41,10 @@ public interface ITemplateRootPathProvider {
 	/**
 	 * Collect template root path for the given Java project.
 	 * 
-	 * @param javaProject the Java project.
+	 * @param javaProject   the Java project.
+	 * @param sourceFolders
+	 * @param projectFolder
 	 */
-	void collectTemplateRootPaths(IJavaProject javaProject, List<TemplateRootPath> rootPaths);
+	void collectTemplateRootPaths(IJavaProject javaProject, String projectFolder, Set<String> sourceFolders,
+			List<TemplateRootPath> rootPaths);
 }

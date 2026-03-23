@@ -16,9 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.TemplateRootPath;
+import com.redhat.qute.commons.config.renarde.RenardeConfig;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
@@ -36,7 +36,7 @@ public class RenardeProject extends BaseQuteProject {
 				Collections.emptyList(), //
 				List.of(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates")), //
 				Set.of(getProjectPath(PROJECT_URI) + "/src/main/resources"), //
-				Set.of(ProjectFeature.Renarde)), projectRegistry);
+				Set.of(RenardeConfig.PROJECT_FEATURE)), projectRegistry);
 	}
 
 	@Override

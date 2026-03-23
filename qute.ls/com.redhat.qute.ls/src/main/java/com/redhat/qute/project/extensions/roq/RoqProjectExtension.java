@@ -33,7 +33,7 @@ import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
-import com.redhat.qute.commons.ProjectFeature;
+import com.redhat.qute.commons.config.roq.RoqConfig;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.injection.LanguageInjectionNode;
@@ -47,6 +47,7 @@ import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
+import com.redhat.qute.project.extensions.AbstractProjectExtension;
 import com.redhat.qute.project.extensions.CodeLensParticipant;
 import com.redhat.qute.project.extensions.DataModelTemplateParticipant;
 import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
@@ -63,58 +64,11 @@ import com.redhat.qute.utils.QutePositionUtility;
 /**
  * Qute project extension for Roq integration.
  * 
- * <p>
- * This extension enables Roq data file support in Qute templates by:
- * </p>
- * <ul>
- * <li>Discovering data files (YAML, JSON) in the configured data directory</li>
- * <li>Loading and parsing data files using appropriate loaders</li>
- * <li>Registering data files as value resolvers for template access</li>
- * <li>Watching for file changes and updating resolvers accordingly</li>
- * </ul>
- * 
- * <h3>Lifecycle:</h3>
- * <ol>
- * <li><b>init()</b> - Detects Roq projects, locates data directory</li>
- * <li><b>loadRoqDataFiles()</b> - Scans and loads all data files</li>
- * <li><b>didChangeWatchedFile()</b> - Handles file
- * changes/creation/deletion</li>
- * </ol>
- * 
- * <h3>Data File Registration:</h3>
- * <p>
- * Each data file is registered with two namespaces:
- * <ul>
- * <li>{@code cdi:} - CDI namespace for backward compatibility</li>
- * <li>{@code inject:} - Inject namespace (primary access method)</li>
- * </ul>
- * </p>
- * 
- * <h3>Example:</h3>
- * 
- * <pre>
- * data/
- * └── authors.yaml
- * 
- * Template access:
- * {inject:authors.name}  ← Primary
- * {cdi:authors.name}     ← Alternative
- * </pre>
- * 
- * <h3>Supported File Types:</h3>
- * <ul>
- * <li><b>.yaml, .yml</b> - YAML files (YamlDataLoader)</li>
- * <li><b>.json</b> - JSON files (JsonDataLoader)</li>
- * </ul>
- * 
- * @see ProjectExtension
- * @see RoqDataFile
- * @see DataLoader
+ * @see <a href="https://github.com/quarkiverse/quarkus-roq">quarkus-roq</a>
  */
-public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFilesParticipant,
-		DataModelTemplateParticipant, TemplateLanguageInjectionParticipant, CodeLensParticipant {
-
-	private static final String ROG_PROJECT_EXTENSION_ID = "roq";
+public class RoqProjectExtension extends AbstractProjectExtension
+		implements ProjectExtension, DidChangeWatchedFilesParticipant, DataModelTemplateParticipant,
+		TemplateLanguageInjectionParticipant, CodeLensParticipant {
 
 	// Data model parameter keys
 	private static final String PAGE_PARAMETER_KEY = "page";
@@ -233,9 +187,6 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	 */
 	private final Map<Path, ResolverCache> dataResolverCache;
 
-	/** Reference to the parent data model project */
-	private ExtendedDataModelProject dataModelProject;
-
 	private Set<String> availableThemes;
 
 	private String currentTheme;
@@ -244,6 +195,7 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	 * Creates a new Roq project extension.
 	 */
 	public RoqProjectExtension() {
+		super(RoqConfig.PROJECT_FEATURE);
 		this.dataResolverCache = new HashMap<>();
 		this.configuredCollections = new HashSet<>();
 		// TODO: load collections from application.propertes
@@ -279,15 +231,10 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	 * @param dataModelProject The project data model to extend
 	 */
 	@Override
-	public void init(ExtendedDataModelProject dataModelProject) {
-		this.dataModelProject = dataModelProject;
-
-		// Check if Roq is enabled for this project
-		enabled = dataModelProject.hasProjectFeature(ProjectFeature.Roq);
-
-		if (enabled) {
+	protected void doInit(ExtendedDataModelProject dataModelProject) {
+		if (isEnabled()) {
 			scanDataDir(dataModelProject);
-			contentDir = dataModelProject.getConfigAsPath(RoqConfig.ROQ_CONTENT_DIR);
+			contentDir = dataModelProject.getConfigAsPath(RoqConfig.SITE_CONTENT_DIR);
 
 			if (availableThemes == null) {
 				// Find available themes
@@ -325,7 +272,7 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	private static Set<String> findAvailableThemes(Collection<QuteTextDocument> documents) {
 		Set<String> themes = new HashSet<>();
 		for (QuteTextDocument document : documents) {
-			String theme = document.getProperty(RoqConfig.ROQ_THEME.getName());
+			String theme = document.getProperty(RoqConfig.SITE_THEME.getName());
 			if (theme != null) {
 				themes.add(theme);
 			}
@@ -491,6 +438,7 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	public boolean didChangeWatchedFile(Path filePath, Set<FileChangeType> changeTypes) {
 		// Check if the file is in our data directory
 		if (dataDir != null && filePath.startsWith(dataDir)) {
+			var dataModelProject = getDataModelProject();
 
 			if (changeTypes.contains(FileChangeType.Changed)) {
 				// File modified - reload it
@@ -528,21 +476,6 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	}
 
 	/**
-	 * Checks if this extension is enabled.
-	 * 
-	 * <p>
-	 * Returns true if the project has the Roq feature enabled, false otherwise.
-	 * When disabled, all extension methods are skipped for performance.
-	 * </p>
-	 * 
-	 * @return true if Roq is enabled for this project
-	 */
-	@Override
-	public boolean isEnabled() {
-		return enabled;
-	}
-
-	/**
 	 * Extracts the file extension from a path.
 	 * 
 	 * <h3>Examples:</h3>
@@ -575,20 +508,20 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 
 		TemplateType templateType = getTemplateType(templateUri, templatePath);
 
-		// site
+		// site : Site
 		if (dataModelTemplate.getParameter(SITE_PARAMETER_KEY) == null) {
 			DataModelParameter site = new DataModelParameter();
 			site.setKey(SITE_PARAMETER_KEY);
-			site.setSourceType("io.quarkiverse.roq.frontmatter.runtime.model.Site");
+			site.setSourceType(RoqConfig.SITE_CLASS);
 			dataModelTemplate.addParameter(new ExtendedDataModelParameter(site, dataModelTemplate));
 		}
 
-		// page
+		// page : NormalPage | DocumentPage
 		if (dataModelTemplate.getParameter(PAGE_PARAMETER_KEY) == null) {
 			DataModelParameter page = new DataModelParameter();
 			page.setKey(PAGE_PARAMETER_KEY);
-			page.setSourceType("io.quarkiverse.roq.frontmatter.runtime.model."
-					+ (templateType == TemplateType.DOCUMENT_PAGE ? "Document" : "Normal") + "Page");
+			page.setSourceType(templateType == TemplateType.DOCUMENT_PAGE ? RoqConfig.DOCUMENT_PAGE_CLASS
+					: RoqConfig.NORMAL_PAGE_CLASS);
 			dataModelTemplate.addParameter(new ExtendedDataModelParameter(page, dataModelTemplate));
 		}
 
@@ -632,6 +565,7 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	}
 
 	public void collectLayouts(Path filePath, FileCollector collector) {
+		var dataModelProject = getDataModelProject();
 
 		// 1. collect layouts from templates/layouts
 		Path projectFolder = dataModelProject.getProjectFolder();
@@ -694,6 +628,7 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 		collectFiles(imagesFolder, imagesFolder, collector, IMAGE_FILE_FILTER);
 
 		// 2. collect images from public/images
+		var dataModelProject = getDataModelProject();
 		Path projectFolder = dataModelProject.getProjectFolder();
 		if (projectFolder != null) {
 			imagesFolder = projectFolder.resolve(PUBLIC_IMAGES_FOLDER);
@@ -727,11 +662,12 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 		if (project == null) {
 			return null;
 		}
-		ProjectExtension extension = project.getExtension(ROG_PROJECT_EXTENSION_ID);
+		ProjectExtension extension = project.getExtension(RoqConfig.EXTENSION_ID);
 		return extension != null ? (RoqProjectExtension) extension : null;
 	}
 
 	public TemplatePath getLayoutPath(Path filePath, String layoutFileName) {
+		var dataModelProject = getDataModelProject();
 		if (dataModelProject != null && layoutFileName.startsWith(THEME_VAR)) {
 			for (String theme : availableThemes) {
 				String expanded = THEME_LAYOUTS_FOLDER + theme + "/" + layoutFileName.substring(THEME_VAR.length());
@@ -744,7 +680,7 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 		}
 
 		// 1. Template from source
-		TemplatePath sourcePath = getLayoutPathFromSource(layoutFileName);
+		TemplatePath sourcePath = getLayoutPathFromSource(layoutFileName, dataModelProject);
 		if ((sourcePath == null || !sourcePath.isExists()) && dataModelProject != null) {
 			// 2. template from binary
 			String binaryUri = dataModelProject.findTemplateUriByTemplateId(layoutFileName);
@@ -755,7 +691,7 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 		return sourcePath;
 	}
 
-	private TemplatePath getLayoutPathFromSource(String layoutFileName) {
+	private TemplatePath getLayoutPathFromSource(String layoutFileName, ExtendedDataModelProject dataModelProject) {
 		Path projectFolder = dataModelProject.getProjectFolder();
 
 		// 1. Collect existing templates folder (templates,
@@ -823,16 +759,20 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 		if (imageFilePath.isEmpty()) {
 			return null;
 		}
+
 		if (imageFilePath.charAt(0) == '/') {
 			imageFilePath = imageFilePath.substring(1);
 		}
+
 		// 1. Check if image exists in the folder of the given file path
 		Path imagesFolder = filePath.getParent();
 		Path imagesPath = imagesFolder.resolve(imageFilePath);
 		if (Files.exists(imagesPath)) {
 			return new TemplatePath(imagesPath, imageFilePath, true);
 		}
+
 		// 2. Check if image exists in the public.images folder
+		var dataModelProject = getDataModelProject();
 		Path projectFolder = dataModelProject.getProjectFolder();
 		imagesFolder = projectFolder.resolve(PUBLIC_IMAGES_FOLDER);
 		Path publicImagePath = imagesFolder.resolve(imageFilePath);
@@ -846,6 +786,7 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 	@Override
 	public void collectCodeLenses(Template template, SharedSettings settings, List<CodeLens> lenses,
 			CancelChecker cancelChecker) {
+		var dataModelProject = getDataModelProject();
 		if (template.isUserTag() || dataModelProject.isBinary(template) || hasYamlFrontMatter(template)) {
 			// Don't show "Insert FrontMatter" codelens when:
 			// - template is an user tag
@@ -895,8 +836,4 @@ public class RoqProjectExtension implements ProjectExtension, DidChangeWatchedFi
 		return currentTheme;
 	}
 
-	@Override
-	public String getId() {
-		return ROG_PROJECT_EXTENSION_ID;
-	}
 }

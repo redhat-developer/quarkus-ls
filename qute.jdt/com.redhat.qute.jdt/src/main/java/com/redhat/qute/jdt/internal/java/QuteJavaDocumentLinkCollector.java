@@ -12,18 +12,15 @@
 package com.redhat.qute.jdt.internal.java;
 
 import java.text.MessageFormat;
-import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.lsp4j.DocumentLink;
 import org.eclipse.lsp4j.Range;
 
-import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.TemplatePathInfo;
 
 /**
@@ -37,18 +34,15 @@ import com.redhat.qute.jdt.utils.TemplatePathInfo;
  * @author Angelo ZERR
  *
  */
-public class QuteJavaDocumentLinkCollector extends AbstractQuteTemplateLinkCollector {
+public class QuteJavaDocumentLinkCollector
+		extends AbstractQuteTemplateLinkCollector<QuteJavaDocumentLinkCollectorContext> {
 
 	private static final String QUTE_DOCUMENT_LINK_OPEN_URI_MESSAGE = "Open `{0}`";
 
 	private static final String QUTE_DOCUMENT_LINK_GENERATE_TEMPLATE_MESSAGE = "Create `{0}`";
 
-	private final List<DocumentLink> links;
-
-	public QuteJavaDocumentLinkCollector(ITypeRoot typeRoot, List<DocumentLink> links, IJDTUtils utils,
-			IProgressMonitor monitor) {
-		super(typeRoot, utils, monitor);
-		this.links = links;
+	public QuteJavaDocumentLinkCollector(QuteJavaDocumentLinkCollectorContext context, IProgressMonitor monitor) {
+		super(context, monitor);
 	}
 
 	@Override
@@ -63,7 +57,7 @@ public class QuteJavaDocumentLinkCollector extends AbstractQuteTemplateLinkColle
 		String tooltip = getTooltip(templateFile, templatePathInfo.getTemplateUri());
 		Range range = createRange(locationAnnotation != null ? locationAnnotation : fieldOrMethod);
 		DocumentLink link = new DocumentLink(range, templateUri, null, tooltip);
-		links.add(link);
+		getContext().getLinks().add(link);
 	}
 
 	private static String getTooltip(IFile templateFile, String templateFilePath) {

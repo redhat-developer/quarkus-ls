@@ -39,7 +39,7 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
-import com.redhat.qute.commons.ProjectFeature;
+import com.redhat.qute.commons.config.renarde.RenardeConfig;
 import com.redhat.qute.ls.commons.snippets.SnippetsBuilder;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
@@ -49,13 +49,13 @@ import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
+import com.redhat.qute.project.extensions.AbstractProjectExtension;
 import com.redhat.qute.project.extensions.CompletionParticipant;
 import com.redhat.qute.project.extensions.DefinitionParticipant;
 import com.redhat.qute.project.extensions.DiagnosticsParticipant;
 import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
 import com.redhat.qute.project.extensions.HoverParticipant;
 import com.redhat.qute.project.extensions.InlayHintParticipant;
-import com.redhat.qute.project.extensions.ProjectExtension;
 import com.redhat.qute.project.extensions.renarde.MessagesFileInfo.MessagesFileName;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.services.completions.CompletionRequest;
@@ -93,31 +93,29 @@ import com.redhat.qute.utils.QutePositionUtility;
  * 
  * @author Angelo ZERR
  */
-public class RenardeProjectExtension implements ProjectExtension, CompletionParticipant, DefinitionParticipant,
-		DiagnosticsParticipant, DidChangeWatchedFilesParticipant, HoverParticipant, InlayHintParticipant {
-
-	private static final String RENARDE_PROJECT_EXTENSION_ID = "renarde";
+public class RenardeProjectExtension extends AbstractProjectExtension
+		implements CompletionParticipant, DefinitionParticipant, DiagnosticsParticipant,
+		DidChangeWatchedFilesParticipant, HoverParticipant, InlayHintParticipant {
 
 	private static final String M_NAMESPACE_NAME = "m";
 	private static final String M_NAMESPACE = "m:";
 
 	private static final Logger LOGGER = Logger.getLogger(RenardeProjectExtension.class.getName());
 
-	private boolean enabled;
 	private final List<MessagesFileInfo> messagesFileInfos;
 	private Set<Path> sourcePaths;
 
 	public RenardeProjectExtension() {
+		super(RenardeConfig.PROJECT_FEATURE);
 		this.messagesFileInfos = new ArrayList<>();
 	}
 
 	@Override
-	public void init(ExtendedDataModelProject dataModelProject) {
+	protected void doInit(ExtendedDataModelProject dataModelProject) {
 		// Check if the m: namespace resolver exists in the project
-		enabled = dataModelProject.hasProjectFeature(ProjectFeature.Renarde);
 		sourcePaths = dataModelProject.getSourcePaths();
 
-		if (!enabled) {
+		if (!isEnabled()) {
 			messagesFileInfos.clear();
 			return;
 		}
@@ -161,11 +159,6 @@ public class RenardeProjectExtension implements ProjectExtension, CompletionPart
 				LOGGER.log(Level.SEVERE, "Error loading messages file: " + filePath, e);
 			}
 		}
-	}
-
-	@Override
-	public boolean isEnabled() {
-		return enabled;
 	}
 
 	/**
@@ -583,8 +576,4 @@ public class RenardeProjectExtension implements ProjectExtension, CompletionPart
 		return count;
 	}
 
-	@Override
-	public String getId() {
-		return RENARDE_PROJECT_EXTENSION_ID;
-	}
 }

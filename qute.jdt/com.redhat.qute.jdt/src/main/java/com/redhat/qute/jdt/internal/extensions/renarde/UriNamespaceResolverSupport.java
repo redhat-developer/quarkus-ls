@@ -11,8 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.jdt.internal.extensions.renarde;
 
+import static com.redhat.qute.commons.config.renarde.RenardeConfig.RENARDE_CONTROLLER_TYPE;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.JAVA_LANG_OBJECT_TYPE;
-import static com.redhat.qute.jdt.internal.extensions.renarde.RenardeJavaConstants.RENARDE_CONTROLLER_TYPE;
 import static com.redhat.qute.jdt.internal.extensions.renarde.RenardeUtils.isRenardeProject;
 
 import java.util.List;

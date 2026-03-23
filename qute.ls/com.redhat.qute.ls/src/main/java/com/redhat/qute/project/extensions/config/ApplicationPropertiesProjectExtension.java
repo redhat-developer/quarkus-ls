@@ -16,33 +16,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.redhat.qute.commons.config.PropertyConfig;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
-import com.redhat.qute.project.extensions.ProjectExtension;
+import com.redhat.qute.project.extensions.AbstractProjectExtension;
 
 /**
  * Application properties project extension.
  */
-public class ApplicationPropertiesProjectExtension implements ProjectExtension {
+public class ApplicationPropertiesProjectExtension extends AbstractProjectExtension {
 
 	public static final String APPLICATION_PROPERTIES_PROJECT_EXTENSION_ID = "application-properties";
 
 	private List<PropertiesFile> propertiesFiles;
 
-	private ExtendedDataModelProject project;
-
-	@Override
-	public void init(ExtendedDataModelProject project) {
-		this.project = project;
+	public ApplicationPropertiesProjectExtension() {
+		super(APPLICATION_PROPERTIES_PROJECT_EXTENSION_ID);
 	}
 
 	@Override
-	public boolean isEnabled() {
-		return true;
-	}
+	protected void doInit(ExtendedDataModelProject dataModelProject) {
 
-	@Override
-	public String getId() {
-		return APPLICATION_PROPERTIES_PROJECT_EXTENSION_ID;
 	}
 
 	public String getConfig(PropertyConfig property) {
@@ -59,7 +52,8 @@ public class ApplicationPropertiesProjectExtension implements ProjectExtension {
 	}
 
 	private void initFilesIfNeeded() {
-		if (project == null) {
+		var dataModelProject = getDataModelProject();
+		if (dataModelProject == null) {
 			return;
 		}
 		if (propertiesFiles == null) {
@@ -67,13 +61,13 @@ public class ApplicationPropertiesProjectExtension implements ProjectExtension {
 		}
 
 		// config/application.properties
-		Path projectFolder = project.getProjectFolder();
+		Path projectFolder = dataModelProject.getProjectFolder();
 		if (projectFolder != null) {
 			propertiesFiles.add(new PropertiesFile(projectFolder.resolve("config/application-properties")));
 		}
-		
+
 		// src/main/resources/application.properties
-		Set<Path> sourcePaths = project.getSourcePaths();
+		Set<Path> sourcePaths = dataModelProject.getSourcePaths();
 		if (sourcePaths != null && !sourcePaths.isEmpty()) {
 			for (Path sourcePath : sourcePaths) {
 				propertiesFiles.add(new PropertiesFile(sourcePath.resolve("application-properties")));

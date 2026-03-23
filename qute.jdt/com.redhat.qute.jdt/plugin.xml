@@ -117,6 +117,10 @@
    
    <!-- =========== Web Bundler extension =========== -->
    
+   <extension point="com.redhat.qute.jdt.projectFeatureProviders">
+      <provider class="com.redhat.qute.jdt.internal.extensions.webbundler.WebBundlerProjectFeatureProvider" />
+   </extension>
+   
    <!-- Template root path providers for Web Bundler (src/main/resources/web/templates/) -->
    <extension point="com.redhat.qute.jdt.templateRootPathProviders">
       <provider class="com.redhat.qute.jdt.internal.extensions.webbundler.WebBundlerTemplateRootPathProvider" />

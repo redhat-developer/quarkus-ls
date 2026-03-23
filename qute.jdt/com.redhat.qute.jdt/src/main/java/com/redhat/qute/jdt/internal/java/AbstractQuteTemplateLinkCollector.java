@@ -80,15 +80,13 @@ import com.redhat.qute.jdt.utils.TemplatePathInfo;
  * @author Angelo ZERR
  *
  */
-public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
+public abstract class AbstractQuteTemplateLinkCollector<T extends QuteTemplateLinkCollectorContext> extends ASTVisitor {
 
 	private static final Logger LOGGER = Logger.getLogger(AbstractQuteTemplateLinkCollector.class.getName());
 
 	private static String[] DEFAULT_SUFFIXES = { ".html", ".qute.html", ".qute.json", ".qute.txt", ".qute.yaml",
 			".json", ".txt", ".yaml" };
 
-	protected final ITypeRoot typeRoot;
-	protected final IJDTUtils utils;
 	protected final IProgressMonitor monitor;
 
 	private int levelTypeDecl;
@@ -99,9 +97,14 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 
 	private final String[] suffixes;
 
-	public AbstractQuteTemplateLinkCollector(ITypeRoot typeRoot, IJDTUtils utils, IProgressMonitor monitor) {
-		this.typeRoot = typeRoot;
-		this.utils = utils;
+	private final T context;
+	protected final ITypeRoot typeRoot;
+	protected final IJDTUtils utils;
+
+	public AbstractQuteTemplateLinkCollector(T context, IProgressMonitor monitor) {
+		this.context = context;
+		this.typeRoot = context.getTypeRoot();
+		this.utils = context.getUtils();
 		this.monitor = monitor;
 		this.levelTypeDecl = 0;
 		IJavaProject javaProject = typeRoot.getJavaProject();
@@ -427,11 +430,12 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 		try {
 			String location = locationAnnotation != null ? locationAnnotation.getLiteralValue() : null;
 			IProject project = typeRoot.getJavaProject().getProject();
+			String relativeSourceFolder = context.getRelativeResourcesFolder();
 			TemplatePathInfo templatePathInfo = location != null
 					? JDTQuteProjectUtils.getTemplatePath(basePath, null, location, ignoreFragment,
-							templateNameStrategy)
+							templateNameStrategy, relativeSourceFolder)
 					: JDTQuteProjectUtils.getTemplatePath(basePath, className, fieldOrMethodName, ignoreFragment,
-							templateNameStrategy);
+							templateNameStrategy, relativeSourceFolder);
 			IFile templateFile = null;
 			if (location == null) {
 				templateFile = getTemplateFile(project, templatePathInfo.getTemplateUri());
@@ -506,5 +510,9 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 			return false;
 		}
 		return TEMPLATE_CLASS.equals(binding.getQualifiedName());
+	}
+
+	public T getContext() {
+		return context;
 	}
 }

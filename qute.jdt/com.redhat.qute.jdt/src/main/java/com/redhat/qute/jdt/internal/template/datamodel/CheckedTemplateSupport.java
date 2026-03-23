@@ -23,6 +23,7 @@ import static com.redhat.qute.jdt.utils.JDTTypeUtils.isStaticMember;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -97,7 +98,8 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 			String basePath = getBasePath(checkedTemplateAnnotation);
 			TemplateNameStrategy templateNameStrategy = getDefaultName(checkedTemplateAnnotation);
 			collectDataModelTemplateForCheckedTemplate(type, basePath, ignoreFragments, templateNameStrategy,
-					context.getTypeResolver(type), context.getDataModelProject().getTemplates(), monitor);
+					context.getTypeResolver(type), context.getDataModelProject().getTemplates(),
+					context.getRelativeResourcesFolder(), monitor);
 		}
 	}
 
@@ -204,7 +206,8 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 	 */
 	private static void collectDataModelTemplateForCheckedTemplate(IType type, String basePath, boolean ignoreFragments,
 			TemplateNameStrategy templateNameStrategy, ITypeResolver typeResolver,
-			List<DataModelTemplate<DataModelParameter>> templates, IProgressMonitor monitor) throws JavaModelException {
+			List<DataModelTemplate<DataModelParameter>> templates, String relativeSourceFolder,
+			IProgressMonitor monitor) throws JavaModelException {
 		String className = getParentClassName(type);
 
 		// Loop for each methods (book, book) and create a template data model per
@@ -214,7 +217,7 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 			if (isCheckedTemplateMethod(method)) {
 				// src/main/resources/templates/${className}/${methodName}.qute.html
 				TemplatePathInfo templatePathInfo = getTemplatePath(basePath, className, method.getElementName(),
-						ignoreFragments, templateNameStrategy);
+						ignoreFragments, templateNameStrategy, relativeSourceFolder);
 
 				// Get or create template
 				String templateUri = templatePathInfo.getTemplateUri();

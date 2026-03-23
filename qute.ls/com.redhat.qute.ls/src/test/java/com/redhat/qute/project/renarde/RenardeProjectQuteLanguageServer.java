@@ -1,14 +1,25 @@
+/*******************************************************************************
+* Copyright (c) 2026 Red Hat Inc. and others.
+* All rights reserved. This program and the accompanying materials
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v20.html
+*
+* SPDX-License-Identifier: EPL-2.0
+*
+* Contributors:
+*     Red Hat Inc. - initial API and implementation
+*******************************************************************************/
 package com.redhat.qute.project.renarde;
 
 import java.util.Set;
 
-import com.redhat.qute.commons.ProjectFeature;
+import com.redhat.qute.commons.config.renarde.RenardeConfig;
 import com.redhat.qute.project.MockProjectQuteLanguageServer;
 
 public class RenardeProjectQuteLanguageServer extends MockProjectQuteLanguageServer {
 
 	public RenardeProjectQuteLanguageServer() {
-		super(RenardeProject.PROJECT_URI, Set.of(ProjectFeature.Renarde));
+		super(RenardeProject.PROJECT_URI, Set.of(RenardeConfig.PROJECT_FEATURE));
 	}
 
 }
