@@ -173,6 +173,15 @@ class QuteDefinition {
 									List<Parameter> parameters = project.findInsertTagParameter(includeSection,
 											tagName);
 									originRange = fillWithInsertParameters(section, parameters, originRange, locations);
+								} else if (parentSection.getSectionKind() == SectionKind.CUSTOM) {
+									String parentTagName = parentSection.getTag();
+									UserTag parentUserTag = project.findUserTag(parentTagName);
+									if (parentUserTag != null) {
+										List<Parameter> parameters = project.findInsertTagParameter(parentUserTag,
+												tagName);
+										originRange = fillWithInsertParameters(section, parameters, originRange,
+												locations);
+									}
 								}
 							}
 							parent = parent.getParent();

@@ -44,6 +44,7 @@ import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.documents.SearchInfoQuery;
+import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.usages.IncludeUsages;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.snippets.AbstractQuteSnippetContext;
@@ -162,6 +163,14 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 					List<Parameter> parameters = project.findInsertTagParameter(includeSection, SearchInfoQuery.ALL);
 					fillWithInsertParameters(parameters, completionRequest, replaceRange, prefixFilter,
 							whitespacesIndent, defaultInsertTextMode, completionItems);
+				} else if (parentSection.getSectionKind() == SectionKind.CUSTOM) {
+					String parentTagName = parentSection.getTag();
+					UserTag parentUserTag = project.findUserTag(parentTagName);
+					if (parentUserTag != null) {
+						List<Parameter> parameters = project.findInsertTagParameter(parentUserTag, SearchInfoQuery.ALL);
+						fillWithInsertParameters(parameters, completionRequest, replaceRange, prefixFilter,
+								whitespacesIndent, defaultInsertTextMode, completionItems);
+					}
 				}
 			}
 			parent = parent.getParent();

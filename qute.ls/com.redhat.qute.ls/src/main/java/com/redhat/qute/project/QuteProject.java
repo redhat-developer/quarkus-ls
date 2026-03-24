@@ -509,6 +509,11 @@ public class QuteProject {
 		return findInsertTagParameter(templateId, insertParamater);
 	}
 
+	public List<Parameter> findInsertTagParameter(UserTag parentUserTag, String insertParamater) {
+		String templateId = parentUserTag.getTemplateId();
+		return findInsertTagParameter(templateId, insertParamater);
+	}
+
 	public List<Parameter> findInsertTagParameter(String templateId, String insertParamater) {
 		QuteTextDocument document = findDocumentByTemplateId(templateId);
 		if (document != null) {

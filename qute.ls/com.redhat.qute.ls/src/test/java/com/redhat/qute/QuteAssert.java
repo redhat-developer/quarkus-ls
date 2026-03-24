@@ -408,6 +408,7 @@ public class QuteAssert {
 		Template template = createTemplate(value, p.getFileUri(), p.getProjectUri(), p.getTemplateBaseDir(),
 				p.getInjectionDetectors(), projectRegistry);
 		template.setTemplateId(p.getTemplateId());
+		onDidOpenTextDocument(p.getTemplateId(), p.getProjectUri(), projectRegistry, template);
 
 		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 		List<Diagnostic> actual = languageService.doDiagnostics(template, p.getValidationSettings(),
@@ -954,7 +955,7 @@ public class QuteAssert {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
 		onDidOpenTextDocument(templateId, projectUri, projectRegistry, template);
-		
+
 		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 
 		Position position = template.positionAt(offset);
