@@ -50,6 +50,7 @@ import com.redhat.qute.project.multiple.QuteProjectB;
 import com.redhat.qute.project.qute_web.QuteWebProject;
 import com.redhat.qute.project.renarde.RenardeProject;
 import com.redhat.qute.project.roq.RoqProject;
+import com.redhat.qute.project.web_bundler.WebBundlerProject;
 
 public class MockQuteProjectRegistry extends QuteProjectRegistry {
 
@@ -95,6 +96,9 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 		}
 		if (RenardeProject.PROJECT_URI.equals(projectInfo.getUri())) {
 			return new RenardeProject(this);
+		}
+		if (WebBundlerProject.PROJECT_URI.equals(projectInfo.getUri())) {
+			return new WebBundlerProject(this);
 		}
 		return super.createProject(projectInfo);
 	}

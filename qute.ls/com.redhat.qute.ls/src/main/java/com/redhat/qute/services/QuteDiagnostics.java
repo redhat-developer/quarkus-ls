@@ -476,6 +476,16 @@ class QuteDiagnostics {
 								// The parameter exists
 								return;
 							}
+						} else if (parentSection.getSectionKind() == SectionKind.CUSTOM) {
+							String parentTagName = parentSection.getTag();
+							UserTag parentUserTag = project.findUserTag(parentTagName);
+							if (parentUserTag != null) {
+								List<Parameter> parameters = project.findInsertTagParameter(parentUserTag, tagName);
+								if (parameters != null && !parameters.isEmpty()) {
+									// The parameter exists
+									return;
+								}
+							}
 						}
 					}
 					parent = parent.getParent();

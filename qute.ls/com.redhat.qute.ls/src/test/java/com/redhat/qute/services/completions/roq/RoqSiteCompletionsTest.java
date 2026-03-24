@@ -76,7 +76,7 @@ public class RoqSiteCompletionsTest {
 				c("url(path : Object, others : Object...) : RoqUrl", "url(path, others)", r(0, 6, 0, 6)), //
 				c("title() : String", "title", r(0, 6, 0, 6)));
 	}
-	
+
 	@Test
 	public void site_collections() throws Exception {
 		String template = "{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\r\n" + //
@@ -125,12 +125,9 @@ public class RoqSiteCompletionsTest {
 				c("data : JsonObject", "data", r(2, 10, 2, 10)));
 	}
 
-	public static void testCompletionFor(String value,
-			CompletionItem... expectedItems) throws Exception {
+	private static void testCompletionFor(String value, CompletionItem... expectedItems) throws Exception {
 		QuteAssert.testCompletionFor(value, false, QuteAssert.FILE_URI, null, RoqProject.PROJECT_URI,
-				QuteAssert.TEMPLATE_BASE_DIR,
-				null,
-				expectedItems);
+				QuteAssert.TEMPLATE_BASE_DIR, null, expectedItems);
 	}
 
 }
