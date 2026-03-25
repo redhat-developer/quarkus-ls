@@ -167,22 +167,10 @@ class QuteDefinition {
 						Node parent = section.getParent();
 						while (parent != null) {
 							if (parent.getKind() == NodeKind.Section) {
+								// Try to collect parameters from parent user tag / include section
 								Section parentSection = (Section) parent;
-								if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
-									IncludeSection includeSection = (IncludeSection) parentSection;
-									List<Parameter> parameters = project.findInsertTagParameter(includeSection,
-											tagName);
-									originRange = fillWithInsertParameters(section, parameters, originRange, locations);
-								} else if (parentSection.getSectionKind() == SectionKind.CUSTOM) {
-									String parentTagName = parentSection.getTag();
-									UserTag parentUserTag = project.findUserTag(parentTagName);
-									if (parentUserTag != null) {
-										List<Parameter> parameters = project.findInsertTagParameter(parentUserTag,
-												tagName);
-										originRange = fillWithInsertParameters(section, parameters, originRange,
-												locations);
-									}
-								}
+								List<Parameter> parameters = project.findInsertTagParameter(parentSection, tagName);
+								originRange = fillWithInsertParameters(section, parameters, originRange, locations);
 							}
 							parent = parent.getParent();
 						}

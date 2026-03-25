@@ -68,6 +68,7 @@ import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
+import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateConfiguration;
 import com.redhat.qute.parser.template.sections.CustomSection;
@@ -491,6 +492,22 @@ public class QuteProject {
 		return projectDependencies;
 	}
 
+	public List<Parameter> findInsertTagParameter(Section section, String insertParamater) {
+		if (section.getSectionKind() == SectionKind.INCLUDE) {
+			// {#include
+			IncludeSection includeSection = (IncludeSection) section;
+			return findInsertTagParameter(includeSection, insertParamater);
+		} else if (section.getSectionKind() == SectionKind.CUSTOM) {
+			// {#myTag
+			String parentTagName = section.getTag();
+			UserTag parentUserTag = findUserTag(parentTagName);
+			if (parentUserTag != null) {
+				return findInsertTagParameter(parentUserTag, insertParamater);
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * Returns the insert parameter list with the given name
 	 * <code>insertParamater</code> ({#insert name}) declared in the template
@@ -826,10 +843,18 @@ public class QuteProject {
 		if (StringUtils.isEmpty(tagName)) {
 			return null;
 		}
+		// Try to find user tag from the project.
+
 		// binary + Source tags
 		Collection<UserTag> tags = getUserTags();
 		for (UserTag userTag : tags) {
 			if (tagName.equals(userTag.getName())) {
+				return userTag;
+			}
+		}
+		for (QuteProject projectDependency : getProjectDependencies()) {
+			UserTag userTag = projectDependency.findUserTag(tagName);
+			if (userTag != null) {
 				return userTag;
 			}
 		}

@@ -30,7 +30,7 @@ import java.util.Set;
  * 
  * @author Angelo ZERR
  */
-public class MessagesFileInfo {
+public class MessagesFileInfo implements Comparable<MessagesFileInfo> {
 
 	public static class MessagesFileName {
 
@@ -162,6 +162,21 @@ public class MessagesFileInfo {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public int compareTo(MessagesFileInfo other) {
+		// Default file (no locale) always comes first
+		if (this.isDefaultFile() && !other.isDefaultFile()) {
+			return -1;
+		}
+		if (!this.isDefaultFile() && other.isDefaultFile()) {
+			return 1;
+		}
+		// Then sort alphabetically by locale
+		String thisLocale = this.getLocale() != null ? this.getLocale() : "";
+		String otherLocale = other.getLocale() != null ? other.getLocale() : "";
+		return thisLocale.compareTo(otherLocale);
 	}
 
 }
