@@ -1,36 +1,73 @@
 /*******************************************************************************
-* Copyright (c) 2021 Red Hat Inc. and others.
-* All rights reserved. This program and the accompanying materials
-* which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v20.html
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Contributors:
-*     Red Hat Inc. - initial API and implementation
-*******************************************************************************/
+ * Copyright (c) 2021 Red Hat Inc. and others.
+ * All rights reserved. This program and the accompanying materials
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v20.html
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     Red Hat Inc. - initial API and implementation
+ *******************************************************************************/
 package com.redhat.qute.parser.scanner;
 
 /**
- * Abstract scanner.
- * 
- * @author Angelo ZERR
+ * Abstract base implementation of {@link Scanner}.
  *
- * @param <T>
- * @param <S>
+ * <p>
+ * This class provides common infrastructure for scanners that tokenize input
+ * text into high-level structural tokens.
+ * </p>
+ *
+ * <p>
+ * It manages:
+ * <ul>
+ * <li>input navigation through a {@link MultiLineStream}</li>
+ * <li>token offsets, lengths and text extraction</li>
+ * <li>scanner state handling</li>
+ * <li>fault-tolerant behavior when a scanner implementation does not advance
+ * the input</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * Concrete implementations must implement {@link #internalScan()} to detect
+ * tokens and advance the input stream accordingly.
+ * </p>
+ *
+ * <p>
+ * This base class guarantees that each call to {@link #scan()} always makes
+ * progress unless the end-of-stream token is reached. If an implementation
+ * fails to advance the input, the scanner automatically consumes one character
+ * and returns an {@code unknown} token.
+ * </p>
+ *
+ * @param <T> token type enum
+ * @param <S> scanner state enum
  */
 public abstract class AbstractScanner<T, S> implements Scanner<T, S> {
 
+	/**
+	 * Stream used to navigate through the input text.
+	 */
 	protected final MultiLineStream stream;
 
-	private final T unknownTokenType;
+	/**
+	 * Token type used when an unexpected or invalid token is encountered.
+	 */
+	protected final T unknownTokenType;
 
-	private final T eosTokenType;
+	/**
+	 * Token type representing end of stream.
+	 */
+	protected final T eosTokenType;
 
+	/**
+	 * Current scanner state.
+	 */
 	protected S state;
 
 	private int tokenOffset;
-
 	private T tokenType;
 	private String tokenError;
 
@@ -40,21 +77,38 @@ public abstract class AbstractScanner<T, S> implements Scanner<T, S> {
 
 	protected AbstractScanner(String input, int initialOffset, int endOffset, S initialState, T unknownTokenType,
 			T eosTokenType) {
-		stream = new MultiLineStream(input, initialOffset, endOffset);
+		this.stream = new MultiLineStream(input, initialOffset, endOffset);
 		this.unknownTokenType = unknownTokenType;
 		this.eosTokenType = eosTokenType;
-		state = initialState;
-		tokenOffset = 0;
-		tokenType = unknownTokenType;
+		this.state = initialState;
+		this.tokenOffset = 0;
+		this.tokenType = unknownTokenType;
 	}
 
+	/**
+	 * Advances to the next token and returns its type.
+	 *
+	 * <p>
+	 * This method delegates token detection to {@link #internalScan()}.
+	 * </p>
+	 *
+	 * <p>
+	 * To ensure fault tolerance, if the scanner implementation does not advance the
+	 * input stream and the end-of-stream token has not been reached, this method
+	 * automatically consumes one character and returns an {@code unknown} token.
+	 * </p>
+	 *
+	 * @return the type of the scanned token
+	 */
 	@Override
-	public T scan() {
+	public final T scan() {
 		int offset = stream.pos();
 		S oldState = state;
+
 		T token = internalScan();
+
 		if (token != eosTokenType && offset == stream.pos()) {
-			log("Scanner.scan has not advanced at offset " + offset + ", state before: " + oldState + " after: "
+			log("Scanner.scan has not advanced at offset " + offset + ", state before: " + oldState + ", after: "
 					+ state);
 			stream.advance(1);
 			return finishToken(offset, unknownTokenType);
@@ -62,16 +116,46 @@ public abstract class AbstractScanner<T, S> implements Scanner<T, S> {
 		return token;
 	}
 
+	/**
+	 * Performs the actual scanning logic.
+	 *
+	 * <p>
+	 * Implementations are responsible for:
+	 * <ul>
+	 * <li>analyzing the input at the current stream position</li>
+	 * <li>advancing the stream as needed</li>
+	 * <li>calling {@link #finishToken(int, Object)} or
+	 * {@link #finishToken(int, Object, String)}</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @return the type of the detected token
+	 */
 	protected abstract T internalScan();
 
+	/**
+	 * Finalizes the current token.
+	 *
+	 * @param offset token starting offset
+	 * @param type   token type
+	 * @return the token type
+	 */
 	protected T finishToken(int offset, T type) {
 		return finishToken(offset, type, null);
 	}
 
+	/**
+	 * Finalizes the current token with an optional error message.
+	 *
+	 * @param offset       token starting offset
+	 * @param type         token type
+	 * @param errorMessage error message associated with the token, or {@code null}
+	 * @return the token type
+	 */
 	protected T finishToken(int offset, T type, String errorMessage) {
-		tokenType = type;
-		tokenOffset = offset;
-		tokenError = errorMessage;
+		this.tokenType = type;
+		this.tokenOffset = offset;
+		this.tokenError = errorMessage;
 		return type;
 	}
 
@@ -80,11 +164,6 @@ public abstract class AbstractScanner<T, S> implements Scanner<T, S> {
 		return tokenType;
 	}
 
-	/**
-	 * Starting offset position of the current token
-	 * 
-	 * @return Starting offset position of the current token
-	 */
 	@Override
 	public int getTokenOffset() {
 		return tokenOffset;
@@ -96,11 +175,6 @@ public abstract class AbstractScanner<T, S> implements Scanner<T, S> {
 	}
 
 	@Override
-	/**
-	 * Ending offset position of the current token
-	 * 
-	 * @return Ending offset position of the current token
-	 */
 	public int getTokenEnd() {
 		return stream.pos();
 	}

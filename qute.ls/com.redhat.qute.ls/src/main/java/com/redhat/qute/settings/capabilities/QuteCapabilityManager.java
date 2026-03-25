@@ -107,7 +107,7 @@ public class QuteCapabilityManager {
 		if (this.getClientCapabilities().isCompletionDynamicRegistrationSupported()) {
 			// Completion is only available for Qute templates
 			CompletionRegistrationOptions options = new CompletionRegistrationOptions(
-					Arrays.asList("{", "@", "#", ".", ":", "$", "!"), false);
+					Arrays.asList("{", "@", "#", ".", ":", "$", "!", "-"), false);
 			registerCapability(COMPLETION_ID, TEXT_DOCUMENT_COMPLETION, options, QuteLanguageIds.QUTE_ALL);
 		}
 		if (this.getClientCapabilities().isDefinitionDynamicRegistered()) {

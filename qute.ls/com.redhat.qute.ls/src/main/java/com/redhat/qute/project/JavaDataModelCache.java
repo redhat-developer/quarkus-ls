@@ -12,9 +12,9 @@
 package com.redhat.qute.project;
 
 import static com.redhat.qute.parser.template.LiteralSupport.getPrimitiveObjectType;
-import static com.redhat.qute.services.QuteCompletableFutures.NOT_ITERABLE_JAVA_TYPE;
 import static com.redhat.qute.services.QuteCompletableFutures.RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 import static com.redhat.qute.services.QuteCompletableFutures.RESOLVED_JAVA_TYPE_NOT_ITERABLE_FUTURE;
+import static com.redhat.qute.utils.FutureUtils.isFutureLoaded;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,6 +46,7 @@ import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
+import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.utils.StringUtils;
 
 /**
@@ -176,14 +177,14 @@ public class JavaDataModelCache {
 	}
 
 	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String javaTypeName,
-			JavaTypeInfoProvider javaTypeInfo,
-			Set<String> visited) {
+			JavaTypeInfoProvider javaTypeInfo, Set<String> visited) {
 
 		if (StringUtils.isEmpty(javaTypeName)) {
 			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 		}
 		if (visited.contains(javaTypeName)) {
-			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+			CompletableFuture<ResolvedJavaTypeInfo> result = getValidResolvedJavaTypeInCache(javaTypeName);
+			return result != null ? result : RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 		}
 		visited.add(javaTypeName);
 
@@ -226,7 +227,8 @@ public class JavaDataModelCache {
 
 								final ResolvedJavaTypeInfo resolvedJavaTypeWithLoadedDeps = resolvedJavaType;
 								// Load extended Java types
-								if (resolvedJavaType.getExtendedTypes() != null) {
+								if (resolvedJavaType.getExtendedTypes() != null
+										&& !resolvedJavaType.getExtendedTypes().isEmpty()) {
 									Set<CompletableFuture<ResolvedJavaTypeInfo>> resolvingExtendedFutures = new HashSet<>();
 									for (String extendedType : resolvedJavaType.getExtendedTypes()) {
 										resolvingExtendedFutures
@@ -238,8 +240,7 @@ public class JavaDataModelCache {
 														new CompletableFuture[resolvingExtendedFutures.size()]));
 										return allFutures //
 												.thenApply(all -> {
-													updateIterableAndWrappedObject(
-															resolvedJavaTypeWithLoadedDeps,
+													updateIterableAndWrappedObject(resolvedJavaTypeWithLoadedDeps,
 															resolvingExtendedFutures);
 													return resolvedJavaTypeWithLoadedDeps;
 												});
@@ -279,11 +280,8 @@ public class JavaDataModelCache {
 
 	private void updateIterableAndWrappedObject(final ResolvedJavaTypeInfo resolvedJavaType,
 			Set<CompletableFuture<ResolvedJavaTypeInfo>> resolvingExtendedFutures) {
-		Set<ResolvedJavaTypeInfo> extendedTypes = resolvingExtendedFutures
-				.stream()
-				.map(r -> r.getNow(null))
-				.filter(r -> r != null)
-				.collect(Collectors.toSet());
+		Set<ResolvedJavaTypeInfo> extendedTypes = resolvingExtendedFutures.stream().map(r -> r.getNow(null))
+				.filter(r -> r != null).collect(Collectors.toSet());
 		updateIterableAndWrappedObjectSync(resolvedJavaType, extendedTypes);
 	}
 
@@ -351,7 +349,7 @@ public class JavaDataModelCache {
 		}
 
 		CompletableFuture<ResolvedJavaTypeInfo> future = project.getResolvedJavaType(javaTypeName);
-		if (future == null || future.isCancelled() || future.isCompletedExceptionally()) {
+		if (!isFutureLoaded(future)) {
 			return null;
 		}
 		return future;
@@ -362,32 +360,35 @@ public class JavaDataModelCache {
 		for (int i = 0; i < partIndex + 1; i++) {
 			Part current = (parts.getChild(i));
 			switch (current.getPartKind()) {
-				case Object:
-					ObjectPart objectPart = (ObjectPart) current;
-					future = resolveJavaType(objectPart);
-					future = wrapGeneric(wrapObject(future));
-					break;
-				case Property:
-				case Method:
-					if (future == null && current.getPartKind() == PartKind.Method) {
-						future = resolveJavaType((MethodPart) current);
-					} else if (future != null) {
-						ResolvedJavaTypeInfo actualResolvedType = future.getNow(null);
-						if (actualResolvedType != null) {
-							future = resolveJavaType(current, actualResolvedType);
-						} else {
-							future = future //
-									.thenCompose(resolvedType -> {
-										if (resolvedType == null) {
-											return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
-										}
-										return resolveJavaType(current, resolvedType);
-									});
+			case Object:
+				ObjectPart objectPart = (ObjectPart) current;
+				future = resolveJavaType(objectPart);
+				future = wrapGeneric(wrapObject(future));
+				break;
+			case Property:
+			case Method:
+				if (future == null && current.getPartKind() == PartKind.Method) {
+					future = resolveJavaType((MethodPart) current);
+				} else if (future != null) {
+					ResolvedJavaTypeInfo actualResolvedType = future.getNow(null);
+					if (actualResolvedType != null) {
+						if (QuteCompletableFutures.isNotIterableType(actualResolvedType)) {
+							return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 						}
+						future = resolveJavaType(current, actualResolvedType);
+					} else {
+						future = future //
+								.thenCompose(resolvedType -> {
+									if (resolvedType == null) {
+										return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+									}
+									return resolveJavaType(current, resolvedType);
+								});
 					}
-					future = wrapGeneric(wrapObject(future));
-					break;
-				default:
+				}
+				future = wrapGeneric(wrapObject(future));
+				break;
+			default:
 			}
 		}
 		return future != null ? future : RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
@@ -406,10 +407,8 @@ public class JavaDataModelCache {
 
 	private CompletableFuture<ResolvedJavaTypeInfo> wrapGeneric(ResolvedJavaTypeInfo resolvedJavaType,
 			CompletableFuture<ResolvedJavaTypeInfo> defaultFuture) {
-		if (resolvedJavaType != null
-				&& resolvedJavaType != NOT_ITERABLE_JAVA_TYPE
-				&& !(resolvedJavaType instanceof ResolvedGenericJavaTypeInfo)
-				&& resolvedJavaType.isGenericType()) {
+		if (resolvedJavaType != null && !QuteCompletableFutures.isNotIterableType(resolvedJavaType)
+				&& !(resolvedJavaType instanceof ResolvedGenericJavaTypeInfo) && resolvedJavaType.isGenericType()) {
 			// Here resolvedJavaType is java.util.List<E>
 			// we need to return java.util.List<java.lang.Object>
 			String key = resolvedJavaType.getName() + "@generic";
@@ -446,7 +445,7 @@ public class JavaDataModelCache {
 
 	CompletableFuture<ResolvedJavaTypeInfo> wrapObject(ResolvedJavaTypeInfo resolvedJavaType,
 			CompletableFuture<ResolvedJavaTypeInfo> future) {
-		if (resolvedJavaType != null && resolvedJavaType != NOT_ITERABLE_JAVA_TYPE
+		if (resolvedJavaType != null && !QuteCompletableFutures.isNotIterableType(resolvedJavaType)
 				&& resolvedJavaType.isWrapperType()) {
 			List<JavaParameterInfo> types = resolvedJavaType.getTypeParameters();
 			if (types != null && !types.isEmpty()) {
@@ -462,11 +461,13 @@ public class JavaDataModelCache {
 		return future;
 	}
 
-	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Part part,
-			ResolvedJavaTypeInfo resolvedType) {
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Part part, ResolvedJavaTypeInfo resolvedType) {
 		JavaMemberInfo member = project.findMember(resolvedType, part.getPartName());
 		if (member == null) {
 			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+		}
+		if (member.isTypeResolved()) {
+			return CompletableFuture.completedFuture(member.getResolvedType());
 		}
 		String memberType = member.resolveJavaElementType(resolvedType);
 		return resolveJavaType(memberType);
@@ -489,6 +490,9 @@ public class JavaDataModelCache {
 		JavaTypeInfoProvider javaTypeInfo = objectPart.resolveJavaType();
 		if (javaTypeInfo == null) {
 			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
+		}
+		if (javaTypeInfo.getResolvedType() != null) {
+			return CompletableFuture.completedFuture(javaTypeInfo.getResolvedType());
 		}
 		String javaType = javaTypeInfo.getJavaType();
 		if (StringUtils.isEmpty(javaType)) {
@@ -519,6 +523,12 @@ public class JavaDataModelCache {
 							if (resolvedType == null) {
 								return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 							}
+
+							ResolvedJavaTypeInfo alreadyResolved = resolvedType.getResolvedType();
+							if (alreadyResolved != null) {
+								return CompletableFuture.completedFuture(alreadyResolved);
+							}
+
 							if (!resolvedType.isIterable()) {
 								// case when iterable section is associated with a Java class which is not
 								// iterable.
@@ -535,15 +545,13 @@ public class JavaDataModelCache {
 									return resolveJavaType(resolvedType.getName());
 								}
 								/*
-								 * // -> the class is not valid
-								 * // Ex:
-								 * // {@org.acme.Item items}
-								 * // {#for item in items}
-								 * // {item.|}
+								 * // -> the class is not valid // Ex: // {@org.acme.Item items} // {#for item
+								 * in items} // {item.|}
 								 */
 								return RESOLVED_JAVA_TYPE_NOT_ITERABLE_FUTURE;
 
 							}
+
 							// valid case
 							// Ex:
 							// {@java.util.List<org.acme.Item> items}
@@ -571,6 +579,29 @@ public class JavaDataModelCache {
 			return ((Parameter) node).getOwnerSection();
 		}
 		return null;
+	}
+
+	public static boolean isSameType(JavaTypeInfo type1, JavaTypeInfo type2) {
+		if (isSameType(type1.getSignature(), type2.getSignature())) {
+			return true;
+		}
+		List<JavaParameterInfo> typeParameters1 = type1.getTypeParameters();
+		List<JavaParameterInfo> typeParameters2 = type2.getTypeParameters();
+		if (typeParameters1.isEmpty() || (typeParameters1.size() != typeParameters2.size())) {
+			return false;
+		}
+		if (!type1.getName().equals(type2.getName())) {
+			return false;
+		}
+		for (int i = 0; i < typeParameters1.size(); i++) {
+			JavaTypeInfo typeParameter1 = typeParameters1.get(i).getJavaType();
+			JavaTypeInfo typeParameter2 = typeParameters2.get(i).getJavaType();
+			if (!typeParameter1.isGenericType() && !typeParameter2.isGenericType()
+					&& !isSameType(typeParameter1, typeParameter2)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**

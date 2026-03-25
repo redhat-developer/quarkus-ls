@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.completions;
 
+import static com.redhat.qute.QuteAssert.RESOLVERS_SIZE;
 import static com.redhat.qute.QuteAssert.SECTION_SNIPPET_SIZE;
 import static com.redhat.qute.QuteAssert.USER_TAG_SIZE;
 import static com.redhat.qute.QuteAssert.c;
@@ -29,47 +30,47 @@ public class QuteCompletionWithIncludeSectionTest {
 
 	@Test
 	public void includeTemplateIds() throws Exception {
-		String template = "{#include |} \r\n"
-				+ "  |\r\n"
-				+ "{/include}";
+		String template = "{#include |} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
 
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
 				18 /* all files from src/test/resources/templates */ - 1 /* README.md */ - USER_TAG_SIZE, //
-				c("base", "base", r(0, 10, 0, 10)),
-				c("test.json", "test.json", r(0, 10, 0, 10)),
-				c("test.html", "test.html", r(0, 10, 0, 10)),
-				c("BookPage/book", "BookPage/book", r(0, 10, 0, 10)),
+				c("base", "base", r(0, 10, 0, 10)), //
+				c("test.json", "test.json", r(0, 10, 0, 10)), //
+				c("test.html", "test.html", r(0, 10, 0, 10)), //
+				c("BookPage/book", "BookPage/book", r(0, 10, 0, 10)), //
 				c("BookPage/books", "BookPage/books", r(0, 10, 0, 10)));
 
 	}
 
 	@Test
 	public void includeTemplateIdsSelf() throws Exception {
-		String template = "{#include |} \r\n"
-				+ "  |\r\n"
-				+ "{/include}";
+		String template = "{#include |} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
 
 		// Without snippet
 		testCompletionFor(template, //
-				"src/test/resources/templates/base.html",
-				false, // no snippet support
+				"src/test/resources/templates/base.html", //
+				"base.html", //				
 				18 /* all files from src/test/resources/templates */ - 1 /* base.html */ - 1 /* README.md */
 						- USER_TAG_SIZE, //
 				// c("base", "base", r(0, 10, 0, 10)),
-				c("test.json", "test.json", r(0, 10, 0, 10)),
-				c("test.html", "test.html", r(0, 10, 0, 10)),
-				c("BookPage/book", "BookPage/book", r(0, 10, 0, 10)),
+				c("test.json", "test.json", r(0, 10, 0, 10)), //
+				c("test.html", "test.html", r(0, 10, 0, 10)), //
+				c("BookPage/book", "BookPage/book", r(0, 10, 0, 10)), //
 				c("BookPage/books", "BookPage/books", r(0, 10, 0, 10)));
 
 	}
 
 	@Test
 	public void insideInclude() throws Exception {
-		String template = "{#include base.html} \r\n"
-				+ "  |\r\n"
-				+ "{/include}";
+		String template = "{#include base.html} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
 
 		// Without snippet
 		testCompletionFor(template, //
@@ -92,9 +93,9 @@ public class QuteCompletionWithIncludeSectionTest {
 
 	@Test
 	public void insideIncludeWithShortSyntax() throws Exception {
-		String template = "{#include base} \r\n"
-				+ "  |\r\n"
-				+ "{/include}";
+		String template = "{#include base} \r\n" + //
+				"  |\r\n" + //
+				"{/include}";
 
 		// Without snippet
 		testCompletionFor(template, //
@@ -117,9 +118,9 @@ public class QuteCompletionWithIncludeSectionTest {
 
 	@Test
 	public void outsideInclude() throws Exception {
-		String template = "{#include base.html} \r\n"
-				+ "  \r\n"
-				+ "{/include}\r\n|";
+		String template = "{#include base.html} \r\n" + //
+				"  \r\n" + //
+				"{/include}\r\n|";
 
 		// Without snippet
 		testCompletionFor(template, //
@@ -137,4 +138,16 @@ public class QuteCompletionWithIncludeSectionTest {
 
 	}
 
+	@Test
+	public void includeParameter() throws Exception {
+		String template = "{|}";
+
+		testCompletionFor(template, //
+				"src/main/resources/templates/base", //
+				false, // no snippet support
+				RESOLVERS_SIZE + 1,
+				// origin parameter coming from book.html {#include base origin="book"}
+				c("origin", "origin", r(0, 1, 0, 1)));
+
+	}
 }

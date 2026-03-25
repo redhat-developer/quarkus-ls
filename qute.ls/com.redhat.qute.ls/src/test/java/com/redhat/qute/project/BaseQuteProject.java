@@ -22,6 +22,7 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 
@@ -30,6 +31,10 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
  */
 public abstract class BaseQuteProject extends MockQuteProject {
 
+	private static class BinaryTemplateInfoLoader {
+		List<BinaryTemplateInfo> binaries;
+	}
+
 	public BaseQuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		super(projectInfo, projectRegistry);
 	}
@@ -37,6 +42,11 @@ public abstract class BaseQuteProject extends MockQuteProject {
 	protected DataModelProject<DataModelTemplate<?>> loadDataModel(String fileName, Class<?> clazz) {
 		InputStream in = clazz.getResourceAsStream(fileName);
 		return new GsonBuilder().create().fromJson(new InputStreamReader(in), DataModelProject.class);
+	}
+
+	protected List<BinaryTemplateInfo> loadDataBinaryTemplates(String fileName, Class<?> clazz) {
+		InputStream in = clazz.getResourceAsStream(fileName);
+		return new GsonBuilder().create().fromJson(new InputStreamReader(in), BinaryTemplateInfoLoader.class).binaries;
 	}
 
 	protected void loadResolvedJavaType(String fileName, List<ResolvedJavaTypeInfo> resolvedJavaTypes, Class<?> clazz) {
@@ -98,13 +108,34 @@ public abstract class BaseQuteProject extends MockQuteProject {
 		ResolvedJavaTypeInfo collection = createResolvedJavaTypeInfo("java.util.Collection<E>", resolvedJavaTypes,
 				true);
 		collection.setExtendedTypes(Arrays.asList("java.lang.Iterable<E>"));
+		registerMethod("addAll(arg0 : java.util.Collection<? extends E>) : boolean", collection);
+
+		// AbstractCollection
+		ResolvedJavaTypeInfo abstractCollection = createResolvedJavaTypeInfo("java.util.AbstractCollection<E>",
+				resolvedJavaTypes, true);
+		abstractCollection.setExtendedTypes(Arrays.asList("java.lang.Object", "java.util.Collection<E>"));
+
+		// SequencedCollection
+		ResolvedJavaTypeInfo sequencedCollection = createResolvedJavaTypeInfo("java.util.SequencedCollection<E>",
+				resolvedJavaTypes, true);
+		sequencedCollection.setExtendedTypes(Arrays.asList("java.util.Collection<E>"));
 
 		// List
 		ResolvedJavaTypeInfo list = createResolvedJavaTypeInfo("java.util.List<E>", resolvedJavaTypes, true);
-		list.setExtendedTypes(Arrays.asList("java.util.Collection<E>"));
+		list.setExtendedTypes(Arrays.asList("java.util.Object", "java.util.SequencedCollection<E>"));
 		registerMethod("size() : int", list);
 		registerMethod("get(index : int) : E", list);
 		registerMethod("subList(fromIndex : int, toIndex: int) : java.util.List<E>", list);
+		registerMethod("containsAll(arg0 : java.util.Collection<?>) : boolean", list);
+
+		// AbstractList
+		ResolvedJavaTypeInfo abstractList = createResolvedJavaTypeInfo("java.util.AbstractList<E>", resolvedJavaTypes,
+				true);
+		abstractList.setExtendedTypes(Arrays.asList("java.util.AbstractCollection<E>", "java.util.List<E>"));
+
+		// ArrayList
+		ResolvedJavaTypeInfo arrayList = createResolvedJavaTypeInfo("java.util.ArrayList<E>", resolvedJavaTypes, true);
+		arrayList.setExtendedTypes(Arrays.asList("java.util.AbstractList<E>", "java.util.List<E>"));
 
 		// Set
 		ResolvedJavaTypeInfo set = createResolvedJavaTypeInfo("java.util.Set<E>", resolvedJavaTypes, true);
@@ -155,5 +186,12 @@ public abstract class BaseQuteProject extends MockQuteProject {
 		loadResolvedJavaType("JsonObject.json", resolvedJavaTypes, BaseQuteProject.class);
 
 	}
+
+	/*
+	 * @Override public Collection<QuteTextDocument> getBinaryDocuments() { if
+	 * (!binaryDoumentsLoaded) { binaryDoumentsLoaded = true;
+	 * super.registerBinaryTemplates(loadBinaryTemplatesSync()); } return
+	 * super.getBinaryDocuments(); }
+	 */
 
 }

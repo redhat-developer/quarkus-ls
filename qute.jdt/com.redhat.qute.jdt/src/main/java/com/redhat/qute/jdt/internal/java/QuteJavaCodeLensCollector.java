@@ -19,7 +19,6 @@ import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
@@ -34,7 +33,6 @@ import org.eclipse.lsp4j.Range;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.GenerateTemplateInfo;
 import com.redhat.qute.jdt.QuteCommandConstants;
-import com.redhat.qute.jdt.utils.IJDTUtils;
 import com.redhat.qute.jdt.utils.JDTQuteProjectUtils;
 import com.redhat.qute.jdt.utils.TemplatePathInfo;
 
@@ -49,7 +47,7 @@ import com.redhat.qute.jdt.utils.TemplatePathInfo;
  * @author Angelo ZERR
  *
  */
-public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector {
+public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector<QuteJavaCodeLensCollectorContext> {
 
 	private static final String QUTE_COMMAND_OPEN_URI_MESSAGE = "Open `{0}`";
 
@@ -57,12 +55,8 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
 
 	private static final String QUTE_COMMAND_GENERATE_TEMPLATE_MESSAGE = "Create `{0}`";
 
-	private final List<CodeLens> lenses;
-
-	public QuteJavaCodeLensCollector(ITypeRoot typeRoot, List<CodeLens> lenses, IJDTUtils utils,
-			IProgressMonitor monitor) {
-		super(typeRoot, utils, monitor);
-		this.lenses = lenses;
+	public QuteJavaCodeLensCollector(QuteJavaCodeLensCollectorContext context, IProgressMonitor monitor) {
+		super(context, monitor);
 	}
 
 	@Override
@@ -95,7 +89,7 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
 		}
 		Range range = utils.toRange(typeRoot, fieldOrMethod.getStartPosition(), fieldOrMethod.getLength());
 		CodeLens codeLens = new CodeLens(range, command, null);
-		lenses.add(codeLens);
+		getContext().getCodeLenses().add(codeLens);
 	}
 
 	private static List<DataModelParameter> createParameters(ASTNode node) {

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -33,6 +34,7 @@ import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
+import com.redhat.qute.parser.NodeBase;
 import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
@@ -49,14 +51,18 @@ import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CaseSection;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.parser.template.sections.IncludeSection;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.parser.template.sections.WhenSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.extensions.DefinitionParticipant;
 import com.redhat.qute.project.tags.ObjectPartCollector;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
+import com.redhat.qute.project.usages.IncludeUsages;
 import com.redhat.qute.services.definition.DefinitionRequest;
+import com.redhat.qute.services.extensions.DefinitionExtensionProvider;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.QuteSearchUtils;
 
@@ -164,22 +170,40 @@ class QuteDefinition {
 								Section parentSection = (Section) parent;
 								if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
 									IncludeSection includeSection = (IncludeSection) parentSection;
-									List<Parameter> parameters = project
-											.findInsertTagParameter(includeSection.getReferencedTemplateId(), tagName);
-									if (parameters != null) {
-										for (Parameter index : parameters) {
-											String linkedTemplateUri = index.getOwnerTemplate().getUri();
-											Range linkedTargetRange = QutePositionUtility.selectParameterName(index);
-											if (originRange == null) {
-												originRange = QutePositionUtility.selectStartTagName(section);
-											}
-											locations.add(new LocationLink(linkedTemplateUri, linkedTargetRange,
-													linkedTargetRange, originRange));
-										}
+									List<Parameter> parameters = project.findInsertTagParameter(includeSection,
+											tagName);
+									originRange = fillWithInsertParameters(section, parameters, originRange, locations);
+								} else if (parentSection.getSectionKind() == SectionKind.CUSTOM) {
+									String parentTagName = parentSection.getTag();
+									UserTag parentUserTag = project.findUserTag(parentTagName);
+									if (parentUserTag != null) {
+										List<Parameter> parameters = project.findInsertTagParameter(parentUserTag,
+												tagName);
+										originRange = fillWithInsertParameters(section, parameters, originRange,
+												locations);
 									}
 								}
 							}
 							parent = parent.getParent();
+						}
+
+						// Included by
+						IncludeUsages includeUsages = project.getIncludeUsagesRegistry()
+								.getUsages(template.getTemplateId());
+						if (includeUsages != null) {
+
+							Set<String> includedByTemplateIds = includeUsages.getCallingTemplateIds();
+							for (String templateId : includedByTemplateIds) {
+								List<Parameter> parameters = project.findInsertTagParameter(templateId, tagName);
+								originRange = fillWithInsertParameters(section, parameters, originRange, locations);
+							}
+
+							Set<TemplatePath> includedByTemplatePaths = includeUsages.getCallingTemplatePaths();
+							for (TemplatePath templatePath : includedByTemplatePaths) {
+								List<Parameter> parameters = project.findInsertTagParameter(templatePath, tagName);
+								originRange = fillWithInsertParameters(section, parameters, originRange, locations);
+							}
+
 						}
 					}
 				}
@@ -203,6 +227,21 @@ class QuteDefinition {
 			return true;
 		}
 		return false;
+	}
+
+	private static Range fillWithInsertParameters(Section section, List<Parameter> parameters, Range originRange,
+			List<LocationLink> locations) {
+		if (parameters != null) {
+			for (Parameter index : parameters) {
+				String linkedTemplateUri = index.getOwnerTemplate().getUri();
+				Range linkedTargetRange = QutePositionUtility.selectParameterName(index);
+				if (originRange == null) {
+					originRange = QutePositionUtility.selectStartTagName(section);
+				}
+				locations.add(new LocationLink(linkedTemplateUri, linkedTargetRange, linkedTargetRange, originRange));
+			}
+		}
+		return originRange;
 	}
 
 	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameterDeclaration(int offset,
@@ -286,7 +325,7 @@ class QuteDefinition {
 			}
 			// check if it is defined with @CheckedTemplate
 			if (project != null) {
-				return findDefinitionFromParameterDataModel(part, template, project, cancelChecker);
+				return findDefinitionFromParameterDataModelOrIncludedTemplate(part, template, project, cancelChecker);
 			}
 			return NO_DEFINITION;
 		}
@@ -299,7 +338,7 @@ class QuteDefinition {
 						if (member == null) {
 							// ex: {m:applica|tion.index.subtitle}
 							List<LocationLink> locationLinks = new ArrayList<LocationLink>();
-							for (DefinitionParticipant definitionParticipant : project.getExtensions()) {
+							for (DefinitionParticipant definitionParticipant : project.getDefinitionParticipants()) {
 								if (definitionParticipant.isEnabled()) {
 									definitionParticipant.definition(part, locationLinks, cancelChecker);
 								}
@@ -336,7 +375,7 @@ class QuteDefinition {
 		QuteProject project = template.getProject();
 		if (project != null) {
 			// Try to find in parameter data model
-			return findDefinitionFromParameterDataModel(part, template, project, cancelChecker);
+			return findDefinitionFromParameterDataModelOrIncludedTemplate(part, template, project, cancelChecker);
 		}
 		return NO_DEFINITION;
 	}
@@ -387,8 +426,8 @@ class QuteDefinition {
 		return NO_DEFINITION;
 	}
 
-	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameterDataModel(Part part,
-			Template template, QuteProject project, CancelChecker cancelChecker) {
+	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameterDataModelOrIncludedTemplate(
+			Part part, Template template, QuteProject project, CancelChecker cancelChecker) {
 		return template.getParameterDataModel(part.getPartName()) //
 				.thenCompose(parameter -> {
 					cancelChecker.checkCanceled();
@@ -400,6 +439,28 @@ class QuteDefinition {
 						QuteJavaDefinitionParams params = parameter.toJavaDefinitionParams(project.getUri());
 						return findJavaDefinition(params, project, cancelChecker,
 								() -> QutePositionUtility.createRange(part));
+					} else {
+						// Include parameters
+						IncludeUsages includeUsages = project.getIncludeUsagesRegistry()
+								.getUsages(template.getTemplateId());
+						if (includeUsages != null) {
+							var parameters = includeUsages.findParameters(part.getPartName());
+							if (parameters != null && !parameters.isEmpty()) {
+								List<LocationLink> locations = new ArrayList<>();
+								for (NodeBase<?> node : parameters) {
+									if (node instanceof Parameter) {
+										Parameter includeParameter = (Parameter) node;
+										String targetUri = includeParameter.getOwnerTemplate().getUri();
+										Range targetRange = QutePositionUtility.selectParameterName(includeParameter);
+										Range originSelectionRange = QutePositionUtility.createRange(part);
+										LocationLink locationLink = new LocationLink(targetUri, targetRange,
+												targetRange, originSelectionRange);
+										locations.add(locationLink);
+									}
+								}
+								return CompletableFuture.completedFuture(locations);
+							}
+						}
 					}
 					// try to find in global variables
 					return project.findGlobalVariableJavaElement(part.getPartName()) //
@@ -422,7 +483,7 @@ class QuteDefinition {
 						if (previousResolvedType == null) {
 							// ex: {m:application.ind|ex.subtitle}
 							List<LocationLink> locationLinks = new ArrayList<LocationLink>();
-							for (DefinitionParticipant definitionParticipant : project.getExtensions()) {
+							for (DefinitionParticipant definitionParticipant : project.getDefinitionParticipants()) {
 								if (definitionParticipant.isEnabled()) {
 									definitionParticipant.definition(part, locationLinks, cancelChecker);
 								}
@@ -447,6 +508,10 @@ class QuteDefinition {
 			Part part, QuteProject project, CancelChecker cancelChecker) {
 		if (member == null) {
 			return NO_DEFINITION;
+		}
+
+		if (member instanceof DefinitionExtensionProvider) {
+			return CompletableFuture.completedFuture(((DefinitionExtensionProvider) member).getLocations(part));
 		}
 
 		String sourceType = member.getJavaElementKind() == JavaElementKind.TYPE ? member.getName()
@@ -482,11 +547,68 @@ class QuteDefinition {
 	 */
 	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameter(int offset, Parameter parameter,
 			Template template, CancelChecker cancelChecker) {
-		if (!parameter.isInName(offset)) {
+		Section section = parameter.getOwnerSection();
+		if (section == null) {
 			return NO_DEFINITION;
 		}
-		Section section = parameter.getOwnerSection();
-		if (section == null || section.getSectionKind() != SectionKind.CUSTOM) {
+
+		switch (section.getSectionKind()) {
+		case CUSTOM:
+			// {#myTag na[me='' }
+			return findDefinitionFromParameterUserTag(parameter, section, template, offset);
+		case INCLUDE:
+			// {#include $me[nu }
+			return findDefinitionFromParameterInclude(parameter, (IncludeSection) section, template, offset);
+		default:
+			return NO_DEFINITION;
+		}
+	}
+
+	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameterInclude(Parameter parameter,
+			IncludeSection section, Template template, int offset) {
+		QuteProject project = template.getProject();
+		if (project == null) {
+			return NO_DEFINITION;
+		}
+		Parameter templateParameter = section.getTemplateParameter();
+		if (parameter.equals(templateParameter)) {
+			// Definition is done in the include template parameter
+			// ex: {#include ba|se
+			// ex: {#include base$me|nu
+			String referenceTemplateId = templateParameter.getValue();
+			int dollarIndex = referenceTemplateId.indexOf('$');
+			if (dollarIndex == -1) {
+				return NO_DEFINITION;
+			}
+			if (offset >= templateParameter.getStart() + dollarIndex) {
+				// ex: {#include base$me|nu
+				// ex: {#include $me|nu
+				TemplatePath templatePath = section.getReferencedTemplatePath();
+				String templateId = templatePath.getTemplateId();
+				String resolvedTemplateId = templateId.isEmpty() ? template.getTemplateId() : templateId;
+				List<FragmentSection> fragments = project.findFragmentSections(resolvedTemplateId,
+						templatePath.getFragmentId());
+				if (fragments.isEmpty()) {
+					return NO_DEFINITION;
+				}
+				List<LocationLink> locations = new ArrayList<>(fragments.size());
+				for (FragmentSection fragment : fragments) {
+					String targetUri = fragment.getOwnerTemplate().getUri();
+					Range targetRange = QutePositionUtility.selectParameterValue(fragment.getIdParameter());
+					Range originSelectionRange = QutePositionUtility.selectParameterName(parameter);
+					LocationLink locationLink = new LocationLink(targetUri, targetRange, targetRange,
+							originSelectionRange);
+					locations.add(locationLink);
+				}
+				return CompletableFuture.completedFuture(locations);
+			}
+		}
+		return NO_DEFINITION;
+	}
+
+	private CompletableFuture<List<? extends LocationLink>> findDefinitionFromParameterUserTag(Parameter parameter,
+			Section section, Template template, int offset) {
+		if (!parameter.isInName(offset)) {
 			return NO_DEFINITION;
 		}
 		QuteProject project = template.getProject();

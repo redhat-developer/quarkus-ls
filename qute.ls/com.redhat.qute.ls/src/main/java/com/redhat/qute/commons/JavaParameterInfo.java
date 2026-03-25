@@ -27,9 +27,11 @@ public class JavaParameterInfo extends JavaElementInfo {
 
 	private final String type;
 
+	private String varArgType;
+
 	private transient JavaTypeInfo javaType;
 
-	private String varArgType;
+	private transient JavaTypeInfo varArgJavaType;
 
 	public JavaParameterInfo(String name, String type) {
 		this.name = name;
@@ -65,6 +67,15 @@ public class JavaParameterInfo extends JavaElementInfo {
 			varArgType = type.substring(0, type.length() - 3);
 		}
 		return varArgType;
+	}
+
+	public JavaTypeInfo getVarArgJavaType() {
+		if (varArgJavaType == null) {
+			String varArgType = getVarArgType();
+			varArgJavaType = new JavaTypeInfo();
+			varArgJavaType.setSignature(varArgType);
+		}
+		return varArgJavaType;
 	}
 
 	/**

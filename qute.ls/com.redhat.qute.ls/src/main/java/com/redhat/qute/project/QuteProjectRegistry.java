@@ -12,9 +12,11 @@
 package com.redhat.qute.project;
 
 import static com.redhat.qute.services.QuteCompletableFutures.EXTENDED_TEMPLATE_DATAMODEL_NULL_FUTURE;
+import static com.redhat.qute.utils.FutureUtils.isFutureLoaded;
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
+import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.Location;
 
@@ -36,22 +39,21 @@ import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.commons.TemplateRootPath;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.binary.QuteBinaryTemplateParams;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent.ProjectChangeInfo;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
-import com.redhat.qute.commons.usertags.QuteUserTagParams;
-import com.redhat.qute.commons.usertags.UserTagInfo;
+import com.redhat.qute.ls.api.QuteBinaryTemplateProvider;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteJavaDefinitionProvider;
 import com.redhat.qute.ls.api.QuteJavaTypesProvider;
 import com.redhat.qute.ls.api.QuteJavadocProvider;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
-import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
@@ -69,7 +71,8 @@ import com.redhat.qute.settings.QuteNativeSettings;
  * @author Angelo ZERR
  *
  */
-public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUserTagProvider, QuteJavadocProvider {
+public class QuteProjectRegistry
+		implements QuteDataModelProjectProvider, QuteBinaryTemplateProvider, QuteJavadocProvider {
 
 	private final ValueResolversRegistry valueResolversRegistry;
 
@@ -81,7 +84,7 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 
 	private final QuteDataModelProjectProvider dataModelProvider;
 
-	private final QuteUserTagProvider userTagProvider;
+	private final QuteBinaryTemplateProvider binaryTemplateProvider;
 
 	private final QuteJavaTypesProvider javaTypeProvider;
 
@@ -97,9 +100,11 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 
 	private boolean asyncValidation = true;
 
+	private CompletableFuture<Collection<QuteProject>> loadQuteProjectsFuture;
+
 	public QuteProjectRegistry(QuteProjectInfoProvider projectInfoProvider, QuteJavaTypesProvider javaTypeProvider,
 			QuteJavaDefinitionProvider definitionProvider, QuteResolvedJavaTypeProvider resolvedClassProvider,
-			QuteDataModelProjectProvider dataModelProvider, QuteUserTagProvider userTagsProvider,
+			QuteDataModelProjectProvider dataModelProvider, QuteBinaryTemplateProvider binaryTemplateProvider,
 			QuteJavadocProvider javadocProvider, TemplateValidator validator,
 			Supplier<ProgressSupport> progressSupportProvider) {
 		this.projectInfoProvider = projectInfoProvider;
@@ -108,7 +113,7 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 		this.projects = new HashMap<>();
 		this.resolvedTypeProvider = resolvedClassProvider;
 		this.dataModelProvider = dataModelProvider;
-		this.userTagProvider = userTagsProvider;
+		this.binaryTemplateProvider = binaryTemplateProvider;
 		this.javadocProvider = javadocProvider;
 		this.valueResolversRegistry = new ValueResolversRegistry();
 		this.validator = validator;
@@ -157,32 +162,10 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 	 * @return the Qute project by the given info <code>projectInfo</code>.
 	 */
 	public QuteProject getProject(ProjectInfo projectInfo) {
-		return getProject(projectInfo, true);
-	}
-
-	/**
-	 * Returns the Qute project by the given info <code>projectInfo</code>.
-	 *
-	 * @param projectInfo    the project information.
-	 * @param validateOnLoad true if validation of templates must be validated if
-	 *                       project is created and false otherwise.
-	 *
-	 * @return the Qute project by the given info <code>projectInfo</code>.
-	 */
-	private QuteProject getProject(ProjectInfo projectInfo, boolean validateOnLoad) {
 		String projectUri = projectInfo.getUri();
 		QuteProject project = getProject(projectUri);
 		if (project == null) {
 			project = registerProjectSync(projectInfo);
-			if (validator != null && validateOnLoad) {
-				QuteProject newProject = project;
-				// Validate closed Qute template on project load.
-				if (asyncValidation) {
-					CompletableFuture.runAsync(() -> newProject.validateClosedTemplates(null));
-				} else {
-					newProject.validateClosedTemplates(null);
-				}
-			}
 		}
 		return project;
 	}
@@ -282,14 +265,14 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 	}
 
 	@Override
-	public CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
-			QuteDataModelProjectParams params) {
-		return dataModelProvider.getDataModelProject(params);
+	public CompletableFuture<List<BinaryTemplateInfo>> getBinaryTemplates(QuteBinaryTemplateParams params) {
+		return binaryTemplateProvider.getBinaryTemplates(params);
 	}
 
 	@Override
-	public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
-		return userTagProvider.getUserTags(params);
+	public CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
+			QuteDataModelProjectParams params) {
+		return dataModelProvider.getDataModelProject(params);
 	}
 
 	/**
@@ -328,7 +311,7 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 		return javadocProvider.getJavadoc(params);
 	}
 
-	private QuteProject findProjectFor(Path path) {
+	public QuteProject findProjectFor(Path path) {
 		for (QuteProject project : projects.values()) {
 			if (isBelongToProject(path, project)) {
 				return project;
@@ -338,18 +321,8 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 	}
 
 	private static boolean isBelongToProject(Path path, QuteProject project) {
-		for (TemplateRootPath rootPath : project.getTemplateRootPaths()) {
-			Path basePath = rootPath.getBasePath();
-			if (basePath != null && path.startsWith(basePath)) {
-				return true;
-			}
-		}
-		for (Path sourcePath : project.getSourcePaths()) {
-			if (sourcePath != null && path.startsWith(sourcePath)) {
-				return true;
-			}
-		}
-		return false;
+		return (project.isInProjectFolder(path) || project.isInTemplateFolders(path)
+				|| project.isInSourceFolders(path));
 	}
 
 	public Collection<QuteProject> getProjects() {
@@ -359,45 +332,45 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 	public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
 		Set<QuteProject> projects = new HashSet<>();
 		List<FileEvent> changes = params.getChanges();
-		// Some qute templates are deleted, created, or changed
-		// Collect impacted Qute projects
-		for (FileEvent fileEvent : changes) {
-			String fileUri = fileEvent.getUri();
-			Path templatePath = FileUtils.createPath(fileUri);
-			QuteProject project = findProjectFor(templatePath);
+		// For some reason, vscode fill changes with several FileEvent which are the
+		// same
+		// Filter it.
+		Map<Path, Set<FileChangeType>> fileEvents = toFileEventMap(changes);
+		for (Map.Entry<Path, Set<FileChangeType>> pathEvent : fileEvents.entrySet()) {
+			Path filePath = pathEvent.getKey();
+			Set<FileChangeType> changeTypes = pathEvent.getValue();
+			QuteProject project = findProjectFor(filePath);
 			if (project != null) {
-				String templateId = project.getTemplateId(templatePath);
-				if (project.isTemplateOpened(templateId)) {
-					projects.add(project);
-				} else {
-					// In case of closed document, we collect the project and update the cache
-					switch (fileEvent.getType()) {
-					case Changed:
-					case Created: {
-						// The template is created, update the cache and collect the project
-						QuteTextDocument closedTemplate = project.onDidCreateTemplate(templatePath);
-						if (closedTemplate != null) {
-							projects.add(closedTemplate.getProject());
-						}
-						break;
-					}
-					case Deleted: {
-						// The template is deleted, update the cache, collect the project and publish
-						// empty diagnostics for this file
-						QuteTextDocument closedTemplate = project.onDidDeleteTemplate(templatePath);
-						if (closedTemplate != null) {
-							projects.add(closedTemplate.getProject());
-							if (validator != null) {
-								validator.clearDiagnosticsFor(fileUri);
+				if (project.isInTemplateFolders(filePath)) {
+					// Some qute templates are deleted, created, or changed
+					// Collect impacted Qute projects
+					Path templatePath = filePath;
+					if (project.isTemplateOpened(filePath)) {
+						projects.add(project);
+					} else {
+						// In case of closed document, we collect the project and update the cache
+						if (changeTypes.contains(FileChangeType.Changed)
+								|| changeTypes.contains(FileChangeType.Created)) {
+							// The template is created, update the cache and collect the project
+							QuteTextDocument closedTemplate = project.onDidCreateTemplate(templatePath);
+							if (closedTemplate != null) {
+								projects.add(closedTemplate.getProject());
 							}
+						} else if (changeTypes.contains(FileChangeType.Deleted)) {
+							// The template is deleted, update the cache, collect the project and publish
+							// empty diagnostics for this file
+							project.onDidDeleteTemplate(templatePath);
+							if (validator != null) {
+								// Clear diagnostics for the deleted file in this case.
+								validator.clearDiagnosticsFor(FileUtils.toUri(filePath));
+							}
+							projects.add(project);
 						}
-						break;
-					}
 					}
 				}
-				for (DidChangeWatchedFilesParticipant participant : project.getExtensions()) {
+				for (DidChangeWatchedFilesParticipant participant : project.getDidChangeWatchedFilesParticipants()) {
 					if (participant.isEnabled()) {
-						if (participant.didChangeWatchedFile(templatePath, fileEvent)) {
+						if (participant.didChangeWatchedFile(filePath, changeTypes)) {
 							projects.add(project);
 						}
 					}
@@ -416,6 +389,23 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 		}
 	}
 
+	private Map<Path, Set<FileChangeType>> toFileEventMap(List<FileEvent> changes) {
+		Map<Path, Set<FileChangeType>> result = new HashMap<>();
+		for (FileEvent fileEvent : changes) {
+			String fileUri = fileEvent.getUri();
+			Path filePath = FileUtils.createPath(fileUri);
+			if (filePath != null) {
+				Set<FileChangeType> changeTypes = result.get(filePath);
+				if (changeTypes == null) {
+					changeTypes = new HashSet<>();
+					result.put(filePath, changeTypes);
+				}
+				changeTypes.add(fileEvent.getType());
+			}
+		}
+		return result;
+	}
+
 	public void dispose() {
 		for (QuteProject project : projects.values()) {
 			project.dispose();
@@ -426,12 +416,42 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 		return projectInfoProvider.getProjectInfo(params);
 	}
 
-	public void loadQuteProjects(Collection<ProjectInfo> projects) {
+	public CompletableFuture<Collection<QuteProject>> loadQuteProjects() {
+		if (isQuteProjectLoaded()) {
+			return loadQuteProjectsFuture;
+		}
+		return loadQuteProjectsSync();
+	}
+
+	private synchronized CompletableFuture<Collection<QuteProject>> loadQuteProjectsSync() {
+		if (isQuteProjectLoaded()) {
+			return loadQuteProjectsFuture;
+		}
+		return loadQuteProjectsFuture = projectInfoProvider //
+				.getProjects() //
+				.thenCompose(projects -> {
+					if (projects != null && !projects.isEmpty()) {
+						// There are some Qute projects in the workspace, load them
+						return this.loadQuteProjects(projects);
+					}
+					return CompletableFuture.completedFuture(Collections.emptyList());
+				});
+	}
+
+	private boolean isQuteProjectLoaded() {
+		return isFutureLoaded(loadQuteProjectsFuture);
+	}
+
+	private CompletableFuture<Collection<QuteProject>> loadQuteProjects(Collection<ProjectInfo> projects) {
+		CompletableFuture<?>[] futures = new CompletableFuture[projects.size()];
+
 		// 1. Load all Qute projects
+		int i = 0;
 		for (ProjectInfo projectInfo : projects) {
 			// Load the Qute project
-			loadQuteProject(projectInfo);
+			futures[i++] = loadQuteProject(projectInfo);
 		}
+
 		// 2. Update project dependencies
 		for (ProjectInfo projectInfo : projects) {
 			if (projectInfo.getProjectDependencyUris() != null && !projectInfo.getProjectDependencyUris().isEmpty()) {
@@ -444,7 +464,10 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 				}
 			}
 		}
-
+		return CompletableFuture.allOf(futures) //
+				.thenApply(_unused -> {
+					return this.projects.values();
+				});
 	}
 
 	/**
@@ -452,46 +475,9 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 	 * 
 	 * @param projectInfo the project information.
 	 */
-	private QuteProject loadQuteProject(ProjectInfo projectInfo) {
-		// Get the LSP client progress support (or null if LSP client cannot support
-		// progress)
-		ProgressSupport progressSupport = progressSupportProvider.get();
-		ProgressContext progressContext = progressSupport != null ? new ProgressContext(progressSupport) : null;
-		String projectName = projectInfo.getUri();
-
-		if (progressContext != null) {
-			progressContext.startProgress("Loading '" + projectName + "' project",
-					"Trying to load '" + projectName + "' as Qute project.");
-		}
-
-		// Load Qute project from the Java component (collect Java data model)
-		QuteProject project = getProject(projectInfo, false);
-
-		if (progressContext != null) {
-			progressContext.report("Loading data model for '" + projectName + "' Qute project.", 10);
-		}
-
-		project.getDataModelProject().thenAccept(dataModel -> {
-			// The Java data model is collected for the project, validate all templates of
-			// the project
-			if (progressContext != null) {
-				progressContext.report("Loading Qute templates for '" + projectName + "' Qute project.", 40);
-			}
-			// Validate Qute templates
-			project.validateClosedTemplates(progressContext);
-
-			// End progress
-			if (progressContext != null) {
-				progressContext.endProgress();
-			}
-
-		}).exceptionally((a) -> {
-			if (progressContext != null) {
-				progressContext.endProgress();
-			}
-			return null;
-		});
-		return project;
+	private CompletableFuture<QuteProject> loadQuteProject(ProjectInfo projectInfo) {
+		QuteProject project = getProject(projectInfo);
+		return project.load();
 	}
 
 	public void projectAdded(ProjectInfo project) {
@@ -513,5 +499,22 @@ public class QuteProjectRegistry implements QuteDataModelProjectProvider, QuteUs
 
 	public boolean isAsyncValidation() {
 		return asyncValidation;
+	}
+
+	public CompletableFuture<QuteTextDocument> getBinaryDocument(String uri) {
+		return loadQuteProjects() //
+				.thenApply(projects -> {
+					for (QuteProject project : projects) {
+						QuteTextDocument document = project.getBinaryDocument(uri);
+						if (document != null) {
+							return document;
+						}
+					}
+					return null;
+				});
+	}
+
+	public Supplier<ProgressSupport> getProgressSupportProvider() {
+		return progressSupportProvider;
 	}
 }

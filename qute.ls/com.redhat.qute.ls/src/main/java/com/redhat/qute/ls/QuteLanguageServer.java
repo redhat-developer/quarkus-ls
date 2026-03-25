@@ -45,13 +45,14 @@ import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.binary.QuteBinaryTemplateParams;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
-import com.redhat.qute.commons.usertags.QuteUserTagParams;
-import com.redhat.qute.commons.usertags.UserTagInfo;
+import com.redhat.qute.ls.api.QuteBinaryTemplateProvider;
 import com.redhat.qute.ls.api.QuteDataModelProjectProvider;
 import com.redhat.qute.ls.api.QuteJavaDefinitionProvider;
 import com.redhat.qute.ls.api.QuteJavaTypesProvider;
@@ -61,7 +62,6 @@ import com.redhat.qute.ls.api.QuteLanguageServerAPI;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
 import com.redhat.qute.ls.api.QuteTemplateProvider;
-import com.redhat.qute.ls.api.QuteUserTagProvider;
 import com.redhat.qute.ls.commons.ParentProcessWatcher.ProcessLanguageServer;
 import com.redhat.qute.ls.commons.client.ExtendedClientCapabilities;
 import com.redhat.qute.ls.commons.client.InitializationOptionsExtendedClientCapabilities;
@@ -87,8 +87,8 @@ import com.redhat.qute.settings.capabilities.ServerCapabilitiesInitializer;
  */
 public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer, QuteLanguageServerAPI,
 		QuteProjectInfoProvider, QuteJavaTypesProvider, QuteResolvedJavaTypeProvider, QuteJavaDefinitionProvider,
-		QuteDataModelProjectProvider, QuteUserTagProvider, QuteJavadocProvider,
-		QuteTemplateProvider, TemplateValidator, ProgressSupport, TelemetrySupport {
+		QuteDataModelProjectProvider, QuteBinaryTemplateProvider, QuteJavadocProvider, QuteTemplateProvider,
+		TemplateValidator, ProgressSupport, TelemetrySupport {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteLanguageServer.class.getName());
 
@@ -118,8 +118,7 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 
 	protected QuteProjectRegistry createProjectRegistry() {
 		return new QuteProjectRegistry(this, this, this, this, this, this, this, this, //
-				() -> capabilityManager.getClientCapabilities()
-						.isWorkDoneProgressSupported() ? this : null);
+				() -> capabilityManager.getClientCapabilities().isWorkDoneProgressSupported() ? this : null);
 	}
 
 	@Override
@@ -157,22 +156,15 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	public void initialized(InitializedParams params) {
 		capabilityManager.initializeCapabilities();
 		getCapabilityManager().registerExecuteCommand(getWorkspaceService().getCommandIds());
-		// The Qute language server is initialized, try to load a Qute project per
-		// workspace folder.
+		// The Qute language server is initialized, load all Qute projects
 		loadQuteProjects();
 	}
 
 	/**
-	 * Try to load the Qute project for each workspace folder.
+	 * Try to load all Qute projects
 	 */
 	private void loadQuteProjects() {
-		getLanguageClient().getProjects()
-				.thenAccept(projects -> {
-					if (projects != null && !projects.isEmpty()) {
-						// There are some Qute projects in the workspace, load them
-						projectRegistry.loadQuteProjects(projects);
-					}
-				});
+		projectRegistry.loadQuteProjects();
 	}
 
 	/**
@@ -325,8 +317,8 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 	}
 
 	@Override
-	public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
-		return getLanguageClient().getUserTags(params);
+	public CompletableFuture<List<BinaryTemplateInfo>> getBinaryTemplates(QuteBinaryTemplateParams params) {
+		return getLanguageClient().getBinaryTemplates(params);
 	}
 
 	public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {

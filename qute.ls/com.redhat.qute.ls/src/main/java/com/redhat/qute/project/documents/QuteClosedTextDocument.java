@@ -12,22 +12,11 @@
 package com.redhat.qute.project.documents;
 
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import com.redhat.qute.commons.FileUtils;
-import com.redhat.qute.commons.ProjectInfo;
-import com.redhat.qute.ls.commons.TextDocument;
-import com.redhat.qute.parser.template.Parameter;
-import com.redhat.qute.parser.template.Section;
-import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.project.QuteProject;
-import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.utils.IOUtils;
 
 /**
@@ -36,139 +25,33 @@ import com.redhat.qute.utils.IOUtils;
  * @author Angelo ZERR
  *
  */
-public class QuteClosedTextDocument implements QuteTextDocument {
+public class QuteClosedTextDocument extends QuteReadOnlyTextDocument {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteClosedTextDocument.class.getName());
 
-	private final String uri;
+	private final Path templatePath;
 
-	private final Path path;
-	private final String templateId;
-
-	private final QuteProject project;
-
-	private Template template;
-
-	private TemplateInfoCollector collector;
-
-	private UserTagUsageCollector callVisitor;
-
-	public QuteClosedTextDocument(Path path, String templateId, QuteProject project) {
-		this.path = path;
-		this.templateId = templateId;
-		this.uri = FileUtils.toUri(path);
-		this.project = project;
-		// Force the parse the of template
-		getTemplate();
+	public QuteClosedTextDocument(Path templatePath, QuteProject project) {
+		super(FileUtils.toUri(templatePath), project.getTemplateId(templatePath), getContent(templatePath), project);
+		this.templatePath = templatePath;
 	}
 
-	@Override
-	public Template getTemplate() {
-		if (template == null) {
-			template = loadTemplate();
-		}
-		return template;
-	}
-
-	private synchronized Template loadTemplate() {
-		if (template != null) {
-			return template;
-		}
+	private static String getContent(Path templatePath) {
 		try {
-			TextDocument document = new TextDocument(IOUtils.getContent(path), uri);
-			Template template = TemplateParser.parse(document, () -> {
-			});
-			template.setTemplateId(templateId);
-			template.setProjectRegistry(project.getProjectRegistry());
-			template.setProjectUri(project.getUri());
-			processCallVisitor(template, project);
-			return template;
+			return IOUtils.getContent(templatePath);
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while loading closed template '" + uri + "'.", e);
+			LOGGER.log(Level.SEVERE, "Error while loading template '" + templatePath.toUri().toASCIIString() + "'.", e);
+			return "";
 		}
+	}
+
+	@Override
+	public Path getTemplatePath() {
+		return templatePath;
+	}
+
+	@Override
+	public String getOrigin() {
 		return null;
-	}
-
-	@Override
-	public CompletableFuture<ProjectInfo> getProjectInfoFuture() {
-		return null;
-	}
-
-	@Override
-	public QuteProject getProject() {
-		return project;
-	}
-
-	@Override
-	public String getTemplateId() {
-		return templateId;
-	}
-
-	private TemplateInfoCollector getCollector() {
-		if (collector == null) {
-			collector = getSynchCollector();
-		}
-		return collector;
-	}
-
-	private synchronized TemplateInfoCollector getSynchCollector() {
-		if (collector != null) {
-			return collector;
-		}
-		SearchInfoQuery query = new SearchInfoQuery();
-		query.setInsertParameter(SearchInfoQuery.ALL);
-		query.setSectionTag(SearchInfoQuery.ALL);
-		TemplateInfoCollector collector = new TemplateInfoCollector(query);
-		getTemplate().accept(collector);
-		return collector;
-	}
-
-	@Override
-	public List<Parameter> findInsertTagParameter(String insertParameter) {
-		List<Parameter> parameters = getCollector().getInsertParameters();
-		if (parameters == null) {
-			return Collections.emptyList();
-		}
-		if (SearchInfoQuery.ALL.equals(insertParameter)) {
-			return parameters;
-		}
-		return parameters.stream().filter(p -> insertParameter.equals(p.getValue())).collect(Collectors.toList());
-	}
-
-	@Override
-	public List<Section> findSectionsByTag(String tag) {
-		List<Section> sections = getCollector().getSectionsByTag();
-		if (sections == null) {
-			return Collections.emptyList();
-		}
-		if (SearchInfoQuery.ALL.equals(tag)) {
-			return sections;
-		}
-		return sections.stream().filter(s -> tag.equals(s.getTag())).collect(Collectors.toList());
-	}
-
-	@Override
-	public String getUri() {
-		return uri;
-	}
-
-	@Override
-	public boolean isOpened() {
-		return false;
-	}
-
-	private void processCallVisitor(Template template, QuteProject project) {
-		if (template != null) {
-			if (project == null) {
-				project = template.getProject();
-			}
-			if (project != null && templateId != null) {
-				if (callVisitor == null) {
-					callVisitor = new UserTagUsageCollector(getTemplateId(), project.getTagRegistry());
-				}
-				template.accept(callVisitor);
-			}
-
-		}
 	}
 }

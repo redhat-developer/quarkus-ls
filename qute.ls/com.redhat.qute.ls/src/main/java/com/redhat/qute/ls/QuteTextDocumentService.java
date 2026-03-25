@@ -13,6 +13,7 @@ package com.redhat.qute.ls;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.ClientCapabilities;
@@ -73,6 +74,8 @@ import com.redhat.qute.utils.JSONUtility;
  *
  */
 public class QuteTextDocumentService implements TextDocumentService, TemplateValidator {
+
+	private static final Set<String> JAVA_FILE_EXTENSIONS = Set.of("java", "class", "kt");
 
 	private final SharedSettings sharedSettings;
 
@@ -291,10 +294,14 @@ public class QuteTextDocumentService implements TextDocumentService, TemplateVal
 
 	public AbstractTextDocumentService getTextDocumentService(String uri) {
 		String fileExtension = getFileExtension(uri);
-		if ("java".equals(fileExtension) || "class".equals(fileExtension) || "kt".equals(fileExtension)) {
+		if (isJavaFile(fileExtension)) {
 			return javaFileTextDocumentService;
 		}
 		return templateFileTextDocumentService;
+	}
+
+	private static boolean isJavaFile(String fileExtension) {
+		return JAVA_FILE_EXTENSIONS.contains(fileExtension);
 	}
 
 	private static String getFileExtension(String uri) {

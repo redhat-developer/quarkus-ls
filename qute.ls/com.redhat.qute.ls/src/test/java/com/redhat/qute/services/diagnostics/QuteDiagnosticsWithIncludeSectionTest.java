@@ -53,13 +53,35 @@ public class QuteDiagnosticsWithIncludeSectionTest {
 
 	@Test
 	public void templateFound() throws Exception {
-		String template = "{#include base.html }\r\n" + "	{#body}ABCD{/body}\r\n" + "{/include}";
+		String template = "{#include base.html }\r\n" + //
+				"	{#body}ABCD{/body}\r\n" + //
+				"{/include}";
 		testDiagnosticsFor(template);
 	}
 
 	@Test
 	public void templateFoundWithShortSyntax() throws Exception {
-		String template = "{#include base }\r\n" + "	{#body}ABCD{/body}\r\n" + "{/include}";
+		String template = "{#include base }\r\n" + //
+				"	{#body}ABCD{/body}\r\n" + //
+				"{/include}";
 		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void validateSectionInIncludeSection() throws Exception {
+		String template = "{#include base.html }\r\n" + //
+				"	{#foo}ABCD{/foo}\r\n" + //
+				"{/include}";
+		testDiagnosticsFor(template, //
+				d(1, 2, 1, 6, QuteErrorCode.UndefinedSectionTag, "No section helper found for `foo`.",
+						DiagnosticSeverity.Warning));
+	}
+	
+	@Test
+	public void validateIncludeParameter() throws Exception {
+		// origin parameter comes from book.html {#include base origin="book"}
+		String template = "{origin}";
+		testDiagnosticsFor(template, //
+				"src/main/resources/templates/base.html");
 	}
 }

@@ -15,7 +15,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.lsp4j.jsonrpc,
  org.apache.commons.lang3,
  org.eclipse.jdt.core.manipulation,
- org.eclipse.xtext.xbase.lib
+ org.eclipse.xtext.xbase.lib,
+ org.eclipse.lsp4mp.jdt.core
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
 Export-Package: com.redhat.qute.commons,
@@ -23,12 +24,13 @@ Export-Package: com.redhat.qute.commons,
  com.redhat.qute.commons.datamodel,
  com.redhat.qute.commons.datamodel.resolvers,
  com.redhat.qute.commons.jaxrs,
- com.redhat.qute.commons.usertags,
+ com.redhat.qute.commons.binary,
  com.redhat.qute.jdt,
  com.redhat.qute.jdt.debug,
  com.redhat.qute.jdt.internal.java;x-friends:="com.redhat.qute.jdt.test",
  com.redhat.qute.jdt.internal.ls;x-friends:="com.redhat.qute.jdt.test",
  com.redhat.qute.jdt.internal.template;x-friends:="com.redhat.qute.jdt.test",
  com.redhat.qute.jdt.template.datamodel,
+ com.redhat.qute.jdt.template.project,
  com.redhat.qute.jdt.utils
 Bundle-Activator: com.redhat.qute.jdt.QutePlugin

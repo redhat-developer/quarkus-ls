@@ -13,11 +13,16 @@ package com.redhat.qute.services.codelens.roq;
 
 import static com.redhat.qute.QuteAssert.cl;
 import static com.redhat.qute.QuteAssert.r;
+import static com.redhat.qute.project.roq.RoqProject.getFileUri;
+
+import java.util.Collections;
 
 import org.eclipse.lsp4j.CodeLens;
 import org.junit.jupiter.api.Test;
 
+import com.redhat.qute.CodeLensParameters;
 import com.redhat.qute.QuteAssert;
+import com.redhat.qute.project.extensions.roq.frontmatter.YamlFrontMatterDetector;
 import com.redhat.qute.project.roq.RoqProject;
 
 /**
@@ -30,15 +35,77 @@ import com.redhat.qute.project.roq.RoqProject;
 public class RoqCodeLensTest {
 
 	@Test
-	public void pageAndDocument() throws Exception {
+	public void normalPage() throws Exception {
 		String value = "";
-		testCodeLensFor(value, "src/main/resources/templates/ItemResource/XXXXXXXXXXX.qute.html", //
+		testCodeLensFor(value, getFileUri("/src/main/resources/templates/ItemResource/XXXXXXXXXXX.qute.html"), //
 				cl(r(0, 0, 0, 0), "site : Site", ""), //
-				cl(r(0, 0, 0, 0), "page : Page", ""));
+				cl(r(0, 0, 0, 0), "page : NormalPage", ""),
+				cl(r(0, 0, 0, 0), "Insert Frontmatter", "qute.roq.frontmatter.insert"));
+	}
+
+	@Test
+	public void noCollection() throws Exception {
+		// content folder is not a collection --> NormalPage
+		String value = "";
+		String fileUri = getFileUri("/content/foo.html");
+		testCodeLensFor(value, fileUri, //
+				cl(r(0, 0, 0, 0), "site : Site", ""), //
+				cl(r(0, 0, 0, 0), "page : NormalPage", ""),
+				cl(r(0, 0, 0, 0), "Insert Frontmatter", "qute.roq.frontmatter.insert"));
+
+		fileUri = getFileUri("/content/no-collecton/foo.html");
+		testCodeLensFor(value, fileUri, //
+				cl(r(0, 0, 0, 0), "site : Site", ""), //
+				cl(r(0, 0, 0, 0), "page : NormalPage", ""),
+				cl(r(0, 0, 0, 0), "Insert Frontmatter", "qute.roq.frontmatter.insert"));
+	}
+
+	@Test
+	public void collection() throws Exception {
+		// content/posts folder is a collection --> DocumentPage
+		String value = "";
+		String fileUri = getFileUri("/content/posts/foo.html");
+		testCodeLensFor(value, fileUri, //
+				cl(r(0, 0, 0, 0), "site : Site", ""), //
+				cl(r(0, 0, 0, 0), "page : DocumentPage", ""),
+				cl(r(0, 0, 0, 0), "Insert Frontmatter", "qute.roq.frontmatter.insert"));
+
+		// special case : index.html --> NormalPage
+		fileUri = getFileUri("/content/posts/index.html");
+		testCodeLensFor(value, fileUri, //
+				cl(r(0, 0, 0, 0), "site : Site", ""), //
+				cl(r(0, 0, 0, 0), "page : NormalPage", ""),
+				cl(r(0, 0, 0, 0), "Insert Frontmatter", "qute.roq.frontmatter.insert"));
+	}
+
+	@Test
+	public void withFrontmatter() throws Exception {
+		// content folder is not a collection --> NormalPage
+		String value = "---\r\n" + //
+				"layout: default\r\n" + //
+				"title: My title\r\n" + //
+				"---";
+		// A front matter exists, "Insert Frontmatter" codelens is not shown
+		String fileUri = getFileUri("/content/foo.html");
+		testCodeLensFor(value, fileUri, //
+				cl(r(0, 0, 0, 0), "site : Site", ""), //
+				cl(r(0, 0, 0, 0), "page : NormalPage", ""), //
+				cl(r(0, 0, 0, 0), "Included by:", ""), //
+				cl(r(0, 0, 0, 0), "default", ""));
+
+		fileUri = getFileUri("/content/no-collecton/foo.html");
+		testCodeLensFor(value, fileUri, //
+				cl(r(0, 0, 0, 0), "site : Site", ""), //
+				cl(r(0, 0, 0, 0), "page : NormalPage", ""), //
+				cl(r(0, 0, 0, 0), "Included by:", ""), //
+				cl(r(0, 0, 0, 0), "default", ""));
 	}
 
 	public static void testCodeLensFor(String value, String fileUri, CodeLens... expected) throws Exception {
-		QuteAssert.testCodeLensFor(value, fileUri, null, RoqProject.PROJECT_URI, QuteAssert.TEMPLATE_BASE_DIR,
-				expected);
+		CodeLensParameters p = new CodeLensParameters();
+		p.setFileUri(fileUri);
+		p.setProjectUri(RoqProject.PROJECT_URI);
+		p.setInjectionDetectors(Collections.singletonList(new YamlFrontMatterDetector()));
+		QuteAssert.testCodeLensFor(value, p, expected);
 	}
 }

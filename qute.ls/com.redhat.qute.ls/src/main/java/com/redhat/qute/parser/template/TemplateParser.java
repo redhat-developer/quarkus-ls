@@ -11,10 +11,16 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.parser.CancelChecker;
+import com.redhat.qute.parser.injection.InjectionDetector;
+import com.redhat.qute.parser.injection.InjectionMetadata;
+import com.redhat.qute.parser.injection.LanguageInjectionNode;
+import com.redhat.qute.parser.injection.scanner.ScannerWithInjection;
 import com.redhat.qute.parser.scanner.Scanner;
 import com.redhat.qute.parser.template.scanner.ScannerState;
 import com.redhat.qute.parser.template.scanner.TemplateScanner;
@@ -33,27 +39,30 @@ import com.redhat.qute.parser.template.sections.SectionFactory;
  */
 public class TemplateParser {
 
-	private static final CancelChecker DEFAULT_CANCEL_CHECKER = () -> {
-	};
-
 	private static final SectionFactory DEFAULT_SECTION_FACTORY = new DefaultSectionFactory();
 
 	public static Template parse(String content, String uri) {
-		return parse(content, uri, DEFAULT_CANCEL_CHECKER);
+		return parse(content, uri, Collections.emptyList());
 	}
 
-	public static Template parse(String text, String uri, CancelChecker cancelChecker) {
-		return parse(new TextDocument(text, uri), cancelChecker);
+	public static Template parse(String content, String uri, Collection<InjectionDetector> injectionDetectors) {
+		return parse(content, uri, injectionDetectors, CancelChecker.NO_CANCELLABLE);
 	}
 
-	public static Template parse(TextDocument textDocument, CancelChecker cancelChecker) {
-		return parse(textDocument, DEFAULT_SECTION_FACTORY, cancelChecker);
+	public static Template parse(String text, String uri, Collection<InjectionDetector> injectionDetectors,
+			CancelChecker cancelChecker) {
+		return parse(new TextDocument(text, uri), injectionDetectors, cancelChecker);
+	}
+
+	public static Template parse(TextDocument textDocument, Collection<InjectionDetector> injectionDetectors,
+			CancelChecker cancelChecker) {
+		return parse(textDocument, DEFAULT_SECTION_FACTORY, injectionDetectors, cancelChecker);
 	}
 
 	public static Template parse(TextDocument textDocument, SectionFactory sectionFactory,
-			CancelChecker cancelChecker) {
+			Collection<InjectionDetector> injectionDetectors, CancelChecker cancelChecker) {
 		if (cancelChecker == null) {
-			cancelChecker = DEFAULT_CANCEL_CHECKER;
+			cancelChecker = CancelChecker.NO_CANCELLABLE;
 		}
 		Template template = new Template(textDocument);
 		template.setCancelChecker(cancelChecker);
@@ -64,7 +73,8 @@ public class TemplateParser {
 		int endTagOpenOffset = -1;
 		int startSectionOffset = -1;
 		int endSectionOffset = -1;
-		Scanner<TokenType, ScannerState> scanner = TemplateScanner.createScanner(content);
+		ScannerWithInjection<TokenType, ScannerState> scanner = TemplateScanner.createScanner(content,
+				injectionDetectors);
 		TokenType token = scanner.scan();
 		while (token != TokenType.EOS) {
 			cancelChecker.checkCanceled();
@@ -74,6 +84,34 @@ public class TemplateParser {
 			endSectionOffset = -1;
 
 			switch (token) {
+
+			// Handle injections
+			case LanguageInjectionStart: {
+				InjectionMetadata metadata = scanner.getInjectionMetadata();
+				int start = scanner.getTokenOffset();
+
+				// Create the injection node
+				LanguageInjectionNode injection = new LanguageInjectionNode(start, -1, metadata.getLanguageId());
+				curr.addChild(injection);
+				curr = injection;
+				break;
+			}
+
+			case LanguageInjectionContent: {
+				// The content is already in the parent injection node
+				LanguageInjectionNode injection = (LanguageInjectionNode) curr;
+				injection.setContentStart(scanner.getTokenOffset());
+				injection.setContentEnd(scanner.getTokenEnd());
+				break;
+			}
+
+			case LanguageInjectionEnd: {
+				// Close the injection node
+				curr.setEnd(scanner.getTokenEnd());
+				curr.setClosed(true);
+				curr = curr.getParent();
+				break;
+			}
 
 			case StartTagOpen: {
 				if (!curr.isClosed() && curr.getParent() != null) {
@@ -172,7 +210,7 @@ public class TemplateParser {
 					section.setEndTagOpenOffset(scanner.getTokenOffset());
 					section.setEndTagCloseOffset(scanner.getTokenEnd() - 1);
 					curr.addChild(section);
-					
+
 				}
 				break;
 

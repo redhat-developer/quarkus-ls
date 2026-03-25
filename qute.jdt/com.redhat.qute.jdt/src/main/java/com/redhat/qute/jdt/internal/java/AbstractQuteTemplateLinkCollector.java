@@ -20,14 +20,20 @@ import static com.redhat.qute.jdt.internal.QuteJavaConstants.CHECKED_TEMPLATE_AN
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_CLASS;
 import static com.redhat.qute.jdt.internal.QuteJavaConstants.TEMPLATE_CONTENTS_ANNOTATION;
+import static com.redhat.qute.jdt.utils.JDTTypeUtils.isConstructor;
+import static com.redhat.qute.jdt.utils.JDTTypeUtils.isNativeMember;
+import static com.redhat.qute.jdt.utils.JDTTypeUtils.isStaticMember;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -49,6 +55,8 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProject;
+import org.eclipse.lsp4mp.jdt.core.project.JDTMicroProfileProjectManager;
 
 import com.redhat.qute.jdt.internal.AnnotationLocationSupport;
 import com.redhat.qute.jdt.internal.QuteJavaConstants;
@@ -72,17 +80,13 @@ import com.redhat.qute.jdt.utils.TemplatePathInfo;
  * @author Angelo ZERR
  *
  */
-public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
+public abstract class AbstractQuteTemplateLinkCollector<T extends QuteTemplateLinkCollectorContext> extends ASTVisitor {
 
 	private static final Logger LOGGER = Logger.getLogger(AbstractQuteTemplateLinkCollector.class.getName());
 
-	private static String[] suffixes = { ".qute.html", ".qute.json", ".qute.txt", ".qute.yaml", ".html", ".json",
-			".txt", ".yaml" };
+	private static String[] DEFAULT_SUFFIXES = { ".html", ".qute.html", ".qute.json", ".qute.txt", ".qute.yaml",
+			".json", ".txt", ".yaml" };
 
-	private static final String PREFERRED_SUFFIX = ".html"; // TODO make it configurable
-
-	protected final ITypeRoot typeRoot;
-	protected final IJDTUtils utils;
 	protected final IProgressMonitor monitor;
 
 	private int levelTypeDecl;
@@ -91,11 +95,33 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 
 	private CompilationUnit compilationUnit;
 
-	public AbstractQuteTemplateLinkCollector(ITypeRoot typeRoot, IJDTUtils utils, IProgressMonitor monitor) {
-		this.typeRoot = typeRoot;
-		this.utils = utils;
+	private final String[] suffixes;
+
+	private final T context;
+	protected final ITypeRoot typeRoot;
+	protected final IJDTUtils utils;
+
+	public AbstractQuteTemplateLinkCollector(T context, IProgressMonitor monitor) {
+		this.context = context;
+		this.typeRoot = context.getTypeRoot();
+		this.utils = context.getUtils();
 		this.monitor = monitor;
 		this.levelTypeDecl = 0;
+		IJavaProject javaProject = typeRoot.getJavaProject();
+		JDTMicroProfileProject mpProject = null;
+		try {
+			mpProject = JDTMicroProfileProjectManager.getInstance().getJDTMicroProfileProject(javaProject);
+		} catch (Exception e) {
+
+		}
+		String customSuffixes = mpProject != null ? mpProject.getProperty(QuteConfigConstants.QUARKUS_QUTE_SUFFIXES)
+				: null;
+		if (StringUtils.isNotBlank(customSuffixes)) {
+			this.suffixes = Arrays.stream(customSuffixes.split(",")).map(String::trim).filter(s -> !s.isEmpty())
+					.map(s -> s.startsWith(".") ? s : "." + s).toArray(String[]::new);
+		} else {
+			this.suffixes = DEFAULT_SUFFIXES;
+		}
 	}
 
 	@Override
@@ -193,13 +219,20 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 			List body = node.bodyDeclarations();
 			for (Object declaration : body) {
 				if (declaration instanceof MethodDeclaration methodDeclaration) {
-					String methodName = methodDeclaration.getName().getIdentifier();
-					collectTemplateLinkForMethodOrRecord(basePath, methodDeclaration, methodName, node, ignoreFragments,
-							templateNameStrategy);
+					if (isCheckedTemplateMethod(methodDeclaration)) {
+						String methodName = methodDeclaration.getName().getIdentifier();
+						collectTemplateLinkForMethodOrRecord(basePath, methodDeclaration, methodName, node,
+								ignoreFragments, templateNameStrategy);
+					}
 				}
 			}
 		}
 		return super.visit(node);
+	}
+
+	private static boolean isCheckedTemplateMethod(MethodDeclaration methodDeclaration) {
+		return !isConstructor(methodDeclaration) && isStaticMember(methodDeclaration)
+				&& isNativeMember(methodDeclaration);
 	}
 
 	/**
@@ -397,11 +430,12 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 		try {
 			String location = locationAnnotation != null ? locationAnnotation.getLiteralValue() : null;
 			IProject project = typeRoot.getJavaProject().getProject();
+			String relativeSourceFolder = context.getRelativeResourcesFolder();
 			TemplatePathInfo templatePathInfo = location != null
 					? JDTQuteProjectUtils.getTemplatePath(basePath, null, location, ignoreFragment,
-							templateNameStrategy)
+							templateNameStrategy, relativeSourceFolder)
 					: JDTQuteProjectUtils.getTemplatePath(basePath, className, fieldOrMethodName, ignoreFragment,
-							templateNameStrategy);
+							templateNameStrategy, relativeSourceFolder);
 			IFile templateFile = null;
 			if (location == null) {
 				templateFile = getTemplateFile(project, templatePathInfo.getTemplateUri());
@@ -447,14 +481,14 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 			AbstractTypeDeclaration type, String className, String fieldOrMethodName, String location,
 			IFile templateFile, TemplatePathInfo templatePathInfo) throws JavaModelException;
 
-	private static IFile getTemplateFile(IProject project, String templateFilePathWithoutExtension) {
+	private IFile getTemplateFile(IProject project, String templateFilePathWithoutExtension) {
 		for (String suffix : suffixes) {
 			IFile templateFile = project.getFile(templateFilePathWithoutExtension + suffix);
 			if (templateFile.exists()) {
 				return templateFile;
 			}
 		}
-		return project.getFile(templateFilePathWithoutExtension + PREFERRED_SUFFIX);
+		return project.getFile(templateFilePathWithoutExtension + suffixes[0]);
 	}
 
 	/**
@@ -476,5 +510,9 @@ public abstract class AbstractQuteTemplateLinkCollector extends ASTVisitor {
 			return false;
 		}
 		return TEMPLATE_CLASS.equals(binding.getQualifiedName());
+	}
+
+	public T getContext() {
+		return context;
 	}
 }

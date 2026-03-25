@@ -15,6 +15,7 @@ package com.redhat.qute.jdt.internal.template.rootpath;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,19 +55,22 @@ public class TemplateRootPathProviderRegistry extends AbstractQuteExtensionPoint
 	/**
 	 * Returns the template root path list for the given java project.
 	 * 
-	 * @param javaProject the java project.
-	 * @param monitor     the progress monitor.
+	 * @param javaProject   the java project.
+	 * @param sourceFolders
+	 * @param projectFolder
+	 * @param monitor       the progress monitor.
 	 * 
 	 * @return the template root path list for the given java project.
 	 * 
 	 * @throws CoreException
 	 */
-	public List<TemplateRootPath> getTemplateRootPaths(IJavaProject javaProject, IProgressMonitor monitor) {
+	public List<TemplateRootPath> getTemplateRootPaths(IJavaProject javaProject, String projectFolder,
+			Set<String> sourceFolders, IProgressMonitor monitor) {
 		List<TemplateRootPath> rootPaths = new ArrayList<>();
 		for (ITemplateRootPathProvider provider : super.getProviders()) {
 			if (provider.isApplicable(javaProject)) {
 				try {
-					provider.collectTemplateRootPaths(javaProject, rootPaths);
+					provider.collectTemplateRootPaths(javaProject, projectFolder, sourceFolders, rootPaths);
 				} catch (Exception e) {
 					LOGGER.log(Level.SEVERE, "Error while collecting template root path with the provider '"
 							+ provider.getClass().getName() + "'.", e);

@@ -23,14 +23,7 @@ import com.redhat.qute.parser.expression.Part;
  * 
  * @author Angelo ZERR
  */
-public interface HoverParticipant {
-
-	/**
-	 * Checks if this participant is enabled.
-	 * 
-	 * @return true if this participant should provide hover information
-	 */
-	boolean isEnabled();
+public interface HoverParticipant extends BaseParticpant {
 
 	/**
 	 * Provides hover documentation for the given part.

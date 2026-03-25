@@ -22,7 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -81,11 +83,13 @@ import com.redhat.qute.ls.commons.client.CommandCapabilities;
 import com.redhat.qute.ls.commons.client.CommandKindCapabilities;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEdit;
 import com.redhat.qute.ls.commons.client.ConfigurationItemEditType;
+import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.parser.validator.IQuteErrorCode;
 import com.redhat.qute.project.MockQuteLanguageServer;
 import com.redhat.qute.project.MockQuteProjectRegistry;
+import com.redhat.qute.project.MockQuteTextDocument;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.services.QuteLanguageService;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
@@ -94,6 +98,7 @@ import com.redhat.qute.services.commands.QuteSurroundWithCommandHandler;
 import com.redhat.qute.services.commands.QuteSurroundWithCommandHandler.SurroundWithKind;
 import com.redhat.qute.services.commands.QuteSurroundWithCommandHandler.SurroundWithResponse;
 import com.redhat.qute.services.diagnostics.QuteDiagnosticContants;
+import com.redhat.qute.settings.QuteCommandCapabilities;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.QuteInlayHintSettings;
@@ -125,6 +130,12 @@ public class QuteAssert {
 	public static final int SECTION_SNIPPET_SIZE = 15 /* #each, #for, ... #fragment ... */ + USER_TAG_SIZE;
 
 	public static final int RESOLVERS_SIZE = 10;
+
+	private static final Comparator<Location> LOCATION_COMPARATOR = Comparator.comparing(Location::getUri) //
+			.thenComparingInt(l -> l.getRange().getStart().getLine()) //
+			.thenComparingInt(l -> l.getRange().getStart().getCharacter()) //
+			.thenComparingInt(l -> l.getRange().getEnd().getLine()) //
+			.thenComparingInt(l -> l.getRange().getEnd().getCharacter());
 
 	public static String getFileUri(String templateFile) {
 		return Paths.get(TEMPLATE_BASE_DIR + templateFile).toUri().toString();
@@ -214,24 +225,40 @@ public class QuteAssert {
 			String templateBaseDir, Integer expectedCount, QuteNativeSettings nativeImagesSettings,
 			QuteCompletionSettings completionSettings, boolean itemDefaultsSupport, CompletionItem... expectedItems)
 			throws Exception {
+		CompletionParameters p = new CompletionParameters();
+		p.setFileUri(fileUri);
+		p.setTemplateId(templateId);
+		p.setProjectUri(projectUri);
+		p.setTemplateBaseDir(templateBaseDir);
+		p.setExpectedCount(expectedCount);
+		p.setNativeImagesSettings(nativeImagesSettings);
+		p.setCompletionSettings(completionSettings);
+		p.setItemDefaultsSupport(itemDefaultsSupport);
+		testCompletionFor(value, p, expectedItems);
+	}
+
+	public static void testCompletionFor(String value, CompletionParameters p, CompletionItem... expectedItems)
+			throws Exception {
+
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
-		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
-		template.setTemplateId(templateId);
+		Template template = createTemplate(value, p.getFileUri(), p.getProjectUri(), p.getTemplateBaseDir(),
+				p.getInjectionDetectors(), projectRegistry);
+		onDidOpenTextDocument(p.getTemplateId(), p.getProjectUri(), projectRegistry, template);
 
 		Position position = template.positionAt(offset);
 
 		QuteFormattingSettings formattingSettings = new QuteFormattingSettings();
 
 		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
-		CompletionList list = languageService
-				.doComplete(template, position, completionSettings, formattingSettings, nativeImagesSettings, () -> {
+		CompletionList list = languageService.doComplete(template, position, p.getCompletionSettings(),
+				formattingSettings, p.getNativeImagesSettings(), new QuteCommandCapabilities(), () -> {
 				}).get();
 
 		// no duplicate labels
-		assertCompletion(list, expectedCount, itemDefaultsSupport, expectedItems);
+		assertCompletion(list, p.getExpectedCount(), p.isItemDefaultsSupport(), expectedItems);
 	}
 
 	public static void assertCompletion(CompletionList list, Integer expectedCount, boolean itemDefaultsSupport,
@@ -372,19 +399,26 @@ public class QuteAssert {
 	public static void testDiagnosticsFor(String value, String fileUri, String templateId, String projectUri,
 			String templateBaseDir, boolean filter, QuteValidationSettings validationSettings,
 			QuteNativeSettings nativeImagesSettings, Diagnostic... expected) {
+		testDiagnosticsFor(value, new DiagnosticsParameters(fileUri, templateId, projectUri, templateBaseDir, filter,
+				validationSettings, nativeImagesSettings), expected);
+	}
+
+	public static void testDiagnosticsFor(String value, DiagnosticsParameters p, Diagnostic... expected) {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
-		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
-		template.setTemplateId(templateId);
+		Template template = createTemplate(value, p.getFileUri(), p.getProjectUri(), p.getTemplateBaseDir(),
+				p.getInjectionDetectors(), projectRegistry);
+		template.setTemplateId(p.getTemplateId());
+		onDidOpenTextDocument(p.getTemplateId(), p.getProjectUri(), projectRegistry, template);
 
 		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
-		List<Diagnostic> actual = languageService.doDiagnostics(template, validationSettings, nativeImagesSettings,
-				new ResolvingJavaTypeContext(template), () -> {
+		List<Diagnostic> actual = languageService.doDiagnostics(template, p.getValidationSettings(),
+				p.getNativeImagesSettings(), new ResolvingJavaTypeContext(template), () -> {
 				});
 		if (expected == null) {
 			assertTrue(actual.isEmpty());
 			return;
 		}
-		assertDiagnostics(actual, Arrays.asList(expected), filter);
+		assertDiagnostics(actual, Arrays.asList(expected), p.isFilter());
 	}
 
 	public static void assertDiagnostics(List<Diagnostic> actual, Diagnostic... expected) {
@@ -464,7 +498,7 @@ public class QuteAssert {
 	}
 
 	public static void assertHover(String value, String expectedHoverLabel, Range expectedHoverRange) throws Exception {
-		assertHover(value, null, expectedHoverLabel, expectedHoverRange);
+		assertHover(value, (String) null, expectedHoverLabel, expectedHoverRange);
 	}
 
 	public static void assertHover(String value, String fileURI, String expectedHoverLabel, Range expectedHoverRange)
@@ -482,22 +516,27 @@ public class QuteAssert {
 		SharedSettings sharedSettings = new SharedSettings();
 		HoverCapabilities capabilities = new HoverCapabilities(Arrays.asList(MarkupKind.MARKDOWN), false);
 		sharedSettings.getHoverSettings().setCapabilities(capabilities);
-		assertHover(value, fileURI, templateId, projectUri, TEMPLATE_BASE_DIR, expectedHoverLabel, expectedHoverRange,
-				sharedSettings);
+		assertHover(value, new HoverParameters(fileURI, templateId, projectUri, TEMPLATE_BASE_DIR, sharedSettings),
+				expectedHoverLabel, expectedHoverRange);
 	}
 
-	private static void assertHover(String value, String fileUri, String templateId, String projectUri,
-			String templateBaseDir, String expectedHoverLabel, Range expectedHoverRange, SharedSettings sharedSettings)
+	public static void assertHover(String value, HoverParameters p, String expectedHoverLabel, Range expectedHoverRange)
 			throws Exception {
 		int offset = value.indexOf("|");
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
+		String fileUri = p.getFileUri();
+		String templateBaseDir = p.getTemplateBaseDir();
+		String projectUri = p.getProjectUri();
+		String templateId = p.getTemplateId();
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
-		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, p.getInjectionDetectors(),
+				projectRegistry);
 		template.setTemplateId(templateId);
 
 		Position position = template.positionAt(offset);
 
+		SharedSettings sharedSettings = p.getSharedSettings();
 		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 		Hover hover = languageService.doHover(template, position, sharedSettings, () -> {
 		}).get();
@@ -541,6 +580,7 @@ public class QuteAssert {
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		onDidOpenTextDocument(null, projectUri, projectRegistry, template);
 
 		Position position = template.positionAt(offset);
 
@@ -573,9 +613,16 @@ public class QuteAssert {
 
 	public static void testDocumentLinkFor(String value, String fileUri, String projectUri, String templateBaseDir,
 			DocumentLink... expected) throws Exception {
+		testDocumentLinkFor(value, new DocumentLinkParameters(fileUri, templateBaseDir, projectUri, templateBaseDir),
+				expected);
+	}
+
+	public static void testDocumentLinkFor(String value, DocumentLinkParameters p, DocumentLink... expected)
+			throws Exception {
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
-		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		Template template = createTemplate(value, p.getFileUri(), p.getProjectUri(), p.getTemplateBaseDir(),
+				p.getInjectionDetectors(), projectRegistry);
 		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 
 		List<DocumentLink> actual = languageService.findDocumentLinks(template, () -> {
@@ -591,8 +638,17 @@ public class QuteAssert {
 		assertEquals(expected.length, actual.size());
 		for (int i = 0; i < expected.length; i++) {
 			assertEquals(expected[i].getRange(), actual.get(i).getRange(), " Range test '" + i + "' link");
-			assertEquals(Paths.get(expected[i].getTarget()).toUri().toString().replace("file:///", "file:/"),
-					actual.get(i).getTarget().replace("file:///", "file:/"), " Target test '" + i + "' link");
+			String expectedTarget = expected[i].getTarget();
+			if (expectedTarget.startsWith("jdt:")) {
+				assertEquals(expected[i].getTarget(), actual.get(i).getTarget(), " Target test '" + i + "' link");
+			} else if (expectedTarget.startsWith("file:")) {
+				assertEquals(expected[i].getTarget().replace("file:///", "file:/"),
+						actual.get(i).getTarget().replace("file:///", "file:/"), " Target test '" + i + "' link");
+
+			} else {
+				assertEquals(Paths.get(expected[i].getTarget()).toUri().toString().replace("file:///", "file:/"),
+						actual.get(i).getTarget().replace("file:///", "file:/"), " Target test '" + i + "' link");
+			}
 		}
 	}
 
@@ -644,9 +700,15 @@ public class QuteAssert {
 
 	public static void testCodeLensFor(String value, String fileUri, String templateId, String projectUri,
 			String templateBaseDir, CodeLens... expected) throws Exception {
+		testCodeLensFor(value, new CodeLensParameters(fileUri, templateId, projectUri, templateBaseDir), expected);
+	}
+
+	public static void testCodeLensFor(String value, CodeLensParameters p, CodeLens... expected) throws Exception {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
-		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
-		template.setTemplateId(templateId);
+		Template template = createTemplate(value, p.getFileUri(), p.getProjectUri(), p.getTemplateBaseDir(),
+				p.getInjectionDetectors(), projectRegistry);
+		onDidOpenTextDocument(p.getTemplateId(), p.getProjectUri(), projectRegistry, template);
+		template.setTemplateId(p.getTemplateId());
 
 		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 		SharedSettings sharedSettings = createSharedSettings(false);
@@ -880,17 +942,20 @@ public class QuteAssert {
 
 	// ------------------- Reference assert
 
-	public static void testReferencesFor(String value, Location... expected) throws BadLocationException {
-		testReferencesFor(value, FILE_URI, PROJECT_URI, TEMPLATE_BASE_DIR, expected);
+	public static void testReferencesFor(String value, String templateId, Location... expected)
+			throws BadLocationException {
+		testReferencesFor(value, FILE_URI, templateId, PROJECT_URI, TEMPLATE_BASE_DIR, expected);
 	}
 
-	public static void testReferencesFor(String value, String fileUri, String projectUri, String templateBaseDir,
-			Location... expected) throws BadLocationException {
+	public static void testReferencesFor(String value, String fileUri, String templateId, String projectUri,
+			String templateBaseDir, Location... expected) throws BadLocationException {
 		int offset = value.indexOf('|');
 		value = value.substring(0, offset) + value.substring(offset + 1);
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		onDidOpenTextDocument(templateId, projectUri, projectRegistry, template);
+
 		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 
 		Position position = template.positionAt(offset);
@@ -907,7 +972,10 @@ public class QuteAssert {
 
 	public static void assertLocations(List<? extends Location> actual, Location... expected) {
 		assertEquals(expected.length, actual.size());
-		assertArrayEquals(expected, actual.toArray());
+		Arrays.sort(expected, LOCATION_COMPARATOR);
+		Location[] actualArray = actual.toArray(new Location[actual.size()]);
+		Arrays.sort(actualArray, LOCATION_COMPARATOR);
+		assertArrayEquals(expected, actualArray);
 	}
 
 	// ------------------- Rename assert
@@ -1068,10 +1136,15 @@ public class QuteAssert {
 
 	private static Template createTemplate(String value, String fileUri, String projectUri, String templateBaseDir,
 			QuteProjectRegistry projectRegistry) {
-		Template template = TemplateParser.parse(value, fileUri != null ? fileUri : FILE_URI);
+		return createTemplate(value, fileUri, projectUri, templateBaseDir, Collections.emptyList(), projectRegistry);
+	}
+
+	private static Template createTemplate(String value, String fileUri, String projectUri, String templateBaseDir,
+			Collection<InjectionDetector> injectionDetectors, QuteProjectRegistry projectRegistry) {
+		Template template = TemplateParser.parse(value, fileUri != null ? fileUri : FILE_URI, injectionDetectors);
 		template.setProjectUri(projectUri);
-		projectRegistry.getProject(new ProjectInfo(projectUri, Collections.emptyList(),
-				Arrays.asList(new TemplateRootPath(templateBaseDir)), Collections.emptySet()));
+		projectRegistry.getProject(new ProjectInfo(projectUri, null, Collections.emptyList(),
+				Arrays.asList(new TemplateRootPath(templateBaseDir)), Collections.emptySet(), Collections.emptySet()));
 		template.setProjectRegistry(projectRegistry);
 		return template;
 	}
@@ -1090,4 +1163,13 @@ public class QuteAssert {
 		return sharedSettings;
 	}
 
+	private static void onDidOpenTextDocument(String templateId, String projectUri, QuteProjectRegistry projectRegistry,
+			Template template) {
+		if (projectUri != null) {
+			template.setTemplateId(templateId);
+			template.setProjectUri(projectUri);
+			MockQuteTextDocument document = new MockQuteTextDocument(template);
+			projectRegistry.onDidOpenTextDocument(document);
+		}
+	}
 }

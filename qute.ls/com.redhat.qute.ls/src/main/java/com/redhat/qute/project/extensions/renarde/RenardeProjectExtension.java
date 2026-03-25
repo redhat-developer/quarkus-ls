@@ -27,7 +27,6 @@ import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.FileChangeType;
-import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.InlayHint;
 import org.eclipse.lsp4j.InlayHintKind;
@@ -40,6 +39,7 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
+import com.redhat.qute.commons.config.renarde.RenardeConfig;
 import com.redhat.qute.ls.commons.snippets.SnippetsBuilder;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
@@ -49,7 +49,13 @@ import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
-import com.redhat.qute.project.extensions.ProjectExtension;
+import com.redhat.qute.project.extensions.AbstractProjectExtension;
+import com.redhat.qute.project.extensions.CompletionParticipant;
+import com.redhat.qute.project.extensions.DefinitionParticipant;
+import com.redhat.qute.project.extensions.DiagnosticsParticipant;
+import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
+import com.redhat.qute.project.extensions.HoverParticipant;
+import com.redhat.qute.project.extensions.InlayHintParticipant;
 import com.redhat.qute.project.extensions.renarde.MessagesFileInfo.MessagesFileName;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.services.completions.CompletionRequest;
@@ -87,28 +93,29 @@ import com.redhat.qute.utils.QutePositionUtility;
  * 
  * @author Angelo ZERR
  */
-public class RenardeProjectExtension implements ProjectExtension {
+public class RenardeProjectExtension extends AbstractProjectExtension
+		implements CompletionParticipant, DefinitionParticipant, DiagnosticsParticipant,
+		DidChangeWatchedFilesParticipant, HoverParticipant, InlayHintParticipant {
 
 	private static final String M_NAMESPACE_NAME = "m";
 	private static final String M_NAMESPACE = "m:";
 
 	private static final Logger LOGGER = Logger.getLogger(RenardeProjectExtension.class.getName());
 
-	private boolean enabled;
 	private final List<MessagesFileInfo> messagesFileInfos;
 	private Set<Path> sourcePaths;
 
 	public RenardeProjectExtension() {
+		super(RenardeConfig.PROJECT_FEATURE);
 		this.messagesFileInfos = new ArrayList<>();
 	}
 
 	@Override
-	public void init(ExtendedDataModelProject dataModelProject) {
+	protected void doInit(ExtendedDataModelProject dataModelProject) {
 		// Check if the m: namespace resolver exists in the project
-		enabled = dataModelProject.getNamespaceResolver(M_NAMESPACE_NAME) != null;
 		sourcePaths = dataModelProject.getSourcePaths();
 
-		if (!enabled) {
+		if (!isEnabled()) {
 			messagesFileInfos.clear();
 			return;
 		}
@@ -152,11 +159,6 @@ public class RenardeProjectExtension implements ProjectExtension {
 				LOGGER.log(Level.SEVERE, "Error loading messages file: " + filePath, e);
 			}
 		}
-	}
-
-	@Override
-	public boolean isEnabled() {
-		return enabled;
 	}
 
 	/**
@@ -238,14 +240,14 @@ public class RenardeProjectExtension implements ProjectExtension {
 	// ========================
 
 	@Override
-	public boolean didChangeWatchedFile(Path filePath, FileEvent fileEvent) {
+	public boolean didChangeWatchedFile(Path filePath, Set<FileChangeType> changeTypes) {
 		MessagesFileName messagesFileName = MessagesFileInfo.getMessagesFileName(filePath, sourcePaths);
 		if (messagesFileName == null) {
 			return false;
 		}
 
 		MessagesFileInfo file = find(messagesFileName.getFileName());
-		boolean fileDeleted = fileEvent.getType() == FileChangeType.Deleted;
+		boolean fileDeleted = changeTypes.contains(FileChangeType.Deleted);
 
 		try {
 			if (file != null) {
@@ -278,8 +280,7 @@ public class RenardeProjectExtension implements ProjectExtension {
 
 				// TODO: Parse .properties file to find exact line number of the key
 				// Currently navigates to beginning of file (0,0)
-				Range targetRange = new Range(new Position(0, 0), new Position(0, 0));
-
+				Range targetRange = QutePositionUtility.ZERO_RANGE;
 				locationLinks.add(new LocationLink(messagesFileUri, targetRange, targetRange, originRange));
 			}
 		}
@@ -366,7 +367,7 @@ public class RenardeProjectExtension implements ProjectExtension {
 	// ======================== InlayHintParticipant ========================
 
 	@Override
-	public void inlayHint(Expression node, List<InlayHint> inlayHints, CancelChecker cancelChecker) {
+	public void collectInlayHints(Expression node, List<InlayHint> inlayHints, CancelChecker cancelChecker) {
 		Parts parts = node.getParts();
 		String messageKey = getMessageKey(parts);
 
@@ -574,4 +575,5 @@ public class RenardeProjectExtension implements ProjectExtension {
 
 		return count;
 	}
+
 }

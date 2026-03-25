@@ -142,7 +142,7 @@ public class JavaTypeInfo extends JavaElementInfo {
 	public void setInvalidMethods(Map<String /* method name */, InvalidMethodReason> invalidMethods) {
 		this.invalidMethods = invalidMethods;
 	}
-	
+
 	public Map<String, InvalidMethodReason> getInvalidMethods() {
 		return invalidMethods;
 	}
@@ -161,8 +161,11 @@ public class JavaTypeInfo extends JavaElementInfo {
 	 * @return the java type parameters.
 	 */
 	public List<JavaParameterInfo> getTypeParameters() {
+		String signature = super.getSignature();
+		if (signature == null && isTypeResolved()) {
+			return Collections.emptyList();
+		}
 		if (parameters == null) {
-			String signature = super.getSignature();
 			int index = signature.indexOf('<');
 			if (index == -1) {
 				name = signature;
@@ -224,6 +227,9 @@ public class JavaTypeInfo extends JavaElementInfo {
 	 * @return true if the java type is a generic type and false otherwise.
 	 */
 	public boolean isGenericType() {
+		if (isTypeResolved()) {
+			return false;
+		}
 		if (isSingleGenericType()) {
 			return true;
 		}
@@ -280,7 +286,8 @@ public class JavaTypeInfo extends JavaElementInfo {
 	 *         otherwise.
 	 */
 	public boolean isArray() {
-		return getName().endsWith("[]");
+		String name = getName();
+		return name != null && name.endsWith("[]");
 	}
 
 	/**

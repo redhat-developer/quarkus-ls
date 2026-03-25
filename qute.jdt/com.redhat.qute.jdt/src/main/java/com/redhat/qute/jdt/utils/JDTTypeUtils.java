@@ -24,6 +24,9 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 
@@ -109,6 +112,47 @@ public class JDTTypeUtils {
 			LOGGER.log(Level.SEVERE, "Error while finding type for '" + className + "'.", e);
 		}
 		return null;
+	}
+
+	/**
+	 * Return true if method is a constructor, and false otherwise
+	 *
+	 * @param method the method to check for constructor
+	 * @return
+	 */
+	public static boolean isConstructor(MethodDeclaration methodDeclaration) {
+		return methodDeclaration.getReturnType2() == null;
+	}
+
+	/**
+	 * Return true if member is a native, and false otherwise
+	 *
+	 * @param node the member to check for native
+	 * @return true if member is a native, and false otherwise
+	 */
+	public static boolean isNativeMember(BodyDeclaration member) {
+		return Modifier.isNative(member.getModifiers());
+	}
+
+	/**
+	 * Return true if member is a static, and false otherwise
+	 *
+	 * @param node the member to check for static
+	 * @return true if member is a static, and false otherwise
+	 */
+	public static boolean isStaticMember(BodyDeclaration member) {
+		return Modifier.isStatic(member.getModifiers());
+	}
+
+	/**
+	 * Return true if member is native, and false otherwise
+	 *
+	 * @param member the member to check for native
+	 * @return
+	 * @throws JavaModelException
+	 */
+	public static boolean isNativeMember(IMember member) throws JavaModelException {
+		return Modifier.isNative(member.getFlags());
 	}
 
 	/**

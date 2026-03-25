@@ -17,12 +17,12 @@ import com.redhat.qute.ls.commons.snippets.SnippetRegistry;
 import com.redhat.qute.services.completions.tags.QuteCompletionsForSnippets;
 
 /**
- * Abstract class for user tag completion.
+ * Class for user tag completion (binary and source).
  * 
  * @author Angelo ZERR
  *
  */
-public abstract class QuteCompletionsForUserTagSection extends QuteCompletionsForSnippets<UserTag> {
+public class QuteCompletionsForUserTagSection extends QuteCompletionsForSnippets<UserTag> {
 
 	public QuteCompletionsForUserTagSection() {
 		super(false);
@@ -31,5 +31,15 @@ public abstract class QuteCompletionsForUserTagSection extends QuteCompletionsFo
 	public Collection<UserTag> getUserTags() {
 		SnippetRegistry<UserTag> snippetRegistry = super.getSnippetRegistry();
 		return snippetRegistry.getSnippets();
+	}
+
+	public void registerUserTag(UserTag tag) {
+		SnippetRegistry<UserTag> snippetRegistry = super.getSnippetRegistry();
+		snippetRegistry.registerSnippet(tag);
+	}
+
+	public void unregisterUserTag(UserTag tag) {
+		SnippetRegistry<UserTag> snippetRegistry = super.getSnippetRegistry();
+		snippetRegistry.unregisterSnippet(tag);
 	}
 }

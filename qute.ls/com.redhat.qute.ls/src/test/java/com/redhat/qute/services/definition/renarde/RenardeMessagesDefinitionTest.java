@@ -24,7 +24,7 @@ import com.redhat.qute.project.MockQuteProject;
 import com.redhat.qute.project.renarde.RenardeProject;
 
 /**
- * Test definition in Renarde.
+ * Test definition in Renarde with messages properties.
  * 
  * @author Angelo ZERR
  *

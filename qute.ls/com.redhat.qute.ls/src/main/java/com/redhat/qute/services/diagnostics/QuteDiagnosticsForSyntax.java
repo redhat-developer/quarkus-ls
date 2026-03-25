@@ -61,14 +61,11 @@ public class QuteDiagnosticsForSyntax {
 		try {
 			QuteProject project = template.getProject();
 			if (project != null) {
-				// To avoid having error with the real Qute parser, we will section helper with
+				// To avoid having error with the real Qute parser, we fill section helper with
 				// user tags:
-				// - Source tags
-				Collection<UserTag> sourceTags = new ArrayList<>(project.getSourceUserTags());
+				// - Binary + Source tags
+				Collection<UserTag> sourceTags = new ArrayList<>(project.getUserTags());
 				addUserTag(sourceTags, engineBuilder);
-				// - Binary tags
-				Collection<UserTag> binaryTags = project.getBinaryUserTags().getNow(Collections.emptyList());
-				addUserTag(binaryTags, engineBuilder);
 			}
 			Engine engine = engineBuilder.build();
 			engine.parse(templateContent);
@@ -95,6 +92,9 @@ public class QuteDiagnosticsForSyntax {
 	}
 
 	private static void addUserTag(Collection<UserTag> tags, EngineBuilder engineBuilder) {
+		if (tags == null) {
+			return;
+		}
 		for (UserTag userTag : tags) {
 			String tagName = userTag.getName();
 			String tagTemplateId = userTag.getTemplateId();

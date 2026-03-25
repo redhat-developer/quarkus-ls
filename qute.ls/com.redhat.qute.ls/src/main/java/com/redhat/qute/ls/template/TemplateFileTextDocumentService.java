@@ -54,6 +54,7 @@ import org.eclipse.lsp4j.ReferenceParams;
 import org.eclipse.lsp4j.RenameParams;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
+import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -67,6 +68,7 @@ import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteTemplateProvider;
 import com.redhat.qute.ls.commons.ModelTextDocument;
 import com.redhat.qute.ls.commons.ValidatorDelayer;
+import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateParser;
 import com.redhat.qute.project.QuteProject;
@@ -87,6 +89,12 @@ import com.redhat.qute.utils.QutePositionUtility;
 public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		implements QuteTemplateProvider, TemplateValidator {
 
+	private static final String JDT_SCHEME = "jdt:";
+	private static final String JAR_SCHEME = "jar:";
+
+	private static final CancelChecker NO_CANCELLABLE = () -> {
+	};
+
 	private final QuteLanguageService quteLanguageService;
 
 	private final QuteOpenedTextDocuments openedDocuments;
@@ -101,7 +109,9 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		this.quteLanguageService = quteLanguageService;
 		this.projectRegistry = quteLanguageService.getProjectRegistry();
 		this.openedDocuments = new QuteOpenedTextDocuments((document, cancelChecker) -> {
-			return TemplateParser.parse(document, () -> cancelChecker.checkCanceled());
+			Collection<InjectionDetector> injectionDetectors = ((QuteOpenedTextDocument) document)
+					.getInjectionDetectors();
+			return TemplateParser.parse(document, injectionDetectors, () -> cancelChecker.checkCanceled());
 		}, projectInfoProvider, projectRegistry);
 		this.validatorDelayer = new ValidatorDelayer<ModelTextDocument<Template>>((template) -> {
 			triggerValidationFor((QuteTextDocument) template);
@@ -111,14 +121,16 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 
 	@Override
 	public void didOpen(DidOpenTextDocumentParams params) {
-		QuteOpenedTextDocument document = (QuteOpenedTextDocument) openedDocuments.onDidOpenTextDocument(params);
-		if (!hasOpenedAQuteDocument) {
-			hasOpenedAQuteDocument = true;
-			QuteLanguageClientAPI languageClient = getLanguageClient();
-			if (languageClient != null) {
-				languageClient.telemetryEvent(new TelemetryEvent(QuteTelemetryConstants.FILE_OPENED, new HashMap<>()));
-			}
+		if (isBinaryTemplate(params.getTextDocument())) {
+			// Binary template coming from JAR, do nothing
+			sentFileOpenedTelemetryEventIfNeeded();
+			return;
 		}
+
+		// Source template
+		QuteOpenedTextDocument document = (QuteOpenedTextDocument) openedDocuments.onDidOpenTextDocument(params);
+		sentFileOpenedTelemetryEventIfNeeded();
+
 		// The qute template is opened, trigger the validation
 		QuteProject project = document.getProject();
 		if (project != null) {
@@ -134,6 +146,24 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 							triggerValidationFor(document);
 						}
 					});
+		}
+	}
+
+	private void sentFileOpenedTelemetryEventIfNeeded() {
+		if (hasOpenedAQuteDocument) {
+			return;
+		}
+		sentFileOpenedTelemetryEventIfNeededSync();
+	}
+
+	private synchronized void sentFileOpenedTelemetryEventIfNeededSync() {
+		if (hasOpenedAQuteDocument) {
+			return;
+		}
+		hasOpenedAQuteDocument = true;
+		QuteLanguageClientAPI languageClient = getLanguageClient();
+		if (languageClient != null) {
+			languageClient.telemetryEvent(new TelemetryEvent(QuteTelemetryConstants.FILE_OPENED, new HashMap<>()));
 		}
 	}
 
@@ -165,7 +195,8 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		return getTemplateCompose(params.getTextDocument(), (template, cancelChecker) -> {
 			return getQuteLanguageService()
 					.doComplete(template, params.getPosition(), sharedSettings.getCompletionSettings(),
-							sharedSettings.getFormattingSettings(), sharedSettings.getNativeSettings(), cancelChecker) //
+							sharedSettings.getFormattingSettings(), sharedSettings.getNativeSettings(),
+							sharedSettings.getCommandCapabilities(), cancelChecker) //
 					.thenApply(list -> {
 						return Either.forRight(list);
 					});
@@ -334,16 +365,6 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 	}
 
 	/**
-	 * Returns the text document from the given uri.
-	 *
-	 * @param uri the uri
-	 * @return the text document from the given uri.
-	 */
-	public QuteOpenedTextDocument getDocument(String uri) {
-		return (QuteOpenedTextDocument) openedDocuments.get(uri);
-	}
-
-	/**
 	 * Parses the given Qute template file then passes the model to the given
 	 * function, then returns the result of the given function.
 	 *
@@ -358,6 +379,20 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 	 */
 	public <R> CompletableFuture<R> getTemplate(TextDocumentIdentifier documentIdentifier,
 			BiFunction<Template, CancelChecker, R> code) {
+		if (isBinaryTemplate(documentIdentifier)) {
+			// Binary template is opened, wait for all Qute projects are loaded
+			// and get the binary template from loaded Qute project.
+			String uri = documentIdentifier.getUri();
+			return projectRegistry.getBinaryDocument(uri) //
+					.thenApply(binaryDocument -> {
+						Template template = binaryDocument.getTemplate();
+						if (template == null) {
+							return null;
+						}
+						return code.apply(template, NO_CANCELLABLE);
+					});
+		}
+		// Source template is opened, wait parsing Template and return it.
 		return openedDocuments.computeModelAsync(documentIdentifier, code);
 	}
 
@@ -378,6 +413,23 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 	 */
 	public <R> CompletableFuture<R> getTemplateCompose(TextDocumentIdentifier documentIdentifier,
 			BiFunction<Template, CancelChecker, CompletableFuture<R>> code) {
+		if (isBinaryTemplate(documentIdentifier)) {
+			// Binary template is opened, wait for all Qute projects are loaded
+			// and get the binary template from loaded Qute project.
+			String uri = documentIdentifier.getUri();
+			return projectRegistry.getBinaryDocument(uri).thenCompose(binaryDocument -> {
+				// binaryDocument can be null if the project is not registered or not yet
+				// loaded.
+				Template template = binaryDocument != null ? binaryDocument.getTemplate() : null;
+				// The binary document exists but its template is not yet available
+				// (e.g. project not fully loaded).
+				if (template == null) {
+					return CompletableFuture.completedFuture(null);
+				}
+				return code.apply(template, NO_CANCELLABLE);
+			});
+		}
+		// Source template is opened, wait parsing Template and return it.
 		return openedDocuments.computeModelAsyncCompose(documentIdentifier, code);
 	}
 
@@ -476,8 +528,38 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		return document != null ? document.getModel() : null;
 	}
 
+	/**
+	 * Returns the text document from the given uri.
+	 *
+	 * @param uri the uri
+	 * @return the text document from the given uri.
+	 */
+	private QuteOpenedTextDocument getDocument(String uri) {
+		return (QuteOpenedTextDocument) openedDocuments.get(uri);
+	}
+
 	public void dispose() {
 		validatorDelayer.dispose();
+	}
+
+	private static boolean isBinaryTemplate(TextDocumentIdentifier documentIdentifier) {
+		return isBinaryTemplate(documentIdentifier.getUri());
+	}
+
+	private static boolean isBinaryTemplate(TextDocumentItem textDocument) {
+		return isBinaryTemplate(textDocument.getUri());
+	}
+
+	private static boolean isBinaryTemplate(String uri) {
+		return isJarUri(uri) /* IntelliJ */ || isJdtUri(uri) /* JDT */;
+	}
+
+	public static boolean isJarUri(String uri) {
+		return uri.startsWith(JAR_SCHEME);
+	}
+
+	public static boolean isJdtUri(String uri) {
+		return uri.startsWith(JDT_SCHEME);
 	}
 
 }

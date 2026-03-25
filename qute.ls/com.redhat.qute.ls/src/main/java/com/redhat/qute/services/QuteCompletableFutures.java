@@ -61,7 +61,11 @@ public class QuteCompletableFutures {
 	}
 
 	public static boolean isValidJavaType(ResolvedJavaTypeInfo resolvedJavaType) {
-		return resolvedJavaType != NOT_ITERABLE_JAVA_TYPE && !isResolvingJavaTypeOrNull(resolvedJavaType);
+		return !isNotIterableType(resolvedJavaType) && !isResolvingJavaTypeOrNull(resolvedJavaType);
+	}
+
+	public static boolean isNotIterableType(ResolvedJavaTypeInfo resolvedJavaType) {
+		return resolvedJavaType == NOT_ITERABLE_JAVA_TYPE;
 	}
 
 }

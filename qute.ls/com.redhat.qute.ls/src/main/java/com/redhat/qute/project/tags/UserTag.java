@@ -19,11 +19,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.eclipse.lsp4j.CompletionItemKind;
+import org.eclipse.lsp4j.CompletionItemLabelDetails;
+
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetsBuilder;
 import com.redhat.qute.parser.template.Template;
-import com.redhat.qute.parser.template.TemplateParser;
-import com.redhat.qute.project.QuteProject;
+import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.services.snippets.QuteSnippetContext;
 import com.redhat.qute.utils.UserTagUtils;
 
@@ -35,22 +37,25 @@ import com.redhat.qute.utils.UserTagUtils;
  * @see https://quarkus.io/guides/qute-reference#user_tags
  *
  */
-public abstract class UserTag extends Snippet {
+public class UserTag extends Snippet {
 
-	private final String fileName;
-	private final String templateId;
 	private Map<String, UserTagParameter> parameters;
-	private final QuteProject project;
 	private boolean hasArgs;
+	private final QuteTextDocument document;
 
-	public UserTag(String fileName, QuteProject project) {
-		String name = UserTagUtils.getUserTagName(fileName);
+	public UserTag(QuteTextDocument document) {
+		this.document = document;
+		String name = document.getUserTagName();
 		super.setLabel(name);
 		super.setPrefixes(Arrays.asList(name));
 		super.setContext(QuteSnippetContext.IN_TEXT);
-		this.fileName = fileName;
-		this.templateId = UserTagUtils.getTemplateId(name);
-		this.project = project;
+		String origin = document.getOrigin();
+		if (origin != null) {
+			CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+			labelDetails.setDescription(origin);
+			super.setLabelDetails(labelDetails);
+		}
+		super.setKind(document.isBinary() ? CompletionItemKind.Function : CompletionItemKind.Method);
 	}
 
 	@Override
@@ -74,17 +79,17 @@ public abstract class UserTag extends Snippet {
 		for (UserTagParameter parameter : parameters) {
 			if (parameter.isRequired()) {
 				switch (parameter.getName()) {
-					case UserTagUtils.IT_OBJECT_PART_NAME:
-						startSection.append(" ");
-						SnippetsBuilder.placeholders(index++, parameter.getName(), startSection);
-						break;
-					case UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME:
-						hasNestedContent = true;
-						break;
-					default:
-						startSection.append(" ");
-						generateUserTagParameter(parameter, true, index++, startSection);
-						break;
+				case UserTagUtils.IT_OBJECT_PART_NAME:
+					startSection.append(" ");
+					SnippetsBuilder.placeholders(index++, parameter.getName(), startSection);
+					break;
+				case UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME:
+					hasNestedContent = true;
+					break;
+				default:
+					startSection.append(" ");
+					generateUserTagParameter(parameter, true, index++, startSection);
+					break;
 				}
 			}
 		}
@@ -135,11 +140,11 @@ public abstract class UserTag extends Snippet {
 				quote = null;
 			}
 		}
-		
+
 		if (quote != null) {
 			snippet.append(quote);
 		}
-		
+
 		if (snippetsSupported) {
 			SnippetsBuilder.placeholders(index, value, snippet);
 		} else {
@@ -160,12 +165,14 @@ public abstract class UserTag extends Snippet {
 	}
 
 	/**
-	 * Returns the file name of the user tag.
+	 * Returns the user tag name.
 	 *
-	 * @return the file name of the user tag.
+	 * @return the the user tag name.
 	 */
 	public String getFileName() {
-		return fileName;
+		String uri = document.getUri();
+		int index = uri.lastIndexOf('/');
+		return uri.substring(index + 1);
 	}
 
 	/**
@@ -174,7 +181,7 @@ public abstract class UserTag extends Snippet {
 	 * @return the template id.
 	 */
 	public String getTemplateId() {
-		return templateId;
+		return document.getTemplateId();
 	}
 
 	/**
@@ -194,7 +201,7 @@ public abstract class UserTag extends Snippet {
 		}
 		return parameters.values();
 	}
-	
+
 	public boolean hasArgs() {
 		getParameters();
 		return hasArgs;
@@ -206,9 +213,7 @@ public abstract class UserTag extends Snippet {
 	 * @return all required parameter names.
 	 */
 	public List<String> getRequiredParameterNames() {
-		return getParameters().stream()
-				.filter(UserTagParameter::isRequired)
-				.map(UserTagParameter::getName)
+		return getParameters().stream().filter(UserTagParameter::isRequired).map(UserTagParameter::getName)
 				.filter(paramName -> !paramName.equals(UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME))
 				.collect(Collectors.toList());
 	}
@@ -223,12 +228,13 @@ public abstract class UserTag extends Snippet {
 	 *         and null otherwise.
 	 */
 	public UserTagParameter findParameter(String parameterName) {
-		for (UserTagParameter parameter : getParameters()) {
-			if (parameterName.equals(parameter.getName())) {
-				return parameter;
-			}
-		}
-		return null;
+		getParameters();
+		return parameters.get(parameterName);
+	}
+
+	public boolean hasParameter(String parameterName) {
+		getParameters();
+		return parameters.containsKey(parameterName);
 	}
 
 	/**
@@ -241,22 +247,9 @@ public abstract class UserTag extends Snippet {
 		if (template == null) {
 			return null;
 		}
-		UserTagInfoCollector collector = new UserTagInfoCollector(project);
+		UserTagInfoCollector collector = new UserTagInfoCollector(document.getProject());
 		template.accept(collector);
 		return collector;
-	}
-
-	/**
-	 * Returns the template.
-	 * 
-	 * @return the template.
-	 */
-	public Template getTemplate() {
-		String content = getContent();
-		if (content == null) {
-			return null;
-		}
-		return TemplateParser.parse(content, getUri());
 	}
 
 	/**
@@ -267,18 +260,11 @@ public abstract class UserTag extends Snippet {
 		setBody(null);
 	}
 
-	/**
-	 * Returns the Qute template file Uri.
-	 *
-	 * @return the Qute template file Uri.
-	 */
-	public abstract String getUri();
+	public Template getTemplate() {
+		return document.getTemplate();
+	}
 
-	/**
-	 * Returns the content of the user tag.
-	 *
-	 * @return the content of the user tag.
-	 */
-	public abstract String getContent();
-
+	public String getUri() {
+		return document.getUri();
+	}
 }

@@ -11,7 +11,6 @@
 *******************************************************************************/
 package com.redhat.qute.project.renarde;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +18,7 @@ import java.util.Set;
 
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.TemplateRootPath;
+import com.redhat.qute.commons.config.renarde.RenardeConfig;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
@@ -30,10 +30,13 @@ public class RenardeProject extends BaseQuteProject {
 
 	public final static String PROJECT_URI = "renarde";
 
-	public RenardeProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
-		super(new ProjectInfo(PROJECT_URI, Collections.emptyList(),
-				Arrays.asList(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates")),
-				Set.of(getProjectPath(PROJECT_URI) + "/src/main/resources")), projectRegistry);
+	public RenardeProject(QuteProjectRegistry projectRegistry) {
+		super(new ProjectInfo(PROJECT_URI, //
+				getProjectPath(PROJECT_URI), //
+				Collections.emptyList(), //
+				List.of(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates")), //
+				Set.of(getProjectPath(PROJECT_URI) + "/src/main/resources"), //
+				Set.of(RenardeConfig.PROJECT_FEATURE)), projectRegistry);
 	}
 
 	@Override

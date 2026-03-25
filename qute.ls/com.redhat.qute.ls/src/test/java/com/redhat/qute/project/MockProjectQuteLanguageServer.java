@@ -21,12 +21,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.redhat.qute.commons.FileUtils;
+import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.TemplateRootPath;
@@ -36,16 +40,25 @@ public class MockProjectQuteLanguageServer extends MockQuteLanguageServer {
 
 	private final String projectUri;
 
-	private final Path resourcesPath;
+	private final Set<ProjectFeature> features;
+	private Path projectFolder;
+
+	private final Path resourcesFolder;
 
 	private final Path templatesPath;
 
 	private final ProjectInfo projectInfo;
 
 	public MockProjectQuteLanguageServer(String projectUri) {
+		this(projectUri, Collections.emptySet());
+	}
+
+	public MockProjectQuteLanguageServer(String projectUri, Set<ProjectFeature> features) {
 		this.projectUri = projectUri;
-		this.resourcesPath = FileUtils.createPath("src/test/resources/projects/" + projectUri + "/src/main/resources");
-		this.templatesPath = resourcesPath.resolve("templates");
+		this.features = features;
+		this.projectFolder = FileUtils.createPath("src/test/resources/projects/" + projectUri);
+		this.resourcesFolder = projectFolder.resolve("src/main/resources");
+		this.templatesPath = resourcesFolder.resolve("templates");
 		this.projectInfo = createProject();
 	}
 
@@ -93,6 +106,19 @@ public class MockProjectQuteLanguageServer extends MockQuteLanguageServer {
 		return super.references(fileUri, line, character);
 	}
 
+	public Either<List<? extends Location>, List<? extends LocationLink>> definitionFile(String fileName, int line,
+			int character) {
+		Path filePath = getFilePath(fileName);
+		String fileUri = FileUtils.toUri(filePath);
+		return super.definition(fileUri, line, character);
+	}
+
+	public List<? extends CodeLens> codeLensFile(String fileName) {
+		Path filePath = getFilePath(fileName);
+		String fileUri = FileUtils.toUri(filePath);
+		return super.codeLens(fileUri);
+	}
+
 	public Path getFilePath(String fileName) {
 		return getTemplatesPath().resolve(fileName);
 	}
@@ -109,9 +135,12 @@ public class MockProjectQuteLanguageServer extends MockQuteLanguageServer {
 	}
 
 	private ProjectInfo createProject() {
-		return new ProjectInfo(projectUri, Collections.emptyList(), //
+		return new ProjectInfo(projectUri, //
+				FileUtils.toUri(projectFolder), //
+				Collections.emptyList(), //
 				List.of(new TemplateRootPath(FileUtils.toUri(templatesPath))), //
-				Set.of(FileUtils.toUri(resourcesPath)));
+				Set.of(FileUtils.toUri(resourcesFolder)), //
+				features);
 	}
 
 	private Path getTemplatesPath() {

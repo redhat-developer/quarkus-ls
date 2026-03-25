@@ -62,7 +62,7 @@ public abstract class AbstractQuteDelegateCommandHandler implements IDelegateCom
 			return;
 		}
 		// Add a classpath changed listener to execute client command
-		// "qute/javaDataModelChanged"
+		// "qute/dataModelChanged"
 		JavaDataModelListenerManager.getInstance().addJavaDataModelChangedListener(LISTENER);
 		initialized = true;
 	}

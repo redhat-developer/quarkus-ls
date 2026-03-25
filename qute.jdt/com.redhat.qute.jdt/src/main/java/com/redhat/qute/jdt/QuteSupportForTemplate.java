@@ -63,13 +63,13 @@ import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.binary.QuteBinaryTemplateParams;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
-import com.redhat.qute.commons.usertags.QuteUserTagParams;
-import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.jdt.internal.QuteJavaConstants;
 import com.redhat.qute.jdt.internal.resolver.ClassFileTypeResolver;
 import com.redhat.qute.jdt.internal.resolver.CompilationUnitTypeResolver;
@@ -116,7 +116,7 @@ public class QuteSupportForTemplate {
 			IJavaProject javaProject = getJavaProject(project);
 			if (isQuteProject(javaProject)) {
 				// It is a Qute project
-				quteProjects.add(JDTQuteProjectUtils.getProjectInfo(javaProject));
+				quteProjects.add(JDTQuteProjectUtils.getProjectInfo(javaProject, monitor));
 			}
 		}
 		return quteProjects;
@@ -136,7 +136,7 @@ public class QuteSupportForTemplate {
 		if (javaProject == null) {
 			return null;
 		}
-		return JDTQuteProjectUtils.getProjectInfo(javaProject);
+		return JDTQuteProjectUtils.getProjectInfo(javaProject, monitor);
 	}
 
 	/**
@@ -171,24 +171,24 @@ public class QuteSupportForTemplate {
 	}
 
 	/**
-	 * Collect user tags from the given project Uri.
+	 * Collect binary templates from the given project Uri.
 	 *
 	 * @param params  the project uri.
 	 * @param utils   JDT LS utilities
 	 * @param monitor the progress monitor
 	 *
-	 * @return user tags from the given project Uri.
+	 * @return binary templates from the given project Uri.
 	 *
 	 * @throws CoreException
 	 */
-	public List<UserTagInfo> getUserTags(QuteUserTagParams params, IJDTUtils utils, IProgressMonitor monitor)
-			throws CoreException {
+	public List<BinaryTemplateInfo> getBinaryTemplates(QuteBinaryTemplateParams params, IJDTUtils utils,
+			IProgressMonitor monitor) throws CoreException {
 		String projectUri = params.getProjectUri();
 		IJavaProject javaProject = getJavaProjectFromProjectUri(projectUri);
 		if (javaProject == null) {
 			return null;
 		}
-		return QuarkusIntegrationForQute.getUserTags(javaProject, monitor);
+		return QuarkusIntegrationForQute.getBinaryTemplates(javaProject, monitor);
 	}
 
 	/**

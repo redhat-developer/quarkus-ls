@@ -11,8 +11,12 @@
 *******************************************************************************/
 package com.redhat.qute.project;
 
+import static com.redhat.qute.ls.template.TemplateFileTextDocumentService.isJdtUri;
 import static com.redhat.qute.project.JavaDataModelCache.isSameType;
+import static com.redhat.qute.utils.FutureUtils.isFutureLoaded;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,11 +46,15 @@ import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
+import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.annotations.TemplateDataAnnotation;
+import com.redhat.qute.commons.binary.BinaryTemplate;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.binary.QuteBinaryTemplateParams;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
@@ -56,31 +64,47 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
 import com.redhat.qute.commons.jaxrs.RestParam;
 import com.redhat.qute.parser.expression.Part;
+import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.TemplateConfiguration;
+import com.redhat.qute.parser.template.sections.CustomSection;
+import com.redhat.qute.parser.template.sections.FragmentSection;
+import com.redhat.qute.parser.template.sections.IncludeSection;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
+import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MessageValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
+import com.redhat.qute.project.documents.QuteBinaryTextDocument;
 import com.redhat.qute.project.documents.QuteClosedTextDocuments;
 import com.redhat.qute.project.documents.SearchInfoQuery;
 import com.redhat.qute.project.documents.TemplateValidator;
+import com.redhat.qute.project.extensions.CodeLensParticipant;
+import com.redhat.qute.project.extensions.CompletionParticipant;
+import com.redhat.qute.project.extensions.DataModelTemplateParticipant;
+import com.redhat.qute.project.extensions.DefinitionParticipant;
+import com.redhat.qute.project.extensions.DiagnosticsParticipant;
+import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
+import com.redhat.qute.project.extensions.HoverParticipant;
+import com.redhat.qute.project.extensions.InlayHintParticipant;
 import com.redhat.qute.project.extensions.ProjectExtension;
+import com.redhat.qute.project.extensions.TemplateLanguageInjectionParticipant;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagRegistry;
+import com.redhat.qute.project.usages.IncludeUsagesRegistry;
 import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.NativeModeJavaTypeFilter;
 import com.redhat.qute.utils.StringUtils;
-import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * A Qute project.
@@ -105,18 +129,27 @@ public class QuteProject {
 
 	private final String uri;
 
+	private final Path projectFolder;
+
 	private final List<TemplateRootPath> templateRootPaths;
 
 	private final Set<Path> sourcePaths;
 
 	private final QuteClosedTextDocuments closedDocuments;
 
-	// Map which stores opened/closed documents identified by template id.
-	private final Map<String /* template id */, QuteTextDocument> allDocumentsByTemplateId;
+	// Map which stores opened/closed documents identified by template uri.
+	private final Map<Path /* template uri */, QuteTextDocument> sourceDocuments;
+
+	// Map which stores binary template documents identified by template uri.
+	private final Map<String /* template uri */, QuteTextDocument> binaryDocuments;
+
+	private final Map<String /* template id */, List<QuteTextDocument>> documentsByTemplateId;
 
 	private final Map<String /* Full qualified name of Java class */, CompletableFuture<ResolvedJavaTypeInfo>> resolvedJavaTypes;
 
 	private Map<String /* Full qualified name of Java class */, JavaTypeAccessibiltyRule> targetAnnotations;
+
+	private CompletableFuture<List<BinaryTemplateInfo>> binaryTemplatesFuture;
 
 	private CompletableFuture<ExtendedDataModelProject> dataModelProjectFuture;
 
@@ -133,23 +166,54 @@ public class QuteProject {
 	private List<QuteProject> projectDependencies;
 
 	// Project extensions
-	private final List<ProjectExtension> extensions;
+	private final Map<String, ProjectExtension> extensions;
+
+	private final Set<ProjectFeature> projectFeatures;
+
+	// Participants
+	private final Collection<CodeLensParticipant> codeLensParticipants;
+	private final Collection<CompletionParticipant> completionParticipants;
+	private final Collection<DataModelTemplateParticipant> dataModelTemplateParticipants;
+	private final Collection<DidChangeWatchedFilesParticipant> didChangeWatchedFilesParticipants;
+	private final Collection<DiagnosticsParticipant> diagnosticsParticipants;
+	private final Collection<DefinitionParticipant> definitionParticipants;
+	private final Collection<HoverParticipant> hoverParticipants;
+	private final Collection<InlayHintParticipant> inlayHintParticipants;
+	private final Collection<TemplateLanguageInjectionParticipant> languageInjectionParticipants;
+
+	private final IncludeUsagesRegistry includeUsagesRegistry;
+
+	private CompletableFuture<QuteProject> loadQuteProjectFuture;
 
 	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		this.uri = projectInfo.getUri();
+		this.projectFolder = FileUtils.createPath(projectInfo.getProjectFolder());
 		this.templateRootPaths = projectInfo.getTemplateRootPaths();
 		this.sourcePaths = toSourcePaths(projectInfo.getSourceFolders());
-		this.allDocumentsByTemplateId = new HashMap<>();
-		this.closedDocuments = new QuteClosedTextDocuments(this, allDocumentsByTemplateId);
+		this.projectFeatures = projectInfo.getFeatures();
+		this.sourceDocuments = new HashMap<>();
+		this.binaryDocuments = new HashMap<>();
+		this.documentsByTemplateId = new HashMap<>();
+		this.closedDocuments = new QuteClosedTextDocuments(this, sourceDocuments);
 		this.projectRegistry = projectRegistry;
 		this.resolvedJavaTypes = new HashMap<>();
-		this.tagRegistry = new UserTagRegistry(this, templateRootPaths, projectRegistry);
+		this.tagRegistry = new UserTagRegistry(this, templateRootPaths);
+		this.includeUsagesRegistry = new IncludeUsagesRegistry(this);
 		this.filterInNativeMode = new NativeModeJavaTypeFilter(this);
 		this.validator = projectRegistry.getValidator();
 		this.javaCache = new JavaDataModelCache(this);
 		this.projectDependencies = new ArrayList<>();
 		// Project extensions
-		this.extensions = new ArrayList<>();
+		this.extensions = new HashMap<>();
+		this.codeLensParticipants = new ArrayList<>();
+		this.completionParticipants = new ArrayList<>();
+		this.dataModelTemplateParticipants = new ArrayList<>();
+		this.didChangeWatchedFilesParticipants = new ArrayList<>();
+		this.diagnosticsParticipants = new ArrayList<>();
+		this.definitionParticipants = new ArrayList<>();
+		this.hoverParticipants = new ArrayList<>();
+		this.inlayHintParticipants = new ArrayList<>();
+		this.languageInjectionParticipants = new ArrayList<>();
 		Iterator<ProjectExtension> extensions = ServiceLoader.load(ProjectExtension.class).iterator();
 		while (extensions.hasNext()) {
 			try {
@@ -162,7 +226,34 @@ public class QuteProject {
 
 	void registerExtension(ProjectExtension extension) {
 		try {
-			extensions.add(extension);
+			extensions.put(extension.getId(), extension);
+			if (extension instanceof CodeLensParticipant) {
+				codeLensParticipants.add((CodeLensParticipant) extension);
+			}
+			if (extension instanceof CompletionParticipant) {
+				completionParticipants.add((CompletionParticipant) extension);
+			}
+			if (extension instanceof DidChangeWatchedFilesParticipant) {
+				didChangeWatchedFilesParticipants.add((DidChangeWatchedFilesParticipant) extension);
+			}
+			if (extension instanceof DataModelTemplateParticipant) {
+				dataModelTemplateParticipants.add((DataModelTemplateParticipant) extension);
+			}
+			if (extension instanceof DiagnosticsParticipant) {
+				diagnosticsParticipants.add((DiagnosticsParticipant) extension);
+			}
+			if (extension instanceof DefinitionParticipant) {
+				definitionParticipants.add((DefinitionParticipant) extension);
+			}
+			if (extension instanceof HoverParticipant) {
+				hoverParticipants.add((HoverParticipant) extension);
+			}
+			if (extension instanceof InlayHintParticipant) {
+				inlayHintParticipants.add((InlayHintParticipant) extension);
+			}
+			if (extension instanceof TemplateLanguageInjectionParticipant) {
+				languageInjectionParticipants.add((TemplateLanguageInjectionParticipant) extension);
+			}
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Error while initializing extension <" + extension.getClass().getName() + ">", e);
 		}
@@ -170,10 +261,86 @@ public class QuteProject {
 
 	void unregisterExtension(ProjectExtension extension) {
 		try {
-			extensions.remove(extension);
+			extensions.remove(extension.getId());
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Error while stopping extension <" + extension.getClass().getName() + ">", e);
 		}
+	}
+
+	public ProjectExtension getExtension(String id) {
+		return extensions.get(id);
+	}
+
+	public CompletableFuture<QuteProject> load() {
+		if (isQuteProjectLoaded()) {
+			return loadQuteProjectFuture;
+		}
+		return loadSync();
+	}
+
+	private synchronized CompletableFuture<QuteProject> loadSync() {
+		if (isQuteProjectLoaded()) {
+			return loadQuteProjectFuture;
+		}
+
+		ProgressSupport progressSupport = projectRegistry.getProgressSupportProvider().get();
+		ProgressContext progressContext = progressSupport != null ? new ProgressContext(progressSupport) : null;
+		String projectName = getUri();
+
+		if (progressContext != null) {
+			progressContext.startProgress("Loading '" + projectName + "' project",
+					"Trying to load '" + projectName + "' as Qute project.");
+		}
+
+		if (progressContext != null) {
+			progressContext.report("Loading binary templates for '" + projectName + "' Qute project.", 10);
+		}
+
+		loadQuteProjectFuture = this.getBinaryTemplates() //
+				.thenCompose(binaryTemplates -> {
+					if (progressContext != null) {
+						progressContext.report("Loading data model for '" + projectName + "' Qute project.", 20);
+					}
+
+					return this.getDataModelProject() //
+							.thenCompose(dataModel -> {
+								if (progressContext != null) {
+									progressContext.report(
+											"Loading Qute templates for '" + projectName + "' Qute project.", 40);
+								}
+
+								// Register use tags
+								registerUserTags();
+
+								// Load closed templates
+								closedDocuments.loadClosedTemplatesIfNeeded(progressContext);
+
+								if (progressContext != null) {
+									progressContext.endProgress();
+								}
+
+								return CompletableFuture.completedFuture(this);
+							}).exceptionally((a) -> {
+								if (progressContext != null) {
+									progressContext.endProgress();
+								}
+								return this;
+							});
+
+				}).exceptionally((a) -> {
+					if (progressContext != null) {
+						progressContext.endProgress();
+					}
+					return this;
+				});
+		loadQuteProjectFuture.thenAccept(unused -> {
+			validateClosedTemplates(progressContext);
+		});
+		return loadQuteProjectFuture;
+	}
+
+	private boolean isQuteProjectLoaded() {
+		return isFutureLoaded(loadQuteProjectFuture);
 	}
 
 	private static Set<Path> toSourcePaths(Set<String> sourceFolders) {
@@ -183,6 +350,7 @@ public class QuteProject {
 		return sourceFolders //
 				.stream() //
 				.map(uri -> FileUtils.createPath(uri)) //
+				.filter(Objects::nonNull)//
 				.collect(Collectors.toSet());
 	}
 
@@ -190,8 +358,7 @@ public class QuteProject {
 		if (validator != null) {
 			// Load closed document if needed and validate all closed documents when data
 			// model is ready.
-			closedDocuments.loadClosedTemplatesIfNeeded(progressContext);
-			for (QuteTextDocument document : allDocumentsByTemplateId.values()) {
+			for (QuteTextDocument document : sourceDocuments.values()) {
 				if (!document.isOpened()) {
 					validator.triggerValidationFor(document);
 				}
@@ -222,6 +389,21 @@ public class QuteProject {
 	 * @return the template id of the given template file path.
 	 */
 	public String getTemplateId(Path templateFilePath) {
+		TemplateRootPath rootPath = findTemplateRootPathFor(templateFilePath);
+		if (rootPath != null) {
+			try {
+				boolean forceAsUserTag = rootPath.isOnlyTags();
+				Path basePath = rootPath.getBasePath();
+				return getTemplateId(basePath.relativize(templateFilePath).toString().replace('\\', '/'),
+						forceAsUserTag);
+			} catch (Exception e) {
+				// Do nothing
+			}
+		}
+		return getTemplateId(templateFilePath.getFileName().toString(), false);
+	}
+
+	public TemplateRootPath findTemplateRootPathFor(Path templateFilePath) {
 		if (templateFilePath == null || templateRootPaths == null) {
 			return null;
 		}
@@ -230,14 +412,21 @@ public class QuteProject {
 			if (basePath != null) {
 				if (templateFilePath.startsWith(basePath)) {
 					try {
-						return basePath.relativize(templateFilePath).toString().replace('\\', '/');
+						return rootPath;
 					} catch (Exception e) {
 						// Do nothing
 					}
 				}
 			}
 		}
-		return templateFilePath.getFileName().toString();
+		return null;
+	}
+
+	private static String getTemplateId(String templateId, boolean forceAsUserTag) {
+		if (forceAsUserTag && !templateId.startsWith(TemplateRootPath.TAGS_DIR + "/")) {
+			return TemplateRootPath.TAGS_DIR + "/" + templateId;
+		}
+		return templateId;
 	}
 
 	/**
@@ -249,9 +438,17 @@ public class QuteProject {
 	 * @return true if the document retrieved by template id is opened and false
 	 *         otherwise.
 	 */
-	public boolean isTemplateOpened(String templateId) {
-		QuteTextDocument document = findDocumentByTemplateId(templateId);
+	public boolean isTemplateOpened(Path templatePath) {
+		QuteTextDocument document = findSourceDocument(templatePath);
 		return document != null && document.isOpened();
+	}
+
+	public QuteTextDocument findSourceDocument(Path templatePath) {
+		return sourceDocuments.get(templatePath);
+	}
+
+	public QuteTextDocument findBinaryDocument(String uri) {
+		return binaryDocuments.get(uri);
 	}
 
 	/**
@@ -261,6 +458,33 @@ public class QuteProject {
 	 */
 	public String getUri() {
 		return uri;
+	}
+
+	public Path getProjectFolder() {
+		return projectFolder;
+	}
+
+	public boolean isInProjectFolder(Path path) {
+		return projectFolder != null && path.startsWith(projectFolder);
+	}
+
+	public boolean isInTemplateFolders(Path path) {
+		for (TemplateRootPath rootPath : getTemplateRootPaths()) {
+			Path basePath = rootPath.getBasePath();
+			if (basePath != null && path.startsWith(basePath)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isInSourceFolders(Path path) {
+		for (Path sourcePath : getSourcePaths()) {
+			if (path.startsWith(sourcePath)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public List<QuteProject> getProjectDependencies() {
@@ -280,8 +504,17 @@ public class QuteProject {
 	 *         <code>insertParamater</code> ({#insert name}) declared in the
 	 *         template identified by the given template id and null otherwise.
 	 */
+	public List<Parameter> findInsertTagParameter(IncludeSection includeSection, String insertParamater) {
+		String templateId = includeSection.getReferencedTemplateId();
+		return findInsertTagParameter(templateId, insertParamater);
+	}
+
+	public List<Parameter> findInsertTagParameter(UserTag parentUserTag, String insertParamater) {
+		String templateId = parentUserTag.getTemplateId();
+		return findInsertTagParameter(templateId, insertParamater);
+	}
+
 	public List<Parameter> findInsertTagParameter(String templateId, String insertParamater) {
-		closedDocuments.loadClosedTemplatesIfNeeded();
 		QuteTextDocument document = findDocumentByTemplateId(templateId);
 		if (document != null) {
 			return document.findInsertTagParameter(insertParamater);
@@ -289,30 +522,78 @@ public class QuteProject {
 		return null;
 	}
 
-	public List<Section> findSectionsByTag(String tag) {
-		closedDocuments.loadClosedTemplatesIfNeeded();
+	public List<Parameter> findInsertTagParameter(TemplatePath templatePath, String insertParamater) {
+		String uri = templatePath.getUri();
+		if (uri != null) {
+			QuteTextDocument document = getBinaryDocument(uri);
+			if (document == null) {
+				// C:\Users\AngeloZerr\git\quarkus-ls\qute.ls\com.redhat.qute.ls\src\test\resources\projects\roq\src\main\resources\templates\layouts\default.html
+				Path filePath = FileUtils.createPath(templatePath.getUri());
+				if (filePath != null) {
+					document = sourceDocuments.get(filePath);
+				}
+			}
+			if (document != null) {
+				return document.findInsertTagParameter(insertParamater);
+			}
+		}
+		return findInsertTagParameter(templatePath.getTemplateId(), insertParamater);
+	}
+
+	public List<Section> findCustomSectionsByTag(String tag) {
 		List<Section> allSections = new ArrayList<>();
-		for (QuteTextDocument document : allDocumentsByTemplateId.values()) {
-			List<Section> sections = document.findSectionsByTag(tag);
+		// from sources
+		fillSection(tag, sourceDocuments.values(), allSections);
+		// from binary (JARs)
+		fillSection(tag, binaryDocuments.values(), allSections);
+		return allSections;
+	}
+
+	private void fillSection(String tag, Collection<QuteTextDocument> documents, List<Section> allSections) {
+		for (QuteTextDocument document : documents) {
+			List<CustomSection> sections = document.findCustomSectionsByTag(tag);
 			if (sections != null && !sections.isEmpty()) {
 				allSections.addAll(sections);
 			}
 		}
-		return allSections;
 	}
 
-	private QuteTextDocument findDocumentByTemplateId(String templateId) {
+	public List<FragmentSection> findFragmentSections(String templateId, String fragmentId) {
+		QuteTextDocument document = findDocumentByTemplateId(templateId);
+		List<FragmentSection> fragments = document != null ? document.findFragmentSectionById(fragmentId) : null;
+		return fragments != null ? fragments : Collections.emptyList();
+	}
+
+	public String findTemplateUriByTemplateId(String templateId) {
+		QuteTextDocument document = findDocumentByTemplateId(templateId);
+		return document != null ? document.getUri() : null;
+	}
+
+	public QuteTextDocument findDocumentByTemplateId(String templateId) {
 		if (templateId.indexOf('.') != -1) {
 			// ex: base.html
-			return allDocumentsByTemplateId.get(templateId);
+			return findDocumentByTemplateIdInCache(templateId);
 		}
+
 		// ex : base
+		QuteTextDocument binaryDocument = null;
 		for (String variant : getTemplateVariants()) {
 			String id = templateId + variant;
-			QuteTextDocument document = allDocumentsByTemplateId.get(id);
+			QuteTextDocument document = findDocumentByTemplateIdInCache(id);
 			if (document != null) {
 				return document;
 			}
+			if (binaryDocument == null) {
+				binaryDocument = findDocumentByTemplateIdInCache(id);
+			}
+		}
+		return binaryDocument;
+	}
+
+	private QuteTextDocument findDocumentByTemplateIdInCache(String templateId) {
+		List<QuteTextDocument> cache = documentsByTemplateId.get(templateId);
+		if (cache != null && !cache.isEmpty()) {
+			return cache.get(0);
 		}
 		return null;
 	}
@@ -323,7 +604,7 @@ public class QuteProject {
 	 * @param document the Qute template.
 	 */
 	public void onDidOpenTextDocument(QuteTextDocument document) {
-		allDocumentsByTemplateId.put(document.getTemplateId(), document);
+		registerSourceDocument(document);
 	}
 
 	/**
@@ -332,8 +613,9 @@ public class QuteProject {
 	 * @param document the Qute template.
 	 */
 	public void onDidCloseTextDocument(QuteTextDocument document) {
-		Path path = FileUtils.createPath(document.getUri());
-		closedDocuments.onDidCloseTemplate(path);
+		Path templateFilePath = document.getTemplatePath();
+		removeDocumentFromCache(templateFilePath);
+		closedDocuments.onDidCloseTemplate(templateFilePath);
 	}
 
 	/**
@@ -343,11 +625,6 @@ public class QuteProject {
 	 */
 	public void onDidSaveTextDocument(QuteTextDocument document) {
 		document.save();
-		UserTag userTag = getUserTag(document.getTemplate());
-		if (userTag != null) {
-			// The user tag has been saved, refresh it.
-			userTag.clear();
-		}
 	}
 
 	/**
@@ -356,9 +633,29 @@ public class QuteProject {
 	 * @param templateFilePath the Qute template file path.
 	 */
 	public QuteTextDocument onDidDeleteTemplate(Path templateFilePath) {
-		String templateId = getTemplateId(templateFilePath);
-		synchronized (allDocumentsByTemplateId) {
-			return allDocumentsByTemplateId.remove(templateId);
+		QuteTextDocument document = removeDocumentFromCache(templateFilePath);
+		return document;
+	}
+
+	private QuteTextDocument removeDocumentFromCache(Path templateFilePath) {
+		synchronized (sourceDocuments) {
+			QuteTextDocument removedDocument = sourceDocuments.remove(templateFilePath);
+			if (removedDocument != null) {
+				List<QuteTextDocument> cache = documentsByTemplateId.get(removedDocument.getTemplateId());
+				if (cache != null) {
+					cache.remove(removedDocument);
+				}
+				// Evict user tag registry cache + usages for the removed document
+				if (removedDocument.isUserTag()) {
+					UserTag userTag = removedDocument.getUserTag();
+					tagRegistry.unregisterUserTag(userTag);
+					tagRegistry.removeUsages(removedDocument);
+				}
+				// Evict include usages for the removed document
+				includeUsagesRegistry.removeUsages(removedDocument);
+
+			}
+			return removedDocument;
 		}
 	}
 
@@ -376,9 +673,17 @@ public class QuteProject {
 	 * 
 	 * @return list of all opened/closed Qute template document of the project.
 	 */
-	public Collection<QuteTextDocument> getDocuments() {
-		closedDocuments.loadClosedTemplatesIfNeeded();
-		return allDocumentsByTemplateId.values();
+	public Collection<QuteTextDocument> getSourceDocuments() {
+		return sourceDocuments.values();
+	}
+
+	/**
+	 * Returns list of all binary Qute template document of the project.
+	 * 
+	 * @return list of all binary Qute template document of the project.
+	 */
+	public Collection<QuteTextDocument> getBinaryDocuments() {
+		return binaryDocuments.values();
 	}
 
 	public CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaType(String typeName) {
@@ -397,15 +702,42 @@ public class QuteProject {
 				});
 	}
 
+	public CompletableFuture<List<BinaryTemplateInfo>> getBinaryTemplates() {
+		if (!isFutureLoaded(binaryTemplatesFuture)) {
+			binaryTemplatesFuture = loadBinaryTemplates();
+		}
+		return binaryTemplatesFuture;
+	}
+
+	private synchronized CompletableFuture<List<BinaryTemplateInfo>> loadBinaryTemplates() {
+		if (isFutureLoaded(binaryTemplatesFuture)) {
+			return binaryTemplatesFuture;
+		}
+		QuteBinaryTemplateParams params = new QuteBinaryTemplateParams();
+		params.setProjectUri(getUri());
+		return getBinaryTemplates(params) //
+				.thenApply(binaryTemplates -> {
+					// Register binary templates
+					registerBinaryTemplates(binaryTemplates);
+					return binaryTemplates;
+				});
+	}
+
+	protected CompletableFuture<List<BinaryTemplateInfo>> getBinaryTemplates(QuteBinaryTemplateParams params) {
+		return projectRegistry.getBinaryTemplates(params);
+	}
+
 	public CompletableFuture<ExtendedDataModelProject> getDataModelProject() {
-		if (dataModelProjectFuture == null || dataModelProjectFuture.isCancelled()
-				|| dataModelProjectFuture.isCompletedExceptionally()) {
-			dataModelProjectFuture = null;
-			dataModelProjectFuture = loadDataModelProject();
-			dataModelProjectFuture //
+		if (!isFutureLoaded(dataModelProjectFuture)) {
+			dataModelProjectFuture = loadDataModelProject() //
 					.thenApply(model -> {
-						for (ProjectExtension extension : extensions) {
-							extension.init(model);
+						for (ProjectExtension extension : getExtensions()) {
+							try {
+								extension.init(model);
+							} catch (Exception e) {
+								LOGGER.log(Level.SEVERE,
+										"Error while loading project extension '" + extension.getId() + "'", e);
+							}
 						}
 						return model;
 
@@ -414,8 +746,17 @@ public class QuteProject {
 		return dataModelProjectFuture;
 	}
 
+	private void registerUserTags() {
+		for (QuteTextDocument document : sourceDocuments.values()) {
+			registerUserTagIfNeeded(document);
+		}
+		for (QuteTextDocument document : binaryDocuments.values()) {
+			registerUserTagIfNeeded(document);
+		}
+	}
+
 	protected synchronized CompletableFuture<ExtendedDataModelProject> loadDataModelProject() {
-		if (dataModelProjectFuture != null) {
+		if (isFutureLoaded(dataModelProjectFuture)) {
 			return dataModelProjectFuture;
 		}
 		QuteDataModelProjectParams params = new QuteDataModelProjectParams();
@@ -426,9 +767,6 @@ public class QuteProject {
 						return null;
 					}
 					return new ExtendedDataModelProject(dataModelProject, QuteProject.this);
-				}).thenApply(p -> {
-					tagRegistry.refreshDataModel();
-					return p;
 				});
 	}
 
@@ -463,21 +801,14 @@ public class QuteProject {
 	}
 
 	/**
-	 * Returns list of source ('src/main/resources/templates/tags') user tags.
+	 * Returns list of source ('src/main/resources/templates/tags') and list of
+	 * binary ('templates.tags') user tags.
 	 *
-	 * @return list of source ('src/main/resources/templates/tags') user tags.
+	 * @return list of source ('src/main/resources/templates/tags') and list of
+	 *         binary ('templates.tags') user tags.
 	 */
-	public Collection<UserTag> getSourceUserTags() {
-		return tagRegistry.getSourceUserTags();
-	}
-
-	/**
-	 * Returns list of binary ('templates.tags') user tags.
-	 *
-	 * @return list of binary ('templates.tags') user tags.
-	 */
-	public CompletableFuture<List<UserTag>> getBinaryUserTags() {
-		return tagRegistry.getBinaryUserTags();
+	public Collection<UserTag> getUserTags() {
+		return tagRegistry.getUserTags();
 	}
 
 	public UserTagRegistry getTagRegistry() {
@@ -495,41 +826,10 @@ public class QuteProject {
 		if (StringUtils.isEmpty(tagName)) {
 			return null;
 		}
-		// Source tags
-		Collection<UserTag> tags = getSourceUserTags();
+		// binary + Source tags
+		Collection<UserTag> tags = getUserTags();
 		for (UserTag userTag : tags) {
 			if (tagName.equals(userTag.getName())) {
-				return userTag;
-			}
-		}
-		// Binary tags
-		tags = getBinaryUserTags().getNow(Collections.emptyList());
-		for (UserTag userTag : tags) {
-			if (tagName.equals(userTag.getName())) {
-				return userTag;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Returns the user tag from the given template and null otherwise.
-	 *
-	 * @param template the Qute template.
-	 *
-	 * @return the user tag from the given template and null otherwise.
-	 */
-	public UserTag getUserTag(Template template) {
-		if (!UserTagUtils.isUserTag(template)) {
-			return null;
-		}
-		String templateId = template.getTemplateId();
-		int index = templateId.indexOf('.');
-		if (index != -1) {
-			templateId = templateId.substring(0, index);
-		}
-		for (UserTag userTag : getSourceUserTags()) {
-			if (userTag.getTemplateId().equals(templateId)) {
 				return userTag;
 			}
 		}
@@ -1125,7 +1425,7 @@ public class QuteProject {
 			// This is helpful eg. when getting the docs for a method whose
 			// parameters haven't been input correctly yet.
 			if (result != null) {
-				String parameterType = parameterInfo.getType();
+				JavaTypeInfo parameterType = parameterInfo.getJavaType();
 				if (!isMatchType(result, parameterType)) {
 					return false;
 				}
@@ -1135,7 +1435,7 @@ public class QuteProject {
 		if (varargs && lastParameter != null) {
 			// Validate varargs parameters
 			for (int i = nbParameters - 1; i < declaredNbParameters; i++) {
-				String parameterType = lastParameter.getVarArgType();
+				JavaTypeInfo parameterType = lastParameter.getVarArgJavaType();
 				ResolvedJavaTypeInfo result = parameterTypes.get(i);
 				// If the type info isn't available, assume the type matches
 				// (see note above)
@@ -1261,34 +1561,36 @@ public class QuteProject {
 			// - <T[]>
 			return javaType.isArray() == parameter.getJavaType().isArray();
 		}
-		String parameterType = parameter.getJavaType().getName();
+		JavaTypeInfo parameterType = parameter.getJavaType();
 		return isMatchType(javaType, parameterType);
 	}
 
-	private boolean isMatchType(ResolvedJavaTypeInfo javaType, String parameterType) {
+	private boolean isMatchType(ResolvedJavaTypeInfo javaType, JavaTypeInfo parameterType) {
 		return isMatchType(javaType, parameterType, new HashSet<>());
 	}
 
-	private boolean isMatchType(ResolvedJavaTypeInfo javaType, String parameterType,
+	private boolean isMatchType(ResolvedJavaTypeInfo javaType, JavaTypeInfo parameterType,
 			Set<ResolvedJavaTypeInfo> visited) {
 		if (visited.contains(javaType)) {
 			return false;
 		}
 		visited.add(javaType);
 
-		String resolvedTypeName = javaType.getName();
-		if ("java.lang.Object".equals(parameterType)) {
+		if ("java.lang.Object".equals(parameterType.getSignature())) {
 			return true;
 		}
-		if (isSameType(parameterType, resolvedTypeName)) {
+
+		if (isSameType(parameterType, javaType)) {
 			return true;
 		}
+
 		// class BigItem <- Item <- SmallItem
 		// javaType = BigItem => javaType.getExtendedTypes() = [Item]
 		if (javaType.getExtendedTypes() != null) {
 			// Loop for first level of super types (ex Item)
 			for (String superType : javaType.getExtendedTypes()) {
-				if (isSameType(parameterType, superType)) {
+				// Fast check
+				if (isSameType(parameterType.getSignature(), superType)) {
 					return true;
 				}
 
@@ -1301,16 +1603,14 @@ public class QuteProject {
 				}
 			}
 		}
-		if (!javaType.getTypeParameters().isEmpty()) {
-			ResolvedJavaTypeInfo result = resolveJavaTypeSync(resolvedTypeName);
-			if (!QuteCompletableFutures.isResolvingJavaTypeOrNull(result) && result.getExtendedTypes() != null) {
-				for (String superType : result.getExtendedTypes()) {
-					if (isSameType(parameterType, superType)) {
-						return true;
-					}
-				}
-			}
-		}
+		/*
+		 * if (!javaType.getTypeParameters().isEmpty()) { ResolvedJavaTypeInfo result =
+		 * resolveJavaTypeSync(resolvedTypeName); if
+		 * (!QuteCompletableFutures.isResolvingJavaTypeOrNull(result) &&
+		 * result.getExtendedTypes() != null) { for (String superType :
+		 * result.getExtendedTypes()) { if (isSameType(parameterType, superType)) {
+		 * return true; } } } }
+		 */
 		return false;
 	}
 
@@ -1384,6 +1684,13 @@ public class QuteProject {
 					// Search in field resolvers
 					List<FieldValueResolver> fieldResolvers = dataModel.getFieldValueResolvers();
 					for (FieldValueResolver resolver : fieldResolvers) {
+						if (isMatchNamespaceResolver(namespace, partName, resolver, dataModel)) {
+							return resolver;
+						}
+					}
+					// Search in custom resolvers
+					List<CustomValueResolver> customResolvers = dataModel.getCustomValueResolvers();
+					for (CustomValueResolver resolver : customResolvers) {
 						if (isMatchNamespaceResolver(namespace, partName, resolver, dataModel)) {
 							return resolver;
 						}
@@ -1506,13 +1813,12 @@ public class QuteProject {
 	}
 
 	public CompletableFuture<ExtendedDataModelTemplate> getDataModelTemplate(Template template) {
-		String templateUri = template.getUri();
 		return getDataModelProject() //
 				.thenApply(dataModel -> {
 					if (dataModel == null) {
 						return null;
 					}
-					return dataModel.findDataModelTemplate(templateUri);
+					return dataModel.findDataModelTemplate(template.getUri(), template.isUserTag());
 				});
 	}
 
@@ -1552,6 +1858,15 @@ public class QuteProject {
 		List<FieldValueResolver> allFieldResolvers = dataModel.getFieldValueResolvers();
 		if (allFieldResolvers != null) {
 			for (ValueResolver resolver : allFieldResolvers) {
+				if (isMatchNamespace(resolver, namespace, dataModel)) {
+					namespaceResolvers.add(resolver);
+				}
+			}
+		}
+
+		List<CustomValueResolver> allFileResolvers = dataModel.getCustomValueResolvers();
+		if (allFileResolvers != null) {
+			for (ValueResolver resolver : allFileResolvers) {
 				if (isMatchNamespace(resolver, namespace, dataModel)) {
 					namespaceResolvers.add(resolver);
 				}
@@ -1614,7 +1929,152 @@ public class QuteProject {
 	 * 
 	 * @return the Qute project extension list.
 	 */
-	public List<ProjectExtension> getExtensions() {
-		return extensions;
+	public Collection<ProjectExtension> getExtensions() {
+		return extensions.values();
 	}
+
+	public boolean hasProjectFeature(ProjectFeature projectFeature) {
+		return projectFeatures != null && projectFeatures.contains(projectFeature);
+	}
+
+	// Participants
+
+	public Collection<CodeLensParticipant> getCodeLensParticipants() {
+		return codeLensParticipants;
+	}
+
+	public Collection<CompletionParticipant> getCompletionParticipants() {
+		return completionParticipants;
+	}
+
+	public Collection<DataModelTemplateParticipant> getDataModelTemplateParticipants() {
+		return dataModelTemplateParticipants;
+	}
+
+	public Collection<DefinitionParticipant> getDefinitionParticipants() {
+		return definitionParticipants;
+	}
+
+	public Collection<DidChangeWatchedFilesParticipant> getDidChangeWatchedFilesParticipants() {
+		return didChangeWatchedFilesParticipants;
+	}
+
+	public Collection<DiagnosticsParticipant> getDiagnosticsParticipants() {
+		return diagnosticsParticipants;
+	}
+
+	public Collection<HoverParticipant> getHoverParticipants() {
+		return hoverParticipants;
+	}
+
+	public Collection<InlayHintParticipant> getInlayHintParticipants() {
+		return inlayHintParticipants;
+	}
+
+	public Collection<InjectionDetector> getInjectionDetectorsFor(Path path) {
+		Collection<TemplateLanguageInjectionParticipant> participants = languageInjectionParticipants;
+		if (!participants.isEmpty()) {
+			Collection<InjectionDetector> allInjectors = null;
+			for (TemplateLanguageInjectionParticipant participant : participants) {
+				if (participant.isEnabled()) {
+					Collection<InjectionDetector> injectors = participant.getInjectionDetectorsFor(path);
+					if (injectors != null && !injectors.isEmpty()) {
+						if (allInjectors == null) {
+							allInjectors = new ArrayList<>();
+						}
+						allInjectors.addAll(injectors);
+					}
+				}
+			}
+			return allInjectors != null ? allInjectors : Collections.emptyList();
+		}
+		return Collections.emptyList();
+	}
+
+	protected void registerBinaryTemplates(List<BinaryTemplateInfo> binaryTemplates) {
+		for (BinaryTemplateInfo binaryTemplate : binaryTemplates) {
+			String binaryName = binaryTemplate.getBinaryName();
+			Map<String, String> properties = binaryTemplate.getProperties();
+			List<BinaryTemplate> templates = binaryTemplate.getTemplates();
+			for (BinaryTemplate template : templates) {
+				QuteBinaryTextDocument document = new QuteBinaryTextDocument(template, binaryName, properties, this);
+				registerBinaryDocument(document);
+			}
+		}
+	}
+
+	public void registerSourceDocument(QuteTextDocument document) {
+		QuteTextDocument oldDocument = sourceDocuments.get(document.getTemplatePath());
+		if (oldDocument != null) {
+			removeDocumentFromCache(oldDocument.getTemplatePath());
+		}
+		sourceDocuments.put(document.getTemplatePath(), document);
+		addInTemplateIdCache(document);
+		registerUserTagIfNeeded(document);
+	}
+
+	void registerBinaryDocument(QuteTextDocument document) {
+		binaryDocuments.put(normalizeUriIfNeeded(document.getUri()), document);
+		addInTemplateIdCache(document);
+	}
+
+	private void registerUserTagIfNeeded(QuteTextDocument document) {
+		if (document.isUserTag()) {
+			UserTag tag = document.getUserTag();
+			tagRegistry.registerUserTag(tag);
+		}
+	}
+
+	private void addInTemplateIdCache(QuteTextDocument document) {
+		String templateId = document.getTemplateId();
+		List<QuteTextDocument> cache = documentsByTemplateId.computeIfAbsent(templateId,
+				_unused -> new ArrayList<QuteTextDocument>());
+		cache.add(document);
+	}
+
+	/**
+	 * Returns list of all binary Qute template document of the project.
+	 * 
+	 * @return list of all binary Qute template document of the project.
+	 */
+	public QuteTextDocument getBinaryDocument(String uri) {
+		return binaryDocuments.get(normalizeUriIfNeeded(uri));
+	}
+
+	private static String normalizeUriIfNeeded(String uri) {
+		if (isJdtUri(uri)) {
+			return normalizeJdtUri(uri);
+		}
+		return uri;
+	}
+
+	// Normalize the URI to a canonical form so that URIs built by our LS
+	// and URIs received from vscode-java (didOpen) can be compared reliably.
+	private static String normalizeJdtUri(String uri) {
+		// vscode-java call didOpen with this Uri
+		// jdt://jarentry/templates/tags/bundle.html?%3Dthe-code-site%2FC%3A%5C%2FUsers%5C%2FAngeloZerr%5C%2F.m2%5C%2Frepository%5C%2Fio%5C%2Fquarkiverse%5C%2Fweb-bundler%5C%2Fquarkus-web-bundler-common%5C%2F2.2.0%5C%2Fquarkus-web-bundler-common-2.2.0.jar%3D%2Fmaven.pomderived%3D%2Ftrue%3D%2F%3D%2Fmaven.groupId%3D%2Fio.quarkiverse.web-bundler%3D%2F%3D%2Fmaven.artifactId%3D%2Fquarkus-web-bundler-common%3D%2F%3D%2Fmaven.version%3D%2F2.2.0%3D%2F%3D%2Fmaven.scope%3D%2Fcompile%3D%2F%3D%2Fmaven.pomderived%3D%2Ftrue%3D%2F
+
+		// Qute JDT generate this uri
+		// jdt://jarentry/templates/tags/bundle.html?=the-code-site/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/web-bundler%5C/quarkus-web-bundler-common%5C/2.2.0%5C/quarkus-web-bundler-common-2.2.0.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.web-bundler=/=/maven.artifactId=/quarkus-web-bundler-common=/=/maven.version=/2.2.0=/=/maven.scope=/compile=/=/maven.pomderived=/true=/
+
+		// Normalize those 2 uris
+		if (uri == null)
+			return null;
+		try {
+			// 1. Decode percent-encoded characters (%3D, %2F, etc.)
+			String decoded = URLDecoder.decode(uri, StandardCharsets.UTF_8);
+			// 2. Replace __xxx__ segments back to xxx (vscode-java encoding)
+			decoded = decoded.replaceAll("__([^_]+)__", "$1");
+			// 3. Normalize backslashes to forward slashes
+			decoded = decoded.replace("\\", "/");
+			return decoded;
+		} catch (Exception e) {
+			return uri;
+		}
+	}
+
+	public IncludeUsagesRegistry getIncludeUsagesRegistry() {
+		return includeUsagesRegistry;
+	}
+
 }

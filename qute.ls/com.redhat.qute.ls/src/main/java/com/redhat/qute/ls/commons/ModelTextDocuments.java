@@ -137,7 +137,7 @@ public class ModelTextDocuments<T> extends TextDocuments<ModelTextDocument<T>> {
 			// Get or parse the model.
 			T model = getModel(documentIdentifier);
 			if (model == null) {
-				return null;
+				return CompletableFuture.completedFuture(null);
 			}
 			cancelChecker.checkCanceled();
 			// Apply the function code by using the parsed model.{

@@ -39,10 +39,10 @@ public class QuarkusIntegrationForQute {
 		if (typeRoot == null || !hasQuteSupport(typeRoot.getJavaProject())) {
 			return Collections.emptyList();
 		}
-		List<CodeLens> lenses = new ArrayList<>();
 		CompilationUnit cu = getASTRoot(typeRoot);
-		cu.accept(new QuteJavaCodeLensCollector(typeRoot, lenses, utils, monitor));
-		return lenses;
+		QuteJavaCodeLensCollectorContext context = new QuteJavaCodeLensCollectorContext(typeRoot, utils);
+		cu.accept(new QuteJavaCodeLensCollector(context, monitor));
+		return context.getCodeLenses();
 	}
 
 	public static void diagnostics(ITypeRoot typeRoot, List<Diagnostic> diagnostics, IJDTUtils utils,
@@ -51,17 +51,18 @@ public class QuarkusIntegrationForQute {
 			return;
 		}
 		CompilationUnit cu = getASTRoot(typeRoot);
-		cu.accept(new QuteJavaDiagnosticsCollector(typeRoot, diagnostics, utils, monitor));
+		QuteJavaDiagnosticsCollectorContext context = new QuteJavaDiagnosticsCollectorContext(typeRoot, diagnostics, utils);
+		cu.accept(new QuteJavaDiagnosticsCollector(context, monitor));
 	}
 
-	public static List<DocumentLink> documentLink(ITypeRoot typeRoot, IJDTUtils utils,
-			IProgressMonitor monitor) {
+	public static List<DocumentLink> documentLink(ITypeRoot typeRoot, IJDTUtils utils, IProgressMonitor monitor) {
 		if (typeRoot == null || !hasQuteSupport(typeRoot.getJavaProject())) {
 			return Collections.emptyList();
 		}
 		List<DocumentLink> links = new ArrayList<>();
 		CompilationUnit cu = getASTRoot(typeRoot);
-		cu.accept(new QuteJavaDocumentLinkCollector(typeRoot, links, utils, monitor));
-		return links;
+		QuteJavaDocumentLinkCollectorContext context = new QuteJavaDocumentLinkCollectorContext(typeRoot, utils);
+		cu.accept(new QuteJavaDocumentLinkCollector(context, monitor));
+		return context.getLinks();
 	}
 }

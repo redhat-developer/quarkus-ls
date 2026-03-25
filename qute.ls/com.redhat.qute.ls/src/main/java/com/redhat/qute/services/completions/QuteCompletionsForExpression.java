@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -44,6 +46,7 @@ import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
 import com.redhat.qute.commons.jaxrs.RestParam;
 import com.redhat.qute.ls.commons.snippets.SnippetsBuilder;
+import com.redhat.qute.parser.NodeBase;
 import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.Part;
@@ -61,6 +64,7 @@ import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.CaseSection.CompletionCaseResult;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.parser.template.sections.WhenSection;
 import com.redhat.qute.parser.template.sections.WithSection;
@@ -68,12 +72,14 @@ import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
+import com.redhat.qute.project.datamodel.resolvers.CustomValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.project.extensions.CompletionParticipant;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
+import com.redhat.qute.project.usages.IncludeUsages;
 import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.services.completions.tags.QuteCompletionForTagSection;
 import com.redhat.qute.services.nativemode.JavaTypeAccessibiltyRule;
@@ -254,7 +260,7 @@ public class QuteCompletionsForExpression {
 					if (!isValidJavaType(resolvedType)) {
 						CompletionList list = new CompletionList();
 						Set<CompletionItem> completionItems = new HashSet<>();
-						for (CompletionParticipant completionParticipant : project.getExtensions()) {
+						for (CompletionParticipant completionParticipant : project.getCompletionParticipants()) {
 							if (completionParticipant.isEnabled()) {
 								completionParticipant.doComplete(completionRequest, part, parts, completionSettings,
 										formattingSettings, completionItems, cancelChecker);
@@ -425,6 +431,23 @@ public class QuteCompletionsForExpression {
 		item.setLabel(label);
 		item.setFilterText(insertText);
 		item.setKind(CompletionItemKind.Field);
+		TextEdit textEdit = new TextEdit();
+		textEdit.setRange(range);
+		textEdit.setNewText(insertText);
+		item.setTextEdit(Either.forLeft(textEdit));
+		completionItems.add(item);
+		return item;
+	}
+
+	private static CompletionItem fillCompletionFile(CustomValueResolver file, String namespace,
+			boolean useNamespaceInTextEdit, Range range, Set<CompletionItem> completionItems) {
+		String label = namespace != null ? namespace + ':' + file.getName() : file.getName();
+		String insertText = useNamespaceInTextEdit && namespace != null ? namespace + ':' + file.getName()
+				: file.getName();
+		CompletionItem item = new CompletionItem();
+		item.setLabel(label);
+		item.setFilterText(insertText);
+		item.setKind(CompletionItemKind.File);
 		TextEdit textEdit = new TextEdit();
 		textEdit.setRange(range);
 		textEdit.setNewText(insertText);
@@ -711,7 +734,7 @@ public class QuteCompletionsForExpression {
 			QuteProject project = template.getProject();
 			if (project != null) {
 				// Custom completion (ex: renarde messages).
-				for (CompletionParticipant completionParticipant : project.getExtensions()) {
+				for (CompletionParticipant completionParticipant : project.getCompletionParticipants()) {
 					if (completionParticipant.isEnabled()) {
 						completionParticipant.doComplete(completionRequest, part instanceof Part ? (Part) part : null,
 								expression != null ? expression.getParts() : null, completionSettings,
@@ -777,7 +800,7 @@ public class QuteCompletionsForExpression {
 				}
 			}
 
-			if (UserTagUtils.isUserTag(template)) {
+			if (template.isUserTag()) {
 				// provide completion for 'it', 'nested-content', '_args'
 				Collection<SectionMetadata> metadatas = UserTagUtils.getSpecialKeys();
 				for (SectionMetadata metadata : metadatas) {
@@ -796,11 +819,51 @@ public class QuteCompletionsForExpression {
 					}
 				}
 			}
+
+			// Show parameters of included sections
+			QuteProject project = template.getProject();
+			if (project != null) {
+				IncludeUsages includeUsages = project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
+				if (includeUsages != null) {
+					fillFromUsages(includeUsages, range, completionSettings, completionItems);
+				}
+
+			}
 		}
 
 		CompletionList list = new CompletionList();
 		list.setItems(completionItems.stream().collect(Collectors.toList()));
 		return CompletableFuture.completedFuture(list);
+	}
+
+	private static void fillFromUsages(IncludeUsages includeUsages, Range range, QuteCompletionSettings completionSettings,
+			Set<CompletionItem> completionItems) {
+		Set<String> existingNames = new HashSet<>();
+		Map<String, List<? extends NodeBase<?>>> usages = includeUsages.getParametersByTemplateId();
+		for (Entry<String, List<? extends NodeBase<?>>> entry : usages.entrySet()) {
+
+			for (NodeBase<?> node : entry.getValue()) {
+				if (node instanceof Parameter) {
+					Parameter p = (Parameter) node;
+					String paramName = p.getName();
+					if (p.canHaveExpression() && !StringUtils.isEmpty(paramName)
+							&& !existingNames.contains(paramName)) {
+						existingNames.add(paramName);
+
+						CompletionItem item = new CompletionItem();
+						item.setLabel(paramName);
+						item.setKind(CompletionItemKind.Reference);
+						TextEdit textEdit = new TextEdit(range, paramName);
+						item.setTextEdit(Either.forLeft(textEdit));
+						item.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported()
+								? InsertTextFormat.Snippet
+								: InsertTextFormat.PlainText);
+						completionItems.add(item);
+
+					}
+				}
+			}
+		}
 	}
 
 	private static String createUserTagParameterSnippet(UserTagParameter parameter,
@@ -844,8 +907,7 @@ public class QuteCompletionsForExpression {
 		if (userTag == null) {
 			return false;
 		}
-		UserTagParameter it = userTag.findParameter(IT_OBJECT_PART_NAME);
-		if (it == null) {
+		if (!userTag.hasParameter(IT_OBJECT_PART_NAME)) {
 			// The user tag doesn't define 'it' parameter
 			return false;
 		}
@@ -880,26 +942,12 @@ public class QuteCompletionsForExpression {
 				}
 				CompletionItem item = new CompletionItem();
 				item.setLabel(name);
-				item.setKind(getCompletionKind(globalVariable));
+				item.setKind(globalVariable.getCompletionKind());
 				TextEdit textEdit = new TextEdit(range, name);
 				item.setTextEdit(Either.forLeft(textEdit));
 				completionItems.add(item);
 			}
 		}
-	}
-
-	private static CompletionItemKind getCompletionKind(ValueResolver globalVariable) {
-		switch (globalVariable.getJavaElementKind()) {
-		case FIELD:
-			return CompletionItemKind.Field;
-		case METHOD:
-			return CompletionItemKind.Method;
-		case TYPE:
-			return CompletionItemKind.Class;
-		case PARAMETER:
-			return CompletionItemKind.TypeParameter;
-		}
-		return CompletionItemKind.Class;
 	}
 
 	public void doCompleteNamespaceResolvers(String namespace, Template template, Range range,
@@ -967,6 +1015,16 @@ public class QuteCompletionsForExpression {
 					item.setSortText("Zb" + item.getLabel());
 					break;
 				}
+				case CUSTOM: {
+					CustomValueResolver file = (CustomValueResolver) resolver;
+					CompletionItem item = fillCompletionFile(file, file.getNamespace(), namespace == null, range,
+							completionItems);
+					item.setKind(CompletionItemKind.File);
+					// Display namespace resolvers (ex : inject:bean) after
+					// declared objects
+					item.setSortText("Zd" + item.getLabel());
+					break;
+				}
 				default:
 				}
 			}
@@ -1015,6 +1073,7 @@ public class QuteCompletionsForExpression {
 
 				// 2) Completion for aliases section
 				switch (parentSection.getSectionKind()) {
+
 				case EACH:
 				case FOR:
 					LoopSection iterableSection = ((LoopSection) parentSection);
@@ -1032,6 +1091,7 @@ public class QuteCompletionsForExpression {
 						}
 					}
 					break;
+
 				case LET:
 				case SET: {
 					// completion for parameters coming from #let, #set
@@ -1052,6 +1112,23 @@ public class QuteCompletionsForExpression {
 					}
 					break;
 				}
+
+				case FRAGMENT: {
+					QuteProject project = template.getProject();
+					if (project != null) {
+						String templateId = template.getTemplateId();
+						String fragmentId = ((FragmentSection) parentSection).getId();
+						if (!StringUtils.isEmpty(fragmentId)) {
+							IncludeUsages usages = project.getIncludeUsagesRegistry().getFragmentUsages(templateId,
+									fragmentId);
+							if (usages != null) {
+								fillFromUsages(usages, range, completionSettings, completionItems);
+							}
+						}
+					}
+				}
+					break;
+
 				case IF: {
 					// completion for parameters coming from #if
 					List<Parameter> parameters = parentSection.getParameters();
@@ -1074,6 +1151,7 @@ public class QuteCompletionsForExpression {
 					}
 					break;
 				}
+
 				case WITH:
 					// Completion for properties/methods of with object from #with
 					Parameter object = ((WithSection) parentSection).getObjectParameter();
@@ -1093,6 +1171,7 @@ public class QuteCompletionsForExpression {
 						}
 					}
 					break;
+
 				case WHEN:
 				case SWITCH:
 					if (node.getKind() == NodeKind.Expression) {

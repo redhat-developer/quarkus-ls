@@ -24,14 +24,7 @@ import com.redhat.qute.settings.QuteValidationSettings;
  * 
  * @author Angelo ZERR
  */
-public interface DiagnosticsParticipant {
-
-	/**
-	 * Checks if this participant is enabled.
-	 * 
-	 * @return true if this participant should provide diagnostics
-	 */
-	boolean isEnabled();
+public interface DiagnosticsParticipant extends BaseParticpant {
 
 	/**
 	 * Validates the given expression and adds diagnostics if issues are found.

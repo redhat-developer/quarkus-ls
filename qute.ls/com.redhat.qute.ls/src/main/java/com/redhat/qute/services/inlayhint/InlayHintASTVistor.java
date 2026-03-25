@@ -41,6 +41,7 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CustomSection;
 import com.redhat.qute.parser.template.sections.ForSection;
 import com.redhat.qute.parser.template.sections.IfSection;
+import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.LetSection;
 import com.redhat.qute.parser.template.sections.SetSection;
 import com.redhat.qute.project.QuteProject;
@@ -52,6 +53,7 @@ import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.QuteInlayHintSettings;
 import com.redhat.qute.settings.SharedSettings;
+import com.redhat.qute.utils.StringUtils;
 
 /**
  * AST visitor used to show inferred Java type for section parameter as inlay
@@ -174,6 +176,18 @@ public class InlayHintASTVistor extends ASTVisitor {
 		return isAfterEndParameterVisible(node);
 	}
 
+	public boolean visit(IncludeSection node) {
+		cancelChecker.checkCanceled();
+
+		if (!isAfterStartParameterVisible(node)) {
+			return false;
+		}
+		// {#form id[:String]=item.id }
+		// {#form item.id[:String] }
+		createInlayHintParametersSection(node);
+		return isAfterEndParameterVisible(node);
+	}
+
 	@Override
 	public boolean visit(Expression node) {
 		cancelChecker.checkCanceled();
@@ -232,9 +246,9 @@ public class InlayHintASTVistor extends ASTVisitor {
 				}
 
 				// ex: {m:application.index.subtitle}
-				for (InlayHintParticipant inlayHintParticipant : project.getExtensions()) {
+				for (InlayHintParticipant inlayHintParticipant : project.getInlayHintParticipants()) {
 					if (inlayHintParticipant.isEnabled()) {
-						inlayHintParticipant.inlayHint(node, inlayHints, cancelChecker);
+						inlayHintParticipant.collectInlayHints(node, inlayHints, cancelChecker);
 					}
 				}
 
@@ -338,6 +352,9 @@ public class InlayHintASTVistor extends ASTVisitor {
 			resolvingJavaTypeContext.add(javaTypeFuture);
 			return;
 		}
+		if (QuteCompletableFutures.isNotIterableType(javaType)) {
+			return;
+		}
 		if ((!parameter.isOptional() && javaType == null)) {
 			return;
 		}
@@ -346,10 +363,14 @@ public class InlayHintASTVistor extends ASTVisitor {
 
 	private void createInlayHint(Parameter parameter, ResolvedJavaTypeInfo javaType, Template template) {
 		try {
+			String type = getLabel(javaType);
+			if (StringUtils.isEmpty(type)) {
+				return;
+			}
 			InlayHint hint = new InlayHint();
 			hint.setKind(InlayHintKind.Type);
 			// The Java type is resolved, display it as inlay hint
-			updateJavaType(hint, javaType, template.getProjectUri());
+			updateJavaType(hint, javaType, type, template.getProjectUri());
 			int end = parameter.hasValueAssigned() ? parameter.getEndName() : parameter.getEnd();
 			Position position = template.positionAt(end);
 			hint.setPosition(position);
@@ -383,6 +404,9 @@ public class InlayHintASTVistor extends ASTVisitor {
 					return CompletableFuture.completedFuture(null);
 				}
 				if (javaTypeIterable.isIterable()) {
+					if (javaTypeIterable.isTypeResolved()) {
+						return CompletableFuture.completedFuture(javaTypeIterable.getResolvedType());
+					}
 					return project.resolveJavaType(javaTypeIterable.getIterableOf());
 				}
 				return CompletableFuture.completedFuture(null);
@@ -391,8 +415,7 @@ public class InlayHintASTVistor extends ASTVisitor {
 		return javaType;
 	}
 
-	private void updateJavaType(InlayHint hint, ResolvedJavaTypeInfo javaType, String projectUri) {
-		String type = getLabel(javaType);
+	private void updateJavaType(InlayHint hint, ResolvedJavaTypeInfo javaType, String type, String projectUri) {
 		if (javaType != null && canSupportJavaDefinition) {
 			// first part : ":"
 			InlayHintLabelPart separatorPart = new InlayHintLabelPart(":");

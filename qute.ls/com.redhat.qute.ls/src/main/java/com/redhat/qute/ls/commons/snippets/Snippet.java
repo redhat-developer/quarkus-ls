@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiPredicate;
 
+import org.eclipse.lsp4j.CompletionItemKind;
+import org.eclipse.lsp4j.CompletionItemLabelDetails;
+
 /**
  * Snippet description (like vscode snippet).
  *
@@ -24,6 +27,10 @@ import java.util.function.BiPredicate;
 public class Snippet {
 
 	private String label;
+
+	private CompletionItemLabelDetails labelDetails;
+
+	private CompletionItemKind kind;
 
 	private List<String> prefixes;
 
@@ -47,6 +54,22 @@ public class Snippet {
 
 	public void setLabel(String label) {
 		this.label = label;
+	}
+
+	public CompletionItemLabelDetails getLabelDetails() {
+		return labelDetails;
+	}
+
+	public void setLabelDetails(CompletionItemLabelDetails labelDetails) {
+		this.labelDetails = labelDetails;
+	}
+
+	public CompletionItemKind getKind() {
+		return kind;
+	}
+
+	public void setKind(CompletionItemKind kind) {
+		this.kind = kind;
 	}
 
 	public List<String> getPrefixes() {

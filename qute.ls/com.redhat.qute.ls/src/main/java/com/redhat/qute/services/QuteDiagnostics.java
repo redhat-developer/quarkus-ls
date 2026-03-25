@@ -17,13 +17,12 @@ import static com.redhat.qute.services.diagnostics.DiagnosticDataFactory.createD
 import static com.redhat.qute.utils.UserTagUtils.IT_OBJECT_PART_NAME;
 import static com.redhat.qute.utils.UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -50,6 +49,7 @@ import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.expression.PropertyPart;
+import com.redhat.qute.parser.injection.LanguageInjectionNode;
 import com.redhat.qute.parser.template.CaseOperator;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
@@ -67,12 +67,16 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.project.JavaMemberResult;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
+import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.extensions.DiagnosticsParticipant;
+import com.redhat.qute.project.extensions.LanguageInjectionService;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
+import com.redhat.qute.project.usages.IncludeUsages;
 import com.redhat.qute.services.diagnostics.CollectHtmlInputNamesVisitor;
 import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
 import com.redhat.qute.services.diagnostics.QuteDiagnosticsForSyntax;
@@ -84,7 +88,6 @@ import com.redhat.qute.settings.QuteNativeSettings;
 import com.redhat.qute.settings.QuteValidationSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 import com.redhat.qute.utils.StringUtils;
-import com.redhat.qute.utils.UserTagUtils;
 
 /**
  * Qute diagnostics support.
@@ -215,6 +218,21 @@ class QuteDiagnostics {
 		List<Node> children = parent.getChildren();
 		for (Node node : children) {
 			switch (node.getKind()) {
+			case LanguageInjection: {
+				LanguageInjectionNode languageInjection = (LanguageInjectionNode) node;
+				LanguageInjectionService service = languageInjection.getLanguageService();
+				if (service != null) {
+					// Language injection, ensure data model project is loaded (ex: to get the
+					// project folder, source folders etc)
+					if (project != null) {
+						ExtendedDataModelTemplate dataModel = project.getDataModelTemplate(template).getNow(null);
+						if (dataModel != null) {
+							service.collectDiagnostics(languageInjection, template, validationSettings, diagnostics);
+						}
+					}
+				}
+				break;
+			}
 			case ParameterDeclaration: {
 				if (project != null) {
 					ParameterDeclaration parameter = (ParameterDeclaration) node;
@@ -282,7 +300,8 @@ class QuteDiagnostics {
 				}
 				switch (section.getSectionKind()) {
 				case INCLUDE:
-					validateIncludeSection((IncludeSection) section, project, diagnostics);
+					validateIncludeSection((IncludeSection) section,
+							resolvingJavaTypeContext.isBinaryTemplatesResolved(), project, diagnostics);
 					break;
 				case CASE:
 				case IS:
@@ -369,8 +388,9 @@ class QuteDiagnostics {
 		}
 		SectionKind sectionKind = section.getSectionKind();
 		if (sectionKind == SectionKind.CUSTOM) {
-			if (!resolvingJavaTypeContext.isBinaryUserTagResolved()) {
-				// Don't validate custom tag, if the binary user tags are not loaded.
+			if (!(resolvingJavaTypeContext.isProjectLoaded())) {
+				// Don't validate custom tag, if the binary templates and data model are not
+				// resolved
 				return;
 			}
 
@@ -451,15 +471,46 @@ class QuteDiagnostics {
 						Section parentSection = (Section) parent;
 						if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
 							IncludeSection includeSection = (IncludeSection) parentSection;
-							List<Parameter> parameters = project
-									.findInsertTagParameter(includeSection.getReferencedTemplateId(), tagName);
-							if (parameters != null) {
+							List<Parameter> parameters = project.findInsertTagParameter(includeSection, tagName);
+							if (parameters != null && !parameters.isEmpty()) {
 								// The parameter exists
 								return;
+							}
+						} else if (parentSection.getSectionKind() == SectionKind.CUSTOM) {
+							String parentTagName = parentSection.getTag();
+							UserTag parentUserTag = project.findUserTag(parentTagName);
+							if (parentUserTag != null) {
+								List<Parameter> parameters = project.findInsertTagParameter(parentUserTag, tagName);
+								if (parameters != null && !parameters.isEmpty()) {
+									// The parameter exists
+									return;
+								}
 							}
 						}
 					}
 					parent = parent.getParent();
+				}
+
+				// Check if section tag is a parameter from an include section
+				IncludeUsages includeUsages = project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
+				if (includeUsages != null) {
+					Set<String> includedByTemplateIds = includeUsages.getCallingTemplateIds();
+					for (String templateId : includedByTemplateIds) {
+						List<Parameter> parameters = project.findInsertTagParameter(templateId, tagName);
+						if (parameters != null && !parameters.isEmpty()) {
+							// The parameter exists
+							return;
+						}
+					}
+
+					Set<TemplatePath> includedByTemplatePaths = includeUsages.getCallingTemplatePaths();
+					for (TemplatePath templatePath : includedByTemplatePaths) {
+						List<Parameter> parameters = project.findInsertTagParameter(templatePath, tagName);
+						if (parameters != null && !parameters.isEmpty()) {
+							// The parameter exists
+							return;
+						}
+					}
 				}
 
 				DiagnosticSeverity severity = validationSettings.getUndefinedSectionTag().getDiagnosticSeverity();
@@ -505,25 +556,43 @@ class QuteDiagnostics {
 	/**
 	 * Validate #include section.
 	 *
-	 * @param includeSection the include section
+	 * @param includeSection        the include section
+	 * @param binaryUserTagResolved
 	 * @param project
-	 * @param diagnostics    the diagnostics to fill.
+	 * @param diagnostics           the diagnostics to fill.
 	 */
-	private static void validateIncludeSection(IncludeSection includeSection, QuteProject project,
-			List<Diagnostic> diagnostics) {
+	private static void validateIncludeSection(IncludeSection includeSection, boolean binaryUserTagResolved,
+			QuteProject project, List<Diagnostic> diagnostics) {
 		Parameter templateParameter = includeSection.getTemplateParameter();
 		if (templateParameter != null) {
 			// Validate template id, only if project exists.
-			if (project != null) {
+			if (project != null && binaryUserTagResolved) {
 				// include defines a template to include
 				// ex : {#include base}
-				Path templateFile = includeSection.getReferencedTemplateFile();
-				if (templateFile == null || Files.notExists(templateFile)) {
+				Template template = includeSection.getOwnerTemplate();
+				TemplatePath templatePath = includeSection.getReferencedTemplatePath();
+				if (templatePath == null || !templatePath.isExists()) {
 					// It doesn't exists a file named base, base.qute.html, base.html, etc
-					Range range = QutePositionUtility.createRange(templateParameter);
+					Range range = QutePositionUtility.selectIncludeTemplateIdPart(templateParameter, template,
+							templatePath);
+					String templateId = templatePath != null ? templatePath.getTemplateId() : template.getTemplateId();
+					String resolvedTemplateId = templateId.isEmpty() ? template.getTemplateId() : templateId;
 					Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
-							QuteErrorCode.TemplateNotFound, templateParameter.getValue());
+							QuteErrorCode.TemplateNotFound, resolvedTemplateId);
 					diagnostics.add(diagnostic);
+				} else if (templatePath.getFragmentId() != null) {
+					// Template id exists, validate fragment id
+					String templateId = templatePath.getTemplateId();
+					String resolvedTemplateId = templateId.isEmpty() ? template.getTemplateId() : templateId;
+					String fragmentId = templatePath.getFragmentId();
+					if (project.findFragmentSections(resolvedTemplateId, fragmentId).isEmpty()) {
+						// Fragment doesn't exist
+						Range range = QutePositionUtility.selectIncludeFragmentPart(templateParameter, template,
+								templatePath);
+						Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+								QuteErrorCode.FragmentNotFound, fragmentId, resolvedTemplateId);
+						diagnostics.add(diagnostic);
+					}
 				}
 			}
 		} else {
@@ -725,7 +794,7 @@ class QuteDiagnostics {
 				return null;
 			} else {
 				Parts parts = namespacePart.getParent();
-				for (DiagnosticsParticipant diagnosticsParticipant : project.getExtensions()) {
+				for (DiagnosticsParticipant diagnosticsParticipant : project.getDiagnosticsParticipants()) {
 					if (diagnosticsParticipant.isEnabled()) {
 						if (diagnosticsParticipant.validateExpression(parts, validationSettings,
 								resolvingJavaTypeContext, diagnostics)) {
@@ -781,7 +850,7 @@ class QuteDiagnostics {
 				return null;
 			}
 
-			if (UserTagUtils.isUserTag(template)) {
+			if (template.isUserTag()) {
 				// Ignore undefined object diagnostic for user tag
 				return null;
 			}
@@ -801,6 +870,14 @@ class QuteDiagnostics {
 					objectPart.getPartName());
 			diagnostics.add(diagnostic);
 			return null;
+		}
+
+		ResolvedJavaTypeInfo resolvedJavaType = javaTypeInfo.getResolvedType();
+		if (resolvedJavaType != null) {
+			// ex : validation of 'books' part from {inject:books} which comes Roq Data
+			// books.yaml file
+			// (See RoqDataFile)
+			return resolvedJavaType;
 		}
 
 		String javaTypeToResolve = javaTypeInfo.getJavaType();
@@ -827,6 +904,15 @@ class QuteDiagnostics {
 								return null;
 							}
 						} else {
+							if (alias.isTypeResolved()) {
+								// ex: validation of 'b' part in #for which uses {inject:books} which comes Roq
+								// Data
+								// books.yaml file
+								// {#for b in inject:books.list}
+								// {b <-- validate this b part
+								// (See RoqDataFile)
+								return alias.getResolvedType();
+							}
 							javaTypeToResolve = alias.getSignature();
 						}
 					}
@@ -901,7 +987,9 @@ class QuteDiagnostics {
 			String property = part.getPartName();
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.UnknownProperty,
 					property, signature);
-			diagnostic.setData(new JavaBaseTypeOfPartData(signature));
+			if (signature != null && !baseType.isTypeResolved()) {
+				diagnostic.setData(new JavaBaseTypeOfPartData(signature));
+			}
 			diagnostics.add(diagnostic);
 			return null;
 		} else if (canValidateMemberInNativeMode(filter, javaMember)) {
@@ -965,6 +1053,10 @@ class QuteDiagnostics {
 				default:
 				}
 			}
+		}
+
+		if (javaMember.isTypeResolved()) {
+			return javaMember.getResolvedType();
 		}
 
 		if (javaMember.getJavaElementKind() == JavaElementKind.METHOD && ((JavaMethodInfo) javaMember).isVoidMethod()) {
@@ -1078,7 +1170,7 @@ class QuteDiagnostics {
 			if (signature != null || errorCode == QuteErrorCode.UnknownNamespaceResolverMethod) {
 				Range range = QutePositionUtility.createRange(methodPart);
 				Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, errorCode, methodName, arg);
-				if (signature != null) {
+				if (signature != null && !baseType.isTypeResolved()) {
 					diagnostic.setData(new JavaBaseTypeOfPartData(signature));
 				}
 				diagnostics.add(diagnostic);

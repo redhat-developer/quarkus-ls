@@ -11,14 +11,21 @@
 *******************************************************************************/
 package com.redhat.qute.project;
 
+import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import com.redhat.qute.commons.ProjectInfo;
+import com.redhat.qute.commons.TemplateRootPath;
+import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.Parameter;
-import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.CustomSection;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.project.documents.SearchInfoQuery;
+import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.usages.UsagesRegistry;
 
 /**
  * Qute text document of a project which are opend and closed.
@@ -27,6 +34,20 @@ import com.redhat.qute.project.documents.SearchInfoQuery;
  *
  */
 public interface QuteTextDocument {
+
+	public static class Key<T> {
+
+		private final String name;
+
+		public Key(String name) {
+			this.name = name;
+
+		}
+
+		public static <T> Key<T> create(String name) {
+			return new Key<>(name);
+		}
+	}
 
 	/**
 	 * Returns the current parsed template.
@@ -79,7 +100,18 @@ public interface QuteTextDocument {
 	 * @return list of section with the given section tag name declared in all
 	 *         templates of the project and an empty list otherwise.
 	 */
-	List<Section> findSectionsByTag(String tag);
+	List<CustomSection> findCustomSectionsByTag(String tag);
+
+	/**
+	 * Returns list of fragment section with the given fragment id declared in all
+	 * templates of the project and an empty list otherwise.
+	 * 
+	 * @param fragmentId the fragment id.
+	 * 
+	 * @return list of fragment section with the given fragment id declared in all
+	 *         templates of the project and an empty list otherwise.
+	 */
+	List<FragmentSection> findFragmentSectionById(String fragmentId);
 
 	/**
 	 * Returns the file template uri.
@@ -88,12 +120,18 @@ public interface QuteTextDocument {
 	 */
 	String getUri();
 
+	Path getTemplatePath();
+
 	/**
 	 * Returns true if the document is opened and false otherwise.
 	 * 
 	 * @return true if the document is opened and false otherwise.
 	 */
 	boolean isOpened();
+
+	default boolean isBinary() {
+		return false;
+	}
 
 	/**
 	 * Returns true if the document is an user tag and false otherwise.
@@ -102,10 +140,62 @@ public interface QuteTextDocument {
 	 */
 	default boolean isUserTag() {
 		String templateId = getTemplateId();
-		return templateId != null && templateId.startsWith("tags/");
+		return templateId != null && templateId.startsWith(getUserTagsFolder());
 	}
 
 	default void save() {
-		
+
 	}
+
+	Collection<InjectionDetector> getInjectionDetectors();
+
+	UserTag getUserTag();
+
+	default String getUserTagName() {
+		if (!isUserTag()) {
+			return null;
+		}
+		String templateId = getTemplateId();
+		if (templateId != null) {
+			QuteProject project = getProject();
+			TemplateRootPath rootPath = project != null ? project.findTemplateRootPathFor(getTemplatePath()) : null;
+			boolean namespacedTagSupported = rootPath != null ? rootPath.isNamespacedTagSupported() : true;
+			String tagName = null;
+			if (namespacedTagSupported) {
+				// ex : {#roq-default/hero
+				tagName = templateId.substring(getUserTagsFolder().length());
+			} else {
+				// ex : {#bundle
+				tagName = getTemplatePath().getFileName().toString();
+			}
+			int index = tagName.lastIndexOf('.');
+			if (index != -1) {
+				return tagName.substring(0, index);
+			}
+			return tagName;
+		}
+		return null;
+	}
+
+	default String getUserTagsFolder() {
+		return "tags/";
+	}
+
+	String getOrigin();
+
+	default String getProperty(String name) {
+		return null;
+	}
+
+	/**
+	 * Re-parse template from the current template content and update usages
+	 * {@link UsagesRegistry} (call of user tag parameters, include parameters).
+	 */
+	default void reparseTemplate() {
+		// Do nothing
+	}
+
+	<T> T getUserData(Key<T> key);
+
+	<T> void putUserData(Key<T> key, T data);
 }

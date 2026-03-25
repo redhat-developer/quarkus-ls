@@ -25,6 +25,8 @@ public abstract class JavaElementInfo {
 
 	private String documentation;
 
+	private transient ResolvedJavaTypeInfo resolvedType;
+
 	/**
 	 * Returns the Java element signature.
 	 *
@@ -41,6 +43,25 @@ public abstract class JavaElementInfo {
 	 */
 	public void setSignature(String signature) {
 		this.signature = signature;
+	}
+
+	/**
+	 * Determines whether the Javadoc must be loaded for this Java element.
+	 * <p>
+	 * The Javadoc should be loaded only if:
+	 * <ul>
+	 * <li>the Java element type has not been resolved yet</li>
+	 * <li>and no documentation is currently available</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @return {@code true} if the Javadoc must be loaded, {@code false} otherwise.
+	 */
+	public boolean shouldLoadDocumentation() {
+		if (isTypeResolved()) {
+			return false;
+		}
+		return getDocumentation() == null;
 	}
 
 	/**
@@ -118,7 +139,7 @@ public abstract class JavaElementInfo {
 		StringBuilder result = new StringBuilder();
 		for (int i = 0; i < type.length(); i++) {
 			char c = type.charAt(i);
-			switch(c) {
+			switch (c) {
 			case '.':
 				lastIndex = i;
 				break;
@@ -127,7 +148,7 @@ public abstract class JavaElementInfo {
 				result.append(type.substring(lastIndex + 1, i + 1));
 				lastIndex = i;
 				break;
-			}			
+			}
 		}
 		if (lastIndex != type.length()) {
 			result.append(type.substring(lastIndex + 1, type.length()));
@@ -135,4 +156,38 @@ public abstract class JavaElementInfo {
 		return result.toString();
 	}
 
+	/**
+	 * Indicates whether the Java element type has been resolved.
+	 *
+	 * @return {@code true} if the Java element type is resolved, {@code false}
+	 *         otherwise.
+	 */
+	public final boolean isTypeResolved() {
+		return resolvedType != null;
+	}
+
+	/**
+	 * Returns the resolved Java type information for this element.
+	 *
+	 * @return the resolved Java type information, or {@code null} if the type has
+	 *         not been resolved yet.
+	 */
+	public final ResolvedJavaTypeInfo getResolvedType() {
+		return resolvedType;
+	}
+
+	/**
+	 * Sets the resolved Java type information for this element.
+	 * <p>
+	 * Once the type is resolved, the element is considered fully typed and
+	 * additional metadata (such as documentation) does not need to be loaded lazily
+	 * anymore.
+	 * </p>
+	 *
+	 * @param resolvedType the resolved Java type information to associate with this
+	 *                     element, or {@code null} to clear the resolved state
+	 */
+	public void setResolvedType(ResolvedJavaTypeInfo resolvedType) {
+		this.resolvedType = resolvedType;
+	}
 }

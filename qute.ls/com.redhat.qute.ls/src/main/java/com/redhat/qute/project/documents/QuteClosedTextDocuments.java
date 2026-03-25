@@ -35,13 +35,13 @@ public class QuteClosedTextDocuments {
 
 	private final QuteProject project;
 
-	private final Map<String /* template id */, QuteTextDocument> allDocumentsByTemplateId;
+	private final Map<Path /* template uri */, QuteTextDocument> sourceDocuments;
 
 	private boolean scanned;
 
-	public QuteClosedTextDocuments(QuteProject project, Map<String, QuteTextDocument> allDocumentsByTemplateId) {
+	public QuteClosedTextDocuments(QuteProject project, Map<Path, QuteTextDocument> sourceDocuments) {
 		this.project = project;
-		this.allDocumentsByTemplateId = allDocumentsByTemplateId;
+		this.sourceDocuments = sourceDocuments;
 	}
 
 	public void loadClosedTemplatesIfNeeded() {
@@ -125,20 +125,19 @@ public class QuteClosedTextDocuments {
 		if (!isValidTemplate(path)) {
 			return null;
 		}
-		String templateId = project.getTemplateId(path);
-		if (force || !project.isTemplateOpened(templateId)) {
+		if (force || !project.isTemplateOpened(path)) {
 			// The template is opened or force is true
-			synchronized (allDocumentsByTemplateId) {
+			synchronized (sourceDocuments) {
 				if (!force) {
-					QuteTextDocument document = allDocumentsByTemplateId.get(templateId);
+					QuteTextDocument document = project.findSourceDocument(path);
 					if (document != null && !document.isOpened()) {
 						// The closed document already exists
 						return document;
 					}
 				}
 				// Create and cache the closed document.
-				QuteTextDocument document = new QuteClosedTextDocument(path, templateId, project);
-				allDocumentsByTemplateId.put(templateId, document);
+				QuteTextDocument document = new QuteClosedTextDocument(path, project);
+				project.registerSourceDocument(document);
 				return document;
 			}
 		}
@@ -155,7 +154,7 @@ public class QuteClosedTextDocuments {
 	 *         *.yaml, *.json) and false otherwise.
 	 */
 	private boolean isValidTemplate(Path path) {
-		if (Files.isDirectory(path)) {
+		if (!Files.exists(path) || Files.isDirectory(path)) {
 			return false;
 		}
 		String uri = path.toString();

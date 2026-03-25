@@ -315,8 +315,7 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	 * 
 	 * <p>
 	 * By default it returns the same list that getParameters(). This method is
-	 * override
-	 * for method value resolver to returns the applicable parameters.
+	 * override for method value resolver to returns the applicable parameters.
 	 * </p>
 	 * 
 	 * @return the applicable parameters of the method.
@@ -340,42 +339,42 @@ public class JavaMethodInfo extends JavaMemberInfo {
 			if (!paramTypeParsing) {
 				// ex query :
 				switch (c) {
-					case ' ':
-						// ignore space
-						break;
-					case ':':
-						paramTypeParsing = true;
-						break;
-					default:
-						paramName.append(c);
+				case ' ':
+					// ignore space
+					break;
+				case ':':
+					paramTypeParsing = true;
+					break;
+				default:
+					paramName.append(c);
 				}
 			} else {
 				// ex java.lang.String,
 				switch (c) {
-					case ' ':
-						// ignore space
-						break;
-					case '<':
-						daemon++;
+				case ' ':
+					// ignore space
+					break;
+				case '<':
+					daemon++;
+					paramType.append(c);
+					break;
+				case '>':
+					daemon--;
+					paramType.append(c);
+					break;
+				case ',':
+					if (daemon == 0) {
+						parameters.add(new JavaParameterInfo(paramName.toString(), paramType.toString()));
+						paramName.setLength(0);
+						paramType.setLength(0);
+						paramTypeParsing = false;
+						daemon = 0;
+					} else {
 						paramType.append(c);
-						break;
-					case '>':
-						daemon--;
-						paramType.append(c);
-						break;
-					case ',':
-						if (daemon == 0) {
-							parameters.add(new JavaParameterInfo(paramName.toString(), paramType.toString()));
-							paramName.setLength(0);
-							paramType.setLength(0);
-							paramTypeParsing = false;
-							daemon = 0;
-						} else {
-							paramType.append(c);
-						}
-						break;
-					default:
-						paramType.append(c);
+					}
+					break;
+				default:
+					paramType.append(c);
 				}
 			}
 		}
@@ -445,10 +444,18 @@ public class JavaMethodInfo extends JavaMemberInfo {
 			}
 		} else {
 			// ex : java.util .List<T>
-			for (int i = 0; i < genericsParameterType.size(); i++) {
-				JavaParameterInfo argParameter = genericsParameterType.get(i);
-				JavaParameterInfo javaParameter = baseType.getTypeParameters().get(i);
-				resolvedGenericNames.put(argParameter.getType(), javaParameter.getType());
+			if (genericsParameterType.size() == baseType.getTypeParameters().size()) {
+				for (int i = 0; i < genericsParameterType.size(); i++) {
+					JavaParameterInfo argParameter = genericsParameterType.get(i);
+					JavaParameterInfo javaParameter = baseType.getTypeParameters().get(i);
+					resolvedGenericNames.put(argParameter.getType(), javaParameter.getType());
+				}
+			} else if (genericsParameterType.size() == 1 && baseType.getIterableOf() != null) {
+				// ex: baseTypeDecl = java.lang.Iterable<T>
+				// baseType= io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection
+				// where RoqCollection extends java.util.ArrayList<io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage>
+				// which is an iterableOf=io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage				
+				resolvedGenericNames.put(genericsParameterType.get(0).getType(), baseType.getIterableOf());
 			}
 		}
 

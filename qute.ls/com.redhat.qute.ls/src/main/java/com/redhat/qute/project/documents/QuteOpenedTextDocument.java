@@ -1,20 +1,25 @@
 /*******************************************************************************
-* Copyright (c) 2023 Red Hat Inc. and others.
-* All rights reserved. This program and the accompanying materials
-* which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v20.html
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Contributors:
-*     Red Hat Inc. - initial API and implementation
-*******************************************************************************/
+ * Copyright (c) 2023 Red Hat Inc. and others.
+ * All rights reserved. This program and the accompanying materials
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v20.html
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     Red Hat Inc. - initial API and implementation
+ *******************************************************************************/
 package com.redhat.qute.project.documents;
 
 import static com.redhat.qute.commons.FileUtils.createPath;
+import static com.redhat.qute.utils.FutureUtils.isFutureLoaded;
 
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
@@ -26,12 +31,17 @@ import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.commons.ModelTextDocument;
 import com.redhat.qute.ls.commons.TextDocument;
+import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.Parameter;
-import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
+import com.redhat.qute.parser.template.sections.CustomSection;
+import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.QuteTextDocument;
+import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.usages.UsagesCollector;
+import com.redhat.qute.project.usages.UsagesCollector.UsageTracker;
 
 public class QuteOpenedTextDocument extends ModelTextDocument<Template> implements QuteTextDocument {
 
@@ -47,7 +57,30 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 
 	private String templateId;
 
-	private UserTagUsageCollector callVisitor;
+	/**
+	 * Reusable visitor that collects user tag and include usages on each parse.
+	 * Created lazily once the project and template id are known, then reused across
+	 * all subsequent parses to avoid repeated allocations.
+	 */
+	private UsagesCollector callVisitor;
+
+	/**
+	 * Tracks user tag usages across visits for this template. Owned here so that
+	 * its internal maps survive between keystrokes.
+	 */
+	private UsageTracker userTagTracker;
+
+	/**
+	 * Tracks include section usages across visits for this template. Owned here so
+	 * that its internal maps survive between keystrokes.
+	 */
+	private UsageTracker includeTracker;
+
+	private UserTag userTag;
+
+	private Map<Key<Object>, Object> cache;
+
+	private String userTagName;
 
 	public QuteOpenedTextDocument(TextDocumentItem document, BiFunction<TextDocument, CancelChecker, Template> parse,
 			QuteProjectInfoProvider projectInfoProvider, QuteProjectRegistry projectRegistry) {
@@ -55,29 +88,45 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 		this.projectInfoProvider = projectInfoProvider;
 		this.projectRegistry = projectRegistry;
 		this.templatePath = createPath(document.getUri());
+		QuteProject project = projectRegistry.findProjectFor(templatePath);
+		if (project != null) {
+			this.projectUri = project.getUri();
+			this.templateId = project.getTemplateId(templatePath);
+		}
 	}
 
 	@Override
 	public Template getModel() {
 		var template = super.getModel();
-		if (template != null && template.getProjectUri() == null) {
-			template.setTemplateInfoProvider(this);
-			ProjectInfo projectInfo = getProjectInfoFuture().getNow(null);
-			if (projectInfo != null) {
-				QuteProject project = projectRegistry.getProject(projectInfo);
-				template.setProjectUri(project.getUri());
-				template.setTemplateId(templateId);
-				processCallVisitor(super.getModel(), project);
-			}
+		if (template != null) {
+
+			template.setTemplateId(templateId);
 			template.setProjectRegistry(projectRegistry);
+			template.setUserTagName(getUserTagName());
+
+			if (template.getProjectUri() == null) {
+				template.setTemplateInfoProvider(this);
+				QuteProject project = findProject();
+				if (project != null) {
+					template.setProjectUri(project.getUri());
+					processCallVisitor(template, project);
+				}
+			}
 		}
 		return template;
 	}
 
+	private QuteProject findProject() {
+		if (this.projectUri != null) {
+			return projectRegistry.getProject(projectUri);
+		}
+		ProjectInfo projectInfo = getProjectInfoFuture().getNow(null);
+		return projectInfo != null ? projectRegistry.getProject(projectInfo) : null;
+	}
+
 	@Override
 	public CompletableFuture<ProjectInfo> getProjectInfoFuture() {
-		if (projectInfoFuture == null || projectInfoFuture.isCompletedExceptionally()
-				|| projectInfoFuture.isCancelled()) {
+		if (!isFutureLoaded(projectInfoFuture)) {
 			QuteProjectParams params = new QuteProjectParams(super.getUri());
 			projectInfoFuture = projectInfoProvider.getProjectInfo(params) //
 					.thenApply(projectInfo -> {
@@ -126,12 +175,21 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 	}
 
 	@Override
-	public List<Section> findSectionsByTag(String tag) {
+	public List<CustomSection> findCustomSectionsByTag(String tag) {
 		SearchInfoQuery query = new SearchInfoQuery();
 		query.setSectionTag(tag);
 		TemplateInfoCollector collector = new TemplateInfoCollector(query);
 		getTemplate().accept(collector);
-		return collector.getSectionsByTag();
+		return collector.getCustomSections();
+	}
+
+	@Override
+	public List<FragmentSection> findFragmentSectionById(String fragmentId) {
+		SearchInfoQuery query = new SearchInfoQuery();
+		query.setFragmentId(fragmentId);
+		TemplateInfoCollector collector = new TemplateInfoCollector(query);
+		getTemplate().accept(collector);
+		return collector.getFragmentSections();
 	}
 
 	@Override
@@ -142,8 +200,25 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 	@Override
 	public void save() {
 		processCallVisitor(getModel(), null);
+		if (userTag != null) {
+			userTag.clear();
+		}
 	}
 
+	/**
+	 * Runs the usage collector on the given template if the project is known.
+	 *
+	 * <p>
+	 * The {@link UsagesCollector} and its {@link UsageTracker} instances are
+	 * created lazily on the first call, once both the project and the template id
+	 * are available. On subsequent calls (i.e. every keystroke), the existing
+	 * instances are reused — no allocations occur beyond the AST traversal itself.
+	 * </p>
+	 *
+	 * @param template the parsed template to visit, may be {@code null}
+	 * @param project  the owning project, or {@code null} to resolve from the
+	 *                 template
+	 */
 	private void processCallVisitor(Template template, QuteProject project) {
 		if (template != null) {
 			if (project == null) {
@@ -151,11 +226,87 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 			}
 			if (project != null && templateId != null) {
 				if (callVisitor == null) {
-					callVisitor = new UserTagUsageCollector(getTemplateId(), project.getTagRegistry());
+					// Trackers are allocated once per opened document and reused across
+					// all subsequent visits via an internal map-swap strategy
+					userTagTracker = new UsageTracker(project.getTagRegistry());
+					includeTracker = new UsageTracker(project.getIncludeUsagesRegistry());
+					callVisitor = new UsagesCollector(this, userTagTracker, includeTracker);
 				}
 				template.accept(callVisitor);
 			}
-
 		}
 	}
+
+	@Override
+	public Collection<InjectionDetector> getInjectionDetectors() {
+		if (templatePath == null) {
+			return Collections.emptyList();
+		}
+		QuteProject project = projectUri != null ? projectRegistry.getProject(projectUri) : null;
+		if (project == null) {
+			return Collections.emptyList();
+		}
+		return project.getInjectionDetectorsFor(templatePath);
+	}
+
+	@Override
+	public Path getTemplatePath() {
+		return templatePath;
+	}
+
+	@Override
+	protected void cancelModel() {
+		super.cancelModel();
+		if (userTag != null) {
+			userTag.clear();
+		}
+	}
+
+	@Override
+	public UserTag getUserTag() {
+		if (!isUserTag()) {
+			return null;
+		}
+		if (userTag == null) {
+			userTag = new UserTag(this);
+		}
+		return userTag;
+	}
+
+	@Override
+	public String getOrigin() {
+		return null;
+	}
+
+	@Override
+	public void reparseTemplate() {
+		cancelModel();
+		getTemplate();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T getUserData(Key<T> key) {
+		if (cache == null) {
+			return null;
+		}
+		return (T) cache.get(key);
+	}
+
+	@Override
+	public <T> void putUserData(Key<T> key, T data) {
+		if (cache == null) {
+			cache = new HashMap<>();
+		}
+		cache.put((Key<Object>) key, data);
+	}
+	
+	@Override
+	public String getUserTagName() {
+		if (userTagName == null) {
+			userTagName = QuteTextDocument.super.getUserTagName();
+		}
+		return userTagName;
+	}
+
 }

@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.commons.datamodel;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,6 +63,13 @@ public class DataModelProject<T extends DataModelTemplate<?>> {
 		this.templates = templates;
 	}
 
+	public void addTemplate(T template) {
+		if (this.templates == null) {
+			this.templates = new ArrayList<>();
+		}
+		this.templates.add(template);
+	}
+
 	public Map<String, NamespaceResolverInfo> getNamespaceResolverInfos() {
 		return namespaceResolverInfos;
 	}
@@ -111,7 +119,7 @@ public class DataModelProject<T extends DataModelTemplate<?>> {
 		return findDataModelTemplate(templateUriWithoutExtension, templates);
 	}
 
-	public String getUriWithoutExtension(String templateUri) {
+	public static String getUriWithoutExtension(String templateUri) {
 		int dotIndex = templateUri.lastIndexOf('.');
 		if (dotIndex != -1) {
 			templateUri = templateUri.substring(0, dotIndex);
@@ -125,9 +133,6 @@ public class DataModelProject<T extends DataModelTemplate<?>> {
 	private T findDataModelTemplate(String templateUri, List<T> templates) {
 		Optional<T> dataModelForTemplate = templates.stream() //
 				.filter(t -> {
-					/*if (t instanceof ExtendedDataModelTemplate) {
-						return ((ExtendedDataModelTemplate) t).matches(templateUri);
-					}*/
 					return templateUri.endsWith(t.getTemplateUri());
 				}) //
 				.findFirst();

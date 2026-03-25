@@ -12,10 +12,15 @@
 package com.redhat.qute.services;
 
 import static com.redhat.qute.services.commands.QuteClientCommandConstants.COMMAND_JAVA_DEFINITION;
+import static com.redhat.qute.services.commands.QuteClientCommandConstants.COMMAND_OPEN_URI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.CodeLens;
@@ -26,18 +31,22 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.commons.JavaElementInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.parser.NodeBase;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.FragmentSection;
+import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.DataModelSourceProvider;
 import com.redhat.qute.project.datamodel.ExtendedDataModelFragment;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
+import com.redhat.qute.project.extensions.CodeLensParticipant;
+import com.redhat.qute.project.usages.IncludeUsages;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
@@ -75,10 +84,26 @@ class QuteCodeLens {
 					QuteProject project = template.getProject();
 					collectCodeLenses(templateDataModel, template, template, settings, project, lenses, cancelChecker);
 
-					if (UserTagUtils.isUserTag(template)) {
+					if (template.isUserTag()) {
 						// Template is an user tag
 						collectUserTagCodeLenses(template, cancelChecker, lenses);
 					}
+
+					// Collect code lenses from custom participant (ex: "Insert FontMatter" for Roq
+					// application)
+					if (project != null) {
+
+						// Included By CodeLens
+						collectIncludedByCodeLenses(template, project, settings, cancelChecker, lenses);
+
+						// Codelens from participant (ex: Roq page)
+						for (CodeLensParticipant codeLensParticipant : project.getCodeLensParticipants()) {
+							if (codeLensParticipant.isEnabled()) {
+								codeLensParticipant.collectCodeLenses(template, settings, lenses, cancelChecker);
+							}
+						}
+					}
+
 					return lenses;
 				});
 	}
@@ -108,7 +133,7 @@ class QuteCodeLens {
 			String title = createCheckedTemplateTitle(templateDataModel);
 			Command command = !canSupportJavaDefinition ? new Command(title, "")
 					: new Command(title, COMMAND_JAVA_DEFINITION,
-							Arrays.asList(templateDataModel.toJavaDefinitionParams(projectUri)));
+							List.of(templateDataModel.toJavaDefinitionParams(projectUri)));
 			CodeLens codeLens = new CodeLens(range, command, null);
 			lenses.add(codeLens);
 		}
@@ -167,7 +192,9 @@ class QuteCodeLens {
 				collectInsertCodeLens(project, section, template, showReferencesCommandId, lenses);
 				break;
 			case FRAGMENT:
-				collectFragmentCodeLens(templateDataModel, section, settings, project, lenses, cancelChecker);
+				// [device : String]
+				// {#fragment id="menu"
+				collectFragmentCodeLens(templateDataModel, section, template, settings, project, lenses, cancelChecker);
 				break;
 			default:
 			}
@@ -179,22 +206,53 @@ class QuteCodeLens {
 	}
 
 	private static void collectFragmentCodeLens(ExtendedDataModelTemplate templateDataModel, Section section,
-			SharedSettings settings, QuteProject project, List<CodeLens> lenses, CancelChecker cancelChecker) {
-		if (templateDataModel == null) {
-			return;
-		}
+			Template template, SharedSettings settings, QuteProject project, List<CodeLens> lenses,
+			CancelChecker cancelChecker) {
 		FragmentSection fragment = (FragmentSection) section;
 		String fragmentId = fragment.getId();
 		if (StringUtils.isEmpty(fragmentId)) {
 			return;
 		}
-		ExtendedDataModelFragment fragmentDataModel = (ExtendedDataModelFragment) templateDataModel
-				.getFragment(fragmentId);
-		if (fragmentDataModel == null) {
-			return;
+
+		// Data model from Java method CheckedTemplate
+		if (templateDataModel != null) {
+			ExtendedDataModelFragment fragmentDataModel = (ExtendedDataModelFragment) templateDataModel
+					.getFragment(fragmentId);
+			if (fragmentDataModel != null) {
+				Range fragmentRange = QutePositionUtility.selectStartTagName(section);
+				collectDataModelCodeLenses(fragmentRange, fragmentDataModel, project.getUri(), settings, lenses,
+						cancelChecker);
+			}
 		}
-		Range range = QutePositionUtility.selectStartTagName(section);
-		collectDataModelCodeLenses(range, fragmentDataModel, project.getUri(), settings, lenses, cancelChecker);
+
+		// Data model from include parameter.
+		if (!StringUtils.isEmpty(fragmentId)) {
+			String templateId = template.getTemplateId();
+			IncludeUsages fragmentUsages = project.getIncludeUsagesRegistry().getFragmentUsages(templateId, fragmentId);
+			if (fragmentUsages != null) {
+				Set<String> existingNames = new HashSet<>();
+				Range fragmentRange = QutePositionUtility.selectStartTagName(section);
+				Map<String, List<? extends NodeBase<?>>> usages = fragmentUsages.getParametersByTemplateId();
+				for (Entry<String, List<? extends NodeBase<?>>> entry : usages.entrySet()) {
+					for (NodeBase<?> node : entry.getValue()) {
+						if (node instanceof Parameter) {
+							Parameter p = (Parameter) node;
+							String parameterName = p.getName();
+							if (!existingNames.contains(parameterName)) {
+								existingNames.add(parameterName);
+								// Don't generate codelens for template parameter of the #include
+								if (p.canHaveExpression()) {
+									String title = createNameAndTypeTitle(parameterName, project.resolveJavaType(p));
+									Command command = new Command(title.toString(), "");
+									CodeLens codeLens = new CodeLens(fragmentRange, command, null);
+									lenses.add(codeLens);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	private static void collectInsertCodeLens(QuteProject project, Section section, Template template,
@@ -203,7 +261,7 @@ class QuteCodeLens {
 			Parameter parameter = section.getParameterAtIndex(0);
 			if (parameter != null) {
 				String tag = parameter.getValue();
-				int nbReferences = project.findSectionsByTag(tag).size();
+				int nbReferences = project.findCustomSectionsByTag(tag).size();
 				if (nbReferences > 0) {
 					String title = nbReferences == 1 ? "1 reference" : nbReferences + " references";
 					Range range = QutePositionUtility.createRange(parameter);
@@ -222,26 +280,82 @@ class QuteCodeLens {
 	private static void collectUserTagCodeLenses(Template template, CancelChecker cancelChecker,
 			List<CodeLens> lenses) {
 		// 1) display the user tag name as codelens
-		String userTagTitle = "User tag #" + UserTagUtils.getUserTagName(template.getUri());
+		String userTagName = template.getUserTagName();
+		String userTagTitle = "User tag #" + userTagName;
 		Command userTagCommand = new Command(userTagTitle, "");
 		CodeLens userTagCodeLens = new CodeLens(LEFT_TOP_RANGE, userTagCommand, null);
 		lenses.add(userTagCodeLens);
 
-		// 2) display a codelens for each expression object part
-		UserTagUtils.collectUserTagParameters(template, //
-				objectPart -> {
-					StringBuilder title = new StringBuilder(objectPart.getPartName()) //
-							.append(" : ");
-					ResolvedJavaTypeInfo result = template.getProject() //
-							.resolveJavaType(objectPart) //
-							.getNow(null);
-					title.append(result != null && !QuteCompletableFutures.isResolvingJavaType(result)
-							? JavaElementInfo.getSimpleType(result.getName())
-							: "?");
-					Range range = LEFT_TOP_RANGE;
-					Command command = new Command(title.toString(), "");
-					CodeLens codeLens = new CodeLens(range, command, null);
-					lenses.add(codeLens);
-				}, cancelChecker);
+		// 2) display a codelens for each user tag parameters
+		QuteProject project = template.getProject();
+		if (project != null) {
+			UserTagUtils.collectUserTagParameters(userTagName, template, //
+					objectPart -> {
+						String title = createNameAndTypeTitle(objectPart.getPartName(),
+								project.resolveJavaType(objectPart));
+						Range range = LEFT_TOP_RANGE;
+						Command command = new Command(title.toString(), "");
+						CodeLens codeLens = new CodeLens(range, command, null);
+						lenses.add(codeLens);
+					}, cancelChecker);
+
+		}
 	}
+
+	private static String createNameAndTypeTitle(String name, CompletableFuture<ResolvedJavaTypeInfo> future) {
+		StringBuilder title = new StringBuilder(name) //
+				.append(" : ");
+		ResolvedJavaTypeInfo result = future.getNow(null);
+		title.append(result != null && !QuteCompletableFutures.isResolvingJavaType(result)
+				? JavaElementInfo.getSimpleType(result.getName())
+				: "?");
+		return title.toString();
+	}
+
+	private static void collectIncludedByCodeLenses(Template template, QuteProject project, SharedSettings settings,
+			CancelChecker cancelChecker, List<CodeLens> lenses) {
+		IncludeUsages includeUsages = project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
+		if (includeUsages == null) {
+			return;
+		}
+
+		Set<String> includedByTemplateIds = includeUsages.getCallingTemplateIds();
+		Set<TemplatePath> includedByTemplatePaths = includeUsages.getCallingTemplatePaths();
+		if (includedByTemplateIds.isEmpty() && includedByTemplatePaths.isEmpty()) {
+			return;
+		}
+
+		Range range = LEFT_TOP_RANGE;
+		Command command = new Command("Included by:", "");
+		CodeLens codeLens = new CodeLens(range, command, null);
+		lenses.add(codeLens);
+
+		boolean canSupportOpenUri = settings.getCommandCapabilities().isCommandSupported(COMMAND_OPEN_URI);
+
+		for (String templateId : includedByTemplateIds) {
+			Command includedUriCommand = null;
+			String uri = canSupportOpenUri ? project.findTemplateUriByTemplateId(templateId) : null;
+			if (uri == null) {
+				includedUriCommand = new Command(templateId, "");
+			} else {
+				includedUriCommand = new Command(templateId, COMMAND_OPEN_URI, List.of(uri));
+			}
+			CodeLens includedUriCodeLens = new CodeLens(range, includedUriCommand, null);
+			lenses.add(includedUriCodeLens);
+		}
+
+		for (TemplatePath templatePath : includedByTemplatePaths) {
+			String templateId = templatePath.getTemplateId();
+			Command includedUriCommand = null;
+			String uri = canSupportOpenUri ? templatePath.getUri() : null;
+			if (uri == null) {
+				includedUriCommand = new Command(templateId, "");
+			} else {
+				includedUriCommand = new Command(templateId, COMMAND_OPEN_URI, List.of(uri));
+			}
+			CodeLens includedUriCodeLens = new CodeLens(range, includedUriCommand, null);
+			lenses.add(includedUriCodeLens);
+		}
+	}
+
 }

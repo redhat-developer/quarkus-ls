@@ -11,16 +11,20 @@
 *******************************************************************************/
 package com.redhat.qute.project.roq;
 
-import java.util.Arrays;
+import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.TemplateRootPath;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.config.roq.RoqConfig;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
-import com.redhat.qute.commons.datamodel.DataModelTemplateMatcher;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.project.BaseQuteProject;
@@ -34,8 +38,14 @@ public class RoqProject extends BaseQuteProject {
 	public static final String PROJECT_URI = "roq";
 	private DataModelProject<DataModelTemplate<?>> dataModel;
 
-	public RoqProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
-		super(projectInfo, projectRegistry);
+	public RoqProject(QuteProjectRegistry projectRegistry) {
+		super(new ProjectInfo(PROJECT_URI, //
+				getProjectPath(PROJECT_URI), //
+				Collections.emptyList(), //
+				List.of(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates"), //
+						new TemplateRootPath(getProjectPath(PROJECT_URI) + "/templates")), //
+				Set.of(getProjectPath(PROJECT_URI) + "/src/main/resources"), //
+				Set.of(RoqConfig.PROJECT_FEATURE)), projectRegistry);
 	}
 
 	@Override
@@ -46,28 +56,13 @@ public class RoqProject extends BaseQuteProject {
 		loadResolvedJavaType("RoqCollections.json", resolvedJavaTypes, RoqProject.class);
 		loadResolvedJavaType("Paginator.json", resolvedJavaTypes, RoqProject.class);
 		loadResolvedJavaType("DocumentPage.json", resolvedJavaTypes, RoqProject.class);
+		loadResolvedJavaType("NormalPage.json", resolvedJavaTypes, RoqProject.class);
 		loadResolvedJavaType("Page.json", resolvedJavaTypes, RoqProject.class);
 	}
 
 	@Override
 	protected void fillTemplates(List<DataModelTemplate<DataModelParameter>> templates) {
-		// Inject 'page' and 'site' for all Qute templates which belongs to a Roq application 
-		DataModelTemplate<DataModelParameter> roqTemplate = new DataModelTemplate<DataModelParameter>();
-		roqTemplate.setTemplateMatcher(new DataModelTemplateMatcher(Arrays.asList("**/**")));
 
-		// site
-		DataModelParameter site = new DataModelParameter();
-		site.setKey("site");
-		site.setSourceType("io.quarkiverse.roq.frontmatter.runtime.model.Site");
-		roqTemplate.addParameter(site);
-
-		// page
-		DataModelParameter page = new DataModelParameter();
-		page.setKey("page");
-		page.setSourceType("io.quarkiverse.roq.frontmatter.runtime.model.Page");
-		roqTemplate.addParameter(page);
-
-		templates.add(roqTemplate);
 	}
 
 	@Override
@@ -87,4 +82,24 @@ public class RoqProject extends BaseQuteProject {
 
 	}
 
+	@Override
+	protected List<BinaryTemplateInfo> loadBinaryTemplatesSync() {
+		return loadDataBinaryTemplates("binary/BinaryTemplates.json", RoqProject.class);
+	}
+
+	public static String getFileUri(String fileName) {
+		return Paths.get(getRoqProjectPath() + fileName).toAbsolutePath().toUri().toASCIIString();
+	}
+
+	public static String getContentFileUri(String fileName) {
+		return getFileUri("/content/" + fileName);
+	}
+
+	public static String getDataFileUri(String fileName) {
+		return getFileUri("/data/" + fileName);
+	}
+
+	private static String getRoqProjectPath() {
+		return getProjectPath(RoqProject.PROJECT_URI);
+	}
 }

@@ -18,6 +18,7 @@
 		<tycho.generateSourceReferences>true</tycho.generateSourceReferences>
 		<tycho.test.platformArgs />
 		<tycho.test.jvmArgs>-Xmx512m -DDetectVMInstallationsJob.disabled=true ${tycho.test.platformArgs}</tycho.test.jvmArgs>
+		<lsp4mp.p2.url>https://download.eclipse.org/lsp4mp/snapshots/0.16.1/repository/</lsp4mp.p2.url>
 
 		<!-- Code coverage -->
 		<jacoco.version>0.8.8</jacoco.version>
@@ -34,6 +35,11 @@
 			<id>jdt.ls.p2</id>
 			<layout>p2</layout>
 			<url>https://download.eclipse.org/jdtls/snapshots/repository/latest/</url>
+		</repository>
+		<repository>
+	    	<id>lsp4mp.p2</id>
+			<layout>p2</layout>
+			<url>${lsp4mp.p2.url}</url>
 		</repository>
 	</repositories>
 

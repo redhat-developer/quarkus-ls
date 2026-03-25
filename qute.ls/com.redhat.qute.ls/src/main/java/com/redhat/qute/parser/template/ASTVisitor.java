@@ -11,11 +11,13 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template;
 
+import com.redhat.qute.parser.ASTVisitorBase;
 import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Parts;
 import com.redhat.qute.parser.expression.PropertyPart;
+import com.redhat.qute.parser.injection.LanguageInjectionNode;
 import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.CustomSection;
 import com.redhat.qute.parser.template.sections.EachSection;
@@ -38,41 +40,7 @@ import com.redhat.qute.parser.template.sections.WithSection;
  * @author Angelo ZERR
  *
  */
-public abstract class ASTVisitor {
-
-	/**
-	 * Visits the given AST node prior to the type-specific visit (before
-	 * <code>visit</code>).
-	 * <p>
-	 * The default implementation does nothing. Subclasses may reimplement.
-	 * </p>
-	 *
-	 * @param node the node to visit
-	 *
-	 * @see #preVisit2(Node)
-	 */
-	public void preVisit(Node node) {
-		// default implementation: do nothing
-	}
-
-	/**
-	 * Visits the given AST node prior to the type-specific visit (before
-	 * <code>visit</code>).
-	 * <p>
-	 * The default implementation calls {@link #preVisit(Node)} and then returns
-	 * true. Subclasses may reimplement.
-	 * </p>
-	 *
-	 * @param node the node to visit
-	 * @return <code>true</code> if <code>visit(node)</code> should be called, and
-	 *         <code>false</code> otherwise.
-	 * @see #preVisit(ASTNode)
-	 * @since 3.5
-	 */
-	public boolean preVisit2(Node node) {
-		preVisit(node);
-		return true;
-	}
+public abstract class ASTVisitor extends ASTVisitorBase<Node> {
 
 	/**
 	 * Visits the given AST node following the type-specific visit (after
@@ -309,6 +277,21 @@ public abstract class ASTVisitor {
 	 *         <code>false</code> if the children of this node should be skipped
 	 */
 	public boolean visit(IsSection node) {
+		return true;
+	}
+
+	/**
+	 * Visits the given type-specific AST node.
+	 * <p>
+	 * The default implementation does nothing and return true. Subclasses may
+	 * reimplement.
+	 * </p>
+	 *
+	 * @param node the node to visit
+	 * @return <code>true</code> if the children of this node should be visited, and
+	 *         <code>false</code> if the children of this node should be skipped
+	 */
+	public boolean visit(LanguageInjectionNode node) {
 		return true;
 	}
 
@@ -672,6 +655,18 @@ public abstract class ASTVisitor {
 		// default implementation: do nothing
 	}
 
+	/**
+	 * End of visit the given type-specific AST node.
+	 * <p>
+	 * The default implementation does nothing. Subclasses may reimplement.
+	 * </p>
+	 *
+	 * @param node the node to visit
+	 */
+	public void endVisit(LanguageInjectionNode node) {
+		// default implementation: do nothing
+	}
+	
 	/**
 	 * End of visit the given type-specific AST node.
 	 * <p>

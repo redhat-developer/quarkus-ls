@@ -41,4 +41,8 @@ public class QuteClientCommandConstants {
 	 */
 	public static final String COMMAND_SHOW_REFERENCES = "qute.command.show.references";
 
+	/**
+	 * Client command to trigger completion of the current offset
+	 */
+	public static final String COMMAND_EDITOR_ACTION_TRIGGET_SUGGEST = "editor.action.triggerSuggest";
 }

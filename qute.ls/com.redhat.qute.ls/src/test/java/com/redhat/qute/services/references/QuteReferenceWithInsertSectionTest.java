@@ -46,6 +46,7 @@ public class QuteReferenceWithInsertSectionTest {
 				+ "</body>\r\n"
 				+ "</html>";
 		testReferencesFor(template, //
+				null,
 				l(booksUri, r(2, 1, 2, 6)), //
 				l(bookUri, r(2, 1, 2, 6)));
 	}
