@@ -39,7 +39,7 @@ public class QuteDiagnosticsWithIncludeSectionTest {
 		testDiagnosticsFor(template, QuteProjectB.PROJECT_URI);
 	}
 
-	public static void testDiagnosticsFor(String value, String projectUri, Diagnostic... expected) {
+	private static void testDiagnosticsFor(String value, String projectUri, Diagnostic... expected) {
 		QuteAssert.testDiagnosticsFor(value, QuteAssert.FILE_URI, null, projectUri, null, false,
 				null, expected);
 	}

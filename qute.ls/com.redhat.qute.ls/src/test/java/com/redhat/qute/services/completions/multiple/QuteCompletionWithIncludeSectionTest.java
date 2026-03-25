@@ -35,12 +35,12 @@ public class QuteCompletionWithIncludeSectionTest {
 				"{/include}";
 
 		// Without snippet
-//		testCompletionFor(template, //
-//				false, // no snippet support
-//				QuteProjectB.PROJECT_URI, //
-//				2, //
-//				c("root", "root", r(0, 10, 0, 10)), //
-//				c("index", "index", r(0, 10, 0, 10)));
+		testCompletionFor(template, //
+				false, // no snippet support
+				QuteProjectB.PROJECT_URI, //
+				2, //
+				c("root", "root", r(0, 10, 0, 10)), //
+				c("index", "index", r(0, 10, 0, 10)));
 
 		template = "{#include r|o} \r\n" + //
 				"  |\r\n" + //

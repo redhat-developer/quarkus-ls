@@ -123,6 +123,7 @@ public class RenardeProjectExtension extends AbstractProjectExtension
 		// Scan project source folders for messages.properties files
 		if (messagesFileInfos.isEmpty()) {
 			scanMessagesFiles(dataModelProject.getSourcePaths());
+			messagesFileInfos.sort(null);
 		}
 	}
 

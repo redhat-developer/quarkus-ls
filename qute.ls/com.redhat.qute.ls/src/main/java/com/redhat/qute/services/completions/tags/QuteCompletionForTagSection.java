@@ -54,7 +54,15 @@ public class QuteCompletionForTagSection {
 		Template template = completionRequest.getTemplate();
 		QuteProject project = template.getProject();
 		if (project != null) {
+
+			// Completion for user tags of the project
 			project.collectUserTagSuggestions(completionRequest, filterPrefix, "}", completionItems);
+
+			// Completion for user tags of the project dependencies
+			for (QuteProject projectDependency : project.getProjectDependencies()) {
+				projectDependency.collectUserTagSuggestions(completionRequest, filterPrefix, "}", completionItems);
+			}
+
 		}
 		// Completion for #for, #if, etc
 		completionsForSnippets.collectSnippetSuggestions(completionRequest, filterPrefix, "}", completionItems);
@@ -64,7 +72,8 @@ public class QuteCompletionForTagSection {
 			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
 			CancelChecker cancelChecker) {
 		Set<CompletionItem> completionItems = new HashSet<>();
-		doCompleteTagSection(completionRequest, "{#", completionSettings, formattingSettings, cancelChecker, completionItems);
+		doCompleteTagSection(completionRequest, "{#", completionSettings, formattingSettings, cancelChecker,
+				completionItems);
 		CompletionList list = new CompletionList();
 		list.setItems(completionItems.stream().collect(Collectors.toList()));
 		return CompletableFuture.completedFuture(list);

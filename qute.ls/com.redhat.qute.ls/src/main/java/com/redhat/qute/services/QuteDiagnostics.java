@@ -469,23 +469,10 @@ class QuteDiagnostics {
 				while (parent != null) {
 					if (parent.getKind() == NodeKind.Section) {
 						Section parentSection = (Section) parent;
-						if (parentSection.getSectionKind() == SectionKind.INCLUDE) {
-							IncludeSection includeSection = (IncludeSection) parentSection;
-							List<Parameter> parameters = project.findInsertTagParameter(includeSection, tagName);
-							if (parameters != null && !parameters.isEmpty()) {
-								// The parameter exists
-								return;
-							}
-						} else if (parentSection.getSectionKind() == SectionKind.CUSTOM) {
-							String parentTagName = parentSection.getTag();
-							UserTag parentUserTag = project.findUserTag(parentTagName);
-							if (parentUserTag != null) {
-								List<Parameter> parameters = project.findInsertTagParameter(parentUserTag, tagName);
-								if (parameters != null && !parameters.isEmpty()) {
-									// The parameter exists
-									return;
-								}
-							}
+						List<Parameter> parameters = project.findInsertTagParameter(parentSection, tagName);
+						if (parameters != null && !parameters.isEmpty()) {
+							// The parameter exists from the parent user tag / include section
+							return;
 						}
 					}
 					parent = parent.getParent();

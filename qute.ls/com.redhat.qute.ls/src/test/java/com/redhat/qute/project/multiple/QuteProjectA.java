@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.project.multiple;
 
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -65,4 +66,7 @@ public class QuteProjectA extends MockQuteProject {
 
 	}
 
+	public static String getFileUri(String fileName) {
+		return Paths.get(getProjectPath(PROJECT_URI) + fileName).toAbsolutePath().toUri().toASCIIString();
+	}
 }
