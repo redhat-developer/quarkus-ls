@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.services.diagnostics;
+package com.redhat.qute.services.diagnostics.sections.user_tag;
 
 import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
@@ -22,6 +22,7 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.parser.validator.QuteSyntaxErrorCode;
+import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
  * Qute diagnostics with user tags.
@@ -62,13 +63,13 @@ public class QuteDiagnosticsWithUserTagTest {
 		String template = "{#ga4 /}";
 		testDiagnosticsFor(template);
 	}
-	
+
 	@Test
 	public void underscore_in_section_name() {
 		String template = "{#reunion-card /}";
 		testDiagnosticsFor(template);
 	}
-	
+
 	@Test
 	public void definedAllParameterNamesWithoutAssignment() {
 		String template = "{@java.lang.String name}\n" + //
@@ -81,9 +82,32 @@ public class QuteDiagnosticsWithUserTagTest {
 	public void undefinedParameterName() {
 		String template = "{#input name='' XXXX='' /}";
 		Diagnostic d = d(0, 16, 0, 20, QuteErrorCode.UndefinedParameter,
-				"No parameter `XXXX` found for `input` user tag.",
-				DiagnosticSeverity.Warning);
+				"No parameter `XXXX` found for `input` user tag.", DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
+	}
+
+	@Test
+	public void validParameterName() {
+		// _isolated
+		String template = "{#input name='' _isolated /}";
+		testDiagnosticsFor(template);
+
+		template = "{#input name='' _isolated=false /}";
+		testDiagnosticsFor(template);
+
+		// _unisolated
+		template = "{#input name='' _unisolated /}";
+		testDiagnosticsFor(template);
+
+		template = "{#input name='' _unisolated=false /}";
+		testDiagnosticsFor(template);
+
+		// _ignoreFragments
+		template = "{#input name='' _ignoreFragments /}";
+		testDiagnosticsFor(template);
+
+		template = "{#input name='' _ignoreFragments=false /}";
+		testDiagnosticsFor(template);
 	}
 
 	@Test
@@ -95,8 +119,7 @@ public class QuteDiagnosticsWithUserTagTest {
 		// There is no error with name (just an error with foo parameter which is
 		// required)
 		Diagnostic d = d(0, 1, 0, 13, QuteErrorCode.MissingRequiredParameter,
-				"Missing required parameter(s) `foo` of `tagWithArgs` user tag.",
-				DiagnosticSeverity.Warning);
+				"Missing required parameter(s) `foo` of `tagWithArgs` user tag.", DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 29, 0, 30, //
@@ -107,8 +130,7 @@ public class QuteDiagnosticsWithUserTagTest {
 	public void duplicateNameParameter() {
 		String template = "{#input name='' name='' /}";
 		Diagnostic d = d(0, 16, 0, 20, QuteErrorCode.DuplicateParameter,
-				"Duplicate parameter `name` of `input` user tag.",
-				DiagnosticSeverity.Warning);
+				"Duplicate parameter `name` of `input` user tag.", DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 	}
 
@@ -116,8 +138,7 @@ public class QuteDiagnosticsWithUserTagTest {
 	public void missingRequiredParameterName() throws Exception {
 		String template = "{#input /}";
 		Diagnostic d = d(0, 1, 0, 7, QuteErrorCode.MissingRequiredParameter,
-				"Missing required parameter(s) `name` of `input` user tag.",
-				DiagnosticSeverity.Warning);
+				"Missing required parameter(s) `name` of `input` user tag.", DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 7, 0, 8, //
@@ -128,8 +149,7 @@ public class QuteDiagnosticsWithUserTagTest {
 	public void missingRequiredItParameterName() {
 		String template = "{#form /}";
 		Diagnostic d = d(0, 1, 0, 6, QuteErrorCode.MissingRequiredParameter,
-				"Missing required parameter(s) `it` of `form` user tag.",
-				DiagnosticSeverity.Warning);
+				"Missing required parameter(s) `it` of `form` user tag.", DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 	}
 
@@ -142,8 +162,7 @@ public class QuteDiagnosticsWithUserTagTest {
 	@Test
 	public void duplicateItParameter() {
 		String template = "{#form uri:Login.confirm('ok') uri:Login.confirm('ok') /}";
-		Diagnostic d = d(0, 31, 0, 54, QuteErrorCode.DuplicateParameter,
-				"Duplicate parameter `it` of `form` user tag.",
+		Diagnostic d = d(0, 31, 0, 54, QuteErrorCode.DuplicateParameter, "Duplicate parameter `it` of `form` user tag.",
 				DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 	}
@@ -153,8 +172,7 @@ public class QuteDiagnosticsWithUserTagTest {
 		String template = "{@java.lang.String login}\n" + //
 				"{@java.lang.String login}\n" + //
 				"{#form login confirm /}";
-		Diagnostic d = d(2, 13, 2, 20, QuteErrorCode.DuplicateParameter,
-				"Duplicate parameter `it` of `form` user tag.",
+		Diagnostic d = d(2, 13, 2, 20, QuteErrorCode.DuplicateParameter, "Duplicate parameter `it` of `form` user tag.",
 				DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 	}
@@ -175,8 +193,7 @@ public class QuteDiagnosticsWithUserTagTest {
 	public void missingRequiredParameterNameMultipleWithExisting() throws Exception {
 		String template = "{#inputRequired name=\"name\"/}";
 		Diagnostic d = d(0, 1, 0, 15, QuteErrorCode.MissingRequiredParameter,
-				"Missing required parameter(s) `class` of `inputRequired` user tag.",
-				DiagnosticSeverity.Warning);
+				"Missing required parameter(s) `class` of `inputRequired` user tag.", DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 27, 0, 27, //
@@ -190,8 +207,7 @@ public class QuteDiagnosticsWithUserTagTest {
 				"  Hello!\r\n" + //
 				"{/}";
 		Diagnostic d = d(0, 1, 0, 13, QuteErrorCode.MissingRequiredParameter,
-				"Missing required parameter(s) `name`, `label` of `formElement` user tag.",
-				DiagnosticSeverity.Warning);
+				"Missing required parameter(s) `name`, `label` of `formElement` user tag.", DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 13, 0, 13, //
@@ -203,8 +219,7 @@ public class QuteDiagnosticsWithUserTagTest {
 		String template = "{#myTag required=\"required\"}\r\n" + //
 				"{/}";
 		Diagnostic d = d(0, 1, 0, 7, QuteErrorCode.MissingRequiredParameter,
-				"Missing required parameter(s) `it` of `myTag` user tag.",
-				DiagnosticSeverity.Warning);
+				"Missing required parameter(s) `it` of `myTag` user tag.", DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 27, 0, 27, //
@@ -217,8 +232,7 @@ public class QuteDiagnosticsWithUserTagTest {
 		String template = "{#myTag required=\"required\" optional=\"optional\"}\r\n" + //
 				"{/}";
 		Diagnostic d = d(0, 1, 0, 7, QuteErrorCode.MissingRequiredParameter,
-				"Missing required parameter(s) `it` of `myTag` user tag.",
-				DiagnosticSeverity.Warning);
+				"Missing required parameter(s) `it` of `myTag` user tag.", DiagnosticSeverity.Warning);
 		testDiagnosticsFor(template, d);
 		testCodeActionsFor(template, d, //
 				ca(d, te(0, 47, 0, 47, //
@@ -227,16 +241,12 @@ public class QuteDiagnosticsWithUserTagTest {
 
 	@Test
 	public void noMatchBetweenStartEndSection() throws Exception {
-		String template = "{#form }\r\n"
-				+ "	\r\n"
-				+ "	{/for}";
+		String template = "{#form }\r\n" + "	\r\n" + "	{/for}";
 		Diagnostic d1 = d(2, 2, 2, 6, QuteSyntaxErrorCode.SECTION_END_DOES_NOT_MATCH_START,
-				"Parser error: section end tag [for] does not match the start tag [form]",
-				DiagnosticSeverity.Error);
+				"Parser error: section end tag [for] does not match the start tag [form]", DiagnosticSeverity.Error);
 		testDiagnosticsFor(template, d1, //
 				d(0, 1, 0, 6, QuteErrorCode.MissingRequiredParameter,
-						"Missing required parameter(s) `it` of `form` user tag.",
-						DiagnosticSeverity.Warning));
+						"Missing required parameter(s) `it` of `form` user tag.", DiagnosticSeverity.Warning));
 		testCodeActionsFor(template, d1, //
 				ca(d1, te(2, 3, 2, 6, //
 						"form")));

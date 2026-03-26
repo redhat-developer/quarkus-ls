@@ -106,7 +106,11 @@ public class QuteCompletionWithIncludeSectionTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				QuteProjectB.PROJECT_URI, 0);
+				QuteProjectB.PROJECT_URI, //
+				3, //
+				c("_isolated", "_isolated", r(0, 15, 0, 15)), //
+				c("_unisolated", "_unisolated", r(0, 15, 0, 15)), //
+				c("_ignoreFragments", "_ignoreFragments", r(0, 15, 0, 15)));
 
 		template = "{#include root r|o} \r\n" + //
 				"  |\r\n" + //
@@ -115,7 +119,10 @@ public class QuteCompletionWithIncludeSectionTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				QuteProjectB.PROJECT_URI, 0);
+				QuteProjectB.PROJECT_URI, 3, //
+				c("_isolated", "_isolated", r(0, 15, 0, 17)), //
+				c("_unisolated", "_unisolated", r(0, 15, 0, 17)), //
+				c("_ignoreFragments", "_ignoreFragments", r(0, 15, 0, 17)));
 
 		template = "{#include root |ro} \r\n" + //
 				"  |\r\n" + //
@@ -124,7 +131,11 @@ public class QuteCompletionWithIncludeSectionTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				QuteProjectB.PROJECT_URI, 0);
+				QuteProjectB.PROJECT_URI, //
+				3, //
+				c("_isolated", "_isolated", r(0, 15, 0, 15)), //
+				c("_unisolated", "_unisolated", r(0, 15, 0, 15)), //
+				c("_ignoreFragments", "_ignoreFragments", r(0, 15, 0, 15)));
 
 		template = "{#include root ro|} \r\n" + //
 				"  |\r\n" + //
@@ -133,7 +144,11 @@ public class QuteCompletionWithIncludeSectionTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				QuteProjectB.PROJECT_URI, 0);
+				QuteProjectB.PROJECT_URI, //
+				3, //
+				c("_isolated", "_isolated", r(0, 15, 0, 17)), //
+				c("_unisolated", "_unisolated", r(0, 15, 0, 17)), //
+				c("_ignoreFragments", "_ignoreFragments", r(0, 15, 0, 17)));
 
 		template = "{#include root |ro} \r\n" + //
 				"  |\r\n" + //
@@ -142,7 +157,10 @@ public class QuteCompletionWithIncludeSectionTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				QuteProjectB.PROJECT_URI, 0);
+				QuteProjectB.PROJECT_URI, 3, //
+				c("_isolated", "_isolated", r(0, 15, 0, 15)), //
+				c("_unisolated", "_unisolated", r(0, 15, 0, 15)), //
+				c("_ignoreFragments", "_ignoreFragments", r(0, 15, 0, 15)));
 
 	}
 

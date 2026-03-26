@@ -414,29 +414,34 @@ class QuteDiagnostics {
 						} else {
 							existingParameters.add(paramName);
 							if (!userTag.hasArgs()) {
-								// Check if the declared parameter is defined in the user tag
-								UserTagParameter userTagParameter = userTag.findParameter(paramName);
-								if (userTagParameter == null) {
-									if (!parameter.hasValueAssigned()) {
-										// ex : foo
-										// check if foo can be used as 'it'
-										paramName = IT_OBJECT_PART_NAME;
-										userTagParameter = userTag.findParameter(paramName);
-										if (existingParameters.contains(paramName)) {
-											// It exists several parameters with the same name
+								if (section.isParameterMetadata(paramName)) {
+									// ex: _isolated for user tag / #include section
+								} else {
+									// Check if the declared parameter is defined in the user tag
+									UserTagParameter userTagParameter = userTag.findParameter(paramName);
+									if (userTagParameter == null) {
+										if (!parameter.hasValueAssigned()) {
+											// ex : foo
+											// check if foo can be used as 'it'
+											paramName = IT_OBJECT_PART_NAME;
+											userTagParameter = userTag.findParameter(paramName);
+											if (existingParameters.contains(paramName)) {
+												// It exists several parameters with the same name
+												Range range = QutePositionUtility.selectParameterName(parameter);
+												Diagnostic diagnostic = createDiagnostic(range,
+														DiagnosticSeverity.Warning, QuteErrorCode.DuplicateParameter,
+														paramName, tagName);
+												diagnostics.add(diagnostic);
+											} else {
+												existingParameters.add(paramName);
+											}
+										}
+										if (userTagParameter == null) {
 											Range range = QutePositionUtility.selectParameterName(parameter);
 											Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
-													QuteErrorCode.DuplicateParameter, paramName, tagName);
+													QuteErrorCode.UndefinedParameter, paramName, tagName);
 											diagnostics.add(diagnostic);
-										} else {
-											existingParameters.add(paramName);
 										}
-									}
-									if (userTagParameter == null) {
-										Range range = QutePositionUtility.selectParameterName(parameter);
-										Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Warning,
-												QuteErrorCode.UndefinedParameter, paramName, tagName);
-										diagnostics.add(diagnostic);
 									}
 								}
 							}
@@ -847,6 +852,11 @@ class QuteDiagnostics {
 				return null;
 			}
 
+			if (ownerSection != null && ownerSection.isParameterMetadata(partName)) {
+				// ex: {#myTag _isolated /}
+				return null;
+			}
+			
 			// ex : {item} --> undefined object
 			DiagnosticSeverity severity = validationSettings.getUndefinedObject().getDiagnosticSeverity();
 			if (severity == null) {

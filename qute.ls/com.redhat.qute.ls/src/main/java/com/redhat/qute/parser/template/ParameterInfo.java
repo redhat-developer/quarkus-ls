@@ -19,7 +19,7 @@ public class ParameterInfo {
 
 	private final String defaultValue;
 
-	private final boolean optional;;
+	private final boolean optional;
 
 	public ParameterInfo(String name, String defaultValue, boolean optional) {
 		this.name = name;

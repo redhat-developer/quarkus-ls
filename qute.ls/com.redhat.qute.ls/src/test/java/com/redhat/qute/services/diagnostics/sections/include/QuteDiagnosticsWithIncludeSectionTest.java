@@ -9,13 +9,15 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.services.diagnostics;
+package com.redhat.qute.services.diagnostics.sections.include;
 
 import static com.redhat.qute.QuteAssert.d;
 import static com.redhat.qute.QuteAssert.testDiagnosticsFor;
 
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
+
+import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
  * Test with #include section
@@ -76,7 +78,7 @@ public class QuteDiagnosticsWithIncludeSectionTest {
 				d(1, 2, 1, 6, QuteErrorCode.UndefinedSectionTag, "No section helper found for `foo`.",
 						DiagnosticSeverity.Warning));
 	}
-	
+
 	@Test
 	public void validateIncludeParameter() throws Exception {
 		// origin parameter comes from book.html {#include base origin="book"}
@@ -84,4 +86,5 @@ public class QuteDiagnosticsWithIncludeSectionTest {
 		testDiagnosticsFor(template, //
 				"src/main/resources/templates/base.html");
 	}
+
 }
