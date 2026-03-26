@@ -91,8 +91,8 @@ public class UserTagInfoCollector extends ASTVisitor {
 		if (node.hasAlias() && node.hasDefaultValue()) {
 			if (parameterDeclarationsWithDefaultValue == null) {
 				parameterDeclarationsWithDefaultValue = new HashMap<>();
-				parameterDeclarationsWithDefaultValue.put(node.getAlias(), node.getDefaultValue());
 			}
+			parameterDeclarationsWithDefaultValue.put(node.getAlias(), node.getDefaultValue());
 		}
 		return super.visit(node);
 	}
