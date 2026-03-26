@@ -330,7 +330,7 @@ public class QuteProjectRegistry
 	}
 
 	public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
-		Set<QuteProject> projects = new HashSet<>();
+		Set<QuteProject> projectsToValidate = new HashSet<>();
 		List<FileEvent> changes = params.getChanges();
 		// For some reason, vscode fill changes with several FileEvent which are the
 		// same
@@ -345,47 +345,58 @@ public class QuteProjectRegistry
 					// Some qute templates are deleted, created, or changed
 					// Collect impacted Qute projects
 					Path templatePath = filePath;
-					if (project.isTemplateOpened(filePath)) {
-						projects.add(project);
+					QuteTextDocument updatedDocument = project.findSourceDocument(templatePath);
+					if (updatedDocument != null && updatedDocument.isOpened()) {
+						projectsToValidate.add(project);
 					} else {
 						// In case of closed document, we collect the project and update the cache
 						if (changeTypes.contains(FileChangeType.Changed)
 								|| changeTypes.contains(FileChangeType.Created)) {
 							// The template is created, update the cache and collect the project
-							QuteTextDocument closedTemplate = project.onDidCreateTemplate(templatePath);
-							if (closedTemplate != null) {
-								projects.add(closedTemplate.getProject());
+							updatedDocument = project.onDidCreateTemplate(templatePath);
+							if (updatedDocument != null) {
+								projectsToValidate.add(updatedDocument.getProject());
 							}
 						} else if (changeTypes.contains(FileChangeType.Deleted)) {
 							// The template is deleted, update the cache, collect the project and publish
 							// empty diagnostics for this file
-							project.onDidDeleteTemplate(templatePath);
+							updatedDocument = project.onDidDeleteTemplate(templatePath);
 							if (validator != null) {
 								// Clear diagnostics for the deleted file in this case.
 								validator.clearDiagnosticsFor(FileUtils.toUri(filePath));
 							}
-							projects.add(project);
+							projectsToValidate.add(project);
+						}
+					}
+
+					if (updatedDocument != null && updatedDocument.isUserTag()) {
+						// User tag has been created, deleted, modified, all templates from project dependencies must also
+						// be triggered.
+						for (QuteProject p : this.projects.values()) {
+							if (p != project && p.getProjectDependencies().contains(project)) {
+								projectsToValidate.add(p);
+							}
 						}
 					}
 				}
 				for (DidChangeWatchedFilesParticipant participant : project.getDidChangeWatchedFilesParticipants()) {
 					if (participant.isEnabled()) {
 						if (participant.didChangeWatchedFile(filePath, changeTypes)) {
-							projects.add(project);
+							projectsToValidate.add(project);
 						}
 					}
 				}
 			}
 		}
 
-		if (projects.isEmpty()) {
+		if (projectsToValidate.isEmpty()) {
 			return;
 		}
 
 		// trigger validation for all opened and closed Qute template files which belong
 		// to the project list.
 		if (validator != null) {
-			validator.triggerValidationFor(projects);
+			validator.triggerValidationFor(projectsToValidate);
 		}
 	}
 
