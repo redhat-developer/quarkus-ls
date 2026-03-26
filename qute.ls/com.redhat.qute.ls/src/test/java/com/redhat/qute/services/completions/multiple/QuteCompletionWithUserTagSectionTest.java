@@ -32,23 +32,31 @@ public class QuteCompletionWithUserTagSectionTest {
 	@Test
 	public void completionOnUserTagAInProjectA() throws Exception {
 		String template = "{#|}";
-
-		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
 				QuteProjectA.PROJECT_URI, //
 				c("tag-a", "{#tag-a /}", r(0, 0, 0, 3)));
+
+		template = "|";
+		testCompletionFor(template, //
+				false, // no snippet support
+				QuteProjectA.PROJECT_URI, //
+				c("tag-a", "{#tag-a /}", r(0, 0, 0, 0)));
 	}
 
 	@Test
 	public void completionOnUserTagAInProjectB() throws Exception {
 		String template = "{#|}";
-
-		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
 				QuteProjectB.PROJECT_URI, //
 				c("tag-a", "{#tag-a /}", r(0, 0, 0, 3)));
+
+		template = "|";
+		testCompletionFor(template, //
+				false, // no snippet support
+				QuteProjectB.PROJECT_URI, //
+				c("tag-a", "{#tag-a /}", r(0, 0, 0, 0)));
 	}
 
 	private static void testCompletionFor(String value, boolean snippetSupport, String projectUri,

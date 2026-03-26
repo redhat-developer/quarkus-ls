@@ -113,4 +113,17 @@ public class QuteDefinitionInParameterDeclarationTest {
 		testDefinitionFor(template, "test.qute", //
 				ll("java/util/List.java", r(0, 2, 0, 16), MockQuteProjectRegistry.JAVA_CLASS_RANGE));
 	}
+
+	@Test
+	public void objectPartToAliasParameterDeclaration() throws Exception {
+		String template = "{@java.lang.String item}\r\n" + //
+				"{it|em}";
+		testDefinitionFor(template, "test.qute", //
+				ll("test.qute", r(1, 1, 1, 5), r(0, 19, 0, 23)));
+
+		template = "{@java.lang.String item = 'foo'}\r\n" + //
+				"{it|em}";
+		testDefinitionFor(template, "test.qute", //
+				ll("test.qute", r(1, 1, 1, 5), r(0, 19, 0, 23)));
+	}
 }
