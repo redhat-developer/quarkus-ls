@@ -13,6 +13,7 @@ package com.redhat.qute.project.tags;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,6 +30,7 @@ import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Expression;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Parameter;
+import com.redhat.qute.parser.template.ParameterDeclaration;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.sections.ForSection;
 import com.redhat.qute.parser.template.sections.IfSection;
@@ -64,6 +66,8 @@ public class UserTagInfoCollector extends ASTVisitor {
 
 	private Set<String> ignoreNames;
 
+	private Map<String, String> parameterDeclarationsWithDefaultValue;
+
 	private static class ParamInfo {
 		public final String name;
 		public final boolean assigned; // true if parameter comes from a #let, #set and false otherwise.
@@ -80,6 +84,17 @@ public class UserTagInfoCollector extends ASTVisitor {
 		this.project = project;
 		this.parameters = new LinkedHashMap<>();
 		this.parameterNamesStack = new ArrayList<>();
+	}
+
+	@Override
+	public boolean visit(ParameterDeclaration node) {
+		if (node.hasAlias() && node.hasDefaultValue()) {
+			if (parameterDeclarationsWithDefaultValue == null) {
+				parameterDeclarationsWithDefaultValue = new HashMap<>();
+				parameterDeclarationsWithDefaultValue.put(node.getAlias(), node.getDefaultValue());
+			}
+		}
+		return super.visit(node);
 	}
 
 	@Override
@@ -226,21 +241,34 @@ public class UserTagInfoCollector extends ASTVisitor {
 			if (!parameter.isRequired() && parameter.getDefaultValue() == null) {
 				boolean ignore = paramInfo != null && !paramInfo.assigned;
 				if (!ignore) {
-					boolean required = true;
-					Parts parts = node.getParent();
-					int index = parts.getPartIndex(node);
-					if (index + 1 < parts.getChildCount()) {
-						Part next = parts.getChild(index + 1);
-						if (next != null && next.getPartKind() == PartKind.Method) {
-							MethodPart methodPart = (MethodPart) next;
-							if (methodPart.isOrOperator()) {
-								required = false;
-							}
-						}
+					// Try to get default value from parameter declaration with the object part name
+					// ex : {@String name = 'foo' /}
+					// {name}
+					String defaultValueFromParamDecl = parameterDeclarationsWithDefaultValue != null
+							? parameterDeclarationsWithDefaultValue.get(partName)
+							: null;
+					if (defaultValueFromParamDecl != null) {
+						// {name} object part has default value coming from parameter declaration.
+						// Assign value and the parameter is optional.
+						parameter.setDefaultValue(defaultValueFromParamDecl);
 					} else {
-						required = !node.isOptional();
+						boolean required = true;
+						Parts parts = node.getParent();
+						int index = parts.getPartIndex(node);
+						if (index + 1 < parts.getChildCount()) {
+							Part next = parts.getChild(index + 1);
+							if (next != null && next.getPartKind() == PartKind.Method) {
+								MethodPart methodPart = (MethodPart) next;
+								if (methodPart.isOrOperator()) {
+									// ex: {method ?: 'POST'}
+									required = false;
+								}
+							}
+						} else {
+							required = !node.isOptional();
+						}
+						parameter.setRequired(required);
 					}
-					parameter.setRequired(required);
 				}
 			}
 		}

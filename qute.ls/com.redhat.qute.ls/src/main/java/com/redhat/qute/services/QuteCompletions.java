@@ -265,7 +265,16 @@ public class QuteCompletions {
 		QuteProject project = template.getProject();
 		Set<CompletionItem> completionItems = new HashSet<>();
 		if (project != null) {
+
+			// Completion for user tags of the project
 			project.collectUserTagSuggestions(completionRequest, "", null, completionItems);
+
+			// Completion for user tags of the project dependencies
+			for (QuteProject projectDependency : project.getProjectDependencies()) {
+				projectDependency.collectUserTagSuggestions(completionRequest, "", null, completionItems);
+			}
+
+			// Completion to generate #for, #each from completion item of "iterable" model
 			completionsSmartIterables.collectIterableSuggestions(completionRequest, completionItems);
 		}
 		completionsForSnippets.collectSnippetSuggestions(completionRequest, "", null, completionItems);

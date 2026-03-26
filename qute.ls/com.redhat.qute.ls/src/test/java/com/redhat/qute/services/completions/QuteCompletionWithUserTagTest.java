@@ -518,13 +518,15 @@ public class QuteCompletionWithUserTagTest {
 
 		testCompletionFor(template, //
 				false, // no snippet support
-				1, //
-				c("foo", "foo=\"foo\"", r(0, 14, 0, 14)));
+				2, //
+				c("foo", "foo=\"foo\"", r(0, 14, 0, 14)),
+				c("bar", "bar=''", r(0, 14, 0, 14)));
 
 		testCompletionFor(template, //
 				true, // snippet support
-				1, //
-				c("foo", "foo=\"${1:foo}\"$0", r(0, 14, 0, 14)));
+				2, //
+				c("foo", "foo=\"${1:foo}\"$0", r(0, 14, 0, 14)), //
+				c("bar", "bar='${1:}'$0", r(0, 14, 0, 14)));
 	}
 	
 	@Test
