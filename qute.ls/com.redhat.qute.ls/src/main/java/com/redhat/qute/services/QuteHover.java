@@ -322,9 +322,10 @@ public class QuteHover {
 
 	private CompletableFuture<Hover> doHoverForObjectPart(Part part, QuteProject project, HoverRequest hoverRequest,
 			CancelChecker cancelChecker) {
+		String partName = part.getPartName();
 		if (hoverRequest.getTemplate().isUserTag()) {
 			// It's an user tag
-			SectionMetadata specialKey = UserTagUtils.getSpecialKey(part.getPartName());
+			SectionMetadata specialKey = UserTagUtils.getSpecialKey(partName);
 			if (specialKey != null) {
 				if (UserTagUtils.IT_OBJECT_PART_NAME.equals(specialKey.getName())) {
 					return project.resolveJavaType(part) //
@@ -355,16 +356,28 @@ public class QuteHover {
 		}
 
 		Expression expression = part.getParent().getParent();
-		if (CaseSection.isCaseSection(expression.getOwnerSection())) {
+		Section ownerSection = expression.getOwnerSection();
+		if (CaseSection.isCaseSection(ownerSection)) {
 			// It's an operator in the #case section
 			// Ex: {#case <|= 10}
-			CaseSection caseSection = (CaseSection) expression.getOwnerSection();
+			CaseSection caseSection = (CaseSection) ownerSection;
 			Parameter operatorParam = caseSection.getParameterAtOffset(part.getStart());
 			if (caseSection.isCaseOperator(operatorParam)) {
 				CaseOperator operator = caseSection.getCaseOperator();
 				boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
 				MarkupContent content = DocumentationUtils.getDocumentation(operator, hasMarkdown);
 				Range range = QutePositionUtility.createRange(operatorParam);
+				Hover hover = new Hover(content, range);
+				return CompletableFuture.completedFuture(hover);
+			}
+		}
+
+		if (ownerSection != null) {
+			SectionMetadata metadata = (SectionMetadata) ownerSection.getParameterMetadata(partName);
+			if (metadata != null && metadata.getDescription() != null) {
+				boolean hasMarkdown = hoverRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+				MarkupContent content = DocumentationUtils.createMarkupContent(metadata.getDescription(), hasMarkdown);
+				Range range = QutePositionUtility.createRange(part);
 				Hover hover = new Hover(content, range);
 				return CompletableFuture.completedFuture(hover);
 			}

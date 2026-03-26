@@ -18,7 +18,6 @@ import java.util.List;
 import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Parameter;
-import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProject;
@@ -30,7 +29,7 @@ import com.redhat.qute.project.QuteProject;
  * 
  * @see https://quarkus.io/guides/qute-reference#include_helpers
  */
-public class IncludeSection extends Section {
+public class IncludeSection extends CustomSection {
 
 	public static final String TAG = "include";
 

@@ -65,6 +65,7 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.parser.template.sections.CaseSection;
 import com.redhat.qute.parser.template.sections.CaseSection.CompletionCaseResult;
 import com.redhat.qute.parser.template.sections.FragmentSection;
+import com.redhat.qute.parser.template.sections.IncludeSection;
 import com.redhat.qute.parser.template.sections.LoopSection;
 import com.redhat.qute.parser.template.sections.WhenSection;
 import com.redhat.qute.parser.template.sections.WithSection;
@@ -769,8 +770,13 @@ public class QuteCompletionsForExpression {
 				}
 			}
 
+			// Fill completion with parameter metadata (_isolated, _ignoreFragments, etc)
+			Section ownerSection = expression != null ? expression.getOwnerSection() : null;
+			fillFromParameterMetadata(ownerSection, range, offset, completionSettings, completionItems);
+
 			// Check if it is user tag section
 			if (userTag != null && userTagSection != null) {
+
 				// Completion for user tag parameters
 				// {#input |
 				// should return all parameter names declared in input.html file as object part
@@ -836,8 +842,38 @@ public class QuteCompletionsForExpression {
 		return CompletableFuture.completedFuture(list);
 	}
 
-	private static void fillFromUsages(IncludeUsages includeUsages, Range range, QuteCompletionSettings completionSettings,
-			Set<CompletionItem> completionItems) {
+	private static void fillFromParameterMetadata(Section ownerSection, Range range, int offset,
+			QuteCompletionSettings completionSettings, Set<CompletionItem> completionItems) {
+		if (ownerSection == null) {
+			return;
+		}
+		if (ownerSection.getSectionKind() == SectionKind.INCLUDE) {
+			IncludeSection includeSection = (IncludeSection) ownerSection;
+			Parameter templateParameter = includeSection.getTemplateParameter();
+			if (templateParameter == null || templateParameter.isInName(offset)) {
+				return;
+			}
+		} else if (ownerSection.getSectionKind() != SectionKind.CUSTOM) {
+			return;
+		}
+		for (SectionMetadata metadata : ownerSection.getParameterMetadata()) {
+			String name = metadata.getName();
+			CompletionItem item = new CompletionItem();
+			item.setLabel(metadata.getName());
+			item.setKind(CompletionItemKind.Property);
+			TextEdit textEdit = new TextEdit(range, name);
+			item.setTextEdit(Either.forLeft(textEdit));
+			item.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported() ? InsertTextFormat.Snippet
+					: InsertTextFormat.PlainText);
+			if (metadata.getDescription() != null) {
+				item.setDocumentation(DocumentationUtils.createMarkupContent(metadata.getDescription(), true));
+			}
+			completionItems.add(item);
+		}
+	}
+
+	private static void fillFromUsages(IncludeUsages includeUsages, Range range,
+			QuteCompletionSettings completionSettings, Set<CompletionItem> completionItems) {
 		Set<String> existingNames = new HashSet<>();
 		Map<String, List<? extends NodeBase<?>>> usages = includeUsages.getParametersByTemplateId();
 		for (Entry<String, List<? extends NodeBase<?>>> entry : usages.entrySet()) {
@@ -855,9 +891,9 @@ public class QuteCompletionsForExpression {
 						item.setKind(CompletionItemKind.Reference);
 						TextEdit textEdit = new TextEdit(range, paramName);
 						item.setTextEdit(Either.forLeft(textEdit));
-						item.setInsertTextFormat(completionSettings.isCompletionSnippetsSupported()
-								? InsertTextFormat.Snippet
-								: InsertTextFormat.PlainText);
+						item.setInsertTextFormat(
+								completionSettings.isCompletionSnippetsSupported() ? InsertTextFormat.Snippet
+										: InsertTextFormat.PlainText);
 						completionItems.add(item);
 
 					}
