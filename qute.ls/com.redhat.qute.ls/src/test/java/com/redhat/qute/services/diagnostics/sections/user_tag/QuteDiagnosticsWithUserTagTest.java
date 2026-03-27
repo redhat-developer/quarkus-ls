@@ -40,10 +40,18 @@ public class QuteDiagnosticsWithUserTagTest {
 
 		// - name is optional
 		String template = "{#bundleStyle bundle=\"\" /}";
-		testDiagnosticsFor(template);
+		testDiagnosticsFor(template, //
+				d(0, 21, 0, 23, //
+						QuteErrorCode.UnexpectedTypeInParameterSection, //
+						"Unexpected type `java.lang.String` for parameter `bundle` of `bundleStyle` user tag. Expected `java.util.Map<String,String>`.",
+						DiagnosticSeverity.Error));
 		// - name can be overridden
 		template = "{#bundleStyle bundle=\"\" name='foo.css'/}";
-		testDiagnosticsFor(template);
+		testDiagnosticsFor(template, //
+				d(0, 21, 0, 23, //
+						QuteErrorCode.UnexpectedTypeInParameterSection, //
+						"Unexpected type `java.lang.String` for parameter `bundle` of `bundleStyle` user tag. Expected `java.util.Map<String,String>`.",
+						DiagnosticSeverity.Error));
 	}
 
 	@Test

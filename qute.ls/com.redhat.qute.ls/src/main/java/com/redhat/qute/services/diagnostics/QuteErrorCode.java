@@ -67,7 +67,8 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	UnexpectedMemberTypeInCaseSection("Unexpected type `{0}` in `{1}`. Expected `{2}`."),
 	UnexpectedValueInCaseSection("Unexpected value `{0}` in `{1}`. Expected value of type `{2}`."),
 	InvalidParentInCaseSection("`{0}` section must be hosted in a #switch or #when section."),
-	UnexpectedParameter("Unexpected operand `{0}`. The operator `{1}` in the `#{2}` section expects only one parameter."),
+	UnexpectedParameter(
+			"Unexpected operand `{0}`. The operator `{1}` in the `#{2}` section expects only one parameter."),
 	MissingParameter("A parameter is required in the `#{0}` section."),
 
 	// Error code for #for / #each section
@@ -82,15 +83,17 @@ public enum QuteErrorCode implements IQuteErrorCode {
 	UndefinedSectionTag("No section helper found for `{0}`."), //
 
 	UndefinedParameter("No parameter `{0}` found for `{1}` user tag."), //
-	
+
 	DuplicateParameter("Duplicate parameter `{0}` of `{1}` user tag."), //
-	
+
 	MissingRequiredParameter("Missing required parameter(s) {0} of `{1}` user tag."), //
-	
+
 	// Error code for #form section
 	MissingExpectedInput("Missing expected input(s): {0}."), //
 
-	SyntaxError("Syntax error: `{0}`.");
+	SyntaxError("Syntax error: `{0}`."), //
+
+	UnexpectedTypeInParameterSection("Unexpected type `{0}` for parameter `{1}` of `{2}` user tag. Expected `{3}`.");
 
 	private final String rawMessage;
 

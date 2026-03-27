@@ -216,6 +216,26 @@ public class QuteInlayHintTest {
 	}
 
 	@Test
+	public void userTag() throws Exception {
+		// bundleStyle has 2 parameters:
+		// - name without parameter declaration
+		// - bundle with parameter declaration --> {@java.util.Map<String,String>
+		// bundle}
+
+		// - name type is guessed from the parameter value
+		// - bundle type comes from the parameter declaration
+		String template = "{#bundleStyle name=true bundle='' }\r\n" + // name[:Boolean]=true
+		// bundle[:Map<String,String>]=''
+				"  \r\n" + //
+				"{/bundleStyle}";
+		testInlayHintFor(template, //
+				ih(p(0, 18), ihLabel(":"),
+						ihLabel("Boolean", "Open `java.lang.Boolean` Java type.", cd("java.lang.Boolean"))), //
+				ih(p(0, 30), ihLabel(":"),
+						ihLabel("Map<String,String>", "Open `java.util.Map` Java type.", cd("java.util.Map"))));
+	}
+
+	@Test
 	public void nullTagName() throws Exception {
 		String template = "{#";
 		testInlayHintFor(template);

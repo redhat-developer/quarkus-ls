@@ -228,6 +228,9 @@ public class UserTag extends Snippet {
 	 *         and null otherwise.
 	 */
 	public UserTagParameter findParameter(String parameterName) {
+		if (parameterName == null) {
+			return null;
+		}
 		getParameters();
 		return parameters.get(parameterName);
 	}
@@ -267,7 +270,7 @@ public class UserTag extends Snippet {
 	public String getUri() {
 		return document.getUri();
 	}
-	
+
 	public QuteTextDocument getDocument() {
 		return document;
 	}

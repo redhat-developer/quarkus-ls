@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.qute.project.tags;
 
+import com.redhat.qute.commons.JavaTypeInfo;
+
 /**
  * User tag parameter information.
  * 
@@ -24,6 +26,8 @@ public class UserTagParameter {
 	private boolean required;
 
 	private String defaultValue;
+
+	private JavaTypeInfo javaType;
 
 	public UserTagParameter(String name) {
 		this.name = name;
@@ -65,5 +69,13 @@ public class UserTagParameter {
 		if (defaultValue != null) {
 			setRequired(false);
 		}
+	}
+
+	public JavaTypeInfo getJavaType() {
+		return javaType;
+	}
+
+	public void setJavaType(JavaTypeInfo javaType) {
+		this.javaType = javaType;
 	}
 }

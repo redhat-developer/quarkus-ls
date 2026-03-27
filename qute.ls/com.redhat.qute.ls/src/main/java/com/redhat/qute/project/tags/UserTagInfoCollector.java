@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
@@ -104,6 +105,14 @@ public class UserTagInfoCollector extends ASTVisitor {
 			UserTagParameter parameter = parameters.get(alias);
 			if (parameter == null) {
 				parameter = new UserTagParameter(alias);
+				// Get type from the parameter declaration
+				// ex: {@Boolean alias}
+				String type = node.getJavaType();
+				if (!StringUtils.isEmpty(type)) {
+					JavaTypeInfo t = new JavaTypeInfo();
+					t.setSignature(type);
+					parameter.setJavaType(t);
+				}
 				parameters.put(alias, parameter);
 			}
 

@@ -39,6 +39,7 @@ import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
+import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
 import com.redhat.qute.commons.jaxrs.RestParam;
@@ -246,10 +247,15 @@ class QuteDiagnostics {
 				if (canChangeContext(section)) {
 					currentContext = new ResolutionContext(currentContext);
 				}
-				List<Parameter> parameters = section.getParameters();
-				// validate expression parameters
+
 				boolean checkValidOperator = section.getSectionKind() == SectionKind.IF;
 				boolean shouldBeAnOperator = false;
+				// Try to get the user tag
+				UserTag userTag = section.getSectionKind() == SectionKind.CUSTOM ? project.findUserTag(section.getTag())
+						: null;
+
+				// Validate section parameters
+				List<Parameter> parameters = section.getParameters();
 				for (Parameter parameter : parameters) {
 					if (shouldBeAnOperator) {
 						// #if section, the current parameter name must be an operator
@@ -268,29 +274,51 @@ class QuteDiagnostics {
 						Expression expression = parameter.getJavaTypeExpression();
 						if (expression != null) {
 							// Validate object, property, method parts from the expression
-							ResolvedJavaTypeInfo result = validateExpression(expression, section, template,
+							ResolvedJavaTypeInfo resolvedTypeParameter = validateExpression(expression, section, template,
 									validationSettings, filter, previousContext, resolvingJavaTypeContext, diagnostics);
 							switch (section.getSectionKind()) {
 							case FOR:
 							case EACH:
 								Part lastPart = expression.getLastPart();
-								if (result != null) {
-									result = validateIterable(lastPart, section, result, result.getSignature(),
+								if (resolvedTypeParameter != null) {
+									resolvedTypeParameter = validateIterable(lastPart, section, resolvedTypeParameter, resolvedTypeParameter.getSignature(),
 											diagnostics);
 								}
 								String alias = ((LoopSection) section).getAlias();
-								currentContext.put(alias, result);
+								currentContext.put(alias, resolvedTypeParameter);
 								break;
 							case WITH:
-								currentContext.setWithObject(result);
+								currentContext.setWithObject(resolvedTypeParameter);
 								break;
 							case LET:
 							case SET:
-								currentContext.put(parameter.getName(), result);
+								currentContext.put(parameter.getName(), resolvedTypeParameter);
 								break;
 							case SWITCH:
 							case WHEN:
-								currentContext.setWhenObject(result);
+								currentContext.setWhenObject(resolvedTypeParameter);
+								break;
+
+							case CUSTOM: {
+								if (userTag != null && resolvedTypeParameter != null) {
+									// Here the parameter to validate comes from a user tag
+									// ex: {#myTag myParam="foo"
+									// Validate myParam type if myTag.html uses parameter declaration
+									// ex: {@Boolean myParam}
+									UserTagParameter tagParameter = userTag.findParameter(parameter.getName());
+									if (tagParameter != null && tagParameter.getJavaType() != null) {
+										JavaTypeInfo expectedType = tagParameter.getJavaType();
+										if (!project.isMatchType(resolvedTypeParameter, expectedType)) {
+											Range range = QutePositionUtility.selectParameterValue(parameter);
+											Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
+													QuteErrorCode.UnexpectedTypeInParameterSection,
+													resolvedTypeParameter.getSignature(), parameter.getName(), section.getTag(),
+													expectedType.getSignature());
+											diagnostics.add(diagnostic);
+										}
+									}
+								}
+							}
 								break;
 							default:
 							}
@@ -447,6 +475,7 @@ class QuteDiagnostics {
 							}
 						}
 					}
+
 					// Check if all required parameters are declared
 					List<String> missingRequiredParameters = new ArrayList<>();
 					for (UserTagParameter parameter : userTag.getParameters()) {
@@ -856,7 +885,7 @@ class QuteDiagnostics {
 				// ex: {#myTag _isolated /}
 				return null;
 			}
-			
+
 			// ex : {item} --> undefined object
 			DiagnosticSeverity severity = validationSettings.getUndefinedObject().getDiagnosticSeverity();
 			if (severity == null) {
