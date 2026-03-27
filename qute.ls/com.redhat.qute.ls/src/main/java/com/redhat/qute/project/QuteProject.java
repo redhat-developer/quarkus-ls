@@ -526,15 +526,21 @@ public class QuteProject {
 		return findInsertTagParameter(templateId, insertParamater);
 	}
 
-	public List<Parameter> findInsertTagParameter(UserTag parentUserTag, String insertParamater) {
-		String templateId = parentUserTag.getTemplateId();
-		return findInsertTagParameter(templateId, insertParamater);
+	public List<Parameter> findInsertTagParameter(UserTag userTag, String insertParamater) {
+		QuteTextDocument document = userTag.getDocument();
+		return document.findInsertTagParameter(insertParamater);
 	}
 
 	public List<Parameter> findInsertTagParameter(String templateId, String insertParamater) {
 		QuteTextDocument document = findDocumentByTemplateId(templateId);
 		if (document != null) {
 			return document.findInsertTagParameter(insertParamater);
+		}
+		for (QuteProject projectDependency : getProjectDependencies()) {
+			document = projectDependency.findDocumentByTemplateId(templateId);
+			if (document != null) {
+				return document.findInsertTagParameter(insertParamater);
+			}
 		}
 		return null;
 	}

@@ -1,0 +1,49 @@
+{@java.lang.String openButtonText = ''}
+{@java.lang.String title}
+{@java.lang.Boolean isOpen}
+{@java.lang.String extDialogId}
+{@java.lang.String class = 'dialog--sm'}
+
+{#let dialogId = (extDialogId ? extDialogId : str:concat('dlg-', title))}
+    {#let openButtonId = str:concat('btn-open-', dialogId)}
+        <div id="{openButtonId}" style="display: contents">
+            {#insert trigger}
+                {#if openButtonText && !openButtonText.isEmpty()}
+                    <button type="button" class="btn btn__primary">
+                        {openButtonText}
+                    </button>
+                {/if}
+            {/insert}
+        </div>
+
+        <dialog id="{dialogId}" class="{class}">
+            <div class="dialog-header">
+                <h2>{title}</h2>
+                <button type="button" class="close-button" aria-label="Close">
+                    <span>X</span>
+                </button>
+            </div>
+            <div class="dialog-content">
+                {#insert content /}
+            </div>
+        </dialog>
+
+        <script type="module">
+                const dialog = document.getElementById('{dialogId}');
+                const openButton = document.getElementById('{openButtonId}');
+                const closeButton = dialog.querySelector('.close-button');
+
+                if ({isOpen}) {
+                    dialog.showModal();
+                }
+
+                openButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    dialog.showModal();
+                });
+                closeButton.addEventListener('click', () => {
+                    dialog.close();
+                });
+        </script>
+    {/let}
+{/let}

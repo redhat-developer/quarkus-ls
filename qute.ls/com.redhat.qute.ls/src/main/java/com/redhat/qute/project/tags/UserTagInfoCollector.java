@@ -88,11 +88,32 @@ public class UserTagInfoCollector extends ASTVisitor {
 
 	@Override
 	public boolean visit(ParameterDeclaration node) {
-		if (node.hasAlias() && node.hasDefaultValue()) {
-			if (parameterDeclarationsWithDefaultValue == null) {
-				parameterDeclarationsWithDefaultValue = new HashMap<>();
+		if (node.hasAlias()) {
+			String alias = node.getAlias();
+			String defaultValue = node.hasDefaultValue() ? node.getDefaultValue() : null;
+
+			if (defaultValue != null) {
+				// Store for later use when object part is visited
+				if (parameterDeclarationsWithDefaultValue == null) {
+					parameterDeclarationsWithDefaultValue = new HashMap<>();
+				}
+				parameterDeclarationsWithDefaultValue.put(alias, defaultValue);
 			}
-			parameterDeclarationsWithDefaultValue.put(node.getAlias(), node.getDefaultValue());
+
+			// Create the user tag parameter
+			UserTagParameter parameter = parameters.get(alias);
+			if (parameter == null) {
+				parameter = new UserTagParameter(alias);
+				parameters.put(alias, parameter);
+			}
+
+			if (defaultValue != null) {
+				// {@String foo = 'bar'} -> optional with default value
+				parameter.setDefaultValue(defaultValue);
+			} else {
+				// {@String foo} -> required
+				parameter.setRequired(true);
+			}
 		}
 		return super.visit(node);
 	}
@@ -298,13 +319,13 @@ public class UserTagInfoCollector extends ASTVisitor {
 			// {item} <-- item must be ignored as user tag parameter
 			return false;
 		}
-		if (globalVariables == null) {
+		if (globalVariables == null && project != null) {
 			List<ValueResolver> resolvers = project.getGlobalVariables().getNow(null);
 			globalVariables = resolvers != null
 					? resolvers.stream().map(ValueResolver::getName).collect(Collectors.toList())
 					: Collections.emptyList();
 		}
-		if (globalVariables.contains(partName)) {
+		if (globalVariables != null && globalVariables.contains(partName)) {
 			// The object part is a global variable declared in Java with @TemplateGlobal,
 			// ignore it
 			return false;
