@@ -267,4 +267,8 @@ public class UserTag extends Snippet {
 	public String getUri() {
 		return document.getUri();
 	}
+	
+	public QuteTextDocument getDocument() {
+		return document;
+	}
 }

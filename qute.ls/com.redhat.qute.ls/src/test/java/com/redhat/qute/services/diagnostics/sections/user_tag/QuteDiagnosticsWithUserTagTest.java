@@ -39,10 +39,10 @@ public class QuteDiagnosticsWithUserTagTest {
 		// In this case:
 
 		// - name is optional
-		String template = "{#bundleStyle /}";
+		String template = "{#bundleStyle bundle=\"\" /}";
 		testDiagnosticsFor(template);
 		// - name can be overridden
-		template = "{#bundleStyle name='foo.css'/}";
+		template = "{#bundleStyle bundle=\"\" name='foo.css'/}";
 		testDiagnosticsFor(template);
 	}
 

@@ -37,7 +37,7 @@ public class QuteCompletionWithUserTagTest {
 				false, // no snippet support
 				SECTION_SNIPPET_SIZE, //
 				c("bundleStyle", //
-						"{#bundleStyle /}", //
+						"{#bundleStyle bundle=\"bundle\" /}", //
 						r(0, 0, 0, 2)));
 
 		// With snippet support
@@ -45,7 +45,7 @@ public class QuteCompletionWithUserTagTest {
 				true, // snippet support
 				SECTION_SNIPPET_SIZE, //
 				c("bundleStyle", //
-						"{#bundleStyle /}$0", //
+						"{#bundleStyle bundle=\"${1:bundle}\" /}$0", //
 						r(0, 0, 0, 2)));
 	}
 
@@ -56,7 +56,8 @@ public class QuteCompletionWithUserTagTest {
 		// Without snippet
 		testCompletionFor(template, //
 				false, // no snippet support
-				4, //
+				5, //
+				c("bundle", "bundle=\"bundle\"", r(0, 14, 0, 14)), //
 				c("name", "name=\"main.css\"", r(0, 14, 0, 14)), //
 				c("_isolated", "_isolated", r(0, 14, 0, 14)), //
 				c("_unisolated", "_unisolated", r(0, 14, 0, 14)), //
@@ -65,7 +66,8 @@ public class QuteCompletionWithUserTagTest {
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
-				4, //
+				5, //
+				c("bundle", "bundle=\"${1:bundle}\"$0", r(0, 14, 0, 14)), //
 				c("name", "name=\"${1:main.css}\"$0", r(0, 14, 0, 14)), //
 				c("_isolated", "_isolated", r(0, 14, 0, 14)), //
 				c("_unisolated", "_unisolated", r(0, 14, 0, 14)), //

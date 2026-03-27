@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.project.user_tags;
+package com.redhat.qute.project.tags;
 
 import static com.redhat.qute.QuteAssert.assertDiagnostics;
 import static com.redhat.qute.QuteAssert.d;

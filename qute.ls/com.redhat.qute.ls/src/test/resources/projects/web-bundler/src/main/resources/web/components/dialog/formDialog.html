@@ -1,0 +1,43 @@
+{@java.lang.String openButtonText = ''}
+{@java.lang.String submitLabel = 'Submit'}
+{@java.lang.String title}
+{@java.lang.Boolean isOpen}
+{@java.lang.String extDialogId}
+{@java.lang.String class = 'form-dialog dialog--sm'}
+
+{#let dialogId = (extDialogId ? extDialogId : str:concat('form-dlg-', title))}
+    {#let cancelId = str:concat('cancel-', dialogId)}
+        {#baseDialog _isolated = false
+                openButtonText = openButtonText
+                isOpen = isOpen
+                title = title
+                extDialogId = dialogId
+                class = class
+        }
+            {#trigger}{#insert trigger /}{/trigger}
+            {#content}
+                <form>
+                    <div class="form-content">
+                        {nested-content}
+                    </div>
+
+                    <div class="dialog-footer">
+                        <button type="button" class="btn btn__secondary cancel">Cancel</button>
+                        <button type="submit" class="btn btn__primary">{submitLabel}</button>
+                    </div>
+                </form>
+            {/content}
+        {/baseDialog}
+
+        <script type="module">
+                let preventClearingErrorsOnMount = true;
+                const dialog = document.getElementById('{dialogId}');
+                const form = dialog.querySelector('form');
+                const cancelButton = dialog.querySelector('.cancel');
+
+                cancelButton.addEventListener('click', () => {
+                    dialog.close();
+                });
+        </script>
+    {/let}
+{/let}
