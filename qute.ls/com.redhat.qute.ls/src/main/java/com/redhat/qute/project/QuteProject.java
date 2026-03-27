@@ -1596,7 +1596,7 @@ public class QuteProject {
 		return isMatchType(javaType, parameterType);
 	}
 
-	private boolean isMatchType(ResolvedJavaTypeInfo javaType, JavaTypeInfo parameterType) {
+	public boolean isMatchType(ResolvedJavaTypeInfo javaType, JavaTypeInfo parameterType) {
 		return isMatchType(javaType, parameterType, new HashSet<>());
 	}
 

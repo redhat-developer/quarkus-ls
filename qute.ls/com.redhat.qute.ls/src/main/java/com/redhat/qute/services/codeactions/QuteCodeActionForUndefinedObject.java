@@ -44,6 +44,8 @@ import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.datamodel.ExtendedDataModelParameter;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
+import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.tags.UserTagParameter;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.diagnostics.QuteErrorCode;
 import com.redhat.qute.utils.StringUtils;
@@ -136,36 +138,35 @@ public class QuteCodeActionForUndefinedObject extends AbstractQuteCodeAction {
 			}
 
 			switch (section.getSectionKind()) {
-				case LET:
-				case SET: {
-					// completion for parameters coming from #let, #set
-					List<Parameter> parameters = section.getParameters();
-					if (parameters != null) {
-						for (Parameter parameter : parameters) {
+			case LET:
+			case SET: {
+				// completion for parameters coming from #let, #set
+				List<Parameter> parameters = section.getParameters();
+				if (parameters != null) {
+					for (Parameter parameter : parameters) {
+						String parameterName = parameter.getName();
+						doCodeActionsForSimilarValue(part, parameterName, template, existingProperties, diagnostic,
+								codeActions);
+					}
+				}
+				break;
+			}
+			case IF: {
+				// completion for parameters coming from #if
+				List<Parameter> parameters = section.getParameters();
+				if (parameters != null) {
+					for (Parameter parameter : parameters) {
+						if (parameter.isOptional()) {
+							// {#if foo??}
 							String parameterName = parameter.getName();
 							doCodeActionsForSimilarValue(part, parameterName, template, existingProperties, diagnostic,
 									codeActions);
 						}
 					}
-					break;
 				}
-				case IF: {
-					// completion for parameters coming from #if
-					List<Parameter> parameters = section.getParameters();
-					if (parameters != null) {
-						for (Parameter parameter : parameters) {
-							if (parameter.isOptional()) {
-								// {#if foo??}
-								String parameterName = parameter.getName();
-								doCodeActionsForSimilarValue(part, parameterName, template, existingProperties,
-										diagnostic,
-										codeActions);
-							}
-						}
-					}
-					break;
-				}
-				default:
+				break;
+			}
+			default:
 			}
 		}
 
@@ -216,14 +217,10 @@ public class QuteCodeActionForUndefinedObject extends AbstractQuteCodeAction {
 		// ex : {#list item in items}
 		// here items must be a java.util.list.
 		Section ownerSection = part.getParent().getParent().getOwnerSection();
-		boolean isIterable = ownerSection != null && ownerSection.isIterable();
+		String guessedType = guessJavaType(part, ownerSection, template);
 
 		StringBuilder insertText = new StringBuilder("{@");
-		if (isIterable) {
-			insertText.append("java.util.List");
-		} else {
-			insertText.append("java.lang.String");
-		}
+		insertText.append(guessedType);
 		insertText.append(" ");
 		insertText.append(partName);
 		insertText.append("}");
@@ -232,6 +229,34 @@ public class QuteCodeActionForUndefinedObject extends AbstractQuteCodeAction {
 		CodeAction insertParameterDeclarationQuickFix = CodeActionFactory.insert(title, position, insertText.toString(),
 				document, diagnostic);
 		codeActions.add(insertParameterDeclarationQuickFix);
+	}
+
+	private static String guessJavaType(ObjectPart part, Section ownerSection, Template template) {
+		if (ownerSection != null) {
+			if (ownerSection.isIterable()) {
+				return "java.util.List";
+			}
+			if (ownerSection.getSectionKind() == SectionKind.CUSTOM) {
+				// Try to get Java type from teh user tag parameter declared with parameter
+				// declaration
+				Parameter ownerParameter = part.getOwnerParameter();
+				;
+				if (ownerParameter != null) {
+					QuteProject project = template.getProject();
+					if (project != null) {
+						UserTag userTag = project.findUserTag(ownerSection.getTag());
+						if (userTag != null) {
+
+							UserTagParameter tagParameter = userTag.findParameter(ownerParameter.getName());
+							if (tagParameter != null && tagParameter.getJavaType() != null) {
+								return tagParameter.getJavaType().getSignature();
+							}
+						}
+					}
+				}
+			}
+		}
+		return "java.lang.String";
 	}
 
 	/**

@@ -750,6 +750,7 @@ public class QuteAssert {
 			String templateBaseDir, QuteInlayHintSettings inlayHintSettings, InlayHint... expected) throws Exception {
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		onDidOpenTextDocument(templateId, projectUri, projectRegistry, template);
 		template.setTemplateId(templateId);
 
 		SharedSettings settings = createSharedSettings(false);
@@ -831,6 +832,8 @@ public class QuteAssert {
 
 		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
 		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, projectRegistry);
+		onDidOpenTextDocument(null, projectUri, projectRegistry, template);
+
 		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
 
 		List<CodeAction> actual = languageService

@@ -276,7 +276,22 @@ public class QuteCodeActionForSimilarTextSuggestionsForUndefinedObjectTest {
 						"qute.validation.enabled", //
 						"test.qute", //
 						ConfigurationItemEditType.update, false, //
-						d)));		
+						d)));
+	}
+
+	@Test
+	public void similarTextSuggestionQuickFixForUserTagParameter() throws Exception {
+		String template = "{#bundleStyle bundle=myBundle /}";
+
+		Diagnostic d = d(0, 21, 0, 29, //
+				QuteErrorCode.UndefinedObject, //
+				"`myBundle` cannot be resolved to an object.", //
+				DiagnosticSeverity.Warning);
+
+		testDiagnosticsFor(template, d);
+		testCodeActionsFor(template, d, //
+				ca(d, te(0, 0, 0, 0, "{@java.util.Map<String,String> myBundle}" + System.lineSeparator())), //
+				ca(d, te(0, 29, 0, 29, "??")));
 	}
 
 }

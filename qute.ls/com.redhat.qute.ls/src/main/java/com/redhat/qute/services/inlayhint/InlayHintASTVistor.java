@@ -30,6 +30,7 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
+import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.parser.expression.Part;
@@ -289,7 +290,8 @@ public class InlayHintASTVistor extends ASTVisitor {
 		UserTag userTag = isShowSectionParameterDefaultValue && project != null ? project.findUserTag(node.getTag())
 				: null;
 		if (userTag != null) {
-			userTagParameterDefaultValues = userTag.getParameters().stream().filter(p -> p.getDefaultValue() != null)
+			userTagParameterDefaultValues = userTag.getParameters() //
+					.stream().filter(p -> p.getDefaultValue() != null) //
 					.map(p -> p.getName()).collect(Collectors.toList());
 
 		}
@@ -304,7 +306,14 @@ public class InlayHintASTVistor extends ASTVisitor {
 				// {#set user[:User]=item.owner }
 				// {#form id[:String]=item.id }
 				// {#form item.id[:String] }
-				createJavaTypeInlayHint(parameter, template, project);
+				UserTagParameter tagParameter = userTag != null ? userTag.findParameter(parameter.getName()) : null;
+				if (tagParameter != null && tagParameter.getJavaType() != null) {
+					// Show type coming from parameter declaration of the user tag
+					createInlayHint(parameter, tagParameter.getJavaType(), template);
+				} else {
+					// Guess parameter type from the value
+					createJavaTypeInlayHint(parameter, template, project);
+				}
 			}
 		}
 
@@ -361,7 +370,7 @@ public class InlayHintASTVistor extends ASTVisitor {
 		createInlayHint(parameter, javaType, template);
 	}
 
-	private void createInlayHint(Parameter parameter, ResolvedJavaTypeInfo javaType, Template template) {
+	private void createInlayHint(Parameter parameter, JavaTypeInfo javaType, Template template) {
 		try {
 			String type = getLabel(javaType);
 			if (StringUtils.isEmpty(type)) {
@@ -415,7 +424,7 @@ public class InlayHintASTVistor extends ASTVisitor {
 		return javaType;
 	}
 
-	private void updateJavaType(InlayHint hint, ResolvedJavaTypeInfo javaType, String type, String projectUri) {
+	private void updateJavaType(InlayHint hint, JavaTypeInfo javaType, String type, String projectUri) {
 		if (javaType != null && canSupportJavaDefinition) {
 			// first part : ":"
 			InlayHintLabelPart separatorPart = new InlayHintLabelPart(":");
@@ -444,7 +453,7 @@ public class InlayHintASTVistor extends ASTVisitor {
 		return new Command(title, COMMAND_JAVA_DEFINITION, Arrays.asList(params));
 	}
 
-	private static String getLabel(ResolvedJavaTypeInfo javaType) {
+	private static String getLabel(JavaTypeInfo javaType) {
 		return javaType != null ? javaType.getJavaElementSimpleType() : "?";
 	}
 }
