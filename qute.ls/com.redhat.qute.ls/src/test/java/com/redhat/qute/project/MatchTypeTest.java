@@ -138,6 +138,12 @@ public class MatchTypeTest {
 		assertMatchType("java.util.List<java.lang.String>", "java.util.List");
 	}
 
+	@Test
+	public void test() {
+		// List<String> should also match raw List due to type erasure
+		assertMatchType("java.lang.String", "T");
+	}
+	
 	// -------------------------------------------------------------------------
 	// Primitive types / wrapper types
 	// -------------------------------------------------------------------------

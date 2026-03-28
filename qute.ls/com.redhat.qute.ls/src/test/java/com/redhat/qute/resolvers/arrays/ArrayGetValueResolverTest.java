@@ -64,7 +64,7 @@ public class ArrayGetValueResolverTest {
 				"Item: {items.ge|t(0)}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"T get(int index)" + //
+				"Item get(int index)" + //
 				System.lineSeparator() + //
 				"```" + //
 				System.lineSeparator() + //

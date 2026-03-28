@@ -21,7 +21,7 @@
 			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
 		},
 		{
-			"signature": "ifTruthy(base : T, arg : java.lang.Object) : T",
+			"signature": "ifTruthy(base : java.lang.Object, arg : T) : T",
 			"description": "Outputs the default value if the base object cannot be resolved or the base Object otherwise.",
 			"sample": [
 				"{item.isActive.ifTruthy(item.name)}"
@@ -29,7 +29,7 @@
 			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
 		},
 		{
-			"signature": "or(base : T, arg : java.lang.Object) : T",
+			"signature": "or(base : java.lang.Object, arg : T) : T",
 			"description": "Outputs the default value if the previous part cannot be resolved or resolves to `null`.",
 			"sample": [
 				"{person.name ?: 'John'}",

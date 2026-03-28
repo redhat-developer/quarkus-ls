@@ -1672,6 +1672,10 @@ public class QuteProject {
 			}
 		}
 
+		if (parameterType.isSingleGenericType() && javaTypeIsRaw) {
+			return true;
+		}
+
 		// Inheritance check: walk up the type hierarchy of javaType.
 		// e.g. Integer -> Number -> Object
 		// ArrayList -> AbstractList -> List

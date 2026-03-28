@@ -1,4 +1,5 @@
 {@sandbox.Item item}
 
-{item.name.ifTruthy(item)}
-{item.name.or('abcd')}
+{@String multiply = true}
+
+{multiply.or(true)}

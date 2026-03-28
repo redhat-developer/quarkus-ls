@@ -268,7 +268,7 @@ public class TemplateRootPath {
 	 * @return the resolved path, or null if {@code sourceFolder} is null and path
 	 *         starts with {@value #RESOURCE_DIR}
 	 */
-	private static String resolveSinglePath(String projectFolder, String sourceFolder, String path) {
+	public static String resolveSinglePath(String projectFolder, String sourceFolder, String path) {
 		if (path.startsWith(RESOURCE_DIR)) {
 			// Strip the ${resources-dir}/ prefix and resolve against the source folder
 			String relativePath = path.substring(RESOURCE_DIR.length());

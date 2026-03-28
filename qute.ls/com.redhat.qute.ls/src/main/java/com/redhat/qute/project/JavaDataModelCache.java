@@ -16,6 +16,8 @@ import static com.redhat.qute.services.QuteCompletableFutures.RESOLVED_JAVA_TYPE
 import static com.redhat.qute.services.QuteCompletableFutures.RESOLVED_JAVA_TYPE_NOT_ITERABLE_FUTURE;
 import static com.redhat.qute.utils.FutureUtils.isFutureLoaded;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -25,6 +27,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
@@ -502,20 +505,80 @@ public class JavaDataModelCache {
 		return future;
 	}
 
-	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Part part, ResolvedJavaTypeInfo resolvedType) {
-		JavaMemberInfo member = project.findMember(resolvedType, part.getPartName());
+	/**
+	 * Resolve the Java type from the given part by using Java base type.
+	 * 
+	 * @param part     the object, method, property part
+	 * @param baseType the Java base type.
+	 * @return the resolved Java type.
+	 */
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Part part, ResolvedJavaTypeInfo baseType) {
+		JavaMemberInfo member = project.findMember(baseType, part.getPartName());
 		if (member == null) {
 			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 		}
+
 		if (member.isTypeResolved()) {
+			// Member is already resolved (ex: for Roq data file)
 			return CompletableFuture.completedFuture(member.getResolvedType());
 		}
-		String memberType = member.resolveJavaElementType(resolvedType);
+
+		if (member.getJavaElementKind() == JavaElementKind.METHOD) {
+			// Java member is a method
+			JavaMethodInfo method = (JavaMethodInfo) member;
+			if (!method.getJavaReturnType().isGenericType()) {
+				// the method returns no generic type
+				// ex: size() : int
+				return resolveJavaType(method.getReturnType());
+			}
+			// The method returns some generic type, resolve it according method part
+			// arguments
+			if (part.getPartKind() == PartKind.Method) {
+				// Method part
+				// ex:
+				// - items.size()
+				// - items.get('foo')
+				MethodPart methodPart = (MethodPart) part;
+				List<Parameter> parameters = methodPart.getParameters();
+				if (parameters.isEmpty()) {
+					// ex; items.size()
+					return resolveReturnType(baseType, method, Collections.emptyList());
+				}
+
+				// ex: items.get('foo')
+
+				// Resolve Java type for all arguments
+				return new ResolvedMethodParameters(methodPart, project) //
+						.resolve() //
+						.thenCompose(argumentTypes -> {
+							// arguments are resolved, resolve the generic return type.
+							return resolveReturnType(baseType, method, argumentTypes);
+						});
+			} else {
+				// Property part
+				// ex: items.size
+				return resolveReturnType(baseType, method, Collections.emptyList());
+			}
+		}
+		// Java member is a field
+		String memberType = member.getJavaElementType();
 		return resolveJavaType(memberType);
 	}
 
-	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(MethodPart objectPart) {
-		JavaTypeInfoProvider javaTypeInfo = objectPart.resolveJavaType();
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveReturnType(ResolvedJavaTypeInfo baseType,
+			JavaMethodInfo method, List<ResolvedJavaTypeInfo> argumentTypes) {
+		List<ResolvedJavaTypeInfo> args = argumentTypes;
+		if (method.isVirtual() && baseType != null) {
+			args = new ArrayList<>();
+			args.add(baseType);
+			args.addAll(argumentTypes);
+		}
+		String memberType = method.resolveReturnType(args);
+		return resolveJavaType(memberType);
+	}
+
+	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(MethodPart methodPart) {
+		JavaTypeInfoProvider javaTypeInfo = methodPart.resolveJavaType();
 		if (javaTypeInfo == null) {
 			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 		}

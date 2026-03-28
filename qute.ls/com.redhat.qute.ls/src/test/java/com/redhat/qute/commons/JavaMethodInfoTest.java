@@ -57,28 +57,10 @@ public class JavaMethodInfoTest {
 		assertEquals("entrySet", method.getName());
 
 		assertFalse(method.hasParameters());
-		
+
 		assertEquals("java.util.Set<java.util.Map$Entry<K,V>>", method.getReturnType());
-		assertEquals("entrySet() : Set<Map$Entry<K,V>>",
-				method.getSimpleSignature());
+		assertEquals("entrySet() : Set<Map$Entry<K,V>>", method.getSimpleSignature());
 
-	}
-
-	@Test
-	public void list() {
-		ResolvedJavaTypeInfo list = new ResolvedJavaTypeInfo();
-		list.setSignature("java.util.List<E>");
-
-		String signature = "get(index : int) : E";
-		JavaMethodInfo method = new JavaMethodInfo();
-		method.setSignature(signature);
-		method.setJavaType(list);
-
-		ResolvedJavaTypeInfo listOfItem = new ResolvedJavaTypeInfo();
-		listOfItem.setSignature("java.util.List<org.acme.Item>");
-
-		String resolved = method.resolveJavaElementType(listOfItem);
-		assertEquals("org.acme.Item", resolved);
 	}
 
 	@Test

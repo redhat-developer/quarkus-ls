@@ -47,8 +47,8 @@ public class RenardeCompletionInExpressionTest {
 				c("orEmpty(base : T) : List<T>", "orEmpty", r(0, 11, 0, 11)), //
 				c("safe(base : Object) : RawString", "safe", r(0, 11, 0, 11)), //
 				c("raw(base : Object) : RawString", "raw", r(0, 11, 0, 11)), //
-				c("or(base : T, arg : Object) : T", "or(${1:arg})$0", r(0, 11, 0, 11)), //
-				c("ifTruthy(base : T, arg : Object) : T", "ifTruthy(${1:arg})$0", r(0, 11, 0, 11)));
+				c("or(base : Object, arg : T) : T", "or(${1:arg})$0", r(0, 11, 0, 11)), //
+				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(${1:arg})$0", r(0, 11, 0, 11)));
 	}
 
 }

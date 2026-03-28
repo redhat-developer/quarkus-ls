@@ -38,8 +38,8 @@ public class QuteCompletionInNativeModeTest {
 
 		testCompletionFor(template, 5 /* value resolvers */, //
 				c("orEmpty(base : T) : List<T>", "orEmpty", r(0, 8, 0, 8)),
-				c("ifTruthy(base : T, arg : Object) : T", "ifTruthy(arg)", r(0, 8, 0, 8)),
-				c("or(base : T, arg : Object) : T", "or(arg)", r(0, 8, 0, 8)));
+				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(arg)", r(0, 8, 0, 8)),
+				c("or(base : Object, arg : T) : T", "or(arg)", r(0, 8, 0, 8)));
 	}
 
 	@Test

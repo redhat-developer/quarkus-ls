@@ -398,20 +398,6 @@ public class JavaMethodInfo extends JavaMemberInfo {
 		return getReturnType();
 	}
 
-	/**
-	 * Returns the resolved type if return type has generic (ex : T,
-	 * java.util.List<T>) by using the given java type argument.
-	 * 
-	 * @param baseType Java type of the base object.
-	 * 
-	 * @return the resolved type if return type has generic (ex : T,
-	 *         java.util.List<T>) by using the given java type argument.
-	 */
-	@Override
-	public String resolveJavaElementType(ResolvedJavaTypeInfo baseType) {
-		return resolveReturnType(baseType, getJavaTypeInfo());
-	}
-
 	protected String resolveReturnType(ResolvedJavaTypeInfo baseType, JavaTypeInfo baseDeclType) {
 		if (getReturnType() == null) {
 			// void method
@@ -535,6 +521,98 @@ public class JavaMethodInfo extends JavaMemberInfo {
 		}
 		newMethod.setSignature(newSignature.toString());
 		return newMethod;
+	}
+
+	/**
+	 * Resolves the return type of this method by inferring generic type variables
+	 * from the provided resolved argument types.
+	 *
+	 * Examples: - get(arg : T) : T + [org.acme.Item] → org.acme.Item - get(arg :
+	 * List<T>) : T + [java.util.List<org.acme.Item>] → org.acme.Item - find(clazz :
+	 * Class<T>) : T + [java.lang.Class<org.acme.Item>] → org.acme.Item - put(key :
+	 * K, val : V) : Map<K,V>+ [java.lang.String, org.acme.Item] →
+	 * java.util.Map<java.lang.String,org.acme.Item>
+	 *
+	 * @param argumentTypes the resolved argument types passed at call site
+	 * @return the resolved return type, null if void, raw return type if resolution
+	 *         fails
+	 */
+	public String resolveReturnType(List<ResolvedJavaTypeInfo> argumentTypes) {
+		String rawReturn = getReturnType();
+		if (rawReturn == null || isVoidMethod()) {
+			// void or no return type → returned as-is
+			return rawReturn;
+		}
+
+		JavaTypeInfo returnType = getJavaReturnType();
+		if (!returnType.isGenericType()) {
+			// void, int, java.lang.String, java.util.List<java.lang.String> → returned
+			// as-is
+			return rawReturn;
+		}
+
+		// Build the generic map by matching declared parameters against provided
+		// arguments
+		Map<String, String> genericMap = new HashMap<>();
+		List<JavaParameterInfo> declaredParams = getParameters();
+		for (int i = 0; i < declaredParams.size() && i < argumentTypes.size(); i++) {
+			JavaTypeInfo declared = declaredParams.get(i).getJavaType();
+			ResolvedJavaTypeInfo argument = argumentTypes.get(i);
+			inferGenericMap(declared, argument, genericMap);
+		}
+
+		// Fill unresolved generic variables with java.lang.Object
+		for (JavaParameterInfo returnTypeParam : returnType.getTypeParameters()) {
+			genericMap.putIfAbsent(returnTypeParam.getType(), "java.lang.Object");
+		}
+		// Handle the case where return type itself is a single generic variable e.g. T
+		if (returnType.isSingleGenericType() && !genericMap.containsKey(returnType.getName())) {
+			genericMap.putIfAbsent(returnType.getName(), "java.lang.Object");
+		}
+
+		if (genericMap.isEmpty()) {
+			return rawReturn;
+		}
+
+		// Apply the resolved generic map on the return type
+		return JavaTypeInfo.applyGenericTypeInvocation(returnType, genericMap);
+	}
+
+	/**
+	 * Recursively infers generic variable mappings by comparing a declared
+	 * (possibly generic) parameter type against a concrete resolved argument type.
+	 *
+	 * Examples: declared=T, argument=org.acme.Item → {T: org.acme.Item}
+	 * declared=List<T>, argument=java.util.List<org.acme.Item>→ {T: org.acme.Item}
+	 * declared=Class<T>, argument=java.lang.Class<org.acme.Item>→{T: org.acme.Item}
+	 *
+	 * @param declared   the declared parameter type (may contain generic variables)
+	 * @param argument   the concrete resolved type provided at call site
+	 * @param genericMap the map to populate with resolved generic variables
+	 */
+	private static void inferGenericMap(JavaTypeInfo declared, ResolvedJavaTypeInfo argument,
+			Map<String, String> genericMap) {
+		if (declared.isSingleGenericType() && argument != null) {
+			// declared = T → T: org.acme.Item
+			genericMap.put(declared.getName(), argument.getSignature());
+			if (declared.isArray() && argument.isArray()) {
+				genericMap.put(declared.getIterableOf(), argument.getIterableOf());
+			}
+			return;
+		}
+
+		// declared has type parameters: e.g. List<T>, Map<K,V>, Class<T>
+		// recurse positionally: List<T> vs List<org.acme.Item> → T=org.acme.Item
+		List<JavaParameterInfo> declaredTypeParams = declared.getTypeParameters();
+		List<JavaParameterInfo> argumentTypeParams = argument.getTypeParameters();
+		for (int i = 0; i < declaredTypeParams.size() && i < argumentTypeParams.size(); i++) {
+			JavaTypeInfo declaredInner = declaredTypeParams.get(i).getJavaType();
+			// wrap the argument inner type in a lightweight ResolvedJavaTypeInfo
+			// getTypeParameters() works from signature alone (see JavaTypeInfo)
+			ResolvedJavaTypeInfo argumentInner = new ResolvedJavaTypeInfo();
+			argumentInner.setSignature(argumentTypeParams.get(i).getType());
+			inferGenericMap(declaredInner, argumentInner, genericMap);
+		}
 	}
 
 	@Override

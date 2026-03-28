@@ -32,7 +32,7 @@ public class RoqDataJsonCompletionsTest {
 	public void books() throws Exception {
 		String template = "{inject:books-json.|}";
 		testCompletionFor(template, //
-				c("or(base : T, arg : Object) : T", "or(arg)", r(0, 19, 0, 19)), //
+				c("or(base : Object, arg : T) : T", "or(arg)", r(0, 19, 0, 19)), //
 				c("list : Collection<Object>", "list", r(0, 19, 0, 19)));
 	}
 
@@ -42,7 +42,7 @@ public class RoqDataJsonCompletionsTest {
 				"    {b.|}\r\n" + //
 				"{/for}";
 		testCompletionFor(template, //
-				c("or(base : T, arg : Object) : T", "or(arg)", r(1, 7, 1, 7)), //
+				c("or(base : Object, arg : T) : T", "or(arg)", r(1, 7, 1, 7)), //
 				c("title : String", "title", r(1, 7, 1, 7)));
 	}
 

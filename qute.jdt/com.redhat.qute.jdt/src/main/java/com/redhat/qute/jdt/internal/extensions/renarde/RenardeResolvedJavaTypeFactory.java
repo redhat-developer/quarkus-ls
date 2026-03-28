@@ -41,6 +41,7 @@ import com.redhat.qute.jdt.utils.AnnotationUtils;
  */
 public class RenardeResolvedJavaTypeFactory extends AbstractResolvedJavaTypeFactory {
 
+	private static final String JAVA_NET_URI = "java.net.URI";
 	private static final String JAVAX_WS_RS_POST_ANNOTATION = "javax.ws.rs.POST";
 	private static final String JAKARTA_WS_RS_POST_ANNOTATION = "jakarta.ws.rs.POST";
 
@@ -96,12 +97,14 @@ public class RenardeResolvedJavaTypeFactory extends AbstractResolvedJavaTypeFact
 	private static void collectJaxrsInfo(IMethod method, JavaMethodInfo info) {
 		// By default all public methods are GET
 		JaxRsMethodKind methodKind = JaxRsMethodKind.GET;
-		// TODO : we support only @POST, we need to support @PUT, @DELETE, when we will need it.
+		// TODO : we support only @POST, we need to support @PUT, @DELETE, when we will
+		// need it.
 		if (isPostMethod(method)) {
 			methodKind = JaxRsMethodKind.POST;
 		}
 		info.setJaxRsMethodKind(methodKind);
-		info.setReturnType("java.net.URI");
+		// Override return type of renarde controller as URI
+		info.setReturnType(JAVA_NET_URI);
 		try {
 			Map<String, RestParam> restParameters = null;
 			ILocalVariable[] parameters = method.getParameters();
@@ -150,8 +153,7 @@ public class RenardeResolvedJavaTypeFactory extends AbstractResolvedJavaTypeFact
 	}
 
 	private static void fillRestParam(ILocalVariable parameter, IAnnotation formAnnotation,
-			JaxRsParamKind parameterKind, Map<String, RestParam> restParameters)
-			throws JavaModelException {
+			JaxRsParamKind parameterKind, Map<String, RestParam> restParameters) throws JavaModelException {
 		fillRestParam(parameter, formAnnotation, parameterKind, restParameters, false);
 	}
 

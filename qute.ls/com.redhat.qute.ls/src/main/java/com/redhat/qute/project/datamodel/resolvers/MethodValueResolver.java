@@ -19,7 +19,6 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
-import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.parser.template.DocumentableItem;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
@@ -180,29 +179,6 @@ public class MethodValueResolver extends JavaMethodInfo
 			return !getParameters().isEmpty();
 		}
 		return getParameters().size() - 1 > 0;
-	}
-
-	/**
-	 * Returns the resolved type if return type has generic (ex : T,
-	 * java.util.List<T>) by using the given java type argument.
-	 * 
-	 * @param argType argument Java type.
-	 * 
-	 * @return the resolved type if return type has generic (ex : T,
-	 *         java.util.List<T>) by using the given java type argument.
-	 */
-	@Override
-	public String resolveJavaElementType(ResolvedJavaTypeInfo argType) {
-		if (getNamespace() != null) {
-			return getReturnType();
-		}
-		// Example with following signature:
-		// "orEmpty(arg : java.lang.Iterable<T>) : java.util.List<T>"
-		JavaParameterInfo parameter = getParameterAt(0); // arg : java.lang.Iterable<T>
-		if (parameter == null) {
-			return null;
-		}
-		return resolveReturnType(argType, parameter.getJavaType());
 	}
 
 	/**

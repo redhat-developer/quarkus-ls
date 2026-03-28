@@ -36,8 +36,8 @@ public class QuteCompletionInInfixNotationTest {
 				13, //
 				// - resolvers
 				c("orEmpty(base : T) : List<T>", "orEmpty", r(1, 11, 1, 11)),
-				c("ifTruthy(base : T, arg : Object) : T", "ifTruthy(${1:arg})$0", r(1, 11, 1, 11)),
-				c("or(base : T, arg : Object) : T", "or(${1:arg})$0", r(1, 11, 1, 11)),
+				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(${1:arg})$0", r(1, 11, 1, 11)),
+				c("or(base : Object, arg : T) : T", "or(${1:arg})$0", r(1, 11, 1, 11)),
 				// - String Java fields
 				c("UTF16 : byte", "UTF16", r(1, 11, 1, 11)),
 				// - String Java methods
@@ -55,8 +55,8 @@ public class QuteCompletionInInfixNotationTest {
 		testCompletionFor(template, //
 				4,
 				// - resolvers
-				c("ifTruthy(base : T, arg : Object) : T", "ifTruthy ${1:arg}$0", r(1, 11, 1, 11)),
-				c("or(base : T, arg : Object) : T", "or ${1:arg}$0", r(1, 11, 1, 11)),
+				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy ${1:arg}$0", r(1, 11, 1, 11)),
+				c("or(base : Object, arg : T) : T", "or ${1:arg}$0", r(1, 11, 1, 11)),
 				// - String Java methods
 				c("getBytes(charsetName : String) : byte[]", "getBytes ${1:charsetName}$0", r(1, 11, 1, 11)),
 				c("charAt(index : int) : char", "charAt ${1:index}$0", r(1, 11, 1, 11)));
@@ -71,8 +71,8 @@ public class QuteCompletionInInfixNotationTest {
 		testCompletionFor(template, //
 				4,
 				// - resolvers
-				c("ifTruthy(base : T, arg : Object) : T", "ifTruthy ${1:arg}$0", r(1, 24, 1, 24)),
-				c("or(base : T, arg : Object) : T", "or ${1:arg}$0", r(1, 24, 1, 24)),
+				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy ${1:arg}$0", r(1, 24, 1, 24)),
+				c("or(base : Object, arg : T) : T", "or ${1:arg}$0", r(1, 24, 1, 24)),
 				// - String Java methods
 				c("getBytes(charsetName : String) : byte[]", "getBytes ${1:charsetName}$0", r(1, 24, 1, 24)),
 				c("charAt(index : int) : char", "charAt ${1:index}$0", r(1, 24, 1, 24)));
@@ -128,8 +128,8 @@ public class QuteCompletionInInfixNotationTest {
 		testCompletionFor(template, //
 				5,
 				// - resolvers
-				c("ifTruthy(base : T, arg : Object) : T", "ifTruthy ${1:arg}$0", r(1, 7, 1, 7)),
-				c("or(base : T, arg : Object) : T", "or ${1:arg}$0", r(1, 7, 1, 7)),
+				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy ${1:arg}$0", r(1, 7, 1, 7)),
+				c("or(base : Object, arg : T) : T", "or ${1:arg}$0", r(1, 7, 1, 7)),
 				// Numbers resolvers
 				c("plus(number : Integer, name : String, other : Integer) : Integer", "plus ${1:other}$0",
 						r(1, 7, 1, 7)),

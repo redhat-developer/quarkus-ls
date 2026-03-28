@@ -395,8 +395,8 @@ public class QuteCompletionInExpressionTest {
 				13, //
 				// - resolvers
 				c("orEmpty(base : T) : List<T>", "orEmpty", r(0, 8, 0, 8)),
-				c("ifTruthy(base : T, arg : Object) : T", "ifTruthy(${1:arg})$0", r(0, 8, 0, 8)),
-				c("or(base : T, arg : Object) : T", "or(${1:arg})$0", r(0, 8, 0, 8)),
+				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(${1:arg})$0", r(0, 8, 0, 8)),
+				c("or(base : Object, arg : T) : T", "or(${1:arg})$0", r(0, 8, 0, 8)),
 				// - String Java fields
 				c("UTF16 : byte", "UTF16", r(0, 8, 0, 8)),
 				// - String Java methods

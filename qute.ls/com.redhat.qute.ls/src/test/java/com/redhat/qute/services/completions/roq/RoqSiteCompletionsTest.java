@@ -33,7 +33,7 @@ public class RoqSiteCompletionsTest {
 		String template = "{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\r\n" + //
 				"{site.|}";
 		testCompletionFor(template, //
-				c("or(base : T, arg : Object) : T", "or(arg)", r(1, 6, 1, 6)), //
+				c("or(base : Object, arg : T) : T", "or(arg)", r(1, 6, 1, 6)), //
 				c("img() : RoqUrl", "img", r(1, 6, 1, 6)), //
 				c("toString() : String", "toString", r(1, 6, 1, 6)), //
 				c("hashCode() : int", "hashCode", r(1, 6, 1, 6)), //
@@ -57,7 +57,7 @@ public class RoqSiteCompletionsTest {
 	public void siteWithNoDeclaration() throws Exception {
 		String template = "{site.|}";
 		testCompletionFor(template, //
-				c("or(base : T, arg : Object) : T", "or(arg)", r(0, 6, 0, 6)), //
+				c("or(base : Object, arg : T) : T", "or(arg)", r(0, 6, 0, 6)), //
 				c("img() : RoqUrl", "img", r(0, 6, 0, 6)), //
 				c("toString() : String", "toString", r(0, 6, 0, 6)), //
 				c("hashCode() : int", "hashCode", r(0, 6, 0, 6)), //
@@ -82,7 +82,7 @@ public class RoqSiteCompletionsTest {
 		String template = "{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\r\n" + //
 				"{site.collections.|}";
 		testCompletionFor(template, //
-				c("or(base : T, arg : Object) : T", "or(arg)", r(1, 18, 1, 18)), //
+				c("or(base : Object, arg : T) : T", "or(arg)", r(1, 18, 1, 18)), //
 				c("collections : Map<String,RoqCollection>", "collections", r(1, 18, 1, 18)), //
 				c("resolveCollection(page : DocumentPage) : RoqCollection", "resolveCollection(page)", r(1, 18, 1, 18)), //
 				c("hashCode() : int", "hashCode", r(1, 18, 1, 18)), //
@@ -94,7 +94,7 @@ public class RoqSiteCompletionsTest {
 		String template = "{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\r\n" + //
 				"{site.collections.get('posts').|}";
 		testCompletionFor(template, //
-				c("or(base : T, arg : Object) : T", "or(arg)", r(1, 31, 1, 31)), //
+				c("or(base : Object, arg : T) : T", "or(arg)", r(1, 31, 1, 31)), //
 				c("group(keys : String...) : Map<Object,List<Page>>", "group(keys)", r(1, 31, 1, 31)), //
 				c("resolvePreviousPage(page : DocumentPage) : DocumentPage", "resolvePreviousPage(page)",
 						r(1, 31, 1, 31)), //
@@ -106,7 +106,7 @@ public class RoqSiteCompletionsTest {
 		String template = "{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\r\n" + //
 				"{site.collections.posts.|}";
 		testCompletionFor(template, //
-				c("or(base : T, arg : Object) : T", "or(arg)", r(1, 24, 1, 24)), //
+				c("or(base : Object, arg : T) : T", "or(arg)", r(1, 24, 1, 24)), //
 				c("group(keys : String...) : Map<Object,List<Page>>", "group(keys)", r(1, 24, 1, 24)), //
 				c("resolvePreviousPage(page : DocumentPage) : DocumentPage", "resolvePreviousPage(page)",
 						r(1, 24, 1, 24)), //

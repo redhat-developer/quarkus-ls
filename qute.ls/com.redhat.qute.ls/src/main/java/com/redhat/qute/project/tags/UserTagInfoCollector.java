@@ -109,7 +109,17 @@ public class UserTagInfoCollector extends ASTVisitor {
 				// ex: {@Boolean alias}
 				String type = node.getJavaType();
 				if (!StringUtils.isEmpty(type)) {
-					JavaTypeInfo t = new JavaTypeInfo();
+					JavaTypeInfo t = new JavaTypeInfo() {
+						@Override
+						public boolean isGenericType() {
+							return false;
+						}
+
+						@Override
+						public boolean isSingleGenericType() {
+							return false;
+						}
+					};
 					t.setSignature(type);
 					parameter.setJavaType(t);
 				}
