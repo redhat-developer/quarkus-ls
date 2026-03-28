@@ -37,7 +37,8 @@ public class QuteHighlightingInUserTagTest {
 		testHighlightsFor(template, //
 				hl(r(0, 6, 0, 10), Write), //
 				hl(r(1, 12, 1, 16), Read), //
-				hl(r(1, 22, 1, 26), Read));
+				hl(r(1, 22, 1, 26), Read), //
+				hl(r(1, 32, 1, 36), Read));
 	}
 
 	@Test
@@ -66,7 +67,8 @@ public class QuteHighlightingInUserTagTest {
 				"	{#linkItem item name=item.name i|tem /}\r\n" + //
 				"{/for}";
 		testHighlightsFor(template, //
-				hl(r(1, 32, 1, 36), Write));
+				hl(r(1, 32, 1, 36), Read), //
+				hl(r(0, 6, 0, 10), Write));
 	}
 
 }

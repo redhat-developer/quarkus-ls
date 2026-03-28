@@ -120,7 +120,7 @@ public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 			return null;
 		}
 		if (userTag == null) {
-			userTag = new UserTag(this);
+			userTag = new UserTag(this, getProject().getProjectRegistry().getSharedSettings().getFormattingSettings());
 		}
 		return userTag;
 	}

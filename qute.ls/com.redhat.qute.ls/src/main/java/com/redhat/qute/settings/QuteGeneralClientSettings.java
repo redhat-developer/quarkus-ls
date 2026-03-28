@@ -41,6 +41,8 @@ public class QuteGeneralClientSettings {
 
 	private QuteValidationSettings validation;
 
+	private QuteFormattingSettings format;
+
 	@SerializedName(value = "native")
 	private QuteNativeSettings nativeImages;
 
@@ -116,6 +118,14 @@ public class QuteGeneralClientSettings {
 		this.nativeImages = nativeImages;
 	}
 
+	public QuteFormattingSettings getFormat() {
+		return format;
+	}
+
+	public void setFormat(QuteFormattingSettings format) {
+		this.format = format;
+	}
+
 	public Map<String, QuteGeneralClientSettings> getWorkspaceFolders() {
 		return workspaceFolders;
 	}
@@ -146,14 +156,18 @@ public class QuteGeneralClientSettings {
 
 		private final boolean inlayHintSettingsChanged;
 
-		private boolean nativeImagesSettingsChanged;
+		private final boolean nativeImagesSettingsChanged;
+
+		private final boolean formattingSettingsChanged;
 
 		public SettingsUpdateState(boolean validationSettingsChanged, boolean codeLensSettingsChanged,
-				boolean inlayHintSettingsChanged, boolean nativeImagesSettingsChanged) {
+				boolean inlayHintSettingsChanged, boolean nativeImagesSettingsChanged,
+				boolean formattingSettingsChanged) {
 			this.validationSettingsChanged = validationSettingsChanged;
 			this.codeLensSettingsChanged = codeLensSettingsChanged;
 			this.inlayHintSettingsChanged = inlayHintSettingsChanged;
 			this.nativeImagesSettingsChanged = nativeImagesSettingsChanged;
+			this.formattingSettingsChanged = formattingSettingsChanged;
 		}
 
 		/**
@@ -190,6 +204,10 @@ public class QuteGeneralClientSettings {
 		 */
 		public boolean isNativeImagesSettingsChanged() {
 			return nativeImagesSettingsChanged;
+		}
+
+		public boolean isFormattingSettingsChanged() {
+			return formattingSettingsChanged;
 		}
 	}
 
@@ -230,8 +248,14 @@ public class QuteGeneralClientSettings {
 			nativeImagesSettingsChanged = true;
 		}
 
+		// Update formatting settings
+		boolean formattingSettingsChanged = updateFormattingSettings(sharedSettings, clientSettings);
+		if (workspaceChanged) {
+			formattingSettingsChanged = true;
+		}
+
 		return new SettingsUpdateState(validationSettingsChanged, codeLensSettingsChanged, inlayHintSettingsChanged,
-				nativeImagesSettingsChanged);
+				nativeImagesSettingsChanged, formattingSettingsChanged);
 	}
 
 	private static boolean updateCodeLensSettings(SharedSettings sharedSettings,
@@ -335,4 +359,29 @@ public class QuteGeneralClientSettings {
 		return false;
 	}
 
+	private static boolean updateFormattingSettings(SharedSettings sharedSettings,
+			QuteGeneralClientSettings clientSettings) {
+		// Global formatting settings
+		boolean formattingSettingsChanged = updateFormattingSettings(sharedSettings, clientSettings.getFormat());
+		// Workspace folder formatting settings
+		Map<String, QuteGeneralClientSettings> workspaceFolders = clientSettings.getWorkspaceFolders();
+		if (workspaceFolders != null) {
+			for (Map.Entry<String /* workspace folder Uri */, QuteGeneralClientSettings> entry : workspaceFolders
+					.entrySet()) {
+				String workspaceFolderUri = entry.getKey();
+				BaseSettings settings = sharedSettings.getWorkspaceFolderSettings(workspaceFolderUri);
+				formattingSettingsChanged |= updateFormattingSettings(settings, entry.getValue().getFormat());
+			}
+		}
+		return formattingSettingsChanged;
+	}
+
+	private static boolean updateFormattingSettings(BaseSettings sharedSettings,
+			QuteFormattingSettings formattingSettings) {
+		if (formattingSettings != null && !formattingSettings.equals(sharedSettings.getFormattingSettings())) {
+			sharedSettings.getFormattingSettings().update(formattingSettings);
+			return true;
+		}
+		return false;
+	}
 }

@@ -135,6 +135,10 @@ public class JavaDataModelCache {
 			shortNames.put(shortName, fullyQualifiedName);
 		}
 	}
+	
+	public String getFullyQualifiedName(String shortName) {
+		return shortNames.get(shortName);
+	}
 
 	private final QuteProject project;
 

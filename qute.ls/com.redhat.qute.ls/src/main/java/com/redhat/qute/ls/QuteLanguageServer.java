@@ -118,7 +118,7 @@ public class QuteLanguageServer implements LanguageServer, ProcessLanguageServer
 
 	protected QuteProjectRegistry createProjectRegistry() {
 		return new QuteProjectRegistry(this, this, this, this, this, this, this, this, //
-				() -> capabilityManager.getClientCapabilities().isWorkDoneProgressSupported() ? this : null);
+				() -> capabilityManager.getClientCapabilities().isWorkDoneProgressSupported() ? this : null, sharedSettings);
 	}
 
 	@Override

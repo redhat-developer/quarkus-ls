@@ -717,7 +717,7 @@ public class QuteCompletionsForExpression {
 					String tagName = userTagSection.getTag();
 					userTag = project.findUserTag(tagName);
 				}
-				completionOnDataModel = isInUserTagItParameter(userTagSection, userTag, completionRequest);
+				completionOnDataModel = isInUserTagItOrValueParameter(userTagSection, userTag, completionRequest);
 			} else {
 				// 3) other section
 				completionOnDataModel = true;
@@ -793,8 +793,17 @@ public class QuteCompletionsForExpression {
 						if (!userTagSection.hasParameter(paramName)) {
 							CompletionItem item = new CompletionItem();
 							item.setLabel(paramName);
+							
+							Range r = null;
+							Parameter p = userTagSection.getParameterAtOffset(offset);
+							if (p != null) {
+								r = QutePositionUtility.createRange(p);
+							} else {
+								r = QutePositionUtility.createRange(offset, offset, template);
+							}
+							
 							item.setKind(CompletionItemKind.Property);
-							TextEdit textEdit = new TextEdit(range,
+							TextEdit textEdit = new TextEdit(r,
 									createUserTagParameterSnippet(parameter, completionSettings));
 							item.setTextEdit(Either.forLeft(textEdit));
 							item.setInsertTextFormat(
@@ -833,7 +842,6 @@ public class QuteCompletionsForExpression {
 				if (includeUsages != null) {
 					fillFromUsages(includeUsages, range, completionSettings, completionItems);
 				}
-
 			}
 		}
 
@@ -906,7 +914,8 @@ public class QuteCompletionsForExpression {
 			QuteCompletionSettings completionSettings) {
 		StringBuilder snippet = new StringBuilder();
 		boolean completionSnippetsSupported = completionSettings.isCompletionSnippetsSupported();
-		UserTag.generateUserTagParameter(parameter, completionSnippetsSupported, 1, snippet);
+		boolean parameterExists = false;
+		UserTag.generateUserTagParameter(parameter, null, parameterExists, completionSnippetsSupported, 1, snippet);
 		if (completionSnippetsSupported) {
 			SnippetsBuilder.tabstops(0, snippet);
 		}
@@ -938,24 +947,34 @@ public class QuteCompletionsForExpression {
 	 * @return true if the completion is triggered in a parameter of the given user
 	 *         tag which have no value and false otherwise.
 	 */
-	private static boolean isInUserTagItParameter(Section userTagSection, UserTag userTag,
+	private static boolean isInUserTagItOrValueParameter(Section userTagSection, UserTag userTag,
 			CompletionRequest completionRequest) {
 		if (userTag == null) {
 			return false;
 		}
-		if (!userTag.hasParameter(IT_OBJECT_PART_NAME)) {
-			// The user tag doesn't define 'it' parameter
-			return false;
-		}
+		int offset = completionRequest.getOffset();
 		List<Parameter> parameters = userTagSection.getParameters();
+
+		// allow if user tag defines an 'it' parameter
+		if (userTag.hasParameter(IT_OBJECT_PART_NAME) && parameters.size() <= 1) {
+			// The user tag defines 'it' parameter
+			for (Parameter parameter : parameters) {
+				if (!parameter.hasValueAssigned()) {
+					// Return true if the offset is in the it parameter and false otherwise.
+					// {#form uri:| }
+					return completionRequest == null || parameter.isInName(offset);
+				}
+			}
+			return true;
+		}
+
+		// allow if completion is triggered in parameter value
 		for (Parameter parameter : parameters) {
-			if (!parameter.hasValueAssigned()) {
-				// Return true if the offset is in the it parameter and false otherwise.
-				// {#form uri:| }
-				return completionRequest == null || parameter.isInName(completionRequest.getOffset());
+			if (parameter.isInValue(offset)) {
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 
 	private static boolean isInCaseSection(Expression expression) {

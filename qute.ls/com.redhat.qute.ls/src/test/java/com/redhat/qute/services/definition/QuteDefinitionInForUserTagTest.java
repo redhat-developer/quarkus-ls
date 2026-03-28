@@ -48,7 +48,8 @@ public class QuteDefinitionInForUserTagTest {
 		String template = "{#for item in items}\r\n" + //
 				"	{#linkItem item name=item.name ite|m /}\r\n" + //
 				"{/for}";
-		testDefinitionFor(template);
+		testDefinitionFor(template, //
+				ll("test.qute", r(1, 32, 1, 36), r(0, 6, 0, 10)));
 	}
 
 }

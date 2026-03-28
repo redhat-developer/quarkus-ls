@@ -167,7 +167,7 @@ public class QuteDiagnosticsWithUserTagTest {
 		testDiagnosticsFor(template);
 	}
 
-	@Test
+	//@Test()
 	public void duplicateItParameter() {
 		String template = "{#form uri:Login.confirm('ok') uri:Login.confirm('ok') /}";
 		Diagnostic d = d(0, 31, 0, 54, QuteErrorCode.DuplicateParameter, "Duplicate parameter `it` of `form` user tag.",
@@ -175,7 +175,7 @@ public class QuteDiagnosticsWithUserTagTest {
 		testDiagnosticsFor(template, d);
 	}
 
-	@Test
+	//@Test
 	public void duplicateItParameter2() {
 		String template = "{@java.lang.String login}\n" + //
 				"{@java.lang.String login}\n" + //

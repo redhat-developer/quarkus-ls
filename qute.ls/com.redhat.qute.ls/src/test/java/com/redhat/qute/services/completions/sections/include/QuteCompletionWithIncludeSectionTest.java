@@ -77,7 +77,7 @@ public class QuteCompletionWithIncludeSectionTest {
 				false, // no snippet support
 				SECTION_SNIPPET_SIZE + 2 /* includedTitle + body #insert */, //
 				// core sections (#for, #if) + user tag sections
-				c("input", "{#input name=\"name\" /}", r(1, 2, 1, 2)), //
+				c("input", "{#input name=name /}", r(1, 2, 1, 2)), //
 				// #insert parameters
 				c("includedTitle", "{#includedTitle}{/includedTitle}", r(1, 2, 1, 2)));
 
@@ -86,7 +86,7 @@ public class QuteCompletionWithIncludeSectionTest {
 				true, // snippet support
 				SECTION_SNIPPET_SIZE + 2 /* includedTitle + body #insert */, //
 				// core sections (#for, #if) + user tag sections
-				c("input", "{#input name=\"${1:name}\" /}$0", r(1, 2, 1, 2)), //
+				c("input", "{#input name=${1:name} /}$0", r(1, 2, 1, 2)), //
 				// #insert parameters
 				c("includedTitle", "{#includedTitle}$1{/includedTitle}$0", r(1, 2, 1, 2)));
 	}
@@ -102,7 +102,7 @@ public class QuteCompletionWithIncludeSectionTest {
 				false, // no snippet support
 				SECTION_SNIPPET_SIZE + 2 /* includedTitle + body #insert */, //
 				// core sections (#for, #if) + user tag sections
-				c("input", "{#input name=\"name\" /}", r(1, 2, 1, 2)), //
+				c("input", "{#input name=name /}", r(1, 2, 1, 2)), //
 				// #insert parameters
 				c("includedTitle", "{#includedTitle}{/includedTitle}", r(1, 2, 1, 2)));
 
@@ -111,7 +111,7 @@ public class QuteCompletionWithIncludeSectionTest {
 				true, // snippet support
 				SECTION_SNIPPET_SIZE + 2 /* includedTitle + body #insert */, //
 				// core sections (#for, #if) + user tag sections
-				c("input", "{#input name=\"${1:name}\" /}$0", r(1, 2, 1, 2)), //
+				c("input", "{#input name=${1:name} /}$0", r(1, 2, 1, 2)), //
 				// #insert parameters
 				c("includedTitle", "{#includedTitle}$1{/includedTitle}$0", r(1, 2, 1, 2)));
 	}
@@ -127,14 +127,14 @@ public class QuteCompletionWithIncludeSectionTest {
 				false, // no snippet support
 				SECTION_SNIPPET_SIZE,
 				// core sections (#for, #if) + user tag sections
-				c("input", "{#input name=\"name\" /}", r(3, 0, 3, 0)));
+				c("input", "{#input name=name /}", r(3, 0, 3, 0)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
 				SECTION_SNIPPET_SIZE, //
 				// core sections (#for, #if) + user tag sections
-				c("input", "{#input name=\"${1:name}\" /}$0", r(3, 0, 3, 0)));
+				c("input", "{#input name=${1:name} /}$0", r(3, 0, 3, 0)));
 
 	}
 

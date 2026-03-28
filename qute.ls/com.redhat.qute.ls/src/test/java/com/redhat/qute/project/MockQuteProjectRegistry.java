@@ -52,6 +52,7 @@ import com.redhat.qute.project.qute_web.QuteWebProject;
 import com.redhat.qute.project.renarde.RenardeProject;
 import com.redhat.qute.project.roq.RoqProject;
 import com.redhat.qute.project.web_bundler.WebBundlerProject;
+import com.redhat.qute.settings.SharedSettings;
 
 public class MockQuteProjectRegistry extends QuteProjectRegistry {
 
@@ -64,16 +65,16 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 	public static final Range JAVA_STATIC_METHOD_RANGE = new Range(new Position(3, 3), new Position(3, 3));
 
 	public MockQuteProjectRegistry() {
-		this(null, null, null, null, null, null, null, null, () -> null);
+		this(null, null, null, null, null, null, null, null, () -> null, new SharedSettings());
 	}
 
 	public MockQuteProjectRegistry(QuteProjectInfoProvider projectInfoProvider, QuteJavaTypesProvider javaTypeProvider,
 			QuteJavaDefinitionProvider definitionProvider, QuteResolvedJavaTypeProvider resolvedClassProvider,
 			QuteDataModelProjectProvider dataModelProvider, QuteBinaryTemplateProvider binaryTemplateProvider,
 			QuteJavadocProvider javadocProvider, TemplateValidator validator,
-			Supplier<ProgressSupport> progressSupportProvider) {
+			Supplier<ProgressSupport> progressSupportProvider, SharedSettings sharedSettings) {
 		super(projectInfoProvider, javaTypeProvider, definitionProvider, resolvedClassProvider, dataModelProvider,
-				binaryTemplateProvider, javadocProvider, validator, progressSupportProvider);
+				binaryTemplateProvider, javadocProvider, validator, progressSupportProvider, sharedSettings);
 		super.setAsyncValidation(false);
 		super.setDidChangeWatchedFilesSupported(true);
 	}

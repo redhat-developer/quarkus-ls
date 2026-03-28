@@ -11,7 +11,9 @@
 *******************************************************************************/
 package com.redhat.qute.services;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -20,9 +22,11 @@ import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.InsertTextFormat;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
@@ -41,7 +45,11 @@ import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.project.datamodel.ExtendedDataModelTemplate;
 import com.redhat.qute.project.extensions.LanguageInjectionService;
+import com.redhat.qute.project.tags.UserTag;
+import com.redhat.qute.project.tags.UserTagParameter;
+import com.redhat.qute.services.completions.CompletionData;
 import com.redhat.qute.services.completions.CompletionRequest;
+import com.redhat.qute.services.completions.ParameterInfoCollector;
 import com.redhat.qute.services.completions.QuteCompletionForTemplateIds;
 import com.redhat.qute.services.completions.QuteCompletionsForExpression;
 import com.redhat.qute.services.completions.QuteCompletionsForParameterDeclaration;
@@ -281,6 +289,60 @@ public class QuteCompletions {
 		CompletionList list = new CompletionList();
 		list.setItems(completionItems.stream().collect(Collectors.toList()));
 		return CompletableFuture.completedFuture(list);
+	}
+
+	public CompletionItem resolveCompletionItem(CompletionItem unresolved, CompletionData data, Template template,
+			CancelChecker cancelChecker) {
+		QuteProject project = template.getProject();
+		if (project != null) {
+			UserTag userTag = project.findUserTag(unresolved.getLabel());
+			if (userTag != null) {
+				List<String> requiredParameterNames = userTag.getRequiredParameterNames();
+				if (!requiredParameterNames.isEmpty()) {
+					String newText = unresolved.getTextEdit().getLeft().getNewText();
+					ParameterInfoCollector parameterCollector = null;
+
+					boolean snippetSupported = unresolved.getInsertTextFormat() == InsertTextFormat.Snippet;
+					int index = 1;
+					for (UserTagParameter parameter : userTag.getParameters()) {
+						String parameterName = parameter.getName();
+						if (requiredParameterNames.contains(parameterName)) {
+							Set<String> names = null;
+							if (parameterCollector == null) {
+								parameterCollector = new ParameterInfoCollector(template, data.getOffset(), project);
+							}
+							JavaTypeInfo parameterType = parameter.getJavaType();
+							if (parameterType != null) {
+								names = parameterCollector.getNames(parameterType.getSignature());
+								if ("java.lang.Boolean".equals(parameterType.getSignature())) {
+									names = names == null ? new HashSet<String>() : new HashSet<String>(names);
+									names.add("true");
+									names.add("false");
+								} else if ("java.lang.String".equals(parameterType.getSignature())) {
+									names = names == null ? new HashSet<String>() : new HashSet<String>(names);
+									names.add("\"" + parameterName + "\"");
+								}
+							}
+
+							boolean parameterExists = parameterCollector.getAllNames().contains(parameterName);
+							String s = UserTag.generateUserTagParameter(parameter, names, parameterExists,
+									snippetSupported, index);
+							// replace size="${1:size}"
+
+							String old = UserTag.generateUserTagParameter(parameter, Collections.emptySet(), false,
+									snippetSupported, index);
+
+							newText = newText.replace(old, s);
+
+							index++;
+						}
+					}
+					unresolved.getTextEdit().getLeft().setNewText(newText);
+				}
+
+			}
+		}
+		return unresolved;
 	}
 
 }

@@ -323,7 +323,7 @@ public class SnippetRegistry<T extends Snippet> {
 					range = new Range(replaceRange.getStart(), end);
 				}
 			}
-			item.setInsertTextFormat(InsertTextFormat.Snippet);
+			item.setInsertTextFormat(snippetsSupported ? InsertTextFormat.Snippet : InsertTextFormat.PlainText);
 			item.setSortText(snippet.getSortText());
 			updateInsertTextMode(item, whitespacesIndent, defaultInsertTextMode);
 			String insertText = contentProvider.getInsertText(snippet, model, !snippetsSupported, lineDelimiter,

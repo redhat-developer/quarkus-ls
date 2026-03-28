@@ -81,7 +81,7 @@ public class QuteSnippetContentProvider extends DefaultSnippetContentProvider im
 			generateOnlyFirstPartOfSection = section.hasEndTag();
 			if (generateOnlyFirstPartOfSection && section.hasEmptyEndTag()) {
 				// {#for}{/}
-				// Check if there is a parent section which is not cloded, in this case the {/}
+				// Check if there is a parent section which is not closed, in this case the {/}
 				// is mapped with this parent section and
 				// we consider that the current section is not closed to generate the full
 				// content of the snippet.
@@ -139,7 +139,7 @@ public class QuteSnippetContentProvider extends DefaultSnippetContentProvider im
 		} else {
 			// Generate {#for ${1:item} in ${2:items}}
 			String firstLine = body.get(0);
-			return super.merge(firstLine, model, replace);
+			return merge(firstLine, model, replace);
 		}
 	}
 

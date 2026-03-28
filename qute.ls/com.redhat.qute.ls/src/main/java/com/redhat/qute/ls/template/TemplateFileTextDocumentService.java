@@ -79,6 +79,7 @@ import com.redhat.qute.project.documents.QuteOpenedTextDocuments;
 import com.redhat.qute.project.documents.TemplateValidator;
 import com.redhat.qute.services.QuteLanguageService;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
+import com.redhat.qute.services.completions.CompletionData;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 
@@ -201,6 +202,17 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 						return Either.forRight(list);
 					});
 
+		});
+	}
+
+	public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved, CompletionData data) {
+		String uri = data.getUri();
+		if (uri == null) {
+			return CompletableFuture.completedFuture(unresolved);
+		}
+		TextDocumentIdentifier identifier = new TextDocumentIdentifier(uri);
+		return getTemplate(identifier, (template, cancelChecker) -> {
+			return getQuteLanguageService().resolveCompletionItem(unresolved, data, template, cancelChecker);
 		});
 	}
 

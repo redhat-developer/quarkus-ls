@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
@@ -64,6 +65,7 @@ import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.ReflectionJavaTypeFilter;
 import com.redhat.qute.settings.QuteNativeSettings;
+import com.redhat.qute.settings.SharedSettings;
 
 /**
  * Registry which hosts Qute project {@link QuteProject}.
@@ -96,6 +98,7 @@ public class QuteProjectRegistry
 
 	private final Supplier<ProgressSupport> progressSupportProvider;
 
+	private final SharedSettings sharedSettings;
 	private boolean didChangeWatchedFilesSupported;
 
 	private boolean asyncValidation = true;
@@ -106,7 +109,8 @@ public class QuteProjectRegistry
 			QuteJavaDefinitionProvider definitionProvider, QuteResolvedJavaTypeProvider resolvedClassProvider,
 			QuteDataModelProjectProvider dataModelProvider, QuteBinaryTemplateProvider binaryTemplateProvider,
 			QuteJavadocProvider javadocProvider, TemplateValidator validator,
-			Supplier<ProgressSupport> progressSupportProvider) {
+			Supplier<ProgressSupport> progressSupportProvider,
+			SharedSettings sharedSettings) {
 		this.projectInfoProvider = projectInfoProvider;
 		this.javaTypeProvider = javaTypeProvider;
 		this.definitionProvider = definitionProvider;
@@ -118,6 +122,7 @@ public class QuteProjectRegistry
 		this.valueResolversRegistry = new ValueResolversRegistry();
 		this.validator = validator;
 		this.progressSupportProvider = progressSupportProvider;
+		this.sharedSettings = sharedSettings;
 	}
 
 	/**
@@ -439,14 +444,40 @@ public class QuteProjectRegistry
 		if (isQuteProjectLoaded()) {
 			return loadQuteProjectsFuture;
 		}
+
+		ProgressSupport progressSupport = getProgressSupportProvider().get();
+		ProgressContext progressContext = progressSupport != null ? new ProgressContext(progressSupport) : null;
+		if (progressContext != null) {
+			progressContext.startProgress("Loading Qute projects from workspace.",
+					"Collecting Qute projects from workspace.");
+		}
+
 		return loadQuteProjectsFuture = projectInfoProvider //
 				.getProjects() //
 				.thenCompose(projects -> {
 					if (projects != null && !projects.isEmpty()) {
 						// There are some Qute projects in the workspace, load them
-						return this.loadQuteProjects(projects);
+						return this.loadQuteProjects(projects, progressContext) //
+								.thenApply(loadedProjects -> {
+									if (progressContext != null) {
+										progressContext.endProgress();
+									}
+									return loadedProjects;
+								})//
+								.exceptionally((a) -> {
+									if (progressContext != null) {
+										progressContext.endProgress();
+									}
+									return Collections.emptyList();
+								});
 					}
 					return CompletableFuture.completedFuture(Collections.emptyList());
+				}) //
+				.exceptionally((a) -> {
+					if (progressContext != null) {
+						progressContext.endProgress();
+					}
+					return Collections.emptyList();
 				});
 	}
 
@@ -454,7 +485,8 @@ public class QuteProjectRegistry
 		return isFutureLoaded(loadQuteProjectsFuture);
 	}
 
-	private CompletableFuture<Collection<QuteProject>> loadQuteProjects(Collection<ProjectInfo> projects) {
+	private CompletableFuture<Collection<QuteProject>> loadQuteProjects(Collection<ProjectInfo> projects,
+			ProgressContext progressContext) {
 		// 1. Create all projects first so that dependency references can be resolved.
 		for (ProjectInfo projectInfo : projects) {
 			getProject(projectInfo);
@@ -477,12 +509,23 @@ public class QuteProjectRegistry
 			}
 		}
 
+		AtomicInteger increment = new AtomicInteger();
+		int delta = projects.isEmpty() ? 100 : 100 / projects.size();
+
 		// 3. Start loading all projects — projectDependencies is already populated.
-		CompletableFuture<?>[] futures = new CompletableFuture[projects.size()];
+		CompletableFuture<QuteProject>[] futures = new CompletableFuture[projects.size()];
 		int i = 0;
 		for (ProjectInfo projectInfo : projects) {
 			QuteProject project = getProject(projectInfo.getUri());
-			futures[i++] = project.load();
+			CompletableFuture<QuteProject> future = project.load();
+			future.thenApply(p -> {
+				if (progressContext != null) {
+					progressContext.report("Qute project '" + project.getUri() + "' loaded.",
+							increment.addAndGet(delta));
+				}
+				return null;
+			});
+			futures[i++] = future;
 		}
 
 		return CompletableFuture.allOf(futures).thenApply(_unused -> this.projects.values());
@@ -537,5 +580,9 @@ public class QuteProjectRegistry
 
 	public Supplier<ProgressSupport> getProgressSupportProvider() {
 		return progressSupportProvider;
+	}
+	
+	public SharedSettings getSharedSettings() {
+		return sharedSettings;
 	}
 }
