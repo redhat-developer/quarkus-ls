@@ -1,3 +1,14 @@
+/*******************************************************************************
+* Copyright (c) 2026 Red Hat Inc. and others.
+* All rights reserved. This program and the accompanying materials
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v20.html
+*
+* SPDX-License-Identifier: EPL-2.0
+*
+* Contributors:
+*     Red Hat Inc. - initial API and implementation
+*******************************************************************************/
 package com.redhat.qute.project;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -9,6 +20,10 @@ import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 
+/**
+ * Tests with
+ * {@link QuteProject#isMatchType(ResolvedJavaTypeInfo, JavaTypeInfo)}
+ */
 public class MatchTypeTest {
 
 	// -------------------------------------------------------------------------
@@ -23,6 +38,31 @@ public class MatchTypeTest {
 	@Test
 	public void testExactMatchInteger() {
 		assertMatchType("java.lang.Integer", "java.lang.Integer");
+	}
+
+	// -------------------------------------------------------------------------
+	// Match primitive type
+	// -------------------------------------------------------------------------
+
+	@Test
+	public void testInt() {
+		assertMatchType("java.lang.Integer", "int");
+		assertMatchType("int", "java.lang.Integer");
+		assertMatchType("int", "Integer");
+	}
+
+	// -------------------------------------------------------------------------
+	// Match without lang
+	// -------------------------------------------------------------------------
+
+	@Test
+	public void testMatchStringWithoutLang() {
+		assertMatchType("java.lang.String", "String");
+	}
+
+	@Test
+	public void testExactMatchIntegerWithoutLang() {
+		assertMatchType("java.lang.Integer", "Integer");
 	}
 
 	// -------------------------------------------------------------------------
