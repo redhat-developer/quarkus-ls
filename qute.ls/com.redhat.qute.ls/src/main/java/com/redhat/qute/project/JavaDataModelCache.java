@@ -51,7 +51,7 @@ import com.redhat.qute.utils.StringUtils;
 
 /**
  * Cache for Java data model for a given Qute project.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -61,13 +61,33 @@ public class JavaDataModelCache {
 
 	private static final Map<String, String> bigNumber;
 
+	/**
+	 * Map of short Java type names to their fully qualified names.
+	 *
+	 * Examples:
+	 * <ul>
+	 * <li>"String" -> "java.lang.String"</li>
+	 * <li>"Integer" -> "java.lang.Integer"</li>
+	 * <li>"Boolean" -> "java.lang.Boolean"</li>
+	 * </ul>
+	 */
+	private static final Map<String, String> shortNames;
+
 	private static final Map<String, CompletableFuture<ResolvedJavaTypeInfo>> javaPrimitiveTypes;
 
 	static {
 		javaPrimitiveTypes = new HashMap<>();
 		autoboxing = new HashMap<>();
+		shortNames = new HashMap<>();
 		JavaTypeInfo.PRIMITIVE_TYPES.forEach(type -> registerPrimitiveType(type));
 		bigNumber = Map.of("java.math.BigInteger", "java.lang.Integer", "java.math.BigDouble", "java.lang.Double");
+		// Register short names for common java.lang types
+		registerShortName("java.lang.String");
+		registerShortName("java.lang.Long");
+		registerShortName("java.lang.Float");
+		registerShortName("java.lang.Object");
+		registerShortName("java.lang.Number");
+		registerShortName("java.lang.Character");
 	}
 
 	private static void registerPrimitiveType(String type) {
@@ -87,6 +107,29 @@ public class JavaDataModelCache {
 		if (objectType != null) {
 			autoboxing.put(type, type);
 			autoboxing.put(objectType, type);
+			// Also register short name for the wrapper type:
+			// e.g. "java.lang.Integer" registers "Integer" -> "java.lang.Integer"
+			registerShortName(objectType);
+			// Also register short name in autoboxing:
+			// e.g. "Integer" -> "int" so that isSameType("int", "Integer") works
+			String shortName = objectType.substring(objectType.lastIndexOf('.') + 1);
+			autoboxing.put(shortName, type);
+		}
+	}
+
+	/**
+	 * Registers the short name of the given fully qualified Java type name in the
+	 * {@link #shortNames} map.
+	 *
+	 * Example: "java.lang.String" registers "String" -> "java.lang.String"
+	 *
+	 * @param fullyQualifiedName the fully qualified Java type name.
+	 */
+	private static void registerShortName(String fullyQualifiedName) {
+		int index = fullyQualifiedName.lastIndexOf('.');
+		if (index != -1) {
+			String shortName = fullyQualifiedName.substring(index + 1);
+			shortNames.put(shortName, fullyQualifiedName);
 		}
 	}
 
@@ -98,9 +141,9 @@ public class JavaDataModelCache {
 
 	/**
 	 * Returns the Java type of the given parameter.
-	 * 
+	 *
 	 * @param parameter the parameter
-	 * 
+	 *
 	 * @return the Java type of the given parameter.
 	 */
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Parameter parameter) {
@@ -122,9 +165,9 @@ public class JavaDataModelCache {
 
 	/**
 	 * Returns the Java type of the given part.
-	 * 
+	 *
 	 * @param part the object, property part.
-	 * 
+	 *
 	 * @return the Java type of the given part.
 	 */
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Part part) {
@@ -135,9 +178,9 @@ public class JavaDataModelCache {
 
 	/**
 	 * Returns the Java type of the given class name.
-	 * 
+	 *
 	 * @param className the Java type name.
-	 * 
+	 *
 	 * @return the Java type of the given class name.
 	 */
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className) {
@@ -146,9 +189,10 @@ public class JavaDataModelCache {
 
 	/**
 	 * Returns the Java type of the given class name.
-	 * 
+	 *
 	 * @param className the Java type name.
-	 * 
+	 * @param wrap      true if the Java type must be wrapped.
+	 *
 	 * @return the Java type of the given class name.
 	 */
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className, boolean wrap) {
@@ -161,10 +205,10 @@ public class JavaDataModelCache {
 
 	/**
 	 * Returns the Java type of the given class name.
-	 * 
-	 * @param className the Java type name.
-	 * @aram javaTypeInfo the Java type information.
-	 * 
+	 *
+	 * @param className    the Java type name.
+	 * @param javaTypeInfo the Java type information.
+	 *
 	 * @return the Java type of the given class name.
 	 */
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className,
@@ -199,7 +243,7 @@ public class JavaDataModelCache {
 		if (future == null) {
 			// The Java type needs to be loaded.
 			if (javaTypeName.endsWith("[]")) {
-				// Array case (ex : org.acme.Item[]), try to to get the, get the item type (ex :
+				// Array case (ex : org.acme.Item[]), try to get the item type (ex :
 				// org.acme.Item)
 				future = resolveJavaType(javaTypeName.substring(0, javaTypeName.length() - 2), javaTypeInfo) //
 						.thenApply(item -> {
@@ -220,8 +264,8 @@ public class JavaDataModelCache {
 
 								// Create generic Map if the given Java type name declares some generic.
 								Map<String, String> generics = resolvedJavaType.createGenericMap(javaTypeName);
-								// Update the Java type (apply generic + update references of this Java type for
-								// fields / methods).
+								// Update the Java type (apply generic + update references of this Java type
+								// for fields / methods).
 								resolvedJavaType = updateJavaType(resolvedJavaType, generics);
 								visited.add(resolvedJavaType.getSignature());
 
@@ -452,9 +496,6 @@ public class JavaDataModelCache {
 				// java.util.concurrent.CompletableFuture<java.util.List<org.acme.Item>>
 				JavaParameterInfo type = types.get(0);
 				String javaTypeToResolve = type.getType(); // java.util.List<org.acme.Item>
-				// Here
-				// - javaTypeToResolve = java.util.List<org.acme.Item>
-				// - iterTypeName = org.acme.Item
 				return resolveJavaType(javaTypeToResolve);
 			}
 		}
@@ -530,39 +571,11 @@ public class JavaDataModelCache {
 							}
 
 							if (!resolvedType.isIterable()) {
-								// case when iterable section is associated with a Java class which is not
-								// iterable.
-
 								if (resolvedType.isInteger()) {
-									// Special case with int, Integer
-
-									// The for statement also works with integers, starting from 1. In the example
-									// below, considering that total = 3:
-
-									// {#for i in total}
-									// {i}:
-									// {/for}
 									return resolveJavaType(resolvedType.getName());
 								}
-								/*
-								 * // -> the class is not valid // Ex: // {@org.acme.Item items} // {#for item
-								 * in items} // {item.|}
-								 */
 								return RESOLVED_JAVA_TYPE_NOT_ITERABLE_FUTURE;
-
 							}
-
-							// valid case
-							// Ex:
-							// {@java.util.List<org.acme.Item> items}
-							// {#for item in items}
-							// {item.|}
-
-							// Here
-							// - resolvedType = java.util.List<org.acme.Item>
-							// - iterTypeName = org.acme.Item
-
-							// Resolve org.acme.Item
 							String iterTypeName = resolvedType.getIterableOf();
 							return resolveJavaType(iterTypeName);
 						});
@@ -581,6 +594,19 @@ public class JavaDataModelCache {
 		return null;
 	}
 
+	/**
+	 * Returns true if the given Java type info instances represent the same type,
+	 * considering:
+	 * <ul>
+	 * <li>Exact signature match</li>
+	 * <li>Generic type parameters match recursively</li>
+	 * </ul>
+	 *
+	 * @param type1 the first Java type.
+	 * @param type2 the second Java type.
+	 *
+	 * @return true if both types are the same, false otherwise.
+	 */
 	public static boolean isSameType(JavaTypeInfo type1, JavaTypeInfo type2) {
 		if (isSameType(type1.getSignature(), type2.getSignature())) {
 			return true;
@@ -605,26 +631,40 @@ public class JavaDataModelCache {
 	}
 
 	/**
-	 * Returns true if the given type1 and type2 are the same and false otherwise.
+	 * Returns true if the given type names represent the same Java type,
+	 * considering:
+	 * <ul>
+	 * <li>Exact name match: "java.lang.String" == "java.lang.String"</li>
+	 * <li>Autoboxing: "int" == "java.lang.Integer", "boolean" ==
+	 * "java.lang.Boolean"</li>
+	 * <li>BigNumber: "java.math.BigInteger" == "java.lang.Integer"</li>
+	 * <li>Short names: "String" == "java.lang.String", "Integer" ==
+	 * "java.lang.Integer"</li>
+	 * </ul>
 	 *
-	 * @param type1 the first Java type to compare.
-	 * @param type2 the second Java type to compare.
+	 * @param type1 the first Java type name.
+	 * @param type2 the second Java type name.
 	 *
-	 * @return true if the given type1 and type2 are the same and false otherwise.
+	 * @return true if both type names represent the same type, false otherwise.
 	 */
 	public static boolean isSameType(String type1, String type2) {
 		if (type1.equals(type2)) {
 			return true;
 		}
+		// Autoboxing: int <-> java.lang.Integer, boolean <-> java.lang.Boolean, etc.
 		String primitiveType = autoboxing.get(type1);
 		if (primitiveType != null) {
-			// It's a Java primitive type
 			return primitiveType.equals(autoboxing.get(type2));
 		}
+		// BigNumber: java.math.BigInteger <-> java.lang.Integer, etc.
 		String bigNumberType = bigNumber.get(type1);
 		if (bigNumberType != null) {
 			return bigNumberType.equals(type2);
 		}
-		return false;
+		// Short name: resolve both sides to their fully qualified name and compare.
+		// e.g. "String" -> "java.lang.String", "Integer" -> "java.lang.Integer"
+		String fqn1 = shortNames.getOrDefault(type1, type1);
+		String fqn2 = shortNames.getOrDefault(type2, type2);
+		return fqn1.equals(fqn2);
 	}
 }
