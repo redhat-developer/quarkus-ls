@@ -42,7 +42,7 @@ public class JavaMethodInfo extends JavaMemberInfo {
 
 	private transient String methodName;
 
-	private transient String returnType;
+	private String returnType;
 
 	private transient String getterName;
 
@@ -215,6 +215,10 @@ public class JavaMethodInfo extends JavaMemberInfo {
 			returnType = index != -1 ? signature.substring(index + 1, signature.length()).trim() : NO_VALUE;
 		}
 		return NO_VALUE.equals(returnType) ? null : returnType;
+	}
+
+	public void setReturnType(String returnType) {
+		this.returnType = returnType;
 	}
 
 	/**
@@ -453,8 +457,10 @@ public class JavaMethodInfo extends JavaMemberInfo {
 			} else if (genericsParameterType.size() == 1 && baseType.getIterableOf() != null) {
 				// ex: baseTypeDecl = java.lang.Iterable<T>
 				// baseType= io.quarkiverse.roq.frontmatter.runtime.model.RoqCollection
-				// where RoqCollection extends java.util.ArrayList<io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage>
-				// which is an iterableOf=io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage				
+				// where RoqCollection extends
+				// java.util.ArrayList<io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage>
+				// which is an
+				// iterableOf=io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage
 				resolvedGenericNames.put(genericsParameterType.get(0).getType(), baseType.getIterableOf());
 			}
 		}

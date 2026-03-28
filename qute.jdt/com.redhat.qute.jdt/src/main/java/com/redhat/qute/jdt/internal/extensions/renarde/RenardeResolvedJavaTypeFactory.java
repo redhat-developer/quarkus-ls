@@ -101,6 +101,7 @@ public class RenardeResolvedJavaTypeFactory extends AbstractResolvedJavaTypeFact
 			methodKind = JaxRsMethodKind.POST;
 		}
 		info.setJaxRsMethodKind(methodKind);
+		info.setReturnType("java.net.URI");
 		try {
 			Map<String, RestParam> restParameters = null;
 			ILocalVariable[] parameters = method.getParameters();
