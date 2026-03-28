@@ -76,8 +76,12 @@ public abstract class BaseQuteProject extends MockQuteProject {
 		createResolvedJavaTypeInfo("java.lang.Float", resolvedJavaTypes, true);
 		createResolvedJavaTypeInfo("java.math.BigDecimal", resolvedJavaTypes, true);
 
+		// Number
+		createResolvedJavaTypeInfo("java.lang.Number", resolvedJavaTypes, true);
+
 		// Integer
 		ResolvedJavaTypeInfo integer = createResolvedJavaTypeInfo("java.lang.Integer", resolvedJavaTypes, true);
+		integer.setExtendedTypes(List.of("java.lang.Number"));
 		registerMethod("byteValue() : byte", integer);
 
 		// String

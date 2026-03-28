@@ -1596,36 +1596,96 @@ public class QuteProject {
 		return isMatchType(javaType, parameterType);
 	}
 
+	/**
+	 * Returns true if the given resolved Java type matches the given parameter
+	 * type, considering:
+	 * <ul>
+	 * <li>Direct type equality (exact signature match)</li>
+	 * <li>java.lang.Object as a universal supertype</li>
+	 * <li>Raw type vs parameterized type (type erasure): e.g. {@code List} matches
+	 * {@code List<String>} and vice versa, but {@code List<String>} does NOT match
+	 * {@code List<Integer>}</li>
+	 * <li>Inheritance: e.g. {@code Integer} matches {@code Number}</li>
+	 * </ul>
+	 *
+	 * @param javaType      the resolved Java type to check (left-hand side).
+	 * @param parameterType the target type to match against (right-hand side).
+	 * @return true if {@code javaType} is assignable to {@code parameterType},
+	 *         false otherwise.
+	 */
 	public boolean isMatchType(ResolvedJavaTypeInfo javaType, JavaTypeInfo parameterType) {
 		return isMatchType(javaType, parameterType, new HashSet<>());
 	}
 
+	/**
+	 * Returns true if the given resolved Java type matches the given parameter
+	 * type, considering:
+	 * <ul>
+	 * <li>Direct type equality (exact signature match)</li>
+	 * <li>java.lang.Object as a universal supertype</li>
+	 * <li>Raw type vs parameterized type (type erasure): e.g. {@code List} matches
+	 * {@code List<String>} and vice versa, but {@code List<String>} does NOT match
+	 * {@code List<Integer>}</li>
+	 * <li>Inheritance: e.g. {@code Integer} matches {@code Number}</li>
+	 * </ul>
+	 *
+	 * @param javaType      the resolved Java type to check (left-hand side).
+	 * @param parameterType the target type to match against (right-hand side).
+	 * @param visited       the set of already-visited types, used to prevent
+	 *                      cycles.
+	 * @return true if {@code javaType} is assignable to {@code parameterType},
+	 *         false otherwise.
+	 */
 	private boolean isMatchType(ResolvedJavaTypeInfo javaType, JavaTypeInfo parameterType,
 			Set<ResolvedJavaTypeInfo> visited) {
+
+		// Cycle guard: if we've already visited this type in the current recursion
+		// path, stop to avoid infinite loops in cyclic hierarchies.
 		if (visited.contains(javaType)) {
 			return false;
 		}
 		visited.add(javaType);
 
+		// Every type is assignable to java.lang.Object.
 		if ("java.lang.Object".equals(parameterType.getSignature())) {
 			return true;
 		}
 
+		// Fast path: exact type match (compares signatures directly).
+		// e.g. List<String> == List<String>
 		if (isSameType(parameterType, javaType)) {
 			return true;
 		}
 
-		// class BigItem <- Item <- SmallItem
-		// javaType = BigItem => javaType.getExtendedTypes() = [Item]
+		// Type erasure: match if both sides share the same base name AND
+		// exactly one of them is a raw type (no type parameters).
+		// e.g. List matches List<String> ✓ (parameterType is raw)
+		// e.g. List<String> matches List ✓ (javaType is raw)
+		// e.g. List<String> vs List<Integer> ✗ (both have type parameters →
+		// incompatible)
+		boolean parameterTypeIsRaw = parameterType.getTypeParameters().isEmpty();
+		boolean javaTypeIsRaw = javaType.getTypeParameters().isEmpty();
+		if (parameterTypeIsRaw != javaTypeIsRaw) {
+			// Exactly one side is raw: compare base names only (getName() strips generics)
+			if (javaType.getName().equals(parameterType.getName())) {
+				return true;
+			}
+		}
+
+		// Inheritance check: walk up the type hierarchy of javaType.
+		// e.g. Integer -> Number -> Object
+		// ArrayList -> AbstractList -> List
 		if (javaType.getExtendedTypes() != null) {
-			// Loop for first level of super types (ex Item)
 			for (String superType : javaType.getExtendedTypes()) {
-				// Fast check
+
+				// Fast check: compare the parameter type signature directly against
+				// the super type name, without resolving the full type info.
 				if (isSameType(parameterType.getSignature(), superType)) {
 					return true;
 				}
 
-				// Loop for other levels of super types (ex SmallItem)
+				// Deep check: resolve the super type and recurse to cover
+				// multi-level hierarchies (e.g. SmallItem -> Item -> BigItem).
 				ResolvedJavaTypeInfo resolvedSuperType = resolveJavaTypeSync(superType);
 				if (!QuteCompletableFutures.isResolvingJavaTypeOrNull(resolvedSuperType)) {
 					if (isMatchType(resolvedSuperType, parameterType, visited)) {
@@ -1634,14 +1694,7 @@ public class QuteProject {
 				}
 			}
 		}
-		/*
-		 * if (!javaType.getTypeParameters().isEmpty()) { ResolvedJavaTypeInfo result =
-		 * resolveJavaTypeSync(resolvedTypeName); if
-		 * (!QuteCompletableFutures.isResolvingJavaTypeOrNull(result) &&
-		 * result.getExtendedTypes() != null) { for (String superType :
-		 * result.getExtendedTypes()) { if (isSameType(parameterType, superType)) {
-		 * return true; } } } }
-		 */
+
 		return false;
 	}
 
