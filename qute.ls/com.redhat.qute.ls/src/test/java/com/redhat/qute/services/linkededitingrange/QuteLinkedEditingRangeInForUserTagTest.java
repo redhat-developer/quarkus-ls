@@ -37,7 +37,8 @@ public class QuteLinkedEditingRangeInForUserTagTest {
 				le(r(0, 6, 0, 10), // {#for it|em,
 						r(1, 2, 1, 6), // {it|em.name}
 						r(2, 12, 2, 16), // {#linkItem it|em
-						r(2, 22, 2, 26) // {#linkItem item name=it|em.name
+						r(2, 22, 2, 26), // {#linkItem item name=it|em.name
+						r(2, 32, 2, 36) // {#linkItem item name=item.name it|em
 				));
 	}
 

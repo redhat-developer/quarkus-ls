@@ -16,6 +16,7 @@ import static com.redhat.qute.QuteAssert.SECTION_SNIPPET_SIZE;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
 import static com.redhat.qute.QuteAssert.testCompletionFor;
+import static com.redhat.qute.QuteAssert.testCompletionItemResolveFor;
 import static java.lang.System.lineSeparator;
 
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ public class QuteCompletionWithUserTagTest {
 				false, // no snippet support
 				SECTION_SNIPPET_SIZE, //
 				c("bundleStyle", //
-						"{#bundleStyle bundle=\"bundle\" /}", //
+						"{#bundleStyle bundle=bundle /}", //
 						r(0, 0, 0, 2)));
 
 		// With snippet support
@@ -45,7 +46,25 @@ public class QuteCompletionWithUserTagTest {
 				true, // snippet support
 				SECTION_SNIPPET_SIZE, //
 				c("bundleStyle", //
-						"{#bundleStyle bundle=\"${1:bundle}\" /}$0", //
+						"{#bundleStyle bundle=${1:bundle} /}$0", //
+						r(0, 0, 0, 2)));
+
+		// Resolve : Without snippet support
+		// // Web bundler 'bundle" field as global
+		testCompletionItemResolveFor(template, //
+				false, // no snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("bundleStyle", //
+						"{#bundleStyle bundle /}", //
+						r(0, 0, 0, 2)));
+
+		// Resolve : With snippet support
+		// // Web bundler 'bundle" field as global
+		testCompletionItemResolveFor(template, //
+				true, // snippet support
+				SECTION_SNIPPET_SIZE, //
+				c("bundleStyle", //
+						"{#bundleStyle ${1:bundle} /}$0", //
 						r(0, 0, 0, 2)));
 	}
 
@@ -57,7 +76,7 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				false, // no snippet support
 				5, //
-				c("bundle", "bundle=\"bundle\"", r(0, 14, 0, 14)), //
+				c("bundle", "bundle=bundle", r(0, 14, 0, 14)), //
 				c("name", "name=\"main.css\"", r(0, 14, 0, 14)), //
 				c("_isolated", "_isolated", r(0, 14, 0, 14)), //
 				c("_unisolated", "_unisolated", r(0, 14, 0, 14)), //
@@ -67,7 +86,7 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				true, // snippet support
 				5, //
-				c("bundle", "bundle=\"${1:bundle}\"$0", r(0, 14, 0, 14)), //
+				c("bundle", "bundle=${1:bundle}$0", r(0, 14, 0, 14)), //
 				c("name", "name=\"${1:main.css}\"$0", r(0, 14, 0, 14)), //
 				c("_isolated", "_isolated", r(0, 14, 0, 14)), //
 				c("_unisolated", "_unisolated", r(0, 14, 0, 14)), //
@@ -83,13 +102,13 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				false, // no snippet support
 				SECTION_SNIPPET_SIZE, //
-				c("input", "{#input name=\"name\" /}", r(0, 0, 0, 2)));
+				c("input", "{#input name=name /}", r(0, 0, 0, 2)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
 				SECTION_SNIPPET_SIZE, //
-				c("input", "{#input name=\"${1:name}\" /}$0", r(0, 0, 0, 2)));
+				c("input", "{#input name=${1:name} /}$0", r(0, 0, 0, 2)));
 	}
 
 	@Test
@@ -100,11 +119,11 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				false, // no snippet support
 				8, //
-				c("name", "name=\"name\"", r(0, 8, 0, 8)), //
-				c("type", "type=\"type\"", r(0, 8, 0, 8)), //
-				c("placeholder", "placeholder=\"placeholder\"", r(0, 8, 0, 8)), //
-				c("id", "id=\"id\"", r(0, 8, 0, 8)), //
-				c("value", "value=\"value\"", r(0, 8, 0, 8)), //
+				c("name", "name=name", r(0, 8, 0, 8)), //
+				c("type", "type=type", r(0, 8, 0, 8)), //
+				c("placeholder", "placeholder=placeholder", r(0, 8, 0, 8)), //
+				c("id", "id=id", r(0, 8, 0, 8)), //
+				c("value", "value=value", r(0, 8, 0, 8)), //
 				c("_isolated", "_isolated", r(0, 8, 0, 8)), //
 				c("_unisolated", "_unisolated", r(0, 8, 0, 8)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 8, 0, 8)));
@@ -113,11 +132,11 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				true, // snippet support
 				8, //
-				c("name", "name=\"${1:name}\"$0", r(0, 8, 0, 8)), //
-				c("type", "type=\"${1:type}\"$0", r(0, 8, 0, 8)), //
-				c("placeholder", "placeholder=\"${1:placeholder}\"$0", r(0, 8, 0, 8)), //
-				c("id", "id=\"${1:id}\"$0", r(0, 8, 0, 8)), //
-				c("value", "value=\"${1:value}\"$0", r(0, 8, 0, 8)), //
+				c("name", "name=${1:name}$0", r(0, 8, 0, 8)), //
+				c("type", "type=${1:type}$0", r(0, 8, 0, 8)), //
+				c("placeholder", "placeholder=${1:placeholder}$0", r(0, 8, 0, 8)), //
+				c("id", "id=${1:id}$0", r(0, 8, 0, 8)), //
+				c("value", "value=${1:value}$0", r(0, 8, 0, 8)), //
 				c("_isolated", "_isolated", r(0, 8, 0, 8)), //
 				c("_unisolated", "_unisolated", r(0, 8, 0, 8)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 8, 0, 8)));
@@ -156,9 +175,9 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				false, // no snippet support
 				RESOLVERS_SIZE + 6, //
-				c("method", "method=\"method\"", r(0, 7, 0, 7)), //
-				c("class", "class=\"class\"", r(0, 7, 0, 7)), //
-				c("id", "id=\"id\"", r(0, 7, 0, 7)), //
+				c("method", "method=method", r(0, 7, 0, 7)), //
+				c("class", "class=class", r(0, 7, 0, 7)), //
+				c("id", "id=id", r(0, 7, 0, 7)), //
 				c("_isolated", "_isolated", r(0, 7, 0, 7)), //
 				c("_unisolated", "_unisolated", r(0, 7, 0, 7)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 7, 0, 7)));
@@ -167,9 +186,9 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				true, // snippet support
 				RESOLVERS_SIZE + 6, //
-				c("method", "method=\"${1:method}\"$0", r(0, 7, 0, 7)), //
-				c("class", "class=\"${1:class}\"$0", r(0, 7, 0, 7)), //
-				c("id", "id=\"${1:id}\"$0", r(0, 7, 0, 7)), //
+				c("method", "method=${1:method}$0", r(0, 7, 0, 7)), //
+				c("class", "class=${1:class}$0", r(0, 7, 0, 7)), //
+				c("id", "id=${1:id}$0", r(0, 7, 0, 7)), //
 				c("_isolated", "_isolated", r(0, 7, 0, 7)), //
 				c("_unisolated", "_unisolated", r(0, 7, 0, 7)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 7, 0, 7)));
@@ -183,9 +202,9 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				false, // no snippet support
 				6, //
-				c("method", "method=\"method\"", r(0, 27, 0, 27)), //
-				c("class", "class=\"class\"", r(0, 27, 0, 27)), //
-				c("id", "id=\"id\"", r(0, 27, 0, 27)), //
+				c("method", "method=method", r(0, 27, 0, 27)), //
+				c("class", "class=class", r(0, 27, 0, 27)), //
+				c("id", "id=id", r(0, 27, 0, 27)), //
 				c("_isolated", "_isolated", r(0, 27, 0, 27)), //
 				c("_unisolated", "_unisolated", r(0, 27, 0, 27)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 27, 0, 27)));
@@ -194,9 +213,9 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				true, // snippet support
 				6, //
-				c("method", "method=\"${1:method}\"$0", r(0, 27, 0, 27)), //
-				c("class", "class=\"${1:class}\"$0", r(0, 27, 0, 27)), //
-				c("id", "id=\"${1:id}\"$0", r(0, 27, 0, 27)), //
+				c("method", "method=${1:method}$0", r(0, 27, 0, 27)), //
+				c("class", "class=${1:class}$0", r(0, 27, 0, 27)), //
+				c("id", "id=${1:id}$0", r(0, 27, 0, 27)), //
 				c("_isolated", "_isolated", r(0, 27, 0, 27)), //
 				c("_unisolated", "_unisolated", r(0, 27, 0, 27)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 27, 0, 27)));
@@ -207,9 +226,9 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				false, // no snippet support
 				6, //
-				c("method", "method=\"method\"", r(0, 7, 0, 7)), //
-				c("class", "class=\"class\"", r(0, 7, 0, 7)), //
-				c("id", "id=\"id\"", r(0, 7, 0, 7)), //
+				c("method", "method=method", r(0, 7, 0, 7)), //
+				c("class", "class=class", r(0, 7, 0, 7)), //
+				c("id", "id=id", r(0, 7, 0, 7)), //
 				c("_isolated", "_isolated", r(0, 7, 0, 7)), //
 				c("_unisolated", "_unisolated", r(0, 7, 0, 7)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 7, 0, 7)));
@@ -218,9 +237,9 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				true, // snippet support
 				6, //
-				c("method", "method=\"${1:method}\"$0", r(0, 7, 0, 7)), //
-				c("class", "class=\"${1:class}\"$0", r(0, 7, 0, 7)), //
-				c("id", "id=\"${1:id}\"$0", r(0, 7, 0, 7)), //
+				c("method", "method=${1:method}$0", r(0, 7, 0, 7)), //
+				c("class", "class=${1:class}$0", r(0, 7, 0, 7)), //
+				c("id", "id=${1:id}$0", r(0, 7, 0, 7)), //
 				c("_isolated", "_isolated", r(0, 7, 0, 7)), //
 				c("_unisolated", "_unisolated", r(0, 7, 0, 7)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 7, 0, 7)));
@@ -235,7 +254,7 @@ public class QuteCompletionWithUserTagTest {
 				false, // no snippet support
 				SECTION_SNIPPET_SIZE, //
 				c("formElement", //
-						"{#formElement name=\"name\" label=\"label\" }" + lineSeparator() + //
+						"{#formElement name=name label=label }" + lineSeparator() + //
 								"	" + lineSeparator() + //
 								"{/formElement}", //
 						r(0, 0, 0, 2)));
@@ -245,7 +264,7 @@ public class QuteCompletionWithUserTagTest {
 				true, // snippet support
 				SECTION_SNIPPET_SIZE, //
 				c("formElement", //
-						"{#formElement name=\"${1:name}\" label=\"${2:label}\" }" + lineSeparator() + //
+						"{#formElement name=${1:name} label=${2:label} }" + lineSeparator() + //
 								"	$3" + lineSeparator() + //
 								"{/formElement}$0", //
 						r(0, 0, 0, 2)));
@@ -259,9 +278,9 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				false, // no snippet support
 				6, //
-				c("name", "name=\"name\"", r(0, 14, 0, 14)), //
-				c("label", "label=\"label\"", r(0, 14, 0, 14)), //
-				c("class", "class=\"class\"", r(0, 14, 0, 14)), //
+				c("name", "name=name", r(0, 14, 0, 14)), //
+				c("label", "label=label", r(0, 14, 0, 14)), //
+				c("class", "class=class", r(0, 14, 0, 14)), //
 				c("_isolated", "_isolated", r(0, 14, 0, 14)), //
 				c("_unisolated", "_unisolated", r(0, 14, 0, 14)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 14, 0, 14)));
@@ -270,9 +289,9 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				true, // snippet support
 				6, //
-				c("name", "name=\"${1:name}\"$0", r(0, 14, 0, 14)), //
-				c("label", "label=\"${1:label}\"$0", r(0, 14, 0, 14)), //
-				c("class", "class=\"${1:class}\"$0", r(0, 14, 0, 14)), //
+				c("name", "name=${1:name}$0", r(0, 14, 0, 14)), //
+				c("label", "label=${1:label}$0", r(0, 14, 0, 14)), //
+				c("class", "class=${1:class}$0", r(0, 14, 0, 14)), //
 				c("_isolated", "_isolated", r(0, 14, 0, 14)), //
 				c("_unisolated", "_unisolated", r(0, 14, 0, 14)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 14, 0, 14)));
@@ -286,9 +305,9 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				false, // no snippet support
 				6, //
-				c("name", "name=\"name\"", r(0, 14, 0, 16)), //
-				c("label", "label=\"label\"", r(0, 14, 0, 16)), //
-				c("class", "class=\"class\"", r(0, 14, 0, 16)), //
+				c("name", "name=name", r(0, 14, 0, 16)), //
+				c("label", "label=label", r(0, 14, 0, 16)), //
+				c("class", "class=class", r(0, 14, 0, 16)), //
 				c("_isolated", "_isolated", r(0, 14, 0, 16)), //
 				c("_unisolated", "_unisolated", r(0, 14, 0, 16)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 14, 0, 16)));
@@ -297,9 +316,9 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				true, // snippet support
 				6, //
-				c("name", "name=\"${1:name}\"$0", r(0, 14, 0, 16)), //
-				c("label", "label=\"${1:label}\"$0", r(0, 14, 0, 16)), //
-				c("class", "class=\"${1:class}\"$0", r(0, 14, 0, 16)), //
+				c("name", "name=${1:name}$0", r(0, 14, 0, 16)), //
+				c("label", "label=${1:label}$0", r(0, 14, 0, 16)), //
+				c("class", "class=${1:class}$0", r(0, 14, 0, 16)), //
 				c("_isolated", "_isolated", r(0, 14, 0, 16)), //
 				c("_unisolated", "_unisolated", r(0, 14, 0, 16)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 14, 0, 16)));
@@ -329,7 +348,7 @@ public class QuteCompletionWithUserTagTest {
 				false, // no snippet support
 				SECTION_SNIPPET_SIZE, //
 				c("simpleTitle", //
-						"{#simpleTitle title=\"title\" }" + lineSeparator() + //
+						"{#simpleTitle title=title }" + lineSeparator() + //
 								"	" + lineSeparator() + //
 								"{/simpleTitle}",
 						r(0, 0, 0, 2)));
@@ -339,7 +358,7 @@ public class QuteCompletionWithUserTagTest {
 				true, // snippet support
 				SECTION_SNIPPET_SIZE, //
 				c("simpleTitle", //
-						"{#simpleTitle title=\"${1:title}\" }" + lineSeparator() + //
+						"{#simpleTitle title=${1:title} }" + lineSeparator() + //
 								"	$2" + lineSeparator() + //
 								"{/simpleTitle}$0",
 						r(0, 0, 0, 2)));
@@ -353,13 +372,13 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				false, // no snippet support
 				4, //
-				c("title", "title=\"title\"", r(0, 14, 0, 14)));
+				c("title", "title=title", r(0, 14, 0, 14)));
 
 		// With snippet support
 		testCompletionFor(template, //
 				true, // snippet support
 				4, //
-				c("title", "title=\"${1:title}\"$0", r(0, 14, 0, 14)), //
+				c("title", "title=${1:title}$0", r(0, 14, 0, 14)), //
 				c("_isolated", "_isolated", r(0, 14, 0, 14)), //
 				c("_unisolated", "_unisolated", r(0, 14, 0, 14)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 14, 0, 14)));
@@ -374,7 +393,7 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				false, // no snippet support
 				4, //
-				c("titularTitle", "titularTitle=\"titularTitle\"", r(0, 8, 0, 8)), //
+				c("titularTitle", "titularTitle=titularTitle", r(0, 8, 0, 8)), //
 				c("_isolated", "_isolated", r(0, 8, 0, 8)), //
 				c("_unisolated", "_unisolated", r(0, 8, 0, 8)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 8, 0, 8)));
@@ -383,7 +402,7 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				true, // snippet support
 				4, //
-				c("titularTitle", "titularTitle=\"${1:titularTitle}\"$0", r(0, 8, 0, 8)), //
+				c("titularTitle", "titularTitle=${1:titularTitle}$0", r(0, 8, 0, 8)), //
 				c("_isolated", "_isolated", r(0, 8, 0, 8)), //
 				c("_unisolated", "_unisolated", r(0, 8, 0, 8)), //
 				c("_ignoreFragments", "_ignoreFragments", r(0, 8, 0, 8)));
@@ -398,7 +417,7 @@ public class QuteCompletionWithUserTagTest {
 				false, // no snippet support
 				SECTION_SNIPPET_SIZE, //
 				c("formElement", //
-						"{#formElement name=\"name\" label=\"label\" }" + lineSeparator() + //
+						"{#formElement name=name label=label }" + lineSeparator() + //
 								"	" + lineSeparator() + //
 								"{/formElement}", //
 						r(0, 0, 0, 9)));
@@ -408,7 +427,7 @@ public class QuteCompletionWithUserTagTest {
 				true, // snippet support
 				SECTION_SNIPPET_SIZE, //
 				c("formElement", //
-						"{#formElement name=\"${1:name}\" label=\"${2:label}\" }" + lineSeparator() + //
+						"{#formElement name=${1:name} label=${2:label} }" + lineSeparator() + //
 								"	$3" + lineSeparator() + //
 								"{/formElement}$0", //
 						r(0, 0, 0, 9)));
@@ -463,13 +482,13 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				false, // no snippet support
 				SECTION_SNIPPET_SIZE, //
-				c("formElement", "{#formElement name=\"name\" label=\"label\" }", //
+				c("formElement", "{#formElement name=name label=label }", //
 						r(0, 0, 0, 3)));
 
 		testCompletionFor(template, //
 				true, // snippet support
 				SECTION_SNIPPET_SIZE, //
-				c("formElement", "{#formElement name=\"${1:name}\" label=\"${2:label}\" }", //
+				c("formElement", "{#formElement name=${1:name} label=${2:label} }", //
 						r(0, 0, 0, 3)));
 	}
 
@@ -482,7 +501,7 @@ public class QuteCompletionWithUserTagTest {
 				SECTION_SNIPPET_SIZE, //
 				c("for", "{#for item in items}", //
 						r(0, 0, 0, 6)),
-				c("formElement", "{#formElement name=\"name\" label=\"label\" }", //
+				c("formElement", "{#formElement name=name label=label }", //
 						r(0, 0, 0, 6)));
 
 		testCompletionFor(template, //
@@ -490,7 +509,7 @@ public class QuteCompletionWithUserTagTest {
 				SECTION_SNIPPET_SIZE, //
 				c("for", "{#for ${1:item} in ${2:items}}", //
 						r(0, 0, 0, 6)),
-				c("formElement", "{#formElement name=\"${1:name}\" label=\"${2:label}\" }", //
+				c("formElement", "{#formElement name=${1:name} label=${2:label} }", //
 						r(0, 0, 0, 6)));
 	}
 
@@ -505,7 +524,7 @@ public class QuteCompletionWithUserTagTest {
 						+ "{/for}", //
 						r(0, 6, 0, 12)),
 				c("formElement",
-						"{#formElement name=\"name\" label=\"label\" }" + System.lineSeparator() + "	"
+						"{#formElement name=name label=label }" + System.lineSeparator() + "	"
 								+ System.lineSeparator() + "{/formElement}", //
 						r(0, 6, 0, 12)));
 
@@ -516,7 +535,7 @@ public class QuteCompletionWithUserTagTest {
 						+ System.lineSeparator() + "{/for}", //
 						r(0, 6, 0, 12)),
 				c("formElement",
-						"{#formElement name=\"${1:name}\" label=\"${2:label}\" }" + System.lineSeparator() + "	$3"
+						"{#formElement name=${1:name} label=${2:label} }" + System.lineSeparator() + "	$3"
 								+ System.lineSeparator() + "{/formElement}$0", //
 						r(0, 6, 0, 12)));
 	}
@@ -568,7 +587,7 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				false, // no snippet support
 				5, //
-				c("foo", "foo=\"foo\"", r(0, 14, 0, 14)), //
+				c("foo", "foo=foo", r(0, 14, 0, 14)), //
 				c("bar", "bar=''", r(0, 14, 0, 14)), //
 				c("_isolated", "_isolated", r(0, 14, 0, 14)), //
 				c("_unisolated", "_unisolated", r(0, 14, 0, 14)), //
@@ -577,7 +596,7 @@ public class QuteCompletionWithUserTagTest {
 		testCompletionFor(template, //
 				true, // snippet support
 				5, //
-				c("foo", "foo=\"${1:foo}\"$0", r(0, 14, 0, 14)), //
+				c("foo", "foo=${1:foo}$0", r(0, 14, 0, 14)), //
 				c("bar", "bar='${1:}'$0", r(0, 14, 0, 14)), //
 				c("_isolated", "_isolated", r(0, 14, 0, 14)), //
 				c("_unisolated", "_unisolated", r(0, 14, 0, 14)), //

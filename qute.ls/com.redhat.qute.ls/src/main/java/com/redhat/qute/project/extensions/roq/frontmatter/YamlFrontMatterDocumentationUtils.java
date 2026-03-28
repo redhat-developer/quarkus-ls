@@ -108,17 +108,6 @@ public class YamlFrontMatterDocumentationUtils {
 				documentation.append(" * Path: ");
 				addLink(document.getUri(), relativePath, documentation, markdown);
 			}
-
-			// Origin
-			String origin = document.getOrigin();
-			if (!StringUtils.isEmpty(origin)) {
-				documentation.append(System.lineSeparator());
-				documentation.append(" * Origin: ");
-				documentation.append("`");
-				documentation.append(origin);
-				documentation.append("`");
-			}
-
 		}
 
 		return DocumentationUtils.createMarkupContent(documentation, markdown);

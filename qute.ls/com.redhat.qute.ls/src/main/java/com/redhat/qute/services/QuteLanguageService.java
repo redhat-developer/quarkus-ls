@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DocumentHighlight;
@@ -41,6 +42,7 @@ import com.redhat.qute.ls.commons.snippets.SnippetRegistryProvider;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteProjectRegistry;
 import com.redhat.qute.services.codeactions.QuteTemplateCodeActionResolvers;
+import com.redhat.qute.services.completions.CompletionData;
 import com.redhat.qute.settings.QuteCommandCapabilities;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
@@ -140,6 +142,11 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 			CancelChecker cancelChecker) {
 		return completions.doComplete(template, position, completionSettings, formattingSettings, nativeImagesSettings,
 				commandCapabilities, cancelChecker);
+	}
+
+	public CompletionItem resolveCompletionItem(CompletionItem unresolved, CompletionData data, Template template,
+			CancelChecker cancelChecker) {
+		return completions.resolveCompletionItem(unresolved, data, template, cancelChecker);
 	}
 
 	/**

@@ -35,7 +35,7 @@ public class SharedSettings extends BaseSettings {
 	public SharedSettings() {
 		super();
 		this.completionSettings = new QuteCompletionSettings();
-		this.formattingSettings = new QuteFormattingSettings();
+		this.formattingSettings = new QuteFormattingSettings(true);
 		this.hoverSettings = new QuteHoverSettings();
 		this.commandCapabilities = new QuteCommandCapabilities();
 		this.codeActionSettings = new QuteCodeActionSettings();

@@ -27,11 +27,14 @@ public class BaseSettings {
 
 	private final QuteNativeSettings nativeImagesSettings;
 
+	private final QuteFormattingSettings formattingSettings;
+
 	public BaseSettings() {
 		this.validationSettings = new QuteValidationSettings();
 		this.codeLensSettings = new QuteCodeLensSettings();
 		this.inlayHintSettings = new QuteInlayHintSettings();
 		this.nativeImagesSettings = new QuteNativeSettings();
+		this.formattingSettings = new QuteFormattingSettings(true);
 	}
 
 	/**
@@ -68,5 +71,9 @@ public class BaseSettings {
 	 */
 	public QuteNativeSettings getNativeSettings() {
 		return nativeImagesSettings;
+	}
+
+	public QuteFormattingSettings getFormattingSettings() {
+		return formattingSettings;
 	}
 }

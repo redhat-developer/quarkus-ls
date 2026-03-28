@@ -27,6 +27,8 @@ import com.redhat.qute.ls.commons.snippets.SnippetsBuilder;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.services.snippets.QuteSnippetContext;
+import com.redhat.qute.settings.QuteFormattingSettings;
+import com.redhat.qute.settings.QuteFormattingSettings.SplitSectionParameters;
 import com.redhat.qute.utils.UserTagUtils;
 
 /**
@@ -42,17 +44,24 @@ public class UserTag extends Snippet {
 	private Map<String, UserTagParameter> parameters;
 	private boolean hasArgs;
 	private final QuteTextDocument document;
+	private boolean hasContent;
+	private QuteFormattingSettings formattingSettings;
+	private int currentTabSize;
+	private boolean currentInsertSpaces;
+	private SplitSectionParameters currentSplitSectionParameters;
+	private int currentSplitSectionParametersIndentSize;
 
-	public UserTag(QuteTextDocument document) {
+	public UserTag(QuteTextDocument document, QuteFormattingSettings formattingSettings) {
 		this.document = document;
+		this.formattingSettings = formattingSettings;
 		String name = document.getUserTagName();
 		super.setLabel(name);
 		super.setPrefixes(Arrays.asList(name));
 		super.setContext(QuteSnippetContext.IN_TEXT);
-		String origin = document.getOrigin();
-		if (origin != null) {
+		String relativePath = document.getRelativePath();
+		if (relativePath != null) {
 			CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
-			labelDetails.setDescription(origin);
+			labelDetails.setDescription(relativePath);
 			super.setLabelDetails(labelDetails);
 		}
 		super.setKind(document.isBinary() ? CompletionItemKind.Function : CompletionItemKind.Method);
@@ -60,55 +69,219 @@ public class UserTag extends Snippet {
 
 	@Override
 	public List<String> getBody() {
-		if (super.getBody() == null) {
-			super.setBody(createBody());
+		if (super.getBody() == null || isFormattingSettingsChanged()) {
+			currentTabSize = formattingSettings.getTabSize();
+			currentInsertSpaces = formattingSettings.isInsertSpaces();
+			currentSplitSectionParameters = formattingSettings.getSplitSectionParameters();
+			currentSplitSectionParametersIndentSize = formattingSettings.getSplitSectionParametersIndentSize();
+			super.setBody(createBody(currentTabSize, currentInsertSpaces, currentSplitSectionParameters,
+					currentSplitSectionParametersIndentSize));
 		}
 		return super.getBody();
 	}
 
-	private List<String> createBody() {
+	private boolean isFormattingSettingsChanged() {
+		return currentTabSize != formattingSettings.getTabSize()
+				|| currentInsertSpaces != formattingSettings.isInsertSpaces()
+				|| currentSplitSectionParameters != formattingSettings.getSplitSectionParameters()
+				|| currentSplitSectionParametersIndentSize != formattingSettings.getSplitSectionParametersIndentSize();
+	}
+
+	/**
+	 * Creates the snippet body for the user tag section.
+	 *
+	 * <p>
+	 * When {@code multiline} is {@code false} (default), all required parameters
+	 * are placed on a single line:
+	 * 
+	 * <pre>
+	 *   {#my-tag [param1] [param2] /}$0
+	 * </pre>
+	 *
+	 * <p>
+	 * When {@code multiline} is {@code true}, each required parameter is placed on
+	 * its own line, continuation lines being aligned to the first parameter column
+	 * using as many {@code \t} characters as possible (assuming a tab size of 4)
+	 * followed by the remaining spaces:
+	 * 
+	 * <pre>
+	 *   {#my-tag [param1]
+	 *            [param2]
+	 *            [param3]
+	 *    /}$0
+	 * </pre>
+	 * 
+	 * @param splitSectionParametersIndentSize
+	 * @param splitSectionParameters
+	 * @param insertSpaces
+	 * @param tabSize
+	 *
+	 * @return the list of lines that form the snippet body.
+	 */
+	private List<String> createBody(int tabSize, boolean insertSpaces, SplitSectionParameters splitSectionParameters,
+			int splitSectionParametersIndentSize) {
 		String name = getLabel();
 		List<String> body = new ArrayList<>();
 		Collection<UserTagParameter> parameters = getParameters();
-
-		boolean hasNestedContent = false;
 		int index = 1;
 
 		StringBuilder startSection = new StringBuilder("{#");
 		startSection.append(name);
+
+		// Collect required parameter fragments first so we can decide
+		// how to lay them out (inline vs. multiline) after the loop.
+		List<String> paramFragments = new ArrayList<>();
 		for (UserTagParameter parameter : parameters) {
 			if (parameter.isRequired()) {
+				// index++;
 				switch (parameter.getName()) {
 				case UserTagUtils.IT_OBJECT_PART_NAME:
-					startSection.append(" ");
-					SnippetsBuilder.placeholders(index++, parameter.getName(), startSection);
+					StringBuilder itFrag = new StringBuilder();
+					SnippetsBuilder.placeholders(index++, parameter.getName(), itFrag);
+					paramFragments.add(itFrag.toString());
 					break;
 				case UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME:
-					hasNestedContent = true;
 					break;
 				default:
-					startSection.append(" ");
-					generateUserTagParameter(parameter, true, index++, startSection);
+					// Generate parameter name
+					String param = generateUserTagParameter(parameter, Collections.emptySet(), false, true, index++);
+					paramFragments.add(param);
 					break;
 				}
 			}
 		}
-		if (hasNestedContent) {
-			if (!parameters.isEmpty()) {
-				startSection.append(" ");
-			}
-			startSection.append("}");
-		} else {
-			startSection.append(" /}");
-			SnippetsBuilder.tabstops(0, startSection);
-		}
-		body.add(startSection.toString());
 
-		if (hasNestedContent) {
+		if ((splitSectionParameters == SplitSectionParameters.preserve) || paramFragments.size() <= 1) {
+			// ── Inline mode───────────────────────
+			for (String frag : paramFragments) {
+				startSection.append(" ").append(frag);
+			}
+			if (hasContent) {
+				if (!parameters.isEmpty()) {
+					startSection.append(" ");
+				}
+				startSection.append("}");
+			} else {
+				startSection.append(" /}");
+				SnippetsBuilder.tabstops(0, startSection);
+			}
+			body.add(startSection.toString());
+		} else {
+			// ── Multiline mode ─────────────────────────────────────────────────
+			String continuationIndent = getContinuationIndent(splitSectionParameters, name, tabSize, insertSpaces,
+					splitSectionParametersIndentSize);
+
+			if (splitSectionParameters == SplitSectionParameters.splitNewLine) {
+				// splitNewLine: all parameters on their own line, opening line has no param.
+				body.add(startSection.toString());
+
+				// All parameters except the last: one per line.
+				for (int i = 0; i < paramFragments.size() - 1; i++) {
+					body.add(continuationIndent + paramFragments.get(i));
+				}
+			} else {
+				// alignWithFirstParam: first parameter stays on the opening line.
+				startSection.append(" ").append(paramFragments.get(0));
+
+				// Flush the opening line as-is.
+				body.add(startSection.toString());
+
+				// Middle parameters: one per line, aligned to param1.
+				for (int i = 1; i < paramFragments.size() - 1; i++) {
+					body.add(continuationIndent + paramFragments.get(i));
+				}
+			}
+
+			// Last parameter: closing token appended on the same line.
+			StringBuilder lastLine = new StringBuilder(continuationIndent);
+			lastLine.append(paramFragments.get(paramFragments.size() - 1));
+			if (hasContent) {
+				if (!parameters.isEmpty()) {
+					lastLine.append(" ");
+				}
+				lastLine.append("}");
+			} else {
+				lastLine.append(" /}");
+				SnippetsBuilder.tabstops(0, lastLine);
+			}
+			body.add(lastLine.toString());
+		}
+
+		// Body for tags that wrap nested content.
+		if (hasContent) {
 			body.add("\t" + SnippetsBuilder.tabstops(index++));
 			body.add("{/" + name + "}" + SnippetsBuilder.tabstops(0));
 		}
+
 		return body;
+	}
+
+	/**
+	 * Computes the indentation string used to align continuation parameters in
+	 * multiline mode, according to the {@code splitSectionParameters} strategy.
+	 *
+	 * <p>
+	 * When {@code splitSectionParameters} is
+	 * {@link SplitSectionParameters#alignWithFirstAttr}, continuation lines are
+	 * aligned to the column of the first parameter (i.e. right after {@code {#name
+	 * }):
+	 *
+	 * <pre>
+	 *   {#my-tag param1
+	 *            param2
+	 *            param3 /}$0
+	 * </pre>
+	 *
+	 * <p>
+	 * When {@code splitSectionParameters} is {@link
+	 * SplitSectionParameters#splitNewLine}, continuation lines are indented by
+	 * {@code splitSectionParametersIndentSize} levels, where one level is either
+	 * {@code tabSize} spaces (if {@code insertSpaces} is {@code true}) or one tab
+	 * character:
+	 *
+	 * <pre>
+	 *   {#my-tag param1
+	 *       param2
+	 *       param3 /}$0
+	 * </pre>
+	 *
+	 * @param splitSectionParameters the split strategy
+	 * ({@link SplitSectionParameters#alignWithFirstAttr} or
+	 * {@link SplitSectionParameters#splitNewLine})
+	 * 
+	 * @param name                             the user tag name, used to compute
+	 *                                         the alignment width in
+	 *                                         {@code alignWithFirstAttr} mode
+	 * @param tabSize                          the number of spaces per indentation
+	 *                                         level
+	 * @param insertSpaces                     {@code true} to use spaces,
+	 *                                         {@code false} to use tab characters
+	 * @param splitSectionParametersIndentSize the number of indentation levels to
+	 *                                         apply in {@code splitNewLine} mode
+	 * @return the indentation string to prepend to each continuation parameter line
+	 */
+	private static String getContinuationIndent(SplitSectionParameters splitSectionParameters, String name, int tabSize,
+			boolean insertSpaces, int splitSectionParametersIndentSize) {
+		if (splitSectionParameters == SplitSectionParameters.alignWithFirstParam) {
+			// Align to the column right after "{#name ": 2 ("{#") + name length + 1 (space)
+			int alignWidth = 2 + name.length() + 1;
+			if (insertSpaces) {
+				// Fill the alignment width with spaces
+				return " ".repeat(alignWidth);
+			} else {
+				// Maximise tabs then fill the remainder with spaces
+				int tabs = alignWidth / tabSize;
+				int spaces = alignWidth % tabSize;
+				return "\t".repeat(tabs) + " ".repeat(spaces);
+			}
+		} else {
+			// splitNewLine: indent by N levels where 1 level = tabSize spaces or 1 tab
+			if (insertSpaces) {
+				return " ".repeat(tabSize * splitSectionParametersIndentSize);
+			} else {
+				return "\t".repeat(splitSectionParametersIndentSize);
+			}
+		}
 	}
 
 	/**
@@ -119,40 +292,59 @@ public class UserTag extends Snippet {
 	 * @param index             the index
 	 * @param snippet           the snippet content.
 	 */
-	public static void generateUserTagParameter(UserTagParameter parameter, boolean snippetsSupported, int index,
-			StringBuilder snippet) {
+	public static void generateUserTagParameter(UserTagParameter parameter, Collection<String> names,
+			boolean parameterExists, boolean snippetsSupported, int index, StringBuilder snippet) {
+		if (parameterExists) {
+			if (snippetsSupported) {
+				SnippetsBuilder.placeholders(index, parameter.getName(), snippet);
+			} else {
+				snippet.append(parameter.getName());
+			}
+			return;
+		}
 		// Generate parameter name
 		snippet.append(parameter.getName());
 		snippet.append("=");
 
 		// Generate parameter value
-		String value = parameter.getName();
-		Character quote = '"';
-		String defaultValue = parameter.getDefaultValue();
-		if (defaultValue != null && !defaultValue.isEmpty()) {
-			value = defaultValue;
-			// there is a default value, remove the quote if needed
-			char start = defaultValue.charAt(0);
-			if (start == '"' || start == '\'') {
-				quote = start;
-				value = value.substring(1, value.length() - (value.endsWith(start + "") ? 1 : 0));
+		if (names != null && !names.isEmpty()) {
+			SnippetsBuilder.choice(index, names, snippet);
+		} else {
+			String value = parameter.getName();
+			Character quote = null;
+			String defaultValue = parameter.getDefaultValue();
+			if (defaultValue != null && !defaultValue.isEmpty()) {
+				value = defaultValue;
+				// there is a default value, remove the quote if needed
+				char start = defaultValue.charAt(0);
+				if (start == '"' || start == '\'') {
+					quote = start;
+					value = value.substring(1, value.length() - (value.endsWith(start + "") ? 1 : 0));
+				} else {
+					quote = null;
+				}
+			}
+
+			if (quote != null) {
+				snippet.append(quote);
+			}
+
+			if (snippetsSupported) {
+				SnippetsBuilder.placeholders(index, value, snippet);
 			} else {
-				quote = null;
+				snippet.append(value);
+			}
+			if (quote != null) {
+				snippet.append(quote);
 			}
 		}
+	}
 
-		if (quote != null) {
-			snippet.append(quote);
-		}
-
-		if (snippetsSupported) {
-			SnippetsBuilder.placeholders(index, value, snippet);
-		} else {
-			snippet.append(value);
-		}
-		if (quote != null) {
-			snippet.append(quote);
-		}
+	public static String generateUserTagParameter(UserTagParameter parameter, Collection<String> names,
+			boolean parameterExists, boolean snippetsSupported, int index) {
+		StringBuilder snippet = new StringBuilder();
+		generateUserTagParameter(parameter, names, parameterExists, snippetsSupported, index, snippet);
+		return snippet.toString();
 	}
 
 	/**
@@ -194,9 +386,11 @@ public class UserTag extends Snippet {
 			if (collector != null) {
 				parameters = collector.getParameters();
 				hasArgs = collector.hasArgs();
+				hasContent = collector.hasContent();
 			} else {
 				parameters = Collections.emptyMap();
 				hasArgs = false;
+				hasContent = false;
 			}
 		}
 		return parameters.values();

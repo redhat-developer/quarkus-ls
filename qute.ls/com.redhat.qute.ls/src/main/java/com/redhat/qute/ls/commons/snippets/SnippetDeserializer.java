@@ -15,6 +15,8 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.lsp4j.CompletionItemLabelDetails;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -102,6 +104,9 @@ class SnippetDeserializer implements JsonDeserializer<Snippet> {
 		if (descriptionElt != null) {
 			String description = descriptionElt.getAsString();
 			snippet.setDescription(description);
+			CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+			labelDetails.setDescription(description);
+			snippet.setLabelDetails(labelDetails);
 		}
 
 		// label

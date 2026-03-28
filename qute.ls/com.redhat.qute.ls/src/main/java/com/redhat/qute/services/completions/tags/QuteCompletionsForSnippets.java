@@ -43,6 +43,7 @@ import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.documents.SearchInfoQuery;
 import com.redhat.qute.project.usages.IncludeUsages;
+import com.redhat.qute.services.completions.CompletionData;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.snippets.AbstractQuteSnippetContext;
 
@@ -112,6 +113,8 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 			}
 
 			InsertTextMode defaultInsertTextMode = completionRequest.getDefaultInsertTextMode();
+
+			// Collect user tags
 			List<CompletionItem> snippets = getSnippetRegistry().getCompletionItems(replaceRange, lineDelimiter,
 					whitespacesIndent, defaultInsertTextMode,
 					completionRequest.canSupportMarkupKind(MarkupKind.MARKDOWN),
@@ -122,6 +125,10 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 						return false;
 					}, contentProvider, suffixToFind, prefixFilter, contentProvider);
 
+			CompletionData data = new CompletionData(template.getUri(), completionRequest.getOffset());
+			snippets.forEach(s -> {
+				s.setData(data);
+			});
 			completionItems.addAll(snippets);
 
 			Range range = replaceRange;
@@ -129,6 +136,8 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 			if (end != null) {
 				range = new Range(replaceRange.getStart(), end);
 			}
+			
+			// Collect insert parameters
 			collectInsertParameterSuggestions(completionRequest, range, prefixFilter, suffixToFind, whitespacesIndent,
 					defaultInsertTextMode, completionItems);
 

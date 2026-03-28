@@ -97,6 +97,7 @@ import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.commands.QuteSurroundWithCommandHandler;
 import com.redhat.qute.services.commands.QuteSurroundWithCommandHandler.SurroundWithKind;
 import com.redhat.qute.services.commands.QuteSurroundWithCommandHandler.SurroundWithResponse;
+import com.redhat.qute.services.completions.CompletionData;
 import com.redhat.qute.services.diagnostics.QuteDiagnosticContants;
 import com.redhat.qute.settings.QuteCommandCapabilities;
 import com.redhat.qute.settings.QuteCompletionSettings;
@@ -140,6 +141,7 @@ public class QuteAssert {
 	public static String getFileUri(String templateFile) {
 		return Paths.get(TEMPLATE_BASE_DIR + templateFile).toUri().toString();
 	}
+
 	// ------------------- Completion assert
 
 	public static void testCompletionFor(String value, CompletionItem... expectedItems) throws Exception {
@@ -259,6 +261,138 @@ public class QuteAssert {
 
 		// no duplicate labels
 		assertCompletion(list, p.getExpectedCount(), p.isItemDefaultsSupport(), expectedItems);
+	}
+
+	// ------------------- Completion item resolve assert
+
+	public static void testCompletionItemResolveFor(String value, CompletionItem... expectedItems) throws Exception {
+		testCompletionItemResolveFor(value, false, expectedItems);
+	}
+
+	public static void testCompletionItemResolveFor(String value, String fileUri, CompletionItem... expectedItems)
+			throws Exception {
+		testCompletionItemResolveFor(value, false, fileUri, PROJECT_URI, TEMPLATE_BASE_DIR, null, expectedItems);
+	}
+
+	public static void testCompletionItemResolveFor(String value, Integer expectedCount,
+			CompletionItem... expectedItems) throws Exception {
+		testCompletionItemResolveFor(value, true, expectedCount, expectedItems);
+	}
+
+	public static void testCompletionItemResolveFor(String value, boolean snippetSupport,
+			CompletionItem... expectedItems) throws Exception {
+		testCompletionItemResolveFor(value, snippetSupport, null, expectedItems);
+	}
+
+	public static void testCompletionItemResolveFor(String value, boolean snippetSupport, boolean itemDefaultsSupport,
+			CompletionItem... expectedItems) throws Exception {
+		testCompletionItemResolveFor(value, snippetSupport, itemDefaultsSupport, FILE_URI, PROJECT_URI, PROJECT_URI,
+				TEMPLATE_BASE_DIR, null, new QuteNativeSettings(), expectedItems);
+	}
+
+	public static void testCompletionItemResolveFor(String value, boolean snippetSupport, Integer expectedCount,
+			CompletionItem... expectedItems) throws Exception {
+		testCompletionItemResolveFor(value, snippetSupport, FILE_URI, PROJECT_URI, TEMPLATE_BASE_DIR, expectedCount,
+				expectedItems);
+	}
+
+	public static void testCompletionItemResolveFor(String value, String fileUri, boolean snippetSupport,
+			Integer expectedCount, CompletionItem... expectedItems) throws Exception {
+		testCompletionItemResolveFor(value, snippetSupport, fileUri, PROJECT_URI, TEMPLATE_BASE_DIR, expectedCount,
+				expectedItems);
+	}
+
+	public static void testCompletionItemResolveFor(String value, String fileUri, String templateId,
+			Integer expectedCount, CompletionItem... expectedItems) throws Exception {
+		testCompletionItemResolveFor(value, false, fileUri, templateId, PROJECT_URI, TEMPLATE_BASE_DIR, expectedCount,
+				expectedItems);
+	}
+
+	public static void testCompletionItemResolveFor(String value, boolean snippetSupport, String fileUri,
+			String projectUri, String templateBaseDir, Integer expectedCount, CompletionItem... expectedItems)
+			throws Exception {
+		testCompletionItemResolveFor(value, snippetSupport, fileUri, null, projectUri, templateBaseDir, expectedCount,
+				expectedItems);
+	}
+
+	public static void testCompletionItemResolveFor(String value, boolean snippetSupport, String fileUri,
+			String templateId, String projectUri, String templateBaseDir, Integer expectedCount,
+			CompletionItem... expectedItems) throws Exception {
+		testCompletionItemResolveFor(value, snippetSupport, false, fileUri, templateId, projectUri, templateBaseDir,
+				expectedCount, new QuteNativeSettings(), expectedItems);
+	}
+
+	public static void testCompletionItemResolveFor(String value, boolean snippetSupport, boolean itemDefaultsSupport,
+			String fileUri, String templateId, String projectUri, String templateBaseDir, Integer expectedCount,
+			QuteNativeSettings nativeImagesSettings, CompletionItem... expectedItems) throws Exception {
+
+		// Add snippet support for completion
+		QuteCompletionSettings completionSettings = new QuteCompletionSettings();
+		CompletionItemCapabilities completionItemCapabilities = new CompletionItemCapabilities();
+		completionItemCapabilities.setSnippetSupport(snippetSupport);
+		CompletionItemInsertTextModeSupportCapabilities insertTextModeSupport = new CompletionItemInsertTextModeSupportCapabilities();
+		insertTextModeSupport.setValueSet(Arrays.asList(InsertTextMode.AsIs, InsertTextMode.AdjustIndentation));
+		completionItemCapabilities.setInsertTextModeSupport(insertTextModeSupport);
+		CompletionCapabilities completionCapabilities = new CompletionCapabilities(completionItemCapabilities);
+		completionCapabilities.setInsertTextMode(InsertTextMode.AdjustIndentation);
+		CompletionListCapabilities completionListCapabilities = new CompletionListCapabilities();
+		if (itemDefaultsSupport) {
+			completionCapabilities.setCompletionList(completionListCapabilities);
+			completionCapabilities.getCompletionList().setItemDefaults(Arrays.asList("insertTextFormat", "editRange"));
+		}
+		completionSettings.setCapabilities(completionCapabilities);
+
+		testCompletionItemResolveFor(value, fileUri, templateId, projectUri, templateBaseDir, expectedCount,
+				nativeImagesSettings, completionSettings, itemDefaultsSupport, expectedItems);
+	}
+
+	public static void testCompletionItemResolveFor(String value, String fileUri, String templateId, String projectUri,
+			String templateBaseDir, Integer expectedCount, QuteNativeSettings nativeImagesSettings,
+			QuteCompletionSettings completionSettings, boolean itemDefaultsSupport, CompletionItem... expectedItems)
+			throws Exception {
+		CompletionParameters p = new CompletionParameters();
+		p.setFileUri(fileUri);
+		p.setTemplateId(templateId);
+		p.setProjectUri(projectUri);
+		p.setTemplateBaseDir(templateBaseDir);
+		p.setExpectedCount(expectedCount);
+		p.setNativeImagesSettings(nativeImagesSettings);
+		p.setCompletionSettings(completionSettings);
+		p.setItemDefaultsSupport(itemDefaultsSupport);
+		testCompletionItemResolveFor(value, p, expectedItems);
+	}
+
+	public static void testCompletionItemResolveFor(String value, CompletionParameters p,
+			CompletionItem... expectedItems) throws Exception {
+
+		int offset = value.indexOf('|');
+		value = value.substring(0, offset) + value.substring(offset + 1);
+
+		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
+		Template template = createTemplate(value, p.getFileUri(), p.getProjectUri(), p.getTemplateBaseDir(),
+				p.getInjectionDetectors(), projectRegistry);
+		onDidOpenTextDocument(p.getTemplateId(), p.getProjectUri(), projectRegistry, template);
+
+		Position position = template.positionAt(offset);
+
+		QuteFormattingSettings formattingSettings = new QuteFormattingSettings();
+
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
+		CompletionList list = languageService.doComplete(template, position, p.getCompletionSettings(),
+				formattingSettings, p.getNativeImagesSettings(), new QuteCommandCapabilities(), () -> {
+				}).get();
+
+		CompletionList resolved = new CompletionList(list.getItems().stream() //
+				.map((item) -> {
+					return (CompletionItem) languageService.resolveCompletionItem(item,
+							CompletionData.getCompletionData(item), template, () -> {
+							});
+				}) //
+				.collect(Collectors.toList()));
+
+		if (expectedItems != null) {
+			assertCompletion(resolved, p.getExpectedCount(), p.isItemDefaultsSupport(), expectedItems);
+		}
 	}
 
 	public static void assertCompletion(CompletionList list, Integer expectedCount, boolean itemDefaultsSupport,
@@ -1146,7 +1280,7 @@ public class QuteAssert {
 			Collection<InjectionDetector> injectionDetectors, QuteProjectRegistry projectRegistry) {
 		Template template = TemplateParser.parse(value, fileUri != null ? fileUri : FILE_URI, injectionDetectors);
 		template.setProjectUri(projectUri);
-		projectRegistry.getProject(new ProjectInfo(projectUri, null, Collections.emptyList(),
+		projectRegistry.getProject(new ProjectInfo(projectUri, "", Collections.emptyList(),
 				Arrays.asList(new TemplateRootPath(templateBaseDir)), Collections.emptySet(), Collections.emptySet()));
 		template.setProjectRegistry(projectRegistry);
 		return template;

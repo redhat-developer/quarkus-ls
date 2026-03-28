@@ -66,6 +66,7 @@ import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.documents.TemplateValidator;
 import com.redhat.qute.services.codeactions.CodeActionUnresolvedData;
+import com.redhat.qute.services.completions.CompletionData;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.JSONUtility;
 
@@ -147,6 +148,15 @@ public class QuteTextDocumentService implements TextDocumentService, TemplateVal
 			return service.completion(position);
 		}
 		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved) {
+		CompletionData data = CompletionData.getCompletionData(unresolved);
+		if (data == null) {
+			return CompletableFuture.completedFuture(unresolved);
+		}
+		return templateFileTextDocumentService.resolveCompletionItem(unresolved, data);
 	}
 
 	@Override

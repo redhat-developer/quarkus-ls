@@ -70,7 +70,7 @@ public class MockQuteLanguageServer extends QuteLanguageServer {
 	@Override
 	protected QuteProjectRegistry createProjectRegistry() {
 		return new MockQuteProjectRegistry(this, this, this, this, this, this, this, this, //
-				() -> null);
+				() -> null, getSharedSettings());
 	}
 
 	public Collection<PublishDiagnosticsParams> getPublishDiagnostics() {

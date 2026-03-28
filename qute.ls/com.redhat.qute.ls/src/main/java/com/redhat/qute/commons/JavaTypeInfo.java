@@ -49,8 +49,6 @@ public class JavaTypeInfo extends JavaElementInfo {
 
 	private transient String iterableOf;
 
-	private transient Boolean isIterable;
-
 	/**
 	 * Returns the fully qualified name of the Java type with type parameters.
 	 *

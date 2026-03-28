@@ -35,6 +35,7 @@ import com.redhat.qute.parser.template.ParameterDeclaration;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.sections.ForSection;
 import com.redhat.qute.parser.template.sections.IfSection;
+import com.redhat.qute.parser.template.sections.InsertSection;
 import com.redhat.qute.parser.template.sections.LetSection;
 import com.redhat.qute.parser.template.sections.SetSection;
 import com.redhat.qute.project.QuteProject;
@@ -68,6 +69,8 @@ public class UserTagInfoCollector extends ASTVisitor {
 	private Set<String> ignoreNames;
 
 	private Map<String, String> parameterDeclarationsWithDefaultValue;
+
+	private boolean hasContent;
 
 	private static class ParamInfo {
 		public final String name;
@@ -120,7 +123,8 @@ public class UserTagInfoCollector extends ASTVisitor {
 							return false;
 						}
 					};
-					t.setSignature(type);
+					String fullQualifiedName = project != null ? project.getFullyQualifiedName(type) : null;
+					t.setSignature(fullQualifiedName != null ? fullQualifiedName : type);
 					parameter.setJavaType(t);
 				}
 				parameters.put(alias, parameter);
@@ -241,6 +245,12 @@ public class UserTagInfoCollector extends ASTVisitor {
 	}
 
 	@Override
+	public boolean visit(InsertSection node) {
+		hasContent = true;
+		return super.visit(node);
+	}
+
+	@Override
 	public boolean visit(ObjectPart node) {
 		if (isValid(node)) {
 			String partName = node.getPartName(); // {foo}
@@ -249,6 +259,10 @@ public class UserTagInfoCollector extends ASTVisitor {
 				// {_args.skip("readonly")..}
 				hasArgs = true;
 				return super.visit(node);
+			}
+
+			if (UserTagUtils.NESTED_CONTENT_OBJECT_PART_NAME.equals(partName)) {
+				hasContent = true;
 			}
 
 			// Get the parameter info from the parameter stack
@@ -347,12 +361,9 @@ public class UserTagInfoCollector extends ASTVisitor {
 							return name;
 						}
 						return resolver.getName();
-					}).collect(Collectors.toList())
-					: Collections.emptyList();
+					}).collect(Collectors.toList()) : Collections.emptyList();
 		}
-		if (globalVariables != null && globalVariables.contains(partName))
-
-		{
+		if (globalVariables != null && globalVariables.contains(partName)) {
 			// The object part is a global variable declared in Java with @TemplateGlobal,
 			// ignore it
 			return false;
@@ -381,5 +392,9 @@ public class UserTagInfoCollector extends ASTVisitor {
 
 	public boolean hasParameter(String parameterName) {
 		return parameters.containsKey(parameterName);
+	}
+
+	public boolean hasContent() {
+		return hasContent;
 	}
 }

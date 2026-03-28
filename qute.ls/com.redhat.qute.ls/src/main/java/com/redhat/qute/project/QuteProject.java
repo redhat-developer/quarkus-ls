@@ -297,13 +297,13 @@ public class QuteProject {
 		}
 
 		if (progressContext != null) {
-			progressContext.report("Loading binary templates for '" + projectName + "' Qute project.", 10);
+			progressContext.report("Loading Qute binary templates for '" + projectName + "' Qute project.", 10);
 		}
 
 		loadQuteProjectFuture = this.getBinaryTemplates() //
 				.thenCompose(binaryTemplates -> {
 					if (progressContext != null) {
-						progressContext.report("Loading data model for '" + projectName + "' Qute project.", 20);
+						progressContext.report("Loading Qute data model for '" + projectName + "' Qute project.", 20);
 					}
 
 					return this.getDataModelProject() //
@@ -2226,4 +2226,7 @@ public class QuteProject {
 		return includeUsagesRegistry;
 	}
 
+	public String getFullyQualifiedName(String shortName) {
+		return javaCache.getFullyQualifiedName(shortName);
+	}
 }

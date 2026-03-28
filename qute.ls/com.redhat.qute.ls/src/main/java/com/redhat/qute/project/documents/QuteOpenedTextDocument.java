@@ -270,7 +270,9 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 			return null;
 		}
 		if (userTag == null) {
-			userTag = new UserTag(this);
+			QuteProject project = getProject();
+			userTag = new UserTag(this,
+					project != null ? project.getProjectRegistry().getSharedSettings().getFormattingSettings() : null);
 		}
 		return userTag;
 	}
@@ -283,7 +285,8 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 	@Override
 	public String getRelativePath() {
 		if (relativePath == null) {
-			this.relativePath = getProject().getProjectFolder().relativize(templatePath).toString().replace('\\', '/');
+			this.relativePath = getProject().getUri() + '/'
+					+ getProject().getProjectFolder().relativize(templatePath).toString().replace('\\', '/');
 		}
 		return relativePath;
 	}
