@@ -47,8 +47,6 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
 	private List<TemplateDataAnnotation> templateDataAnnotations;
 
-	private transient String iterableOf;
-
 	private transient Boolean isIterable;
 
 	private transient Boolean isWrapperType;
@@ -113,27 +111,6 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	 */
 	public void setMethods(List<JavaMethodInfo> methods) {
 		this.methods = methods;
-	}
-
-	/**
-	 * Returns iterable of and null otherwise.
-	 * 
-	 * @return iterable of and null otherwise.
-	 */
-	public void setIterableOf(String iterableOf) {
-		this.iterableOf = iterableOf;
-	}
-
-	/**
-	 * Returns iterable of.
-	 * 
-	 * @return iterable of.
-	 */
-	public String getIterableOf() {
-		if (iterableOf == null && isArray()) {
-			iterableOf = getName().substring(0, getName().length() - 2);
-		}
-		return iterableOf;
 	}
 
 	/**
@@ -235,7 +212,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		if (isIterable != null) {
 			return isIterable.booleanValue();
 		}
-		if (iterableOf != null) {
+		if (getIterableOf() != null) {
 			return true;
 		}
 		boolean iterable = getName().equals(JAVA_LANG_ITERABLE_TYPE);
@@ -251,9 +228,9 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		if (iterable) {
 			List<JavaParameterInfo> typeParameters = getTypeParameters();
 			if (!typeParameters.isEmpty()) {
-				this.iterableOf = typeParameters.get(0).getType();
+				super.setIterableOf(typeParameters.get(0).getType());
 			} else {
-				this.iterableOf = "java.lang.Object";
+				super.setIterableOf("java.lang.Object");
 			}
 		}
 		return iterable;

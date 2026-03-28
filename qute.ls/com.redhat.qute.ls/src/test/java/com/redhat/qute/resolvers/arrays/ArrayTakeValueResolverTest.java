@@ -76,7 +76,7 @@ public class ArrayTakeValueResolverTest {
 				"Item: {items.ta|ke(0)}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"T[] take(int n)" + //
+				"Item[] take(int n)" + //
 				System.lineSeparator() + //
 				"```" + //
 				System.lineSeparator() + //

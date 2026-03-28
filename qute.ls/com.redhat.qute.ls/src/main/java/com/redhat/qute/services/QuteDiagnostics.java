@@ -274,15 +274,16 @@ class QuteDiagnostics {
 						Expression expression = parameter.getJavaTypeExpression();
 						if (expression != null) {
 							// Validate object, property, method parts from the expression
-							ResolvedJavaTypeInfo resolvedTypeParameter = validateExpression(expression, section, template,
-									validationSettings, filter, previousContext, resolvingJavaTypeContext, diagnostics);
+							ResolvedJavaTypeInfo resolvedTypeParameter = validateExpression(expression, section,
+									template, validationSettings, filter, previousContext, resolvingJavaTypeContext,
+									diagnostics);
 							switch (section.getSectionKind()) {
 							case FOR:
 							case EACH:
 								Part lastPart = expression.getLastPart();
 								if (resolvedTypeParameter != null) {
-									resolvedTypeParameter = validateIterable(lastPart, section, resolvedTypeParameter, resolvedTypeParameter.getSignature(),
-											diagnostics);
+									resolvedTypeParameter = validateIterable(lastPart, section, resolvedTypeParameter,
+											resolvedTypeParameter.getSignature(), diagnostics);
 								}
 								String alias = ((LoopSection) section).getAlias();
 								currentContext.put(alias, resolvedTypeParameter);
@@ -312,8 +313,8 @@ class QuteDiagnostics {
 											Range range = QutePositionUtility.selectParameterValue(parameter);
 											Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error,
 													QuteErrorCode.UnexpectedTypeInParameterSection,
-													resolvedTypeParameter.getSignature(), parameter.getName(), section.getTag(),
-													expectedType.getSignature());
+													resolvedTypeParameter.getSignature(), parameter.getName(),
+													section.getTag(), expectedType.getSignature());
 											diagnostics.add(diagnostic);
 										}
 									}
@@ -1085,11 +1086,16 @@ class QuteDiagnostics {
 			return javaMember.getResolvedType();
 		}
 
-		if (javaMember.getJavaElementKind() == JavaElementKind.METHOD && ((JavaMethodInfo) javaMember).isVoidMethod()) {
-			return null;
+		String memberType = null;
+		if (javaMember.getJavaElementKind() == JavaElementKind.METHOD) {
+			JavaMethodInfo method = (JavaMethodInfo) javaMember;
+			if (method.isVoidMethod()) {
+				return null;
+			}
+			memberType = method.resolveReturnType(List.of(baseType));
+		} else {
+			memberType = javaMember.getJavaElementType();
 		}
-
-		String memberType = javaMember.resolveJavaElementType(iterableOfType);
 		return validateJavaTypePart(part, ownerSection, project, diagnostics, resolvingJavaTypeContext, memberType,
 				null);
 	}
@@ -1331,7 +1337,17 @@ class QuteDiagnostics {
 			validateRenardeFormSectionParameters(ownerSection, result.getMember(), baseType.getSignature(),
 					diagnostics);
 		}
-		String memberType = method.resolveJavaElementType(iterableOfType);
+
+		CompletableFuture<ResolvedJavaTypeInfo> returnTypeFuture = project.resolveJavaType(methodPart);
+		ResolvedJavaTypeInfo returnType = returnTypeFuture.getNow(QuteCompletableFutures.RESOLVING_JAVA_TYPE);
+		if (QuteCompletableFutures.isResolvingJavaType(returnType)) {
+			// Java type must be loaded.
+			LOGGER.log(Level.INFO, QuteErrorCode.ResolvingJavaType.getMessage(returnType));
+			resolvingJavaTypeContext.add(returnTypeFuture);
+			return QuteCompletableFutures.RESOLVING_JAVA_TYPE;
+		}
+
+		String memberType = returnType != null ? returnType.getSignature() : null;
 		return validateJavaTypePart(methodPart, ownerSection, project, diagnostics, resolvingJavaTypeContext,
 				memberType, null);
 	}

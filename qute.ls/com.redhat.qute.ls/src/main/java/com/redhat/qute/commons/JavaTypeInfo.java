@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
@@ -45,6 +46,10 @@ public class JavaTypeInfo extends JavaElementInfo {
 	private String name;
 
 	private Map<String /* invalid method name */, InvalidMethodReason> invalidMethods;
+
+	private transient String iterableOf;
+
+	private transient Boolean isIterable;
 
 	/**
 	 * Returns the fully qualified name of the Java type with type parameters.
@@ -419,6 +424,43 @@ public class JavaTypeInfo extends JavaElementInfo {
 			generics.put(getTypeParameters().get(i).getType(), typeParameters.get(i).getType());
 		}
 		return generics;
+	}
+	
+	/**
+	 * Returns iterable of and null otherwise.
+	 * 
+	 * @return iterable of and null otherwise.
+	 */
+	public void setIterableOf(String iterableOf) {
+		this.iterableOf = iterableOf;
+	}
+
+	/**
+	 * Returns iterable of.
+	 * 
+	 * @return iterable of.
+	 */
+	public String getIterableOf() {
+		if (iterableOf == null && isArray()) {
+			iterableOf = getName().substring(0, getName().length() - 2);
+		}
+		return iterableOf;
+	}
+	@Override
+	public int hashCode() {
+		return Objects.hash(getSignature());
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		JavaTypeInfo other = (JavaTypeInfo) obj;
+		return Objects.equals(getSignature(), other.getSignature());
 	}
 
 	@Override

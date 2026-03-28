@@ -108,6 +108,15 @@ public class QuteInlayHintTest {
 	}
 
 	@Test
+	public void ifTruthy() throws Exception {
+		String template = "{@java.lang.Boolean multiply}\r\n" + //
+				"{#let name=multiply.ifTruthy(\"arg\")}";
+		testInlayHintFor(template, //
+				ih(p(1, 10), ihLabel(":"),
+						ihLabel("String", "Open `java.lang.String` Java type.", cd("java.lang.String"))));
+	}
+
+	@Test
 	public void parameterCustomSection() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{#form name=item.name item.price bad=item.XXXX}\r\n" + // name[:String]=item.name

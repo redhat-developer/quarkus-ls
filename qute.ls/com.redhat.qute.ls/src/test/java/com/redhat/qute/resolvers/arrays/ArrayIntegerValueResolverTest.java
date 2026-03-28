@@ -47,14 +47,15 @@ public class ArrayIntegerValueResolverTest {
 		// test to check @java.lang.Integer(base : T[]) : T is not returned by the
 		// completion
 		testCompletionFor(template, //
-				7, //
+				9, //
 				c("length(base : T[]) : int", "length", r(1, 13, 1, 13)), //
 				c("size(base : T[]) : int", "size", r(1, 13, 1, 13)), //
 				c("get(base : T[], index : int) : T", "get(${1:index})$0", r(1, 13, 1, 13)), //
 				c("take(base : T[], n : int) : T[]", "take(${1:n})$0", r(1, 13, 1, 13)), //
 				c("takeLast(base : T[], n : int) : T[]", "takeLast(${1:n})$0", r(1, 13, 1, 13)), //
 				c("raw(base : Object) : RawString", "raw", r(1, 13, 1, 13)), //
-				c("safe(base : Object) : RawString", "safe", r(1, 13, 1, 13)));
+				c("safe(base : Object) : RawString", "safe", r(1, 13, 1, 13)), //
+				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(${1:arg})$0", r(1, 13, 1, 13)));
 
 		template = "{@org.acme.Item[] items}\r\n" + //
 				"Item: {items.0.|}";
@@ -73,7 +74,7 @@ public class ArrayIntegerValueResolverTest {
 				"Item: {items.0|}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"T @java.lang.Integer()" + //
+				"Item @java.lang.Integer()" + //
 				System.lineSeparator() + //
 				"```" + //
 				System.lineSeparator() + //

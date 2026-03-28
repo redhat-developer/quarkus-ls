@@ -30,17 +30,8 @@ public class IfTruthyValueResolverTest {
 	@Test
 	public void diagnostics() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
-				"{item.ifTruthy}";
+				"{item.ifTruthy('abcd')}";
 		testDiagnosticsFor(template);
-
-		template = "{@org.acme.Item item}\r\n" + //
-				"{item.ifTruthy('abcd').|}";
-		testCompletionFor(template, //
-				c("name : String", "name", r(1, 23, 1, 23)), //
-				c("price : BigInteger", "price", r(1, 23, 1, 23)), //
-				c("review : Review", "review", r(1, 23, 1, 23)), //
-				c("review2 : Review", "review2", r(1, 23, 1, 23)), //
-				c("getReview2() : Review", "getReview2", r(1, 23, 1, 23)));
 	}
 
 	@Test
@@ -48,17 +39,22 @@ public class IfTruthyValueResolverTest {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{item.name.|}";
 		testCompletionFor(template, //
-				c("ifTruthy(base : T, arg : Object) : T", "ifTruthy(arg)", r(1, 11, 1, 11)));
+				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(arg)", r(1, 11, 1, 11)));
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.name.ifTruthy('abcd').|}";
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.or('abcd').|}";
-		testCompletionFor(template, //
-				c("name : String", "name", r(1, 17, 1, 17)), //
-				c("price : BigInteger", "price", r(1, 17, 1, 17)), //
-				c("review : Review", "review", r(1, 17, 1, 17)), //
-				c("review2 : Review", "review2", r(1, 17, 1, 17)), //
-				c("getReview2() : Review", "getReview2", r(1, 17, 1, 17)));
+		testCompletionFor(template, 13, //
+				// - resolvers
+				c("orEmpty(base : T) : List<T>", "orEmpty", r(1, 17, 1, 17)),
+				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(${1:arg})$0", r(1, 17, 1, 17)),
+				c("or(base : Object, arg : T) : T", "or(${1:arg})$0", r(1, 17, 1, 17)),
+				// - String Java fields
+				c("UTF16 : byte", "UTF16", r(1, 17, 1, 17)),
+				// - String Java methods
+				c("getBytes() : byte[]", "getBytes", r(1, 17, 1, 17)),
+				c("getBytes(charsetName : String) : byte[]", "getBytes(${1:charsetName})$0", r(1, 17, 1, 17)),
+				c("charAt(index : int) : char", "charAt(${1:index})$0", r(1, 17, 1, 17)));
 	}
 
 	@Test
@@ -68,7 +64,7 @@ public class IfTruthyValueResolverTest {
 				"{item.name.i|fTruthy(item)}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"String ifTruthy(Object arg)" + //
+				"Item ifTruthy(Item arg)" + //
 				System.lineSeparator() + //
 				"```" + //
 				System.lineSeparator() + //

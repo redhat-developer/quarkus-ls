@@ -16,6 +16,8 @@ import static com.redhat.qute.ls.commons.snippets.SnippetRegistry.addLink;
 import static com.redhat.qute.ls.commons.snippets.SnippetRegistry.addLinks;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.lsp4j.MarkupContent;
@@ -79,9 +81,9 @@ public class DocumentationUtils {
 		return new MarkupContent(markdown ? MarkupKind.MARKDOWN : MarkupKind.PLAINTEXT, documentation.toString());
 	}
 
-	public static MarkupContent getDocumentation(MethodValueResolver resolver,
-			ResolvedJavaTypeInfo iterableOfResolvedType, boolean markdown) {
-		StringBuilder documentation = createDocumentation(resolver, iterableOfResolvedType, markdown);
+	public static MarkupContent getDocumentation(MethodValueResolver resolver, ResolvedJavaTypeInfo baseType,
+			List<ResolvedJavaTypeInfo> parameterTypes, boolean markdown) {
+		StringBuilder documentation = createDocumentation(resolver, baseType, parameterTypes, markdown);
 		if (resolver.getDescription() != null) {
 			documentation.append(System.lineSeparator());
 			documentation.append(resolver.getDescription());
@@ -121,15 +123,20 @@ public class DocumentationUtils {
 
 	public static MarkupContent getDocumentation(JavaMemberInfo member, ResolvedJavaTypeInfo iterableOfResolvedType,
 			boolean markdown) {
+		return getDocumentation(member, iterableOfResolvedType, Collections.emptyList(), markdown);
+	}
+
+	public static MarkupContent getDocumentation(JavaMemberInfo member, ResolvedJavaTypeInfo baseType,
+			List<ResolvedJavaTypeInfo> parameterTypes, boolean markdown) {
 		if (member instanceof MethodValueResolver) {
-			return getDocumentation((MethodValueResolver) member, iterableOfResolvedType, markdown);
+			return getDocumentation((MethodValueResolver) member, baseType, parameterTypes, markdown);
 		}
-		StringBuilder documentation = createDocumentation(member, iterableOfResolvedType, markdown);
+		StringBuilder documentation = createDocumentation(member, baseType, parameterTypes, markdown);
 		return createMarkupContent(documentation, markdown);
 	}
 
-	private static StringBuilder createDocumentation(JavaMemberInfo member, ResolvedJavaTypeInfo iterableOfResolvedType,
-			boolean markdown) {
+	private static StringBuilder createDocumentation(JavaMemberInfo member, ResolvedJavaTypeInfo baseType,
+			List<ResolvedJavaTypeInfo> argumentTypes, boolean markdown) {
 		StringBuilder documentation = new StringBuilder();
 
 		// Title
@@ -137,11 +144,30 @@ public class DocumentationUtils {
 			documentation.append("```java");
 			documentation.append(System.lineSeparator());
 		}
-		if (member.getJavaElementKind() == JavaElementKind.METHOD && ((JavaMethodInfo) member).isVoidMethod()) {
-			documentation.append("void");
+
+		boolean isMethod = member.getJavaElementKind() == JavaElementKind.METHOD;
+
+		// Generate Type
+		if (isMethod) {
+			// Method --> return type
+			JavaMethodInfo method = (JavaMethodInfo) member;
+			if (method.isVoidMethod()) {
+				documentation.append("void");
+			} else {
+				var args = argumentTypes;
+				if (method.isVirtual() && baseType != null) {
+					args = new ArrayList<>();
+					args.add(baseType);
+					args.addAll(argumentTypes);
+				}
+				documentation.append(getSimpleType(method.resolveReturnType(args)));
+			}
 		} else {
-			documentation.append(getSimpleType(member.resolveJavaElementType(iterableOfResolvedType)));
+			// Field --> type
+			documentation.append(getSimpleType(member.getJavaElementType()));
 		}
+
+		// Generate Source Type
 		documentation.append(" ");
 		String sourceType = member.getSourceType();
 		if (sourceType != null) {
@@ -150,17 +176,16 @@ public class DocumentationUtils {
 		}
 		documentation.append(member.getName());
 
-		if (member.getJavaElementKind() == JavaElementKind.METHOD) {
+		// Generate Parameters Type
+		if (isMethod) {
 			documentation.append('(');
-			JavaMethodInfo methodInfo = (JavaMethodInfo) member;
-			boolean virtualMethod = methodInfo.isVirtual();
-			List<JavaParameterInfo> parameters = methodInfo.getParameters();
-			int start = virtualMethod ? 1 : 0;
-			for (int i = start; i < parameters.size(); i++) {
+			JavaMethodInfo method = (JavaMethodInfo) member;
+			List<JavaParameterInfo> parameters = method.getApplicableParameters();
+			for (int i = 0; i < parameters.size(); i++) {
 				JavaParameterInfo parameter = parameters.get(i);
-				String type = parameter.getJavaElementSimpleType();
+				String type = getArgType(argumentTypes, i, parameter);
 				String name = parameter.getName();
-				if (i > start) {
+				if (i > 0) {
 					documentation.append(", ");
 				}
 				documentation.append(type);
@@ -184,6 +209,15 @@ public class DocumentationUtils {
 			documentation.append(member.getDocumentation());
 		}
 		return documentation;
+	}
+
+	private static String getArgType(List<ResolvedJavaTypeInfo> argumentTypes, int i, JavaParameterInfo parameter) {
+		if (parameter.getJavaType().isGenericType()) {
+			if (i < argumentTypes.size()) {
+				return argumentTypes.get(i).getJavaElementSimpleType();
+			}
+		}
+		return parameter.getJavaElementSimpleType();
 	}
 
 	public static MarkupContent getDocumentation(UserTag userTag, boolean markdown) {

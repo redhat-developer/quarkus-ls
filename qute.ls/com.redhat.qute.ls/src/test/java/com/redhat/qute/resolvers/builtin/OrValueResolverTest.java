@@ -35,7 +35,7 @@ public class OrValueResolverTest {
 	@Test
 	public void validDiagnostics() {
 		String template = "{@org.acme.Item item}\r\n" + //
-				"{item.or}";
+				"{item.name.or('John')}";
 		testDiagnosticsFor(template);
 
 		template = "{@org.acme.Item item}\r\n" + //
@@ -77,26 +77,31 @@ public class OrValueResolverTest {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{item.name.|}";
 		testCompletionFor(template, //
-				c("or(base : T, arg : Object) : T", "or(arg)", r(1, 11, 1, 11)));
+				c("or(base : Object, arg : T) : T", "or(arg)", r(1, 11, 1, 11)));
 
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.or('abcd').|}";
-		testCompletionFor(template, //
-				c("name : String", "name", r(1, 17, 1, 17)), //
-				c("price : BigInteger", "price", r(1, 17, 1, 17)), //
-				c("review : Review", "review", r(1, 17, 1, 17)), //
-				c("review2 : Review", "review2", r(1, 17, 1, 17)), //
-				c("getReview2() : Review", "getReview2", r(1, 17, 1, 17)));
+		testCompletionFor(template, 13, //
+				// - resolvers
+				c("orEmpty(base : T) : List<T>", "orEmpty", r(1, 17, 1, 17)),
+				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(${1:arg})$0", r(1, 17, 1, 17)),
+				c("or(base : Object, arg : T) : T", "or(${1:arg})$0", r(1, 17, 1, 17)),
+				// - String Java fields
+				c("UTF16 : byte", "UTF16", r(1, 17, 1, 17)),
+				// - String Java methods
+				c("getBytes() : byte[]", "getBytes", r(1, 17, 1, 17)),
+				c("getBytes(charsetName : String) : byte[]", "getBytes(${1:charsetName})$0", r(1, 17, 1, 17)),
+				c("charAt(index : int) : char", "charAt(${1:index})$0", r(1, 17, 1, 17)));
 	}
 
 	@Test
 	public void hover() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				" \r\n" + //
-				"{item.name.o|r('John')}";
+				"{item.o|r('John')}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"String or(Object arg)" + //
+				"String or(String arg)" + //
 				System.lineSeparator() + //
 				"```" + //
 				System.lineSeparator() + //
@@ -116,7 +121,7 @@ public class OrValueResolverTest {
 				"```" + //
 				System.lineSeparator() + //
 				"See [here](https://quarkus.io/guides/qute-reference#built-in-resolvers) for more informations.", //
-				r(2, 11, 2, 13));
+				r(2, 6, 2, 8));
 	}
 
 	@Test
@@ -126,7 +131,7 @@ public class OrValueResolverTest {
 				"{item.name o|r 'John'}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"String or(Object arg)" + //
+				"String or(String arg)" + //
 				System.lineSeparator() + //
 				"```" + //
 				System.lineSeparator() + //

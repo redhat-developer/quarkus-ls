@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -79,9 +80,8 @@ public class ResolvedJavaTypeInfoTest {
 
 	@Test
 	public void embedTypeParameters() {
-		String signature = "java.util.Set<java.util.Map$Entry<String,org.acme.Item>>";
 		ResolvedJavaTypeInfo type = new ResolvedJavaTypeInfo();
-		type.setSignature(signature);
+		type.setSignature("java.util.Set<java.util.Map$Entry<String,org.acme.Item>>");
 
 		List<JavaParameterInfo> setTypeParameters = type.getTypeParameters();
 		assertEquals(1, setTypeParameters.size());
@@ -180,4 +180,223 @@ public class ResolvedJavaTypeInfoTest {
 		assertEquals("getD() : Map<List<Item>,String>", methods.get(2).getSimpleSignature());
 	}
 
+	// ─── Case 1: T arg → T (direct resolution) ────────────────────────────────
+
+	@Test
+	public void resolveReturnType_simpleT() {
+		// get(arg : T) : T + [org.acme.Item] → org.acme.Item
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("get(arg : T) : T");
+
+		ResolvedJavaTypeInfo item = new ResolvedJavaTypeInfo();
+		item.setSignature("org.acme.Item");
+
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(item)));
+	}
+
+	@Test
+	public void resolveReturnType_simpleT_primitive() {
+		// get(arg : T) : T + [int] → int
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("get(arg : T) : T");
+
+		ResolvedJavaTypeInfo intType = new ResolvedJavaTypeInfo();
+		intType.setSignature("int");
+
+		assertEquals("int", method.resolveReturnType(List.of(intType)));
+	}
+
+	@Test
+	public void resolveReturnType_simpleT_noArgs_fallbackToObject() {
+		// get(arg : T) : T + []
+		// T unresolved → java.lang.Object
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("get(arg : T) : T");
+
+		assertEquals("java.lang.Object", method.resolveReturnType(Collections.emptyList()));
+	}
+
+	// ─── Case 2: List<T> arg → T (inference from parameterized type) ──────────
+
+	@Test
+	public void resolveReturnType_listT_returnsT() {
+		// get(arg : java.util.List<T>) : T + [java.util.List<org.acme.Item>] →
+		// org.acme.Item
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("get(arg : java.util.List<T>) : T");
+
+		ResolvedJavaTypeInfo listOfItem = new ResolvedJavaTypeInfo();
+		listOfItem.setSignature("java.util.List<org.acme.Item>");
+
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(listOfItem)));
+	}
+
+	@Test
+	public void resolveReturnType_listT_returnsListT() {
+		// filter(arg : java.util.List<T>) : java.util.List<T> + [List<Item>] →
+		// java.util.List<org.acme.Item>
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("filter(arg : java.util.List<T>) : java.util.List<T>");
+
+		ResolvedJavaTypeInfo listOfItem = new ResolvedJavaTypeInfo();
+		listOfItem.setSignature("java.util.List<org.acme.Item>");
+
+		assertEquals("java.util.List<org.acme.Item>", method.resolveReturnType(List.of(listOfItem)));
+	}
+
+	// ─── Case 3: Class<T> arg → T (CDI/find pattern) ─────────────────────────
+
+	@Test
+	public void resolveReturnType_classT_returnsT() {
+		// find(clazz : java.lang.Class<T>) : T + [java.lang.Class<org.acme.Item>] →
+		// org.acme.Item
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("find(clazz : java.lang.Class<T>) : T");
+
+		ResolvedJavaTypeInfo classOfItem = new ResolvedJavaTypeInfo();
+		classOfItem.setSignature("java.lang.Class<org.acme.Item>");
+
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(classOfItem)));
+	}
+
+	@Test
+	public void resolveReturnType_classT_returnsListT() {
+		// findAll(clazz : java.lang.Class<T>) : java.util.List<T> + [Class<Item>] →
+		// java.util.List<org.acme.Item>
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("findAll(clazz : java.lang.Class<T>) : java.util.List<T>");
+
+		ResolvedJavaTypeInfo classOfItem = new ResolvedJavaTypeInfo();
+		classOfItem.setSignature("java.lang.Class<org.acme.Item>");
+
+		assertEquals("java.util.List<org.acme.Item>", method.resolveReturnType(List.of(classOfItem)));
+	}
+
+	// ─── Case 4: K key, V value → Map<K,V> (multi-generics) ──────────────────
+
+	@Test
+	public void resolveReturnType_multiGenerics_mapKV() {
+		// put(key : K, value : V) : java.util.Map<K,V> + [String, Item] →
+		// java.util.Map<java.lang.String,org.acme.Item>
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("put(key : K, value : V) : java.util.Map<K,V>");
+
+		ResolvedJavaTypeInfo string = new ResolvedJavaTypeInfo();
+		string.setSignature("java.lang.String");
+		ResolvedJavaTypeInfo item = new ResolvedJavaTypeInfo();
+		item.setSignature("org.acme.Item");
+
+		assertEquals("java.util.Map<java.lang.String,org.acme.Item>", method.resolveReturnType(List.of(string, item)));
+	}
+
+	@Test
+	public void resolveReturnType_multiGenerics_partialArgs_partialResolution() {
+		// put(key : K, value : V) : java.util.Map<K,V> + [String]
+		// K resolved → java.lang.String, V unresolved → stays V
+		// result: java.util.Map<java.lang.String,V>
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("put(key : K, value : V) : java.util.Map<K,V>");
+
+		ResolvedJavaTypeInfo string = new ResolvedJavaTypeInfo();
+		string.setSignature("java.lang.String");
+
+		assertEquals("java.util.Map<java.lang.String,java.lang.Object>", method.resolveReturnType(List.of(string)));
+	}
+
+	// ─── No generics: returned as-is ──────────────────────────────────────────
+
+	@Test
+	public void resolveReturnType_noGeneric_primitive() {
+		// size() : int → int (nothing to resolve)
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("size() : int");
+
+		assertEquals("int", method.resolveReturnType(Collections.emptyList()));
+	}
+
+	@Test
+	public void resolveReturnType_noGeneric_concreteType() {
+		// getName() : java.lang.String → java.lang.String
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("getName() : java.lang.String");
+
+		assertEquals("java.lang.String", method.resolveReturnType(Collections.emptyList()));
+	}
+
+	// ─── Void method ──────────────────────────────────────────────────────────
+
+	@Test
+	public void resolveReturnType_voidMethod_returnsVoid() {
+		// save(item : T) : void → "void"
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("save(item : T) : void");
+
+		ResolvedJavaTypeInfo item = new ResolvedJavaTypeInfo();
+		item.setSignature("org.acme.Item");
+
+		assertEquals("void", method.resolveReturnType(List.of(item)));
+	}
+
+	// ─── Case 5: baseType resolution ──────────────────────────────────────────
+
+	@Test
+	public void resolveReturnType_baseType_array_get() {
+		// get(base : T[], index : int) : T + baseType=org.acme.Item[] → org.acme.Item
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("get(base : T[], index : int) : T");
+
+		ResolvedJavaTypeInfo itemArray = new ResolvedJavaTypeInfo();
+		itemArray.setSignature("org.acme.Item[]");
+		itemArray.setIterableOf("org.acme.Item");
+
+		ResolvedJavaTypeInfo intType = new ResolvedJavaTypeInfo();
+		intType.setSignature("int");
+
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(itemArray, intType)));
+	}
+
+	@Test
+	public void resolveReturnType_baseType_list_get() {
+		// get(base : java.util.List<T>, index : int) : T +
+		// baseType=java.util.List<org.acme.Item> → org.acme.Item
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("get(base : java.util.List<T>, index : int) : T");
+
+		ResolvedJavaTypeInfo listOfItem = new ResolvedJavaTypeInfo();
+		listOfItem.setSignature("java.util.List<org.acme.Item>");
+
+		ResolvedJavaTypeInfo intType = new ResolvedJavaTypeInfo();
+		intType.setSignature("int");
+
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(listOfItem, intType)));
+	}
+
+	@Test
+	public void resolveReturnType_baseType_map_get() {
+		// get(base : java.util.Map<K,V>, key : K) : V +
+		// baseType=java.util.Map<java.lang.String,org.acme.Item> → org.acme.Item
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("get(base : java.util.Map<K,V>, key : K) : V");
+
+		ResolvedJavaTypeInfo mapType = new ResolvedJavaTypeInfo();
+		mapType.setSignature("java.util.Map<java.lang.String,org.acme.Item>");
+
+		ResolvedJavaTypeInfo string = new ResolvedJavaTypeInfo();
+		string.setSignature("java.lang.String");
+
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(mapType, string)));
+	}
+
+	@Test
+	public void resolveReturnType_baseType_noArgs() {
+		// first(base : java.util.List<T>) : T + baseType=java.util.List<org.acme.Item>,
+		// args=[] → org.acme.Item
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("first(base : java.util.List<T>) : T");
+
+		ResolvedJavaTypeInfo listOfItem = new ResolvedJavaTypeInfo();
+		listOfItem.setSignature("java.util.List<org.acme.Item>");
+
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(listOfItem)));
+	}
 }

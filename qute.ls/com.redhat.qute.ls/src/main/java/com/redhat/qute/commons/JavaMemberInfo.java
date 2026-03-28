@@ -63,19 +63,6 @@ public abstract class JavaMemberInfo extends JavaElementInfo {
 	}
 
 	/**
-	 * Resolve the element type which could use generic by using the given argument
-	 * java type.
-	 * 
-	 * @param argType the argument Java type.
-	 * 
-	 * @return the element type which could use generic by using the given argument
-	 *         java type.
-	 */
-	public String resolveJavaElementType(ResolvedJavaTypeInfo argType) {
-		return getJavaElementType();
-	}
-
-	/**
 	 * Returns the generic version of this member, or null in the case that there is
 	 * no generic version or this is already the generic version.
 	 * 

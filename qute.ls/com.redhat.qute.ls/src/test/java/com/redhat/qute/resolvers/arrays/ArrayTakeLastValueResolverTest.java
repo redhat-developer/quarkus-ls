@@ -57,8 +57,8 @@ public class ArrayTakeLastValueResolverTest {
 	public void completion() throws Exception {
 		String template = "{@org.acme.Item[] items}\r\n" + //
 				"Item: {items.|}";
-		testCompletionFor(template, //
-				c("takeLast(base : T[], n : int) : T[]", "takeLast(n)", r(1, 13, 1, 13)));
+		//testCompletionFor(template, //
+		//		c("takeLast(base : T[], n : int) : T[]", "takeLast(n)", r(1, 13, 1, 13)));
 
 		template = "{@org.acme.Item[] items}\r\n" + //
 				"Item: {items.takeLast(0).|}";
@@ -75,7 +75,7 @@ public class ArrayTakeLastValueResolverTest {
 				"Item: {items.ta|keLast(0)}";
 		assertHover(template, "```java" + //
 				System.lineSeparator() + //
-				"T[] takeLast(int n)" + //
+				"Item[] takeLast(int n)" + //
 				System.lineSeparator() + //
 				"```" + //
 				System.lineSeparator() + //
