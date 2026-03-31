@@ -31,7 +31,7 @@ public abstract class AbstractProjectExtension implements ProjectExtension {
 		if (feature != null) {
 			this.enabled = dataModelProject.hasProjectFeature(feature);
 		}
-		doInit(dataModelProject);
+		init(dataModelProject, isEnabled());
 	}
 
 	/**
@@ -59,5 +59,5 @@ public abstract class AbstractProjectExtension implements ProjectExtension {
 		return dataModelProject;
 	}
 
-	protected abstract void doInit(ExtendedDataModelProject dataModelProject);
+	protected abstract void init(ExtendedDataModelProject dataModelProject, boolean enabled);
 }

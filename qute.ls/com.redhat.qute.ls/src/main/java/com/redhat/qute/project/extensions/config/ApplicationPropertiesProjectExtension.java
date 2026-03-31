@@ -34,7 +34,7 @@ public class ApplicationPropertiesProjectExtension extends AbstractProjectExtens
 	}
 
 	@Override
-	protected void doInit(ExtendedDataModelProject dataModelProject) {
+	protected void init(ExtendedDataModelProject dataModelProject, boolean enbaled) {
 
 	}
 

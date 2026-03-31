@@ -94,8 +94,8 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 			}
 			return 0;
 		});
-		allNamespaces = getAllNamespaces(dataModelProject);
 		allTemplateExtensionsClasses = getAllTemplateExtensionsClasses(dataModelProject);
+		allNamespaces = getAllNamespaces(dataModelProject);
 		similarNamespaces = getSimilarNamespaces(dataModelProject);
 	}
 
@@ -354,5 +354,23 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 
 	public boolean isBinary(Template template) {
 		return project.findBinaryDocument(template.getUri()) != null;
+	}
+
+	@Override
+	public void registerNamespaceResolver(NamespaceResolverInfo namespaceResolverInfo) {
+		var namespaces = namespaceResolverInfo.getNamespaces();
+		for (String namespace : namespaces) {
+			this.allNamespaces.add(namespace);
+		}
+		super.registerNamespaceResolver(namespaceResolverInfo);
+	}
+
+	@Override
+	public void unregisterNamespaceResolver(NamespaceResolverInfo namespaceResolverInfo) {
+		var namespaces = namespaceResolverInfo.getNamespaces();
+		for (String namespace : namespaces) {
+			this.allNamespaces.remove(namespace);
+		}
+		super.unregisterNamespaceResolver(namespaceResolverInfo);
 	}
 }

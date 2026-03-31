@@ -111,11 +111,11 @@ public class RenardeProjectExtension extends AbstractProjectExtension
 	}
 
 	@Override
-	protected void doInit(ExtendedDataModelProject dataModelProject) {
+	protected void init(ExtendedDataModelProject dataModelProject, boolean enabled) {
 		// Check if the m: namespace resolver exists in the project
 		sourcePaths = dataModelProject.getSourcePaths();
 
-		if (!isEnabled()) {
+		if (!enabled) {
 			messagesFileInfos.clear();
 			return;
 		}

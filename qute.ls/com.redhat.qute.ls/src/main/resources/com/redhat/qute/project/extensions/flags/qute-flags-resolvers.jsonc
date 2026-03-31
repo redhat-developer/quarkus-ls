@@ -1,0 +1,53 @@
+{
+	"resolvers": [
+		// See https://github.com/quarkiverse/quarkus-flags/blob/main/qute/runtime/src/main/java/io/quarkiverse/flags/qute/FlagNamespaceResolver.java
+		{
+			"namespace": "flag",
+			"signature": "flags() : java.util.List<io.quarkiverse.flags.Flag>",
+			"description": "Flag enabled.",
+			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
+		},
+		{
+			"namespace": "flag",
+			"signature": "bool(key: java.lang.String) : java.lang.Boolean",
+			"description": "Flag bool.",
+			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
+		},
+		{
+			"namespace": "flag",
+			"signature": "enabled(key: java.lang.String) : java.lang.Boolean",
+			"description": "Flag enabled.",
+			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
+		},
+		{
+			"namespace": "flag",
+			"signature": "disabled(key: java.lang.String) : java.lang.Boolean",
+			"description": "Flag disabled.",
+			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
+		},
+		{
+			"namespace": "flag",
+			"signature": "string(key: java.lang.String) : java.lang.String",
+			"description": "Flag string.",
+			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
+		},
+		{
+			"namespace": "flag",
+			"signature": "int(key: java.lang.String) : int",
+			"description": "Flag int.",
+			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
+		},
+		{
+			"namespace": "flag",
+			"signature": "meta(key: java.lang.String) : java.util.Map<java.lang.String, java.lang.String>",
+			"description": "Flag meta.",
+			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
+		},
+		{
+			"namespace": "flag",
+			"signature": "find(key: java.lang.String) : io.quarkiverse.flags.Flag",
+			"description": "Flag find.",
+			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
+		}
+	]
+}

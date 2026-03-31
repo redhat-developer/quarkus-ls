@@ -78,6 +78,18 @@ public class DataModelProject<T extends DataModelTemplate<?>> {
 		this.namespaceResolverInfos = namespaceResolverInfos;
 	}
 
+	public void registerNamespaceResolver(NamespaceResolverInfo namespaceResolverInfo) {
+		for (String namespace : namespaceResolverInfo.getNamespaces()) {
+			this.namespaceResolverInfos.put(namespace, namespaceResolverInfo);
+		}
+	}
+
+	public void unregisterNamespaceResolver(NamespaceResolverInfo namespaceResolverInfo) {
+		for (String namespace : namespaceResolverInfo.getNamespaces()) {
+			this.namespaceResolverInfos.remove(namespace);
+		}
+	}
+
 	public List<ValueResolverInfo> getValueResolvers() {
 		return valueResolvers;
 	}

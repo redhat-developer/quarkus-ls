@@ -28,7 +28,7 @@ public class WebBundlerProjectExtension extends AbstractProjectExtension {
 	}
 
 	@Override
-	protected void doInit(ExtendedDataModelProject dataModelProject) {
+	protected void init(ExtendedDataModelProject dataModelProject, boolean enabled) {
 
 	}
 
