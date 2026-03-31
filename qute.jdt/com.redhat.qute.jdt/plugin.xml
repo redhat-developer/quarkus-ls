@@ -77,6 +77,12 @@
                 class="com.redhat.qute.jdt.internal.extensions.quarkus.InjectNamespaceResolverSupport" />
    </extension>
 
+   <!-- =========== Flags extension =========== -->
+
+   <extension point="com.redhat.qute.jdt.projectFeatureProviders">
+      <provider class="com.redhat.qute.jdt.internal.extensions.flags.FlagsProjectFeatureProvider" />
+   </extension>
+   
    <!-- =========== Renarde extension =========== -->
 
    <extension point="com.redhat.qute.jdt.projectFeatureProviders">

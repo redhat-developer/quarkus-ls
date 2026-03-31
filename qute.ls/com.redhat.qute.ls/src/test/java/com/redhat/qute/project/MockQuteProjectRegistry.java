@@ -45,6 +45,7 @@ import com.redhat.qute.ls.api.QuteJavadocProvider;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.api.QuteResolvedJavaTypeProvider;
 import com.redhat.qute.project.documents.TemplateValidator;
+import com.redhat.qute.project.flags.FlagsProject;
 import com.redhat.qute.project.multiple.QuteProjectA;
 import com.redhat.qute.project.multiple.QuteProjectB;
 import com.redhat.qute.project.qute_web.QuteWebProject;
@@ -90,6 +91,9 @@ public class MockQuteProjectRegistry extends QuteProjectRegistry {
 		}
 		if (RoqProject.PROJECT_URI.equals(projectInfo.getUri())) {
 			return new RoqProject(this);
+		}
+		if (FlagsProject.PROJECT_URI.equals(projectInfo.getUri())) {
+			return new FlagsProject(this);
 		}
 		if (QuteWebProject.PROJECT_URI.equals(projectInfo.getUri())) {
 			return new QuteWebProject(projectInfo, this);

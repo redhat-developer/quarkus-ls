@@ -21,10 +21,7 @@ public class ValueResolversRegistry {
 	private List<MethodValueResolver> resolvers;
 
 	public ValueResolversRegistry() {
-		ValueResolverLoader loader = new Gson().fromJson(
-				new InputStreamReader(ValueResolversRegistry.class.getResourceAsStream("qute-resolvers.jsonc")),
-				ValueResolverLoader.class);
-		this.resolvers = loader.getResolvers();
+		this.resolvers = loadValueResolvers("qute-resolvers.jsonc", ValueResolversRegistry.class);
 	}
 
 	public List<MethodValueResolver> getResolvers() {
@@ -37,5 +34,11 @@ public class ValueResolversRegistry {
 		public List<MethodValueResolver> getResolvers() {
 			return resolvers;
 		}
+	}
+
+	public static List<MethodValueResolver> loadValueResolvers(String fileName, Class<?> clazz) {
+		ValueResolverLoader loader = new Gson().fromJson(new InputStreamReader(clazz.getResourceAsStream(fileName)),
+				ValueResolverLoader.class);
+		return loader.getResolvers();
 	}
 }

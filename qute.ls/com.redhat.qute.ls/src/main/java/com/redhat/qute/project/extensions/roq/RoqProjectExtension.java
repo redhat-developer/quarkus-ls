@@ -231,8 +231,8 @@ public class RoqProjectExtension extends AbstractProjectExtension
 	 * @param dataModelProject The project data model to extend
 	 */
 	@Override
-	protected void doInit(ExtendedDataModelProject dataModelProject) {
-		if (isEnabled()) {
+	protected void init(ExtendedDataModelProject dataModelProject, boolean enabled) {
+		if (enabled) {
 			scanDataDir(dataModelProject);
 			contentDir = dataModelProject.getConfigAsPath(RoqConfig.SITE_CONTENT_DIR);
 
