@@ -35,11 +35,13 @@ public class ExpressionParameter extends Expression {
 	// The own section of the expression (ex : #let of {#let
 	// name=EXPRESSION_PARAMETER})
 	private final Section ownerSection;
+	private final boolean canSupportInfixNotation;
 
-	ExpressionParameter(int start, int end, Section ownerSection) {
+	ExpressionParameter(int start, int end, boolean canSupportInfixNotation, Section ownerSection) {
 		super(start, end);
 		this.ownerSection = ownerSection;
 		super.setParent(ownerSection);
+		this.canSupportInfixNotation = canSupportInfixNotation;
 	}
 
 	/**
@@ -59,7 +61,7 @@ public class ExpressionParameter extends Expression {
 
 	@Override
 	public boolean canSupportInfixNotation() {
-		return false;
+		return canSupportInfixNotation;
 	}
 
 	/**
@@ -90,12 +92,12 @@ public class ExpressionParameter extends Expression {
 	public Section getOwnerSection() {
 		return ownerSection;
 	}
-	
+
 	@Override
 	public int getStartContentOffset() {
 		return super.getStart();
 	}
-	
+
 	@Override
 	public int getEndContentOffset() {
 		return super.getEnd();

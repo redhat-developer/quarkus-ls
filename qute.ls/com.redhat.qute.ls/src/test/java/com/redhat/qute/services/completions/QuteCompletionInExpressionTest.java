@@ -392,7 +392,7 @@ public class QuteCompletionInExpressionTest {
 	public void globalVariablesMethodPart() throws Exception {
 		String template = "{GLOBAL.|";
 		testCompletionFor(template, //
-				13, //
+				15, //
 				// - resolvers
 				c("orEmpty(base : T) : List<T>", "orEmpty", r(0, 8, 0, 8)),
 				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(${1:arg})$0", r(0, 8, 0, 8)),
@@ -410,7 +410,7 @@ public class QuteCompletionInExpressionTest {
 		String template = "{@org.acme.qute.cyclic.ClassA classA}\n" + //
 				"{classA.|";
 		// Base resolvers for an object, plus a method and a field from ClassA
-		testCompletionFor(template, 7);
+		testCompletionFor(template, 9);
 	}
 
 	@Test
@@ -418,7 +418,7 @@ public class QuteCompletionInExpressionTest {
 		String template = "{@org.acme.qute.cyclic.ClassAWithGeneric<java.lang.String> classA}\n" + //
 				"{classA.|";
 		// Base resolvers for an object, plus a method and a field from ClassA
-		testCompletionFor(template, 7);
+		testCompletionFor(template, 9);
 	}
 
 	public void multipleDeclarationsOfSameParameter() throws Exception {

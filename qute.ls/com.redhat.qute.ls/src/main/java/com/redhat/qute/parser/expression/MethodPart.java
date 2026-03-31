@@ -58,7 +58,7 @@ public class MethodPart extends MemberPart implements ParametersContainer {
 	public PartKind getPartKind() {
 		return PartKind.Method;
 	}
-	
+
 	@Override
 	public JavaTypeInfoProvider resolveJavaType() {
 		Template template = super.getOwnerTemplate();
@@ -95,6 +95,10 @@ public class MethodPart extends MemberPart implements ParametersContainer {
 		return openBracketOffset != NULL_VALUE;
 	}
 
+	public int getOpenBracketOffset() {
+		return openBracketOffset;
+	}
+
 	/**
 	 * Set the close bracket offset.
 	 *
@@ -116,6 +120,10 @@ public class MethodPart extends MemberPart implements ParametersContainer {
 	 */
 	public boolean hasCloseBracket() {
 		return closeBracketOffset != NULL_VALUE;
+	}
+
+	public int getCloseBracketOffset() {
+		return closeBracketOffset;
 	}
 
 	// ---------------------------- Parameters methods

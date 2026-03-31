@@ -1,5 +1,12 @@
 {@sandbox.Item item}
 
-{@String multiply = true}
+{@String multiply = item}
 
 {multiply.or(true)}
+
+{foo ? item : 'bar'}
+
+{foo && bar}
+{foo.&&(bar)}
+
+{item.is(null)}

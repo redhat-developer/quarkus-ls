@@ -48,6 +48,7 @@ public class InfixNotationMethodPart extends MethodPart {
 		operators.put("&&", null);
 		// Logical OR Operator: {person.isActive || person.hasStyle}
 		operators.put("||", null);
+		operators.put("==", null);
 	}
 
 	public InfixNotationMethodPart(int start, int end) {
@@ -89,12 +90,16 @@ public class InfixNotationMethodPart extends MethodPart {
 	 */
 	@Override
 	public boolean isOperator() {
-		return operators.containsKey(getPartName());
+		return isSymbolOperator(getPartName());
 	}
 
 	@Override
 	public boolean isOrOperator() {
 		String partName = getPartName();
 		return ELVIS_OPERATOR.equals(partName) || OR_OPERATOR.equals(partName);
+	}
+
+	public static boolean isSymbolOperator(String name) {
+		return operators.containsKey(name);
 	}
 }

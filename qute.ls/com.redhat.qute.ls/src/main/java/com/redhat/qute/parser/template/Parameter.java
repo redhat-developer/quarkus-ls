@@ -167,7 +167,22 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 			startExpression = getStartValue();
 			endExpression = getEndValue();
 		}
-		expression = new ExpressionParameter(startExpression, endExpression, getOwnerSection());
+
+		boolean canSupportInfixNotation = false;
+		// If value is wrapped in parentheses ex: (p1 ? p2 : p3),
+		// strip the outer parentheses from the expression offsets
+		// without creating a String to avoid memory overhead
+		Template template = getOwnerTemplate();
+		String templateText = template != null ? template.getText() : container.getTemplateContent();
+		if (endExpression > startExpression && templateText.charAt(startExpression) == '('
+				&& templateText.charAt(endExpression - 1) == ')') {
+			startExpression++;
+			endExpression--;
+			canSupportInfixNotation = true;
+		}
+
+		expression = new ExpressionParameter(startExpression, endExpression, canSupportInfixNotation,
+				getOwnerSection());
 		expression.setParent(this);
 		expression.setClosed(true);
 		return expression;
@@ -234,8 +249,7 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 	 * with ??) and false otherwise.
 	 *
 	 * <p>
-	 * {#let bar=foo??}
-	 * {#if foo??}
+	 * {#let bar=foo??} {#if foo??}
 	 * </p>
 	 *
 	 * @return true if the last part of the expression parameter is optional (ends
@@ -248,12 +262,10 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 
 	/**
 	 * Returns true if the parameter uses '?' to assign value (ex : #let
-	 * name?="foo")
-	 * which means that name has default value and false other.
+	 * name?="foo") which means that name has default value and false other.
 	 * 
 	 * @return true if the parameter uses '?' to assign value (ex : #let
-	 *         name?="foo")
-	 *         which means that name has default value and false other.
+	 *         name?="foo") which means that name has default value and false other.
 	 */
 	public boolean hasDefaultValue() {
 		return hasDefaultValue;

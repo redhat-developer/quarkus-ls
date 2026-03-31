@@ -334,7 +334,7 @@ public class QuteCompletionsForExpression {
 		// - Dynamic value resolvers (from @TemplateExtension)
 		List<MethodValueResolver> resolvers = project.getResolversFor(baseType);
 		for (MethodValueResolver method : resolvers) {
-			if (method.isValidName() && isValidInfixNotation(method, infixNotation)) {
+			if (!method.isSymbolOperator() && method.isValidName() && isValidInfixNotation(method, infixNotation)) {
 				fillCompletionMethod(method, javaTypeAccessibility, null, range, infixNotation, completionSettings,
 						formattingSettings, completionItems);
 			}

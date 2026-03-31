@@ -242,7 +242,7 @@ public class QuteCompletionInExpressionWithForSectionTest {
 				"			{/for}\r\n" + //
 				"		{/for}";
 		testCompletionFor(template, //
-				13, //
+				15, //
 				// - resolvers
 				c("orEmpty(base : T) : List<T>", "orEmpty", r(4, 15, 4, 15)),
 				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(${1:arg})$0", r(4, 15, 4, 15)),

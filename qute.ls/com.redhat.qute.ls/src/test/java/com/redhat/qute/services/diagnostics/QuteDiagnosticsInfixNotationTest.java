@@ -138,7 +138,12 @@ public class QuteDiagnosticsInfixNotationTest {
 
 		template = "{@java.lang.String foo}\r\n" + //
 				"{foo :? foo : }"; //
-		testDiagnosticsFor(template);
+		testDiagnosticsFor(template, //
+				d(1, 5, 1, 7, QuteErrorCode.UnknownMethod,
+						"`:?` cannot be resolved or is not a method of `java.lang.String` Java type.",
+						new JavaBaseTypeOfPartData("java.lang.String"), DiagnosticSeverity.Error), //
+				d(1, 12, 1, 13, QuteErrorCode.InfixNotationParameterRequired,
+						"A parameter for the infix notation method `:` is required.", DiagnosticSeverity.Error));
 	}
 
 	@Test

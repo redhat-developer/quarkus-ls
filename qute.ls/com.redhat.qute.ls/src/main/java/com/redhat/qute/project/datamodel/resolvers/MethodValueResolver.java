@@ -20,6 +20,7 @@ import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
+import com.redhat.qute.parser.expression.InfixNotationMethodPart;
 import com.redhat.qute.parser.template.DocumentableItem;
 import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Node;
@@ -261,6 +262,10 @@ public class MethodValueResolver extends JavaMethodInfo
 	 */
 	public boolean isMatchNameAny() {
 		return getMatchNames() != null && getMatchNames().contains(MATCH_NAME_ANY);
+	}
+
+	public boolean isSymbolOperator() {
+		return InfixNotationMethodPart.isSymbolOperator(getName());
 	}
 
 	@Override

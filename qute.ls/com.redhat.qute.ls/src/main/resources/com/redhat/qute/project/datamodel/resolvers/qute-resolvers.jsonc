@@ -2,6 +2,36 @@
 	"resolvers": [
 		// ------------- Built-in Resolvers --------------
 		// See https://quarkus.io/guides/qute-reference#built-in-resolvers
+		// Elvis Operator: ?:
+		{
+			"signature": "?:(base : java.lang.Object, arg : T) : T",
+			"description": "Elvis Operator: Outputs the default value if the previous part cannot be resolved or resolves to `null`.",
+			"sample": [
+				"{person.name ?: 'John'}",
+				"{person.name or 'John'}",
+				"{person.name.or('John')}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		{
+			"signature": "or(base : java.lang.Object, arg : T) : T",
+			"description": "Elvis Operator: Outputs the default value if the previous part cannot be resolved or resolves to `null`.",
+			"sample": [
+				"{person.name ?: 'John'}",
+				"{person.name or 'John'}",
+				"{person.name.or('John')}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		{
+			"signature": "ifTruthy(base : java.lang.Object, arg : T) : T",
+			"description": "Outputs the default value if the base object cannot be resolved or the base Object otherwise.",
+			"sample": [
+				"{item.isActive.ifTruthy(item.name)}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		// orEmpty
 		{
 			"signature": "orEmpty(base : java.lang.Iterable<T>) : java.util.List<T>",
 			"description": "Outputs an empty list if the previous part cannot be resolved or resolves to `null`.",
@@ -20,21 +50,69 @@
 			],
 			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
 		},
+		// Ternary Operator: condition ? ifTrue : ifFalse
 		{
-			"signature": "ifTruthy(base : java.lang.Object, arg : T) : T",
-			"description": "Outputs the default value if the base object cannot be resolved or the base Object otherwise.",
+			"signature": "?(base : java.lang.Object, arg : T) : T",
+			"description": "Ternary Operator: Shorthand for if-then-else statement. Unlike in [If Section](https://quarkus.io/guides/qute-reference#if_section) nested operators are not supported.",
 			"sample": [
-				"{item.isActive.ifTruthy(item.name)}"
+				"{item.isActive ? item.name : 'Inactive item'}"
 			],
 			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
 		},
 		{
-			"signature": "or(base : java.lang.Object, arg : T) : T",
-			"description": "Outputs the default value if the previous part cannot be resolved or resolves to `null`.",
+			"signature": ":(base : java.lang.Object, arg : T) : T",
+			"description": "Ternary Operator: Shorthand for if-then-else statement. Unlike in [If Section](https://quarkus.io/guides/qute-reference#if_section) nested operators are not supported.",
 			"sample": [
-				"{person.name ?: 'John'}",
-				"{person.name or 'John'}",
-				"{person.name.or('John')}"
+				"{item.isActive ? item.name : 'Inactive item'}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		// Logical AND Operator: &&
+		{
+			"signature": "&&(base : java.lang.Object, arg : java.lang.Object) : java.lang.Boolean",
+			"description": "Logical AND Operator: Outputs `true` if both parts are not `falsy` as described in the [If Section](https://quarkus.io/guides/qute-reference#if_section). The parameter is only evaluated if needed.",
+			"sample": [
+				"{person.isActive && person.hasStyle}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		// Logical OR Operator: ||
+		{
+			"signature": "||(base : java.lang.Object, arg : java.lang.Object) : java.lang.Boolean",
+			"description": "Logical OR Operator: Outputs `true` if any of the parts is not `falsy` as described in the [If Section](https://quarkus.io/guides/qute-reference#if_section). The parameter is only evaluated if needed.",
+			"sample": [
+				"{person.isActive || person.hasStyle}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		// Equals Operator: ==/eq/is
+		{
+			"signature": "==(base : java.lang.Object, arg : java.lang.Object) : java.lang.Boolean",
+			"description": "Equals Operator: Outputs `true` if the base object is equal to the argument.",
+			"sample": [
+				"{obj1 is obj2 ? 'Equal' : 'Inequal'}",
+				"{obj1 == obj2 ? 'Equal' : 'Inequal'}",
+				"{obj1.eq(obj2) ? 'Equal' : 'Inequal'}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		{
+			"signature": "eq(base : java.lang.Object, arg : java.lang.Object) : java.lang.Boolean",
+			"description": "Equals Operator: Outputs `true` if the base object is equal to the argument.",
+			"sample": [
+				"{obj1 is obj2 ? 'Equal' : 'Inequal'}",
+				"{obj1 == obj2 ? 'Equal' : 'Inequal'}",
+				"{obj1.eq(obj2) ? 'Equal' : 'Inequal'}"
+			],
+			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
+		},
+		{
+			"signature": "is(base : java.lang.Object, arg : java.lang.Object) : java.lang.Boolean",
+			"description": "Equals Operator: Outputs `true` if the base object is equal to the argument.",
+			"sample": [
+				"{obj1 is obj2 ? 'Equal' : 'Inequal'}",
+				"{obj1 == obj2 ? 'Equal' : 'Inequal'}",
+				"{obj1.eq(obj2) ? 'Equal' : 'Inequal'}"
 			],
 			"url": "https://quarkus.io/guides/qute-reference#built-in-resolvers"
 		},
@@ -128,7 +206,9 @@
 		// See https://quarkus.io/guides/qute-reference#vertx_integration
 		{
 			"signature": "get(base : io.vertx.core.json.JsonObject, key : java.lang.String) : java.lang.Object",
-			"matchNames": ["*"], 
+			"matchNames": [
+				"*"
+			],
 			"url": "https://quarkus.io/guides/qute-reference#vertx_integration"
 		},
 		{

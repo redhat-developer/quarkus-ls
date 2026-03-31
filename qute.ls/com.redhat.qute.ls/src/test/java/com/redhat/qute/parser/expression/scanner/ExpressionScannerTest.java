@@ -316,6 +316,167 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(26, TokenType.EOS, "");
 	}
 
+	@Test
+	public void testTernaryWithMethodAndSpaces() {
+		// a ? s.substring( b, c ) : d
+		scanner = createInfixNotationScanner("a ? s.substring(   b,       c   ) : d");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.InfixMethodPart, "?");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.InfixParameter, "s.substring(   b,       c   )");
+		assertOffsetAndToken(33, TokenType.Whitespace, " ");
+		assertOffsetAndToken(34, TokenType.InfixMethodPart, ":");
+		assertOffsetAndToken(35, TokenType.Whitespace, " ");
+		assertOffsetAndToken(36, TokenType.InfixParameter, "d");
+		assertOffsetAndToken(37, TokenType.EOS, "");
+	}
+
+	@Test
+	public void testTernaryWithMethodWithoutSpaces() {
+		// a ? s.substring(b,c) : d
+		scanner = createInfixNotationScanner("a ? s.substring(b,c) : d");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.InfixMethodPart, "?");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.InfixParameter, "s.substring(b,c)");
+		assertOffsetAndToken(20, TokenType.Whitespace, " ");
+		assertOffsetAndToken(21, TokenType.InfixMethodPart, ":");
+		assertOffsetAndToken(22, TokenType.Whitespace, " ");
+		assertOffsetAndToken(23, TokenType.InfixParameter, "d");
+		assertOffsetAndToken(24, TokenType.EOS, "");
+	}
+
+	@Test
+	public void testTernaryWithSimpleValues() {
+		// a ? b : c
+		scanner = createInfixNotationScanner("a ? b : c");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.InfixMethodPart, "?");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.InfixParameter, "b");
+		assertOffsetAndToken(5, TokenType.Whitespace, " ");
+		assertOffsetAndToken(6, TokenType.InfixMethodPart, ":");
+		assertOffsetAndToken(7, TokenType.Whitespace, " ");
+		assertOffsetAndToken(8, TokenType.InfixParameter, "c");
+		assertOffsetAndToken(9, TokenType.EOS, "");
+	}
+
+	@Test
+	public void testTernaryWithNestedMethodCallAndSpaces() {
+		// a ? s:foo(s.bar(   x,   y   ),   z   ) : d
+		scanner = createInfixNotationScanner("a ? s:foo(s.bar(   x,   y   ),   z   ) : d");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.InfixMethodPart, "?");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.InfixParameter, "s:foo(s.bar(   x,   y   ),   z   )");
+		assertOffsetAndToken(38, TokenType.Whitespace, " ");
+		assertOffsetAndToken(39, TokenType.InfixMethodPart, ":");
+		assertOffsetAndToken(40, TokenType.Whitespace, " ");
+		assertOffsetAndToken(41, TokenType.InfixParameter, "d");
+		assertOffsetAndToken(42, TokenType.EOS, "");
+	}
+
+	@Test
+	public void testTernaryWithStringParameter() {
+		// a ? s.substring(b, 'foo bar') : d
+		scanner = createInfixNotationScanner("a ? s.substring(b, 'foo bar') : d");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.InfixMethodPart, "?");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.InfixParameter, "s.substring(b, 'foo bar')");
+		assertOffsetAndToken(29, TokenType.Whitespace, " ");
+		assertOffsetAndToken(30, TokenType.InfixMethodPart, ":");
+		assertOffsetAndToken(31, TokenType.Whitespace, " ");
+		assertOffsetAndToken(32, TokenType.InfixParameter, "d");
+		assertOffsetAndToken(33, TokenType.EOS, "");
+	}
+
+	@Test
+	public void testTernaryWithNamespaceInFalseParameter() {
+		// extDialogId ? extDialogId : str:concat('form-dlg-', title)
+		scanner = createInfixNotationScanner("extDialogId ? extDialogId : str:concat('form-dlg-', title)");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "extDialogId");
+		assertOffsetAndToken(11, TokenType.Whitespace, " ");
+		assertOffsetAndToken(12, TokenType.InfixMethodPart, "?");
+		assertOffsetAndToken(13, TokenType.Whitespace, " ");
+		assertOffsetAndToken(14, TokenType.InfixParameter, "extDialogId");
+		assertOffsetAndToken(25, TokenType.Whitespace, " ");
+		assertOffsetAndToken(26, TokenType.InfixMethodPart, ":");
+		assertOffsetAndToken(27, TokenType.Whitespace, " ");
+		assertOffsetAndToken(28, TokenType.InfixParameter, "str:concat('form-dlg-', title)");
+		assertOffsetAndToken(58, TokenType.EOS, "");
+	}
+
+	@Test
+	public void testTernaryWithNamespaceInTrueAndFalseParameter() {
+		// a ? str:format('hello %s', name) : str:concat('foo-', title)
+		scanner = createInfixNotationScanner("a ? str:format('hello %s', name) : str:concat('foo-', title)");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.InfixMethodPart, "?");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.InfixParameter, "str:format('hello %s', name)");
+		assertOffsetAndToken(32, TokenType.Whitespace, " ");
+		assertOffsetAndToken(33, TokenType.InfixMethodPart, ":");
+		assertOffsetAndToken(34, TokenType.Whitespace, " ");
+		assertOffsetAndToken(35, TokenType.InfixParameter, "str:concat('foo-', title)");
+		assertOffsetAndToken(60, TokenType.EOS, "");
+	}
+
+	@Test
+	public void testTernaryWithNamespaceAndSpacesInParameters() {
+		// a ? str:concat( 'foo-', title ) : str:concat( 'bar-', name )
+		scanner = createInfixNotationScanner(
+				"a ? str:concat(   'foo-',   title   ) : str:concat(   'bar-',   name   )");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.InfixMethodPart, "?");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.InfixParameter, "str:concat(   'foo-',   title   )");
+		assertOffsetAndToken(37, TokenType.Whitespace, " ");
+		assertOffsetAndToken(38, TokenType.InfixMethodPart, ":");
+		assertOffsetAndToken(39, TokenType.Whitespace, " ");
+		assertOffsetAndToken(40, TokenType.InfixParameter, "str:concat(   'bar-',   name   )");
+		assertOffsetAndToken(72, TokenType.EOS, "");
+	}
+
+	@Test
+	public void testTernaryWithNamespaceOnly() {
+		// a ? str:concat('foo-', title) : b
+		scanner = createInfixNotationScanner("a ? str:concat('foo-', title) : b");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.InfixMethodPart, "?");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.InfixParameter, "str:concat('foo-', title)");
+		assertOffsetAndToken(29, TokenType.Whitespace, " ");
+		assertOffsetAndToken(30, TokenType.InfixMethodPart, ":");
+		assertOffsetAndToken(31, TokenType.Whitespace, " ");
+		assertOffsetAndToken(32, TokenType.InfixParameter, "b");
+		assertOffsetAndToken(33, TokenType.EOS, "");
+	}
+
+	@Test
+	public void testTernary() {
+		// a ? str.concat('foo-', title) : b
+		scanner = createInfixNotationScanner("a ? str.concat('foo-', title) : b");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
+		assertOffsetAndToken(1, TokenType.Whitespace, " ");
+		assertOffsetAndToken(2, TokenType.InfixMethodPart, "?");
+		assertOffsetAndToken(3, TokenType.Whitespace, " ");
+		assertOffsetAndToken(4, TokenType.InfixParameter, "str.concat('foo-', title)");
+		assertOffsetAndToken(29, TokenType.Whitespace, " ");
+		assertOffsetAndToken(30, TokenType.InfixMethodPart, ":");
+		assertOffsetAndToken(31, TokenType.Whitespace, " ");
+		assertOffsetAndToken(32, TokenType.InfixParameter, "b");
+		assertOffsetAndToken(33, TokenType.EOS, "");
+	}
+	
 	private void assertOffsetAndToken(int tokenOffset, TokenType tokenType, String tokenText) {
 		TokenType token = scanner.scan();
 		assertEquals(tokenOffset, scanner.getTokenOffset());

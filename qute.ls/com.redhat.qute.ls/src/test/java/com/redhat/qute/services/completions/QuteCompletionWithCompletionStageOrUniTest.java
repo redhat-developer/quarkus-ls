@@ -104,7 +104,7 @@ public class QuteCompletionWithCompletionStageOrUniTest {
 				+ "{#for stringElt in obj.myStrings}\r\n"
 				+ "    {stringElt.|}\r\n"
 				+ "{/for}";
-		testCompletionFor(template, 5 /* value resolvers */ + 8 /* String fields and methods */,
+		testCompletionFor(template, 7 /* value resolvers */ + 8 /* String fields and methods */,
 				c("isEmpty() : boolean", "isEmpty", r(3, 15, 3, 15)));
 	}
 

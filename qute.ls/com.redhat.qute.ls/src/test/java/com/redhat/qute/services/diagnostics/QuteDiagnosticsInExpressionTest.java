@@ -768,4 +768,14 @@ public class QuteDiagnosticsInExpressionTest {
 		testDiagnosticsFor(template);
 	}
 
+	@Test
+	public void calleeMethod() throws Exception {
+		String template = "{@java.lang.String s}\r\n" + //
+				"{s.or(s.or(\"foo\", s))}";
+		testDiagnosticsFor(template, //
+				d(1, 8, 1, 10, QuteErrorCode.InvalidMethodParameter,
+						"The method `or(T)` in the type `null` is not applicable for the arguments `(String, String)`.",
+						DiagnosticSeverity.Error));
+	}
+
 }

@@ -479,7 +479,7 @@ public abstract class Section extends Node implements ParametersContainer {
 	@Deprecated()
 	public Expression getExpressionParameter() {
 		// Try to remove this method
-		return new ExpressionParameter(getStartParametersOffset(), getEndParametersOffset(), this);
+		return new ExpressionParameter(getStartParametersOffset(), getEndParametersOffset(), false, this);
 	}
 
 	/**

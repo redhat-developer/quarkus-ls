@@ -1155,7 +1155,7 @@ class QuteDiagnostics {
 		}
 
 		if (methodPart.isOperator()) {
-			return baseType;
+			//return baseType;
 		}
 
 		if (project == null) {

@@ -44,11 +44,14 @@ public class IfTruthyValueResolverTest {
 				"{item.name.ifTruthy('abcd').|}";
 		template = "{@org.acme.Item item}\r\n" + //
 				"{item.or('abcd').|}";
-		testCompletionFor(template, 13, //
+		testCompletionFor(template, //
+				15, //
 				// - resolvers
 				c("orEmpty(base : T) : List<T>", "orEmpty", r(1, 17, 1, 17)),
 				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(${1:arg})$0", r(1, 17, 1, 17)),
 				c("or(base : Object, arg : T) : T", "or(${1:arg})$0", r(1, 17, 1, 17)),
+				c("eq(base : Object, arg : Object) : Boolean", "eq(${1:arg})$0", r(1, 17, 1, 17)), //
+				c("is(base : Object, arg : Object) : Boolean", "is(${1:arg})$0", r(1, 17, 1, 17)),
 				// - String Java fields
 				c("UTF16 : byte", "UTF16", r(1, 17, 1, 17)),
 				// - String Java methods

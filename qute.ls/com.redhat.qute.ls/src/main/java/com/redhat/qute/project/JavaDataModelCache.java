@@ -513,7 +513,7 @@ public class JavaDataModelCache {
 	 * @return the resolved Java type.
 	 */
 	private CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(Part part, ResolvedJavaTypeInfo baseType) {
-		JavaMemberInfo member = project.findMember(baseType, part.getPartName());
+		JavaMemberInfo member = project.findMember(baseType, part);
 		if (member == null) {
 			return RESOLVED_JAVA_TYPE_INFO_NULL_FUTURE;
 		}
