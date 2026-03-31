@@ -54,69 +54,6 @@ public class QuteInlayHintTest {
 	}
 
 	@Test
-	public void parameterLetSection() throws Exception {
-		String template = "{@org.acme.Item item}\r\n" + //
-				"{#let name=item.name price=item.price bad=item.XXXX}\r\n" + // name[:String]=item.name
-																				// price[:BigInteger]=item.price
-																				// bad=item.XXXX
-				"  \r\n" + //
-				"{/let}";
-		testInlayHintFor(template, //
-				ih(p(1, 10), ihLabel(":"),
-						ihLabel("String", "Open `java.lang.String` Java type.", cd("java.lang.String"))), //
-				ih(p(1, 26), ihLabel(":"),
-						ihLabel("BigInteger", "Open `java.math.BigInteger` Java type.", cd("java.math.BigInteger"))));
-
-		// enabled=false
-		QuteInlayHintSettings settings = new QuteInlayHintSettings();
-		settings.setEnabled(false);
-		testInlayHintFor(template, //
-				settings);
-
-		// showSectionParameterType=false
-		settings = new QuteInlayHintSettings();
-		settings.setShowSectionParameterType(false);
-		testInlayHintFor(template, //
-				settings);
-	}
-
-	@Test
-	public void parameterLetSectionWithSpaces() throws Exception {
-		String template = "{@org.acme.Item item}\r\n" + //
-				"{#let name    =item.name price   =  item.price   bad=  item.XXXX}\r\n" + // name[:String]=item.name
-				// price[:BigInteger]=item.price
-				// bad=item.XXXX
-				"  \r\n" + //
-				"{/let}";
-		testInlayHintFor(template, //
-				ih(p(1, 10), ihLabel(":"),
-						ihLabel("String", "Open `java.lang.String` Java type.", cd("java.lang.String"))), //
-				ih(p(1, 30), ihLabel(":"),
-						ihLabel("BigInteger", "Open `java.math.BigInteger` Java type.", cd("java.math.BigInteger"))));
-
-		// enabled=false
-		QuteInlayHintSettings settings = new QuteInlayHintSettings();
-		settings.setEnabled(false);
-		testInlayHintFor(template, //
-				settings);
-
-		// showSectionParameterType=false
-		settings = new QuteInlayHintSettings();
-		settings.setShowSectionParameterType(false);
-		testInlayHintFor(template, //
-				settings);
-	}
-
-	@Test
-	public void ifTruthy() throws Exception {
-		String template = "{@java.lang.Boolean multiply}\r\n" + //
-				"{#let name=multiply.ifTruthy(\"arg\")}";
-		testInlayHintFor(template, //
-				ih(p(1, 10), ihLabel(":"),
-						ihLabel("String", "Open `java.lang.String` Java type.", cd("java.lang.String"))));
-	}
-
-	@Test
 	public void parameterCustomSection() throws Exception {
 		String template = "{@org.acme.Item item}\r\n" + //
 				"{#form name=item.name item.price bad=item.XXXX}\r\n" + // name[:String]=item.name

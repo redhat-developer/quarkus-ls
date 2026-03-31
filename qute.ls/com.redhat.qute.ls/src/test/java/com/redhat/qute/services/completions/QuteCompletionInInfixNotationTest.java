@@ -33,11 +33,13 @@ public class QuteCompletionInInfixNotationTest {
 
 		// NO Infix notation : methods with any parameters, fields... of String class
 		testCompletionFor(template, //
-				13, //
+				15, //
 				// - resolvers
 				c("orEmpty(base : T) : List<T>", "orEmpty", r(1, 11, 1, 11)),
 				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(${1:arg})$0", r(1, 11, 1, 11)),
 				c("or(base : Object, arg : T) : T", "or(${1:arg})$0", r(1, 11, 1, 11)),
+				c("eq(base : Object, arg : Object) : Boolean", "eq(${1:arg})$0", r(1, 11, 1, 11)), //
+				c("is(base : Object, arg : Object) : Boolean", "is(${1:arg})$0", r(1, 11, 1, 11)),
 				// - String Java fields
 				c("UTF16 : byte", "UTF16", r(1, 11, 1, 11)),
 				// - String Java methods
@@ -53,10 +55,12 @@ public class QuteCompletionInInfixNotationTest {
 
 		// Infix notation : only methods with one parameter of String class
 		testCompletionFor(template, //
-				4,
+				6,
 				// - resolvers
 				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy ${1:arg}$0", r(1, 11, 1, 11)),
 				c("or(base : Object, arg : T) : T", "or ${1:arg}$0", r(1, 11, 1, 11)),
+				c("eq(base : Object, arg : Object) : Boolean", "eq ${1:arg}$0", r(1, 11, 1, 11)), //
+				c("is(base : Object, arg : Object) : Boolean", "is ${1:arg}$0", r(1, 11, 1, 11)),
 				// - String Java methods
 				c("getBytes(charsetName : String) : byte[]", "getBytes ${1:charsetName}$0", r(1, 11, 1, 11)),
 				c("charAt(index : int) : char", "charAt ${1:index}$0", r(1, 11, 1, 11)));
@@ -69,10 +73,12 @@ public class QuteCompletionInInfixNotationTest {
 
 		// Infix notation : only methods with one parameter of String class
 		testCompletionFor(template, //
-				4,
+				6,
 				// - resolvers
 				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy ${1:arg}$0", r(1, 24, 1, 24)),
 				c("or(base : Object, arg : T) : T", "or ${1:arg}$0", r(1, 24, 1, 24)),
+				c("eq(base : Object, arg : Object) : Boolean", "eq ${1:arg}$0", r(1, 24, 1, 24)), //
+				c("is(base : Object, arg : Object) : Boolean", "is ${1:arg}$0", r(1, 24, 1, 24)),
 				// - String Java methods
 				c("getBytes(charsetName : String) : byte[]", "getBytes ${1:charsetName}$0", r(1, 24, 1, 24)),
 				c("charAt(index : int) : char", "charAt ${1:index}$0", r(1, 24, 1, 24)));
@@ -100,23 +106,23 @@ public class QuteCompletionInInfixNotationTest {
 				c("bundle", "bundle", r(1, 14, 1, 14)));
 
 		template = "{@org.acme.Item item}\r\n" + //
-				"{item.name ?: item.name :|}";
+				"{item.name ?: item.name : |}";
 
 		// Infix notation : only methods with one parameter of String class
 		testCompletionFor(template, //
 				RESOLVERS_SIZE + 1, //
-				c("item", "item", r(1, 25, 1, 25)), //
-				c("inject:bean", "inject:bean", r(1, 25, 1, 25)), //
-				c("inject:plexux", "inject:plexux", r(1, 25, 1, 25)), //
-				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(1, 25, 1, 25)),
+				c("item", "item", r(1, 26, 1, 26)), //
+				c("inject:bean", "inject:bean", r(1, 26, 1, 26)), //
+				c("inject:plexux", "inject:plexux", r(1, 26, 1, 26)), //
+				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(1, 26, 1, 26)),
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
-						r(1, 25, 1, 25)), //
-				c("GLOBAL", "GLOBAL", r(1, 25, 1, 25)), //
-				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 25, 1, 25)), //
-				c("uri:Login", "uri:Login", r(1, 25, 1, 25)), //
-				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 25, 1, 25)), //
-				c("msg2:hello() : String", "msg2:hello", r(1, 25, 1, 25)), //
-				c("bundle", "bundle", r(1, 25, 1, 25)));
+						r(1, 26, 1, 26)), //
+				c("GLOBAL", "GLOBAL", r(1, 26, 1, 26)), //
+				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(1, 26, 1, 26)), //
+				c("uri:Login", "uri:Login", r(1, 26, 1, 26)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(1, 26, 1, 26)), //
+				c("msg2:hello() : String", "msg2:hello", r(1, 26, 1, 26)), //
+				c("bundle", "bundle", r(1, 26, 1, 26)));
 	}
 
 	@Test
@@ -126,10 +132,12 @@ public class QuteCompletionInInfixNotationTest {
 
 		// Infix notation : only methods with one parameter of String class
 		testCompletionFor(template, //
-				5,
+				7,
 				// - resolvers
 				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy ${1:arg}$0", r(1, 7, 1, 7)),
 				c("or(base : Object, arg : T) : T", "or ${1:arg}$0", r(1, 7, 1, 7)),
+				c("eq(base : Object, arg : Object) : Boolean", "eq ${1:arg}$0", r(1, 7, 1, 7)), //
+				c("is(base : Object, arg : Object) : Boolean", "is ${1:arg}$0", r(1, 7, 1, 7)),
 				// Numbers resolvers
 				c("plus(number : Integer, name : String, other : Integer) : Integer", "plus ${1:other}$0",
 						r(1, 7, 1, 7)),

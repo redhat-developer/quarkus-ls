@@ -47,7 +47,7 @@ public class ArrayBracketIntegerValueResolverTest {
 		// test to check @java.lang.Integer(base : T[]) : T is not returned by the
 		// completion
 		testCompletionFor(template, //
-				9, //
+				11, //
 				c("length(base : T[]) : int", "length", r(1, 13, 1, 13)), //
 				c("size(base : T[]) : int", "size", r(1, 13, 1, 13)), //
 				c("get(base : T[], index : int) : T", "get(${1:index})$0", r(1, 13, 1, 13)), //
@@ -56,7 +56,9 @@ public class ArrayBracketIntegerValueResolverTest {
 				c("raw(base : Object) : RawString", "raw", r(1, 13, 1, 13)), //
 				c("safe(base : Object) : RawString", "safe", r(1, 13, 1, 13)), //
 				c("or(base : Object, arg : T) : T", "or(${1:arg})$0", r(1, 13, 1, 13)), //
-				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(${1:arg})$0", r(1, 13, 1, 13)));
+				c("ifTruthy(base : Object, arg : T) : T", "ifTruthy(${1:arg})$0", r(1, 13, 1, 13)), //
+				c("eq(base : Object, arg : Object) : Boolean", "eq(${1:arg})$0", r(1, 13, 1, 13)), //
+				c("is(base : Object, arg : Object) : Boolean", "is(${1:arg})$0", r(1, 13, 1, 13)));
 
 		template = "{@org.acme.Item[] items}\r\n" + //
 				"Item: {items[0].|}";

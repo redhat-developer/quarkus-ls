@@ -36,7 +36,7 @@ public class RenardeCompletionInExpressionTest {
 	public void methodsOfController() throws Exception {
 		String template = "{uri:Login.|}";
 		testCompletionFor(template, //
-				10, //
+				12, //
 				c("login() : TemplateInstance", "login", r(0, 11, 0, 11)), //
 				c("manualLogin(userName : String, password : String, webAuthnResponse : WebAuthnLoginResponse, ctx : RoutingContext) : Response",
 						"manualLogin()$0", r(0, 11, 0, 11)), //

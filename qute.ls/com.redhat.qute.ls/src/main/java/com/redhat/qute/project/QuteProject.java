@@ -63,7 +63,10 @@ import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
 import com.redhat.qute.commons.jaxrs.RestParam;
+import com.redhat.qute.parser.expression.InfixNotationMethodPart;
+import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.Part;
+import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Parameter;
@@ -1710,6 +1713,19 @@ public class QuteProject {
 					}
 					return dataModel.getMethodValueResolvers();
 				});
+	}
+
+	public JavaMemberInfo findMember(ResolvedJavaTypeInfo baseType, Part part) {
+		if (part.getPartKind() == PartKind.Method) {
+			MethodPart methodPart = (MethodPart) part;
+			if (methodPart.isInfixNotation()) {
+				InfixNotationMethodPart infixMethodPart = (InfixNotationMethodPart) part;
+				if (infixMethodPart.isOperator()) {
+					//return infixMethodPart.getMethodInfo();
+				}
+			}
+		}
+		return findMember(baseType, part.getPartName());
 	}
 
 	/**

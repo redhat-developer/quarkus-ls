@@ -9,7 +9,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.qute.services.diagnostics;
+package com.redhat.qute.services.diagnostics.sections.let;
 
 import static com.redhat.qute.QuteAssert.ca;
 import static com.redhat.qute.QuteAssert.d;
@@ -22,6 +22,7 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.junit.jupiter.api.Test;
 
 import com.redhat.qute.parser.validator.QuteSyntaxErrorCode;
+import com.redhat.qute.services.diagnostics.QuteErrorCode;
 
 /**
  * Test with #let section
@@ -136,4 +137,55 @@ public class QuteDiagnosticsInExpressionWithLetSectionTest {
 				"{#let name2=name     }";
 		testDiagnosticsFor(template);
 	}
+
+	@Test
+	public void parametersWithComma() throws Exception {
+		String template = "{#let name=(true && true)}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void parametersWithComma2() throws Exception {
+		String template = "{#let name=true }\r\n" + //
+				"{#let name2=name     }\r\n" + //
+				"{#let name3=(name)     }\r\n" + //
+				"{#let name4=(name && name)     }";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void parametersWithComma3() throws Exception {
+		String template = "{@java.lang.Boolean multiply}\r\n" + //
+				"	{#let bool=(multiply && multiply)\r\n" + //
+				"	      string=(multiply ? 'foo' : 'bar')}\r\n" + //
+				"	{/let}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void infixNotationWithSpacesInMethodParameter() throws Exception {
+		String template = "{@java.lang.String title}\r\n" + //
+				"	{@java.lang.String extDialogId}\r\n" + //
+				"	{#let dialogId = (extDialogId ? extDialogId : title.charAt(0            ))}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void infixNotationWithParamSpaces() throws Exception {
+		String template = "{@java.lang.String extDialogId}\r\n"
+				+ "	{#let dialogId = (extDialogId ? extDialogId : XXXX:concat('dlg-',       title))}";
+		testDiagnosticsFor(template, //
+				d(1, 47, 1, 51, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `XXXX`.",
+						DiagnosticSeverity.Warning));
+	}
+
+	@Test
+	public void noInfixNotationWithParamSpaces() throws Exception {
+		String template = "{@java.lang.String extDialogId}\r\n"
+				+ "	{extDialogId.or(extDialogId).or(XXXX:concat('dlg-',       title)))}";
+		testDiagnosticsFor(template, //
+				d(1, 33, 1, 37, QuteErrorCode.UndefinedNamespace, "No namespace resolver found for: `XXXX`.",
+						DiagnosticSeverity.Warning));
+	}
+
 }

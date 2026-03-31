@@ -39,7 +39,7 @@ public class ParameterScannerTest {
 		assertOffsetAndToken(8, TokenType.ParameterName, "items");
 		assertOffsetAndToken(13, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void forSectionWithMethod() {
 		// {#for item in map.values()}
@@ -51,10 +51,10 @@ public class ParameterScannerTest {
 		assertOffsetAndToken(8, TokenType.ParameterName, "map.values()");
 		assertOffsetAndToken(20, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void forSectionWithTwoMethods() {
-		// {#for item in map.get('foo',  10).values()}
+		// {#for item in map.get('foo', 10).values()}
 		scanner = ParameterScanner.createScanner("item in map.get('foo',  10).values()");
 		assertOffsetAndToken(0, TokenType.ParameterName, "item");
 		assertOffsetAndToken(4, TokenType.Whitespace, " ");
@@ -66,7 +66,7 @@ public class ParameterScannerTest {
 
 	@Test
 	public void forSectionWithTwoMethodsAndOneParameter() {
-		// {#for item in map.get('foo',  10).values()   bar}
+		// {#for item in map.get('foo', 10).values() bar}
 		scanner = ParameterScanner.createScanner("item in map.get('foo',  10).values()   bar");
 		assertOffsetAndToken(0, TokenType.ParameterName, "item");
 		assertOffsetAndToken(4, TokenType.Whitespace, " ");
@@ -77,7 +77,7 @@ public class ParameterScannerTest {
 		assertOffsetAndToken(39, TokenType.ParameterName, "bar");
 		assertOffsetAndToken(42, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void letSection() {
 		// {#let myParent=order.item.parent myPrice=order.price}
@@ -94,7 +94,7 @@ public class ParameterScannerTest {
 
 	@Test
 	public void letSectionWithSpaces() {
-		// {#let    myParent  =order.item.parent   myPrice=    order.price}
+		// {#let myParent =order.item.parent myPrice= order.price}
 		scanner = ParameterScanner.createScanner("   myParent  =order.item.parent   myPrice=    order.price");
 		assertOffsetAndToken(0, TokenType.Whitespace, "   ");
 		assertOffsetAndToken(3, TokenType.ParameterName, "myParent");
@@ -131,7 +131,7 @@ public class ParameterScannerTest {
 		assertOffsetAndToken(5, TokenType.ParameterValue, "\"User Name\"");
 		assertOffsetAndToken(16, TokenType.EOS, "");
 	}
-	
+
 	@Test
 	public void parameterWithMethod() {
 		// {#let foo= bar(0,1)}
@@ -156,9 +156,9 @@ public class ParameterScannerTest {
 
 	@Test
 	public void parameterWithSeveralMethodAndSpaceInParameter() {
-		// {#let p1 = 10  p2= bar(0,  1) p3= 10  p4 = foo(  0,  1, 3)}
+		// {#let p1 = 10 p2= bar(0, 1) p3= 10 p4 = foo( 0, 1, 3)}
 		scanner = ParameterScanner.createScanner("p1 = 10  p2= bar(0,  1) p3= 10  p4 = foo(  0,  1, 3)");
-		
+
 		// p1 = 10
 		assertOffsetAndToken(0, TokenType.ParameterName, "p1");
 		assertOffsetAndToken(2, TokenType.Whitespace, " ");
@@ -166,8 +166,8 @@ public class ParameterScannerTest {
 		assertOffsetAndToken(4, TokenType.Whitespace, " ");
 		assertOffsetAndToken(5, TokenType.ParameterValue, "10");
 		assertOffsetAndToken(7, TokenType.Whitespace, "  ");
-		
-		// p2= bar(0,  1)
+
+		// p2= bar(0, 1)
 		assertOffsetAndToken(9, TokenType.ParameterName, "p2");
 		assertOffsetAndToken(11, TokenType.Assign, "=");
 		assertOffsetAndToken(12, TokenType.Whitespace, " ");
@@ -179,8 +179,8 @@ public class ParameterScannerTest {
 		assertOffsetAndToken(26, TokenType.Assign, "=");
 		assertOffsetAndToken(27, TokenType.Whitespace, " ");
 		assertOffsetAndToken(28, TokenType.ParameterValue, "10");
-		
-		// p4 = bar3(0,  1)
+
+		// p4 = bar3(0, 1)
 		assertOffsetAndToken(30, TokenType.Whitespace, "  ");
 		assertOffsetAndToken(32, TokenType.ParameterName, "p4");
 		assertOffsetAndToken(34, TokenType.Whitespace, " ");
@@ -190,7 +190,49 @@ public class ParameterScannerTest {
 
 		assertOffsetAndToken(52, TokenType.EOS, "");
 	}
-	
+
+	@Test
+	public void parameterWithTernaryExpression() {
+		// {#let param1 = (p1 ? p2 : p3)}
+		scanner = ParameterScanner.createScanner("param1 = (p1 ? p2 : p3)");
+		assertOffsetAndToken(0, TokenType.ParameterName, "param1");
+		assertOffsetAndToken(6, TokenType.Whitespace, " ");
+		assertOffsetAndToken(7, TokenType.Assign, "=");
+		assertOffsetAndToken(8, TokenType.Whitespace, " ");
+		assertOffsetAndToken(9, TokenType.ParameterValue, "(p1 ? p2 : p3)");
+		assertOffsetAndToken(23, TokenType.EOS, "");
+	}
+
+	@Test
+	public void parameterWithTernaryExpressionAndOtherParameters() {
+		// {#let param1 = (p1 ? p2 : p3) param2 = foo param3 = (a ? b : c)}
+		scanner = ParameterScanner.createScanner("param1 = (p1 ? p2 : p3) param2 = foo param3 = (a ? b : c)");
+
+		// param1 = (p1 ? p2 : p3)
+		assertOffsetAndToken(0, TokenType.ParameterName, "param1");
+		assertOffsetAndToken(6, TokenType.Whitespace, " ");
+		assertOffsetAndToken(7, TokenType.Assign, "=");
+		assertOffsetAndToken(8, TokenType.Whitespace, " ");
+		assertOffsetAndToken(9, TokenType.ParameterValue, "(p1 ? p2 : p3)");
+		assertOffsetAndToken(23, TokenType.Whitespace, " ");
+
+		// param2 = foo
+		assertOffsetAndToken(24, TokenType.ParameterName, "param2");
+		assertOffsetAndToken(30, TokenType.Whitespace, " ");
+		assertOffsetAndToken(31, TokenType.Assign, "=");
+		assertOffsetAndToken(32, TokenType.Whitespace, " ");
+		assertOffsetAndToken(33, TokenType.ParameterValue, "foo");
+		assertOffsetAndToken(36, TokenType.Whitespace, " ");
+
+		// param3 = (a ? b : c)
+		assertOffsetAndToken(37, TokenType.ParameterName, "param3");
+		assertOffsetAndToken(43, TokenType.Whitespace, " ");
+		assertOffsetAndToken(44, TokenType.Assign, "=");
+		assertOffsetAndToken(45, TokenType.Whitespace, " ");
+		assertOffsetAndToken(46, TokenType.ParameterValue, "(a ? b : c)");
+		assertOffsetAndToken(57, TokenType.EOS, "");
+	}
+
 	public void assertOffsetAndToken(int tokenOffset, TokenType tokenType) {
 		TokenType token = scanner.scan();
 		assertEquals(tokenOffset, scanner.getTokenOffset());

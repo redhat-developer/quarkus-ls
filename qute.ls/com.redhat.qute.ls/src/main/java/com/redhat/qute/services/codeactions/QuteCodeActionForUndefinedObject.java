@@ -31,6 +31,8 @@ import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.ls.commons.CodeActionFactory;
 import com.redhat.qute.ls.commons.TextDocument;
 import com.redhat.qute.parser.expression.ObjectPart;
+import com.redhat.qute.parser.expression.Part;
+import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Parameter;
@@ -70,7 +72,8 @@ public class QuteCodeActionForUndefinedObject extends AbstractQuteCodeAction {
 			List<CodeAction> codeActions) {
 		try {
 			Node node = request.getCoveredNode();
-			if (node == null) {
+			if (node == null || node.getKind() != NodeKind.ExpressionPart
+					|| ((Part) node).getPartKind() != PartKind.Object) {
 				return;
 			}
 			ObjectPart part = (ObjectPart) node;

@@ -488,7 +488,7 @@ class QuteDefinition {
 			QuteProject project, ResolvedJavaTypeInfo previousResolvedType, CancelChecker cancelChecker) {
 		// The Java class type from the previous part has been resolved, resolve the
 		// property
-		JavaMemberInfo member = project.findMember(previousResolvedType, part.getPartName());
+		JavaMemberInfo member = project.findMember(previousResolvedType, part);
 		return findDefinitionFromJavaMember(member, part, project, cancelChecker);
 	}
 

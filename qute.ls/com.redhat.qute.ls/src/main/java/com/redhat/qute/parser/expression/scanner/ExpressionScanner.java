@@ -18,9 +18,11 @@ import com.redhat.qute.parser.scanner.AbstractScanner;
 
 public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> {
 
-	private static final int[] QUOTE_OR_PAREN = new int[] { '(', ')', '"', '\'', };
+	private static final int[] QUOTE_OR_PAREN = new int[] { '(', ')', '"', '\'' };
 	private static final int[] SPACE_PERIOD_LBRACKET = new int[] { ' ', '.', '[' };
 	private static final int[] SPACE_PERIOD_LBRACKET_LPAREN_COLON = new int[] { ' ', '.', '[', '(', ':' };
+
+	private static final int[] SPACE_LPAREN_QUOTE = new int[] { ' ', '(', '"', '\'' };
 
 	public static ExpressionScanner createScanner(String input, boolean canSupportInfixNotation) {
 		return createScanner(input, canSupportInfixNotation, 0, input.length());
@@ -59,108 +61,139 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 			return finishToken(offset, TokenType.EOS);
 		}
 
+		boolean isInfixParameter = canSupportInfixNotation && nbParts > 1 && nbParts % 2 == 0;
+		if (isInfixParameter) {
+			if (stream.skipWhitespace()) {
+				nbParts++;
+				return finishToken(offset, TokenType.Whitespace);
+			}
+			stream.advanceUntilAnyOfChars(SPACE_LPAREN_QUOTE);
+			int c = stream.peekChar();
+			if (c == '(') {
+				stream.advance(1);
+				int depth = 1;
+				while (!stream.eos() && depth > 0) {
+					int ch = stream.peekChar();
+					stream.advance(1);
+					if (ch == '(') {
+						depth++;
+					} else if (ch == ')') {
+						depth--;
+					}
+				}
+			} else if (c == '"' || c == '\'') {
+				stream.advance(1);
+				if (stream.advanceUntilChar(c)) {
+					stream.advance(1);
+				}
+			}
+			return finishToken(offset, TokenType.InfixParameter);
+		}
+
 		String errorMessage = null;
 		switch (state) {
 
-			case WithinExpression: {
-				if (stream.skipWhitespace()) {
-					return finishToken(offset, TokenType.Whitespace);
-				}
-				if (!canSupportInfixNotation) {
-					if (stream.advanceIfChar('"') || stream.advanceIfChar('\'')) {
-						state = ScannerState.WithinString;
-						return finishToken(stream.pos() - 1, TokenType.StartString);
-					}
-				}
-				nextJavaIdentifierPart();
-				return finishTokenPart(offset);
+		case WithinExpression: {
+			if (stream.skipWhitespace()) {
+				return finishToken(offset, TokenType.Whitespace);
 			}
-
-			case WithinParts:
-			case AfterNamespace: {
-				if (stream.skipWhitespace()) {
-					nbParts++;
-					return finishToken(offset, TokenType.Whitespace);
+			if (!canSupportInfixNotation) {
+				if (stream.advanceIfChar('"') || stream.advanceIfChar('\'')) {
+					state = ScannerState.WithinString;
+					return finishToken(stream.pos() - 1, TokenType.StartString);
 				}
-				if (!canSupportInfixNotation) {
-					if (stream.advanceIfChar('"') || stream.advanceIfChar('\'')) {
-						state = ScannerState.WithinString;
-						return finishToken(stream.pos() - 1, TokenType.StartString);
-					}
-				}
-				if (state == ScannerState.AfterNamespace) {
-					if (stream.peekChar() == '"' || stream.peekChar() == '\'') {
-						// config:"
-						stream.advance(1);
-						state = ScannerState.WithinString;
-						return finishToken(stream.pos() - 1, TokenType.StartString);
-					}
-				}
-				if (stream.advanceIfChar('.')) {
-					// item.|
-					return finishToken(offset, TokenType.Dot);
-				}
-				if (stream.advanceIfChar('[')) {
-					// item[|
-					if (stream.advanceUntilChar(']')) {
-						stream.advance(1);
-						// item['name']|
-					}
-					return finishToken(offset, TokenType.PropertyPart);
-				}
-				if (stream.advanceIfChar(':')) {
-					// data:|
-					return finishToken(offset, TokenType.ColonSpace);
-				}
-				nextJavaIdentifierPart();
-				// item.name|
-				return finishTokenPart(offset);
 			}
+			nextJavaIdentifierPart();
+			return finishTokenPart(offset);
+		}
 
-			case WithinMethod: {
-				if (stream.advanceIfChar('(')) {
-					bracket++;
-					return finishToken(offset, TokenType.OpenBracket);
+		case WithinParts:
+		case AfterNamespace: {
+			if (stream.skipWhitespace()) {
+				nbParts++;
+				return finishToken(offset, TokenType.Whitespace);
+			}
+			if (!canSupportInfixNotation) {
+				if (stream.advanceIfChar('"') || stream.advanceIfChar('\'')) {
+					state = ScannerState.WithinString;
+					return finishToken(stream.pos() - 1, TokenType.StartString);
 				}
-				stream.advanceUntilChar(QUOTE_OR_PAREN);
-				if (stream.peekChar() == '(') {
-					stream.advance(1);
-					bracket++;
-					return internalScan();
-				}
+			}
+			if (state == ScannerState.AfterNamespace) {
 				if (stream.peekChar() == '"' || stream.peekChar() == '\'') {
+					// config:"
 					stream.advance(1);
 					state = ScannerState.WithinString;
-					inMethod = true;
 					return finishToken(stream.pos() - 1, TokenType.StartString);
-				} else if (stream.peekChar() == ')') {
-					stream.advance(1);
-					bracket--;
-					if (bracket > 0) {
-						return internalScan();
-					}
-					state = ScannerState.WithinParts;
-					inMethod = false;
-					return finishToken(stream.pos() - 1, TokenType.CloseBracket);
 				}
+			}
+			if (stream.advanceIfChar('.')) {
+				// item.|
+				return finishToken(offset, TokenType.Dot);
+			}
+			if (stream.advanceIfChar('[')) {
+				// item[|
+				if (stream.advanceUntilChar(']')) {
+					stream.advance(1);
+					// item['name']|
+				}
+				return finishToken(offset, TokenType.PropertyPart);
+			}
+
+			if (super.getTokenType() != TokenType.Whitespace && stream.advanceIfChar(':')) {
+				// data:|
+				return finishToken(offset, TokenType.ColonSpace);
+			}
+
+			nextJavaIdentifierPart();
+			// item.name|
+			return finishTokenPart(offset);
+		}
+
+		case WithinMethod: {
+			if (stream.advanceIfChar('(')) {
+				bracket++;
+				return finishToken(offset, TokenType.OpenBracket);
+			}
+			stream.advanceUntilChar(QUOTE_OR_PAREN);
+			if (stream.peekChar() == '(') {
+				stream.advance(1);
+				bracket++;
 				return internalScan();
 			}
-
-			case WithinString: {
-				if (stream.advanceIfAnyOfChars(QUOTE_C)) {
-					if (inMethod) {
-						state = ScannerState.WithinMethod;
-					} else {
-						state = ScannerState.WithinExpression;
-					}
-					return finishToken(offset, TokenType.EndString);
+			if (stream.peekChar() == '"' || stream.peekChar() == '\'') {
+				stream.advance(1);
+				state = ScannerState.WithinString;
+				inMethod = true;
+				return finishToken(stream.pos() - 1, TokenType.StartString);
+			} else if (stream.peekChar() == ')') {
+				stream.advance(1);
+				bracket--;
+				if (bracket > 0) {
+					return internalScan();
 				}
-				stream.advanceUntilChar(QUOTE);
-				return finishToken(offset, TokenType.String);
-			}
-
-			default:
+				state = ScannerState.WithinParts;
 				inMethod = false;
+				return finishToken(stream.pos() - 1, TokenType.CloseBracket);
+			}
+			return internalScan();
+		}
+
+		case WithinString: {
+			if (stream.advanceIfAnyOfChars(QUOTE_C)) {
+				if (inMethod) {
+					state = ScannerState.WithinMethod;
+				} else {
+					state = ScannerState.WithinExpression;
+				}
+				return finishToken(offset, TokenType.EndString);
+			}
+			stream.advanceUntilChar(QUOTE);
+			return finishToken(offset, TokenType.String);
+		}
+
+		default:
+			inMethod = false;
 		}
 		stream.advance(1);
 		return finishToken(offset, TokenType.Unknown, errorMessage);

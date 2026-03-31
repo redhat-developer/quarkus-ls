@@ -532,7 +532,7 @@ public class QuteHover {
 		if (project == null) {
 			return NO_HOVER;
 		}
-		JavaMemberInfo member = project.findMember(resolvedType, part.getPartName());
+		JavaMemberInfo member = project.findMember(resolvedType, part);
 		if (member == null) {
 			return NO_HOVER;
 		}

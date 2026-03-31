@@ -148,20 +148,20 @@ public class QuteCompletionInExpressionWithNamespaceTest {
 
 	@Test
 	public void orpheanColonSpace() throws Exception {
-		String template = "	{inject :|}";
+		String template = "	{inject : |}";
 		testCompletionFor(template, //
 				RESOLVERS_SIZE, //
-				c("inject:bean", "inject:bean", r(0, 10, 0, 10)), //
-				c("inject:plexux", "inject:plexux", r(0, 10, 0, 10)), //
-				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 10, 0, 10)),
+				c("inject:bean", "inject:bean", r(0, 11, 0, 11)), //
+				c("inject:plexux", "inject:plexux", r(0, 11, 0, 11)), //
+				c("config:*(propertyName : String) : Object", "config:${1:propertyName}$0", r(0, 11, 0, 11)),
 				c("config:property(propertyName : String) : Object", "config:property(${1:propertyName})$0",
-						r(0, 10, 0, 10)), //
-				c("GLOBAL", "GLOBAL", r(0, 10, 0, 10)), //
-				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 10, 0, 10)), //
-				c("uri:Login", "uri:Login", r(0, 10, 0, 10)), //
-				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 10, 0, 10)), //
-				c("msg2:hello() : String", "msg2:hello", r(0, 10, 0, 10)), //
-				c("bundle", "bundle", r(0, 10, 0, 10)));
+						r(0, 11, 0, 11)), //
+				c("GLOBAL", "GLOBAL", r(0, 11, 0, 11)), //
+				c("VARCHAR_SIZE", "VARCHAR_SIZE", r(0, 11, 0, 11)), //
+				c("uri:Login", "uri:Login", r(0, 11, 0, 11)), //
+				c("msg:hello_name(name : String) : String", "msg:hello_name(${1:name})$0", r(0, 11, 0, 11)), //
+				c("msg2:hello() : String", "msg2:hello", r(0, 11, 0, 11)), //
+				c("bundle", "bundle", r(0, 11, 0, 11)));
 	}
 
 }
