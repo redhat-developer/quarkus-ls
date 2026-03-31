@@ -34,13 +34,13 @@ public class FlagsCompletionInExpressionTest {
 		testCompletionFor(template, //
 				8, //
 				c("flag:flags() : List<Flag>", "flags", r(0, 6, 0, 6)), //
-				c("flag:bool(key : String) : Boolean", "bool(${1:key})$0", r(0, 6, 0, 6)), //
-				c("flag:enabled(key : String) : Boolean", "enabled(${1:key})$0", r(0, 6, 0, 6)), //
-				c("flag:disabled(key : String) : Boolean", "disabled(${1:key})$0", r(0, 6, 0, 6)), //
-				c("flag:string(key : String) : String", "string(${1:key})$0", r(0, 6, 0, 6)), //
-				c("flag:int(key : String) : int", "int(${1:key})$0", r(0, 6, 0, 6)), //
-				c("flag:meta(key : String) : Map<String,String>", "meta(${1:key})$0", r(0, 6, 0, 6)), //
-				c("flag:find(key : String) : Flag", "find(${1:key})$0", r(0, 6, 0, 6)));
+				c("flag:bool(key : Object) : Boolean", "bool(${1:key})$0", r(0, 6, 0, 6)), //
+				c("flag:enabled(key : Object) : Boolean", "enabled(${1:key})$0", r(0, 6, 0, 6)), //
+				c("flag:disabled(key : Object) : Boolean", "disabled(${1:key})$0", r(0, 6, 0, 6)), //
+				c("flag:string(key : Object) : String", "string(${1:key})$0", r(0, 6, 0, 6)), //
+				c("flag:int(key : Object) : int", "int(${1:key})$0", r(0, 6, 0, 6)), //
+				c("flag:meta(key : Object) : Map<String,String>", "meta(${1:key})$0", r(0, 6, 0, 6)), //
+				c("flag:find(key : Object) : Flag", "find(${1:key})$0", r(0, 6, 0, 6)));
 	}
 
 	private static void testCompletionFor(String value, Integer expectedCount, CompletionItem... expectedItems)

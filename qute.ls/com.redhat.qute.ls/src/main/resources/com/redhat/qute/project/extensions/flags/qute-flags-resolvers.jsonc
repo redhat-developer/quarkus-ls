@@ -9,43 +9,43 @@
 		},
 		{
 			"namespace": "flag",
-			"signature": "bool(key: java.lang.String) : java.lang.Boolean",
+			"signature": "bool(key: java.lang.Object) : java.lang.Boolean",
 			"description": "Flag bool.",
 			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
 		},
 		{
 			"namespace": "flag",
-			"signature": "enabled(key: java.lang.String) : java.lang.Boolean",
+			"signature": "enabled(key: java.lang.Object) : java.lang.Boolean",
 			"description": "Flag enabled.",
 			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
 		},
 		{
 			"namespace": "flag",
-			"signature": "disabled(key: java.lang.String) : java.lang.Boolean",
+			"signature": "disabled(key: java.lang.Object) : java.lang.Boolean",
 			"description": "Flag disabled.",
 			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
 		},
 		{
 			"namespace": "flag",
-			"signature": "string(key: java.lang.String) : java.lang.String",
+			"signature": "string(key: java.lang.Object) : java.lang.String",
 			"description": "Flag string.",
 			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
 		},
 		{
 			"namespace": "flag",
-			"signature": "int(key: java.lang.String) : int",
+			"signature": "int(key: java.lang.Object) : int",
 			"description": "Flag int.",
 			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
 		},
 		{
 			"namespace": "flag",
-			"signature": "meta(key: java.lang.String) : java.util.Map<java.lang.String, java.lang.String>",
+			"signature": "meta(key: java.lang.Object) : java.util.Map<java.lang.String, java.lang.String>",
 			"description": "Flag meta.",
 			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
 		},
 		{
 			"namespace": "flag",
-			"signature": "find(key: java.lang.String) : io.quarkiverse.flags.Flag",
+			"signature": "find(key: java.lang.Object) : io.quarkiverse.flags.Flag",
 			"description": "Flag find.",
 			"url": "https://docs.quarkiverse.io/quarkus-flags/dev/qute.html"
 		}

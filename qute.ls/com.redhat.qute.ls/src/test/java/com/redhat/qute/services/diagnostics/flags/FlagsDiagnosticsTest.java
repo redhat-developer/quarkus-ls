@@ -27,7 +27,13 @@ public class FlagsDiagnosticsTest {
 
 	@Test
 	public void flags() throws Exception {
+		// all flag:* parameter expects an Object (and not only String)
+		// See
+		// https://github.com/quarkiverse/quarkus-flags/blob/b3e0ef06448172cbeacb1b495e79ad295e77e6c8/qute/runtime/src/main/java/io/quarkiverse/flags/qute/FlagNamespaceResolver.java#L44
 		testDiagnosticsFor("{flag:enabled('')}");
+		testDiagnosticsFor("{flag:enabled(123)}");
+		testDiagnosticsFor("{@java.util.List items}\r\n" + //
+				"{flag:enabled(items)}");
 	}
 
 	private static void testDiagnosticsFor(String value, Diagnostic... expected) {
