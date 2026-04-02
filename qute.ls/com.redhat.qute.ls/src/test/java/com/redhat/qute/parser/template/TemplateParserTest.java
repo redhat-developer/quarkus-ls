@@ -612,6 +612,162 @@ public class TemplateParserTest {
 	}
 
 	@Test
+	public void letWithMethodCallAndInfixNotationAsParameter() {
+		// {#let p1=s.substring(list ?: 0)}{/}
+		String content = "{#let p1=s.substring(list ?: 0)}{/}";
+		Template template = TemplateParser.parse(content, "test.qute");
+		assertEquals(1, template.getChildCount());
+
+		Node first = template.getChild(0);
+		assertEquals(NodeKind.Section, first.getKind());
+		Section section = (Section) first;
+		assertEquals(SectionKind.LET, section.getSectionKind());
+		assertTrue(section.isClosed());
+
+		assertEquals(0, section.getStartTagOpenOffset()); // |{#let
+		assertEquals(31, section.getStartTagCloseOffset()); // {#let p1=s.substring(list ?: 0)|}
+		assertEquals(32, section.getEndTagOpenOffset()); // |{/}
+		assertEquals(34, section.getEndTagCloseOffset()); // {/|}
+
+		// Check parameter: name at 6-8, value s.substring(list ?: 0) at 9-31
+		Parameter p1 = section.getParameters().get(0);
+		assertEquals("p1", p1.getName());
+		assertEquals(6, p1.getStart());
+		assertEquals(31, p1.getEnd());
+
+		// Check value expression: no outer parens -> "s.substring(list ?: 0)"
+		Expression expr1 = p1.getJavaTypeExpression();
+		assertNotNull(expr1);
+		assertEquals(9, expr1.getStart());
+		assertEquals(31, expr1.getEnd());
+		assertEquals("s.substring(list ?: 0)", expr1.getContent());
+
+		// Test with expression content: s.substring(list ?: 0)
+		List<Node> exprContent = expr1.getExpressionContent();
+		assertEquals(1, exprContent.size());
+		Node firstParts = exprContent.get(0);
+		assertEquals(NodeKind.ExpressionParts, firstParts.getKind());
+		Parts parts = (Parts) firstParts;
+
+		assertEquals(2, parts.getChildCount()); // s --> ObjectPart, substring --> MethodPart
+
+		// ObjectPart --> s
+		Node firstPart = parts.getChild(0);
+		assertEquals(NodeKind.ExpressionPart, firstPart.getKind());
+		Part objectPart = (Part) firstPart;
+		assertEquals(PartKind.Object, objectPart.getPartKind());
+		assertEquals(9, objectPart.getStart()); // 's'
+		assertEquals(10, objectPart.getEnd()); // after 's'
+		assertEquals("s", objectPart.getPartName());
+
+		// MethodPart --> substring(list ?: 0)
+		Node secondPart = parts.getChild(1);
+		assertEquals(NodeKind.ExpressionPart, secondPart.getKind());
+		Part substringPart = (Part) secondPart;
+		assertEquals(PartKind.Method, substringPart.getPartKind());
+		MethodPart substringMethodPart = (MethodPart) substringPart;
+		assertFalse(substringMethodPart.isInfixNotation());
+		assertEquals(11, substringPart.getStart()); // 's' of substring
+		assertEquals(30, substringPart.getEnd()); // after ')'
+		assertEquals(20, substringMethodPart.getOpenBracketOffset()); // '('
+		assertEquals(30, substringMethodPart.getCloseBracketOffset()); // ')'
+		assertEquals("substring", substringPart.getPartName());
+
+		// Parameter of substring --> list ?: 0
+		List<Parameter> params = substringMethodPart.getParameters();
+		assertEquals(1, params.size());
+		Parameter param = params.get(0);
+		assertEquals(21, param.getStart()); // 'l' of list
+		assertEquals(30, param.getEnd()); // after '0'
+
+		// Check expression of parameter: list ?: 0
+		Expression paramExpr = param.getJavaTypeExpression();
+		assertNotNull(paramExpr);
+		assertEquals(21, paramExpr.getStart());
+		assertEquals(30, paramExpr.getEnd());
+		assertEquals("list ?: 0", paramExpr.getContent());
+		assertTrue(paramExpr.canSupportInfixNotation());
+	}
+
+	@Test
+	public void letWithMethodCallAndInfixNotationAsParameterWithSpaces() {
+		// {#let p1=s.substring( list ?: 0 )}{/}
+		String content = "{#let p1=s.substring(   list ?: 0   )}{/}";
+		Template template = TemplateParser.parse(content, "test.qute");
+		assertEquals(1, template.getChildCount());
+
+		Node first = template.getChild(0);
+		assertEquals(NodeKind.Section, first.getKind());
+		Section section = (Section) first;
+		assertEquals(SectionKind.LET, section.getSectionKind());
+		assertTrue(section.isClosed());
+
+		assertEquals(0, section.getStartTagOpenOffset()); // |{#let
+		assertEquals(37, section.getStartTagCloseOffset()); // {#let p1=s.substring( list ?: 0 )|}
+		assertEquals(38, section.getEndTagOpenOffset()); // |{/}
+		assertEquals(40, section.getEndTagCloseOffset()); // {/|}
+
+		// Check parameter: name at 6-8, value s.substring( list ?: 0 ) at 9-37
+		Parameter p1 = section.getParameters().get(0);
+		assertEquals("p1", p1.getName());
+		assertEquals(6, p1.getStart());
+		assertEquals(37, p1.getEnd());
+
+		// Check value expression: no outer parens -> "s.substring( list ?: 0 )"
+		Expression expr1 = p1.getJavaTypeExpression();
+		assertNotNull(expr1);
+		assertEquals(9, expr1.getStart());
+		assertEquals(37, expr1.getEnd());
+		assertEquals("s.substring(   list ?: 0   )", expr1.getContent());
+
+		// Test with expression content: s.substring( list ?: 0 )
+		List<Node> exprContent = expr1.getExpressionContent();
+		assertEquals(1, exprContent.size());
+		Node firstParts = exprContent.get(0);
+		assertEquals(NodeKind.ExpressionParts, firstParts.getKind());
+		Parts parts = (Parts) firstParts;
+
+		assertEquals(2, parts.getChildCount()); // s --> ObjectPart, substring --> MethodPart
+
+		// ObjectPart --> s
+		Node firstPart = parts.getChild(0);
+		assertEquals(NodeKind.ExpressionPart, firstPart.getKind());
+		Part objectPart = (Part) firstPart;
+		assertEquals(PartKind.Object, objectPart.getPartKind());
+		assertEquals(9, objectPart.getStart()); // 's'
+		assertEquals(10, objectPart.getEnd()); // after 's'
+		assertEquals("s", objectPart.getPartName());
+
+		// MethodPart --> substring( list ?: 0 )
+		Node secondPart = parts.getChild(1);
+		assertEquals(NodeKind.ExpressionPart, secondPart.getKind());
+		Part substringPart = (Part) secondPart;
+		assertEquals(PartKind.Method, substringPart.getPartKind());
+		MethodPart substringMethodPart = (MethodPart) substringPart;
+		assertFalse(substringMethodPart.isInfixNotation());
+		assertEquals(11, substringPart.getStart()); // 's' of substring
+		assertEquals(36, substringPart.getEnd()); // after ')'
+		assertEquals(20, substringMethodPart.getOpenBracketOffset()); // '('
+		assertEquals(36, substringMethodPart.getCloseBracketOffset()); // ')'
+		assertEquals("substring", substringPart.getPartName());
+
+		// Parameter of substring --> list ?: 0 (trailing spaces included)
+		List<Parameter> params = substringMethodPart.getParameters();
+		assertEquals(1, params.size());
+		Parameter param = params.get(0);
+		assertEquals(24, param.getStart()); // 'l' of list (after 3 leading spaces)
+		assertEquals(36, param.getEnd()); // includes trailing spaces before ')'
+
+		// Check expression of parameter: "list ?: 0 " (trailing spaces included)
+		Expression paramExpr = param.getJavaTypeExpression();
+		assertNotNull(paramExpr);
+		assertEquals(24, paramExpr.getStart());
+		assertEquals(36, paramExpr.getEnd());
+		assertEquals("list ?: 0   ", paramExpr.getContent());
+		assertTrue(paramExpr.canSupportInfixNotation());
+	}
+
+	@Test
 	public void infixNotation() {
 		String content = "{#let name=value}\r\n" + //
 				"    \r\n" + //

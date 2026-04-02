@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.parser.template;
 
+import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.ObjectPart;
 
 public class Parameter extends Node implements JavaTypeInfoProvider {
@@ -157,28 +158,31 @@ public class Parameter extends Node implements JavaTypeInfoProvider {
 		if (expression != null) {
 			return expression;
 		}
-		// Parameter has name only, the expression is the name
-		// ex : items in {#each items}
 		int startExpression = getStartName();
 		int endExpression = getEndName();
 		if (hasValueAssigned()) {
-			// Parameter has value, the expression is the value
-			// ex : myParent=item.name in {#set myParent=item.name}
 			startExpression = getStartValue();
 			endExpression = getEndValue();
 		}
 
 		boolean canSupportInfixNotation = false;
-		// If value is wrapped in parentheses ex: (p1 ? p2 : p3),
-		// strip the outer parentheses from the expression offsets
-		// without creating a String to avoid memory overhead
 		Template template = getOwnerTemplate();
 		String templateText = template != null ? template.getText() : container.getTemplateContent();
+
+		// If value is wrapped in parentheses ex: (p1 ? p2 : p3),
+		// strip the outer parentheses and enable infix notation
 		if (endExpression > startExpression && templateText.charAt(startExpression) == '('
 				&& templateText.charAt(endExpression - 1) == ')') {
 			startExpression++;
 			endExpression--;
 			canSupportInfixNotation = true;
+		} else {
+			// If this parameter belongs to a MethodPart ex: substring(list ?: 0),
+			// infix notation is always supported inside method parameters
+			Node parent = super.getParent();
+			if (parent instanceof MethodPart) {
+				canSupportInfixNotation = true;
+			}
 		}
 
 		expression = new ExpressionParameter(startExpression, endExpression, canSupportInfixNotation,

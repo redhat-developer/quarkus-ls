@@ -366,7 +366,7 @@ public class ExpressionScannerTest {
 
 	@Test
 	public void testTernaryWithNestedMethodCallAndSpaces() {
-		// a ? s:foo(s.bar(   x,   y   ),   z   ) : d
+		// a ? s:foo(s.bar( x, y ), z ) : d
 		scanner = createInfixNotationScanner("a ? s:foo(s.bar(   x,   y   ),   z   ) : d");
 		assertOffsetAndToken(0, TokenType.ObjectPart, "a");
 		assertOffsetAndToken(1, TokenType.Whitespace, " ");
@@ -476,7 +476,32 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(32, TokenType.InfixParameter, "b");
 		assertOffsetAndToken(33, TokenType.EOS, "");
 	}
-	
+
+	@Test
+	public void testMethodWithInfixNotationAsParameter() {
+		// s.substring(list ?: 0) -- outer expression WITHOUT infix notation
+		scanner = createNoInfixNotationScanner("s.substring(list ?: 0)");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "s");
+		assertOffsetAndToken(1, TokenType.Dot, ".");
+		assertOffsetAndToken(2, TokenType.MethodPart, "substring");
+		assertOffsetAndToken(11, TokenType.OpenBracket, "(");
+		assertOffsetAndToken(21, TokenType.CloseBracket, ")");
+		assertOffsetAndToken(22, TokenType.EOS, "");
+	}
+
+	@Test
+	public void testMethodWithInfixNotationAsParameterWithInfixOuter() {
+		// s.substring(list ?: 0) -- outer expression WITH infix notation
+		// content inside '(' ')' is still consumed as a single opaque block
+		scanner = createInfixNotationScanner("s.substring(list ?: 0)");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "s");
+		assertOffsetAndToken(1, TokenType.Dot, ".");
+		assertOffsetAndToken(2, TokenType.MethodPart, "substring");
+		assertOffsetAndToken(11, TokenType.OpenBracket, "(");
+		assertOffsetAndToken(21, TokenType.CloseBracket, ")");
+		assertOffsetAndToken(22, TokenType.EOS, "");
+	}
+
 	private void assertOffsetAndToken(int tokenOffset, TokenType tokenType, String tokenText) {
 		TokenType token = scanner.scan();
 		assertEquals(tokenOffset, scanner.getTokenOffset());
