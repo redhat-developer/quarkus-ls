@@ -46,7 +46,7 @@ public class RoqFrontMatterHoverTest {
 						System.lineSeparator() + //
 						"```" + //
 						System.lineSeparator() + //
-						"The layout template to use for rendering this page. Use ':theme/' prefix to reference theme layouts (e.g., ':theme/post', ':theme/page')"
+						"Qute layout template to wrap this page. Resolves local first, then theme fallback (e.g. `page`, `post`). Use `theme-layout:` to explicitly target a theme layout"
 						+ //
 						System.lineSeparator() + //
 						System.lineSeparator() + //
@@ -73,8 +73,62 @@ public class RoqFrontMatterHoverTest {
 						"custom-layout" + //
 						System.lineSeparator() + //
 						"```" + //
-						System.lineSeparator(), //
+						System.lineSeparator() + //
+						System.lineSeparator() + //
+						"See [here](https://iamroq.dev/docs/basics/#templates) for more informations.", //
 				r(1, 0, 1, 6));
+	}
+
+	@Test
+	public void sourceLayoutValue() throws Exception {
+		String layoutUri = RoqProject.getFileUri("/templates/layouts/default.html");
+		String template = "---\r\n" + //
+				"layout: def|ault\r\n" + //
+				"title: My title\r\n" + //
+				"---\r\n" + "";
+		assertHover(template, //
+				"Layout `default`" + //
+						System.lineSeparator() + //
+						" * Template id: `default`" + //
+						System.lineSeparator() + //
+						" * Path: [templates/layouts/default.html](" + layoutUri + ")", //
+				r(1, 0, 1, 6));
+	}
+
+	@Test
+	public void binaryLayoutValue() throws Exception {
+		String template = "---\r\n" + //
+				"layout: mai|n\r\n" + //
+				"title: My title\r\n" + //
+				"---\r\n" + "";
+		assertHover(template, //
+				"Layout `main`" + //
+						System.lineSeparator() + //
+						" * Template id: `theme-layouts/roq-default/main`" + //
+						System.lineSeparator() + //
+						" * Path: [theme-layouts/roq-default/main.html](jdt://jarentry/templates/theme-layouts/roq-default/main.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/)"
+						+ //
+						System.lineSeparator() + //
+						" * Origin: `quarkus-roq-theme-default-2.1.0.BETA2.jar`", //
+				r(1, 0, 1, 6));
+	}
+
+	@Test
+	public void binaryThemeLayoutValue() throws Exception {
+		String template = "---\r\n" + //
+				"theme-layout: mai|n\r\n" + //
+				"title: My title\r\n" + //
+				"---\r\n" + "";
+		assertHover(template, //
+				"Layout `main`" + //
+						System.lineSeparator() + //
+						" * Template id: `theme-layouts/roq-default/main`" + //
+						System.lineSeparator() + //
+						" * Path: [theme-layouts/roq-default/main.html](jdt://jarentry/templates/theme-layouts/roq-default/main.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/)"
+						+ //
+						System.lineSeparator() + //
+						" * Origin: `quarkus-roq-theme-default-2.1.0.BETA2.jar`", //
+				r(1, 0, 1, 12));
 	}
 
 	@Test

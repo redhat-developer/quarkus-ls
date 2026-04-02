@@ -11,13 +11,15 @@
 *******************************************************************************/
 package com.redhat.qute.project.extensions.roq.frontmatter;
 
-import java.nio.file.Path;
+import static com.redhat.qute.utils.DocumentationUtils.addUrl;
+
 import java.util.List;
 
 import org.eclipse.lsp4j.MarkupContent;
 
 import com.redhat.qute.QuteLanguageIds;
 import com.redhat.qute.parser.template.sections.TemplatePath;
+import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.extensions.roq.frontmatter.schema.FrontMatterProperty;
 import com.redhat.qute.utils.DocumentationUtils;
 import com.redhat.qute.utils.StringUtils;
@@ -49,6 +51,7 @@ public class YamlFrontMatterDocumentationUtils {
 			documentation.append("```");
 		}
 
+		// Description
 		String description = frontMatterProperty.getDescription();
 		if (description != null) {
 			documentation.append(System.lineSeparator());
@@ -56,6 +59,7 @@ public class YamlFrontMatterDocumentationUtils {
 			documentation.append(System.lineSeparator());
 		}
 
+		// Examples
 		List<String> examples = frontMatterProperty.getExamples();
 		if (examples != null && !examples.isEmpty()) {
 			documentation.append(System.lineSeparator());
@@ -72,13 +76,58 @@ public class YamlFrontMatterDocumentationUtils {
 				}
 			}
 		}
+
+		// url
+		String url = frontMatterProperty.getUrl();
+		addUrl(url, documentation, markdown);
+		return DocumentationUtils.createMarkupContent(documentation, markdown);
+	}
+
+	public static MarkupContent getLayoutDocumentation(String layoutFileName, TemplatePath layoutPath,
+			QuteTextDocument document, boolean markdown) {
+		StringBuilder documentation = new StringBuilder();
+
+		// Title
+		documentation.append("Layout `");
+		documentation.append(layoutFileName);
+		documentation.append("`");
+
+		// Template id
+		documentation.append(System.lineSeparator());
+		documentation.append(" * Template id: ");
+		documentation.append("`");
+		documentation.append(layoutPath.getTemplateId());
+		documentation.append("`");
+
+		if (document != null) {
+
+			// Relative path
+			String relativePath = document.getRelativePath();
+			if (!StringUtils.isEmpty(relativePath)) {
+				documentation.append(System.lineSeparator());
+				documentation.append(" * Path: ");
+				addLink(document.getUri(), relativePath, documentation, markdown);
+			}
+
+			// Origin
+			String origin = document.getOrigin();
+			if (!StringUtils.isEmpty(origin)) {
+				documentation.append(System.lineSeparator());
+				documentation.append(" * Origin: ");
+				documentation.append("`");
+				documentation.append(origin);
+				documentation.append("`");
+			}
+
+		}
+
 		return DocumentationUtils.createMarkupContent(documentation, markdown);
 	}
 
 	public static MarkupContent getImageDocumentation(TemplatePath imagePath, boolean markdown) {
 		StringBuilder documentation = new StringBuilder();
 
-		// Title
+		// Image preview
 		if (markdown) {
 			documentation.append("![image](");
 			documentation.append(imagePath.getUri());
@@ -86,5 +135,17 @@ public class YamlFrontMatterDocumentationUtils {
 			documentation.append(System.lineSeparator());
 		}
 		return DocumentationUtils.createMarkupContent(documentation, markdown);
+	}
+
+	private static void addLink(String url, String label, StringBuilder documentation, boolean canSupportMarkdown) {
+		if (canSupportMarkdown) {
+			documentation.append("[");
+			documentation.append(label);
+			documentation.append("](");
+			documentation.append(url);
+			documentation.append(")");
+		} else {
+			documentation.append(label);
+		}
 	}
 }

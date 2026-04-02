@@ -197,6 +197,11 @@ public class YamlFrontMatterSchemaProvider {
 			// Could parse nested properties here if needed
 		}
 
+		// Url
+		if (definition.has("url")) {
+			builder.url(definition.get("url").getAsString());
+		}
+
 		return builder.build();
 	}
 

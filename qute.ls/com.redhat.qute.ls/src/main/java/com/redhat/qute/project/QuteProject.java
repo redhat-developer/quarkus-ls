@@ -549,6 +549,9 @@ public class QuteProject {
 	}
 
 	public List<Parameter> findInsertTagParameter(TemplatePath templatePath, String insertParamater) {
+		if (templatePath == null) {
+			return null;
+		}
 		String uri = templatePath.getUri();
 		if (uri != null) {
 			QuteTextDocument document = getBinaryDocument(uri);
@@ -1721,7 +1724,7 @@ public class QuteProject {
 			if (methodPart.isInfixNotation()) {
 				InfixNotationMethodPart infixMethodPart = (InfixNotationMethodPart) part;
 				if (infixMethodPart.isOperator()) {
-					//return infixMethodPart.getMethodInfo();
+					// return infixMethodPart.getMethodInfo();
 				}
 			}
 		}

@@ -82,6 +82,8 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 
 	private String userTagName;
 
+	private String relativePath;
+
 	public QuteOpenedTextDocument(TextDocumentItem document, BiFunction<TextDocument, CancelChecker, Template> parse,
 			QuteProjectInfoProvider projectInfoProvider, QuteProjectRegistry projectRegistry) {
 		super(document, parse);
@@ -279,6 +281,14 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 	}
 
 	@Override
+	public String getRelativePath() {
+		if (relativePath == null) {
+			this.relativePath = getProject().getProjectFolder().relativize(templatePath).toString().replace('\\', '/');
+		}
+		return relativePath;
+	}
+
+	@Override
 	public void reparseTemplate() {
 		cancelModel();
 		getTemplate();
@@ -300,7 +310,7 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 		}
 		cache.put((Key<Object>) key, data);
 	}
-	
+
 	@Override
 	public String getUserTagName() {
 		if (userTagName == null) {

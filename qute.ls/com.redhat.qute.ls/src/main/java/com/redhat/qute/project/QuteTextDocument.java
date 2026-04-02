@@ -183,6 +183,8 @@ public interface QuteTextDocument {
 
 	String getOrigin();
 
+	String getRelativePath();
+	
 	default String getProperty(String name) {
 		return null;
 	}

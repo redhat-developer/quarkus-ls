@@ -59,7 +59,7 @@ public class RoqFrontMatterDocumentLinkTest {
 	}
 
 	@Test
-	public void theme() throws Exception {
+	public void themeSyntax() throws Exception {
 		String layoutUri = "jdt://jarentry/templates/theme-layouts/roq-default/main.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/";
 		String template = "---\r\n" + //
 				"layout: :theme/main\r\n" + //
@@ -67,6 +67,19 @@ public class RoqFrontMatterDocumentLinkTest {
 				"---";
 		testDocumentLinkFor(template, //
 				dl(r(1, 8, 1, 19), layoutUri));
+	}
+
+	// --------------- Theme layout
+
+	@Test
+	public void themeLayout() throws Exception {
+		String layoutUri = "jdt://jarentry/templates/theme-layouts/roq-default/main.html?=roq-blog/C:%5C/Users%5C/AngeloZerr%5C/.m2%5C/repository%5C/io%5C/quarkiverse%5C/roq%5C/quarkus-roq-theme-default%5C/2.1.0.BETA2%5C/quarkus-roq-theme-default-2.1.0.BETA2.jar=/maven.pomderived=/true=/=/maven.groupId=/io.quarkiverse.roq=/=/maven.artifactId=/quarkus-roq-theme-default=/=/maven.version=/2.1.0.BETA2=/=/maven.scope=/compile=/=/maven.pomderived=/true=/";
+		String template = "---\r\n" + //
+				"theme-layout: main\r\n" + //
+				"title: My title\r\n" + //
+				"---";
+		testDocumentLinkFor(template, //
+				dl(r(1, 14, 1, 18), layoutUri));
 	}
 
 	// --------------- image

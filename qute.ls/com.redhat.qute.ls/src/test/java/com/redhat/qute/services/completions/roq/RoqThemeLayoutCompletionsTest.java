@@ -25,53 +25,29 @@ import com.redhat.qute.project.extensions.roq.frontmatter.YamlFrontMatterDetecto
 import com.redhat.qute.project.roq.RoqProject;
 
 /**
- * Test completion with Roq Quarkus extension and layout.
+ * Test completion with Roq Quarkus extension and theme layout.
  *
  * @author Angelo ZERR
  * 
  */
-public class RoqLayoutCompletionsTest {
+public class RoqThemeLayoutCompletionsTest {
 
 	@Test
-	public void completionOnLayoutProperty() throws Exception {
+	public void completionOnThemeLayoutProperty() throws Exception {
 		String template = "---\r\n" + //
-				"layout: |\r\n";
+				"theme-layout: |\r\n";
 		// default,:theme/post,theme-layouts/roq-default/post,theme-layouts/roq-default/index,:theme/main,theme-layouts/roq-default/404,theme-layouts/roq-default/tag,page,resources-layout,theme-layouts/roq-default/main,:theme/page,:theme/default,:theme/404,theme-layouts/roq-default/page,:theme/index,:theme/tag,theme-layouts/roq-default/default
 		testCompletionFor(template, //
-				23, //
-				// Layouts from sources /roq/src/main/resources/templates/layouts
-				// +/roq/templates/layouts +
-				c("default", "default", r(1, 8, 1, 8)), // /roq/src/main/resources/templates/layouts/default.html +
-														// /roq/src/templates/layouts/default.html
-				c("resources-layout", "resources-layout", r(1, 8, 1, 8)), // /roq/src/main/resources/templates/layouts/resources-layout.html
-				c("page", "page", r(1, 8, 1, 8)), // // /roq/templates/layouts/page.html
-
-				// Theme layouts from sources /roq/src/main/resources/templates/theme-layouts +
-				// /roq/templates/theme-layouts +
-				c("roq-default/theme-default", "roq-default/theme-default", r(1, 8, 1, 8)),
-
-				// Binaries theme layout
-				c("theme-layouts/roq-default/index", "theme-layouts/roq-default/index", r(1, 8, 1, 8)), //
-				c("theme-layouts/roq-default/post", "theme-layouts/roq-default/post", r(1, 8, 1, 8)), //
-				c(":theme/post", ":theme/post", r(1, 8, 1, 8)), //
-				c("post", "post", r(1, 8, 1, 8)));
-	}
-
-	@Test
-	public void completionOnTagIncludedBySourceLayout() throws Exception {
-		String template = "---\r\n" + //
-				"layout: default\r\n" + //
-				"---\r\n" + //
-				"{#| /}"; // <-- head coming from default.html
-		testCompletionFor(template, //
-				null, //
-				c("head", "{#head}$1{/head}$0", r(3, 0, 3, 2)));
+				7, //
+					// Binaries
+				c("index", "index", r(1, 14, 1, 14)), // theme-layouts/roq-default/index
+				c("post", "post", r(1, 14, 1, 14))); // theme-layouts/roq-default/post
 	}
 
 	@Test
 	public void completionOnTagIncludedByBinaryThemeLayout() throws Exception {
 		String template = "---\r\n" + //
-				"layout: theme-layouts/roq-default/main\r\n" + //
+				"theme-layout: main\r\n" + //
 				"---\r\n" + //
 				"{#| /}"; // <-- header coming from theme-layouts/roq-default/main.html binary
 		testCompletionFor(template, //

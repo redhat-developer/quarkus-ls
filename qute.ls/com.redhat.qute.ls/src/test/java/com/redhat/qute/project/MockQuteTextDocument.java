@@ -172,7 +172,6 @@ public class MockQuteTextDocument implements QuteTextDocument {
 		return null;
 	}
 
-
 	@Override
 	public UserTag getUserTag() {
 		if (!isUserTag()) {
@@ -190,6 +189,11 @@ public class MockQuteTextDocument implements QuteTextDocument {
 	}
 
 	@Override
+	public String getRelativePath() {
+		return null;
+	}
+
+	@Override
 	public <T> T getUserData(Key<T> key) {
 		return null;
 	}
@@ -198,5 +202,5 @@ public class MockQuteTextDocument implements QuteTextDocument {
 	public <T> void putUserData(Key<T> key, T data) {
 
 	}
-	
+
 }
