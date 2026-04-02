@@ -592,7 +592,10 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	 */
 	private static void inferGenericMap(JavaTypeInfo declared, ResolvedJavaTypeInfo argument,
 			Map<String, String> genericMap) {
-		if (declared.isSingleGenericType() && argument != null) {
+		if (argument == null) {
+			return;
+		}
+		if (declared.isSingleGenericType()) {
 			// declared = T → T: org.acme.Item
 			genericMap.put(declared.getName(), argument.getSignature());
 			if (declared.isArray() && argument.isArray()) {
