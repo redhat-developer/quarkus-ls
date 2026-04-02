@@ -53,13 +53,17 @@ public class YamlFrontMatterDocumentLink {
 						YamlProperty property = (YamlProperty) mappingChild;
 						YamlNode propertyValue = property.getValue();
 						if (propertyValue != null && propertyValue.getKind() == YamlNodeKind.YamlScalar) {
-							if (property.isProperty(FrontMatterProperty.LAYOUT_PROPERTY)) {
+							if (property.isProperty(FrontMatterProperty.LAYOUT_PROPERTY)
+									|| property.isProperty(FrontMatterProperty.THEME_LAYOUT_PROPERTY)) {
 								// ex: layout: page --> page must be a link.
 								Range range = YamlPositionUtility.createRange(propertyValue);
 								if (range != null) {
 									String layoutFileName = ((YamlScalar) propertyValue).getValue();
 									try {
-										TemplatePath layoutPath = roq.getLayoutPath(filePath, layoutFileName);
+										boolean themeLayout = property.isProperty(FrontMatterProperty.THEME_LAYOUT_PROPERTY);
+										TemplatePath layoutPath = themeLayout
+												? roq.getThemeLayoutPath(filePath, layoutFileName)
+												: roq.getLayoutPath(filePath, layoutFileName);
 										if (layoutPath != null) {
 											String target = layoutPath.getUri();
 											links.add(new DocumentLink(range, target != null ? target : ""));

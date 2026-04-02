@@ -106,6 +106,9 @@ public class YamlFrontMatterCompletion {
 				if (property.isProperty(FrontMatterProperty.LAYOUT_PROPERTY)) {
 					// completion on layout value
 					return completionOnLayout(property.getValue(), offset, document, template, completionSettings);
+				} else if (property.isProperty(FrontMatterProperty.THEME_LAYOUT_PROPERTY)) {
+					// completion on theme-layout value
+					return completionOnThemeLayout(property.getValue(), offset, document, template, completionSettings);
 				} else if (property.isProperty(FrontMatterProperty.PAGINATE_PROPERTY)) {
 					// completion on paginate value
 					return completionOnPaginate(property.getValue(), offset, document, template, completionSettings);
@@ -253,6 +256,7 @@ public class YamlFrontMatterCompletion {
 
 	private static boolean isRetriggerCompletion(FrontMatterProperty frontMatterProperty) {
 		return frontMatterProperty.isProperty(FrontMatterProperty.LAYOUT_PROPERTY)
+				|| frontMatterProperty.isProperty(FrontMatterProperty.THEME_LAYOUT_PROPERTY)
 				|| frontMatterProperty.isProperty(FrontMatterProperty.PAGINATE_PROPERTY)
 				|| frontMatterProperty.isProperty(FrontMatterProperty.IMAGE_PROPERTY);
 	}
@@ -265,6 +269,7 @@ public class YamlFrontMatterCompletion {
 		Set<CompletionItem> completionItems = new HashSet<>();
 		CompletionList list = new CompletionList();
 
+		Set<String> existingIds = new HashSet<>();
 		RoqProjectExtension roq = RoqProjectExtension.getRoqProjectExtension(template);
 		if (roq != null) {
 			Range range = createRange(yamlNode, offset, document);
@@ -272,6 +277,39 @@ public class YamlFrontMatterCompletion {
 
 			Path filePath = FileUtils.createPath(template.getUri());
 			roq.collectLayouts(filePath, (folder, layout, templateId, binary, origin) -> {
+				if (templateId == null) {
+					templateId = folder.relativize(layout).toString().replace('\\', '/');
+					templateId = DataModelProject.getUriWithoutExtension(templateId);
+				}
+				if (!existingIds.contains(templateId)) {
+					existingIds.add(templateId);
+					CompletionItem item = createCompletionFile(templateId, range, snippetsSupported);
+					if (origin != null) {
+						CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+						labelDetails.setDescription(origin);
+						item.setLabelDetails(labelDetails);
+					}
+					completionItems.add(item);
+				}
+			});
+		}
+		list.setItems(new ArrayList<>(completionItems));
+		return CompletableFuture.completedFuture(list);
+	}
+
+	// Completion on theme-layout value
+
+	private CompletableFuture<CompletionList> completionOnThemeLayout(YamlNode yamlNode, int offset,
+			YamlDocument document, Template template, QuteCompletionSettings completionSettings) {
+		// Completion on layout: |
+		Set<CompletionItem> completionItems = new HashSet<>();
+		CompletionList list = new CompletionList();
+
+		RoqProjectExtension roq = RoqProjectExtension.getRoqProjectExtension(template);
+		if (roq != null) {
+			Range range = createRange(yamlNode, offset, document);
+			boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
+			roq.collectThemeLayouts((folder, layout, templateId, binary, origin) -> {
 				if (templateId == null) {
 					templateId = folder.relativize(layout).toString().replace('\\', '/');
 					templateId = DataModelProject.getUriWithoutExtension(templateId);

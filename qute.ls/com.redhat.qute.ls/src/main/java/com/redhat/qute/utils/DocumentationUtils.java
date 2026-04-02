@@ -383,7 +383,7 @@ public class DocumentationUtils {
 		return createMarkupContent(documentation, markdown);
 	}
 
-	private static void addUrl(String url, StringBuilder documentation, boolean markdown) {
+	public static void addUrl(String url, StringBuilder documentation, boolean markdown) {
 		if (!StringUtils.isEmpty(url)) {
 			documentation.append(System.lineSeparator());
 			documentation.append("See ");

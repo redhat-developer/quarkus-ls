@@ -38,16 +38,12 @@ import com.redhat.qute.settings.QuteValidationSettings;
  */
 public class YamlFrontMatterDiagnosticsVisitor extends YamlASTVisitor {
 
-	private final Template template;
-	private final QuteValidationSettings validationSettings;
 	private final List<Diagnostic> diagnostics;
 	private final RoqProjectExtension roq;
 	private final Path filePath;
 
 	public YamlFrontMatterDiagnosticsVisitor(Template template, QuteValidationSettings validationSettings,
 			List<Diagnostic> diagnostics) {
-		this.template = template;
-		this.validationSettings = validationSettings;
 		this.diagnostics = diagnostics;
 		this.roq = RoqProjectExtension.getRoqProjectExtension(template);
 		this.filePath = FileUtils.createPath(template.getUri());
@@ -56,19 +52,22 @@ public class YamlFrontMatterDiagnosticsVisitor extends YamlASTVisitor {
 	@Override
 	public boolean visit(YamlProperty node) {
 		if (node.isProperty(FrontMatterProperty.LAYOUT_PROPERTY)) {
-			validateLayoutProperty(node);
+			validateLayoutProperty(node, false);
+		} else if (node.isProperty(FrontMatterProperty.THEME_LAYOUT_PROPERTY)) {
+			validateLayoutProperty(node, true);
 		} else if (node.isProperty(FrontMatterProperty.IMAGE_PROPERTY)) {
 			validateImageProperty(node);
 		}
 		return super.visit(node);
 	}
 
-	private void validateLayoutProperty(YamlProperty node) {
+	private void validateLayoutProperty(YamlProperty node, boolean themeLayout) {
 		YamlNode propertyValue = node.getValue();
 		if (propertyValue != null && propertyValue.getKind() == YamlNodeKind.YamlScalar) {
 			String layoutFilePath = ((YamlScalar) propertyValue).getValue();
 			try {
-				TemplatePath layoutPath = roq.getLayoutPath(filePath, layoutFilePath);
+				TemplatePath layoutPath = themeLayout ? roq.getThemeLayoutPath(filePath, layoutFilePath)
+						: roq.getLayoutPath(filePath, layoutFilePath);
 				if (layoutPath != null && !layoutPath.isExists()) {
 					Range range = YamlPositionUtility.createRange(propertyValue);
 					Diagnostic d = createDiagnostic(range, DiagnosticSeverity.Warning,

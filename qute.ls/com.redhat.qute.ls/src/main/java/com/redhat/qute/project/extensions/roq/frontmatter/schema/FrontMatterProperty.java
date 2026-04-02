@@ -20,6 +20,8 @@ import java.util.List;
 public class FrontMatterProperty {
 	public static final String LAYOUT_PROPERTY = "layout";
 
+	public static final String THEME_LAYOUT_PROPERTY = "theme-layout";
+
 	public static final String PAGINATE_PROPERTY = "paginate";
 
 	public static final String IMAGE_PROPERTY = "image";
@@ -34,6 +36,7 @@ public class FrontMatterProperty {
 	private final boolean isUnionType;
 	private final boolean isObjectType;
 	private final String itemType; // for arrays
+	private final String url;
 
 	private FrontMatterProperty(Builder builder) {
 		this.name = builder.name;
@@ -48,6 +51,7 @@ public class FrontMatterProperty {
 		this.isUnionType = builder.isUnionType;
 		this.isObjectType = builder.isObjectType;
 		this.itemType = builder.itemType;
+		this.url = builder.url;
 	}
 
 	public String getName() {
@@ -102,6 +106,10 @@ public class FrontMatterProperty {
 		return defaultValue != null;
 	}
 
+	public String getUrl() {
+		return url;
+	}
+
 	/**
 	 * Get a snippet value for completion. Returns the first example if available,
 	 * otherwise a placeholder based on type.
@@ -153,6 +161,7 @@ public class FrontMatterProperty {
 		private boolean isUnionType;
 		private boolean isObjectType;
 		private String itemType;
+		private String url;
 
 		public Builder(String name) {
 			this.name = name;
@@ -200,6 +209,11 @@ public class FrontMatterProperty {
 
 		public Builder itemType(String itemType) {
 			this.itemType = itemType;
+			return this;
+		}
+
+		public Builder url(String url) {
+			this.url = url;
 			return this;
 		}
 

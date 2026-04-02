@@ -53,6 +53,11 @@ public class QuteBinaryTextDocument extends QuteReadOnlyTextDocument {
 	public String getOrigin() {
 		return binaryName;
 	}
+	
+	@Override
+	public String getRelativePath() {
+		return binaryTemplate.getPath();
+	}
 
 	@Override
 	public String getProperty(String name) {

@@ -31,9 +31,11 @@ public class QuteClosedTextDocument extends QuteReadOnlyTextDocument {
 
 	private final Path templatePath;
 
+	private String relativePath;
+
 	public QuteClosedTextDocument(Path templatePath, QuteProject project) {
 		super(FileUtils.toUri(templatePath), project.getTemplateId(templatePath), getContent(templatePath), project);
-		this.templatePath = templatePath;
+		this.templatePath = templatePath;		
 	}
 
 	private static String getContent(Path templatePath) {
@@ -54,4 +56,13 @@ public class QuteClosedTextDocument extends QuteReadOnlyTextDocument {
 	public String getOrigin() {
 		return null;
 	}
+	
+	@Override
+	public String getRelativePath() {
+		if (relativePath == null) {
+			this.relativePath = getProject().getProjectFolder().relativize(templatePath).toString().replace('\\', '/');;
+		}
+		return relativePath;
+	}
+
 }

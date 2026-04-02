@@ -11,13 +11,10 @@
 *******************************************************************************/
 package com.redhat.qute.project.extensions.roq;
 
-import static com.redhat.qute.services.completions.QuteCompletionForTemplateIds.createTemplateIds;
-
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,7 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.eclipse.lsp4j.CodeLens;
@@ -57,6 +53,10 @@ import com.redhat.qute.project.extensions.roq.data.DataLoader;
 import com.redhat.qute.project.extensions.roq.data.RoqDataFile;
 import com.redhat.qute.project.extensions.roq.data.json.JsonDataLoader;
 import com.redhat.qute.project.extensions.roq.data.yaml.YamlDataLoader;
+import com.redhat.qute.project.extensions.roq.files.ImageFileSupport;
+import com.redhat.qute.project.extensions.roq.files.LayoutFileSupport;
+import com.redhat.qute.project.extensions.roq.files.RoqFileSupport;
+import com.redhat.qute.project.extensions.roq.files.ThemeLayoutFileSupport;
 import com.redhat.qute.project.extensions.roq.frontmatter.YamlFrontMatterDetector;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
@@ -74,29 +74,11 @@ public class RoqProjectExtension extends AbstractProjectExtension
 	private static final String PAGE_PARAMETER_KEY = "page";
 	private static final String SITE_PARAMETER_KEY = "site";
 
-	// Roq folders
-	private static final String TEMPLATES_FOLDER = "templates";
-	private static final String LAYOUTS_FOLDER = "layouts";
-	private static final String THEME_LAYOUTS_FOLDER = "theme-layouts/";
-	private static final String PUBLIC_IMAGES_FOLDER = "public/images";
-
-	// Roq variables
-	private static final String THEME_VAR = ":theme/";
-
 	// We might need to allow plugins to contribute to this at some point
 	private static final Set<String> HTML_OUTPUT_EXTENSIONS = Set.of("md", "markdown", "html", "htm", "xhtml",
 			"asciidoc", "adoc");
 	private static final Set<String> INDEX_FILES = HTML_OUTPUT_EXTENSIONS.stream().map(e -> "index." + e)
 			.collect(Collectors.toSet());
-
-	private static final Set<String> IMAGE_EXTENSIONS = Set.of(//
-			"jpg", "jpeg", "png", "gif", "webp", //
-			"bmp", "tiff", "tif", "svg", "ico", //
-			"avif", "heic", "heif");
-
-	private static final Predicate<Path> LAYOUT_FILE_FILTER = p -> !isImage(p);
-
-	private static final Predicate<Path> IMAGE_FILE_FILTER = p -> isImage(p);
 
 	/**
 	 * Registry mapping file extensions to their corresponding data loaders.
@@ -165,9 +147,6 @@ public class RoqProjectExtension extends AbstractProjectExtension
 		}
 	}
 
-	/** Whether this extension is enabled (true for Roq projects) */
-	private boolean enabled;
-
 	/** Path to the data directory (e.g., project-root/data/) */
 	private Path dataDir;
 	private Path contentDir;
@@ -191,11 +170,19 @@ public class RoqProjectExtension extends AbstractProjectExtension
 
 	private String currentTheme;
 
+	// Layout, Layout Theme and Image support
+	private final LayoutFileSupport layoutSupport;
+	private final ThemeLayoutFileSupport themeLayoutSupport;
+	private final ImageFileSupport imageSupport;
+
 	/**
 	 * Creates a new Roq project extension.
 	 */
 	public RoqProjectExtension() {
 		super(RoqConfig.PROJECT_FEATURE);
+		this.layoutSupport = new LayoutFileSupport(this);
+		this.themeLayoutSupport = new ThemeLayoutFileSupport(this);
+		this.imageSupport = new ImageFileSupport(this);
 		this.dataResolverCache = new HashMap<>();
 		this.configuredCollections = new HashSet<>();
 		// TODO: load collections from application.propertes
@@ -558,102 +545,6 @@ public class RoqProjectExtension extends AbstractProjectExtension
 		return dataDir;
 	}
 
-	@FunctionalInterface
-	public static interface FileCollector {
-
-		void collect(Path baseFolder, Path file, String templateId, boolean binary, String origin);
-	}
-
-	public void collectLayouts(Path filePath, FileCollector collector) {
-		var dataModelProject = getDataModelProject();
-
-		// 1. collect layouts from templates/layouts
-		Path projectFolder = dataModelProject.getProjectFolder();
-		if (projectFolder != null) {
-			Path layoutsFolder = projectFolder.resolve(TEMPLATES_FOLDER).resolve(LAYOUTS_FOLDER);
-			collectFiles(layoutsFolder, layoutsFolder, collector, LAYOUT_FILE_FILTER);
-		}
-
-		// 2. collect layouts from src/main/resources/templates/layouts
-		Set<Path> sourcePaths = dataModelProject.getSourcePaths();
-		for (Path sourcePath : sourcePaths) {
-			Path layoutsFolder = sourcePath.resolve(TEMPLATES_FOLDER).resolve(LAYOUTS_FOLDER);
-			collectFiles(layoutsFolder, layoutsFolder, collector, LAYOUT_FILE_FILTER);
-		}
-
-		// 3. collect layout from theme-layouts binaries
-		String currentTheme = getCurrentTheme();
-		Map<String, List<QuteTextDocument>> templateIds = createTemplateIds(dataModelProject.getBinaryDocuments(),
-				null);
-		for (Map.Entry<String, List<QuteTextDocument>> ids : templateIds.entrySet()) {
-			List<QuteTextDocument> documentsForId = ids.getValue();
-			if (documentsForId.size() == 1) {
-				// One document (ex : base.html) matches the short syntax temple id (ex : base)
-				// here completion shows 'base' short syntax.
-				String templateId = ids.getKey();
-				addLayoutTemplateId(templateId, documentsForId.get(0).getOrigin(), currentTheme, collector);
-			} else {
-				// Several documents (ex : base.html, base.txt) matches the short syntax temple
-				// id (ex : base)
-				// here we generate a completion per document by using the template id of the
-				// document (ex : base.html, base.txt).
-				for (QuteTextDocument document : documentsForId) {
-					String templateId = document.getTemplateId();
-					String origin = document.getOrigin();
-					addLayoutTemplateId(templateId, origin, currentTheme, collector);
-				}
-			}
-		}
-	}
-
-	private void addLayoutTemplateId(String templateId, String origin, String currentTheme, FileCollector collector) {
-		// 1. collect template from template-layouts folder
-		if (templateId.startsWith(THEME_LAYOUTS_FOLDER)) {
-			collector.collect(null, null, templateId, true, origin);
-		}
-
-		// 2. collect template with :theme
-		for (String theme : availableThemes) {
-			String start = THEME_LAYOUTS_FOLDER + theme + "/";
-			if (templateId.startsWith(start)) {
-				String shortId = THEME_VAR + templateId.substring(start.length());
-				collector.collect(null, null, shortId, true, origin);
-			}
-		}
-	}
-
-	public void collectImages(Path filePath, FileCollector collector) {
-		// 1. collect images from the folder of the given file path
-		Path imagesFolder = filePath.getParent();
-		collectFiles(imagesFolder, imagesFolder, collector, IMAGE_FILE_FILTER);
-
-		// 2. collect images from public/images
-		var dataModelProject = getDataModelProject();
-		Path projectFolder = dataModelProject.getProjectFolder();
-		if (projectFolder != null) {
-			imagesFolder = projectFolder.resolve(PUBLIC_IMAGES_FOLDER);
-			collectFiles(imagesFolder, imagesFolder, collector, IMAGE_FILE_FILTER);
-		}
-	}
-
-	private void collectFiles(Path parent, Path dir, FileCollector collector, Predicate<Path> filterFile) {
-		if (dir != null && Files.isDirectory(dir)) {
-			try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
-				for (Path file : stream) {
-					if (Files.isDirectory(file)) {
-						collectFiles(parent, file, collector, filterFile);
-					} else {
-						if (filterFile.test(file)) {
-							collector.collect(parent, file, null, false, null);
-						}
-					}
-				}
-			} catch (IOException e) {
-				// Silently ignore - data directory may not exist yet
-			}
-		}
-	}
-
 	public static RoqProjectExtension getRoqProjectExtension(Template template) {
 		return getRoqProjectExtension(template.getProject());
 	}
@@ -664,119 +555,6 @@ public class RoqProjectExtension extends AbstractProjectExtension
 		}
 		ProjectExtension extension = project.getExtension(RoqConfig.EXTENSION_ID);
 		return extension != null ? (RoqProjectExtension) extension : null;
-	}
-
-	public TemplatePath getLayoutPath(Path filePath, String layoutFileName) {
-		var dataModelProject = getDataModelProject();
-		if (dataModelProject != null && layoutFileName.startsWith(THEME_VAR)) {
-			for (String theme : availableThemes) {
-				String expanded = THEME_LAYOUTS_FOLDER + theme + "/" + layoutFileName.substring(THEME_VAR.length());
-				String uri = dataModelProject.findTemplateUriByTemplateId(expanded);
-				if (uri != null) {
-					return new TemplatePath(uri, layoutFileName, true);
-				}
-			}
-			return new TemplatePath((String) null, layoutFileName, false);
-		}
-
-		// 1. Template from source
-		TemplatePath sourcePath = getLayoutPathFromSource(layoutFileName, dataModelProject);
-		if ((sourcePath == null || !sourcePath.isExists()) && dataModelProject != null) {
-			// 2. template from binary
-			String binaryUri = dataModelProject.findTemplateUriByTemplateId(layoutFileName);
-			if (binaryUri != null) {
-				return new TemplatePath(binaryUri, layoutFileName, true);
-			}
-		}
-		return sourcePath;
-	}
-
-	private TemplatePath getLayoutPathFromSource(String layoutFileName, ExtendedDataModelProject dataModelProject) {
-		Path projectFolder = dataModelProject.getProjectFolder();
-
-		// 1. Collect existing templates folder (templates,
-		// src/main/resources/templates)
-		// templates
-		List<Path> existingTemplatesFolder = new ArrayList<>();
-		if (projectFolder != null) {
-			Path templatesFolder = projectFolder.resolve(TEMPLATES_FOLDER);
-			if (Files.exists(templatesFolder)) {
-				existingTemplatesFolder.add(templatesFolder);
-			}
-		}
-		// src/main/resources/temmplates
-		for (Path sourcePath : dataModelProject.getSourcePaths()) {
-			Path templatesFolder = sourcePath.resolve(TEMPLATES_FOLDER);
-			if (Files.exists(templatesFolder)) {
-				existingTemplatesFolder.add(templatesFolder);
-			}
-		}
-
-		// templates folder doesn't exist
-		if (existingTemplatesFolder.isEmpty()) {
-			Path baseDir = projectFolder != null ? projectFolder : null;
-			if (baseDir == null) {
-				if (dataModelProject.getSourcePaths().isEmpty()) {
-					return null;
-				}
-				baseDir = dataModelProject.getSourcePaths().iterator().next();
-			}
-			return new TemplatePath(
-					baseDir.resolve(TEMPLATES_FOLDER).resolve(LAYOUTS_FOLDER).resolve(layoutFileName + ".html"),
-					layoutFileName);
-		}
-
-		// 2. Collect existing templates/layouts folder (templates,
-		// src/main/resources/templates)
-		// templates
-		List<Path> existingLayoutFolder = new ArrayList<>();
-		for (Path templatesFolder : existingTemplatesFolder) {
-			Path layoutsFolder = templatesFolder.resolve(LAYOUTS_FOLDER);
-			if (Files.exists(layoutsFolder)) {
-				existingLayoutFolder.add(layoutsFolder);
-			}
-		}
-
-		// layouts folder doesn't exist
-		if (existingLayoutFolder.isEmpty()) {
-			return new TemplatePath(
-					existingTemplatesFolder.get(0).resolve(LAYOUTS_FOLDER).resolve(layoutFileName + ".html"),
-					layoutFileName);
-		}
-
-		for (Path layoutsFolder : existingLayoutFolder) {
-			Path layoutFile = layoutsFolder.resolve(layoutFileName + ".html");
-			if (Files.exists(layoutFile)) {
-				return new TemplatePath(layoutFile, layoutFileName, true);
-			}
-		}
-
-		return new TemplatePath(existingLayoutFolder.get(0).resolve(layoutFileName + ".html"), layoutFileName);
-	}
-
-	public TemplatePath getImagePath(Path filePath, String imageFilePath) {
-		imageFilePath = imageFilePath.trim();
-		if (imageFilePath.isEmpty()) {
-			return null;
-		}
-
-		if (imageFilePath.charAt(0) == '/') {
-			imageFilePath = imageFilePath.substring(1);
-		}
-
-		// 1. Check if image exists in the folder of the given file path
-		Path imagesFolder = filePath.getParent();
-		Path imagesPath = imagesFolder.resolve(imageFilePath);
-		if (Files.exists(imagesPath)) {
-			return new TemplatePath(imagesPath, imageFilePath, true);
-		}
-
-		// 2. Check if image exists in the public.images folder
-		var dataModelProject = getDataModelProject();
-		Path projectFolder = dataModelProject.getProjectFolder();
-		imagesFolder = projectFolder.resolve(PUBLIC_IMAGES_FOLDER);
-		Path publicImagePath = imagesFolder.resolve(imageFilePath);
-		return new TemplatePath(publicImagePath, imageFilePath);
 	}
 
 	public Set<String> getConfiguredCollections() {
@@ -812,28 +590,72 @@ public class RoqProjectExtension extends AbstractProjectExtension
 		return false;
 	}
 
-	/**
-	 * Returns true if the given path points to a file with an image extension. Does
-	 * not check if the file actually exists on disk.
-	 *
-	 * @param path the file path to check
-	 * @return true if the file has an image extension, false otherwise
-	 */
-	private static boolean isImage(Path path) {
-		if (path == null) {
-			return false;
+	public String getCurrentTheme() {
+		if (currentTheme == null && !getAvailableThemes().isEmpty()) {
+			currentTheme = getAvailableThemes().iterator().next();
 		}
-		String fileName = path.getFileName() != null ? path.getFileName().toString() : "";
-		int dotIndex = fileName.lastIndexOf('.');
-		if (dotIndex < 0 || dotIndex == fileName.length() - 1) {
-			return false;
-		}
-		String extension = fileName.substring(dotIndex + 1).toLowerCase();
-		return IMAGE_EXTENSIONS.contains(extension);
+		return currentTheme;
 	}
 
-	private String getCurrentTheme() {
-		return currentTheme;
+	public Set<String> getAvailableThemes() {
+		return availableThemes;
+	}
+
+	// ------------ Layout, Theme Layout, Images support
+
+	/**
+	 * Collect layouts and theme layouts both.
+	 * 
+	 * @param filePath
+	 * @param collector
+	 */
+	public void collectLayouts(Path filePath, RoqFileSupport.FileCollector collector) {
+		var dataModelProject = getDataModelProject();
+		if (dataModelProject == null) {
+			return;
+		}
+		layoutSupport.collectLayouts(filePath, dataModelProject, collector);
+	}
+
+	public TemplatePath getLayoutPath(Path filePath, String layoutFileName) {
+		var dataModelProject = getDataModelProject();
+		if (dataModelProject == null) {
+			return null;
+		}
+		return layoutSupport.getLayoutPath(filePath, layoutFileName, dataModelProject);
+	}
+
+	/**
+	 * Collect only theme layouts.
+	 * 
+	 * @param collector
+	 */
+	public void collectThemeLayouts(RoqFileSupport.FileCollector collector) {
+		var dataModelProject = getDataModelProject();
+		if (dataModelProject == null) {
+			return;
+		}
+		themeLayoutSupport.collectThemeLayouts(dataModelProject, collector);
+	}
+
+	public TemplatePath getThemeLayoutPath(Path filePath, String layoutFileName) {
+		var dataModelProject = getDataModelProject();
+		if (dataModelProject == null) {
+			return null;
+		}
+		return themeLayoutSupport.getLayoutPath(filePath, layoutFileName, dataModelProject);
+	}
+
+	public void collectImages(Path filePath, RoqFileSupport.FileCollector collector) {
+		var dataModelProject = getDataModelProject();
+		if (dataModelProject == null) {
+			return;
+		}
+		imageSupport.collectImages(filePath, dataModelProject, collector);
+	}
+
+	public TemplatePath getImagePath(Path filePath, String imageFilePath) {
+		return imageSupport.getImagePath(filePath, imageFilePath);
 	}
 
 }
