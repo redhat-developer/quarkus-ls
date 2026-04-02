@@ -399,4 +399,16 @@ public class ResolvedJavaTypeInfoTest {
 
 		assertEquals("org.acme.Item", method.resolveReturnType(List.of(listOfItem)));
 	}
+
+	@Test
+	public void iterable() {
+		ResolvedJavaTypeInfo iterable = new ResolvedJavaTypeInfo();
+		iterable.setSignature("java.lang.Iterable<T>");
+		assertTrue(iterable.isIterable(), "java.lang.Iterable<T>");
+
+		ResolvedJavaTypeInfo iterator = new ResolvedJavaTypeInfo();
+		iterator.setSignature("java.util.Iterator<E>");
+		assertTrue(iterator.isIterable(), "java.util.Iterator<E>");
+
+	}
 }

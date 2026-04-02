@@ -28,9 +28,19 @@ import com.redhat.qute.commons.annotations.TemplateDataAnnotation;
  */
 public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 
+	private static final String JAVA_LANG_OBJECT_TYPE = "java.lang.Object";
+
+	private static final String INT_TYPE = "int";
+
+	private static final String JAVA_LANG_INTEGER_TYPE = "java.lang.Integer";
+
 	private static final String ITERABLE_TYPE = "Iterable";
 
 	private static final String JAVA_LANG_ITERABLE_TYPE = "java.lang.Iterable";
+
+	private static final String ITERATOR_TYPE = "Iterator";
+
+	private static final String JAVA_UTIL_ITERATOR_TYPE = "java.util.Iterator";
 
 	private static final List<String> WRAPPER_TYPES = Arrays.asList("java.util.concurrent.CompletionStage",
 			"io.smallrye.mutiny.Uni");
@@ -205,7 +215,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 	 */
 	public boolean isInteger() {
 		String name = getName();
-		return "int".equals(name) || "java.lang.Integer".equals(name);
+		return INT_TYPE.equals(name) || JAVA_LANG_INTEGER_TYPE.equals(name);
 	}
 
 	private synchronized boolean computeIsIterable() {
@@ -215,7 +225,7 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 		if (getIterableOf() != null) {
 			return true;
 		}
-		boolean iterable = getName().equals(JAVA_LANG_ITERABLE_TYPE);
+		boolean iterable = isIterable(getName());
 		if (!iterable && extendedTypes != null) {
 			for (String extendedType : extendedTypes) {
 				if (isIterable(extendedType)) {
@@ -230,14 +240,15 @@ public class ResolvedJavaTypeInfo extends JavaTypeInfo {
 			if (!typeParameters.isEmpty()) {
 				super.setIterableOf(typeParameters.get(0).getType());
 			} else {
-				super.setIterableOf("java.lang.Object");
+				super.setIterableOf(JAVA_LANG_OBJECT_TYPE);
 			}
 		}
 		return iterable;
 	}
 
 	public static boolean isIterable(String type) {
-		return ITERABLE_TYPE.equals(type) || JAVA_LANG_ITERABLE_TYPE.equals(type);
+		return ITERABLE_TYPE.equals(type) || JAVA_LANG_ITERABLE_TYPE.equals(type) || // java.lang.Iterable
+				ITERATOR_TYPE.equals(type) || JAVA_UTIL_ITERATOR_TYPE.equals(type); // java.lang.Iterator
 	}
 
 	/**
