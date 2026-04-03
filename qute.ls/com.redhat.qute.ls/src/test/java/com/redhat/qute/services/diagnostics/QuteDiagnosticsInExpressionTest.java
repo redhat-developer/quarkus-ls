@@ -778,4 +778,18 @@ public class QuteDiagnosticsInExpressionTest {
 						DiagnosticSeverity.Error));
 	}
 
+	@Test
+	public void methodChainAndStringParametersNoSpaces() {
+		String template = "{@java.lang.Boolean multiple}\r\n" + //
+				"{multiple.ifTruthy(\"Select_nations\").or(\"Select a nation\")}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
+	public void methodChainAndStringParametersWithSpaces() {
+		String template = "{@java.lang.Boolean multiple}\r\n" + //
+				"{multiple.ifTruthy(\"Select nations\").or(\"Select a nation\")}";
+		testDiagnosticsFor(template);
+	}
+
 }

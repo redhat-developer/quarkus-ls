@@ -768,6 +768,112 @@ public class TemplateParserTest {
 	}
 
 	@Test
+	public void letWithMethodChainAndStringParameters() {
+		// {#let p1=multiple.ifTruthy("Select nations").or("Select a nation")}{/}
+		String content = "{#let p1=multiple.ifTruthy(\"Select nations\").or(\"Select a nation\")}{/}";
+		Template template = TemplateParser.parse(content, "test.qute");
+		assertEquals(1, template.getChildCount());
+
+		Node first = template.getChild(0);
+		assertEquals(NodeKind.Section, first.getKind());
+		Section section = (Section) first;
+		assertEquals(SectionKind.LET, section.getSectionKind());
+		assertTrue(section.isClosed());
+
+		assertEquals(0, section.getStartTagOpenOffset()); // |{#let
+		assertEquals(66, section.getStartTagCloseOffset()); // {#let p1=multiple.ifTruthy("Select nations").or("Select a
+															// nation")|}
+		assertEquals(67, section.getEndTagOpenOffset()); // |{/}
+		assertEquals(69, section.getEndTagCloseOffset()); // {/|}
+
+		// Check parameter: name at 6-8, value at 9-65
+		Parameter p1 = section.getParameters().get(0);
+		assertEquals("p1", p1.getName());
+		assertEquals(6, p1.getStart());
+		assertEquals(66, p1.getEnd());
+
+		// Check value expression: multiple.ifTruthy("Select nations").or("Select a
+		// nation")
+		Expression expr1 = p1.getJavaTypeExpression();
+		assertNotNull(expr1);
+		assertEquals(9, expr1.getStart());
+		assertEquals(66, expr1.getEnd());
+		assertEquals("multiple.ifTruthy(\"Select nations\").or(\"Select a nation\")", expr1.getContent());
+
+		// Test with expression content
+		List<Node> exprContent = expr1.getExpressionContent();
+		assertEquals(1, exprContent.size());
+		Node firstParts = exprContent.get(0);
+		assertEquals(NodeKind.ExpressionParts, firstParts.getKind());
+		Parts parts = (Parts) firstParts;
+
+		assertEquals(3, parts.getChildCount()); // multiple --> ObjectPart, ifTruthy --> MethodPart, or --> MethodPart
+
+		// ObjectPart --> multiple
+		Node firstPart = parts.getChild(0);
+		assertEquals(NodeKind.ExpressionPart, firstPart.getKind());
+		Part objectPart = (Part) firstPart;
+		assertEquals(PartKind.Object, objectPart.getPartKind());
+		assertEquals(9, objectPart.getStart()); // 'm' of multiple
+		assertEquals(17, objectPart.getEnd()); // after 'multiple'
+		assertEquals("multiple", objectPart.getPartName());
+
+		// MethodPart --> ifTruthy("Select nations")
+		Node secondPart = parts.getChild(1);
+		assertEquals(NodeKind.ExpressionPart, secondPart.getKind());
+		Part ifTruthyPart = (Part) secondPart;
+		assertEquals(PartKind.Method, ifTruthyPart.getPartKind());
+		MethodPart ifTruthyMethodPart = (MethodPart) ifTruthyPart;
+		assertFalse(ifTruthyMethodPart.isInfixNotation());
+		assertEquals(18, ifTruthyPart.getStart()); // 'i' of ifTruthy
+		assertEquals(43, ifTruthyPart.getEnd()); // after ')'
+		assertEquals(26, ifTruthyMethodPart.getOpenBracketOffset()); // '('
+		assertEquals(43, ifTruthyMethodPart.getCloseBracketOffset()); // ')'
+		assertEquals("ifTruthy", ifTruthyPart.getPartName());
+
+		// Parameter of ifTruthy --> "Select nations"
+		List<Parameter> ifTruthyParams = ifTruthyMethodPart.getParameters();
+		assertEquals(1, ifTruthyParams.size());
+		Parameter ifTruthyParam = ifTruthyParams.get(0);
+		assertEquals(27, ifTruthyParam.getStart()); // '"' of "Select nations"
+		assertEquals(43, ifTruthyParam.getEnd()); // after '"'
+
+		// Check expression of parameter: "Select nations"
+		Expression ifTruthyParamExpr = ifTruthyParam.getJavaTypeExpression();
+		assertNotNull(ifTruthyParamExpr);
+		assertEquals(27, ifTruthyParamExpr.getStart());
+		assertEquals(43, ifTruthyParamExpr.getEnd());
+		assertEquals("\"Select nations\"", ifTruthyParamExpr.getContent());
+
+		// MethodPart --> or("Select a nation")
+		Node thirdPart = parts.getChild(2);
+		assertEquals(NodeKind.ExpressionPart, thirdPart.getKind());
+		Part orPart = (Part) thirdPart;
+		assertEquals(PartKind.Method, orPart.getPartKind());
+		MethodPart orMethodPart = (MethodPart) orPart;
+		assertFalse(orMethodPart.isInfixNotation());
+		assertEquals(45, orPart.getStart()); // 'o' of or
+		assertEquals(65, orPart.getEnd()); // after ')'
+		assertEquals(47, orMethodPart.getOpenBracketOffset()); // '('
+		assertEquals(65, orMethodPart.getCloseBracketOffset()); // ')'
+		assertEquals("or", orPart.getPartName());
+
+		// Parameter of or --> "Select a nation"
+		List<Parameter> orParams = orMethodPart.getParameters();
+		assertEquals(1, orParams.size());
+		Parameter orParam = orParams.get(0);
+		assertEquals(48, orParam.getStart()); // '"' of "Select a nation"
+		assertEquals(65, orParam.getEnd()); // after '"'
+
+		// Check expression of parameter: "Select a nation"
+		Expression orParamExpr = orParam.getJavaTypeExpression();
+		assertNotNull(orParamExpr);
+		assertEquals(48, orParamExpr.getStart());
+		assertEquals(65, orParamExpr.getEnd());
+		assertEquals("\"Select a nation\"", orParamExpr.getContent());
+	}
+
+	@Test
 	public void infixNotation() {
 		String content = "{#let name=value}\r\n" + //
 				"    \r\n" + //

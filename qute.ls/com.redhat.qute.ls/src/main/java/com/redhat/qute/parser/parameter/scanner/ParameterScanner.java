@@ -78,6 +78,16 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 			if (stream.skipWhitespace()) {
 				return finishToken(offset, TokenType.Whitespace);
 			}
+			int c = stream.peekChar();
+			if (c == '"' || c == '\'') {
+				stream.advance(1);
+				if (stream.advanceUntilChar(c)) {
+					stream.advance(1);
+				}
+				if (bracket == 0) {
+					return finishToken(offset, TokenType.ParameterName);
+				}
+			}
 			if (methodParameters) {
 				return parseParameterName(offset);
 			} else {
@@ -191,7 +201,7 @@ public class ParameterScanner extends AbstractScanner<TokenType, ScannerState> {
 					stream.advance(1);
 				}
 				if (bracket == 0) {
-				return finishToken(offset, TokenType.ParameterName);
+					return finishToken(offset, TokenType.ParameterName);
 				}
 			}
 			stream.advanceUntilChar(PAREN_COMMA);
