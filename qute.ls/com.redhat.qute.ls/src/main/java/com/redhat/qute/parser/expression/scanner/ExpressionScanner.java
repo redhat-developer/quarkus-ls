@@ -97,11 +97,9 @@ public class ExpressionScanner extends AbstractScanner<TokenType, ScannerState> 
 			if (stream.skipWhitespace()) {
 				return finishToken(offset, TokenType.Whitespace);
 			}
-			if (!canSupportInfixNotation) {
-				if (stream.advanceIfChar('"') || stream.advanceIfChar('\'')) {
-					state = ScannerState.WithinString;
-					return finishToken(stream.pos() - 1, TokenType.StartString);
-				}
+			if (stream.advanceIfChar('"') || stream.advanceIfChar('\'')) {
+				state = ScannerState.WithinString;
+				return finishToken(stream.pos() - 1, TokenType.StartString);
 			}
 			nextJavaIdentifierPart();
 			return finishTokenPart(offset);

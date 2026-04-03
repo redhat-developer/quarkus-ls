@@ -232,6 +232,14 @@ public class ParameterScannerTest {
 		assertOffsetAndToken(46, TokenType.ParameterValue, "(a ? b : c)");
 		assertOffsetAndToken(57, TokenType.EOS, "");
 	}
+	
+	@Test
+	public void string() {
+		// {"Select nations"}
+		scanner = ParameterScanner.createScanner("\"Select nations\"");
+		assertOffsetAndToken(0, TokenType.ParameterName, "\"Select nations\"");
+		assertOffsetAndToken(16, TokenType.EOS, "");
+	}
 
 	public void assertOffsetAndToken(int tokenOffset, TokenType tokenType) {
 		TokenType token = scanner.scan();

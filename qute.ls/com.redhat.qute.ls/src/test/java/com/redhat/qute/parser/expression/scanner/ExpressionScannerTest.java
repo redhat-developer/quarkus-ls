@@ -502,6 +502,28 @@ public class ExpressionScannerTest {
 		assertOffsetAndToken(22, TokenType.EOS, "");
 	}
 
+	@Test
+	public void testMethodChainWithStringParameters() {
+		// multiple.ifTruthy("Select nations").or("Select a nation")
+		scanner = createInfixNotationScanner("multiple.ifTruthy(\"Select nations\").or(\"Select a nation\")");
+		assertOffsetAndToken(0, TokenType.ObjectPart, "multiple");
+		assertOffsetAndToken(8, TokenType.Dot, ".");
+		assertOffsetAndToken(9, TokenType.MethodPart, "ifTruthy");
+		assertOffsetAndToken(17, TokenType.OpenBracket, "(");
+		assertOffsetAndToken(18, TokenType.StartString, "\"");
+		assertOffsetAndToken(19, TokenType.String, "Select nations");
+		assertOffsetAndToken(33, TokenType.EndString, "\"");
+		assertOffsetAndToken(34, TokenType.CloseBracket, ")");
+		assertOffsetAndToken(35, TokenType.Dot, ".");
+		assertOffsetAndToken(36, TokenType.MethodPart, "or");
+		assertOffsetAndToken(38, TokenType.OpenBracket, "(");
+		assertOffsetAndToken(39, TokenType.StartString, "\"");
+		assertOffsetAndToken(40, TokenType.String, "Select a nation");
+		assertOffsetAndToken(55, TokenType.EndString, "\"");
+		assertOffsetAndToken(56, TokenType.CloseBracket, ")");
+		assertOffsetAndToken(57, TokenType.EOS, "");
+	}
+
 	private void assertOffsetAndToken(int tokenOffset, TokenType tokenType, String tokenText) {
 		TokenType token = scanner.scan();
 		assertEquals(tokenOffset, scanner.getTokenOffset());
