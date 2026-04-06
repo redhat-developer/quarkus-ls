@@ -370,7 +370,8 @@ public class QuteProjectRegistry
 					}
 
 					if (updatedDocument != null && updatedDocument.isUserTag()) {
-						// User tag has been created, deleted, modified, all templates from project dependencies must also
+						// User tag has been created, deleted, modified, all templates from project
+						// dependencies must also
 						// be triggered.
 						for (QuteProject p : this.projects.values()) {
 							if (p != project && p.getProjectDependencies().contains(project)) {
@@ -454,45 +455,54 @@ public class QuteProjectRegistry
 	}
 
 	private CompletableFuture<Collection<QuteProject>> loadQuteProjects(Collection<ProjectInfo> projects) {
-		CompletableFuture<?>[] futures = new CompletableFuture[projects.size()];
-
-		// 1. Load all Qute projects
-		int i = 0;
+		// 1. Create all projects first so that dependency references can be resolved.
 		for (ProjectInfo projectInfo : projects) {
-			// Load the Qute project
-			futures[i++] = loadQuteProject(projectInfo);
+			getProject(projectInfo);
 		}
 
-		// 2. Update project dependencies
+		// 2. Inject dependencies BEFORE starting the load so that
+		// QuteProject.waitForDependencies() can find them immediately.
 		for (ProjectInfo projectInfo : projects) {
-			if (projectInfo.getProjectDependencyUris() != null && !projectInfo.getProjectDependencyUris().isEmpty()) {
-				QuteProject project = getProject(projectInfo.getUri());
-				for (String projectDependencyUri : projectInfo.getProjectDependencyUris()) {
-					QuteProject projectDependency = getProject(projectDependencyUri);
-					if (projectDependency != null) {
-						project.getProjectDependencies().add(projectDependency);
+			QuteProject project = getProject(projectInfo.getUri());
+			if (project == null) {
+				continue;
+			}
+			if (projectInfo.getProjectDependencyUris() != null) {
+				for (String depUri : projectInfo.getProjectDependencyUris()) {
+					QuteProject dep = getProject(depUri);
+					if (dep != null) {
+						project.addProjectDependency(dep);
 					}
 				}
 			}
 		}
-		return CompletableFuture.allOf(futures) //
-				.thenApply(_unused -> {
-					return this.projects.values();
-				});
+
+		// 3. Start loading all projects — projectDependencies is already populated.
+		CompletableFuture<?>[] futures = new CompletableFuture[projects.size()];
+		int i = 0;
+		for (ProjectInfo projectInfo : projects) {
+			QuteProject project = getProject(projectInfo.getUri());
+			futures[i++] = project.load();
+		}
+
+		return CompletableFuture.allOf(futures).thenApply(_unused -> this.projects.values());
 	}
 
-	/**
-	 * Load the Qute project from the given Qute project information.
-	 * 
-	 * @param projectInfo the project information.
-	 */
-	private CompletableFuture<QuteProject> loadQuteProject(ProjectInfo projectInfo) {
+	public void projectAdded(ProjectInfo projectInfo) {
+		// Create the project if it does not exist yet.
 		QuteProject project = getProject(projectInfo);
-		return project.load();
-	}
 
-	public void projectAdded(ProjectInfo project) {
-		loadQuteProject(project);
+		// Inject dependencies before load() so that waitForDependencies()
+		// can resolve them without any external signalling mechanism.
+		if (projectInfo.getProjectDependencyUris() != null) {
+			for (String depUri : projectInfo.getProjectDependencyUris()) {
+				QuteProject dep = getProject(depUri);
+				if (dep != null) {
+					project.addProjectDependency(dep);
+				}
+			}
+		}
+		project.load();
 	}
 
 	public void projectRemoved(ProjectInfo projectInfo) {

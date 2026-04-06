@@ -336,11 +336,47 @@ public class QuteProject {
 						progressContext.endProgress();
 					}
 					return this;
-				});
+				})
+				// Once this project is loaded, wait for its dependencies to be loaded too.
+				.thenCompose(self -> waitForDependencies(new HashSet<>()) //
+						.thenApply(_unused -> self));
 		loadQuteProjectFuture.thenAccept(unused -> {
 			validateClosedTemplates(progressContext);
 		});
 		return loadQuteProjectFuture;
+	}
+
+	/**
+	 * Waits recursively for all project dependencies to be loaded. The
+	 * {@code visiting} set tracks ancestor project URIs in the current call chain
+	 * to detect and break circular dependency cycles.
+	 *
+	 * @param visiting the set of project URIs already being waited on in the
+	 *                 current recursion path.
+	 * @return a {@link CompletableFuture} that completes when all dependencies (and
+	 *         their own transitive dependencies) are loaded.
+	 */
+	CompletableFuture<Void> waitForDependencies(Set<String> visiting) {
+		// Snapshot to avoid concurrent modification
+		List<QuteProject> deps = new ArrayList<>(projectDependencies);
+		if (deps.isEmpty()) {
+			return CompletableFuture.completedFuture(null);
+		}
+		List<CompletableFuture<Void>> futures = new ArrayList<>();
+		for (QuteProject dep : deps) {
+			if (visiting.contains(dep.getUri())) {
+				// Circular dependency detected — skip this branch to avoid an infinite loop.
+				LOGGER.warning(
+						"Circular project dependency detected: '" + getUri() + "' -> '" + dep.getUri() + "' (skipped)");
+				continue;
+			}
+			Set<String> childVisiting = new HashSet<>(visiting);
+			childVisiting.add(getUri());
+			CompletableFuture<Void> depFuture = dep.load()
+					.thenCompose(loadedDep -> loadedDep.waitForDependencies(childVisiting));
+			futures.add(depFuture);
+		}
+		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 	}
 
 	private boolean isQuteProjectLoaded() {
@@ -493,6 +529,12 @@ public class QuteProject {
 
 	public List<QuteProject> getProjectDependencies() {
 		return projectDependencies;
+	}
+
+	void addProjectDependency(QuteProject dependency) {
+		if (!projectDependencies.contains(dependency)) {
+			projectDependencies.add(dependency);
+		}
 	}
 
 	public List<Parameter> findInsertTagParameter(Section section, String insertParamater) {
