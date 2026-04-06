@@ -176,8 +176,11 @@ public class QuteCodeActionForUndefinedObject extends AbstractQuteCodeAction {
 		List<ValueResolver> globalResolvers = project.getGlobalVariables().getNow(null);
 		if (globalResolvers != null) {
 			for (ValueResolver resolver : globalResolvers) {
-				doCodeActionsForSimilarValue(part, resolver.getName(), template, existingProperties, diagnostic,
-						codeActions);
+				String name = resolver.getNamed();
+				if (name == null) {
+					name = resolver.getName();
+				}
+				doCodeActionsForSimilarValue(part, name, template, existingProperties, diagnostic, codeActions);
 			}
 		}
 
