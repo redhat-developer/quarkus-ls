@@ -340,11 +340,19 @@ public class UserTagInfoCollector extends ASTVisitor {
 		}
 		if (globalVariables == null && project != null) {
 			List<ValueResolver> resolvers = project.getGlobalVariables().getNow(null);
-			globalVariables = resolvers != null
-					? resolvers.stream().map(ValueResolver::getName).collect(Collectors.toList())
+			globalVariables = resolvers != null ? resolvers.stream() //
+					.map(resolver -> {
+						String name = resolver.getNamed();
+						if (name != null) {
+							return name;
+						}
+						return resolver.getName();
+					}).collect(Collectors.toList())
 					: Collections.emptyList();
 		}
-		if (globalVariables != null && globalVariables.contains(partName)) {
+		if (globalVariables != null && globalVariables.contains(partName))
+
+		{
 			// The object part is a global variable declared in Java with @TemplateGlobal,
 			// ignore it
 			return false;
