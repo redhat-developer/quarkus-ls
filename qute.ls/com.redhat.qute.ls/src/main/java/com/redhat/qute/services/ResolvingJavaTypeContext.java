@@ -36,7 +36,7 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 	private static final Logger LOGGER = Logger.getLogger(ResolvingJavaTypeContext.class.getName());
 
 	private boolean projectResolved;
-	
+
 	private boolean projectLoaded;
 
 	private boolean dataModelTemplateResolved;
@@ -71,14 +71,13 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 				if (!projectLoaded) {
 					super.add(projectLoad);
 				}
-				
+
 				CompletableFuture<?> tags = project.getBinaryTemplates();
 				binaryTemplatesResolved = tags.isDone();
 				if (!binaryTemplatesResolved) {
 					super.add(tags);
 				}
-				
-				
+
 			}
 		}
 	}
@@ -91,7 +90,7 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 	public boolean isProjectResolved() {
 		return projectResolved;
 	}
-	
+
 	/**
 	 * Returns true if the binary user tag is resolved and false otherwise.
 	 * 
@@ -124,12 +123,18 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 		if (super.contains(e)) {
 			return true;
 		}
-		return super.add(e);
+		return super.add(e.exceptionally(error -> {
+			// Don't break the diagnostics refresh at
+			// https://github.com/redhat-developer/quarkus-ls/blob/077dc8bd344bf04f05c05fb95050467eb592bb2b/qute.ls/com.redhat.qute.ls/src/main/java/com/redhat/qute/ls/template/TemplateFileTextDocumentService.java#L488
+			// when a future like qute/template/resolvedJavaType is cancelled
+			return null;
+		}));
 	}
 
 	public ResolvedJavaTypeInfo resolveJavaType(String javaType, QuteProject project) {
 		CompletableFuture<ResolvedJavaTypeInfo> resolvingJavaTypeFuture = project.resolveJavaType(javaType);
-		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture.getNow(QuteCompletableFutures.RESOLVING_JAVA_TYPE);
+		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture
+				.getNow(QuteCompletableFutures.RESOLVING_JAVA_TYPE);
 		if (QuteCompletableFutures.isResolvingJavaType(resolvedJavaType)) {
 			LOGGER.log(Level.INFO, QuteErrorCode.ResolvingJavaType.getMessage(javaType));
 			this.add(resolvingJavaTypeFuture);
@@ -140,7 +145,8 @@ public class ResolvingJavaTypeContext extends ArrayList<CompletableFuture<?>> {
 
 	public ResolvedJavaTypeInfo resolveJavaType(Parameter parameter, QuteProject project) {
 		CompletableFuture<ResolvedJavaTypeInfo> resolvingJavaTypeFuture = project.resolveJavaType(parameter);
-		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture.getNow(QuteCompletableFutures.RESOLVING_JAVA_TYPE);
+		ResolvedJavaTypeInfo resolvedJavaType = resolvingJavaTypeFuture
+				.getNow(QuteCompletableFutures.RESOLVING_JAVA_TYPE);
 		if (QuteCompletableFutures.isResolvingJavaType(resolvedJavaType)) {
 			this.add(resolvingJavaTypeFuture);
 			return QuteCompletableFutures.RESOLVING_JAVA_TYPE;
