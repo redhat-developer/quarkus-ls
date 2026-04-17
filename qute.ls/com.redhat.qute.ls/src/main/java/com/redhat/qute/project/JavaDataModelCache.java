@@ -33,6 +33,7 @@ import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
+import com.redhat.qute.commons.JavaTypeResolver;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
@@ -58,7 +59,7 @@ import com.redhat.qute.utils.StringUtils;
  * @author Angelo ZERR
  *
  */
-public class JavaDataModelCache {
+public class JavaDataModelCache implements JavaTypeResolver{
 
 	private static final Map<String, String> autoboxing;
 
@@ -183,6 +184,10 @@ public class JavaDataModelCache {
 		return resolveJavaType(parts, partIndex);
 	}
 
+	@Override
+	public ResolvedJavaTypeInfo resolveJavaTypeSync(String className) {
+		return resolveJavaType(className).getNow(QuteCompletableFutures.RESOLVING_JAVA_TYPE);
+	}
 	/**
 	 * Returns the Java type of the given class name.
 	 *
@@ -577,7 +582,7 @@ public class JavaDataModelCache {
 			args.add(baseType);
 			args.addAll(argumentTypes);
 		}
-		String memberType = method.resolveReturnType(args);
+		String memberType = method.resolveReturnType(args, this);
 		return resolveJavaType(memberType);
 	}
 

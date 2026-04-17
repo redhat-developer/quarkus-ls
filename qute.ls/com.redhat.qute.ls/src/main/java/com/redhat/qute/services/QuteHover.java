@@ -476,7 +476,7 @@ public class QuteHover {
 							return NO_HOVER;
 						}
 						MarkupContent content = DocumentationUtils.getDocumentation(member, iterableOfResolvedType,
-								argumentTypes, hasMarkdown);
+								argumentTypes, project, hasMarkdown);
 						Range range = QutePositionUtility.createRange(methodPart);
 						return CompletableFuture.completedFuture(new Hover(content, range));
 					}
@@ -488,13 +488,13 @@ public class QuteHover {
 										.setDocumentation(documentation == null ? "" : documentation));
 						return javadocFetchFuture.thenApply(alsoUnused -> {
 							MarkupContent content = DocumentationUtils.getDocumentation(memberResult.getMember(),
-									baseType, argumentTypes, hasMarkdown);
+									baseType, argumentTypes, project, hasMarkdown);
 							Range range = QutePositionUtility.createRange(methodPart);
 							return new Hover(content, range);
 						});
 					}
 					MarkupContent content = DocumentationUtils.getDocumentation(memberResult.getMember(),
-							iterableOfResolvedType, argumentTypes, hasMarkdown);
+							iterableOfResolvedType, argumentTypes, project, hasMarkdown);
 					Range range = QutePositionUtility.createRange(methodPart);
 					return CompletableFuture.completedFuture(new Hover(content, range));
 				});

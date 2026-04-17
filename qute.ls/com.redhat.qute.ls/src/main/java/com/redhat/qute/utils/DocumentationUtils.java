@@ -29,6 +29,7 @@ import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
+import com.redhat.qute.commons.JavaTypeResolver;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.ls.commons.snippets.Snippet;
@@ -82,8 +83,8 @@ public class DocumentationUtils {
 	}
 
 	public static MarkupContent getDocumentation(MethodValueResolver resolver, ResolvedJavaTypeInfo baseType,
-			List<ResolvedJavaTypeInfo> parameterTypes, boolean markdown) {
-		StringBuilder documentation = createDocumentation(resolver, baseType, parameterTypes, markdown);
+			List<ResolvedJavaTypeInfo> parameterTypes, JavaTypeResolver typeResolver, boolean markdown) {
+		StringBuilder documentation = createDocumentation(resolver, baseType, parameterTypes, typeResolver, markdown);
 		if (resolver.getDescription() != null) {
 			documentation.append(System.lineSeparator());
 			documentation.append(resolver.getDescription());
@@ -123,20 +124,20 @@ public class DocumentationUtils {
 
 	public static MarkupContent getDocumentation(JavaMemberInfo member, ResolvedJavaTypeInfo iterableOfResolvedType,
 			boolean markdown) {
-		return getDocumentation(member, iterableOfResolvedType, Collections.emptyList(), markdown);
+		return getDocumentation(member, iterableOfResolvedType, Collections.emptyList(), null, markdown);
 	}
 
 	public static MarkupContent getDocumentation(JavaMemberInfo member, ResolvedJavaTypeInfo baseType,
-			List<ResolvedJavaTypeInfo> parameterTypes, boolean markdown) {
+			List<ResolvedJavaTypeInfo> parameterTypes, JavaTypeResolver resolver, boolean markdown) {
 		if (member instanceof MethodValueResolver) {
-			return getDocumentation((MethodValueResolver) member, baseType, parameterTypes, markdown);
+			return getDocumentation((MethodValueResolver) member, baseType, parameterTypes, resolver, markdown);
 		}
-		StringBuilder documentation = createDocumentation(member, baseType, parameterTypes, markdown);
+		StringBuilder documentation = createDocumentation(member, baseType, parameterTypes, resolver, markdown);
 		return createMarkupContent(documentation, markdown);
 	}
 
 	private static StringBuilder createDocumentation(JavaMemberInfo member, ResolvedJavaTypeInfo baseType,
-			List<ResolvedJavaTypeInfo> argumentTypes, boolean markdown) {
+			List<ResolvedJavaTypeInfo> argumentTypes, JavaTypeResolver resolver, boolean markdown) {
 		StringBuilder documentation = new StringBuilder();
 
 		// Title
@@ -160,7 +161,7 @@ public class DocumentationUtils {
 					args.add(baseType);
 					args.addAll(argumentTypes);
 				}
-				documentation.append(getSimpleType(method.resolveReturnType(args)));
+				documentation.append(getSimpleType(method.resolveReturnType(args, resolver)));
 			}
 		} else {
 			// Field --> type

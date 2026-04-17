@@ -46,6 +46,7 @@ import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
+import com.redhat.qute.commons.JavaTypeResolver;
 import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavadocParams;
@@ -116,7 +117,7 @@ import com.redhat.qute.utils.StringUtils;
  * @author Angelo ZERR
  *
  */
-public class QuteProject {
+public class QuteProject implements JavaTypeResolver {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteProject.class.getName());
 
@@ -1081,8 +1082,9 @@ public class QuteProject {
 		return CompletableFuture.completedFuture(resolvedJavaType);
 	}
 
+	@Override
 	public ResolvedJavaTypeInfo resolveJavaTypeSync(String className) {
-		return resolveJavaType(className).getNow(QuteCompletableFutures.RESOLVING_JAVA_TYPE);
+		return javaCache.resolveJavaTypeSync(className);
 	}
 
 	public CompletableFuture<ResolvedJavaTypeInfo> resolveJavaType(String className) {

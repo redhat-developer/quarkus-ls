@@ -32,6 +32,14 @@ import com.redhat.qute.project.JavaDataModelCache;
  */
 public class ResolvedJavaTypeInfoTest {
 
+	private final static JavaTypeResolver MOCK_TYPE_RESOLVER = new JavaTypeResolver() {
+		
+		@Override
+		public ResolvedJavaTypeInfo resolveJavaTypeSync(String className) {
+			return null;
+		}
+	};
+	
 	@Test
 	public void applyGenericForMap() {
 		ResolvedJavaTypeInfo map = new ResolvedJavaTypeInfo();
@@ -191,7 +199,7 @@ public class ResolvedJavaTypeInfoTest {
 		ResolvedJavaTypeInfo item = new ResolvedJavaTypeInfo();
 		item.setSignature("org.acme.Item");
 
-		assertEquals("org.acme.Item", method.resolveReturnType(List.of(item)));
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(item), MOCK_TYPE_RESOLVER));
 	}
 
 	@Test
@@ -203,7 +211,7 @@ public class ResolvedJavaTypeInfoTest {
 		ResolvedJavaTypeInfo intType = new ResolvedJavaTypeInfo();
 		intType.setSignature("int");
 
-		assertEquals("int", method.resolveReturnType(List.of(intType)));
+		assertEquals("int", method.resolveReturnType(List.of(intType), MOCK_TYPE_RESOLVER));
 	}
 
 	@Test
@@ -213,7 +221,7 @@ public class ResolvedJavaTypeInfoTest {
 		JavaMethodInfo method = new JavaMethodInfo();
 		method.setSignature("get(arg : T) : T");
 
-		assertEquals("java.lang.Object", method.resolveReturnType(Collections.emptyList()));
+		assertEquals("java.lang.Object", method.resolveReturnType(Collections.emptyList(), MOCK_TYPE_RESOLVER));
 	}
 
 	// ─── Case 2: List<T> arg → T (inference from parameterized type) ──────────
@@ -228,7 +236,75 @@ public class ResolvedJavaTypeInfoTest {
 		ResolvedJavaTypeInfo listOfItem = new ResolvedJavaTypeInfo();
 		listOfItem.setSignature("java.util.List<org.acme.Item>");
 
-		assertEquals("org.acme.Item", method.resolveReturnType(List.of(listOfItem)));
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(listOfItem), MOCK_TYPE_RESOLVER));
+	}
+
+	@Test
+	public void resolveReturnType_listT_returnsT_withExtendedTypes() {
+		// get(arg : java.util.List<T>) : T + [org.acme.Items] →
+		// org.acme.Item
+		// where Items extends java.util.List<org.acme.Item>
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("get(arg : java.util.List<T>) : T");
+
+		ResolvedJavaTypeInfo items = new ResolvedJavaTypeInfo();
+		items.setSignature("org.acme.Items");
+		items.setExtendedTypes(List.of("java.util.List<org.acme.Item>"));
+
+		// Create a resolver that can resolve the extended type
+		JavaTypeResolver resolver = new JavaTypeResolver() {
+			@Override
+			public ResolvedJavaTypeInfo resolveJavaTypeSync(String className) {
+				if ("java.util.List<org.acme.Item>".equals(className)) {
+					ResolvedJavaTypeInfo listOfItem = new ResolvedJavaTypeInfo();
+					listOfItem.setSignature("java.util.List<org.acme.Item>");
+					return listOfItem;
+				}
+				return null;
+			}
+		};
+
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(items), resolver));
+	}
+
+	@Test
+	public void resolveReturnType_listT_returnsT_withExtendedTypes_multipleLevel() {
+		// get(arg : java.util.List<T>) : T + [org.acme.Items] →
+		// org.acme.Item
+		// where Items extends org.acme.MyList
+		// and MyList extends java.util.ArrayList<org.acme.Item>
+		JavaMethodInfo method = new JavaMethodInfo();
+		method.setSignature("get(arg : java.util.List<T>) : T");
+
+		ResolvedJavaTypeInfo items = new ResolvedJavaTypeInfo();
+		items.setSignature("org.acme.Items");
+		items.setExtendedTypes(List.of("org.acme.MyList"));
+
+		// Create a resolver that can resolve the extended types recursively
+		JavaTypeResolver resolver = new JavaTypeResolver() {
+			@Override
+			public ResolvedJavaTypeInfo resolveJavaTypeSync(String className) {
+				if ("org.acme.MyList".equals(className)) {
+					ResolvedJavaTypeInfo myList = new ResolvedJavaTypeInfo();
+					myList.setSignature("org.acme.MyList");
+					myList.setExtendedTypes(List.of("java.util.ArrayList<org.acme.Item>"));
+					return myList;
+				} else if ("java.util.ArrayList<org.acme.Item>".equals(className)) {
+					ResolvedJavaTypeInfo arrayListOfItem = new ResolvedJavaTypeInfo();
+					arrayListOfItem.setSignature("java.util.ArrayList<org.acme.Item>");
+					// ArrayList extends AbstractList, but for simplicity we can also say it "is-a" List
+					arrayListOfItem.setExtendedTypes(List.of("java.util.List<org.acme.Item>"));
+					return arrayListOfItem;
+				} else if ("java.util.List<org.acme.Item>".equals(className)) {
+					ResolvedJavaTypeInfo listOfItem = new ResolvedJavaTypeInfo();
+					listOfItem.setSignature("java.util.List<org.acme.Item>");
+					return listOfItem;
+				}
+				return null;
+			}
+		};
+
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(items), resolver));
 	}
 
 	@Test
@@ -241,7 +317,7 @@ public class ResolvedJavaTypeInfoTest {
 		ResolvedJavaTypeInfo listOfItem = new ResolvedJavaTypeInfo();
 		listOfItem.setSignature("java.util.List<org.acme.Item>");
 
-		assertEquals("java.util.List<org.acme.Item>", method.resolveReturnType(List.of(listOfItem)));
+		assertEquals("java.util.List<org.acme.Item>", method.resolveReturnType(List.of(listOfItem), MOCK_TYPE_RESOLVER));
 	}
 
 	// ─── Case 3: Class<T> arg → T (CDI/find pattern) ─────────────────────────
@@ -256,7 +332,7 @@ public class ResolvedJavaTypeInfoTest {
 		ResolvedJavaTypeInfo classOfItem = new ResolvedJavaTypeInfo();
 		classOfItem.setSignature("java.lang.Class<org.acme.Item>");
 
-		assertEquals("org.acme.Item", method.resolveReturnType(List.of(classOfItem)));
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(classOfItem), MOCK_TYPE_RESOLVER));
 	}
 
 	@Test
@@ -269,7 +345,7 @@ public class ResolvedJavaTypeInfoTest {
 		ResolvedJavaTypeInfo classOfItem = new ResolvedJavaTypeInfo();
 		classOfItem.setSignature("java.lang.Class<org.acme.Item>");
 
-		assertEquals("java.util.List<org.acme.Item>", method.resolveReturnType(List.of(classOfItem)));
+		assertEquals("java.util.List<org.acme.Item>", method.resolveReturnType(List.of(classOfItem), MOCK_TYPE_RESOLVER));
 	}
 
 	// ─── Case 4: K key, V value → Map<K,V> (multi-generics) ──────────────────
@@ -286,7 +362,7 @@ public class ResolvedJavaTypeInfoTest {
 		ResolvedJavaTypeInfo item = new ResolvedJavaTypeInfo();
 		item.setSignature("org.acme.Item");
 
-		assertEquals("java.util.Map<java.lang.String,org.acme.Item>", method.resolveReturnType(List.of(string, item)));
+		assertEquals("java.util.Map<java.lang.String,org.acme.Item>", method.resolveReturnType(List.of(string, item), MOCK_TYPE_RESOLVER));
 	}
 
 	@Test
@@ -300,7 +376,7 @@ public class ResolvedJavaTypeInfoTest {
 		ResolvedJavaTypeInfo string = new ResolvedJavaTypeInfo();
 		string.setSignature("java.lang.String");
 
-		assertEquals("java.util.Map<java.lang.String,java.lang.Object>", method.resolveReturnType(List.of(string)));
+		assertEquals("java.util.Map<java.lang.String,java.lang.Object>", method.resolveReturnType(List.of(string), MOCK_TYPE_RESOLVER));
 	}
 
 	// ─── No generics: returned as-is ──────────────────────────────────────────
@@ -311,7 +387,7 @@ public class ResolvedJavaTypeInfoTest {
 		JavaMethodInfo method = new JavaMethodInfo();
 		method.setSignature("size() : int");
 
-		assertEquals("int", method.resolveReturnType(Collections.emptyList()));
+		assertEquals("int", method.resolveReturnType(Collections.emptyList(), MOCK_TYPE_RESOLVER));
 	}
 
 	@Test
@@ -320,7 +396,7 @@ public class ResolvedJavaTypeInfoTest {
 		JavaMethodInfo method = new JavaMethodInfo();
 		method.setSignature("getName() : java.lang.String");
 
-		assertEquals("java.lang.String", method.resolveReturnType(Collections.emptyList()));
+		assertEquals("java.lang.String", method.resolveReturnType(Collections.emptyList(), MOCK_TYPE_RESOLVER));
 	}
 
 	// ─── Void method ──────────────────────────────────────────────────────────
@@ -334,7 +410,7 @@ public class ResolvedJavaTypeInfoTest {
 		ResolvedJavaTypeInfo item = new ResolvedJavaTypeInfo();
 		item.setSignature("org.acme.Item");
 
-		assertEquals("void", method.resolveReturnType(List.of(item)));
+		assertEquals("void", method.resolveReturnType(List.of(item), MOCK_TYPE_RESOLVER));
 	}
 
 	// ─── Case 5: baseType resolution ──────────────────────────────────────────
@@ -352,7 +428,7 @@ public class ResolvedJavaTypeInfoTest {
 		ResolvedJavaTypeInfo intType = new ResolvedJavaTypeInfo();
 		intType.setSignature("int");
 
-		assertEquals("org.acme.Item", method.resolveReturnType(List.of(itemArray, intType)));
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(itemArray, intType), MOCK_TYPE_RESOLVER));
 	}
 
 	@Test
@@ -368,7 +444,7 @@ public class ResolvedJavaTypeInfoTest {
 		ResolvedJavaTypeInfo intType = new ResolvedJavaTypeInfo();
 		intType.setSignature("int");
 
-		assertEquals("org.acme.Item", method.resolveReturnType(List.of(listOfItem, intType)));
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(listOfItem, intType), MOCK_TYPE_RESOLVER));
 	}
 
 	@Test
@@ -384,7 +460,7 @@ public class ResolvedJavaTypeInfoTest {
 		ResolvedJavaTypeInfo string = new ResolvedJavaTypeInfo();
 		string.setSignature("java.lang.String");
 
-		assertEquals("org.acme.Item", method.resolveReturnType(List.of(mapType, string)));
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(mapType, string), MOCK_TYPE_RESOLVER));
 	}
 
 	@Test
@@ -397,7 +473,7 @@ public class ResolvedJavaTypeInfoTest {
 		ResolvedJavaTypeInfo listOfItem = new ResolvedJavaTypeInfo();
 		listOfItem.setSignature("java.util.List<org.acme.Item>");
 
-		assertEquals("org.acme.Item", method.resolveReturnType(List.of(listOfItem)));
+		assertEquals("org.acme.Item", method.resolveReturnType(List.of(listOfItem), MOCK_TYPE_RESOLVER));
 	}
 
 	@Test

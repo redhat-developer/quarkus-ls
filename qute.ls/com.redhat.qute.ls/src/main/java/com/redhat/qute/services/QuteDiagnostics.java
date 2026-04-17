@@ -1092,7 +1092,7 @@ class QuteDiagnostics {
 			if (method.isVoidMethod()) {
 				return null;
 			}
-			memberType = method.resolveReturnType(List.of(baseType));
+			memberType = method.resolveReturnType(List.of(baseType), project);
 		} else {
 			memberType = javaMember.getJavaElementType();
 		}

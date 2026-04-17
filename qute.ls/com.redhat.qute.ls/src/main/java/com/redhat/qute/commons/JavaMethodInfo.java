@@ -537,7 +537,7 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	 * @return the resolved return type, null if void, raw return type if resolution
 	 *         fails
 	 */
-	public String resolveReturnType(List<ResolvedJavaTypeInfo> argumentTypes) {
+	public String resolveReturnType(List<ResolvedJavaTypeInfo> argumentTypes, JavaTypeResolver resolver) {
 		String rawReturn = getReturnType();
 		if (rawReturn == null || isVoidMethod()) {
 			// void or no return type → returned as-is
@@ -558,7 +558,7 @@ public class JavaMethodInfo extends JavaMemberInfo {
 		for (int i = 0; i < declaredParams.size() && i < argumentTypes.size(); i++) {
 			JavaTypeInfo declared = declaredParams.get(i).getJavaType();
 			ResolvedJavaTypeInfo argument = argumentTypes.get(i);
-			inferGenericMap(declared, argument, genericMap);
+			inferGenericMap(declared, argument, resolver, genericMap);
 		}
 
 		// Fill unresolved generic variables with java.lang.Object
@@ -579,6 +579,51 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	}
 
 	/**
+	 * Attempts to infer generic mappings by searching through the extended types hierarchy.
+	 *
+	 * @param declared   the declared parameter type
+	 * @param argument   the argument type (which has no type parameters itself)
+	 * @param resolver   the type resolver
+	 * @param genericMap the map to populate
+	 * @return true if a match was found and inference succeeded
+	 */
+	private static boolean inferFromExtendedTypes(JavaTypeInfo declared, ResolvedJavaTypeInfo argument,
+			JavaTypeResolver resolver, Map<String, String> genericMap) {
+		List<String> extendedTypes = argument.getExtendedTypes();
+		if (extendedTypes == null || extendedTypes.isEmpty()) {
+			return false;
+		}
+
+		String declaredBaseName = declared.getName();
+
+		for (String extendedType : extendedTypes) {
+			// Resolve the extended type
+			ResolvedJavaTypeInfo extendedTypeInfo = resolver.resolveJavaTypeSync(extendedType);
+			if (extendedTypeInfo == null) {
+				continue;
+			}
+
+			// Check if this extended type matches the declared type by base name
+			// Extract base name without generics: java.util.ArrayList<Item> -> java.util.ArrayList
+			JavaTypeInfo extendedTypeAsJavaType = new JavaTypeInfo();
+			extendedTypeAsJavaType.setSignature(extendedType);
+			String extendedBaseName = extendedTypeAsJavaType.getName();
+			if (extendedBaseName.equals(declaredBaseName)) {
+				// Direct match! Infer from this extended type
+				inferGenericMap(declared, extendedTypeInfo, resolver, genericMap);
+				return true;
+			} else {
+				// No direct match, search recursively in this extended type's hierarchy
+				if (inferFromExtendedTypes(declared, extendedTypeInfo, resolver, genericMap)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Recursively infers generic variable mappings by comparing a declared
 	 * (possibly generic) parameter type against a concrete resolved argument type.
 	 *
@@ -588,9 +633,10 @@ public class JavaMethodInfo extends JavaMemberInfo {
 	 *
 	 * @param declared   the declared parameter type (may contain generic variables)
 	 * @param argument   the concrete resolved type provided at call site
+	 * @param resolver
 	 * @param genericMap the map to populate with resolved generic variables
 	 */
-	private static void inferGenericMap(JavaTypeInfo declared, ResolvedJavaTypeInfo argument,
+	private static void inferGenericMap(JavaTypeInfo declared, ResolvedJavaTypeInfo argument, JavaTypeResolver resolver,
 			Map<String, String> genericMap) {
 		if (argument == null) {
 			return;
@@ -604,17 +650,33 @@ public class JavaMethodInfo extends JavaMemberInfo {
 			return;
 		}
 
+		List<JavaParameterInfo> argumentTypeParams = argument.getTypeParameters();
+		if (argumentTypeParams.isEmpty()) {
+			// args has no generic, search in extended types
+			// Example: argument=org.acme.Items (no type params)
+			// with extendedTypes=[java.util.List<org.acme.Item>]
+			// declared=java.util.List<T>
+			// We need to find the matching extended type and infer from it
+			List<String> extendedTypes = argument.getExtendedTypes();
+			if (extendedTypes != null && !extendedTypes.isEmpty() && resolver != null) {
+				// Try to find a matching extended type in the hierarchy
+				if (inferFromExtendedTypes(declared, argument, resolver, genericMap)) {
+					return;
+				}
+			}
+		}
+
 		// declared has type parameters: e.g. List<T>, Map<K,V>, Class<T>
 		// recurse positionally: List<T> vs List<org.acme.Item> → T=org.acme.Item
 		List<JavaParameterInfo> declaredTypeParams = declared.getTypeParameters();
-		List<JavaParameterInfo> argumentTypeParams = argument.getTypeParameters();
+
 		for (int i = 0; i < declaredTypeParams.size() && i < argumentTypeParams.size(); i++) {
 			JavaTypeInfo declaredInner = declaredTypeParams.get(i).getJavaType();
 			// wrap the argument inner type in a lightweight ResolvedJavaTypeInfo
 			// getTypeParameters() works from signature alone (see JavaTypeInfo)
 			ResolvedJavaTypeInfo argumentInner = new ResolvedJavaTypeInfo();
 			argumentInner.setSignature(argumentTypeParams.get(i).getType());
-			inferGenericMap(declaredInner, argumentInner, genericMap);
+			inferGenericMap(declaredInner, argumentInner, resolver, genericMap);
 		}
 	}
 
