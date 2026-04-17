@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionItemLabelDetails;
@@ -53,9 +52,7 @@ import com.redhat.qute.project.extensions.roq.frontmatter.schema.FrontMatterProp
 import com.redhat.qute.project.extensions.roq.frontmatter.schema.YamlFrontMatterSchemaProvider;
 import com.redhat.qute.services.QuteCompletions;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
-import com.redhat.qute.settings.QuteCommandCapabilities;
-import com.redhat.qute.settings.QuteCompletionSettings;
-import com.redhat.qute.settings.QuteFormattingSettings;
+import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.utils.StringUtils;
 
 /**
@@ -65,9 +62,8 @@ public class YamlFrontMatterCompletion {
 
 	private static final Collection<String> BOOLEAN_VALUES = List.of("false", "true");
 
-	public CompletableFuture<CompletionList> doComplete(YamlDocument document, Template template, int offset,
-			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
-			QuteCommandCapabilities commandCapabilities, CancelChecker cancelChecker) {
+	public CompletableFuture<CompletionList> doComplete(CompletionRequest completionRequest, YamlDocument document,
+			Template template, int offset, CancelChecker cancelChecker) {
 		YamlNode yamlNode = document.findNodeBefore(offset);
 		if (yamlNode.getKind() != YamlNodeKind.YamlProperty && yamlNode.getEnd() < offset) {
 			if (yamlNode.getParent() != null && NodeBase.isIncluded(yamlNode.getParent(), offset)) {
@@ -81,47 +77,43 @@ public class YamlFrontMatterCompletion {
 		case YamlDocument: {
 			// ex: |
 			Set<String> existingKeys = getExistingKeys(null, document);
-			return completionOnPropertyKey(null, offset, existingKeys, document, true, completionSettings,
-					commandCapabilities);
+			return completionOnPropertyKey(completionRequest, null, offset, existingKeys, document, true);
 		}
 		case YamlMapping: {
 			Set<String> existingKeys = getExistingKeys(null, document);
-			return completionOnPropertyKey(null, offset, existingKeys, document, true, completionSettings,
-					commandCapabilities);
+			return completionOnPropertyKey(completionRequest, null, offset, existingKeys, document, true);
 		}
 		case YamlProperty: {
 			YamlProperty property = (YamlProperty) yamlNode;
 			char prev = document.getText().charAt(offset - 1);
 			if (prev == '\n') {
 				Set<String> existingKeys = getExistingKeys(null, document);
-				return completionOnPropertyKey(null, offset, existingKeys, document, true, completionSettings,
-						commandCapabilities);
+				return completionOnPropertyKey(completionRequest, null, offset, existingKeys, document, true);
 			} else if (property.isInKey(offset)) {
 				// completion on yaml property key
 				Set<String> existingKeys = getExistingKeys(property, document);
-				return completionOnPropertyKey(property.getKey(), offset, existingKeys, document,
-						property.getColonOffset() == -1, completionSettings, commandCapabilities);
+				return completionOnPropertyKey(completionRequest, property.getKey(), offset, existingKeys, document,
+						property.getColonOffset() == -1);
 			} else {
 				// completion on yaml property value
 				if (property.isProperty(FrontMatterProperty.LAYOUT_PROPERTY)) {
 					// completion on layout value
-					return completionOnLayout(property.getValue(), offset, document, template, completionSettings);
+					return completionOnLayout(completionRequest, property.getValue(), offset, document, template);
 				} else if (property.isProperty(FrontMatterProperty.THEME_LAYOUT_PROPERTY)) {
 					// completion on theme-layout value
-					return completionOnThemeLayout(property.getValue(), offset, document, template, completionSettings);
+					return completionOnThemeLayout(completionRequest, property.getValue(), offset, document, template);
 				} else if (property.isProperty(FrontMatterProperty.PAGINATE_PROPERTY)) {
 					// completion on paginate value
-					return completionOnPaginate(property.getValue(), offset, document, template, completionSettings);
+					return completionOnPaginate(completionRequest, property.getValue(), offset, document, template);
 				} else if (property.isProperty(FrontMatterProperty.IMAGE_PROPERTY)) {
 					// completion on image value
-					return completionOnImage(property.getValue(), offset, document, template, completionSettings);
+					return completionOnImage(completionRequest, property.getValue(), offset, document, template);
 				}
 			}
 		}
 		case YamlScalar: {
 			Set<String> existingKeys = getExistingKeys(yamlNode, document);
-			return completionOnPropertyKey(yamlNode, offset, existingKeys, document, true, completionSettings,
-					commandCapabilities);
+			return completionOnPropertyKey(completionRequest, yamlNode, offset, existingKeys, document, true);
 		}
 		default:
 			return QuteCompletions.EMPTY_FUTURE_COMPLETION;
@@ -169,18 +161,16 @@ public class YamlFrontMatterCompletion {
 
 	// Completion on property key
 
-	private CompletableFuture<CompletionList> completionOnPropertyKey(YamlNode property, int offset,
-			Set<String> existingKeys, YamlDocument document, boolean generateValue,
-			QuteCompletionSettings completionSettings, QuteCommandCapabilities commandCapabilities) {
+	private CompletableFuture<CompletionList> completionOnPropertyKey(CompletionRequest completionRequest,
+			YamlNode property, int offset, Set<String> existingKeys, YamlDocument document, boolean generateValue) {
 		List<CompletionItem> completionItems = new ArrayList<>();
 		CompletionList list = new CompletionList();
 		list.setItems(completionItems);
 
 		Range range = createRange(property, offset, document);
-		boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
-		boolean hasMarkdown = completionSettings.canSupportMarkupKind(MarkupKind.MARKDOWN);
-		boolean canSupportTriggerSuggest = commandCapabilities
-				.isCommandSupported(COMMAND_EDITOR_ACTION_TRIGGET_SUGGEST);
+		boolean snippetsSupported = completionRequest.isCompletionSnippetsSupported();
+		boolean hasMarkdown = completionRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
+		boolean canSupportTriggerSuggest = completionRequest.isCommandSupported(COMMAND_EDITOR_ACTION_TRIGGET_SUGGEST);
 		for (FrontMatterProperty propertyConfig : YamlFrontMatterSchemaProvider.getInstance().getProperties()) {
 			if (!existingKeys.contains(propertyConfig.getName())) {
 				fillCompletion(propertyConfig, range, snippetsSupported, hasMarkdown, generateValue,
@@ -231,10 +221,7 @@ public class YamlFrontMatterCompletion {
 			// Retrigger completion when
 			// - layout: property is inserted to open completion for available layouts.
 			// - paginate: property is inserted to open completion for available collection.
-			Command command = new Command();
-			command.setTitle("Trigger Suggest");
-			command.setCommand(QuteClientCommandConstants.COMMAND_EDITOR_ACTION_TRIGGET_SUGGEST);
-			item.setCommand(command);
+			item.setCommand(QuteClientCommandConstants.COMMAND_EDITOR_ACTION_TRIGGET_SUGGEST_COMMAND);
 		}
 
 		TextEdit textEdit = new TextEdit();
@@ -263,8 +250,8 @@ public class YamlFrontMatterCompletion {
 
 	// Completion on layout value
 
-	private CompletableFuture<CompletionList> completionOnLayout(YamlNode yamlNode, int offset, YamlDocument document,
-			Template template, QuteCompletionSettings completionSettings) {
+	private CompletableFuture<CompletionList> completionOnLayout(CompletionRequest completionRequest, YamlNode yamlNode,
+			int offset, YamlDocument document, Template template) {
 		// Completion on layout: |
 		Set<CompletionItem> completionItems = new HashSet<>();
 		CompletionList list = new CompletionList();
@@ -273,7 +260,7 @@ public class YamlFrontMatterCompletion {
 		RoqProjectExtension roq = RoqProjectExtension.getRoqProjectExtension(template);
 		if (roq != null) {
 			Range range = createRange(yamlNode, offset, document);
-			boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
+			boolean snippetsSupported = completionRequest.isCompletionSnippetsSupported();
 
 			Path filePath = FileUtils.createPath(template.getUri());
 			roq.collectLayouts(filePath, (folder, layout, templateId, binary, origin) -> {
@@ -299,8 +286,8 @@ public class YamlFrontMatterCompletion {
 
 	// Completion on theme-layout value
 
-	private CompletableFuture<CompletionList> completionOnThemeLayout(YamlNode yamlNode, int offset,
-			YamlDocument document, Template template, QuteCompletionSettings completionSettings) {
+	private CompletableFuture<CompletionList> completionOnThemeLayout(CompletionRequest completionRequest,
+			YamlNode yamlNode, int offset, YamlDocument document, Template template) {
 		// Completion on layout: |
 		Set<CompletionItem> completionItems = new HashSet<>();
 		CompletionList list = new CompletionList();
@@ -308,7 +295,7 @@ public class YamlFrontMatterCompletion {
 		RoqProjectExtension roq = RoqProjectExtension.getRoqProjectExtension(template);
 		if (roq != null) {
 			Range range = createRange(yamlNode, offset, document);
-			boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
+			boolean snippetsSupported = completionRequest.isCompletionSnippetsSupported();
 			roq.collectThemeLayouts((folder, layout, templateId, binary, origin) -> {
 				if (templateId == null) {
 					templateId = folder.relativize(layout).toString().replace('\\', '/');
@@ -329,8 +316,8 @@ public class YamlFrontMatterCompletion {
 
 	// Completion on paginate value
 
-	private CompletableFuture<CompletionList> completionOnPaginate(YamlNode yamlNode, int offset, YamlDocument document,
-			Template template, QuteCompletionSettings completionSettings) {
+	private CompletableFuture<CompletionList> completionOnPaginate(CompletionRequest completionRequest,
+			YamlNode yamlNode, int offset, YamlDocument document, Template template) {
 		// Completion on paginate: |
 		Set<CompletionItem> completionItems = new HashSet<>();
 		CompletionList list = new CompletionList();
@@ -338,7 +325,7 @@ public class YamlFrontMatterCompletion {
 		RoqProjectExtension roq = RoqProjectExtension.getRoqProjectExtension(template);
 		if (roq != null) {
 			Range range = createRange(yamlNode, offset, document);
-			boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
+			boolean snippetsSupported = completionRequest.isCompletionSnippetsSupported();
 			for (String collectionName : roq.getConfiguredCollections()) {
 				CompletionItem item = new CompletionItem();
 				item.setLabel(collectionName);
@@ -385,8 +372,8 @@ public class YamlFrontMatterCompletion {
 
 	// Completion on image value
 
-	private CompletableFuture<CompletionList> completionOnImage(YamlNode propertyValue, int offset,
-			YamlDocument document, Template template, QuteCompletionSettings completionSettings) {
+	private CompletableFuture<CompletionList> completionOnImage(CompletionRequest completionRequest,
+			YamlNode propertyValue, int offset, YamlDocument document, Template template) {
 		// Completion on image: |
 		Set<CompletionItem> completionItems = new HashSet<>();
 		CompletionList list = new CompletionList();
@@ -394,8 +381,8 @@ public class YamlFrontMatterCompletion {
 		RoqProjectExtension roq = RoqProjectExtension.getRoqProjectExtension(template);
 		if (roq != null) {
 			Range range = createRange(propertyValue, offset, document);
-			boolean snippetsSupported = completionSettings.isCompletionSnippetsSupported();
-			boolean hasMarkdown = completionSettings.canSupportMarkupKind(MarkupKind.MARKDOWN);
+			boolean snippetsSupported = completionRequest.isCompletionSnippetsSupported();
+			boolean hasMarkdown = completionRequest.canSupportMarkupKind(MarkupKind.MARKDOWN);
 
 			Path templatePath = FileUtils.createPath(template.getUri());
 			roq.collectImages(templatePath, (folder, image, templateId, binary, origin) -> {

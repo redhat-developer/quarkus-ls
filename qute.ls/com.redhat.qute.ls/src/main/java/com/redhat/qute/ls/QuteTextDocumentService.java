@@ -154,7 +154,7 @@ public class QuteTextDocumentService implements TextDocumentService, TemplateVal
 	public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved) {
 		CompletionData data = CompletionData.getCompletionData(unresolved);
 		if (data == null) {
-			return CompletableFuture.completedFuture(unresolved);
+			return CompletableFuture.completedFuture(null);
 		}
 		return templateFileTextDocumentService.resolveCompletionItem(unresolved, data);
 	}

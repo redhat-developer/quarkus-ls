@@ -106,7 +106,7 @@
 	"#include": {
 		"prefix": "include",
 		"body": [
-			"{#include ${1:template}}",
+			"{#include $1 }",
 			"\t$0",
 			"{/include}"
 		],

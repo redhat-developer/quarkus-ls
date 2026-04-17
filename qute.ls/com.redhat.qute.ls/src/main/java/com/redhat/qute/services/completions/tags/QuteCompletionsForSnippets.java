@@ -12,6 +12,7 @@
 package com.redhat.qute.services.completions.tags;
 
 import static com.redhat.qute.ls.commons.snippets.SnippetRegistry.updateInsertTextMode;
+import static com.redhat.qute.services.commands.QuteClientCommandConstants.COMMAND_EDITOR_ACTION_TRIGGET_SUGGEST;
 
 import java.util.List;
 import java.util.Set;
@@ -43,6 +44,7 @@ import com.redhat.qute.parser.template.sections.TemplatePath;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.documents.SearchInfoQuery;
 import com.redhat.qute.project.usages.IncludeUsages;
+import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import com.redhat.qute.services.completions.CompletionData;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.snippets.AbstractQuteSnippetContext;
@@ -125,9 +127,18 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 						return false;
 					}, contentProvider, suffixToFind, prefixFilter, contentProvider);
 
+			boolean canSupportTriggerSuggest = completionRequest
+					.isCommandSupported(COMMAND_EDITOR_ACTION_TRIGGET_SUGGEST);
 			CompletionData data = new CompletionData(template.getUri(), completionRequest.getOffset());
-			snippets.forEach(s -> {
-				s.setData(data);
+			snippets.forEach(item -> {
+				if (shouldBeResolved(item)) {
+					item.setData(data);
+				}
+				if (canSupportTriggerSuggest && isRetriggerCompletion(item)) {
+					// Retrigger completion when
+					// - #include is inserted to open completion for available template ids.
+					item.setCommand(QuteClientCommandConstants.COMMAND_EDITOR_ACTION_TRIGGET_SUGGEST_COMMAND);
+				}
 			});
 			completionItems.addAll(snippets);
 
@@ -136,7 +147,7 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 			if (end != null) {
 				range = new Range(replaceRange.getStart(), end);
 			}
-			
+
 			// Collect insert parameters
 			collectInsertParameterSuggestions(completionRequest, range, prefixFilter, suffixToFind, whitespacesIndent,
 					defaultInsertTextMode, completionItems);
@@ -144,6 +155,14 @@ public class QuteCompletionsForSnippets<T extends Snippet> {
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "In QuteCompletions, collectSnippetSuggestions position error", e);
 		}
+	}
+
+	private static boolean isRetriggerCompletion(CompletionItem item) {
+		return "include".equals(item.getLabel());
+	}
+
+	private static boolean shouldBeResolved(CompletionItem item) {
+		return !"include".equals(item.getLabel());
 	}
 
 	private void collectInsertParameterSuggestions(CompletionRequest completionRequest, Range replaceRange,

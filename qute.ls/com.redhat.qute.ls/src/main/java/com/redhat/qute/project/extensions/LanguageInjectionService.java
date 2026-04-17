@@ -27,9 +27,6 @@ import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.hover.HoverRequest;
-import com.redhat.qute.settings.QuteCommandCapabilities;
-import com.redhat.qute.settings.QuteCompletionSettings;
-import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.QuteValidationSettings;
 
 /**
@@ -60,16 +57,11 @@ public interface LanguageInjectionService {
 	 * 
 	 * @param languageInjection
 	 * @param completionRequest
-	 * @param completionSettings
-	 * @param formattingSettings
-	 * @param commandCapabilities
 	 * @param cancelChecker
 	 * @return
 	 */
 	CompletableFuture<CompletionList> doComplete(LanguageInjectionNode languageInjection,
-			CompletionRequest completionRequest, QuteCompletionSettings completionSettings,
-			QuteFormattingSettings formattingSettings, QuteCommandCapabilities commandCapabilities,
-			CancelChecker cancelChecker);
+			CompletionRequest completionRequest, CancelChecker cancelChecker);
 
 	/**
 	 * Document links support for injected content.

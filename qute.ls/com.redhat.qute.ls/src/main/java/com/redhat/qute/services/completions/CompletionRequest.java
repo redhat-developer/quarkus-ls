@@ -18,17 +18,21 @@ import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.parser.template.Node;
 import com.redhat.qute.parser.template.Template;
 import com.redhat.qute.services.AbstractPositionRequest;
+import com.redhat.qute.settings.QuteCommandCapabilities;
 import com.redhat.qute.settings.QuteCompletionSettings;
 import com.redhat.qute.settings.QuteFormattingSettings;
 
 public class CompletionRequest extends AbstractPositionRequest {
 
 	private final QuteCompletionSettings completionSettings;
+	private final QuteCommandCapabilities commandCapabilities;
 
 	public CompletionRequest(Template template, Position position, QuteCompletionSettings completionSettings,
-			QuteFormattingSettings formattingSettings) throws BadLocationException {
+			QuteFormattingSettings formattingSettings, QuteCommandCapabilities commandCapabilities)
+			throws BadLocationException {
 		super(template, position);
 		this.completionSettings = completionSettings;
+		this.commandCapabilities = commandCapabilities;
 	}
 
 	@Override
@@ -50,6 +54,10 @@ public class CompletionRequest extends AbstractPositionRequest {
 
 	public InsertTextMode getDefaultInsertTextMode() {
 		return completionSettings.getDefaultInsertTextMode();
+	}
+
+	public boolean isCommandSupported(String commandKind) {
+		return commandCapabilities.isCommandSupported(commandKind);
 	}
 
 }

@@ -9,6 +9,8 @@
 *******************************************************************************/
 package com.redhat.qute.services.commands;
 
+import org.eclipse.lsp4j.Command;
+
 /**
  * Qute command IDs available on LSP client side.
  * 
@@ -45,4 +47,7 @@ public class QuteClientCommandConstants {
 	 * Client command to trigger completion of the current offset
 	 */
 	public static final String COMMAND_EDITOR_ACTION_TRIGGET_SUGGEST = "editor.action.triggerSuggest";
+
+	public static final Command COMMAND_EDITOR_ACTION_TRIGGET_SUGGEST_COMMAND = new Command("Trigger Suggest",
+			QuteClientCommandConstants.COMMAND_EDITOR_ACTION_TRIGGET_SUGGEST);
 }
