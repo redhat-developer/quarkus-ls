@@ -115,7 +115,8 @@ public class QuteCompletions {
 			CancelChecker cancelChecker) {
 		CompletionRequest completionRequest = null;
 		try {
-			completionRequest = new CompletionRequest(template, position, completionSettings, formattingSettings);
+			completionRequest = new CompletionRequest(template, position, completionSettings, formattingSettings,
+					commandCapabilities);
 		} catch (BadLocationException e) {
 			LOGGER.log(Level.SEVERE, "Creation of CompletionRequest failed", e);
 			return EMPTY_FUTURE_COMPLETION;
@@ -144,7 +145,7 @@ public class QuteCompletions {
 			if (Section.isIncludeSection(parentSection)) {
 				// {#include | }
 				CompletableFuture<CompletionList> result = doCompleteTemplateIds((IncludeSection) parentSection,
-						completionRequest, completionSettings, formattingSettings, cancelChecker);
+						completionRequest, cancelChecker);
 				if (result != null) {
 					return result;
 				}
@@ -207,8 +208,7 @@ public class QuteCompletions {
 			} else if (Section.isIncludeSection(parameter.getOwnerSection())) {
 				// {#include ba|se }
 				CompletableFuture<CompletionList> result = doCompleteTemplateIds(
-						(IncludeSection) parameter.getOwnerSection(), completionRequest, completionSettings,
-						formattingSettings, cancelChecker);
+						(IncludeSection) parameter.getOwnerSection(), completionRequest, cancelChecker);
 				if (result != null) {
 					return result;
 				}
@@ -228,8 +228,7 @@ public class QuteCompletions {
 				if (dataModel == null) {
 					return EMPTY_FUTURE_COMPLETION;
 				}
-				return service.doComplete(languageInjection, completionRequest, completionSettings, formattingSettings,
-						commandCapabilities, cancelChecker);
+				return service.doComplete(languageInjection, completionRequest, cancelChecker);
 			}
 			return EMPTY_FUTURE_COMPLETION;
 		}
@@ -237,13 +236,11 @@ public class QuteCompletions {
 	}
 
 	private CompletableFuture<CompletionList> doCompleteTemplateIds(IncludeSection includeSection,
-			CompletionRequest completionRequest, QuteCompletionSettings completionSettings,
-			QuteFormattingSettings formattingSettings, CancelChecker cancelChecker) {
+			CompletionRequest completionRequest, CancelChecker cancelChecker) {
 		Parameter templateParameter = includeSection.getTemplateParameter();
 		int offset = completionRequest.getOffset();
 		if (templateParameter == null || Node.isIncluded(templateParameter, offset)) {
-			return completionForTemplateIds.doCompleteTemplateId(completionRequest, completionSettings,
-					formattingSettings, cancelChecker);
+			return completionForTemplateIds.doCompleteTemplateId(completionRequest, cancelChecker);
 		}
 		return null;
 	}

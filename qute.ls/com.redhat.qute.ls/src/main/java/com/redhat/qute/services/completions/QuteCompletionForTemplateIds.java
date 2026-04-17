@@ -35,8 +35,6 @@ import com.redhat.qute.parser.template.sections.FragmentSection;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.documents.SearchInfoQuery;
-import com.redhat.qute.settings.QuteCompletionSettings;
-import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 
 /**
@@ -69,7 +67,6 @@ public class QuteCompletionForTemplateIds {
 	};
 
 	public CompletableFuture<CompletionList> doCompleteTemplateId(CompletionRequest completionRequest,
-			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
 			CancelChecker cancelChecker) {
 		CompletionList list = new CompletionList();
 		list.setItems(new ArrayList<>());

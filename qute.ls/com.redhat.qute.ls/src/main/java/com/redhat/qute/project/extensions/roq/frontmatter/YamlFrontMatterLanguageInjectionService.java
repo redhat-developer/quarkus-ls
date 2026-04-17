@@ -31,9 +31,6 @@ import com.redhat.qute.project.QuteTextDocument;
 import com.redhat.qute.project.extensions.LanguageInjectionService;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.services.hover.HoverRequest;
-import com.redhat.qute.settings.QuteCommandCapabilities;
-import com.redhat.qute.settings.QuteCompletionSettings;
-import com.redhat.qute.settings.QuteFormattingSettings;
 import com.redhat.qute.settings.QuteValidationSettings;
 
 /**
@@ -65,13 +62,11 @@ public class YamlFrontMatterLanguageInjectionService implements LanguageInjectio
 
 	@Override
 	public CompletableFuture<CompletionList> doComplete(LanguageInjectionNode node, CompletionRequest completionRequest,
-			QuteCompletionSettings completionSettings, QuteFormattingSettings formattingSettings,
-			QuteCommandCapabilities commandCapabilities, CancelChecker cancelChecker) {
+			CancelChecker cancelChecker) {
 		YamlDocument document = (YamlDocument) node.getInjectedNode(() -> cancelChecker.checkCanceled());
 		Template template = completionRequest.getTemplate();
 		int offset = completionRequest.getOffset();
-		return completion.doComplete(document, template, offset, completionSettings, formattingSettings,
-				commandCapabilities, cancelChecker);
+		return completion.doComplete(completionRequest, document, template, offset, cancelChecker);
 	}
 
 	@Override
