@@ -23,6 +23,9 @@ import com.redhat.qute.project.extensions.roq.RoqProjectExtension;
  */
 public class ImageFileSupport extends RoqFileSupport {
 
+	private static final String HTTPS_SHEME = "https:";
+	private static final String HTTP_SHEME = "http:";
+
 	public ImageFileSupport(RoqProjectExtension roq) {
 		super(roq);
 	}
@@ -47,6 +50,12 @@ public class ImageFileSupport extends RoqFileSupport {
 			return null;
 		}
 
+		if (isHttpImagePath(imageFilePath)) {
+			String imageUrl = imageFilePath;
+			// We consider that any http:, https: image url are valid.
+			return new TemplatePath(imageUrl, null, true);
+		}
+
 		if (imageFilePath.charAt(0) == '/') {
 			imageFilePath = imageFilePath.substring(1);
 		}
@@ -66,4 +75,7 @@ public class ImageFileSupport extends RoqFileSupport {
 		return new TemplatePath(publicImagePath, imageFilePath);
 	}
 
+	private static boolean isHttpImagePath(String imagePath) {
+		return imagePath != null && (imagePath.startsWith(HTTP_SHEME) || imagePath.startsWith(HTTPS_SHEME));
+	}
 }

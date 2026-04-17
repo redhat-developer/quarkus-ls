@@ -114,12 +114,16 @@ public class YamlFrontMatterDocumentationUtils {
 	}
 
 	public static MarkupContent getImageDocumentation(TemplatePath imagePath, boolean markdown) {
+		return getImageDocumentation(imagePath.getUri(), markdown);
+	}
+
+	public static MarkupContent getImageDocumentation(String imageUri, boolean markdown) {
 		StringBuilder documentation = new StringBuilder();
 
 		// Image preview
 		if (markdown) {
 			documentation.append("![image](");
-			documentation.append(imagePath.getUri());
+			documentation.append(imageUri);
 			documentation.append(")");
 			documentation.append(System.lineSeparator());
 		}
