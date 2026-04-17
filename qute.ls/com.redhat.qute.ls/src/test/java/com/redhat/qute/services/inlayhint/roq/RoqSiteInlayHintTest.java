@@ -46,6 +46,20 @@ public class RoqSiteInlayHintTest {
 
 	}
 
+	@Test
+	public void collections_orEmpty() throws Exception {
+		String template = "{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\r\n" + //
+				"{#for c in site.collections.posts.orEmpty}\r\n" + //
+				" {c.data}\r\n" + //
+				"{/for}";
+		testInlayHintFor(template, //
+				ih(p(1, 7), ihLabel(":"),
+						ihLabel("DocumentPage",
+								"Open `io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage` Java type.",
+								cd("io.quarkiverse.roq.frontmatter.runtime.model.DocumentPage"))));
+
+		
+	}
 	public static void testInlayHintFor(String value, InlayHint... expected) throws Exception {
 		testInlayHintFor(value, null, expected);
 	}

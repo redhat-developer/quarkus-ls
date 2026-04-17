@@ -70,6 +70,15 @@ public class RoqSiteDiagnosticsTest {
 		testDiagnosticsFor(template);
 	}
 	
+	@Test
+	public void collections_orEmpty_data() throws Exception {
+		String template = "{@io.quarkiverse.roq.frontmatter.runtime.model.Site site}\r\n" + //
+				"{#for c in site.collections.posts.orEmpty}\r\n" + //
+				" {c.data}\r\n" + //
+				"{/for}";
+		testDiagnosticsFor(template);
+	}
+	
 	private static void testDiagnosticsFor(String value, Diagnostic... expected) {
 		QuteAssert.testDiagnosticsFor(value, QuteAssert.FILE_URI, null, RoqProject.PROJECT_URI,
 				QuteAssert.TEMPLATE_BASE_DIR, true, null, expected);
