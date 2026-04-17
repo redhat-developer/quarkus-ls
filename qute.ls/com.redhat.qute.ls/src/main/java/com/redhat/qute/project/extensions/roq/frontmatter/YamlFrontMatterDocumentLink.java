@@ -60,7 +60,8 @@ public class YamlFrontMatterDocumentLink {
 								if (range != null) {
 									String layoutFileName = ((YamlScalar) propertyValue).getValue();
 									try {
-										boolean themeLayout = property.isProperty(FrontMatterProperty.THEME_LAYOUT_PROPERTY);
+										boolean themeLayout = property
+												.isProperty(FrontMatterProperty.THEME_LAYOUT_PROPERTY);
 										TemplatePath layoutPath = themeLayout
 												? roq.getThemeLayoutPath(filePath, layoutFileName)
 												: roq.getLayoutPath(filePath, layoutFileName);
@@ -74,7 +75,9 @@ public class YamlFrontMatterDocumentLink {
 
 								}
 							} else if (property.isProperty(FrontMatterProperty.IMAGE_PROPERTY)) {
-								// ex: image: foo.png --> foo.png must be a link.
+								// ex:
+								// - image : https://iamroq.dev/images/mascot.svg
+								// - image: foo.png --> foo.png must be a link.
 								Range range = YamlPositionUtility.createRange(propertyValue);
 								if (range != null) {
 									String imageFilePath = ((YamlScalar) propertyValue).getValue();
