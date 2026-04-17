@@ -39,16 +39,17 @@ public class YamlFrontMatterScannerTest {
 		String content = "---\r\n" + //
 				"\r\n" + //
 				"---\r\n";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
-		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---\r\n");
+
+		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---");
 		assertNotNull(scanner.getInjectionMetadata());
 		assertEquals("yaml-frontmatter", scanner.getInjectionMetadata().getLanguageId());
-		
-		assertOffsetAndToken(5, TokenType.LanguageInjectionContent, "\r\n");
-		assertOffsetAndToken(7, TokenType.LanguageInjectionEnd, "---\r\n");
+
+		assertOffsetAndToken(3, TokenType.LanguageInjectionContent, "\r\n\r\n");
+		assertOffsetAndToken(7, TokenType.LanguageInjectionEnd, "---");
+		assertOffsetAndToken(10, TokenType.Content, "\r\n");
 		assertOffsetAndToken(12, TokenType.EOS, "");
 	}
 
@@ -57,15 +58,16 @@ public class YamlFrontMatterScannerTest {
 		String content = "---\r\n" + //
 				"title: Test\r\n" + //
 				"---\r\n";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
-		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---\r\n");
+
+		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---");
 		assertEquals("yaml-frontmatter", scanner.getInjectionMetadata().getLanguageId());
-		
-		assertOffsetAndToken(5, TokenType.LanguageInjectionContent, "title: Test\r\n");
-		assertOffsetAndToken(18, TokenType.LanguageInjectionEnd, "---\r\n");
+
+		assertOffsetAndToken(3, TokenType.LanguageInjectionContent, "\r\ntitle: Test\r\n");
+		assertOffsetAndToken(18, TokenType.LanguageInjectionEnd, "---");
+		assertOffsetAndToken(21, TokenType.Content, "\r\n");
 		assertOffsetAndToken(23, TokenType.EOS, "");
 	}
 
@@ -76,14 +78,15 @@ public class YamlFrontMatterScannerTest {
 				"paginate: true\r\n" + //
 				"tagging: posts\r\n" + //
 				"---\r\n";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
-		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---\r\n");
-		assertOffsetAndToken(5, TokenType.LanguageInjectionContent, 
-				"layout: page\r\npaginate: true\r\ntagging: posts\r\n");
-		assertOffsetAndToken(51, TokenType.LanguageInjectionEnd, "---\r\n");
+
+		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---");
+		assertOffsetAndToken(3, TokenType.LanguageInjectionContent,
+				"\r\nlayout: page\r\npaginate: true\r\ntagging: posts\r\n");
+		assertOffsetAndToken(51, TokenType.LanguageInjectionEnd, "---");
+		assertOffsetAndToken(54, TokenType.Content, "\r\n");
 		assertOffsetAndToken(56, TokenType.EOS, "");
 	}
 
@@ -92,13 +95,14 @@ public class YamlFrontMatterScannerTest {
 		String content = "---\n" + //
 				"title: Test\n" + //
 				"---\n";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
-		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---\n");
-		assertOffsetAndToken(4, TokenType.LanguageInjectionContent, "title: Test\n");
-		assertOffsetAndToken(16, TokenType.LanguageInjectionEnd, "---\n");
+
+		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---");
+		assertOffsetAndToken(3, TokenType.LanguageInjectionContent, "\ntitle: Test\n");
+		assertOffsetAndToken(16, TokenType.LanguageInjectionEnd, "---");
+		assertOffsetAndToken(19, TokenType.Content, "\n");
 		assertOffsetAndToken(20, TokenType.EOS, "");
 	}
 
@@ -113,14 +117,15 @@ public class YamlFrontMatterScannerTest {
 				"  - java\r\n" + //
 				"  - qute\r\n" + //
 				"---\r\n";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
-		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---\r\n");
-		assertOffsetAndToken(5, TokenType.LanguageInjectionContent, 
-				"title: My Page\r\nauthor:\r\n  name: John Doe\r\n  email: john@example.com\r\ntags:\r\n  - java\r\n  - qute\r\n");
-		assertOffsetAndToken(102, TokenType.LanguageInjectionEnd, "---\r\n");
+
+		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---");
+		assertOffsetAndToken(3, TokenType.LanguageInjectionContent,
+				"\r\ntitle: My Page\r\nauthor:\r\n  name: John Doe\r\n  email: john@example.com\r\ntags:\r\n  - java\r\n  - qute\r\n");
+		assertOffsetAndToken(102, TokenType.LanguageInjectionEnd, "---");
+		assertOffsetAndToken(105, TokenType.Content, "\r\n");
 		assertOffsetAndToken(107, TokenType.EOS, "");
 	}
 
@@ -132,14 +137,14 @@ public class YamlFrontMatterScannerTest {
 				"title: Test\r\n" + //
 				"---\r\n" + //
 				"Hello World";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
-		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---\r\n");
-		assertOffsetAndToken(5, TokenType.LanguageInjectionContent, "title: Test\r\n");
-		assertOffsetAndToken(18, TokenType.LanguageInjectionEnd, "---\r\n");
-		assertOffsetAndToken(23, TokenType.Content, "Hello World");
+
+		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---");
+		assertOffsetAndToken(3, TokenType.LanguageInjectionContent, "\r\ntitle: Test\r\n");
+		assertOffsetAndToken(18, TokenType.LanguageInjectionEnd, "---");
+		assertOffsetAndToken(21, TokenType.Content, "\r\nHello World");
 		assertOffsetAndToken(34, TokenType.EOS, "");
 	}
 
@@ -149,13 +154,14 @@ public class YamlFrontMatterScannerTest {
 				"title: Test\r\n" + //
 				"---\r\n" + //
 				"{item.name}";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
-		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---\r\n");
-		assertOffsetAndToken(5, TokenType.LanguageInjectionContent, "title: Test\r\n");
-		assertOffsetAndToken(18, TokenType.LanguageInjectionEnd, "---\r\n");
+
+		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---");
+		assertOffsetAndToken(3, TokenType.LanguageInjectionContent, "\r\ntitle: Test\r\n");
+		assertOffsetAndToken(18, TokenType.LanguageInjectionEnd, "---");
+		assertOffsetAndToken(21, TokenType.Content, "\r\n");
 		assertOffsetAndToken(23, TokenType.StartExpression, "{");
 		assertOffsetAndToken(33, TokenType.EndExpression, "}");
 		assertOffsetAndToken(34, TokenType.EOS, "");
@@ -169,14 +175,15 @@ public class YamlFrontMatterScannerTest {
 				"{#let name=value}\r\n" + //
 				"    \r\n" + //
 				"{/let}";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
-		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---\r\n");
-		assertOffsetAndToken(5, TokenType.LanguageInjectionContent, "layout: page\r\n");
-		assertOffsetAndToken(19, TokenType.LanguageInjectionEnd, "---\r\n");
-		
+
+		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---");
+		assertOffsetAndToken(3, TokenType.LanguageInjectionContent, "\r\nlayout: page\r\n");
+		assertOffsetAndToken(19, TokenType.LanguageInjectionEnd, "---");
+		assertOffsetAndToken(22, TokenType.Content, "\r\n");
+
 		assertOffsetAndToken(24, TokenType.StartTagOpen, "{#");
 		assertOffsetAndToken(26, TokenType.StartTag, "let");
 		assertOffsetAndToken(29, TokenType.Whitespace, " ");
@@ -197,13 +204,14 @@ public class YamlFrontMatterScannerTest {
 				"{#if user}\r\n" + //
 				"  Hello {user.name}\r\n" + //
 				"{/if}";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
-		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---\r\n");
-		assertOffsetAndToken(5, TokenType.LanguageInjectionContent, "title: Test\r\n");
-		assertOffsetAndToken(18, TokenType.LanguageInjectionEnd, "---\r\n");
+
+		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---");
+		assertOffsetAndToken(3, TokenType.LanguageInjectionContent, "\r\ntitle: Test\r\n");
+		assertOffsetAndToken(18, TokenType.LanguageInjectionEnd, "---");
+		assertOffsetAndToken(21, TokenType.Content, "\r\n");
 		assertOffsetAndToken(23, TokenType.StartTagOpen, "{#");
 		assertOffsetAndToken(25, TokenType.StartTag, "if");
 		assertOffsetAndToken(27, TokenType.Whitespace, " ");
@@ -226,13 +234,14 @@ public class YamlFrontMatterScannerTest {
 				"---\r\n" + //
 				"{! This is a comment !}\r\n" + //
 				"Content";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
-		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---\r\n");
-		assertOffsetAndToken(5, TokenType.LanguageInjectionContent, "title: Test\r\n");
-		assertOffsetAndToken(18, TokenType.LanguageInjectionEnd, "---\r\n");
+
+		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---");
+		assertOffsetAndToken(3, TokenType.LanguageInjectionContent, "\r\ntitle: Test\r\n");
+		assertOffsetAndToken(18, TokenType.LanguageInjectionEnd, "---");
+		assertOffsetAndToken(21, TokenType.Content, "\r\n");
 		assertOffsetAndToken(23, TokenType.StartComment, "{!");
 		assertOffsetAndToken(25, TokenType.Comment, " This is a comment ");
 		assertOffsetAndToken(44, TokenType.EndComment, "!}");
@@ -274,12 +283,12 @@ public class YamlFrontMatterScannerTest {
 		String content = "---\r\n" + //
 				"title: Test\r\n" + //
 				"This continues";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
-		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---\r\n");
-		assertOffsetAndToken(5, TokenType.LanguageInjectionContent, "title: Test\r\nThis continues");
+
+		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---");
+		assertOffsetAndToken(3, TokenType.LanguageInjectionContent, "\r\ntitle: Test\r\nThis continues");
 		assertOffsetAndToken(32, TokenType.EOS, "");
 	}
 
@@ -288,13 +297,14 @@ public class YamlFrontMatterScannerTest {
 		String content = "---\r\n" + //
 				"title: Test---More\r\n" + //
 				"---\r\n";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
-		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---\r\n");
-		assertOffsetAndToken(5, TokenType.LanguageInjectionContent, "title: Test---More\r\n");
-		assertOffsetAndToken(25, TokenType.LanguageInjectionEnd, "---\r\n");
+
+		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---");
+		assertOffsetAndToken(3, TokenType.LanguageInjectionContent, "\r\ntitle: Test---More\r\n");
+		assertOffsetAndToken(25, TokenType.LanguageInjectionEnd, "---");
+		assertOffsetAndToken(28, TokenType.Content, "\r\n");
 		assertOffsetAndToken(30, TokenType.EOS, "");
 	}
 
@@ -305,13 +315,14 @@ public class YamlFrontMatterScannerTest {
 				"\r\n" + //
 				"author: John\r\n" + //
 				"---\r\n";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
-		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---\r\n");
-		assertOffsetAndToken(5, TokenType.LanguageInjectionContent, "title: Test\r\n\r\nauthor: John\r\n");
-		assertOffsetAndToken(34, TokenType.LanguageInjectionEnd, "---\r\n");
+
+		assertOffsetAndToken(0, TokenType.LanguageInjectionStart, "---");
+		assertOffsetAndToken(3, TokenType.LanguageInjectionContent, "\r\ntitle: Test\r\n\r\nauthor: John\r\n");
+		assertOffsetAndToken(34, TokenType.LanguageInjectionEnd, "---");
+		assertOffsetAndToken(37, TokenType.Content, "\r\n");
 		assertOffsetAndToken(39, TokenType.EOS, "");
 	}
 
@@ -365,16 +376,18 @@ public class YamlFrontMatterScannerTest {
 				"{#if toc}\r\n" + //
 				"  {#include _toc.html /}\r\n" + //
 				"{/if}";
-		
+
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		scanner = TemplateScanner.createScanner(content, injectors);
-		
+
 		assertOffsetAndToken(0, TokenType.LanguageInjectionStart);
 		TokenType token = scanner.scan();
 		assertEquals(TokenType.LanguageInjectionContent, token);
 		token = scanner.scan();
 		assertEquals(TokenType.LanguageInjectionEnd, token);
-		
+
+		token = scanner.scan();
+		assertEquals(TokenType.Content, token);
 		token = scanner.scan();
 		assertEquals(TokenType.StartTagOpen, token);
 	}

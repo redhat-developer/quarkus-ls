@@ -49,18 +49,26 @@ public class YamlFrontMatterParserTest {
 		Collection<InjectionDetector> injectors = Collections.singletonList(new YamlFrontMatterDetector());
 		Template template = TemplateParser.parse(content, "test.qute", injectors);
 
-		assertEquals(2, template.getChildCount());
+		// Now we have 3 children: YAML front matter, newline content, and LET section
+		assertEquals(3, template.getChildCount());
 
 		// Verify YAML front matter
+		// --- (0-3) + \r\nlayout: page\r\npaginate: true\r\ntagging: posts\r\n (3-51) + --- (51-54)
 		Node yamlNode = template.getChild(0);
 		assertEquals(NodeKind.LanguageInjection, yamlNode.getKind());
 		LanguageInjectionNode yaml = (LanguageInjectionNode) yamlNode;
 		assertEquals("yaml-frontmatter", yaml.getLanguageId());
 		assertEquals(0, yaml.getStart());
-		assertEquals(56, yaml.getEnd()); // Total front matter length
+		assertEquals(54, yaml.getEnd());
 
-		// Verify LET section
-		Node letNode = template.getChild(1);
+		// Verify newline content after YAML: \r\n (54-56)
+		Node contentNode = template.getChild(1);
+		assertEquals(NodeKind.Text, contentNode.getKind());
+		assertEquals(54, contentNode.getStart());
+		assertEquals(56, contentNode.getEnd());
+
+		// Verify LET section: {#let name=value} starts at 56
+		Node letNode = template.getChild(2);
 		assertEquals(NodeKind.Section, letNode.getKind());
 		Section section = (Section) letNode;
 		assertEquals(SectionKind.LET, section.getSectionKind());

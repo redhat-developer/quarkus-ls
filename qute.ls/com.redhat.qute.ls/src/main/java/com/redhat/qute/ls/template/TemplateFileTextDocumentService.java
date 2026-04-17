@@ -397,7 +397,7 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 			String uri = documentIdentifier.getUri();
 			return projectRegistry.getBinaryDocument(uri) //
 					.thenApply(binaryDocument -> {
-						Template template = binaryDocument.getTemplate();
+						Template template = binaryDocument != null ? binaryDocument.getTemplate() : null;
 						if (template == null) {
 							return null;
 						}

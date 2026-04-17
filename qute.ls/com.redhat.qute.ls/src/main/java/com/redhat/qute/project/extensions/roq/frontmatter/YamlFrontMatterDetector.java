@@ -50,20 +50,8 @@ public class YamlFrontMatterDetector implements InjectionDetector {
 
 	@Override
 	public boolean scanStartDelimiter(MultiLineStream stream) {
-		// Scan ---
-		if (stream.advanceIfChars(FRONT_MATTER_DELIMITER)) {
-			// Scan the newline after ---
-			if (stream.peekChar() == '\r') {
-				stream.advance(1);
-				if (stream.peekChar() == '\n') {
-					stream.advance(1);
-				}
-			} else if (stream.peekChar() == '\n') {
-				stream.advance(1);
-			}
-			return true;
-		}
-		return false;
+		// Scan --- (without the newline)
+		return stream.advanceIfChars(FRONT_MATTER_DELIMITER);
 	}
 
 	@Override
@@ -108,21 +96,7 @@ public class YamlFrontMatterDetector implements InjectionDetector {
 		// We're now positioned right at the start of ---
 		// The \r\n before --- is already included in the content
 
-		// Scan ---
-		boolean success = stream.advanceIfChars(FRONT_MATTER_DELIMITER);
-		if (success) {
-			// Scan the newline after --- (optional)
-			if (stream.peekChar() == '\r') {
-				stream.advance(1);
-				if (stream.peekChar() == '\n') {
-					stream.advance(1);
-				}
-			} else if (stream.peekChar() == '\n') {
-				stream.advance(1);
-			}
-			return true;
-		}
-
-		return false;
+		// Scan --- (without the newline after)
+		return stream.advanceIfChars(FRONT_MATTER_DELIMITER);
 	}
 }
