@@ -3,33 +3,33 @@
   <groupId>com.redhat.microprofile</groupId>
   <artifactId>com.redhat.qute.ls</artifactId>
   <versioning>
-    <lastUpdated>20260417221000</lastUpdated>
+    <lastUpdated>20260418160011</lastUpdated>
     <snapshot>
-      <timestamp>20260417.221000</timestamp>
-      <buildNumber>61</buildNumber>
+      <timestamp>20260418.160011</timestamp>
+      <buildNumber>62</buildNumber>
     </snapshot>
     <snapshotVersions>
       <snapshotVersion>
         <extension>pom</extension>
-        <value>0.23.1-20260417.221000-61</value>
-        <updated>20260417221000</updated>
+        <value>0.23.1-20260418.160011-62</value>
+        <updated>20260418160011</updated>
       </snapshotVersion>
       <snapshotVersion>
         <extension>jar</extension>
-        <value>0.23.1-20260417.221000-61</value>
-        <updated>20260417221000</updated>
+        <value>0.23.1-20260418.160011-62</value>
+        <updated>20260418160011</updated>
       </snapshotVersion>
       <snapshotVersion>
         <classifier>uber</classifier>
         <extension>jar</extension>
-        <value>0.23.1-20260417.221000-61</value>
-        <updated>20260417221000</updated>
+        <value>0.23.1-20260418.160011-62</value>
+        <updated>20260418160011</updated>
       </snapshotVersion>
       <snapshotVersion>
         <classifier>sources</classifier>
         <extension>jar</extension>
-        <value>0.23.1-20260417.221000-61</value>
-        <updated>20260417221000</updated>
+        <value>0.23.1-20260418.160011-62</value>
+        <updated>20260418160011</updated>
       </snapshotVersion>
     </snapshotVersions>
   </versioning>
