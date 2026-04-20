@@ -57,7 +57,10 @@ public class YamlFrontMatterLanguageInjectionService implements LanguageInjectio
 	@Override
 	public NodeBase<?> parse(TextDocument textDocument, int start, int end,
 			com.redhat.qute.parser.CancelChecker cancelChecker) {
-		return YamlParser.parse(textDocument, start, end, cancelChecker);
+		// Create YamlFrontMatterDocument with caching support
+		YamlFrontMatterDocument document = new YamlFrontMatterDocument(textDocument);
+		YamlParser.parse(document, start, end, cancelChecker);
+		return document;
 	}
 
 	@Override

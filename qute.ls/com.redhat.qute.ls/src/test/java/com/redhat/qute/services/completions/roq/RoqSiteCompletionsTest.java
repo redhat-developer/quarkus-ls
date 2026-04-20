@@ -14,10 +14,14 @@ package com.redhat.qute.services.completions.roq;
 import static com.redhat.qute.QuteAssert.c;
 import static com.redhat.qute.QuteAssert.r;
 
+import java.util.Collections;
+
 import org.eclipse.lsp4j.CompletionItem;
 import org.junit.jupiter.api.Test;
 
+import com.redhat.qute.CompletionParameters;
 import com.redhat.qute.QuteAssert;
+import com.redhat.qute.project.extensions.roq.frontmatter.YamlFrontMatterDetector;
 import com.redhat.qute.project.roq.RoqProject;
 
 /**
@@ -125,9 +129,30 @@ public class RoqSiteCompletionsTest {
 				c("data : JsonObject", "data", r(2, 10, 2, 10)));
 	}
 
+	@Test
+	public void siteDataWithYamlFrontMatter() throws Exception {
+		// YAML front matter from content/index.html defines custom properties: title
+		// and description
+		// These should appear in completion for site.data
+		String template = "{site.data.|}";
+		testCompletionFor(template, //
+				// JsonObject methods
+				c("or(base : Object, arg : T) : T", "or(arg)", r(0, 11, 0, 11)), //
+				c("toString() : String", "toString", r(0, 11, 0, 11)), //
+				c("hashCode() : int", "hashCode", r(0, 11, 0, 11)), //
+				c("isEmpty() : boolean", "isEmpty", r(0, 11, 0, 11)), //
+				c("size() : int", "size", r(0, 11, 0, 11)), //
+				// YAML front matter properties from content/index.html
+				c("title : String", "title", r(0, 11, 0, 11)), //
+				c("description : String", "description", r(0, 11, 0, 11)));
+	}
+
 	private static void testCompletionFor(String value, CompletionItem... expectedItems) throws Exception {
-		QuteAssert.testCompletionFor(value, false, QuteAssert.FILE_URI, null, RoqProject.PROJECT_URI,
-				QuteAssert.TEMPLATE_BASE_DIR, null, expectedItems);
+		CompletionParameters p = new CompletionParameters();
+		p.setProjectUri(RoqProject.PROJECT_URI);
+		p.setInjectionDetectors(Collections.singletonList(new YamlFrontMatterDetector()));
+		p.getCompletionSettings().getCompletionCapabilities().getCompletionItem().setSnippetSupport(false);
+		QuteAssert.testCompletionFor(value, p, expectedItems);
 	}
 
 }

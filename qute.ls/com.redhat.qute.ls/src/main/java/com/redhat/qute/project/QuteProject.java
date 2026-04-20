@@ -99,6 +99,7 @@ import com.redhat.qute.project.extensions.DiagnosticsParticipant;
 import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
 import com.redhat.qute.project.extensions.HoverParticipant;
 import com.redhat.qute.project.extensions.InlayHintParticipant;
+import com.redhat.qute.project.extensions.MemberResolutionParticipant;
 import com.redhat.qute.project.extensions.ProjectExtension;
 import com.redhat.qute.project.extensions.TemplateLanguageInjectionParticipant;
 import com.redhat.qute.project.tags.UserTag;
@@ -1129,6 +1130,47 @@ public class QuteProject implements JavaTypeResolver {
 	}
 
 	public JavaMemberResult findProperty(Part part, ResolvedJavaTypeInfo baseType, boolean nativeMode) {
+		JavaMemberResult result = new JavaMemberResult();
+
+		if (!nativeMode) {
+			// 1. Try Java reflection first (fields and methods from Java type)
+			JavaMemberInfo member = findPropertyWithJavaReflection(baseType, part.getPartName());
+			if (member != null) {
+				result.setMember(member);
+				return result;
+			}
+
+			// 2. Try additional types from extensions (for contextual augmentation)
+			// This must be BEFORE value resolvers to allow extensions to override them
+			Template template = part.getOwnerTemplate();
+			Part previousPart = part.getParent() != null ? part.getParent().getPreviousPart(part) : null;
+			if (previousPart != null) {
+				for (ProjectExtension extension : getExtensions()) {
+					if (extension.isEnabled() && extension instanceof MemberResolutionParticipant) {
+						MemberResolutionParticipant participant = (MemberResolutionParticipant) extension;
+						List<ResolvedJavaTypeInfo> additionalTypes = participant.getAdditionalTypes(baseType, previousPart, part, template);
+						if (additionalTypes != null) {
+							for (ResolvedJavaTypeInfo additionalType : additionalTypes) {
+								member = findPropertyWithJavaReflection(additionalType, part.getPartName());
+								if (member != null) {
+									result.setMember(member);
+									return result;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// 3. Try value resolvers (custom resolvers, @TemplateExtension, etc.)
+			member = findValueResolver(baseType, part.getPartName());
+			if (member != null) {
+				result.setMember(member);
+			}
+			return result;
+		}
+
+		// Native mode: try value resolvers first, then Java reflection
 		return findProperty(baseType, part.getPartName(), nativeMode);
 	}
 
@@ -1763,16 +1805,40 @@ public class QuteProject implements JavaTypeResolver {
 	}
 
 	public JavaMemberInfo findMember(ResolvedJavaTypeInfo baseType, Part part) {
-		if (part.getPartKind() == PartKind.Method) {
-			MethodPart methodPart = (MethodPart) part;
-			if (methodPart.isInfixNotation()) {
-				InfixNotationMethodPart infixMethodPart = (InfixNotationMethodPart) part;
-				if (infixMethodPart.isOperator()) {
-					// return infixMethodPart.getMethodInfo();
+		// 1. Try Java reflection first (fields and methods from Java type)
+		JavaMemberInfo member = findPropertyWithJavaReflection(baseType, part.getPartName());
+		if (member != null) {
+			return member;
+		}
+
+		// 2. Try additional types from extensions (for contextual augmentation)
+		// This must be BEFORE value resolvers to allow extensions to override them
+		Template template = part.getOwnerTemplate();
+		Part previousPart = part.getParent() != null ? part.getParent().getPreviousPart(part) : null;
+		if (previousPart != null) {
+			for (ProjectExtension extension : getExtensions()) {
+				if (extension.isEnabled() && extension instanceof MemberResolutionParticipant) {
+					MemberResolutionParticipant participant = (MemberResolutionParticipant) extension;
+					List<ResolvedJavaTypeInfo> additionalTypes = participant.getAdditionalTypes(baseType, previousPart, part, template);
+					if (additionalTypes != null) {
+						for (ResolvedJavaTypeInfo additionalType : additionalTypes) {
+							member = findPropertyWithJavaReflection(additionalType, part.getPartName());
+							if (member != null) {
+								return member;
+							}
+						}
+					}
 				}
 			}
 		}
-		return findMember(baseType, part.getPartName());
+
+		// 3. Try value resolvers (custom resolvers, @TemplateExtension, etc.)
+		member = findValueResolver(baseType, part.getPartName());
+		if (member != null) {
+			return member;
+		}
+
+		return null;
 	}
 
 	/**

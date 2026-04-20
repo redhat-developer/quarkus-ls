@@ -36,6 +36,7 @@ import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Expression;
+import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.Template;
@@ -372,14 +373,10 @@ public class InlayHintASTVistor extends ASTVisitor {
 
 	private void createInlayHint(Parameter parameter, JavaTypeInfo javaType, Template template) {
 		try {
-			String type = getLabel(javaType);
-			if (StringUtils.isEmpty(type)) {
-				return;
-			}
 			InlayHint hint = new InlayHint();
 			hint.setKind(InlayHintKind.Type);
 			// The Java type is resolved, display it as inlay hint
-			updateJavaType(hint, javaType, type, template.getProjectUri());
+			updateJavaType(hint, javaType, template.getProjectUri());
 			int end = parameter.hasValueAssigned() ? parameter.getEndName() : parameter.getEnd();
 			Position position = template.positionAt(end);
 			hint.setPosition(position);
@@ -424,19 +421,86 @@ public class InlayHintASTVistor extends ASTVisitor {
 		return javaType;
 	}
 
-	private void updateJavaType(InlayHint hint, JavaTypeInfo javaType, String type, String projectUri) {
+	private void updateJavaType(InlayHint hint, JavaTypeInfo javaType, String projectUri) {
 		if (javaType != null && canSupportJavaDefinition) {
+			List<InlayHintLabelPart> parts = new ArrayList<>();
+
 			// first part : ":"
-			InlayHintLabelPart separatorPart = new InlayHintLabelPart(":");
-			// second part label : clickable Java type (ex : String)
-			InlayHintLabelPart javaTypePart = new InlayHintLabelPart(type);
+			parts.add(new InlayHintLabelPart(":"));
+
+			// Handle alternative types (union types) - each type is clickable separately
+			if (javaType instanceof JavaTypeInfoProvider) {
+				List<JavaTypeInfoProvider> alternatives = ((JavaTypeInfoProvider) javaType).getAlternativeTypes();
+				if (alternatives != null && !alternatives.isEmpty()) {
+					for (int i = 0; i < alternatives.size(); i++) {
+						if (i > 0) {
+							// Add separator between types
+							parts.add(new InlayHintLabelPart("|"));
+						}
+						JavaTypeInfoProvider alt = alternatives.get(i);
+						String altTypeName = getSimpleTypeName(alt);
+						if (altTypeName != null) {
+							InlayHintLabelPart altPart = new InlayHintLabelPart(altTypeName);
+							String fullTypeName = getFullTypeName(alt);
+							if (fullTypeName != null) {
+								Command javaDefCommand = createOpenJavaTypeCommand(fullTypeName, projectUri);
+								altPart.setCommand(javaDefCommand);
+								altPart.setTooltip(javaDefCommand.getTitle());
+							}
+							parts.add(altPart);
+						}
+					}
+					hint.setLabel(Either.forRight(parts));
+					return;
+				}
+			}
+
+			// Single type (no alternatives) - clickable Java type (ex : String)
+			String simpleTypeName = javaType.getJavaElementSimpleType();
+			InlayHintLabelPart javaTypePart = new InlayHintLabelPart(simpleTypeName);
 			Command javaDefCommand = createOpenJavaTypeCommand(javaType.getName(), projectUri);
 			javaTypePart.setCommand(javaDefCommand);
 			javaTypePart.setTooltip(javaDefCommand.getTitle());
-			hint.setLabel(Either.forRight(Arrays.asList(separatorPart, javaTypePart)));
+			parts.add(javaTypePart);
+			hint.setLabel(Either.forRight(parts));
 		} else {
-			hint.setLabel(Either.forLeft(":" + type));
+			// No Java definition support - just display as text
+			String simpleTypeName = javaType != null ? javaType.getJavaElementSimpleType() : "?";
+			hint.setLabel(Either.forLeft(":" + simpleTypeName));
 		}
+	}
+
+	/**
+	 * Returns the simple type name from a JavaTypeInfoProvider.
+	 */
+	private static String getSimpleTypeName(JavaTypeInfoProvider provider) {
+		if (provider == null) {
+			return null;
+		}
+		ResolvedJavaTypeInfo resolvedType = provider.getResolvedType();
+		if (resolvedType != null) {
+			return resolvedType.getJavaElementSimpleType();
+		}
+		String javaType = provider.getJavaType();
+		if (javaType != null) {
+			int index = javaType.lastIndexOf('.');
+			return index != -1 ? javaType.substring(index + 1) : javaType;
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the full type name from a JavaTypeInfoProvider.
+	 */
+	private static String getFullTypeName(JavaTypeInfoProvider provider) {
+		if (provider == null) {
+			return null;
+		}
+		ResolvedJavaTypeInfo resolvedType = provider.getResolvedType();
+		if (resolvedType != null) {
+			return resolvedType.getName();
+		}
+		return provider.getJavaType();
 	}
 
 	public static Command createOpenJavaTypeCommand(String sourceType, String projectUri) {
@@ -453,7 +517,4 @@ public class InlayHintASTVistor extends ASTVisitor {
 		return new Command(title, COMMAND_JAVA_DEFINITION, Arrays.asList(params));
 	}
 
-	private static String getLabel(JavaTypeInfo javaType) {
-		return javaType != null ? javaType.getJavaElementSimpleType() : "?";
-	}
 }

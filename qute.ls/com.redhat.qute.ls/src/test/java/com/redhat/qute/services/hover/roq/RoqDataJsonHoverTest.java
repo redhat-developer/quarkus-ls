@@ -49,7 +49,7 @@ public class RoqDataJsonHoverTest {
 		String template = "{inject:books-json.li|st}";
 		assertHover(template, //
 				"```java" + System.lineSeparator() + //
-						"Collection<Object> list" + System.lineSeparator() + //
+						"JsonArray list" + System.lineSeparator() + //
 						"```" + System.lineSeparator() + //
 						"Source: [books-json.json](" + booksUri + ")", //
 				r(0, 19, 0, 23));

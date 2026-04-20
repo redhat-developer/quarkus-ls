@@ -80,13 +80,12 @@ public class RoqDataJsonDiagnosticsTest {
 
 	@Test
 	public void invalidInjectDataFileInForSection() throws Exception {
+		// With JsonObject signature, any property is valid via get() value resolver
+				// So b.titleXXX doesn't generate an error - it resolves to JsonObject.get("titleXXX")
 		String template = "{#for b in inject:books-json.list}\r\n" + //
 				"    {b.titleXXX}\r\n" + //
 				"{/for}";
-		testDiagnosticsFor(template, //
-				d(1, 7, 1, 15, QuteErrorCode.UnknownProperty,
-						"`titleXXX` cannot be resolved or is not a field of `java.lang.Object` Java type.", //
-						"qute", DiagnosticSeverity.Error));
+		testDiagnosticsFor(template);
 	}
 
 	private static void testDiagnosticsFor(String value, Diagnostic... expected) {

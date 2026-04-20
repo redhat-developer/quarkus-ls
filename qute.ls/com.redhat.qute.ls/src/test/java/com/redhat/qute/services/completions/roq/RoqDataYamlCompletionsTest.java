@@ -33,7 +33,7 @@ public class RoqDataYamlCompletionsTest {
 		String template = "{inject:books.|}";
 		testCompletionFor(template, //
 				c("or(base : Object, arg : T) : T", "or(arg)", r(0, 14, 0, 14)), //
-				c("list : Collection<Object>", "list", r(0, 14, 0, 14)));
+				c("list : JsonArray", "list", r(0, 14, 0, 14)));
 	}
 
 	@Test

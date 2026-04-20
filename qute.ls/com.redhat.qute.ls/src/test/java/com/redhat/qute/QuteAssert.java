@@ -700,7 +700,7 @@ public class QuteAssert {
 	// ------------------- Definition assert
 
 	public static void testDefinitionFor(String value, LocationLink... expected) throws Exception {
-		testDefinitionFor(value, null, expected);
+		testDefinitionFor(value, (String) null, expected);
 	}
 
 	public static void testDefinitionFor(String value, String fileURI, LocationLink... expected) throws Exception {
@@ -724,6 +724,29 @@ public class QuteAssert {
 		}).get();
 		assertLocationLink(actual, expected);
 
+	}
+
+	public static void testDefinitionFor(String value, DefinitionParameters p, LocationLink... expected)
+			throws Exception {
+		int offset = value.indexOf("|");
+		value = value.substring(0, offset) + value.substring(offset + 1);
+
+		String fileUri = p.getFileUri();
+		String templateBaseDir = p.getTemplateBaseDir();
+		String projectUri = p.getProjectUri();
+		String templateId = p.getTemplateId();
+		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
+		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, p.getInjectionDetectors(),
+				projectRegistry);
+		template.setTemplateId(templateId);
+
+		Position position = template.positionAt(offset);
+
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
+
+		List<? extends LocationLink> actual = languageService.findDefinition(template, position, () -> {
+		}).get();
+		assertLocationLink(actual, expected);
 	}
 
 	public static LocationLink ll(final String uri, final Range originRange, Range targetRange) {

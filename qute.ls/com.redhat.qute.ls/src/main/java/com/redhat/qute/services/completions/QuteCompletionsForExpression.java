@@ -78,6 +78,8 @@ import com.redhat.qute.project.datamodel.resolvers.FieldValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.ValueResolver;
 import com.redhat.qute.project.extensions.CompletionParticipant;
+import com.redhat.qute.project.extensions.MemberResolutionParticipant;
+import com.redhat.qute.project.extensions.ProjectExtension;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
 import com.redhat.qute.project.usages.IncludeUsages;
@@ -273,7 +275,7 @@ public class QuteCompletionsForExpression {
 
 					// Completion for member of the given Java class
 					// ex : org.acme.Item
-					return doCompleteForJavaTypeMembers(resolvedType, start, end, template, project, infixNotation,
+					return doCompleteForJavaTypeMembers(resolvedType, previousPart, part, start, end, template, project, infixNotation,
 							completionSettings, formattingSettings, nativeImagesSettings);
 				});
 
@@ -284,6 +286,8 @@ public class QuteCompletionsForExpression {
 	 * class, interface <code>resolvedType</code>
 	 *
 	 * @param baseType             the Java class, interface.
+	 * @param previousPart         the previous part in the expression chain (the one that resolved to baseType).
+	 * @param part                 the part being completed (may be null).
 	 * @param start                the part start index to replace.
 	 * @param end                  the part end index to replace.
 	 * @param template             the owner Qute template.
@@ -296,7 +300,7 @@ public class QuteCompletionsForExpression {
 	 *
 	 * @return the completion list.
 	 */
-	private CompletionList doCompleteForJavaTypeMembers(ResolvedJavaTypeInfo baseType, int start, int end,
+	private CompletionList doCompleteForJavaTypeMembers(ResolvedJavaTypeInfo baseType, Part previousPart, Part part, int start, int end,
 			Template template, QuteProject project, boolean infixNotation, QuteCompletionSettings completionSettings,
 			QuteFormattingSettings formattingSettings, QuteNativeSettings nativeImagesSettings) {
 		Set<CompletionItem> completionItems = new HashSet<>();
@@ -318,7 +322,7 @@ public class QuteCompletionsForExpression {
 
 			if (!infixNotation) {
 				// Completion for Java fields
-				fillCompletionFields(baseType, javaTypeAccessibility, filter, range, project, existingProperties,
+				fillCompletionFields(baseType, previousPart, part, template, javaTypeAccessibility, filter, range, project, existingProperties,
 						completionItems);
 			}
 
@@ -357,10 +361,10 @@ public class QuteCompletionsForExpression {
 	 *                              signature.
 	 * @param completionItems       the set of completion items to add to
 	 */
-	private void fillCompletionFields(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
+	private void fillCompletionFields(ResolvedJavaTypeInfo baseType, Part previousPart, Part part, Template template, JavaTypeAccessibiltyRule javaTypeAccessibility,
 			JavaTypeFilter filter, Range range, QuteProject project, Set<String> existingProperties,
 			Set<CompletionItem> completionItems) {
-		fillCompletionFields(baseType, javaTypeAccessibility, filter, range, project, existingProperties,
+		fillCompletionFields(baseType, previousPart, part, template, javaTypeAccessibility, filter, range, project, existingProperties,
 				completionItems, new HashSet<>());
 	}
 
@@ -369,6 +373,9 @@ public class QuteCompletionsForExpression {
 	 * <code>resolvedType</code>, then add them to <code>completionItems</code>.
 	 *
 	 * @param baseType              the Java type class, interface.
+	 * @param previousPart          the previous part in the expression chain (the one that resolved to baseType).
+	 * @param part                  the part being completed (may be null).
+	 * @param template              the template.
 	 * @param javaTypeAccessibility the Java type accessibility.
 	 * @param filter                the Java type filter.
 	 * @param range                 the range.
@@ -378,7 +385,7 @@ public class QuteCompletionsForExpression {
 	 * @param completionItems       the set of completion items to add to
 	 * @param visited               the list of types that have already been visited
 	 */
-	private void fillCompletionFields(ResolvedJavaTypeInfo baseType, JavaTypeAccessibiltyRule javaTypeAccessibility,
+	private void fillCompletionFields(ResolvedJavaTypeInfo baseType, Part previousPart, Part part, Template template, JavaTypeAccessibiltyRule javaTypeAccessibility,
 			JavaTypeFilter filter, Range range, QuteProject project, Set<String> existingProperties,
 			Set<CompletionItem> completionItems, Set<ResolvedJavaTypeInfo> visited) {
 		if (visited.contains(baseType)) {
@@ -399,6 +406,28 @@ public class QuteCompletionsForExpression {
 				existingProperties.add(fieldName);
 			}
 		}
+
+		// Fill completion with fields from additional types (via MemberResolutionParticipant)
+		if (previousPart != null) {
+			for (ProjectExtension extension : project.getExtensions()) {
+				if (extension.isEnabled() && extension instanceof MemberResolutionParticipant) {
+					MemberResolutionParticipant participant = (MemberResolutionParticipant) extension;
+					List<ResolvedJavaTypeInfo> additionalTypes = participant.getAdditionalTypes(baseType, previousPart, part, template);
+					if (additionalTypes != null) {
+						for (ResolvedJavaTypeInfo additionalType : additionalTypes) {
+							for (JavaFieldInfo field : additionalType.getFields()) {
+								String fieldName = field.getName();
+								if (!existingProperties.contains(fieldName)) {
+									fillCompletionField(field, javaTypeAccessibility, filter, range, completionItems);
+									existingProperties.add(fieldName);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
 		if (!isIgnoreSuperclasses(baseType, javaTypeAccessibility, filter)) {
 			// Fill completion with extended Java type fields.
 			List<String> extendedTypes = baseType.getExtendedTypes();
@@ -406,7 +435,7 @@ public class QuteCompletionsForExpression {
 				for (String extendedType : extendedTypes) {
 					ResolvedJavaTypeInfo resolvedExtendedType = project.resolveJavaTypeSync(extendedType);
 					if (!isResolvingJavaTypeOrNull(resolvedExtendedType)) {
-						fillCompletionFields(resolvedExtendedType, javaTypeAccessibility, filter, range, project,
+						fillCompletionFields(resolvedExtendedType, previousPart, part, template, javaTypeAccessibility, filter, range, project,
 								existingProperties, completionItems, visited);
 					}
 				}
@@ -1218,7 +1247,7 @@ public class QuteCompletionsForExpression {
 									nativeImagesSettings);
 							JavaTypeAccessibiltyRule javaTypeAccessibility = filter.getJavaTypeAccessibility(
 									withJavaTypeInfo, template.getJavaTypesSupportedInNativeMode());
-							fillCompletionFields(withJavaTypeInfo, javaTypeAccessibility, filter, range, project,
+							fillCompletionFields(withJavaTypeInfo, null, null, template, javaTypeAccessibility, filter, range, project,
 									existingVars, completionItems);
 							fillCompletionMethods(withJavaTypeInfo, javaTypeAccessibility, filter, range, project,
 									false, completionSettings, formattingSettings, existingVars, new HashSet<>(),
@@ -1262,7 +1291,7 @@ public class QuteCompletionsForExpression {
 										case ALL_OPERATOR_AND_FIELD:
 											fillCaseOperators(caseSection, false, range, caseExistingVars,
 													completionItems, canSupportMarkdown);
-											fillCompletionFields(whenJavaType, javaTypeAccessibility, filter, range,
+											fillCompletionFields(whenJavaType, null, null, template, javaTypeAccessibility, filter, range,
 													project, caseExistingVars, completionItems);
 											break;
 										case ALL_OPERATOR:
@@ -1270,7 +1299,7 @@ public class QuteCompletionsForExpression {
 													completionItems, canSupportMarkdown);
 											break;
 										case FIELD_ONLY:
-											fillCompletionFields(whenJavaType, javaTypeAccessibility, filter, range,
+											fillCompletionFields(whenJavaType, null, null, template, javaTypeAccessibility, filter, range,
 													project, caseExistingVars, completionItems);
 											break;
 										case MULTI_OPERATOR_ONLY:

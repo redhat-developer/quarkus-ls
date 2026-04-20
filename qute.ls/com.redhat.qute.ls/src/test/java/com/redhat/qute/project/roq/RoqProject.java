@@ -42,7 +42,8 @@ public class RoqProject extends BaseQuteProject {
 		super(new ProjectInfo(PROJECT_URI, //
 				getProjectPath(PROJECT_URI), //
 				Collections.emptyList(), //
-				List.of(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates"), //
+				List.of(new TemplateRootPath(getProjectPath(PROJECT_URI) + "/content"), //
+						new TemplateRootPath(getProjectPath(PROJECT_URI) + "/src/main/resources/templates"), //
 						new TemplateRootPath(getProjectPath(PROJECT_URI) + "/templates")), //
 				Set.of(getProjectPath(PROJECT_URI) + "/src/main/resources"), //
 				Set.of(RoqConfig.PROJECT_FEATURE)), projectRegistry);
@@ -58,6 +59,7 @@ public class RoqProject extends BaseQuteProject {
 		loadResolvedJavaType("DocumentPage.json", resolvedJavaTypes, RoqProject.class);
 		loadResolvedJavaType("NormalPage.json", resolvedJavaTypes, RoqProject.class);
 		loadResolvedJavaType("Page.json", resolvedJavaTypes, RoqProject.class);
+		loadResolvedJavaType("RoqUrl.json", resolvedJavaTypes, RoqProject.class);
 	}
 
 	@Override

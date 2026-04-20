@@ -36,6 +36,7 @@ import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.ls.commons.BadLocationException;
 import com.redhat.qute.parser.NodeBase;
 import com.redhat.qute.parser.expression.MethodPart;
+import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.expression.NamespacePart;
 import com.redhat.qute.parser.expression.ObjectPart;
 import com.redhat.qute.parser.expression.Part;
@@ -496,6 +497,30 @@ class QuteDefinition {
 			Part part, QuteProject project, CancelChecker cancelChecker) {
 		if (member == null) {
 			return NO_DEFINITION;
+		}
+
+		// Handle alternative types (union types) - navigate to all type definitions
+		if (member instanceof JavaTypeInfoProvider) {
+			List<JavaTypeInfoProvider> alternatives = ((JavaTypeInfoProvider) member).getAlternativeTypes();
+			if (alternatives != null && !alternatives.isEmpty()) {
+				List<LocationLink> locations = new ArrayList<>();
+				for (JavaTypeInfoProvider alt : alternatives) {
+					Node ownerNode = alt.getJavaTypeOwnerNode();
+					if (ownerNode != null) {
+						Template template = ownerNode.getOwnerTemplate();
+						Range range = QutePositionUtility.createRange(ownerNode);
+						LocationLink link = new LocationLink(
+								template.getUri(),
+								range,
+								range,
+								QutePositionUtility.createRange(part));
+						locations.add(link);
+					}
+				}
+				if (!locations.isEmpty()) {
+					return CompletableFuture.completedFuture(locations);
+				}
+			}
 		}
 
 		if (member instanceof DefinitionExtensionProvider) {

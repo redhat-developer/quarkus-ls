@@ -49,7 +49,7 @@ public class RoqDataYamlHoverTest {
 		String template = "{inject:books.li|st}";
 		assertHover(template, //
 				"```java" + System.lineSeparator() + //
-						"Collection<Object> list" + System.lineSeparator() + //
+						"JsonArray list" + System.lineSeparator() + //
 						"```" + System.lineSeparator() + //
 						"Source: [books.yaml](" + booksUri + ")", //
 				r(0, 14, 0, 18));

@@ -29,8 +29,10 @@ import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.config.roq.RoqConfig;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
+import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.injection.LanguageInjectionNode;
 import com.redhat.qute.parser.template.Node;
@@ -47,6 +49,7 @@ import com.redhat.qute.project.extensions.AbstractProjectExtension;
 import com.redhat.qute.project.extensions.CodeLensParticipant;
 import com.redhat.qute.project.extensions.DataModelTemplateParticipant;
 import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
+import com.redhat.qute.project.extensions.MemberResolutionParticipant;
 import com.redhat.qute.project.extensions.ProjectExtension;
 import com.redhat.qute.project.extensions.TemplateLanguageInjectionParticipant;
 import com.redhat.qute.project.extensions.roq.data.DataLoader;
@@ -58,6 +61,7 @@ import com.redhat.qute.project.extensions.roq.files.LayoutFileSupport;
 import com.redhat.qute.project.extensions.roq.files.RoqFileSupport;
 import com.redhat.qute.project.extensions.roq.files.ThemeLayoutFileSupport;
 import com.redhat.qute.project.extensions.roq.frontmatter.YamlFrontMatterDetector;
+import com.redhat.qute.project.extensions.roq.frontmatter.YamlFrontMatterMemberSupport;
 import com.redhat.qute.settings.SharedSettings;
 import com.redhat.qute.utils.QutePositionUtility;
 
@@ -68,7 +72,7 @@ import com.redhat.qute.utils.QutePositionUtility;
  */
 public class RoqProjectExtension extends AbstractProjectExtension
 		implements ProjectExtension, DidChangeWatchedFilesParticipant, DataModelTemplateParticipant,
-		TemplateLanguageInjectionParticipant, CodeLensParticipant {
+		TemplateLanguageInjectionParticipant, CodeLensParticipant, MemberResolutionParticipant {
 
 	// Data model parameter keys
 	private static final String PAGE_PARAMETER_KEY = "page";
@@ -175,6 +179,9 @@ public class RoqProjectExtension extends AbstractProjectExtension
 	private final ThemeLayoutFileSupport themeLayoutSupport;
 	private final ImageFileSupport imageSupport;
 
+	// YAML Front Matter support
+	private final YamlFrontMatterMemberSupport yamlFrontMatterSupport;
+
 	/**
 	 * Creates a new Roq project extension.
 	 */
@@ -183,6 +190,7 @@ public class RoqProjectExtension extends AbstractProjectExtension
 		this.layoutSupport = new LayoutFileSupport(this);
 		this.themeLayoutSupport = new ThemeLayoutFileSupport(this);
 		this.imageSupport = new ImageFileSupport(this);
+		this.yamlFrontMatterSupport = new YamlFrontMatterMemberSupport(this);
 		this.dataResolverCache = new HashMap<>();
 		this.configuredCollections = new HashSet<>();
 		// TODO: load collections from application.propertes
@@ -656,6 +664,13 @@ public class RoqProjectExtension extends AbstractProjectExtension
 
 	public TemplatePath getImagePath(Path filePath, String imageFilePath) {
 		return imageSupport.getImagePath(filePath, imageFilePath);
+	}
+
+	// ======================== MemberResolutionParticipant ========================
+
+	@Override
+	public List<ResolvedJavaTypeInfo> getAdditionalTypes(ResolvedJavaTypeInfo baseType, Part previousPart, Part part, Template template) {
+		return yamlFrontMatterSupport.getAdditionalTypes(baseType, previousPart, part, template);
 	}
 
 }
