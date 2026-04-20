@@ -24,10 +24,23 @@ public class YamlParser {
 
 	public static YamlDocument parse(TextDocument textDocument, int start, int end, CancelChecker cancelChecker) {
 		YamlDocument document = new YamlDocument(textDocument);
+		parse(document, start, end, cancelChecker);
+		return document;
+	}
+
+	/**
+	 * Parses YAML content into an existing YamlDocument.
+	 *
+	 * @param document the document to populate
+	 * @param start the start offset
+	 * @param end the end offset
+	 * @param cancelChecker the cancel checker
+	 */
+	public static void parse(YamlDocument document, int start, int end, CancelChecker cancelChecker) {
 		document.setCancelChecker(cancelChecker);
 		document.setStart(start);
 
-		String content = textDocument.getText();
+		String content = document.getText();
 		Scanner<YamlTokenType, YamlScannerState> scanner = YamlScanner.createScanner(content, start, end);
 
 		YamlNode curr = document;
@@ -368,8 +381,6 @@ public class YamlParser {
 			}
 			curr = curr.getParent();
 		}
-
-		return document;
 	}
 
 	private static boolean shouldBeClosed(YamlNode curr) {

@@ -11,6 +11,9 @@
 *******************************************************************************/
 package com.redhat.qute.project.extensions.roq.data.json;
 
+import static com.redhat.qute.project.extensions.roq.JsonVertxConstants.IO_VERTX_CORE_JSON_JSON_ARRAY_CLASS;
+import static com.redhat.qute.project.extensions.roq.JsonVertxConstants.IO_VERTX_CORE_JSON_JSON_OBJECT_CLASS;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -93,7 +96,7 @@ public class JsonDataLoader implements DataLoader {
 				ResolvedJavaTypeInfo arrayType = new RoqDataCollection(itemType);
 
 				RoqDataField field = new RoqDataField("items", arrayType, roqDataFile);
-				field.setSignature("items : java.util.Collection<" + itemType.getJavaElementType() + ">");
+				field.setSignature("items : " + IO_VERTX_CORE_JSON_JSON_ARRAY_CLASS);
 				fields.add(field);
 			}
 
@@ -168,7 +171,7 @@ public class JsonDataLoader implements DataLoader {
 
 		} else if (value.isJsonObject()) {
 			// JSON: "key": { "nested": "value" }
-			// Nested object - recursively extract its fields
+			// Nested object - extract its fields
 			JsonObject jsonObject = value.getAsJsonObject();
 			ResolvedJavaTypeInfo objectType = new ResolvedJavaTypeInfo();
 			objectType.setResolvedType(objectType);
@@ -176,10 +179,10 @@ public class JsonDataLoader implements DataLoader {
 			// Recursively extract fields from the nested object
 			List<JavaFieldInfo> nestedFields = extractFieldsFromObject(jsonObject, fileInfo);
 			objectType.setFields(nestedFields);
-			objectType.setSignature(fieldName + " : java.lang.Object");
+			objectType.setSignature(IO_VERTX_CORE_JSON_JSON_OBJECT_CLASS);
 
 			RoqDataField field = new RoqDataField(fieldName, objectType, fileInfo);
-			field.setSignature(fieldName + " : java.lang.Object");
+			field.setSignature(fieldName + " : " + IO_VERTX_CORE_JSON_JSON_OBJECT_CLASS);
 			return field;
 
 		} else if (value.isJsonArray()) {
@@ -190,7 +193,7 @@ public class JsonDataLoader implements DataLoader {
 			ResolvedJavaTypeInfo arrayType = new RoqDataCollection(itemType);
 
 			RoqDataField field = new RoqDataField(fieldName, arrayType, fileInfo);
-			field.setSignature(fieldName + " : java.util.Collection<" + itemType.getJavaElementType() + ">");
+			field.setSignature(fieldName + " : " + IO_VERTX_CORE_JSON_JSON_ARRAY_CLASS);
 			return field;
 		}
 
@@ -239,7 +242,7 @@ public class JsonDataLoader implements DataLoader {
 			// Recursively extract fields from the first array item
 			List<JavaFieldInfo> fields = extractFieldsFromObject(jsonObject, fileInfo);
 			type.setFields(fields);
-			type.setSignature("java.lang.Object");
+			type.setSignature(IO_VERTX_CORE_JSON_JSON_OBJECT_CLASS);
 			return type;
 		}
 

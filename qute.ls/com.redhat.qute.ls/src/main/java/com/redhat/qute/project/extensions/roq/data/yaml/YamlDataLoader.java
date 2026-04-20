@@ -11,6 +11,9 @@
 *******************************************************************************/
 package com.redhat.qute.project.extensions.roq.data.yaml;
 
+import static com.redhat.qute.project.extensions.roq.JsonVertxConstants.IO_VERTX_CORE_JSON_JSON_ARRAY_CLASS;
+import static com.redhat.qute.project.extensions.roq.JsonVertxConstants.IO_VERTX_CORE_JSON_JSON_OBJECT_CLASS;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -95,7 +98,7 @@ public class YamlDataLoader implements DataLoader {
 				ResolvedJavaTypeInfo arrayType = new RoqDataCollection(itemType);
 
 				RoqDataField field = new RoqDataField("items", arrayType, roqDataFile);
-				field.setSignature("items : java.util.Collection<" + itemType.getJavaElementType() + ">");
+				field.setSignature("items : " + IO_VERTX_CORE_JSON_JSON_ARRAY_CLASS);
 				fields.add(field);
 			}
 
@@ -141,11 +144,11 @@ public class YamlDataLoader implements DataLoader {
 	/**
 	 * Creates a JavaFieldInfo from a YAML value, recursively handling nested
 	 * structures.
-	 * 
+	 *
 	 * Type mapping: - null → java.lang.Object - scalar (string/number/boolean) →
-	 * primitive Java type - object/map → java.lang.Object with nested fields -
-	 * array/sequence → java.util.Collection<T> with item type
-	 * 
+	 * primitive Java type - object/map → JsonObject or typed object with fields -
+	 * array/sequence → JsonArray or Collection<T> with item type
+	 *
 	 * @param fieldName The field name (from YAML key)
 	 * @param value     The YAML value as JsonNode
 	 * @param fileInfo  Parent file reference
@@ -169,18 +172,18 @@ public class YamlDataLoader implements DataLoader {
 
 		} else if (value.isObject()) {
 			// YAML: key: { nested: "value" }
-			// Nested object - recursively extract its fields
+			// Nested object - extract its fields
 			ObjectNode objectNode = (ObjectNode) value;
+			List<JavaFieldInfo> nestedFields = extractFieldsFromObject(objectNode, fileInfo);
+
+			// Create a typed object with fields (for completion)
 			ResolvedJavaTypeInfo objectType = new ResolvedJavaTypeInfo();
 			objectType.setResolvedType(objectType);
-
-			// Recursively extract fields from the nested object
-			List<JavaFieldInfo> nestedFields = extractFieldsFromObject(objectNode, fileInfo);
 			objectType.setFields(nestedFields);
-			objectType.setSignature(fieldName + " : java.lang.Object");
+			objectType.setSignature(IO_VERTX_CORE_JSON_JSON_OBJECT_CLASS);
 
 			RoqDataField field = new RoqDataField(fieldName, objectType, fileInfo);
-			field.setSignature(fieldName + " : java.lang.Object");
+			field.setSignature(fieldName + " : " + IO_VERTX_CORE_JSON_JSON_OBJECT_CLASS);
 			return field;
 
 		} else if (value.isArray()) {
@@ -189,10 +192,11 @@ public class YamlDataLoader implements DataLoader {
 			// Array/sequence - infer the item type from first element
 			ArrayNode arrayNode = (ArrayNode) value;
 			ResolvedJavaTypeInfo itemType = inferArrayItemType(arrayNode, fileInfo);
-			ResolvedJavaTypeInfo arrayType = new RoqDataCollection(itemType);
 
+			// Create a collection type with item structure (for completion)
+			ResolvedJavaTypeInfo arrayType = new RoqDataCollection(itemType);
 			RoqDataField field = new RoqDataField(fieldName, arrayType, fileInfo);
-			field.setSignature(fieldName + " : java.util.Collection<" + itemType.getJavaElementType() + ">");
+			field.setSignature(fieldName + " : " + IO_VERTX_CORE_JSON_JSON_ARRAY_CLASS);
 			return field;
 		}
 
@@ -240,7 +244,7 @@ public class YamlDataLoader implements DataLoader {
 			// Recursively extract fields from the first array item
 			List<JavaFieldInfo> fields = extractFieldsFromObject(objectNode, fileInfo);
 			type.setFields(fields);
-			type.setSignature("java.lang.Object");
+			type.setSignature(IO_VERTX_CORE_JSON_JSON_OBJECT_CLASS);
 			return type;
 		}
 

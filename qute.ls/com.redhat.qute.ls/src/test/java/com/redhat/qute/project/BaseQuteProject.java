@@ -188,7 +188,8 @@ public abstract class BaseQuteProject extends MockQuteProject {
 
 		// Load JsonObject from vertx
 		loadResolvedJavaType("JsonObject.json", resolvedJavaTypes, BaseQuteProject.class);
-
+		// Load JsonArray from vertx
+		loadResolvedJavaType("JsonArray.json", resolvedJavaTypes, BaseQuteProject.class);
 	}
 
 	/*

@@ -33,7 +33,7 @@ public class RoqDataJsonCompletionsTest {
 		String template = "{inject:books-json.|}";
 		testCompletionFor(template, //
 				c("or(base : Object, arg : T) : T", "or(arg)", r(0, 19, 0, 19)), //
-				c("list : Collection<Object>", "list", r(0, 19, 0, 19)));
+				c("list : JsonArray", "list", r(0, 19, 0, 19)));
 	}
 
 	@Test

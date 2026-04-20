@@ -1,0 +1,134 @@
+{
+	"signature": "io.vertx.core.json.JsonArray",
+	"extendedTypes": [
+		"java.lang.Iterable\u003cjava.lang.Object\u003e",
+		"io.vertx.core.shareddata.ClusterSerializable",
+		"io.vertx.core.shareddata.Shareable"
+	],
+	"fields": [],
+	"methods": [
+		{
+			"signature": "getString(pos : int) : java.lang.String"
+		},
+		{
+			"signature": "getNumber(pos : int) : java.lang.Number"
+		},
+		{
+			"signature": "getInteger(pos : int) : java.lang.Integer"
+		},
+		{
+			"signature": "getLong(pos : int) : java.lang.Long"
+		},
+		{
+			"signature": "getDouble(pos : int) : java.lang.Double"
+		},
+		{
+			"signature": "getFloat(pos : int) : java.lang.Float"
+		},
+		{
+			"signature": "getBoolean(pos : int) : java.lang.Boolean"
+		},
+		{
+			"signature": "getJsonObject(pos : int) : io.vertx.core.json.JsonObject"
+		},
+		{
+			"signature": "getJsonArray(pos : int) : io.vertx.core.json.JsonArray"
+		},
+		{
+			"signature": "getBinary(pos : int) : byte[]"
+		},
+		{
+			"signature": "getBuffer(pos : int) : io.vertx.core.buffer.Buffer"
+		},
+		{
+			"signature": "getInstant(pos : int) : java.time.Instant"
+		},
+		{
+			"signature": "getValue(pos : int) : java.lang.Object"
+		},
+		{
+			"signature": "hasNull(pos : int) : boolean"
+		},
+		{
+			"signature": "addNull() : io.vertx.core.json.JsonArray"
+		},
+		{
+			"signature": "add(value : java.lang.Object) : io.vertx.core.json.JsonArray"
+		},
+		{
+			"signature": "add(pos : int, value : java.lang.Object) : io.vertx.core.json.JsonArray"
+		},
+		{
+			"signature": "addAll(array : io.vertx.core.json.JsonArray) : io.vertx.core.json.JsonArray"
+		},
+		{
+			"signature": "setNull(pos : int) : io.vertx.core.json.JsonArray"
+		},
+		{
+			"signature": "set(pos : int, value : java.lang.Object) : io.vertx.core.json.JsonArray"
+		},
+		{
+			"signature": "contains(value : java.lang.Object) : boolean"
+		},
+		{
+			"signature": "indexOf(value : java.lang.Object) : int"
+		},
+		{
+			"signature": "remove(value : java.lang.Object) : boolean"
+		},
+		{
+			"signature": "remove(pos : int) : java.lang.Object"
+		},
+		{
+			"signature": "size() : int"
+		},
+		{
+			"signature": "isEmpty() : boolean"
+		},
+		{
+			"signature": "getList() : java.util.List"
+		},
+		{
+			"signature": "clear() : io.vertx.core.json.JsonArray"
+		},
+		{
+			"signature": "iterator() : java.util.Iterator\u003cjava.lang.Object\u003e"
+		},
+		{
+			"signature": "encode() : java.lang.String"
+		},
+		{
+			"signature": "toBuffer() : io.vertx.core.buffer.Buffer"
+		},
+		{
+			"signature": "encodePrettily() : java.lang.String"
+		},
+		{
+			"signature": "copy() : io.vertx.core.json.JsonArray"
+		},
+		{
+			"signature": "copy(cloner : java.util.function.Function\u003cjava.lang.Object,?\u003e) : io.vertx.core.json.JsonArray"
+		},
+		{
+			"signature": "stream() : java.util.stream.Stream\u003cjava.lang.Object\u003e"
+		},
+		{
+			"signature": "toString() : java.lang.String"
+		},
+		{
+			"signature": "equals(o : java.lang.Object) : boolean"
+		},
+		{
+			"signature": "hashCode() : int"
+		},
+		{
+			"signature": "readFromBuffer(pos : int, buffer : io.vertx.core.buffer.Buffer) : int"
+		}
+	],
+	"binary": true,
+	"typeKind": 2,
+	"invalidMethods": {
+		"writeToBuffer": 1,
+		"of": 3
+	}
+}

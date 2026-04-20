@@ -34,6 +34,7 @@ import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.ls.commons.snippets.Snippet;
 import com.redhat.qute.parser.template.CaseOperator;
+import com.redhat.qute.parser.template.JavaTypeInfoProvider;
 import com.redhat.qute.parser.template.SectionMetadata;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.tags.UserTag;
@@ -165,7 +166,17 @@ public class DocumentationUtils {
 			}
 		} else {
 			// Field --> type
-			documentation.append(getSimpleType(member.getJavaElementType()));
+			// Use alternative types label if available (e.g., "Integer|Boolean|String")
+			if (member instanceof JavaTypeInfoProvider) {
+				String label = ((JavaTypeInfoProvider) member).getJavaElementTypeLabel();
+				if (label != null) {
+					documentation.append(label);
+				} else {
+					documentation.append(getSimpleType(member.getJavaElementType()));
+				}
+			} else {
+				documentation.append(getSimpleType(member.getJavaElementType()));
+			}
 		}
 
 		// Generate Source Type

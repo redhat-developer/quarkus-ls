@@ -1,0 +1,64 @@
+{
+	"signature": "io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl",
+	"extendedTypes": [
+		"java.lang.Record"
+	],
+	"fields": [
+		{
+			"signature": "root : io.quarkiverse.roq.frontmatter.runtime.model.RootUrl"
+		},
+		{
+			"signature": "resourcePath : java.lang.String"
+		}
+	],
+	"methods": [
+		{
+			"signature": "toString() : java.lang.String"
+		},
+		{
+			"signature": "path() : java.lang.String"
+		},
+		{
+			"signature": "path(encoded : boolean) : java.lang.String"
+		},
+		{
+			"signature": "relative() : java.lang.String"
+		},
+		{
+			"signature": "absolute() : java.lang.String"
+		},
+		{
+			"signature": "encoded() : java.lang.String"
+		},
+		{
+			"signature": "resolve(other : java.lang.Object) : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "join(other : java.lang.Object) : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "append(other : java.lang.Object) : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "isExternal() : boolean"
+		},
+		{
+			"signature": "fromRoot(path : java.lang.String) : io.quarkiverse.roq.frontmatter.runtime.model.RoqUrl"
+		},
+		{
+			"signature": "root() : io.quarkiverse.roq.frontmatter.runtime.model.RootUrl"
+		},
+		{
+			"signature": "resourcePath() : java.lang.String"
+		}
+	],
+	"binary": true,
+	"templateDataAnnotations": [
+		{}
+	],
+	"typeKind": 2,
+	"invalidMethods": {
+		"fromRoot": 3,
+		"isFullPath": 3
+	}
+}
