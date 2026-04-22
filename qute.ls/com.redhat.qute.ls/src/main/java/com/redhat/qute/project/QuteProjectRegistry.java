@@ -471,6 +471,9 @@ public class QuteProjectRegistry
 									return Collections.emptyList();
 								});
 					}
+					if (progressContext != null) {
+						progressContext.endProgress();
+					}
 					return CompletableFuture.completedFuture(Collections.emptyList());
 				}) //
 				.exceptionally((a) -> {
