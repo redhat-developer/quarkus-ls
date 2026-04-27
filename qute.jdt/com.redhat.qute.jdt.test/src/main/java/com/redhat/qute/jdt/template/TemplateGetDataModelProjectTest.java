@@ -229,7 +229,7 @@ public class TemplateGetDataModelProjectTest {
 				Arrays.asList("boolean"), resolvers);
 
 		// from io.quarkus.qute.runtime.extensions.MapTemplateExtensions
-		assertValueResolver(null, "map(arg0 : java.util.Map, arg1 : java.lang.String) : java.lang.Object",
+		assertValueResolver(null, "map(map : java.util.Map, name : java.lang.String) : java.lang.Object",
 				"io.quarkus.qute.runtime.extensions.MapTemplateExtensions", //
 				Arrays.asList("*"), resolvers);
 		assertValueResolver(null, "get(map : java.util.Map<?,V>, key : java.lang.Object) : V",

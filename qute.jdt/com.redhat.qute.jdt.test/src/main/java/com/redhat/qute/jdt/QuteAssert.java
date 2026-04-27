@@ -14,6 +14,7 @@ package com.redhat.qute.jdt;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 
@@ -54,7 +55,9 @@ public class QuteAssert {
 		Optional<ValueResolverInfo> result = resolvers.stream()
 				.filter(r -> signature.equals(r.getSignature()) && Objects.equals(namespace, r.getNamespace()))
 				.findFirst();
-		Assert.assertFalse("Find '" + signature + "' value resolver.", result.isEmpty());
+		Assert.assertFalse("Cannot Find '" + signature + "' value resolver. Available signatures: " + resolvers.stream() //
+				.map(ValueResolverInfo::getSignature) //
+				.collect(Collectors.joining(", ")), result.isEmpty());
 		ValueResolverInfo resolver = result.get();
 		Assert.assertEquals(namespace, resolver.getNamespace());
 		Assert.assertEquals(signature, resolver.getSignature());
