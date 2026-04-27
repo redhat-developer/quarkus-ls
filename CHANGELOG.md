@@ -1,5 +1,88 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## [0.24.0](https://github.com/redhat-developer/quarkus-ls/milestone/28?closed=1) (April 27, 2026)
+
+### Enhancements
+ * [Renarde] Support for m: namespace resolver. See [#1091](https://github.com/redhat-developer/quarkus-ls/issues/1091).
+ * [Roq] Support for Union and Alternative Java type. See [#1158](https://github.com/redhat-developer/quarkus-ls/pull/1158).
+ * [Roq] Support Roq theme-layout. See [#1147](https://github.com/redhat-developer/quarkus-ls/pull/1147).
+ * [Roq] Support Roq include by using Yaml frontmatter layout property. See [#1123](https://github.com/redhat-developer/quarkus-ls/pull/1123).
+ * [Roq] Support for Qute fragment in template. See [#1125](https://github.com/redhat-developer/quarkus-ls/pull/1125).
+ * [Roq] Validate Roq layout property. See [#1116](https://github.com/redhat-developer/quarkus-ls/pull/1116).
+ * [Roq] Don't inject Roq site, page and Insert Yaml frontmatter for user tag. See [#1113](https://github.com/redhat-developer/quarkus-ls/pull/1113).
+ * [Roq] Yaml frontmatter image support. See [#1108](https://github.com/redhat-developer/quarkus-ls/pull/1108).
+ * [Roq] Roq Frontmatter support. See [#1103](https://github.com/redhat-developer/quarkus-ls/pull/1103).
+ * [Roq] Move Roq page injection in Qute LS. See [#1100](https://github.com/redhat-developer/quarkus-ls/pull/1100).
+ * [Roq] Support http Roq image. See [#1153](https://github.com/redhat-developer/quarkus-ls/pull/1153).
+ * [Roq] Support for Roq Data files. See [#1095](https://github.com/redhat-developer/quarkus-ls/pull/1095).
+ * Retrigger completion when include snippet is applied. See [#1156](https://github.com/redhat-developer/quarkus-ls/pull/1156).
+ * Quarkus Flags support. See [#1141](https://github.com/redhat-developer/quarkus-ls/pull/1141).
+ * Validate type of user tag parameter when parameter is declared with parameter declaration. See [#1136](https://github.com/redhat-developer/quarkus-ls/pull/1136).
+ * Include parameter support. See [#1121](https://github.com/redhat-developer/quarkus-ls/pull/1121).
+ * Support for namespaced section. See [#1120](https://github.com/redhat-developer/quarkus-ls/pull/1120).
+ * LSP support in binary template. See [#1114](https://github.com/redhat-developer/quarkus-ls/pull/1114).
+ * Collect all binary templates. See [#1112](https://github.com/redhat-developer/quarkus-ls/pull/1112).
+ * Smart inference of Java type for user tag parameter. See [#913](https://github.com/redhat-developer/quarkus-ls/issues/913).
+ * Support for Quarkus Web Bundler. See [#876](https://github.com/redhat-developer/quarkus-ls/issues/876).
+ * Qute debugging support inside Java file. See [#1093](https://github.com/redhat-developer/quarkus-ls/pull/1093).
+ * Qute Resolve completion support. See [#1093](https://github.com/redhat-developer/quarkus-ls/pull/1151).
+
+### Bug Fixes
+ * fix: Loading Qute projects from workspace.: Collecting Qute projects from workspace. See [#1157](https://github.com/redhat-developer/quarkus-ls/pull/1157).
+ * Improve Java generic type. See [#1155](https://github.com/redhat-developer/quarkus-ls/pull/1155).
+ * [Roq] Fix ends of yaml front matter content. See [#1154](https://github.com/redhat-developer/quarkus-ls/pull/1154).
+ * Trigger again validation even after a cancel of resolved Java type. See [#1152](https://github.com/redhat-developer/quarkus-ls/pull/1152).
+ * Use named in global resolvers. See [#1150](https://github.com/redhat-developer/quarkus-ls/pull/1150).
+ * Qute project load must wait for project dependencies to be loaded. See [#1149](https://github.com/redhat-developer/quarkus-ls/pull/1149).
+ * Fix parse of infix notation which starts with quote. See [#1148](https://github.com/redhat-developer/quarkus-ls/pull/1148).
+ * Support infix notation in method parameter. See [#1146](https://github.com/redhat-developer/quarkus-ls/pull/1146).
+ * Support infix notation in method parameter (2). See [#1145](https://github.com/redhat-developer/quarkus-ls/pull/1145).
+ * Support Iterator as Iterable. See [#1144](https://github.com/redhat-developer/quarkus-ls/pull/1144).
+ * Support comma in parameter value. See [#1143](https://github.com/redhat-developer/quarkus-ls/pull/1143).
+ * Replace flag:*() String parameter with Object. See [#1142](https://github.com/redhat-developer/quarkus-ls/pull/1142).
+ * Resolve generic return type according generic parameter type. See [#1140](https://github.com/redhat-developer/quarkus-ls/pull/1140).
+ * Support custom return type for uri Renarde. See [#1139](https://github.com/redhat-developer/quarkus-ls/pull/1139).
+ * Improve match type without java.lang + primitive type. See [#1138](https://github.com/redhat-developer/quarkus-ls/pull/1138).
+ * Fix match type. See [#1137](https://github.com/redhat-developer/quarkus-ls/pull/1137).
+ * Collect user tag parameters from parameter declarations. See [#1135](https://github.com/redhat-developer/quarkus-ls/pull/1135).
+ * Basic support for _isolated, _unisolated, _ignoreFragments. See [#1134](https://github.com/redhat-developer/quarkus-ls/pull/1134).
+ * Fix default value from parameter declaration. See [#1133](https://github.com/redhat-developer/quarkus-ls/pull/1133).
+ * Support assignment for parameter declaration. See [#1132](https://github.com/redhat-developer/quarkus-ls/pull/1132).
+ * UndefinedSectionTag false positive for Qute user tags from dependency modules. See [#1131](https://github.com/redhat-developer/quarkus-ls/pull/1131).
+ * Support for #insert in user tag. See [#1130](https://github.com/redhat-developer/quarkus-ls/pull/1130).
+ * Support template id (short + extension). See [#1128](https://github.com/redhat-developer/quarkus-ls/pull/1128).
+ * Update usages when document is deleted. See [#1127](https://github.com/redhat-developer/quarkus-ls/pull/1127).
+ * Fix some issues with fragment usages. See [#1126](https://github.com/redhat-developer/quarkus-ls/pull/1126).
+ * fix: Only static native methods must be considered as CheckedTemplate. See [#1124](https://github.com/redhat-developer/quarkus-ls/pull/1124).
+ * Validate section included in include section. See [#1119](https://github.com/redhat-developer/quarkus-ls/pull/1119).
+ * Parameter value parsing must take care of new line. See [#1118](https://github.com/redhat-developer/quarkus-ls/pull/1118).
+ * Fix match type with generic. See [#1117](https://github.com/redhat-developer/quarkus-ls/pull/1117).
+ * Use future utils. See [#1115](https://github.com/redhat-developer/quarkus-ls/pull/1115).
+ * Fix flakey Qute diagnostics when template is opened. See [#1111](https://github.com/redhat-developer/quarkus-ls/pull/1111).
+ * Qute : false positive on non-html template. See [#1110](https://github.com/redhat-developer/quarkus-ls/pull/1110).
+ * fix: False Positive: qute(NoMatchingTemplate) error on @CheckedTemplate class when adding a private constructor. See [#1109](https://github.com/redhat-developer/quarkus-ls/pull/1109).
+ * Fix NPE with inlay hint + codelens. See [#1107](https://github.com/redhat-developer/quarkus-ls/pull/1107).
+ * Roq data error appears after classpath changed. See [#1106](https://github.com/redhat-developer/quarkus-ls/pull/1106).
+ * Ignore error with invalid syntax in layout (ex: :theme/). See [#1105](https://github.com/redhat-developer/quarkus-ls/pull/1105).
+ * Remove diagnostics when template file is deleted. See [#1102](https://github.com/redhat-developer/quarkus-ls/pull/1102).
+ * Alias from #for must not be an user tag parameter. See [#1101](https://github.com/redhat-developer/quarkus-ls/pull/1101).
+ * Use Collectors.toList(). See [#1096](https://github.com/redhat-developer/quarkus-ls/pull/1096).
+ * Fix NPE when trying to provide Code Actions when the project is null. See [#1094](https://github.com/redhat-developer/quarkus-ls/pull/1094).
+ * Duplications in the suggestion list. See [#1089](https://github.com/redhat-developer/quarkus-ls/pull/1089).
+ * Some "unrecognized property" microprofile(unknown). See [#1086](https://github.com/redhat-developer/quarkus-ls/pull/1086).
+ * @ConfigMapping with fields which are same type collect only the first field. See [#1085](https://github.com/redhat-developer/quarkus-ls/pull/1085).
+ * fix: don't report false positive error when @TemplateContents is declared. See [#1083](https://github.com/redhat-developer/quarkus-ls/pull/1083).
+ * False positive error with Qute @TemplateContents. See [#1066](https://github.com/redhat-developer/quarkus-ls/issues/1066).
+ * Qute Server Side Components Not Discovered. See [#1040](https://github.com/redhat-developer/quarkus-ls/issues/1040).
+ * false-positive for `it` parameter in Qute template. See [#1001](https://github.com/redhat-developer/quarkus-ls/issues/1001).
+ * Qute LS freezes when LSP client doesn't support `workspace/didChangeWatchedFiles` and have no templates folder. See [#931](https://github.com/redhat-developer/quarkus-ls/issues/931).
+
+### Performance
+ * Send 'qute/dataModelChanged' notification with debounce mode. See [#1099](https://github.com/redhat-developer/quarkus-ls/pull/1099).
+
+### Build
+ * Update Eclipse to 4.40-I-Builds. See [#1122](https://github.com/redhat-developer/quarkus-ls/pull/1122).
+
 ## [0.23.0](https://github.com/redhat-developer/quarkus-ls/milestone/27?closed=1) (December 5, 2025)
 
 ### Enhancements
