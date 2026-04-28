@@ -109,3 +109,31 @@ jobs:
           git add com/
           git commit -m "Publish ${pomVersion} (${{github.run_number}})"
           git push -f origin maven
+      - name: Bump minor version if necessary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run:
+          for dir in quarkus.ls.ext/com.redhat.quarkus.ls qute.ls/com.redhat.qute.ls releng; do
+            pushd ${dir}
+            pomVersion=$(grep "<version>" pom.xml | head -1 | sed -e "s#.*<version>\\(.\\+\\)</version>.*#\\1#")
+            if [[ ${pomVersion} == *"-SNAPSHOT" ]]; then
+              echo "skipping"
+            else
+              ./mvnw build-helper:parse-version versions:set -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.nextMinorVersion}.0-SNAPSHOT
+            fi
+            popd
+          done
+          for dir in quarkus.jdt.ext qute.jdt; do
+            pushd ${dir}
+            pomVersion=$(grep "<version>" pom.xml | head -1 | sed -e "s#.*<version>\\(.\\+\\)</version>.*#\\1#")
+            if [[ ${pomVersion} == *"-SNAPSHOT" ]]; then
+              echo "skipping"
+            else
+              ./mvnw build-helper:parse-version org.eclipse.tycho:tycho-versions-plugin:4.0.5:set-version -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.nextMinorVersion}.0-SNAPSHOT -Dtycho.mode=maven
+            fi
+            popd
+          done
+          git config --global user.email "quarkus-ls-bot@users.noreply.github.com"
+          git config --global user.name "quarkus-ls-bot"
+          git commit -m "Bump minor version after release"
+          git push origin master
