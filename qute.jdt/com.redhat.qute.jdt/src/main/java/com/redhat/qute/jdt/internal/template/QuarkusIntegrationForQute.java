@@ -69,6 +69,8 @@ public class QuarkusIntegrationForQute {
 
 	/** The JAR entry name for the application properties file. */
 	private static final String APPLICATION_PROPERTIES_ENTRY = "application.properties";
+	private static final String DOT_QUTE_ENTRY = ".qute";
+	private static final String ALT_EXPR_PROPERTY = "alt-expr-syntax";
 
 	private static final Logger LOGGER = Logger.getLogger(QuarkusIntegrationForQute.class.getName());
 
@@ -171,12 +173,17 @@ public class QuarkusIntegrationForQute {
 						// Compute the relative folder path from 'templates/' for this package.
 						// e.g. 'templates' -> '', 'templates.tags' -> 'tags'
 						String relativeFolderPath = buildRelativeFolderPath(elementName);
-
+						boolean altSyntaxExpr = false;
 						for (Object object : resources) {
 							if (object instanceof IJarEntryResource) {
 								// A resource can be either a file or a sub-directory.
 								// Recurse into directories to collect nested files.
-								collectJarEntry((IJarEntryResource) object, relativeFolderPath, templates);
+								IJarEntryResource jarEntry = (IJarEntryResource) object;
+								if (DOT_QUTE_ENTRY.equals(jarEntry.getName())) {
+									altSyntaxExpr = parseAltSyntaxExpr(jarEntry);
+								} else {
+									collectJarEntry(jarEntry, relativeFolderPath, altSyntaxExpr, templates);
+								}
 							}
 						}
 					}
@@ -235,10 +242,11 @@ public class QuarkusIntegrationForQute {
 	 * @param resource    the JAR entry resource (file or directory).
 	 * @param currentPath the relative path of the parent folder from
 	 *                    {@code templates/} (empty string for the root level).
+	 * @param altSyntaxExpr 
 	 * @param templates   the list to fill with collected binary templates.
 	 * @throws CoreException if an error occurs while reading the resource.
 	 */
-	private static void collectJarEntry(IJarEntryResource resource, String currentPath, List<BinaryTemplate> templates)
+	private static void collectJarEntry(IJarEntryResource resource, String currentPath, boolean altSyntaxExpr, List<BinaryTemplate> templates)
 			throws CoreException {
 
 		if (resource.isFile()) {
@@ -252,6 +260,7 @@ public class QuarkusIntegrationForQute {
 			template.setPath(path);
 			template.setUri(uri);
 			template.setContent(content);
+			template.setAltSyntaxExpr(altSyntaxExpr);
 			templates.add(template);
 			return;
 		}
@@ -260,7 +269,7 @@ public class QuarkusIntegrationForQute {
 		// This ensures the relative path grows correctly at each recursion level.
 		String childPath = currentPath.isEmpty() ? resource.getName() : currentPath + "/" + resource.getName();
 		for (IJarEntryResource child : resource.getChildren()) {
-			collectJarEntry(child, childPath, templates);
+			collectJarEntry(child, childPath, altSyntaxExpr, templates);
 		}
 	}
 
@@ -317,6 +326,18 @@ public class QuarkusIntegrationForQute {
 			map.put(key, props.getProperty(key));
 		}
 		return map;
+	}
+
+	private static boolean parseAltSyntaxExpr(IJarEntryResource dotQuteFile) throws CoreException {
+		Properties props = new Properties();
+		try {
+			props.load(dotQuteFile.getContents());
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, "Error while loading .qute from JAR entry", e);
+			return false;
+		}
+		Object result = props.getOrDefault(ALT_EXPR_PROPERTY, false);
+		return result instanceof Boolean ? (Boolean) result : false;
 	}
 
 	/**

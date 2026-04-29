@@ -54,6 +54,8 @@ public class Template extends Node {
 
 	private String userTagName;
 
+	private Character expressionCommand;
+
 	public Template(TextDocument textDocument) {
 		super(0, textDocument.getText().length());
 		this.textDocument = textDocument;
@@ -338,5 +340,23 @@ public class Template extends Node {
 
 	public void setUserTagName(String userTagName) {
 		this.userTagName = userTagName;
+	}
+
+	/**
+	 * Returns the expression command character for alternative syntax (e.g., '=' for {=foo}) or null for standard syntax.
+	 *
+	 * @return the expression command character or null
+	 */
+	public Character getExpressionCommand() {
+		return expressionCommand;
+	}
+
+	/**
+	 * Sets the expression command character for alternative syntax (e.g., '=' for {=foo}).
+	 *
+	 * @param expressionCommand the expression command character or null for standard syntax
+	 */
+	public void setExpressionCommand(Character expressionCommand) {
+		this.expressionCommand = expressionCommand;
 	}
 }

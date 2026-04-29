@@ -39,39 +39,38 @@ public class TemplateScanner extends AbstractScannerWithInjection<TokenType, Sca
 	private static final Predicate<Integer> TAG_NAME_PREDICATE = ch -> {
 		return Character.isLetterOrDigit(ch) || ch == '_' || ch == '-' || ch == '/';
 	};
+	
+	private final Character expressionCommand;
 
 	public static ScannerWithInjection<TokenType, ScannerState> createScanner(String input) {
-		return createScanner(input, Collections.emptyList());
+		return createScanner(input, null, Collections.emptyList());
 	}
 
 	public static ScannerWithInjection<TokenType, ScannerState> createScanner(String input,
 			Collection<InjectionDetector> injectionDetectors) {
-		return createScanner(input, 0, injectionDetectors);
+		return createScanner(input, null, injectionDetectors);
 	}
 
-	public static ScannerWithInjection<TokenType, ScannerState> createScanner(String input, int initialOffset) {
-		return createScanner(input, initialOffset, Collections.emptyList());
-	}
-
-	public static ScannerWithInjection<TokenType, ScannerState> createScanner(String input, int initialOffset,
+	public static ScannerWithInjection<TokenType, ScannerState> createScanner(String input, Character expressionCommand,
 			Collection<InjectionDetector> injectionDetectors) {
-		return createScanner(input, initialOffset, ScannerState.WithinContent, injectionDetectors);
+		return createScanner(input, 0, expressionCommand, injectionDetectors);
 	}
 
 	public static ScannerWithInjection<TokenType, ScannerState> createScanner(String input, int initialOffset,
-			ScannerState initialState) {
-		return createScanner(input, initialOffset, initialState, Collections.emptyList());
+			Character expressionCommand, Collection<InjectionDetector> injectionDetectors) {
+		return createScanner(input, initialOffset, ScannerState.WithinContent, expressionCommand, injectionDetectors);
 	}
 
 	public static ScannerWithInjection<TokenType, ScannerState> createScanner(String input, int initialOffset,
-			ScannerState initialState, Collection<InjectionDetector> injectionDetectors) {
-		return new TemplateScanner(input, initialOffset, initialState, injectionDetectors);
+			ScannerState initialState, Character expressionCommand, Collection<InjectionDetector> injectionDetectors) {
+		return new TemplateScanner(input, initialOffset, initialState, expressionCommand, injectionDetectors);
 	}
 
-	TemplateScanner(String input, int initialOffset, ScannerState initialState,
+	TemplateScanner(String input, int initialOffset, ScannerState initialState, Character expressionCommand,
 			Collection<InjectionDetector> injectionDetectors) {
 		super(input, initialOffset, initialState, TokenType.Unknown, TokenType.EOS, TokenType.LanguageInjectionStart,
 				TokenType.LanguageInjectionContent, TokenType.LanguageInjectionEnd, injectionDetectors);
+		this.expressionCommand = expressionCommand;
 	}
 
 	@Override
@@ -125,9 +124,12 @@ public class TemplateScanner extends AbstractScannerWithInjection<TokenType, Sca
 						return finishToken(offset, TokenType.StartParameterDeclaration);
 					} else {
 						int ch = stream.peekChar();
-						if (isValidIdentifierStart(ch)) {
+						if (isValidIdentifierStart(ch, expressionCommand)) {
 							// Expression
 							state = ScannerState.WithinExpression;
+							if (expressionCommand != null) {
+								stream.advance(1);
+							}
 							return finishToken(offset, TokenType.StartExpression);
 						} else {
 							// Text node, increment position if needed
@@ -304,7 +306,10 @@ public class TemplateScanner extends AbstractScannerWithInjection<TokenType, Sca
 		finishToken(offset, TokenType.Unknown, errorMessage);
 	}
 
-	private static boolean isValidIdentifierStart(int ch) {
+	private static boolean isValidIdentifierStart(int ch, Character expressionCommand) {
+		if (expressionCommand != null) {
+			return expressionCommand.charValue() == ch;
+		}
 		return Character.isDigit(ch) || Character.isAlphabetic(ch) || ch == '_';
 	}
 

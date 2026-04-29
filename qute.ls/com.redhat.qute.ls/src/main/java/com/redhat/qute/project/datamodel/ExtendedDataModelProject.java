@@ -28,6 +28,7 @@ import com.redhat.qute.commons.JavaElementKind;
 import com.redhat.qute.commons.JavaParameterInfo;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectFeature;
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.config.PropertyConfig;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
@@ -46,7 +47,6 @@ import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.datamodel.resolvers.TypeValueResolver;
 import com.redhat.qute.project.extensions.DataModelTemplateParticipant;
 import com.redhat.qute.project.extensions.ProjectExtension;
-import com.redhat.qute.project.extensions.config.ApplicationPropertiesProjectExtension;
 import com.redhat.qute.utils.JSONUtility;
 import com.redhat.qute.utils.StringUtils;
 
@@ -70,13 +70,9 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 
 	private Set<String> javaTypesSupportedInNativeMode;
 
-	private final ApplicationPropertiesProjectExtension applicationProperties;
-
 	public ExtendedDataModelProject(DataModelProject<DataModelTemplate<DataModelParameter>> dataModelProject,
 			QuteProject project) {
 		this.project = project;
-		this.applicationProperties = (ApplicationPropertiesProjectExtension) project
-				.getExtension(ApplicationPropertiesProjectExtension.APPLICATION_PROPERTIES_PROJECT_EXTENSION_ID);
 		super.setTemplates(createTemplates(dataModelProject.getTemplates()));
 		super.setNamespaceResolverInfos(dataModelProject.getNamespaceResolverInfos());
 
@@ -302,10 +298,11 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 	}
 
 	public String getConfig(PropertyConfig property) {
-		if (applicationProperties != null) {
-			return applicationProperties.getConfig(property);
-		}
-		return property.getDefaultValue();
+		return project.getConfig(property);
+	}
+
+	public boolean getConfigAsBoolean(PropertyConfig property) {
+		return project.getConfigAsBoolean(property);
 	}
 
 	public ExtendedDataModelTemplate findDataModelTemplate(String templateUri, boolean userTags) {
@@ -372,5 +369,13 @@ public class ExtendedDataModelProject extends DataModelProject<ExtendedDataModel
 			this.allNamespaces.remove(namespace);
 		}
 		super.unregisterNamespaceResolver(namespaceResolverInfo);
+	}
+
+	public List<TemplateRootPath> getTemplateRootPaths() {
+		return project.getTemplateRootPaths();
+	}
+
+	public QuteTextDocument findDocumentFor(String templateId) {
+		return project.findDocumentByTemplateId(templateId);
 	}
 }

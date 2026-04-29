@@ -62,6 +62,7 @@ import com.redhat.qute.project.datamodel.resolvers.ValueResolversRegistry;
 import com.redhat.qute.project.documents.QuteOpenedTextDocument;
 import com.redhat.qute.project.documents.TemplateValidator;
 import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
+import com.redhat.qute.project.extensions.ProjectExtensionContext;
 import com.redhat.qute.services.nativemode.JavaTypeFilter;
 import com.redhat.qute.services.nativemode.ReflectionJavaTypeFilter;
 import com.redhat.qute.settings.QuteNativeSettings;
@@ -385,13 +386,15 @@ public class QuteProjectRegistry
 						}
 					}
 				}
+				ProjectExtensionContext context = new ProjectExtensionContext();
 				for (DidChangeWatchedFilesParticipant participant : project.getDidChangeWatchedFilesParticipants()) {
 					if (participant.isEnabled()) {
-						if (participant.didChangeWatchedFile(filePath, changeTypes)) {
+						if (participant.didChangeWatchedFile(filePath, changeTypes, context)) {
 							projectsToValidate.add(project);
 						}
 					}
 				}
+				context.reparseTemplates();
 			}
 		}
 

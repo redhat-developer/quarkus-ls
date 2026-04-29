@@ -77,7 +77,8 @@ public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 		try {
 			QuteProject project = getProject();
 			TextDocument document = new TextDocument(templateContent, uri);
-			Template template = TemplateParser.parse(document, getInjectionDetectors(), CancelChecker.NO_CANCELLABLE);
+			Template template = TemplateParser.parse(document, getExpressionCommand(), getInjectionDetectors(),
+					CancelChecker.NO_CANCELLABLE);
 			template.setTemplateId(templateId);
 			template.setProjectRegistry(project.getProjectRegistry());
 			template.setProjectUri(project.getUri());
@@ -124,7 +125,7 @@ public abstract class QuteReadOnlyTextDocument implements QuteTextDocument {
 		}
 		return userTag;
 	}
-	
+
 	public String getUserTagName() {
 		if (userTagName == null) {
 			userTagName = QuteTextDocument.super.getUserTagName();

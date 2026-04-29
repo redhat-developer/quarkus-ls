@@ -12,7 +12,8 @@
 package com.redhat.qute.commons.binary;
 
 /**
- * Binary template loaded from a JAR entry (e.g. <code>templates/hello.html</code>).
+ * Binary template loaded from a JAR entry (e.g.
+ * <code>templates/hello.html</code>).
  *
  * @author Angelo ZERR
  *
@@ -24,6 +25,8 @@ public class BinaryTemplate {
 	private String uri;
 
 	private String content;
+
+	private boolean altSyntaxExpr;
 
 	/**
 	 * Returns the template path relative to the <code>templates/</code> entry of
@@ -96,6 +99,14 @@ public class BinaryTemplate {
 	 */
 	public void setContent(String content) {
 		this.content = content;
+	}
+
+	public boolean isAltSyntaxExpr() {
+		return altSyntaxExpr;
+	}
+
+	public void setAltSyntaxExpr(boolean altSyntaxExpr) {
+		this.altSyntaxExpr = altSyntaxExpr;
 	}
 
 }

@@ -14,6 +14,7 @@ package com.redhat.qute.project.extensions.webbundler;
 import com.redhat.qute.commons.config.webbundler.WebBundlerConfig;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.extensions.AbstractProjectExtension;
+import com.redhat.qute.project.extensions.ProjectExtensionContext;
 
 /**
  * Qute project extension for Web Bundler integration.
@@ -28,7 +29,8 @@ public class WebBundlerProjectExtension extends AbstractProjectExtension {
 	}
 
 	@Override
-	protected void init(ExtendedDataModelProject dataModelProject, boolean enabled) {
+	protected void initialize(ExtendedDataModelProject dataModelProject, boolean onLoad, boolean enabled,
+			ProjectExtensionContext context) {
 
 	}
 

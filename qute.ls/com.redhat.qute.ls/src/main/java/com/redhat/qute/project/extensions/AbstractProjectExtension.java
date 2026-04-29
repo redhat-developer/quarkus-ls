@@ -14,24 +14,34 @@ public abstract class AbstractProjectExtension implements ProjectExtension {
 
 	private boolean enabled;
 
+	private boolean onLoad;
+
 	public AbstractProjectExtension(ProjectFeature feature) {
-		this.extensionId = feature.getName();
+		this(feature.getName(), false);
 		this.feature = feature;
-		this.enabled = false;
 	}
 
 	public AbstractProjectExtension(String extensionId) {
+		this(extensionId, true);
+	}
+
+	AbstractProjectExtension(String extensionId, boolean enabled) {
 		this.extensionId = extensionId;
-		this.enabled = true;
+		this.enabled = enabled;
+		this.onLoad = true;
 	}
 
 	@Override
-	public final void init(ExtendedDataModelProject dataModelProject) {
+	public final void initialize(ExtendedDataModelProject dataModelProject, ProjectExtensionContext context) {
 		this.dataModelProject = dataModelProject;
 		if (feature != null) {
 			this.enabled = dataModelProject.hasProjectFeature(feature);
 		}
-		init(dataModelProject, isEnabled());
+		try {
+			initialize(dataModelProject, onLoad, isEnabled(), context);
+		} finally {
+			onLoad = false;
+		}
 	}
 
 	/**
@@ -55,9 +65,10 @@ public abstract class AbstractProjectExtension implements ProjectExtension {
 		return extensionId;
 	}
 
-	public ExtendedDataModelProject getDataModelProject() {
+	public final ExtendedDataModelProject getDataModelProject() {
 		return dataModelProject;
 	}
 
-	protected abstract void init(ExtendedDataModelProject dataModelProject, boolean enabled);
+	protected abstract void initialize(ExtendedDataModelProject dataModelProject, boolean onLoad, boolean enabled,
+			ProjectExtensionContext context);
 }

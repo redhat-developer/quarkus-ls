@@ -14,6 +14,7 @@ package com.redhat.qute.project.documents;
 import java.nio.file.Path;
 import java.util.Map;
 
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.commons.binary.BinaryTemplate;
 import com.redhat.qute.project.QuteProject;
 
@@ -31,12 +32,15 @@ public class QuteBinaryTextDocument extends QuteReadOnlyTextDocument {
 
 	private final Map<String, String> properties;
 
+	private final Character expressionCommand;
+
 	public QuteBinaryTextDocument(BinaryTemplate binaryTemplate, String binaryName, Map<String, String> properties,
-			QuteProject project) {
+			Character expressionCommand, QuteProject project) {
 		super(binaryTemplate.getUri(), binaryTemplate.getPath(), binaryTemplate.getContent(), project);
 		this.binaryTemplate = binaryTemplate;
 		this.binaryName = binaryName;
 		this.properties = properties;
+		this.expressionCommand = expressionCommand;
 	}
 
 	@Override
@@ -70,5 +74,15 @@ public class QuteBinaryTextDocument extends QuteReadOnlyTextDocument {
 	@Override
 	public void reparseTemplate() {
 		super.template = loadTemplate(binaryTemplate.getUri(), binaryTemplate.getPath(), binaryTemplate.getContent());
+	}
+
+	@Override
+	public Character getExpressionCommand() {
+		return expressionCommand;
+	}
+
+	@Override
+	public TemplateRootPath getTemplateRootPath() {
+		return null;
 	}
 }

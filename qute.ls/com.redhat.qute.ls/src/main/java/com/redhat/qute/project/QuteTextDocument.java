@@ -184,10 +184,12 @@ public interface QuteTextDocument {
 	String getOrigin();
 
 	String getRelativePath();
-	
+
 	default String getProperty(String name) {
 		return null;
 	}
+
+	TemplateRootPath getTemplateRootPath();
 
 	/**
 	 * Re-parse template from the current template content and update usages
@@ -196,6 +198,8 @@ public interface QuteTextDocument {
 	default void reparseTemplate() {
 		// Do nothing
 	}
+
+	Character getExpressionCommand();
 
 	<T> T getUserData(Key<T> key);
 

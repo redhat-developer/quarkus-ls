@@ -42,30 +42,40 @@ public class TemplateParser {
 	private static final SectionFactory DEFAULT_SECTION_FACTORY = new DefaultSectionFactory();
 
 	public static Template parse(String content, String uri) {
-		return parse(content, uri, Collections.emptyList());
+		return parse(content, uri, (Character) null);
+	}
+
+	public static Template parse(String content, String uri, Character expressionCommand) {
+		return parse(content, uri, expressionCommand, Collections.emptyList());
 	}
 
 	public static Template parse(String content, String uri, Collection<InjectionDetector> injectionDetectors) {
-		return parse(content, uri, injectionDetectors, CancelChecker.NO_CANCELLABLE);
+		return parse(content, uri, null, injectionDetectors);
 	}
 
-	public static Template parse(String text, String uri, Collection<InjectionDetector> injectionDetectors,
-			CancelChecker cancelChecker) {
-		return parse(new TextDocument(text, uri), injectionDetectors, cancelChecker);
+	public static Template parse(String content, String uri, Character expressionCommand,
+			Collection<InjectionDetector> injectionDetectors) {
+		return parse(content, uri, expressionCommand, injectionDetectors, CancelChecker.NO_CANCELLABLE);
 	}
 
-	public static Template parse(TextDocument textDocument, Collection<InjectionDetector> injectionDetectors,
-			CancelChecker cancelChecker) {
-		return parse(textDocument, DEFAULT_SECTION_FACTORY, injectionDetectors, cancelChecker);
+	public static Template parse(String text, String uri, Character expressionCommand,
+			Collection<InjectionDetector> injectionDetectors, CancelChecker cancelChecker) {
+		return parse(new TextDocument(text, uri), expressionCommand, injectionDetectors, cancelChecker);
 	}
 
-	public static Template parse(TextDocument textDocument, SectionFactory sectionFactory,
+	public static Template parse(TextDocument textDocument, Character expressionCommand,
+			Collection<InjectionDetector> injectionDetectors, CancelChecker cancelChecker) {
+		return parse(textDocument, DEFAULT_SECTION_FACTORY, expressionCommand, injectionDetectors, cancelChecker);
+	}
+
+	public static Template parse(TextDocument textDocument, SectionFactory sectionFactory, Character expressionCommand,
 			Collection<InjectionDetector> injectionDetectors, CancelChecker cancelChecker) {
 		if (cancelChecker == null) {
 			cancelChecker = CancelChecker.NO_CANCELLABLE;
 		}
 		Template template = new Template(textDocument);
 		template.setCancelChecker(cancelChecker);
+		template.setExpressionCommand(expressionCommand);
 
 		Node curr = template;
 
@@ -73,7 +83,7 @@ public class TemplateParser {
 		int endTagOpenOffset = -1;
 		int startSectionOffset = -1;
 		int endSectionOffset = -1;
-		ScannerWithInjection<TokenType, ScannerState> scanner = TemplateScanner.createScanner(content,
+		ScannerWithInjection<TokenType, ScannerState> scanner = TemplateScanner.createScanner(content, expressionCommand,
 				injectionDetectors);
 		TokenType token = scanner.scan();
 		while (token != TokenType.EOS) {

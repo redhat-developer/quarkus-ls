@@ -56,6 +56,7 @@ import com.redhat.qute.commons.annotations.TemplateDataAnnotation;
 import com.redhat.qute.commons.binary.BinaryTemplate;
 import com.redhat.qute.commons.binary.BinaryTemplateInfo;
 import com.redhat.qute.commons.binary.QuteBinaryTemplateParams;
+import com.redhat.qute.commons.config.PropertyConfig;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
@@ -64,10 +65,7 @@ import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
 import com.redhat.qute.commons.jaxrs.RestParam;
-import com.redhat.qute.parser.expression.InfixNotationMethodPart;
-import com.redhat.qute.parser.expression.MethodPart;
 import com.redhat.qute.parser.expression.Part;
-import com.redhat.qute.parser.expression.Parts.PartKind;
 import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Parameter;
@@ -101,7 +99,9 @@ import com.redhat.qute.project.extensions.HoverParticipant;
 import com.redhat.qute.project.extensions.InlayHintParticipant;
 import com.redhat.qute.project.extensions.MemberResolutionParticipant;
 import com.redhat.qute.project.extensions.ProjectExtension;
+import com.redhat.qute.project.extensions.ProjectExtensionContext;
 import com.redhat.qute.project.extensions.TemplateLanguageInjectionParticipant;
+import com.redhat.qute.project.extensions.config.ApplicationPropertiesProjectExtension;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagRegistry;
 import com.redhat.qute.project.usages.IncludeUsagesRegistry;
@@ -191,6 +191,8 @@ public class QuteProject implements JavaTypeResolver {
 
 	private CompletableFuture<QuteProject> loadQuteProjectFuture;
 
+	private final ApplicationPropertiesProjectExtension applicationProperties;
+
 	public QuteProject(ProjectInfo projectInfo, QuteProjectRegistry projectRegistry) {
 		this.uri = projectInfo.getUri();
 		this.projectFolder = FileUtils.createPath(projectInfo.getProjectFolder());
@@ -228,6 +230,8 @@ public class QuteProject implements JavaTypeResolver {
 				LOGGER.log(Level.SEVERE, "Error while instantiating extension", e);
 			}
 		}
+		this.applicationProperties = (ApplicationPropertiesProjectExtension) this
+				.getExtension(ApplicationPropertiesProjectExtension.APPLICATION_PROPERTIES_PROJECT_EXTENSION_ID);
 	}
 
 	void registerExtension(ProjectExtension extension) {
@@ -804,14 +808,16 @@ public class QuteProject implements JavaTypeResolver {
 		if (!isFutureLoaded(dataModelProjectFuture)) {
 			dataModelProjectFuture = loadDataModelProject() //
 					.thenApply(model -> {
+						ProjectExtensionContext context = new ProjectExtensionContext();
 						for (ProjectExtension extension : getExtensions()) {
 							try {
-								extension.init(model);
+								extension.initialize(model, context);
 							} catch (Exception e) {
 								LOGGER.log(Level.SEVERE,
 										"Error while loading project extension '" + extension.getId() + "'", e);
 							}
 						}
+						context.reparseTemplates();
 						return model;
 
 					});
@@ -1148,7 +1154,8 @@ public class QuteProject implements JavaTypeResolver {
 				for (ProjectExtension extension : getExtensions()) {
 					if (extension.isEnabled() && extension instanceof MemberResolutionParticipant) {
 						MemberResolutionParticipant participant = (MemberResolutionParticipant) extension;
-						List<ResolvedJavaTypeInfo> additionalTypes = participant.getAdditionalTypes(baseType, previousPart, part, template);
+						List<ResolvedJavaTypeInfo> additionalTypes = participant.getAdditionalTypes(baseType,
+								previousPart, part, template);
 						if (additionalTypes != null) {
 							for (ResolvedJavaTypeInfo additionalType : additionalTypes) {
 								member = findPropertyWithJavaReflection(additionalType, part.getPartName());
@@ -1819,7 +1826,8 @@ public class QuteProject implements JavaTypeResolver {
 			for (ProjectExtension extension : getExtensions()) {
 				if (extension.isEnabled() && extension instanceof MemberResolutionParticipant) {
 					MemberResolutionParticipant participant = (MemberResolutionParticipant) extension;
-					List<ResolvedJavaTypeInfo> additionalTypes = participant.getAdditionalTypes(baseType, previousPart, part, template);
+					List<ResolvedJavaTypeInfo> additionalTypes = participant.getAdditionalTypes(baseType, previousPart,
+							part, template);
 					if (additionalTypes != null) {
 						for (ResolvedJavaTypeInfo additionalType : additionalTypes) {
 							member = findPropertyWithJavaReflection(additionalType, part.getPartName());
@@ -2214,7 +2222,8 @@ public class QuteProject implements JavaTypeResolver {
 			Map<String, String> properties = binaryTemplate.getProperties();
 			List<BinaryTemplate> templates = binaryTemplate.getTemplates();
 			for (BinaryTemplate template : templates) {
-				QuteBinaryTextDocument document = new QuteBinaryTextDocument(template, binaryName, properties, this);
+				QuteBinaryTextDocument document = new QuteBinaryTextDocument(template, binaryName, properties,
+						template.isAltSyntaxExpr() ? '=' : null, this);
 				registerBinaryDocument(document);
 			}
 		}
@@ -2296,5 +2305,24 @@ public class QuteProject implements JavaTypeResolver {
 
 	public String getFullyQualifiedName(String shortName) {
 		return javaCache.getFullyQualifiedName(shortName);
+	}
+
+	public String getConfig(PropertyConfig property) {
+		if (applicationProperties != null) {
+			return applicationProperties.getConfig(property);
+		}
+		return property.getDefaultValue();
+	}
+
+	public boolean getConfigAsBoolean(PropertyConfig property) {
+		String value = getConfig(property);
+		return "true".equals(value);
+	}
+
+	public Character getExpressionCommand() {
+		if (getConfigAsBoolean(ApplicationPropertiesProjectExtension.ALT_EXPR_SYNTAX)) {
+			return '=';
+		}
+		return null;
 	}
 }

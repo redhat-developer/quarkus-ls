@@ -58,11 +58,17 @@ public class Expression extends Node {
 	}
 
 	/**
-	 * Returns the start offset of the expression content (after '{')
+	 * Returns the start offset of the expression content (after '{' or '{=' for alternative syntax)
 	 *
-	 * @return the start offset of the expression content (after '{')
+	 * @return the start offset of the expression content (after '{' or '{=')
 	 */
 	public int getStartContentOffset() {
+		Character expressionCommand = getOwnerTemplate().getExpressionCommand();
+		if (expressionCommand != null) {
+			// Alternative syntax: {=foo} -> content starts after '{='
+			return getStart() + 2;
+		}
+		// Standard syntax: {foo} -> content starts after '{'
 		return getStart() + 1;
 	}
 
