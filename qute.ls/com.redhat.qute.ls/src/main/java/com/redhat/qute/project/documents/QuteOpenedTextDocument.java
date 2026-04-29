@@ -28,6 +28,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteProjectParams;
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.ls.api.QuteProjectInfoProvider;
 import com.redhat.qute.ls.commons.ModelTextDocument;
 import com.redhat.qute.ls.commons.TextDocument;
@@ -84,6 +85,8 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 
 	private String relativePath;
 
+	private TemplateRootPath templateRootPath;
+
 	public QuteOpenedTextDocument(TextDocumentItem document, BiFunction<TextDocument, CancelChecker, Template> parse,
 			QuteProjectInfoProvider projectInfoProvider, QuteProjectRegistry projectRegistry) {
 		super(document, parse);
@@ -94,6 +97,7 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 		if (project != null) {
 			this.projectUri = project.getUri();
 			this.templateId = project.getTemplateId(templatePath);
+			this.templateRootPath = project.findTemplateRootPathFor(templatePath);
 		}
 	}
 
@@ -136,6 +140,7 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 							QuteProject project = projectRegistry.getProject(projectInfo);
 							this.projectUri = projectInfo.getUri();
 							this.templateId = project.getTemplateId(templatePath);
+							templateRootPath = project.findTemplateRootPathFor(templatePath);
 							projectRegistry.onDidOpenTextDocument(this);
 							processCallVisitor(super.getModel(), project);
 						}
@@ -320,6 +325,20 @@ public class QuteOpenedTextDocument extends ModelTextDocument<Template> implemen
 			userTagName = QuteTextDocument.super.getUserTagName();
 		}
 		return userTagName;
+	}
+
+	@Override
+	public Character getExpressionCommand() {
+		if (templateRootPath != null && templateRootPath.getAltExprSyntax() != null) {
+			return templateRootPath.getAltExprSyntax() ? '=' : null;
+		}
+		QuteProject project = getProject();
+		return project != null ? project.getExpressionCommand() : null;
+	}
+	
+	@Override
+	public TemplateRootPath getTemplateRootPath() {
+		return templateRootPath;
 	}
 
 }

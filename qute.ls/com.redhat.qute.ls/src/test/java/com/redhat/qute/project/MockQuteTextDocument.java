@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import com.redhat.qute.commons.ProjectInfo;
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.Parameter;
 import com.redhat.qute.parser.template.Template;
@@ -203,4 +204,13 @@ public class MockQuteTextDocument implements QuteTextDocument {
 
 	}
 
+	@Override
+	public Character getExpressionCommand() {
+		return null;
+	}
+
+	@Override
+	public TemplateRootPath getTemplateRootPath() {
+		return null;
+	}
 }

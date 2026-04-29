@@ -184,8 +184,8 @@ public class QuteCompletions {
 				// {#| --> valid section
 				// {{#| --> invalid section
 				// {{{#| --> valid section
-
-				if (nbBrackets % 2 != 0) {
+				boolean altExprSyntax = template.getExpressionCommand() != null;
+				if (!altExprSyntax && nbBrackets % 2 != 0) {
 					// The completion is triggered in text node after bracket '{' character
 					return completionForExpression.doCompleteExpression(completionRequest, null, node, template, offset,
 							completionSettings, formattingSettings, nativeImagesSettings, cancelChecker);

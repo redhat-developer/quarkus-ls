@@ -165,9 +165,15 @@ public class QuteCapabilityManager {
 		watchers.add(new FileSystemWatcher(Either.forLeft("**/*.yaml")));
 		watchers.add(new FileSystemWatcher(Either.forLeft("**/*.yml")));
 		watchers.add(new FileSystemWatcher(Either.forLeft("**/*.txt")));
+		// application.properties
+		watchers.add(new FileSystemWatcher(Either.forLeft("**/application.properties")));
+		watchers.add(new FileSystemWatcher(Either.forLeft("**/application-*.properties")));
+		// .qute file used by template root to mark templates as alt expression syntaxe
+		// (ex: {=foo})
+		watchers.add(new FileSystemWatcher(Either.forLeft("**/.qute")));
 		// Renarde
 		watchers.add(new FileSystemWatcher(Either.forLeft("**/messages.properties")));
-		watchers.add(new FileSystemWatcher(Either.forLeft("**/messages*.properties")));
+		watchers.add(new FileSystemWatcher(Either.forLeft("**/messages_*.properties")));
 		DidChangeWatchedFilesRegistrationOptions options = new DidChangeWatchedFilesRegistrationOptions(watchers);
 		registerCapability(WORKSPACE_WATCHED_FILES_ID, WORKSPACE_WATCHED_FILES, options);
 	}

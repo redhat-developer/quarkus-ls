@@ -13,14 +13,11 @@ package com.redhat.qute.project.extensions.renarde;
 
 import static com.redhat.qute.services.diagnostics.DiagnosticDataFactory.createDiagnostic;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
@@ -56,7 +53,7 @@ import com.redhat.qute.project.extensions.DiagnosticsParticipant;
 import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
 import com.redhat.qute.project.extensions.HoverParticipant;
 import com.redhat.qute.project.extensions.InlayHintParticipant;
-import com.redhat.qute.project.extensions.renarde.MessagesFileInfo.MessagesFileName;
+import com.redhat.qute.project.extensions.ProjectExtensionContext;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.services.completions.CompletionRequest;
 import com.redhat.qute.settings.QuteCompletionSettings;
@@ -102,63 +99,29 @@ public class RenardeProjectExtension extends AbstractProjectExtension
 
 	private static final Logger LOGGER = Logger.getLogger(RenardeProjectExtension.class.getName());
 
-	private final List<MessagesFileInfo> messagesFileInfos;
+	private final MessagesFileRegistry messagesFileRegistry;
 	private Set<Path> sourcePaths;
 
 	public RenardeProjectExtension() {
 		super(RenardeConfig.PROJECT_FEATURE);
-		this.messagesFileInfos = new ArrayList<>();
+		this.messagesFileRegistry = new MessagesFileRegistry();
 	}
 
 	@Override
-	protected void init(ExtendedDataModelProject dataModelProject, boolean enabled) {
+	protected void initialize(ExtendedDataModelProject dataModelProject, boolean onLoad, boolean enabled,
+			ProjectExtensionContext context) {
 		// Check if the m: namespace resolver exists in the project
 		sourcePaths = dataModelProject.getSourcePaths();
 
 		if (!enabled) {
-			messagesFileInfos.clear();
+			messagesFileRegistry.clearFiles();
 			return;
 		}
 
 		// Scan project source folders for messages.properties files
-		if (messagesFileInfos.isEmpty()) {
-			scanMessagesFiles(dataModelProject.getSourcePaths());
-			messagesFileInfos.sort(null);
-		}
-	}
-
-	/**
-	 * Scans source folders for messages.properties files.
-	 * 
-	 * @param sourcePaths the source paths to scan
-	 */
-	private void scanMessagesFiles(Set<Path> sourcePaths) {
-		for (Path sourcePath : sourcePaths) {
-			try (Stream<Path> stream = Files.list(sourcePath)) {
-				stream.forEach(this::loadMessagesFile);
-			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Error scanning source folder: " + sourcePath, e);
-			}
-		}
-	}
-
-	/**
-	 * Loads a messages file if it matches the naming pattern.
-	 * 
-	 * @param filePath the file path to check and load
-	 */
-	private void loadMessagesFile(Path filePath) {
-		MessagesFileName messagesFileName = MessagesFileInfo.getMessagesFileName(filePath);
-		if (messagesFileName != null) {
-			try {
-				MessagesFileInfo messagesFile = new MessagesFileInfo(filePath, messagesFileName);
-				// TODO: improve default by reading 'quarkus.default-locale=en' from
-				// application.properties
-				messagesFile.setDefaultFile(messagesFile.getLocale() == null);
-				messagesFileInfos.add(messagesFile);
-			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Error loading messages file: " + filePath, e);
-			}
+		if (!messagesFileRegistry.hasFiles()) {
+			messagesFileRegistry.load(dataModelProject.getSourcePaths());
+			messagesFileRegistry.sortFiles(null);
 		}
 	}
 
@@ -169,7 +132,9 @@ public class RenardeProjectExtension extends AbstractProjectExtension
 	 * @return true if the key exists
 	 */
 	public boolean hasMessage(String messageKey) {
-		return messagesFileInfos.stream().anyMatch(info -> info.hasMessage(messageKey));
+		return messagesFileRegistry.getPropertiesFiles() //
+				.stream() //
+				.anyMatch(propertiesFile -> propertiesFile.hasMessage(messageKey));
 	}
 
 	/**
@@ -177,8 +142,8 @@ public class RenardeProjectExtension extends AbstractProjectExtension
 	 * 
 	 * @return the list of messages file info
 	 */
-	public List<MessagesFileInfo> getMessagesFileInfos() {
-		return messagesFileInfos;
+	public List<MessagesFile> getMessagesFiles() {
+		return messagesFileRegistry.getPropertiesFiles();
 	}
 
 	/**
@@ -186,22 +151,12 @@ public class RenardeProjectExtension extends AbstractProjectExtension
 	 * 
 	 * @return the default messages file info, or null if not found
 	 */
-	private MessagesFileInfo getDefaultMessagesFileInfo() {
-		return messagesFileInfos.stream().filter(MessagesFileInfo::isDefaultFile).findFirst().orElse(null);
-	}
-
-	/**
-	 * Finds a messages file info by filename.
-	 * 
-	 * @param name the filename to search for
-	 * @return the messages file info, or null if not found
-	 */
-	private MessagesFileInfo find(String name) {
-		return messagesFileInfos.stream().filter(info -> {
-			Path path = info.getMessagesFile();
-			String fileName = path.getName(path.getNameCount() - 1).toString();
-			return name.equals(fileName);
-		}).findFirst().orElse(null);
+	private MessagesFile getDefaultMessagesFile() {
+		return messagesFileRegistry.getPropertiesFiles() //
+				.stream()//
+				.filter(MessagesFile::isDefaultFile)//
+				.findFirst()//
+				.orElse(null);
 	}
 
 	/**
@@ -241,30 +196,9 @@ public class RenardeProjectExtension extends AbstractProjectExtension
 	// ========================
 
 	@Override
-	public boolean didChangeWatchedFile(Path filePath, Set<FileChangeType> changeTypes) {
-		MessagesFileName messagesFileName = MessagesFileInfo.getMessagesFileName(filePath, sourcePaths);
-		if (messagesFileName == null) {
-			return false;
-		}
-
-		MessagesFileInfo file = find(messagesFileName.getFileName());
-		boolean fileDeleted = changeTypes.contains(FileChangeType.Deleted);
-
-		try {
-			if (file != null) {
-				if (fileDeleted) {
-					messagesFileInfos.remove(file);
-				} else {
-					file.reload();
-				}
-			} else if (!fileDeleted) {
-				messagesFileInfos.add(new MessagesFileInfo(filePath, messagesFileName));
-			}
-			return true;
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error handling file change: " + filePath, e);
-			return false;
-		}
+	public boolean didChangeWatchedFile(Path filePath, Set<FileChangeType> changeTypes,
+			ProjectExtensionContext context) {
+		return messagesFileRegistry.didChangeWatchedFile(filePath, sourcePaths, changeTypes);
 	}
 
 	// ======================== DefinitionParticipant ========================
@@ -275,8 +209,8 @@ public class RenardeProjectExtension extends AbstractProjectExtension
 		String messageKey = getMessageKey(parts);
 
 		if (messageKey != null && hasMessage(messageKey)) {
-			for (MessagesFileInfo info : messagesFileInfos) {
-				String messagesFileUri = info.getMessagesFile().toUri().toASCIIString();
+			for (MessagesFile info : messagesFileRegistry.getPropertiesFiles()) {
+				String messagesFileUri = info.getPropertiesFile().toUri().toASCIIString();
 				Range originRange = QutePositionUtility.createRange(parts);
 
 				// TODO: Parse .properties file to find exact line number of the key
@@ -324,8 +258,8 @@ public class RenardeProjectExtension extends AbstractProjectExtension
 		boolean hasValue = false;
 
 		// Collect message values from all messages files (different locales)
-		for (MessagesFileInfo messagesFileInfo : messagesFileInfos) {
-			String value = (String) messagesFileInfo.getProperties().get(messageKey);
+		for (MessagesFile messagesFileInfo : messagesFileRegistry.getPropertiesFiles()) {
+			String value = (String) messagesFileInfo.getProperty(messageKey);
 			if (value != null) {
 				if (hasValue) {
 					doc.append("\n");
@@ -356,7 +290,7 @@ public class RenardeProjectExtension extends AbstractProjectExtension
 	 * @param doc              the string builder to append to
 	 * @param messagesFileInfo the messages file info
 	 */
-	private void appendLocaleInfo(StringBuilder doc, MessagesFileInfo messagesFileInfo) {
+	private void appendLocaleInfo(StringBuilder doc, MessagesFile messagesFileInfo) {
 		if (messagesFileInfo.isDefaultFile()) {
 			doc.append("default");
 		} else {
@@ -376,12 +310,12 @@ public class RenardeProjectExtension extends AbstractProjectExtension
 			return;
 		}
 
-		MessagesFileInfo defaultMessagesFileInfo = getDefaultMessagesFileInfo();
-		if (defaultMessagesFileInfo == null) {
+		MessagesFile defaultMessagesFile = getDefaultMessagesFile();
+		if (defaultMessagesFile == null) {
 			return;
 		}
 
-		String value = (String) defaultMessagesFileInfo.getProperties().get(messageKey);
+		String value = defaultMessagesFile.getProperty(messageKey);
 		if (value == null || value.isEmpty()) {
 			return;
 		}
@@ -413,8 +347,8 @@ public class RenardeProjectExtension extends AbstractProjectExtension
 
 		Range range = createRange(completionRequest, part, parts);
 
-		for (MessagesFileInfo messagesFileInfo : messagesFileInfos) {
-			messagesFileInfo.getProperties().forEach((k, v) -> {
+		for (MessagesFile messagesFile : messagesFileRegistry.getPropertiesFiles()) {
+			messagesFile.getProperties().forEach((k, v) -> {
 				String key = k.toString();
 				String value = v.toString();
 

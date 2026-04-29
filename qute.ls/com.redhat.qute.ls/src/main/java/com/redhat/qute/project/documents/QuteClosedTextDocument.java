@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.redhat.qute.commons.FileUtils;
+import com.redhat.qute.commons.TemplateRootPath;
 import com.redhat.qute.project.QuteProject;
 import com.redhat.qute.utils.IOUtils;
 
@@ -33,9 +34,12 @@ public class QuteClosedTextDocument extends QuteReadOnlyTextDocument {
 
 	private String relativePath;
 
+	private TemplateRootPath templateRootPath;
+
 	public QuteClosedTextDocument(Path templatePath, QuteProject project) {
 		super(FileUtils.toUri(templatePath), project.getTemplateId(templatePath), getContent(templatePath), project);
 		this.templatePath = templatePath;
+		this.templateRootPath = project.findTemplateRootPathFor(templatePath);
 	}
 
 	private static String getContent(Path templatePath) {
@@ -66,4 +70,16 @@ public class QuteClosedTextDocument extends QuteReadOnlyTextDocument {
 		return relativePath;
 	}
 
+	@Override
+	public Character getExpressionCommand() {
+		if (templateRootPath != null && templateRootPath.getAltExprSyntax() != null) {
+			return templateRootPath.getAltExprSyntax() ? '=' : null;
+		}
+		return getProject().getExpressionCommand();
+	}
+	
+	@Override
+	public TemplateRootPath getTemplateRootPath() {
+		return templateRootPath;
+	}
 }

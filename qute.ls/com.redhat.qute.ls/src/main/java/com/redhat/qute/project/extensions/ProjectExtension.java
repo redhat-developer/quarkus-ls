@@ -47,7 +47,7 @@ public interface ProjectExtension {
 	 * @param project the project containing metadata, source paths, and namespace
 	 *                resolvers
 	 */
-	void init(ExtendedDataModelProject project);
+	void initialize(ExtendedDataModelProject dataModelProject, ProjectExtensionContext context);
 
 	/**
 	 * Checks if this extension is enabled for the current project.

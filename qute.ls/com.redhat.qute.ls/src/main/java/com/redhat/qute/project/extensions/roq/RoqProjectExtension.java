@@ -51,6 +51,7 @@ import com.redhat.qute.project.extensions.DataModelTemplateParticipant;
 import com.redhat.qute.project.extensions.DidChangeWatchedFilesParticipant;
 import com.redhat.qute.project.extensions.MemberResolutionParticipant;
 import com.redhat.qute.project.extensions.ProjectExtension;
+import com.redhat.qute.project.extensions.ProjectExtensionContext;
 import com.redhat.qute.project.extensions.TemplateLanguageInjectionParticipant;
 import com.redhat.qute.project.extensions.roq.data.DataLoader;
 import com.redhat.qute.project.extensions.roq.data.RoqDataFile;
@@ -226,12 +227,13 @@ public class RoqProjectExtension extends AbstractProjectExtension
 	 * @param dataModelProject The project data model to extend
 	 */
 	@Override
-	protected void init(ExtendedDataModelProject dataModelProject, boolean enabled) {
+	protected void initialize(ExtendedDataModelProject dataModelProject, boolean onLoad, boolean enabled,
+			ProjectExtensionContext context) {
 		if (enabled) {
 			scanDataDir(dataModelProject);
 			contentDir = dataModelProject.getConfigAsPath(RoqConfig.SITE_CONTENT_DIR);
 
-			if (availableThemes == null) {
+			if (onLoad) {
 				// Find available themes
 				availableThemes = findAvailableThemes(dataModelProject.getBinaryDocuments());
 
@@ -240,20 +242,21 @@ public class RoqProjectExtension extends AbstractProjectExtension
 				// not initialized and
 				// template are parsed with INJECTOR_DETECTORS.
 				// We need to reparse all binary and opened templates.
-				reparseTemplates(dataModelProject);
+				reparseTemplates(dataModelProject, context);
 			}
 
 		} else {
 			// Roq not enabled - clear data directory
 			dataDir = null;
 		}
+
 	}
 
-	private static void reparseTemplates(ExtendedDataModelProject dataModelProject) {
+	private static void reparseTemplates(ExtendedDataModelProject dataModelProject, ProjectExtensionContext context) {
 		// Reparse opened source document
 		for (QuteTextDocument document : dataModelProject.getSourceDocuments()) {
 			if (!document.isUserTag() && document.isOpened()) {
-				document.reparseTemplate();
+				context.reparseTemplate(document);
 			}
 		}
 		// Reparse binary document
@@ -430,7 +433,8 @@ public class RoqProjectExtension extends AbstractProjectExtension
 	 * @return true if this extension handled the file, false otherwise
 	 */
 	@Override
-	public boolean didChangeWatchedFile(Path filePath, Set<FileChangeType> changeTypes) {
+	public boolean didChangeWatchedFile(Path filePath, Set<FileChangeType> changeTypes,
+			ProjectExtensionContext context) {
 		// Check if the file is in our data directory
 		if (dataDir != null && filePath.startsWith(dataDir)) {
 			var dataModelProject = getDataModelProject();
@@ -669,7 +673,8 @@ public class RoqProjectExtension extends AbstractProjectExtension
 	// ======================== MemberResolutionParticipant ========================
 
 	@Override
-	public List<ResolvedJavaTypeInfo> getAdditionalTypes(ResolvedJavaTypeInfo baseType, Part previousPart, Part part, Template template) {
+	public List<ResolvedJavaTypeInfo> getAdditionalTypes(ResolvedJavaTypeInfo baseType, Part previousPart, Part part,
+			Template template) {
 		return yamlFrontMatterSupport.getAdditionalTypes(baseType, previousPart, part, template);
 	}
 

@@ -110,9 +110,11 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 		this.quteLanguageService = quteLanguageService;
 		this.projectRegistry = quteLanguageService.getProjectRegistry();
 		this.openedDocuments = new QuteOpenedTextDocuments((document, cancelChecker) -> {
-			Collection<InjectionDetector> injectionDetectors = ((QuteOpenedTextDocument) document)
-					.getInjectionDetectors();
-			return TemplateParser.parse(document, injectionDetectors, () -> cancelChecker.checkCanceled());
+			QuteOpenedTextDocument openedDocument = (QuteOpenedTextDocument) document;
+			Collection<InjectionDetector> injectionDetectors = openedDocument.getInjectionDetectors();
+			Character expressionCommand = openedDocument.getExpressionCommand();
+			return TemplateParser.parse(document, expressionCommand, injectionDetectors,
+					() -> cancelChecker.checkCanceled());
 		}, projectInfoProvider, projectRegistry);
 		this.validatorDelayer = new ValidatorDelayer<ModelTextDocument<Template>>((template) -> {
 			triggerValidationFor((QuteTextDocument) template);

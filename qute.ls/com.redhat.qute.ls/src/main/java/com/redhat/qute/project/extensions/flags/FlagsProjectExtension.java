@@ -20,6 +20,7 @@ import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import com.redhat.qute.project.datamodel.ExtendedDataModelProject;
 import com.redhat.qute.project.datamodel.resolvers.MethodValueResolver;
 import com.redhat.qute.project.extensions.AbstractProjectExtension;
+import com.redhat.qute.project.extensions.ProjectExtensionContext;
 
 /**
  * Qute project extension for Flags integration.
@@ -46,7 +47,8 @@ public class FlagsProjectExtension extends AbstractProjectExtension {
 	}
 
 	@Override
-	protected void init(ExtendedDataModelProject dataModelProject, boolean enabled) {
+	protected void initialize(ExtendedDataModelProject dataModelProject, boolean onLoad, boolean enabled,
+			ProjectExtensionContext context) {
 		if (enabled) {
 			// register flag: namespace support
 			dataModelProject.registerNamespaceResolver(FLAG_NAMESPACE);
