@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>com.redhat.microprofile</groupId>
+  <artifactId>com.redhat.quarkus.ls</artifactId>
+  <versioning>
+    <lastUpdated>20260429090319</lastUpdated>
+    <snapshot>
+      <timestamp>20260429.090319</timestamp>
+      <buildNumber>1</buildNumber>
+    </snapshot>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>0.25.0-20260429.090319-1</value>
+        <updated>20260429090319</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>0.25.0-20260429.090319-1</value>
+        <updated>20260429090319</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <classifier>sources</classifier>
+        <extension>jar</extension>
+        <value>0.25.0-20260429.090319-1</value>
+        <updated>20260429090319</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+  <version>0.25.0-SNAPSHOT</version>
+</metadata>
