@@ -112,7 +112,7 @@ jobs:
       - name: Bump minor version if necessary
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run:
+        run: |
           for dir in quarkus.ls.ext/com.redhat.quarkus.ls qute.ls/com.redhat.qute.ls releng; do
             pushd ${dir}
             pomVersion=$(grep "<version>" pom.xml | head -1 | sed -e "s#.*<version>\\(.\\+\\)</version>.*#\\1#")
