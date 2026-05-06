@@ -51,10 +51,7 @@ public class RoqDataYamlDiagnosticsTest {
 				d(0, 8, 0, 16, QuteErrorCode.UndefinedObject, "`booksXXX` cannot be resolved to an object.", //
 						"qute", DiagnosticSeverity.Warning));
 		template = "{inject:books.listXXX}";
-		testDiagnosticsFor(template, //
-				d(0, 14, 0, 21, QuteErrorCode.UnknownProperty,
-						"`listXXX` cannot be resolved or is not a field of `null` Java type.", //
-						"qute", DiagnosticSeverity.Error));
+		testDiagnosticsFor(template);
 	}
 
 	@Test

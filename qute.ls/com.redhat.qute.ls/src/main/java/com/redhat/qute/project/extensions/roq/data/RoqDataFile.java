@@ -31,6 +31,7 @@ import com.redhat.qute.services.extensions.HoverExtensionProvider;
 import com.redhat.qute.services.hover.HoverRequest;
 import com.redhat.qute.utils.DocumentationUtils;
 import com.redhat.qute.utils.QutePositionUtility;
+import static com.redhat.qute.project.extensions.roq.JsonVertxConstants.IO_VERTX_CORE_JSON_JSON_OBJECT_CLASS;
 
 /**
  * Represents a Roq data file (YAML, JSON, etc.) as a top-level value resolver
@@ -157,6 +158,11 @@ public class RoqDataFile extends CustomValueResolver implements DefinitionExtens
 			dataLoader.load(this);
 		}
 	}
+	
+	@Override
+	public String getSignature() {
+		return getJavaElementType();
+	}
 
 	/**
 	 * Creates a clone of this data file with a different namespace.
@@ -181,7 +187,6 @@ public class RoqDataFile extends CustomValueResolver implements DefinitionExtens
 
 		// Copy the fields from this instance
 		resolver.setFields(getFields());
-		resolver.setSignature("name : Object");
 
 		return resolver;
 	}
@@ -201,19 +206,9 @@ public class RoqDataFile extends CustomValueResolver implements DefinitionExtens
 		return name;
 	}
 
-	/**
-	 * Returns the Java element type for this resolver.
-	 * 
-	 * <p>
-	 * Data files don't have a specific Java type (they're dynamic), so this returns
-	 * null. The actual types are in the individual fields.
-	 * </p>
-	 * 
-	 * @return null - no specific Java type
-	 */
 	@Override
 	public String getJavaElementType() {
-		return null;
+		return IO_VERTX_CORE_JSON_JSON_OBJECT_CLASS;
 	}
 
 	/**

@@ -204,6 +204,27 @@
 		},
 		// ------------- Vert.x Integration --------------
 		// See https://quarkus.io/guides/qute-reference#vertx_integration
+		// https://github.com/quarkusio/quarkus/blob/main/extensions/qute/runtime/src/main/java/io/quarkus/qute/runtime/jsonobject/JsonObjectValueResolver.java		
+		{
+			"signature": "fieldNames(base : io.vertx.core.json.JsonObject) : java.util.Set<java.lang.String>",
+			"url": "https://quarkus.io/guides/qute-reference#vertx_integration"
+		},
+		{
+			"signature": "fields(base : io.vertx.core.json.JsonObject) : java.util.Set<java.lang.String>",
+			"url": "https://quarkus.io/guides/qute-reference#vertx_integration"
+		},
+		{
+			"signature": "size(base : io.vertx.core.json.JsonObject) : int",
+			"url": "https://quarkus.io/guides/qute-reference#vertx_integration"
+		},
+		{
+			"signature": "empty(base : io.vertx.core.json.JsonObject) : boolean",
+			"url": "https://quarkus.io/guides/qute-reference#vertx_integration"
+		},
+		{
+			"signature": "isEmpty(base : io.vertx.core.json.JsonObject) : boolean",
+			"url": "https://quarkus.io/guides/qute-reference#vertx_integration"
+		},
 		{
 			"signature": "get(base : io.vertx.core.json.JsonObject, key : java.lang.String) : java.lang.Object",
 			"matchNames": [
@@ -213,6 +234,10 @@
 		},
 		{
 			"signature": "get(base : io.vertx.core.json.JsonObject, key : java.lang.String) : java.lang.Object",
+			"url": "https://quarkus.io/guides/qute-reference#vertx_integration"
+		},
+		{
+			"signature": "containsKey(base : io.vertx.core.json.JsonObject) : boolean",
 			"url": "https://quarkus.io/guides/qute-reference#vertx_integration"
 		}
 	]

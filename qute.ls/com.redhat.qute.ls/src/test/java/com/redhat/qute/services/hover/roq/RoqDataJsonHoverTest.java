@@ -40,7 +40,12 @@ public class RoqDataJsonHoverTest {
 	@Test
 	public void books_invalid() throws Exception {
 		String template = "{inject:books-json.li|s}";
-		assertHover(template, null, null);
+		assertHover(template, //
+				"```java" + System.lineSeparator() + //
+						"Object get()" + System.lineSeparator() + //
+						"```" + System.lineSeparator() + //
+						"See [here](https://quarkus.io/guides/qute-reference#vertx_integration) for more informations.", //
+				r(0, 19, 0, 22));
 	}
 
 	@Test

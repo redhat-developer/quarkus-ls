@@ -45,16 +45,30 @@ public class RoqDataJsonDiagnosticsTest {
 	}
 
 	@Test
+	public void validInjectDataFileWithJsonObjectValueResolver() throws Exception {
+		// https://github.com/quarkusio/quarkus/blob/main/extensions/qute/runtime/src/main/java/io/quarkus/qute/runtime/jsonobject/JsonObjectValueResolver.java
+
+		// data/books.yaml
+		String template = "{inject:books-json.get('foo')}";
+		testDiagnosticsFor(template);
+		template = "{inject:books-json.list}";
+		testDiagnosticsFor(template);
+
+		// data/sandwiches.yaml
+		template = "{inject:sandwiches}";
+		testDiagnosticsFor(template);
+		template = "{inject:sandwiches.sandwiches}";
+		testDiagnosticsFor(template);
+	}
+
+	@Test
 	public void invalidInjectDataFile() throws Exception {
 		String template = "{inject:books-jsonXXX}";
 		testDiagnosticsFor(template, //
 				d(0, 8, 0, 21, QuteErrorCode.UndefinedObject, "`books-jsonXXX` cannot be resolved to an object.", //
 						"qute", DiagnosticSeverity.Warning));
 		template = "{inject:books-json.listXXX}";
-		testDiagnosticsFor(template, //
-				d(0, 19, 0, 26, QuteErrorCode.UnknownProperty,
-						"`listXXX` cannot be resolved or is not a field of `null` Java type.", //
-						"qute", DiagnosticSeverity.Error));
+		testDiagnosticsFor(template);
 	}
 
 	@Test
@@ -81,7 +95,8 @@ public class RoqDataJsonDiagnosticsTest {
 	@Test
 	public void invalidInjectDataFileInForSection() throws Exception {
 		// With JsonObject signature, any property is valid via get() value resolver
-				// So b.titleXXX doesn't generate an error - it resolves to JsonObject.get("titleXXX")
+		// So b.titleXXX doesn't generate an error - it resolves to
+		// JsonObject.get("titleXXX")
 		String template = "{#for b in inject:books-json.list}\r\n" + //
 				"    {b.titleXXX}\r\n" + //
 				"{/for}";
@@ -92,7 +107,5 @@ public class RoqDataJsonDiagnosticsTest {
 		QuteAssert.testDiagnosticsFor(value, QuteAssert.FILE_URI, null, RoqProject.PROJECT_URI,
 				QuteAssert.TEMPLATE_BASE_DIR, false, null, expected);
 	}
-	
-	
 
 }
