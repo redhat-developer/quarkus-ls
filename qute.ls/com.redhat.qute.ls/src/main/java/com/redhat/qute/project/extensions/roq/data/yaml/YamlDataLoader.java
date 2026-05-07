@@ -25,8 +25,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.project.extensions.roq.data.RoqDataCollection;
 import com.redhat.qute.project.extensions.roq.data.DataLoader;
+import com.redhat.qute.project.extensions.roq.data.RoqDataCollection;
 import com.redhat.qute.project.extensions.roq.data.RoqDataField;
 import com.redhat.qute.project.extensions.roq.data.RoqDataFile;
 

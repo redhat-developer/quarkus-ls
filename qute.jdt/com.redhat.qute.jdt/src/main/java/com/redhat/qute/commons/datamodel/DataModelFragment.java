@@ -11,7 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.commons.datamodel;
 
-import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+import org.eclipse.lsp4j.jsonrpc.util.ToStringBuilder;
 
 /**
  * Data model fragment hosts informations about the expected data model

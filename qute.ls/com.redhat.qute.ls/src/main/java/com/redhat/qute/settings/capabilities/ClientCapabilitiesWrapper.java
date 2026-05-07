@@ -105,6 +105,10 @@ public class ClientCapabilitiesWrapper {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getRename());
 	}
 
+	public boolean isSemanticTokensDynamicRegistered() {
+		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getSemanticTokens());
+	}
+
 	private boolean isDynamicRegistrationSupported(DynamicRegistrationCapabilities capability) {
 		return capability != null && capability.getDynamicRegistration() != null
 				&& capability.getDynamicRegistration().booleanValue();

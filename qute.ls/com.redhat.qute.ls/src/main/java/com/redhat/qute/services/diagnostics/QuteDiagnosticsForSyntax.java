@@ -15,7 +15,6 @@ import static com.redhat.qute.services.diagnostics.DiagnosticDataFactory.createD
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.lsp4j.Diagnostic;

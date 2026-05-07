@@ -77,7 +77,6 @@ import com.redhat.qute.project.extensions.DiagnosticsParticipant;
 import com.redhat.qute.project.extensions.LanguageInjectionService;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagParameter;
-import com.redhat.qute.project.usages.IncludeUsages;
 import com.redhat.qute.services.diagnostics.CollectHtmlInputNamesVisitor;
 import com.redhat.qute.services.diagnostics.JavaBaseTypeOfPartData;
 import com.redhat.qute.services.diagnostics.QuteDiagnosticsForSyntax;
@@ -500,39 +499,10 @@ class QuteDiagnostics {
 				}
 
 				// Check if section tag is a parameter from an include section
-				Node parent = section.getParent();
-				while (parent != null) {
-					if (parent.getKind() == NodeKind.Section) {
-						Section parentSection = (Section) parent;
-						List<Parameter> parameters = project.findInsertTagParameter(parentSection, tagName);
-						if (parameters != null && !parameters.isEmpty()) {
-							// The parameter exists from the parent user tag / include section
-							return;
-						}
-					}
-					parent = parent.getParent();
-				}
-
-				// Check if section tag is a parameter from an include section
-				IncludeUsages includeUsages = project.getIncludeUsagesRegistry().getUsages(template.getTemplateId());
-				if (includeUsages != null) {
-					Set<String> includedByTemplateIds = includeUsages.getCallingTemplateIds();
-					for (String templateId : includedByTemplateIds) {
-						List<Parameter> parameters = project.findInsertTagParameter(templateId, tagName);
-						if (parameters != null && !parameters.isEmpty()) {
-							// The parameter exists
-							return;
-						}
-					}
-
-					Set<TemplatePath> includedByTemplatePaths = includeUsages.getCallingTemplatePaths();
-					for (TemplatePath templatePath : includedByTemplatePaths) {
-						List<Parameter> parameters = project.findInsertTagParameter(templatePath, tagName);
-						if (parameters != null && !parameters.isEmpty()) {
-							// The parameter exists
-							return;
-						}
-					}
+				List<Parameter> parameters = project.findInsertSlotParameter(section, tagName);
+				if (parameters != null && !parameters.isEmpty()) {
+					// The parameter exists
+					return;
 				}
 
 				DiagnosticSeverity severity = validationSettings.getUndefinedSectionTag().getDiagnosticSeverity();

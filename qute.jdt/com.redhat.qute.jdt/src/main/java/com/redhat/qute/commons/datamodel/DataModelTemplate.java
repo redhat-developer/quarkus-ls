@@ -14,7 +14,7 @@ package com.redhat.qute.commons.datamodel;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+import org.eclipse.lsp4j.jsonrpc.util.ToStringBuilder;
 
 /**
  * Data model template host informations about the expected data model

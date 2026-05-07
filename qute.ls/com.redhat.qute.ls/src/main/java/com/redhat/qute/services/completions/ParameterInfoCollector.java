@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.redhat.qute.commons.JavaFieldInfo;
-import com.redhat.qute.commons.JavaMemberInfo;
 import com.redhat.qute.commons.JavaMethodInfo;
 import com.redhat.qute.parser.template.ASTVisitor;
 import com.redhat.qute.parser.template.Node;

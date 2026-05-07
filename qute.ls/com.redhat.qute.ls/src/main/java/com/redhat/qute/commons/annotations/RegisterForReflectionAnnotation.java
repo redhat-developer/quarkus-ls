@@ -13,7 +13,7 @@ package com.redhat.qute.commons.annotations;
 
 import java.util.List;
 
-import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+import org.eclipse.lsp4j.jsonrpc.util.ToStringBuilder;
 
 /**
  * '@io.quarkus.runtime.annotations.RegisterForReflection' annotation

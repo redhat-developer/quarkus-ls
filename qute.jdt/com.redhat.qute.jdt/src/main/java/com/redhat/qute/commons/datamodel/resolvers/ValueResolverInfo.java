@@ -14,7 +14,7 @@ package com.redhat.qute.commons.datamodel.resolvers;
 import java.util.List;
 import java.util.Objects;
 
-import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+import org.eclipse.lsp4j.jsonrpc.util.ToStringBuilder;
 
 import com.redhat.qute.commons.JavaElementKind;
 

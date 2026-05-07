@@ -27,8 +27,8 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
-import com.redhat.qute.project.extensions.roq.data.RoqDataCollection;
 import com.redhat.qute.project.extensions.roq.data.DataLoader;
+import com.redhat.qute.project.extensions.roq.data.RoqDataCollection;
 import com.redhat.qute.project.extensions.roq.data.RoqDataField;
 import com.redhat.qute.project.extensions.roq.data.RoqDataFile;
 

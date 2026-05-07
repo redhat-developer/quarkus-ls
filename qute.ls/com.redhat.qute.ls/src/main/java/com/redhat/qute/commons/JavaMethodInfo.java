@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+import org.eclipse.lsp4j.jsonrpc.util.ToStringBuilder;
 
 import com.redhat.qute.commons.jaxrs.JaxRsMethodKind;
 import com.redhat.qute.commons.jaxrs.RestParam;

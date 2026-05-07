@@ -9,7 +9,7 @@
 *******************************************************************************/
 package com.redhat.qute.commons;
 
-import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+import org.eclipse.lsp4j.jsonrpc.util.ToStringBuilder;
 
 /**
  * Parameters required for generating a field, getter, or template extension in

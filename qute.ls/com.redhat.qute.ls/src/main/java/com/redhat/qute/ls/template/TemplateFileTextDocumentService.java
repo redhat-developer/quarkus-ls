@@ -52,6 +52,8 @@ import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.ReferenceParams;
 import org.eclipse.lsp4j.RenameParams;
+import org.eclipse.lsp4j.SemanticTokens;
+import org.eclipse.lsp4j.SemanticTokensParams;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentItem;
@@ -372,6 +374,13 @@ public class TemplateFileTextDocumentService extends AbstractTextDocumentService
 			return CompletableFuture.completedFuture(codeAction);
 		}
 		return getQuteLanguageService().resolveCodeAction(codeAction, languageClient);
+	}
+
+	@Override
+	public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
+		return getTemplateCompose(params.getTextDocument(), (template, cancelChecker) -> {
+			return getQuteLanguageService().getSemanticTokensFull(template, sharedSettings, cancelChecker);
+		});
 	}
 
 	private QuteLanguageService getQuteLanguageService() {

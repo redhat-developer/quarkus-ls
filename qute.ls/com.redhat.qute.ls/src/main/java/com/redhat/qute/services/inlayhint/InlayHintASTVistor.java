@@ -55,7 +55,6 @@ import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.services.ResolvingJavaTypeContext;
 import com.redhat.qute.settings.QuteInlayHintSettings;
 import com.redhat.qute.settings.SharedSettings;
-import com.redhat.qute.utils.StringUtils;
 
 /**
  * AST visitor used to show inferred Java type for section parameter as inlay

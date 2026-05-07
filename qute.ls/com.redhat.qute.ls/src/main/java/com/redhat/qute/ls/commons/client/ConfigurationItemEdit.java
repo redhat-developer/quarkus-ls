@@ -10,8 +10,7 @@
 package com.redhat.qute.ls.commons.client;
 
 import org.eclipse.lsp4j.ConfigurationItem;
-import org.eclipse.xtext.xbase.lib.Pure;
-import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+import org.eclipse.lsp4j.jsonrpc.util.ToStringBuilder;
 
 /**
  * Class representing a change to a client's config.
@@ -33,7 +32,6 @@ public class ConfigurationItemEdit extends ConfigurationItem {
 	}
 
 	@Override
-	@Pure
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("scopeUri", this.getScopeUri());

@@ -10,8 +10,7 @@
 package com.redhat.qute.ls.commons.client;
 
 import org.eclipse.lsp4j.DynamicRegistrationCapabilities;
-import org.eclipse.xtext.xbase.lib.Pure;
-import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+import org.eclipse.lsp4j.jsonrpc.util.ToStringBuilder;
 
 /**
  * Extended capabilities for client commands.
@@ -37,8 +36,7 @@ public class CommandCapabilities extends DynamicRegistrationCapabilities {
 		this.commandsKind = commandsKind;
 	}
 
-	public CommandCapabilities(final CommandKindCapabilities commandsKind,
-			final Boolean dynamicRegistration) {
+	public CommandCapabilities(final CommandKindCapabilities commandsKind, final Boolean dynamicRegistration) {
 		super(dynamicRegistration);
 		this.commandsKind = commandsKind;
 	}
@@ -51,7 +49,6 @@ public class CommandCapabilities extends DynamicRegistrationCapabilities {
 	 * Specific capabilities for the `CommandKind` in the `textDocument/commands`
 	 * request.
 	 */
-	@Pure
 	public CommandKindCapabilities getCommandKind() {
 		return this.commandsKind;
 	}
@@ -65,7 +62,6 @@ public class CommandCapabilities extends DynamicRegistrationCapabilities {
 	}
 
 	@Override
-	@Pure
 	public String toString() {
 		ToStringBuilder b = new ToStringBuilder(this);
 		b.add("commandsKind", this.commandsKind);
@@ -74,7 +70,6 @@ public class CommandCapabilities extends DynamicRegistrationCapabilities {
 	}
 
 	@Override
-	@Pure
 	public boolean equals(final Object obj) {
 		if (this == obj)
 			return true;
@@ -94,7 +89,6 @@ public class CommandCapabilities extends DynamicRegistrationCapabilities {
 	}
 
 	@Override
-	@Pure
 	public int hashCode() {
 		return 31 * super.hashCode() + ((this.commandsKind == null) ? 0 : this.commandsKind.hashCode());
 	}

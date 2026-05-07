@@ -11,7 +11,7 @@
 *******************************************************************************/
 package com.redhat.qute.commons;
 
-import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+import org.eclipse.lsp4j.jsonrpc.util.ToStringBuilder;
 
 /**
  * Java method parameter or type parameter (generic) information.

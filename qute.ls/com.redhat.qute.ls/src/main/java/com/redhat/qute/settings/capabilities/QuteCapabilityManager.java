@@ -16,6 +16,7 @@ import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.COMPLETION_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_CODELENS_OPTIONS;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_DOCUMENT_LINK_OPTIONS;
+import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_SEMANTIC_TOKENS_OPTIONS;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DOCUMENT_DEFINITION_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DOCUMENT_HIGHLIGHT_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DOCUMENT_LINK_ID;
@@ -25,6 +26,7 @@ import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.LINKED_EDITING_RANGE_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.REFERENCES_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.RENAME_ID;
+import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.SEMANTIC_TOKENS_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_CODE_ACTION;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_CODE_LENS;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_COMPLETION;
@@ -37,6 +39,7 @@ import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_LINKED_EDITING_RANGE;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_REFERENCES;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_RENAME;
+import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_SEMANTIC_TOKENS;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.WORKSPACE_EXECUTE_COMMAND;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.WORKSPACE_EXECUTE_COMMAND_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.WORKSPACE_WATCHED_FILES;
@@ -152,6 +155,11 @@ public class QuteCapabilityManager {
 			registerCapability(INLAY_HINT_ID, TEXT_DOCUMENT_INLAY_HINT, new InlayHintRegistrationOptions(),
 					QuteLanguageIds.QUTE_ALL);
 		}
+		if (this.getClientCapabilities().isSemanticTokensDynamicRegistered()) {
+			// Semantic tokens is only available for Qute templates
+			registerCapability(SEMANTIC_TOKENS_ID, TEXT_DOCUMENT_SEMANTIC_TOKENS, DEFAULT_SEMANTIC_TOKENS_OPTIONS,
+					QuteLanguageIds.QUTE_ALL);
+		}
 		if (this.getClientCapabilities().isDidChangeWatchedFilesRegistered()) {
 			registerWatchedFiles();
 		}
@@ -198,9 +206,11 @@ public class QuteCapabilityManager {
 		if (registeredCapabilities.add(id)) {
 			if (languageIds != null && languageIds.length > 0) {
 				List<DocumentFilter> documentSelector = new ArrayList<>();
-				((TextDocumentRegistrationOptions) options).setDocumentSelector(documentSelector);
 				for (String languageId : languageIds) {
 					documentSelector.add(new DocumentFilter(languageId, null, null));
+				}
+				if (options instanceof TextDocumentRegistrationOptions) {
+					((TextDocumentRegistrationOptions) options).setDocumentSelector(documentSelector);
 				}
 			}
 			Registration registration = new Registration(id, method, options);

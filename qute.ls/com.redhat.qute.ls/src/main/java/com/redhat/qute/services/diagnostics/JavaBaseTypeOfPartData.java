@@ -9,7 +9,7 @@
 *******************************************************************************/
 package com.redhat.qute.services.diagnostics;
 
-import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+import org.eclipse.lsp4j.jsonrpc.util.ToStringBuilder;
 
 /**
  * The Java base type (signature) data for a given part.

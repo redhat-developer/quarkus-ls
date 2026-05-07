@@ -31,6 +31,7 @@ import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.ReferenceContext;
+import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
@@ -71,6 +72,7 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	private final QuteLinkedEditing linkedEditing;
 	private final QuteReference reference;
 	private final QuteRename rename;
+	private final QuteSemanticTokens semanticTokens;
 	private final QuteSymbolsProvider symbolsProvider;
 	private final QuteTemplateCodeActionResolvers codeActionResolvers;
 
@@ -90,6 +92,7 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 		this.linkedEditing = new QuteLinkedEditing();
 		this.reference = new QuteReference();
 		this.rename = new QuteRename();
+		this.semanticTokens = new QuteSemanticTokens();
 		this.symbolsProvider = new QuteSymbolsProvider();
 		this.codeActionResolvers = new QuteTemplateCodeActionResolvers();
 	}
@@ -306,6 +309,19 @@ public class QuteLanguageService implements SnippetRegistryProvider<Snippet> {
 	public CompletableFuture<CodeAction> resolveCodeAction(CodeAction unresolved,
 			QuteTemplateJavaTextEditProvider javaTextEditProvider) {
 		return codeActionResolvers.resolveCodeAction(unresolved, javaTextEditProvider);
+	}
+
+	/**
+	 * Returns semantic tokens for the full document.
+	 *
+	 * @param template      the Qute template.
+	 * @param settings      the shared settings.
+	 * @param cancelChecker the cancel checker.
+	 * @return semantic tokens for the full document.
+	 */
+	public CompletableFuture<SemanticTokens> getSemanticTokensFull(Template template, SharedSettings settings,
+			CancelChecker cancelChecker) {
+		return semanticTokens.getSemanticTokensFull(template, settings, cancelChecker);
 	}
 
 	/**

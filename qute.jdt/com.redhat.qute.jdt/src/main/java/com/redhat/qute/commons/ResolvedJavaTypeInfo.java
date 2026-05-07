@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+import org.eclipse.lsp4j.jsonrpc.util.ToStringBuilder;
 
 import com.redhat.qute.commons.annotations.RegisterForReflectionAnnotation;
 import com.redhat.qute.commons.annotations.TemplateDataAnnotation;

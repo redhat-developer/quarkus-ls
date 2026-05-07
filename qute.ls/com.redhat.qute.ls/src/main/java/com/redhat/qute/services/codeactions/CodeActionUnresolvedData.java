@@ -13,7 +13,7 @@ package com.redhat.qute.services.codeactions;
 
 import java.util.Objects;
 
-import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+import org.eclipse.lsp4j.jsonrpc.util.ToStringBuilder;
 
 /**
  * Represents data that is attached to a CodeAction that's required in order to

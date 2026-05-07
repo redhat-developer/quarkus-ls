@@ -24,7 +24,8 @@ public enum ValueResolverKind {
 	TemplateGlobal(5), //
 	InjectedBean(6), //
 	Message(7), //
-	Renarde(8);
+	Renarde(8), //
+	File(9);
 
 	private final int value;
 

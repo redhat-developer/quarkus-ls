@@ -49,6 +49,8 @@ import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.ReferenceParams;
 import org.eclipse.lsp4j.RenameParams;
+import org.eclipse.lsp4j.SemanticTokens;
+import org.eclipse.lsp4j.SemanticTokensParams;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
@@ -290,6 +292,15 @@ public class QuteTextDocumentService implements TextDocumentService, TemplateVal
 			if (service != null) {
 				return service.resolveCodeAction(codeAction);
 			}
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
+		AbstractTextDocumentService service = getTextDocumentService(params.getTextDocument());
+		if (service != null) {
+			return service.semanticTokensFull(params);
 		}
 		return CompletableFuture.completedFuture(null);
 	}

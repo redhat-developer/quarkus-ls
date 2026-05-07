@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -65,6 +66,7 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.ReferenceContext;
 import org.eclipse.lsp4j.ResourceOperation;
+import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.TextDocumentEdit;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
@@ -1276,6 +1278,125 @@ public class QuteAssert {
 		List<TextEdit> actual = Arrays.asList(response.getStart(), response.getEnd());
 		assertEquals(expected.size(), actual.size());
 		assertArrayEquals(expected.toArray(), actual.toArray());
+	}
+
+	// ------------------- Semantic Tokens assert
+
+	/**
+	 * Helper class to represent a semantic token.
+	 */
+	public static class SemanticToken {
+		public final int line;
+		public final int startChar;
+		public final int length;
+		public final String tokenType;
+		public final int modifiers;
+
+		public SemanticToken(int line, int startChar, int length, String tokenType, int modifiers) {
+			this.line = line;
+			this.startChar = startChar;
+			this.length = length;
+			this.tokenType = tokenType;
+			this.modifiers = modifiers;
+		}
+	}
+
+	/**
+	 * Create a semantic token for testing.
+	 */
+	public static SemanticToken st(int line, int startChar, int length, String tokenType, int modifiers) {
+		return new SemanticToken(line, startChar, length, tokenType, modifiers);
+	}
+
+	/**
+	 * Test semantic tokens for a given template.
+	 */
+	public static void testSemanticTokensFor(String value, SemanticToken... expectedTokens) throws Exception {
+		testSemanticTokensFor(value, FILE_URI, PROJECT_URI, TEMPLATE_BASE_DIR, expectedTokens);
+	}
+
+	/**
+	 * Test semantic tokens for a given template.
+	 */
+	public static void testSemanticTokensFor(String value, String fileUri, String projectUri, String templateBaseDir,
+			SemanticToken... expectedTokens) throws Exception {
+
+		QuteProjectRegistry projectRegistry = new MockQuteProjectRegistry();
+		Template template = createTemplate(value, fileUri, projectUri, templateBaseDir, Collections.emptyList(), projectRegistry);
+
+		QuteLanguageService languageService = new QuteLanguageService(projectRegistry);
+		SharedSettings settings = new SharedSettings();
+
+		SemanticTokens tokens = languageService.getSemanticTokensFull(template, settings, () -> {
+		}).get();
+
+		assertSemanticTokens(tokens, expectedTokens);
+	}
+
+	/**
+	 * Assert that the actual semantic tokens match the expected tokens.
+	 */
+	private static void assertSemanticTokens(SemanticTokens actual, SemanticToken... expected) {
+		if (expected.length == 0) {
+			// No tokens expected
+			assertTrue(actual == null || actual.getData() == null || actual.getData().isEmpty(),
+					"Expected no semantic tokens but found: " + actual);
+			return;
+		}
+
+		assertNotNull(actual, "Expected semantic tokens but found none");
+		List<Integer> data = actual.getData();
+		assertNotNull(data, "Expected semantic tokens data but found none");
+
+		// Decode delta-encoded tokens
+		List<SemanticToken> decodedTokens = decodeSemanticTokens(data);
+
+		assertEquals(expected.length, decodedTokens.size(),
+				"Expected " + expected.length + " tokens but found " + decodedTokens.size());
+
+		for (int i = 0; i < expected.length; i++) {
+			SemanticToken exp = expected[i];
+			SemanticToken act = decodedTokens.get(i);
+
+			assertEquals(exp.line, act.line, "Token " + i + " line mismatch");
+			assertEquals(exp.startChar, act.startChar, "Token " + i + " startChar mismatch");
+			assertEquals(exp.length, act.length, "Token " + i + " length mismatch");
+			assertEquals(exp.tokenType, act.tokenType, "Token " + i + " tokenType mismatch");
+			assertEquals(exp.modifiers, act.modifiers, "Token " + i + " modifiers mismatch");
+		}
+	}
+
+	/**
+	 * Decode delta-encoded semantic tokens.
+	 */
+	private static List<SemanticToken> decodeSemanticTokens(List<Integer> data) {
+		List<SemanticToken> tokens = new ArrayList<>();
+		int currentLine = 0;
+		int currentChar = 0;
+
+		// Get the legend from QuteSemanticTokenType
+		List<String> tokenTypes = com.redhat.qute.services.semantictokens.QuteSemanticTokenType.TOKEN_TYPES;
+
+		for (int i = 0; i < data.size(); i += 5) {
+			int deltaLine = data.get(i);
+			int deltaChar = data.get(i + 1);
+			int length = data.get(i + 2);
+			int tokenTypeIdx = data.get(i + 3);
+			int modifiers = data.get(i + 4);
+
+			if (deltaLine > 0) {
+				currentLine += deltaLine;
+				currentChar = deltaChar;
+			} else {
+				currentChar += deltaChar;
+			}
+
+			String tokenType = tokenTypes.get(tokenTypeIdx);
+
+			tokens.add(new SemanticToken(currentLine, currentChar, length, tokenType, modifiers));
+		}
+
+		return tokens;
 	}
 
 	// ------------------- Utilities

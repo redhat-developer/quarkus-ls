@@ -56,6 +56,8 @@ public class TemplateRootPath {
 
 	private boolean namespacedTagSupported;
 
+	private Boolean altExprSyntax;
+
 	private transient Path basePath;
 
 	private transient Path tagsDir;
@@ -115,9 +117,27 @@ public class TemplateRootPath {
 	}
 
 	/**
+	 * Returns the alternative expression syntax configuration from .qute file.
+	 *
+	 * @return true if enabled via .qute, false if disabled via .qute, null if no .qute file
+	 */
+	public Boolean getAltExprSyntax() {
+		return altExprSyntax;
+	}
+
+	/**
+	 * Sets the alternative expression syntax configuration from .qute file.
+	 *
+	 * @param altExprSyntax true to enable, false to disable, null if no .qute file
+	 */
+	public void setAltExprSyntax(Boolean altExprSyntax) {
+		this.altExprSyntax = altExprSyntax;
+	}
+
+	/**
 	 * Returns the base path of the template root path (ex
 	 * :src/main/resources/templates) and null otherwise.
-	 * 
+	 *
 	 * @return the base path of the template root path (ex
 	 *         :src/main/resources/templates) and null otherwise.
 	 */

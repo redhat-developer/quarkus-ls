@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+import org.eclipse.lsp4j.jsonrpc.util.ToStringBuilder;
 
 /**
  * Java type information for:
@@ -48,8 +48,6 @@ public class JavaTypeInfo extends JavaElementInfo {
 	private Map<String /* invalid method name */, InvalidMethodReason> invalidMethods;
 
 	private transient String iterableOf;
-
-	private transient Boolean isIterable;
 
 	/**
 	 * Returns the fully qualified name of the Java type with type parameters.

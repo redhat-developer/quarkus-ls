@@ -15,6 +15,7 @@ import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_CODE_ACTION_OPTIONS;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_COMPLETION_OPTIONS;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_DOCUMENT_LINK_OPTIONS;
+import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DEFAULT_SEMANTIC_TOKENS_OPTIONS;
 
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
@@ -60,6 +61,9 @@ public class ServerCapabilitiesInitializer {
 		serverCapabilities.setLinkedEditingRangeProvider(!clientCapabilities.isLinkedEditingRangeDynamicRegistered());
 		serverCapabilities.setInlayHintProvider(!clientCapabilities.isInlayHintDynamicRegistered());
 		serverCapabilities.setRenameProvider(!clientCapabilities.isRenameDynamicRegistered());
+		if (!clientCapabilities.isSemanticTokensDynamicRegistered()) {
+			serverCapabilities.setSemanticTokensProvider(DEFAULT_SEMANTIC_TOKENS_OPTIONS);
+		}
 		return serverCapabilities;
 	}
 }

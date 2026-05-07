@@ -19,6 +19,10 @@ import org.eclipse.lsp4j.CodeActionOptions;
 import org.eclipse.lsp4j.CodeLensOptions;
 import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.DocumentLinkOptions;
+import org.eclipse.lsp4j.SemanticTokensLegend;
+import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
+
+import com.redhat.qute.services.semantictokens.QuteSemanticTokenType;
 
 /**
  * Server Capabilities Constants
@@ -43,6 +47,7 @@ public class ServerCapabilitiesConstants {
 	public static final String TEXT_DOCUMENT_REFERENCES = "textDocument/references";
 	public static final String TEXT_DOCUMENT_RENAME = "textDocument/rename";
 	public static final String TEXT_DOCUMENT_INLAY_HINT = "textDocument/inlayHint";
+	public static final String TEXT_DOCUMENT_SEMANTIC_TOKENS = "textDocument/semanticTokens";
 	/* workspace/... */
 	public static final String WORKSPACE_EXECUTE_COMMAND = "workspace/executeCommand";
 	public static final String WORKSPACE_WATCHED_FILES = "workspace/didChangeWatchedFiles";
@@ -64,16 +69,27 @@ public class ServerCapabilitiesConstants {
 	public static final String WORKSPACE_EXECUTE_COMMAND_ID = UUID.randomUUID().toString();
 	public static final String WORKSPACE_WATCHED_FILES_ID = UUID.randomUUID().toString();
 	public static final String INLAY_HINT_ID = UUID.randomUUID().toString();
-
+	public static final String SEMANTIC_TOKENS_ID = UUID.randomUUID().toString();
 	/* Default Options */
 	public static final CodeLensOptions DEFAULT_CODELENS_OPTIONS = new CodeLensOptions();
 	public static final CompletionOptions DEFAULT_COMPLETION_OPTIONS = new CompletionOptions(false,
 			Arrays.asList("{", "@", "#", ".", ":", "$", "!"));
 	public static final DocumentLinkOptions DEFAULT_DOCUMENT_LINK_OPTIONS = new DocumentLinkOptions(true);
 	public static final CodeActionOptions DEFAULT_CODE_ACTION_OPTIONS = new CodeActionOptions();
+	public static final SemanticTokensWithRegistrationOptions DEFAULT_SEMANTIC_TOKENS_OPTIONS;
+
 	static {
 		DEFAULT_CODE_ACTION_OPTIONS.setCodeActionKinds(Arrays.asList(CodeActionKind.QuickFix, CodeActionKind.Empty));
 		DEFAULT_CODE_ACTION_OPTIONS.setResolveProvider(true);
+
+		SemanticTokensWithRegistrationOptions semanticTokensOptions = new SemanticTokensWithRegistrationOptions();
+		SemanticTokensLegend legend = new SemanticTokensLegend();
+		legend.setTokenTypes(QuteSemanticTokenType.TOKEN_TYPES);
+		legend.setTokenModifiers(QuteSemanticTokenType.TOKEN_MODIFIERS);
+		semanticTokensOptions.setLegend(legend);
+		semanticTokensOptions.setFull(true);
+		DEFAULT_SEMANTIC_TOKENS_OPTIONS = semanticTokensOptions;
+
 	}
 
 }

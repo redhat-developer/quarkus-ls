@@ -69,6 +69,8 @@ import com.redhat.qute.parser.expression.Part;
 import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.LiteralSupport;
 import com.redhat.qute.parser.template.Parameter;
+import com.redhat.qute.parser.template.Node;
+import com.redhat.qute.parser.template.NodeKind;
 import com.redhat.qute.parser.template.Section;
 import com.redhat.qute.parser.template.SectionKind;
 import com.redhat.qute.parser.template.Template;
@@ -104,6 +106,7 @@ import com.redhat.qute.project.extensions.TemplateLanguageInjectionParticipant;
 import com.redhat.qute.project.extensions.config.ApplicationPropertiesProjectExtension;
 import com.redhat.qute.project.tags.UserTag;
 import com.redhat.qute.project.tags.UserTagRegistry;
+import com.redhat.qute.project.usages.IncludeUsages;
 import com.redhat.qute.project.usages.IncludeUsagesRegistry;
 import com.redhat.qute.services.QuteCompletableFutures;
 import com.redhat.qute.services.completions.CompletionRequest;
@@ -615,6 +618,55 @@ public class QuteProject implements JavaTypeResolver {
 			}
 		}
 		return findInsertTagParameter(templatePath.getTemplateId(), insertParamater);
+	}
+
+	/**
+	 * Finds insert tag parameters from the context of a given section.
+	 *
+	 * This method searches for insert tag parameters in two places:
+	 * 1. Parent sections (user tags or include sections)
+	 * 2. Templates that include the current template
+	 *
+	 * @param section the section to search from
+	 * @param tagName the name of the insert tag parameter
+	 * @return the list of parameters if found, null otherwise
+	 */
+	public List<Parameter> findInsertSlotParameter(Section section, String tagName) {
+		// Check if section tag is a parameter from a parent section
+		Node parent = section.getParent();
+		while (parent != null) {
+			if (parent.getKind() == NodeKind.Section) {
+				Section parentSection = (Section) parent;
+				List<Parameter> parameters = findInsertTagParameter(parentSection, tagName);
+				if (parameters != null && !parameters.isEmpty()) {
+					return parameters;
+				}
+			}
+			parent = parent.getParent();
+		}
+
+		// Check if section tag is a parameter from an include section
+		Template template = section.getOwnerTemplate();
+		IncludeUsages includeUsages = getIncludeUsagesRegistry().getUsages(template.getTemplateId());
+		if (includeUsages != null) {
+			Set<String> includedByTemplateIds = includeUsages.getCallingTemplateIds();
+			for (String templateId : includedByTemplateIds) {
+				List<Parameter> parameters = findInsertTagParameter(templateId, tagName);
+				if (parameters != null && !parameters.isEmpty()) {
+					return parameters;
+				}
+			}
+
+			Set<TemplatePath> includedByTemplatePaths = includeUsages.getCallingTemplatePaths();
+			for (TemplatePath templatePath : includedByTemplatePaths) {
+				List<Parameter> parameters = findInsertTagParameter(templatePath, tagName);
+				if (parameters != null && !parameters.isEmpty()) {
+					return parameters;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	public List<Section> findCustomSectionsByTag(String tag) {
