@@ -60,6 +60,7 @@ public class ServerCapabilitiesInitializer {
 		serverCapabilities.setReferencesProvider(!clientCapabilities.isReferencesDynamicRegistrationSupported());
 		serverCapabilities.setLinkedEditingRangeProvider(!clientCapabilities.isLinkedEditingRangeDynamicRegistered());
 		serverCapabilities.setInlayHintProvider(!clientCapabilities.isInlayHintDynamicRegistered());
+		serverCapabilities.setInlineCompletionProvider(!clientCapabilities.isInlineCompletionDynamicRegistered());
 		serverCapabilities.setRenameProvider(!clientCapabilities.isRenameDynamicRegistered());
 		if (!clientCapabilities.isSemanticTokensDynamicRegistered()) {
 			serverCapabilities.setSemanticTokensProvider(DEFAULT_SEMANTIC_TOKENS_OPTIONS);
