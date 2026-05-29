@@ -23,6 +23,7 @@ import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.DOCUMENT_SYMBOL_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.HOVER_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.INLAY_HINT_ID;
+import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.INLINE_COMPLETION_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.LINKED_EDITING_RANGE_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.REFERENCES_ID;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.RENAME_ID;
@@ -36,6 +37,7 @@ import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_HIGHLIGHT;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_HOVER;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_INLAY_HINT;
+import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_INLINE_COMPLETION;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_LINKED_EDITING_RANGE;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_REFERENCES;
 import static com.redhat.qute.settings.capabilities.ServerCapabilitiesConstants.TEXT_DOCUMENT_RENAME;
@@ -65,6 +67,7 @@ import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.FileSystemWatcher;
 import org.eclipse.lsp4j.HoverRegistrationOptions;
 import org.eclipse.lsp4j.InlayHintRegistrationOptions;
+import org.eclipse.lsp4j.InlineCompletionRegistrationOptions;
 import org.eclipse.lsp4j.LinkedEditingRangeRegistrationOptions;
 import org.eclipse.lsp4j.ReferenceRegistrationOptions;
 import org.eclipse.lsp4j.Registration;
@@ -153,6 +156,11 @@ public class QuteCapabilityManager {
 		if (this.getClientCapabilities().isInlayHintDynamicRegistered()) {
 			// Inlay Hint is only available for Qute templates
 			registerCapability(INLAY_HINT_ID, TEXT_DOCUMENT_INLAY_HINT, new InlayHintRegistrationOptions(),
+					QuteLanguageIds.QUTE_ALL);
+		}
+		if (this.getClientCapabilities().isInlineCompletionDynamicRegistered()) {
+			// Inline Completion is only available for Qute templates
+			registerCapability(INLINE_COMPLETION_ID, TEXT_DOCUMENT_INLINE_COMPLETION, new InlineCompletionRegistrationOptions(),
 					QuteLanguageIds.QUTE_ALL);
 		}
 		if (this.getClientCapabilities().isSemanticTokensDynamicRegistered()) {

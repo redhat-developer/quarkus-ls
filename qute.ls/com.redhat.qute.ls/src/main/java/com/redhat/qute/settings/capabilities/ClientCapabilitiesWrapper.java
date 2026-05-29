@@ -101,6 +101,10 @@ public class ClientCapabilitiesWrapper {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getInlayHint());
 	}
 
+	public boolean isInlineCompletionDynamicRegistered() {
+		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getInlineCompletion());
+	}
+
 	public boolean isRenameDynamicRegistered() {
 		return v3Supported && isDynamicRegistrationSupported(getTextDocument().getRename());
 	}
