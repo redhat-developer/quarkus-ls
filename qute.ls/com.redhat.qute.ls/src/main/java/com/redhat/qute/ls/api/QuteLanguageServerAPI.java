@@ -12,10 +12,10 @@
 package com.redhat.qute.ls.api;
 
 import org.eclipse.lsp4j.jsonrpc.services.JsonNotification;
-import org.eclipse.lsp4j.services.LanguageServer;
 
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
+import com.redhat.qute.ls.commons.ParentProcessWatcher.ProcessLanguageServer;
 
 /**
  * Qute language server API.
@@ -23,7 +23,9 @@ import com.redhat.qute.commons.datamodel.JavaDataModelChangeEvent;
  * @author Angelo ZERR
  *
  */
-public interface QuteLanguageServerAPI extends LanguageServer {
+public interface QuteLanguageServerAPI extends ProcessLanguageServer, QuteProjectInfoProvider, QuteJavaTypesProvider,
+		QuteResolvedJavaTypeProvider, QuteJavaDefinitionProvider, QuteDataModelProjectProvider,
+		QuteBinaryTemplateProvider, QuteJavadocProvider, QuteTemplateProvider {
 
 	/**
 	 * Notification for Qute data model changed which occurs when:
@@ -38,7 +40,7 @@ public interface QuteLanguageServerAPI extends LanguageServer {
 	 */
 	@JsonNotification("qute/dataModelChanged")
 	void dataModelChanged(JavaDataModelChangeEvent event);
-	
+
 	/**
 	 * Notification received when a Qute project is added in the workspace.
 	 * 

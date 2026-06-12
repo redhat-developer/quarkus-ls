@@ -24,7 +24,9 @@ import org.eclipse.lsp4j.launch.LSPLauncher.Builder;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageServer;
 
+import com.redhat.lsp4j.mcp.server.McpLanguageServerWrapper;
 import com.redhat.qute.ls.api.QuteLanguageClientAPI;
+import com.redhat.qute.ls.api.QuteLanguageServerAPI;
 import com.redhat.qute.ls.commons.ParentProcessWatcher;
 
 /**
@@ -50,18 +52,42 @@ public class QuteServerLauncher {
 	 */
 	public static void main(String[] args) {
 		QuteLanguageServer server = new QuteLanguageServer();
+
+		// Create MCP wrapper for the Language Server
+		// This handles everything automatically:
+		// - Wraps TextDocumentService for didOpen/didClose tracking
+		// - Wraps WorkspaceService for didChangeConfiguration interception
+		// - Wraps LanguageClient for publishDiagnostics interception
+		// - Starts MCP server based on "qute.mcp.port" setting
+		// - Restarts MCP server on didChangeConfiguration if port changes
+		// - Stops MCP server on shutdown
+		McpLanguageServerWrapper.McpWrapper<QuteLanguageServerAPI> mcpWrapper =
+			McpLanguageServerWrapper.create(
+				QuteLanguageServerAPI.class,
+				server,
+				"qute.mcp.port"
+			);
+
+		QuteLanguageServerAPI wrappedServer = mcpWrapper.getWrappedServer();
+
 		Function<MessageConsumer, MessageConsumer> wrapper;
 		wrapper = it -> it;
 		if ("true".equals(System.getProperty("runAsync"))) {
 			wrapper = it -> msg -> CompletableFuture.runAsync(() -> it.consume(msg));
 		}
 		if (!"false".equals(System.getProperty("watchParentProcess"))) {
-			wrapper = new ParentProcessWatcher(server, wrapper);
+			wrapper = new ParentProcessWatcher(wrappedServer, wrapper);
 		}
-		Launcher<LanguageClient> launcher = createServerLauncher(server, System.in, System.out,
+		Launcher<LanguageClient> launcher = createServerLauncher(wrappedServer, System.in, System.out,
 				Executors.newCachedThreadPool(), wrapper);
 
-		server.setClient(launcher.getRemoteProxy());
+		// Wrap the client and set it on the server
+		QuteLanguageClientAPI wrappedClient = mcpWrapper.wrapClient(
+			QuteLanguageClientAPI.class,
+			(QuteLanguageClientAPI) launcher.getRemoteProxy()
+		);
+		server.setClient(wrappedClient);
+
 		launcher.startListening();
 	}
 
