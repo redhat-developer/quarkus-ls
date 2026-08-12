@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -32,6 +34,7 @@ import org.eclipse.lsp4j.ResourceOperation;
 import org.eclipse.lsp4j.ResourceOperationKind;
 import org.eclipse.lsp4j.TextDocumentEdit;
 import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.SnippetTextEdit;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceClientCapabilities;
 import org.eclipse.lsp4j.WorkspaceEdit;
@@ -317,7 +320,11 @@ public class TemplateGenerateMissingJavaMemberTest {
 	public static TextDocumentEdit tde(String uri, int version, TextEdit... te) {
 		VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier(uri,
 				version);
-		return new TextDocumentEdit(versionedTextDocumentIdentifier, Arrays.asList(te));
+		List<Either<TextEdit, SnippetTextEdit>> edits = new ArrayList<>();
+		for (TextEdit edit : te) {
+			edits.add(Either.forLeft(edit));
+		}
+		return new TextDocumentEdit(versionedTextDocumentIdentifier, edits);
 	}
 
 	// ------------------- TextEdit assert

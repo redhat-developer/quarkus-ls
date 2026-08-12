@@ -64,6 +64,7 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.ResourceOperation;
 import org.eclipse.lsp4j.TextDocumentEdit;
 import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.SnippetTextEdit;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -467,7 +468,7 @@ public class TemplateGenerateMissingJavaMember {
 		String cuContent = constructCUContent(cu, typeStub, lineDelimiter);
 		TextDocumentEdit tde = new TextDocumentEdit();
 		tde.setTextDocument(new VersionedTextDocumentIdentifier(uri, 0));
-		tde.setEdits(Arrays.asList(new TextEdit(PREPEND_RANGE, cuContent)));
+		tde.setEdits(Arrays.asList(Either.<TextEdit, SnippetTextEdit>forLeft(new TextEdit(PREPEND_RANGE, cuContent))));
 		return tde;
 	}
 

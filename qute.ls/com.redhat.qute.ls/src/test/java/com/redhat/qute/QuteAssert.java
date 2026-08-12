@@ -67,6 +67,7 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.ReferenceContext;
 import org.eclipse.lsp4j.ResourceOperation;
 import org.eclipse.lsp4j.SemanticTokens;
+import org.eclipse.lsp4j.SnippetTextEdit;
 import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.TextDocumentEdit;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
@@ -564,8 +565,10 @@ public class QuteAssert {
 	public static void assertDiagnostics(List<Diagnostic> actual, List<Diagnostic> expected, boolean filter) {
 		List<Diagnostic> received = actual;
 		final boolean filterMessage;
-		if (expected != null && !expected.isEmpty() && !StringUtils.isEmpty(expected.get(0).getMessage())) {
-			filterMessage = true;
+		if (expected != null && !expected.isEmpty()) {
+			Either<String, MarkupContent> message = expected.get(0).getMessage();
+			String messageText = (message != null && message.isLeft()) ? message.getLeft() : null;
+			filterMessage = !StringUtils.isEmpty(messageText);
 		} else {
 			filterMessage = false;
 		}
@@ -1071,7 +1074,11 @@ public class QuteAssert {
 	public static TextDocumentEdit tde(String uri, int version, TextEdit... te) {
 		VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier(uri,
 				version);
-		return new TextDocumentEdit(versionedTextDocumentIdentifier, Arrays.asList(te));
+		List<Either<TextEdit, SnippetTextEdit>> edits = new ArrayList<>();
+		for (TextEdit edit : te) {
+			edits.add(Either.forLeft(edit));
+		}
+		return new TextDocumentEdit(versionedTextDocumentIdentifier, edits);
 	}
 
 	public static CodeAction ca(Diagnostic d, Either<TextDocumentEdit, ResourceOperation>... ops) {
@@ -1099,7 +1106,7 @@ public class QuteAssert {
 	public static Either<TextDocumentEdit, ResourceOperation> teOp(String uri, int startLine, int startChar,
 			int endLine, int endChar, String newText) {
 		return Either.forLeft(new TextDocumentEdit(new VersionedTextDocumentIdentifier(uri, 0),
-				Collections.singletonList(te(startLine, startChar, endLine, endChar, newText))));
+				Collections.singletonList(Either.<TextEdit, SnippetTextEdit>forLeft(te(startLine, startChar, endLine, endChar, newText)))));
 	}
 
 	// ------------------- Reference assert

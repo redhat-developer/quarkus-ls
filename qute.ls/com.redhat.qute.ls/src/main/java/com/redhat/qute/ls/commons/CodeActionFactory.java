@@ -27,6 +27,7 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.ResourceOperation;
+import org.eclipse.lsp4j.SnippetTextEdit;
 import org.eclipse.lsp4j.TextDocumentEdit;
 import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.TextEdit;
@@ -97,7 +98,11 @@ public class CodeActionFactory {
 	public static TextDocumentEdit insertEdits(TextDocumentItem document, List<TextEdit> edits) {
 		VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier(
 				document.getUri(), document.getVersion());
-		return new TextDocumentEdit(versionedTextDocumentIdentifier, edits);
+		List<Either<TextEdit, SnippetTextEdit>> wrappedEdits = new ArrayList<>();
+		for (TextEdit edit : edits) {
+			wrappedEdits.add(Either.forLeft(edit));
+		}
+		return new TextDocumentEdit(versionedTextDocumentIdentifier, wrappedEdits);
 	}
 
 	public static CodeAction replace(String title, Range range, String replaceText, TextDocumentItem document,
@@ -115,7 +120,11 @@ public class CodeActionFactory {
 
 		VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier(
 				document.getUri(), document.getVersion());
-		TextDocumentEdit textDocumentEdit = new TextDocumentEdit(versionedTextDocumentIdentifier, replace);
+		List<Either<TextEdit, SnippetTextEdit>> wrappedEdits = new ArrayList<>();
+		for (TextEdit edit : replace) {
+			wrappedEdits.add(Either.forLeft(edit));
+		}
+		TextDocumentEdit textDocumentEdit = new TextDocumentEdit(versionedTextDocumentIdentifier, wrappedEdits);
 		WorkspaceEdit workspaceEdit = new WorkspaceEdit(Collections.singletonList(Either.forLeft(textDocumentEdit)));
 		insertContentAction.setEdit(workspaceEdit);
 		return insertContentAction;
@@ -129,10 +138,10 @@ public class CodeActionFactory {
 
 		VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier(
 				document.getUri(), document.getVersion());
-		List<TextEdit> edits = new ArrayList<>();
+		List<Either<TextEdit, SnippetTextEdit>> edits = new ArrayList<>();
 		for (Range range : ranges) {
 			TextEdit edit = new TextEdit(range, replaceText);
-			edits.add(edit);
+			edits.add(Either.forLeft(edit));
 		}
 		TextDocumentEdit textDocumentEdit = new TextDocumentEdit(versionedTextDocumentIdentifier, edits);
 		WorkspaceEdit workspaceEdit = new WorkspaceEdit(Collections.singletonList(Either.forLeft(textDocumentEdit)));
@@ -159,7 +168,7 @@ public class CodeActionFactory {
 		// 2. update the created file with the given content
 		VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier(docURI, 0);
 		TextEdit te = new TextEdit(new Range(new Position(0, 0), new Position(0, 0)), content);
-		actionsToTake.add(Either.forLeft(new TextDocumentEdit(identifier, Collections.singletonList(te))));
+		actionsToTake.add(Either.forLeft(new TextDocumentEdit(identifier, Collections.singletonList(Either.<TextEdit, SnippetTextEdit>forLeft(te)))));
 
 		WorkspaceEdit createAndAddContentEdit = new WorkspaceEdit(actionsToTake);
 
