@@ -1,5 +1,21 @@
 # Quarkus extension for MicroProfile Language Server Changelog
 
+## [0.25.0](https://github.com/redhat-developer/quarkus-ls/milestone/29?closed=1) (24 August. 2026)
+
+### Enhancements
+ * Qute semantic tokens support. See [#1167](https://github.com/redhat-developer/quarkus-ls/pull/1167).
+ * Retrigger Qute completion when `=` is typed. See [#1165](https://github.com/redhat-developer/quarkus-ls/pull/1165).
+ * Support for Qute alternative syntax expression. See [#1163](https://github.com/redhat-developer/quarkus-ls/pull/1163).
+
+### Bug Fixes
+ * Roq Data file should return io.vertx.core.json.JsonObject as Java type. See [#1166](https://github.com/redhat-developer/quarkus-ls/pull/1166).
+
+### Build
+ * Migrate to lsp4j 1.0.0. See [#1171](https://github.com/redhat-developer/quarkus-ls/issues/1171).
+ * Use `maven.compiler.release` instead of source and target. See [#1097](https://github.com/redhat-developer/quarkus-ls/issues/1097).
+ * Automatically bump the minor version after releasing. See [#1162](https://github.com/redhat-developer/quarkus-ls/pull/1162).
+ * Fix Qute JDT test. See [#1160](https://github.com/redhat-developer/quarkus-ls/pull/1160).
+
 ## [0.24.0](https://github.com/redhat-developer/quarkus-ls/milestone/28?closed=1) (April 27, 2026)
 
 ### Enhancements
