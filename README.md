@@ -10,3 +10,4 @@ This project contains:
  * [Quarkus extensions to lsp4mp](https://github.com/redhat-developer/quarkus-ls/tree/master/quarkus.ls.ext)
 
 You can build both projects at once by running the `buildAll.sh` script (`buildAll.bat` on Windows).
+
