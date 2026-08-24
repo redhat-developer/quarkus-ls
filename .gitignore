@@ -1,6 +1,10 @@
 # Created by https://www.gitignore.io/api/java,maven,eclipse
 # Edit at https://www.gitignore.io/?templates=java,maven,eclipse
 
+# Added by the release job, but shouldn't be committed
+mvn-repo/
+**/.jbang
+
 ### Eclipse ###
 .metadata
 bin/

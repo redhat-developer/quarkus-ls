@@ -135,5 +135,5 @@ jobs:
           done
           git config --global user.email "quarkus-ls-bot@users.noreply.github.com"
           git config --global user.name "quarkus-ls-bot"
-          git commit -m "Bump minor version after release"
+          git commit -am "Bump minor version after release"
           git push origin master
