@@ -1,0 +1,3 @@
+# MCP Tool classes - no interface required, just annotate methods with @Tool
+com.redhat.lsp4j.mcp.tools.lsp.LspGetDiagnosticsTool
+com.redhat.lsp4j.mcp.tools.lsp.LspGetCodeActionsTool
