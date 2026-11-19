@@ -10,16 +10,16 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <tycho.version>4.0.10</tycho.version>
+    <tycho.version>5.0.4</tycho.version>
     <tycho.extras.version>${tycho.version}</tycho.extras.version>
     <tycho.scmUrl>scm:git:https://github.com/redhat-developer/quarkus-ls</tycho.scmUrl>
     <tycho.generateSourceReferences>true</tycho.generateSourceReferences>
     <tycho.test.platformArgs />
     <tycho.test.jvmArgs>-Xmx4G -DDetectVMInstallationsJob.disabled=true ${tycho.test.platformArgs}</tycho.test.jvmArgs>
-    <lsp4mp.p2.url>https://download.eclipse.org/lsp4mp/snapshots/0.18.0/repository/</lsp4mp.p2.url>
+    <lsp4mp.p2.url>https://download.eclipse.org/lsp4mp/snapshots/0.19.0/repository/</lsp4mp.p2.url>
 
     <!-- Code coverage -->
-    <jacoco.version>0.8.8</jacoco.version>
+    <jacoco.version>0.8.16</jacoco.version>
     <coverage.filter>com.redhat.microprofile.jdt.*</coverage.filter>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <jacoco.destFile>${project.build.directory}/jacoco.exec</jacoco.destFile>
