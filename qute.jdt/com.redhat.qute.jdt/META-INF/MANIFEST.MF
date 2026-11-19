@@ -17,7 +17,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jdt.core.manipulation,
  org.eclipse.xtext.xbase.lib,
  org.eclipse.lsp4mp.jdt.core
-Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-RequiredExecutionEnvironment: JavaSE-25
 Bundle-ActivationPolicy: lazy
 Export-Package: com.redhat.qute.commons,
  com.redhat.qute.commons.annotations,
