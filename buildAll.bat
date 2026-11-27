@@ -1,3 +1,4 @@
+cd lsp4j-mcp && .\mvnw.cmd clean install && cd .. ^
 cd quarkus.jdt.ext && .\mvnw.cmd clean verify && cd .. ^
 cd quarkus.ls.ext\com.redhat.quarkus.ls && .\mvnw.cmd clean verify && cd .. ^
 cd qute.jdt && .\mvnw.cmd clean verify && cd .. ^

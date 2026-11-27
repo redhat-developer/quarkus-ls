@@ -19,10 +19,10 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.redhat.qute.commons.JavaFieldInfo;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
 import com.redhat.qute.project.extensions.roq.data.DataLoader;
@@ -127,7 +127,7 @@ public class YamlDataLoader implements DataLoader {
 		List<JavaFieldInfo> fields = new ArrayList<>();
 
 		// Iterate over all entries in the YAML map
-		objectNode.fields().forEachRemaining(entry -> {
+		objectNode.properties().forEach(entry -> {
 			String fieldName = entry.getKey(); // YAML key becomes field name
 			JsonNode value = entry.getValue(); // YAML value determines type
 
